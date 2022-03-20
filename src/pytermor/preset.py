@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# pytermor [ANSI formatted terminal output toolset]
+# (C) 2022 A. Shavykin <0.delameter@gmail.com>
+# ------------------------------------------------------------------------------
 from pytermor.format import Format
 from pytermor.sequence import SGRSequence
 

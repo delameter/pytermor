@@ -25,13 +25,13 @@ set-version: ## set new package version
 	if [ -z $$VERSION ] ; then echo "No changes" && return 0 ; fi
 	if [ ! -f .env ] ; then cp -u .env.dist .env ; fi
 	sed -E -i "s/^VERSION.+/VERSION=$$VERSION/" .env
-	sed -E -i "s/^version.+/version = $$VERSION/" setup.cfg
+	sed -E -ib "s/^version.+/version = $$VERSION/" setup.cfg
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
 
 build: ## build module
 	python3 -m build
+	sed -E -i "s/^VERSION.+/VERSION=$$VERSION/" .env.dist
 
-##
 ## Test repository
 
 upload-dev: ## upload module to test repository
@@ -43,7 +43,6 @@ install-dev: ## install module from test repository
 release-dev: ## build, upload and install using test repository
 release-dev: cleanup build upload-dev install-dev
 
-##
 ## Primary repository
 
 upload: ## upload module
@@ -54,5 +53,3 @@ install: ## install module
 
 release: ## build, upload and install module
 release: cleanup build upload install
-
-##
