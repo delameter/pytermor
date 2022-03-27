@@ -4,27 +4,20 @@ https://github.com/delameter/pytermor
 
 ## Use cases
 
-<table>
-<tr><td width="1000px" colspan=2>
-  <h3>Simple text coloring</h3>
-</td></tr> 
-<tr><th>Code</th><td>
+<table><tr>
+ <td><h3>Simple text coloring</h3></td>
+ <td><img src="./doc/use-case-1.png"/></td>
+</tr><tr><td colspan=2 width="1000px">
 
 ```python
 from pytermor.preset import fmt_green
 
 print(fmt_green('Success'))
 ```
-</td></tr><tr><th>Output</th>
-<td>
-  <img src="./doc/use-case-1.png"/>
-</td>
-</tr>
-  <tr></tr>
-<tr><td width="1000px" colspan=2>
-  <h3>Format overlapping</h3>
-</td></tr> 
-<tr><th>Code</th><td>
+</td></tr><tr>
+ <td><h3>Format overlapping</h3></td>
+ <td><img src="./doc/use-case-2.png"/></td>
+</tr><tr><td colspan=2>
 
 ```python
 from pytermor.preset import fmt_green, fmt_underline
@@ -32,14 +25,11 @@ from pytermor.preset import fmt_green, fmt_underline
 msg = fmt_green('Build ' + fmt_underline('complete') + ' in 14.88 seconds')
 print(msg)
 ```
-</td></tr><tr><th>Output</th>
-<td>
-  <img src="./doc/use-case-2.png"/>
-</td>
-</tr></table>
+</td></tr><tr>
+ <td><h3>Flexible definitions</h3></td>
+ <td><img src="./doc/use-case-3.png"/></td>
+</tr><tr><td colspan=2>
 
-  
-### Flexible definitions
 ```python
 from pytermor import build, Format, RESET
 from pytermor.preset import UNDERLINED
@@ -53,9 +43,11 @@ msg = f'{seq_date}06-Mar-2022:{RESET} ' + \
       f' Servers down'
 print(msg)
 ```
-<img src="./doc/use-case-3.png"/>
+</td></tr><tr>
+ <td><h3>Custom formats</h3></td>
+ <td><img src="./doc/use-case-4.png"/></td>
+</tr><tr><td colspan=2>
 
-### Custom formats
 ```python
 from pytermor.preset import *
 
@@ -64,9 +56,11 @@ fmt_error = Format(RED + CROSSLINED + BOLD,
 msg = fmt_error('Error') + Format(HI_RED + INVERSED, RESET)('Panic!')
 print(msg)
 ```
-<img src="./doc/use-case-4.png"/>
+</td></tr><tr>
+ <td><h3>Fine tuning</h3></td>
+ <td><img src="./doc/use-case-5.png"/></td>
+</tr><tr><td colspan=2>
 
-### Fine tuning
 ```python
 from pytermor.preset import fmt_inverse, fmt_underline
 
@@ -76,9 +70,11 @@ msg = f'{fmt_inverse.open}inversed' \
       f'{fmt_underline.close}'
 print(msg)
 ```
-<img src="./doc/use-case-5.png"/>
+</td></tr><tr>
+ <td><h3>Low-level inlines</h3></td>
+ <td><img src="./doc/use-case-6.png"/></td>
+</tr><tr><td colspan=2>
 
-### Low-level inlines
 ```python
 from pytermor.preset import *
 
@@ -88,9 +84,11 @@ msg = f'{GREEN}green;' \
       f'{RESET}default'
 print(msg)
 ```
-<img src="./doc/use-case-6.png"/>
+</td></tr><tr>
+ <td><h3>8-bit color mode support</h3></td>
+ <th rowspan=2><img src="./doc/use-case-7.png"/></th>
+</tr><tr><td>
 
-### 8-bit color mode support
 ```python
 from pytermor import build_text256, RESET
 
@@ -100,8 +98,8 @@ print(''.join([
     for i in range(0, 256)
 ]))
 ```
-<img src="./doc/use-case-7.png"/>
-
+</td></tr></table>
+<br>
 
 ## API | `SGRSequence` class
 
