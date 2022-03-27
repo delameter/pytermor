@@ -1,7 +1,7 @@
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # pytermor [ANSI formatted terminal output toolset]
 # (C) 2022 A. Shavykin <0.delameter@gmail.com>
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 import re
 from typing import Callable, AnyStr
 
@@ -34,5 +34,5 @@ class ReplaceCSISequences(StringFilter):
 
 # keep [0x00 - 0x7f], replace if greater than 0x7f
 class ReplaceNonAsciiBytes(StringFilter):
-    def __init__(self, repl: AnyStr = '?'):
-        super().__init__(lambda s: re.sub(r'[\x80-\xff]', repl, s))
+    def __init__(self, repl: bytes = b'?'):
+        super().__init__(lambda s: re.sub(b'[\x80-\xff]', repl, s))
