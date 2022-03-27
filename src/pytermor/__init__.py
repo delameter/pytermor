@@ -7,10 +7,10 @@ import re
 from functools import reduce
 from typing import AnyStr, Union, Type
 
-from pytermor.format import Format
-from pytermor.sequence import SGRSequence
-from pytermor.preset import RESET, MODE8_START, BG_MODE8_START
-from pytermor.string_filter import StringFilter
+from .format import Format
+from .sequence import SGRSequence
+from .preset import RESET, MODE8_START, BG_MODE8_START
+from .string_filter import StringFilter
 
 
 def build(*args: Union[int, str]):

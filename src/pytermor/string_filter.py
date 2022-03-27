@@ -15,11 +15,10 @@ class StringFilter:
 
 
 class ReplaceSGRSequences(StringFilter):
-    def __init__(self, repl: AnyStr = '.'):
+    def __init__(self, repl: AnyStr = ''):
         super().__init__(lambda s: re.sub(r'\033\[([0-9;:<=>?]*)([@A-Za-z])', repl, s))
 
 
 class ReplaceNonAsciiCharacters(StringFilter):
-    def __init__(self, repl: AnyStr = '.'):
+    def __init__(self, repl: AnyStr = '?'):
         super().__init__(lambda s: re.sub(r'[^\x00-\x7f]', repl, s))
-

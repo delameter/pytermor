@@ -36,7 +36,6 @@ from pytermor.preset import BOLD, RED, HI_RED, RESET
 
 fmt_error = Format(RED + BOLD, reset=True)
 print(fmt_error('Error'))
-
 print(Format(HI_RED + BOLD, RESET)('Panic!'))
 ```
 
@@ -44,23 +43,20 @@ print(Format(HI_RED + BOLD, RESET)('Panic!'))
 ```python
 from pytermor.preset import fmt_inverse, fmt_underline
 
-msg = '{}inversed {}and{} underlined{}'.format(
-    fmt_inverse.open,
-    fmt_underline.open,
-    fmt_inverse.close,
-    fmt_underline.close
-)
+msg = f'{fmt_inverse.open}inversed'
+      f'{fmt_underline.open} and'
+      f'{fmt_inverse.close} underlined'
+      f'{fmt_underline.close}'
 print(msg)
 ```
 
 ### Low-level inlines
 ```python
-from pytermor.preset import GREEN, UNDERLINE, RESET
+from pytermor.preset import GREEN, UNDERLINED, UNDERLINED_OFF, RESET
 
-msg = '{}green; {}underlined; {}clean'.format(
-    GREEN.str,
-    UNDERLINE.str,
-    RESET.str
-)
+msg = f'{GREEN.str}green;'
+      f'{UNDERLINED.str}underlined;'
+      f'{UNDERLINED_OFF.str}green;'
+      f'{RESET.str}default'
 print(msg)
 ```

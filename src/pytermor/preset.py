@@ -2,9 +2,8 @@
 # pytermor [ANSI formatted terminal output toolset]
 # (C) 2022 A. Shavykin <0.delameter@gmail.com>
 # ------------------------------------------------------------------------------
-from pytermor.format import Format
-from pytermor.sequence import SGRSequence
-
+from .format import Format
+from .sequence import SGRSequence
 
 # -----------------------------------------------------------------------------
 # Select Graphic Rendition control sequences
@@ -88,7 +87,7 @@ BG_HI_WHITE = SGRSequence(107)
 # 73-75: superscript and subscript
 
 # -----------------------------------------------------------------------------
-# SGR sequences combined into text formats
+# SGR sequences combined into togglable text formats
 
 fmt_bold = Format(BOLD, DIM_BOLD_OFF)
 fmt_dim = Format(DIM, DIM_BOLD_OFF)
