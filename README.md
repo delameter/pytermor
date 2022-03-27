@@ -4,23 +4,41 @@ https://github.com/delameter/pytermor
 
 ## Use cases
 
-### Simple text coloring
+<table>
+<tr><td width="1000px" colspan=2>
+  <h3>Simple text coloring</h3>
+</td></tr> 
+<tr><th>Code</th><td>
+
 ```python
 from pytermor.preset import fmt_green
 
 print(fmt_green('Success'))
 ```
-<img src="./doc/use-case-1.png"/>
+</td></tr><tr><th>Output</th>
+<td>
+  <img src="./doc/use-case-1.png"/>
+</td>
+</tr>
+  <tr></tr>
+<tr><td width="1000px" colspan=2>
+  <h3>Format overlapping</h3>
+</td></tr> 
+<tr><th>Code</th><td>
 
-### Format overlapping
 ```python
 from pytermor.preset import fmt_green, fmt_underline
 
 msg = fmt_green('Build ' + fmt_underline('complete') + ' in 14.88 seconds')
 print(msg)
 ```
-<img src="./doc/use-case-2.png"/>
+</td></tr><tr><th>Output</th>
+<td>
+  <img src="./doc/use-case-2.png"/>
+</td>
+</tr></table>
 
+  
 ### Flexible definitions
 ```python
 from pytermor import build, Format, RESET
