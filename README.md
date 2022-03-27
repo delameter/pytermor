@@ -1,6 +1,6 @@
 # pytermor
 
-https://github.com/delameter/pytermor
+@TODO
 
 ## Use cases
 
@@ -181,7 +181,7 @@ print(f'{BLACK}{BG_HI_GREEN}', 'Example text', str(RESET))
  <td>
 
 You can define your own reusable formats or import predefined ones from `pytermor.preset`:
-</td><th>
+</td><th width="70%">
  <img src="./doc/example-2-1.png"/>
  </th>
 </tr>
@@ -212,7 +212,7 @@ Example: we are given a text span which is initially **bold** and <u>underlined<
  <td>
 
 However, there is an option to specify what attributes should be disabled (instead of disabling _all_ of them):
-</td><th>
+</td><th width="50%">
  <img src="./doc/example-2-2.png"/>
  </th>
 </tr>
