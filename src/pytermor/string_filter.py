@@ -11,14 +11,28 @@ class StringFilter:
         self._fn = fn
 
     def __call__(self, s: str):
+        return self.invoke(s)
+
+    def invoke(self, s: str):
         return self._fn(s)
 
 
+# find all SGR seqs (e.g. '\e[1;4m') and replace with given string
+# more specific version of ReplaceCSISequences
 class ReplaceSGRSequences(StringFilter):
+    def __init__(self, repl: AnyStr = ''):
+        super().__init__(lambda s: re.sub(r'\033\[([0-9;]*)(m)', repl, s))
+
+
+# less specific version of ReplaceSGRSequences,
+# as CSI consists of SGR and many other seq sub-types
+# find all CSI seqs (e.g. '\e[*') and replace with given string
+class ReplaceCSISequences(StringFilter):
     def __init__(self, repl: AnyStr = ''):
         super().__init__(lambda s: re.sub(r'\033\[([0-9;:<=>?]*)([@A-Za-z])', repl, s))
 
 
-class ReplaceNonAsciiCharacters(StringFilter):
+# keep [0x00 - 0x7f], replace if greater than 0x7f
+class ReplaceNonAsciiBytes(StringFilter):
     def __init__(self, repl: AnyStr = '?'):
-        super().__init__(lambda s: re.sub(r'[^\x00-\x7f]', repl, s))
+        super().__init__(lambda s: re.sub(r'[\x80-\xff]', repl, s))

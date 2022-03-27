@@ -25,7 +25,7 @@ set-version: ## set new package version
 	if [ -z $$VERSION ] ; then echo "No changes" && return 0 ; fi
 	if [ ! -f .env ] ; then cp -u .env.dist .env ; fi
 	sed -E -i "s/^VERSION.+/VERSION=$$VERSION/" .env
-	sed -E -ib "s/^version.+/version = $$VERSION/" setup.cfg
+	sed -E -i "s/^version.+/version = $$VERSION/" setup.cfg
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
 
 build: ## build module

@@ -24,7 +24,7 @@ class CSISequence(metaclass=abc.ABCMeta):
     def __str__(self) -> AnyStr: raise NotImplementedError
 
 
-# noinspection PyMethodMayBeStatic
+# CSI sequence sub-type
 class SGRSequence(CSISequence):
     TERMINATOR = 'm'
 
@@ -48,8 +48,9 @@ class SGRSequence(CSISequence):
         self._ensure_sequence(other)
         return SGRSequence(*self._params, *other._params)
 
+    # noinspection PyMethodMayBeStatic
     def _ensure_sequence(self, subject: Any):
         if not isinstance(subject, SGRSequence):
             raise TypeError(
-                f'Concatenating is allowed only for <SGRSequence> + <SGRSequence>, got {type(subject)}'
+                f'Add operation is allowed only for <SGRSequence> + <SGRSequence>, got {type(subject)}'
             )

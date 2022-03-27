@@ -4,9 +4,8 @@
 # ------------------------------------------------------------------------------
 from .format import Format
 from .sequence import SGRSequence
-
 # -----------------------------------------------------------------------------
-# Select Graphic Rendition control sequences
+# SGR = "Select Graphic Rendition", most common escape sequence variety
 
 RESET = SGRSequence(0)
 
@@ -41,7 +40,7 @@ BLUE = SGRSequence(34)
 MAGENTA = SGRSequence(35)
 CYAN = SGRSequence(36)
 WHITE = SGRSequence(37)
-MODE8_START = SGRSequence(38, 5)  # 3rd param required
+MODE8_START = SGRSequence(38, 5)  # 3rd param required (color)
 COLOR_OFF = SGRSequence(39)
 
 # background colors
@@ -53,7 +52,7 @@ BG_BLUE = SGRSequence(44)
 BG_MAGENTA = SGRSequence(45)
 BG_CYAN = SGRSequence(46)
 BG_WHITE = SGRSequence(47)
-BG_MODE8_START = SGRSequence(48, 5)  # 3rd param required
+BG_MODE8_START = SGRSequence(48, 5)  # 3rd param required (bg_color)
 BG_COLOR_OFF = SGRSequence(49)
 
 # high intensity text colors
@@ -87,9 +86,9 @@ BG_HI_WHITE = SGRSequence(107)
 # 73-75: superscript and subscript
 
 # -----------------------------------------------------------------------------
-# SGR sequences combined into togglable text formats
+# ready to use combined SGRs with "soft" format reset
 
-fmt_bold = Format(BOLD, DIM_BOLD_OFF)
+fmt_bold = Format(BOLD, DIM_BOLD_OFF) # noqa DuplicatedCode
 fmt_dim = Format(DIM, DIM_BOLD_OFF)
 fmt_italic = Format(ITALIC, ITALIC_OFF)
 fmt_underline = Format(UNDERLINED, UNDERLINED_OFF)
@@ -99,8 +98,8 @@ fmt_overline = Format(OVERLINED, OVERLINED_OFF)
 fmt_red = Format(RED, COLOR_OFF)
 fmt_green = Format(GREEN, COLOR_OFF)
 fmt_yellow = Format(YELLOW, COLOR_OFF)
-fmt_blue = Format(BLUE, COLOR_OFF)
-fmt_magenta = Format(MAGENTA, COLOR_OFF)
+fmt_blue = Format(BLUE, COLOR_OFF) # noqa DuplicatedCode
+fmt_magenta = Format(MAGENTA, COLOR_OFF)  # it's duplicated purposely, geez
 fmt_cyan = Format(CYAN, COLOR_OFF)
 
 fmt_bg_red = Format(BG_RED, BG_COLOR_OFF)
