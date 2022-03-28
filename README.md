@@ -13,7 +13,7 @@ print(fmt_yellow('Basic'),
       fmt_bg_blue('text'),
       fmt_green('coloring'))
 ```
-<img src=".doc/uc1.png"/>
+<img src="./doc/uc1.png"/>
 
 
 <details><summary><h3>Nested formats</h3></summary>
@@ -24,7 +24,7 @@ from pytermor.preset import fmt_green, fmt_inverse, fmt_underline
 msg = fmt_green('Nes' + fmt_inverse('te' + fmt_underline('d fo') + 'rm') + 'ats')
 print(msg)
 ``` 
-<img src=".doc/uc2.png"/>
+<img src="./doc/uc2.png"/>
 </details>
 <details><summary><h3>256 colors support</h3></summary>
 
@@ -39,7 +39,7 @@ for idx, c in enumerate([27, 63, 99, 135, 171, 207]):
     msg += f'{txt[idx*3:(idx+1)*3]}{COLOR_OFF}'
 print(msg)
 ```
-<img src=".doc/uc3.png"/>
+<img src="./doc/uc3.png"/>
 </details>
 <details><summary><h3>Flexible sequnce builder</h3></summary>
 
@@ -57,7 +57,7 @@ msg = f'{seq1}Flexible{RESET} ' +
       str(seq2) + 'builder' + str(RESET)
 print(msg) 
 ```
-<img src=".doc/uc4.png"/>
+<img src="./doc/uc4.png"/>
 </details>
 <details><summary><h3>Custom nestable formats</h3></summary>
 
@@ -70,7 +70,7 @@ fmt2 = Format(BG_BLACK + INVERSED + UNDERLINED + ITALIC,
 msg = fmt1(f'Custom n{fmt2("establ")}e formats')
 print(msg)
 ```
-<img src=".doc/uc5.png"/>
+<img src="./doc/uc5.png"/>
 </details>
 <details><summary><h3>Low-level format control</h3></summary>
 
@@ -84,7 +84,7 @@ msg = f'L{GREEN}ow {fmt_inverse.open}-{ITALIC}le{fmt_inverse.close}ve{ITALIC_OFF
       f'{RESET}'
 print(msg)
 ```
-<img src=".doc/uc6.png"/>
+<img src="./doc/uc6.png"/>
 </details>
 <br>
 
@@ -109,7 +109,7 @@ Class describing SGR-mode ANSI escape sequence with varying amount of parameters
 1st part consists of "applied" escape sequences; 2nd part shows up one of the sequences in raw mode, as if it was ignored by the terminal; 3rd part is hexademical sequence byte values.
 
 </td><th>
- <img src=".doc/ex1.png"/>
+ <img src="./doc/ex1.png"/>
 </th></tr><tr><td>
 
 ```python3
@@ -140,7 +140,7 @@ One instance of `SGRSequence` can be added to another. This will result in a new
 
  </td>
  <th>
- <img src=".doc/ex2.png"/> 
+ <img src="./doc/ex2.png"/> 
  </th>
 </tr><tr>
  <td>
@@ -163,7 +163,7 @@ Pretty much all single-param sequences (that can be used at least for _something
 
  </td>
  <th>
-  <img src=".doc/ex3.png"/>
+  <img src="./doc/ex3.png"/>
  </th>
 </tr><tr>
  <td>
@@ -186,7 +186,7 @@ print(f'{BLACK}{BG_HI_GREEN}', 'Example text', str(RESET))
 
 You can define your own reusable formats or import predefined ones from `pytermor.preset`:
 </td><th width="50%">
-  <img src=".doc/ex4.png"/>
+  <img src="./doc/ex4.png"/>
  </th>
 </tr>
 <tr>
@@ -217,7 +217,7 @@ Example: we are given a text span which is initially **bold** and <u>underlined<
 
 However, there is an option to specify what attributes should be disabled (instead of disabling _all_ of them):
 </td><th width="50%">
- <img src=".doc/ex5.png"/>
+ <img src="./doc/ex5.png"/>
  </th>
 </tr>
 <tr>
@@ -259,7 +259,7 @@ As you can see, the update went well &mdash; we kept all the previously applied 
 <table>
 <tr>
  <td><h3>Standalone usage</h3></td>
- <th><img src=".doc/ex6.png"/></th>
+ <th><img src="./doc/ex6.png"/></th>
 </tr>
 <tr>
  <td colspan="2" width="1000px">
@@ -281,7 +281,7 @@ print(ReplaceSGRs('[LIE]').invoke(formatted))
  <td>
  <h3>Usage with <code>apply_filters</code></h3>
  </td>
- <th><img src=".doc/ex7.png"/></th>
+ <th><img src="./doc/ex7.png"/></th>
 </tr>
 <tr>
  <td colspan="2">
