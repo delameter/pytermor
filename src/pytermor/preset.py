@@ -40,7 +40,8 @@ BLUE = SGRSequence(34)
 MAGENTA = SGRSequence(35)
 CYAN = SGRSequence(36)
 WHITE = SGRSequence(37)
-MODE8_START = SGRSequence(38, 5)  # 3rd param required (color)
+MODE24_START = SGRSequence(38, 2)  # 3 params required (r, g, b)
+MODE8_START = SGRSequence(38, 5)  # 1 param required (color code)
 COLOR_OFF = SGRSequence(39)
 
 # background colors
@@ -52,7 +53,8 @@ BG_BLUE = SGRSequence(44)
 BG_MAGENTA = SGRSequence(45)
 BG_CYAN = SGRSequence(46)
 BG_WHITE = SGRSequence(47)
-BG_MODE8_START = SGRSequence(48, 5)  # 3rd param required (bg_color)
+BG_MODE24_START = SGRSequence(48, 2)  # 3 params required (r, g, b)
+BG_MODE8_START = SGRSequence(48, 5)  # 1 param required (color code)
 BG_COLOR_OFF = SGRSequence(49)
 
 # high intensity text colors

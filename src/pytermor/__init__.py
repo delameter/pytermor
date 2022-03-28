@@ -9,7 +9,7 @@ from typing import AnyStr, Union, Type
 
 from . import preset
 from .format import Format
-from .preset import RESET, MODE8_START, BG_MODE8_START
+from .preset import MODE8_START, BG_MODE8_START
 from .sequence import SGRSequence
 from .string_filter import StringFilter
 
@@ -36,12 +36,8 @@ def build(*args: Union[str, int, SGRSequence]) -> SGRSequence:
     return result
 
 
-def build_text256(color: int) -> SGRSequence:
-    return MODE8_START + SGRSequence(color)
-
-
-def build_background256(bg_color: int) -> SGRSequence:
-    return BG_MODE8_START + SGRSequence(bg_color)
+def build_c256(color: int, bg: bool = False) -> SGRSequence:
+    return (MODE8_START if not bg else BG_MODE8_START) + SGRSequence(color)
 
 
 def apply_filters(string: AnyStr, *args: StringFilter | Type[StringFilter]) -> AnyStr:

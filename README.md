@@ -4,101 +4,99 @@
 
 ## Use cases
 
-<table><tr>
- <td><h3>Simple text coloring</h3></td>
- <th><img src="./doc/use-case-1.png"/></th>
-</tr><tr><td colspan=2 width="1000px">
+### Basic text coloring
 
 ```python
-from pytermor.preset import fmt_green
+from pytermor.preset import fmt_bg_blue, fmt_yellow, fmt_green
 
-print(fmt_green('Success'))
+print(fmt_yellow('Basic'),
+      fmt_bg_blue('text'),
+      fmt_green('coloring'))
 ```
-</td></tr><tr>
- <td><h3>Format overlapping</h3></td>
- <th><img src="./doc/use-case-2.png"/></th>
-</tr><tr><td colspan=2>
+<img src=".doc/uc1.png"/>
+
+
+<details><summary><h3>Nested formats</h3></summary>
 
 ```python
-from pytermor.preset import fmt_green, fmt_underline
+from pytermor.preset import fmt_green, fmt_inverse, fmt_underline
 
-msg = fmt_green('Build ' + fmt_underline('complete') + ' in 14.88 seconds')
+msg = fmt_green('Nes' + fmt_inverse('te' + fmt_underline('d fo') + 'rm') + 'ats')
+print(msg)
+``` 
+<img src=".doc/uc2.png"/>
+</details>
+<details><summary><h3>256 colors support</h3></summary>
+
+```python
+from pytermor import build_c256, build
+from pytermor.preset import COLOR_OFF
+
+txt = '256 colors support'
+msg = f'{build("bold")}'
+for idx, c in enumerate([27, 63, 99, 135, 171, 207]):
+    msg += f'{build_c256(c)}'
+    msg += f'{txt[idx*3:(idx+1)*3]}{COLOR_OFF}'
 print(msg)
 ```
-</td></tr><tr>
- <td><h3>Flexible definitions</h3></td>
- <th><img src="./doc/use-case-3.png"/></th>
-</tr><tr><td colspan=2>
+<img src=".doc/uc3.png"/>
+</details>
+<details><summary><h3>Flexible sequnce builder</h3></summary>
+
 
 ```python
-from pytermor import build, Format, RESET
-from pytermor.preset import UNDERLINED
+from pytermor import build
+from pytermor.preset import RESET, UNDERLINED
+# create your own reusable sequences with pytermor.build():
 
-seq_date = build('red', 1, UNDERLINED)  # mix with integer codes and other sequences
-fmt_caution = Format(build('inversed', 'YELLOW'),  # case-insensitive
-                     reset_after=True)
+seq1 = build('red', 1, UNDERLINED)  # keys, integer codes or existing sequences
+seq2 = build('inversed', 'YELLOW')  # keys are case-insensitive
 
-msg = f'{seq_date}06-Mar-2022:{RESET} ' + \
-      fmt_caution('CAUTION') + \
-      f' Servers down'
-print(msg)
+msg = f'{seq1}Flexible{RESET} ' +
+      f'{build(seq1, 3)}sequence{RESET} ' +
+      str(seq2) + 'builder' + str(RESET)
+print(msg) 
 ```
-</td></tr><tr>
- <td><h3>Custom formats</h3></td>
- <th><img src="./doc/use-case-4.png"/></th>
-</tr><tr><td colspan=2>
+<img src=".doc/uc4.png"/>
+</details>
+<details><summary><h3>Custom nestable formats</h3></summary>
 
 ```python
 from pytermor.preset import *
 
-fmt_error = Format(RED + CROSSLINED + BOLD,
-                   reset_after=True)
-msg = fmt_error('Error') + Format(HI_RED + INVERSED, RESET)('Panic!')
+fmt1 = Format(HI_BLUE + BOLD, reset_after=True)
+fmt2 = Format(BG_BLACK + INVERSED + UNDERLINED + ITALIC,
+              BG_COLOR_OFF + INVERSED_OFF + UNDERLINED_OFF + ITALIC_OFF)
+msg = fmt1(f'Custom n{fmt2("establ")}e formats')
 print(msg)
 ```
-</td></tr><tr>
- <td><h3>Fine tuning</h3></td>
- <th><img src="./doc/use-case-5.png"/></th>
-</tr><tr><td colspan=2>
-
-```python
-from pytermor.preset import fmt_inverse, fmt_underline
-
-msg = f'{fmt_inverse.open}inversed' \
-      f'{fmt_underline.open} and' \
-      f'{fmt_inverse.close} underlined' \
-      f'{fmt_underline.close}'
-print(msg)
-```
-</td></tr><tr>
- <td><h3>Low-level inlines</h3></td>
- <th><img src="./doc/use-case-6.png"/></th>
-</tr><tr><td colspan=2>
+<img src=".doc/uc5.png"/>
+</details>
+<details><summary><h3>Low-level format control</h3></summary>
 
 ```python
 from pytermor.preset import *
+from pytermor.sequence import SGRSequence
 
-msg = f'{GREEN}green;' \
-      f'{UNDERLINED}underlined;' \
-      f'{UNDERLINED_OFF}green;' \
-      f'{RESET}default'
+msg = f'L{GREEN}ow {fmt_inverse.open}-{ITALIC}le{fmt_inverse.close}ve{ITALIC_OFF}l '
+      f'f{BG_HI_YELLOW}o{fmt_underline.open}r{BG_COLOR_OFF}ma{fmt_underline.close}t '
+      f'c{RESET}{SGRSequence(38, 5, 214)}on{SGRSequence(38, 5, 208)}tr{SGRSequence(38, 5, 202)}ol'
+      f'{RESET}'
 print(msg)
 ```
-</td></tr><tr>
- <td><h3>8-bit color mode support</h3></td>
- <th rowspan=2><img src="./doc/use-case-7.png"/></th>
-</tr><tr><td>
+<img src=".doc/uc6.png"/>
+</details>
+<br>
 
-```python
-from pytermor import build_text256, RESET
+## API | `pytermor` module
 
-print(''.join([
-    f'{build_text256(i)}{i:>4d}{RESET}' +
-    ('\n' if i % 16 == 15 else '')
-    for i in range(0, 256)
-]))
-```
-</td></tr></table>
+### build()
+
+@TODO
+
+### build_c256()
+
+@TODO
 <br>
 
 ## API | `SGRSequence` class
@@ -108,20 +106,12 @@ Class describing SGR-mode ANSI escape sequence with varying amount of parameters
 <table><tr>
  <td rowspan="2">
 
- Left part consists of "applied" escape sequences; right part shows up one of the sequences in raw mode; as if it was ignored by the terminal.
+1st part consists of "applied" escape sequences; 2nd part shows up one of the sequences in raw mode, as if it was ignored by the terminal; 3rd part is hexademical sequence byte values.
 
- `\x1b` is ESC _control character_, which opens a control sequence (can also be written as `\e`|`\033`|`ESC`).
+</td><th>
+ <img src=".doc/ex1.png"/>
+</th></tr><tr><td>
 
- `[` is sequence _introducer_, it determines the type of control sequence (in this case it's CSI, or "Control Sequence Introducer").
-
- `1` and `4` are _parameters_ of the escape sequence; they mean "bold text" and "underlined text" respectively. Those parameters must be separated by `;`.
-
- `m` is sequence _terminator_; it also determines the sub-type of sequence, in our case SGR, or "Select Graphic Rendition". Sequences of this kind are most commonly encountered.
-
-</td>
- <th><img src="./doc/example-1-1.png"/></th>
-</tr><tr><td>
-    
 ```python3
 from pytermor.sequence import SGRSequence
 from pytermor.preset import BG_GREEN, RESET
@@ -131,14 +121,26 @@ seq2 = f'text{BG_GREEN}text'
 print(seq1, seq2, str(RESET), '', seq1.encode())
 ```
 
-</td></tr><tr>
- <td rowspan="2">
+</td></tr>
+<tr><td colspan="2">
 
- One instance of `SGRSequence` can be added to another. This will result in a new `SGRSequence` instance with combined params.
+`\x1b` is ESC _control character_, which opens a control sequence (can also be written as `\e`|`\033`|`ESC`).
+
+`[` is sequence _introducer_, it determines the type of control sequence (in this case it's CSI, or "Control Sequence Introducer").
+
+`1` and `4` are _parameters_ of the escape sequence; they mean "bold text" and "underlined text" respectively. Those parameters must be separated by `;`.
+
+`m` is sequence _terminator_; it also determines the sub-type of sequence, in our case SGR, or "Select Graphic Rendition". Sequences of this kind are most commonly encountered.
+
+</td></tr>
+<tr><td colspan="2"></td></tr>
+<tr><td rowspan="2">
+
+One instance of `SGRSequence` can be added to another. This will result in a new `SGRSequence` instance with combined params.
 
  </td>
  <th>
- <img src="./doc/example-1-2.png"/> 
+ <img src=".doc/ex2.png"/> 
  </th>
 </tr><tr>
  <td>
@@ -155,11 +157,13 @@ print(f'{new_seq}test{RESET}', '', f'{new_seq}'.encode())
 </tr><tr>
  <td rowspan="2">
 
- Pretty much all single-param sequences (that can be used at least for _something_) are specified in `pytermor.preset` module. **Complete list is given at the end of this document.** Example usage:
+Pretty much all single-param sequences (that can be used at least for _something_) are specified in `pytermor.preset` module. Example usage is to the left.
+
+*Complete list is given at the end of this document.*
 
  </td>
  <th>
-  <img src="./doc/example-1-3.png"/>
+  <img src=".doc/ex3.png"/>
  </th>
 </tr><tr>
  <td>
@@ -175,14 +179,14 @@ print(f'{BLACK}{BG_HI_GREEN}', 'Example text', str(RESET))
 
 ## API | `Format` class
 
-`Format` is a wrapper class that contains starting (i.e. opening) `SGRSequence` and (optionally) closing `SGRSequence`. 
+`Format` is a wrapper class that contains starting (i.e. opening) `SGRSequence` and (optionally) closing `SGRSequence`.
 
 <table><tr>
  <td>
 
 You can define your own reusable formats or import predefined ones from `pytermor.preset`:
-</td><th width="70%">
- <img src="./doc/example-2-1.png"/>
+</td><th width="50%">
+  <img src=".doc/ex4.png"/>
  </th>
 </tr>
 <tr>
@@ -213,7 +217,7 @@ Example: we are given a text span which is initially **bold** and <u>underlined<
 
 However, there is an option to specify what attributes should be disabled (instead of disabling _all_ of them):
 </td><th width="50%">
- <img src="./doc/example-2-2.png"/>
+ <img src=".doc/ex5.png"/>
  </th>
 </tr>
 <tr>
@@ -221,8 +225,7 @@ However, there is an option to specify what attributes should be disabled (inste
 
 ```python
 from pytermor.format import Format
-from pytermor.preset import HI_RED, COLOR_OFF, OVERLINED, OVERLINED_OFF, \
-                            fmt_bold, fmt_underline
+from pytermor.preset import HI_RED, COLOR_OFF, OVERLINED, OVERLINED_OFF, fmt_bold, fmt_underline
 
 fmt_error = Format(
     HI_RED + OVERLINED,  # sequences can be summed up, remember?
@@ -245,29 +248,29 @@ As you can see, the update went well &mdash; we kept all the previously applied 
 
 ## API | `StringFilter` superclass
 
-**Purpose:** to provide common string modifier interface with dynamic configuration support. 
+**Purpose:** to provide common string modifier interface with dynamic configuration support.
 
 ### Subclasses
 
-   - `ReplaceSGRSequences`
-   - `ReplaceCSISequences`
-   - `ReplaceNonAsciiBytes`
+- `ReplaceSGRSequences`
+- `ReplaceCSISequences`
+- `ReplaceNonAsciiBytes`
 
 <table>
 <tr>
  <td><h3>Standalone usage</h3></td>
- <th><img src="./doc/example-3-1.png"/></th>
+ <th><img src=".doc/ex6.png"/></th>
 </tr>
 <tr>
  <td colspan="2" width="1000px">
 
  ```python
 from pytermor.preset import fmt_red
-from pytermor.string_filter import ReplaceSGRSequences
+from pytermor.string_filter import ReplaceSGRs
 
 formatted = fmt_red('this text is red')
 print(formatted)
-print(ReplaceSGRSequences('[LIE]').invoke(formatted))
+print(ReplaceSGRs('[LIE]').invoke(formatted))
 # or:
 # ReplaceSGRSequences('[E]')(formatted)
 ```
@@ -278,7 +281,7 @@ print(ReplaceSGRSequences('[LIE]').invoke(formatted))
  <td>
  <h3>Usage with <code>apply_filters</code></h3>
  </td>
- <th><img src="./doc/example-3-2.png"/></th>
+ <th><img src=".doc/ex7.png"/></th>
 </tr>
 <tr>
  <td colspan="2">
@@ -303,9 +306,7 @@ print(result)
 
 ## Presets
 
-wip
-
-
+@TODO
 
 * Prefix `BG_*` indicates that this sequence changes background color, not the text color.
 * Prefix `HI_*` means "high intensity" &mdash; brighter versions of default colors.

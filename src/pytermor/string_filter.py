@@ -17,22 +17,21 @@ class StringFilter:
         return self._fn(s)
 
 
-# find all SGR seqs (e.g. '\e[1;4m') and replace with given string
-# more specific version of ReplaceCSISequences
-class ReplaceSGRSequences(StringFilter):
+class ReplaceSGRs(StringFilter):
+    """Find all SGR seqs (e.g. '\\e[1;4m') and replace with given string.
+    More specific version of ReplaceCSIs()."""
     def __init__(self, repl: AnyStr = ''):
         super().__init__(lambda s: re.sub(r'\033\[([0-9;]*)(m)', repl, s))
 
 
-# less specific version of ReplaceSGRSequences,
-# as CSI consists of SGR and many other seq sub-types
-# find all CSI seqs (e.g. '\e[*') and replace with given string
-class ReplaceCSISequences(StringFilter):
+class ReplaceCSIs(StringFilter):
+    """Find all CSI seqs (e.g. '\\e[*') and replace with given string.
+    Less specific version of ReplaceSGRs(), as CSI consists of SGR and many other seq sub-types."""
     def __init__(self, repl: AnyStr = ''):
         super().__init__(lambda s: re.sub(r'\033\[([0-9;:<=>?]*)([@A-Za-z])', repl, s))
 
 
-# keep [0x00 - 0x7f], replace if greater than 0x7f
 class ReplaceNonAsciiBytes(StringFilter):
+    """Keep [0x00 - 0x7f], replace if greater than 0x7f."""
     def __init__(self, repl: bytes = b'?'):
         super().__init__(lambda s: re.sub(b'[\x80-\xff]', repl, s))
