@@ -54,21 +54,21 @@ Key feature of this library is providing necessary abstractions for building com
 > </details>
 
 > <img src="./doc/uc4.png"/>
-> <details><summary><b>code</b> <i>(click)</i></summary>
+-> <details><summary><b>code</b> <i>(click)</i></summary>
 >
 > Create your own SGR sequences with `build()` method, which accepts color/attribute keys, integer param values and even existing SGRs, in any amount and in any order. Key resolving is case-insensitive.
-> 
+>
 > ```python
 > from pytermor import build
 > from pytermor.preset import RESET, UNDERLINED
-> 
+>
 > seq1 = build('red', 1, UNDERLINED)  # keys, integer codes or existing sequences
 > seq2 = build('inversed', 'YELLOW')  # case-insensitive
-> 
+>
 > msg = f'{seq1}Flexible{RESET} ' +
 >       f'{build(seq1, 3)}sequence{RESET} ' +
 >       str(seq2) + 'builder' + str(RESET)
-> print(msg) 
+> print(msg)
 > ```
 > </details>
 
