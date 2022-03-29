@@ -17,16 +17,16 @@ class StringFilter:
         return self._fn(s)
 
 
-class ReplaceSGRs(StringFilter):
+class ReplaceSGR(StringFilter):
     """Find all SGR seqs (e.g. '\\e[1;4m') and replace with given string.
-    More specific version of ReplaceCSIs()."""
+    More specific version of ReplaceCSI()."""
     def __init__(self, repl: AnyStr = ''):
         super().__init__(lambda s: re.sub(r'\033\[([0-9;]*)(m)', repl, s))
 
 
-class ReplaceCSIs(StringFilter):
+class ReplaceCSI(StringFilter):
     """Find all CSI seqs (e.g. '\\e[*') and replace with given string.
-    Less specific version of ReplaceSGRs(), as CSI consists of SGR and many other seq sub-types."""
+    Less specific version of ReplaceSGR(), as CSI consists of SGR and many other seq sub-types."""
     def __init__(self, repl: AnyStr = ''):
         super().__init__(lambda s: re.sub(r'\033\[([0-9;:<=>?]*)([@A-Za-z])', repl, s))
 

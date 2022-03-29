@@ -8,13 +8,13 @@ import abc
 from typing import AnyStr, List, Any
 
 
-class CSISequence(metaclass=abc.ABCMeta):
+class SequenceCSI(metaclass=abc.ABCMeta):
     CONTROL_CHARACTER = '\033'
     INTRODUCER = '['
     SEPARATOR = ';'
 
     def __init__(self, *params: int):
-        self._params: List[int] = list(params)
+        self._params: List[int] = [int(p) for p in params]
 
     @property
     def params(self) -> List[int]:
@@ -25,32 +25,32 @@ class CSISequence(metaclass=abc.ABCMeta):
 
 
 # CSI sequence sub-type
-class SGRSequence(CSISequence):
+class SequenceSGR(SequenceCSI):
     TERMINATOR = 'm'
 
     def __init__(self, *params: int):
-        super(SGRSequence, self).__init__(*params)
+        super(SequenceSGR, self).__init__(*params)
 
     def __str__(self) -> AnyStr:
         return f'{self.CONTROL_CHARACTER}{self.INTRODUCER}' \
                f'{self.SEPARATOR.join([str(param) for param in self._params])}' \
                f'{self.TERMINATOR}'
 
-    def __add__(self, other: SGRSequence) -> SGRSequence:
+    def __add__(self, other: SequenceSGR) -> SequenceSGR:
         self._ensure_sequence(other)
-        return SGRSequence(*self._params, *other._params)
+        return SequenceSGR(*self._params, *other._params)
 
-    def __radd__(self, other: SGRSequence) -> SGRSequence:
+    def __radd__(self, other: SequenceSGR) -> SequenceSGR:
         self._ensure_sequence(other)
-        return SGRSequence(*other._params, *self._params)
+        return SequenceSGR(*other._params, *self._params)
 
-    def __iadd__(self, other: SGRSequence) -> SGRSequence:
+    def __iadd__(self, other: SequenceSGR) -> SequenceSGR:
         self._ensure_sequence(other)
-        return SGRSequence(*self._params, *other._params)
+        return SequenceSGR(*self._params, *other._params)
 
     # noinspection PyMethodMayBeStatic
     def _ensure_sequence(self, subject: Any):
-        if not isinstance(subject, SGRSequence):
+        if not isinstance(subject, SequenceSGR):
             raise TypeError(
-                f'Add operation is allowed only for <SGRSequence> + <SGRSequence>, got {type(subject)}'
+                f'Add operation is allowed only for <SequenceSGR> + <SequenceSGR>, got {type(subject)}'
             )

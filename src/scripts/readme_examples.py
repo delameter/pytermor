@@ -7,7 +7,7 @@ import os
 _print = print
 def print(*args):
     with open(_outpath, 'at') as f:
-        _print('\n', end=' ', file=f)
+        _print('\n\n', end=' ', file=f)
         _print(*args, file=f)
 
 
@@ -20,7 +20,7 @@ with open(_outpath, 'wt'): pass  # recreate
 # -----------------------------------------------------------------------------
 # -------------------------- EXAMPLES START -----------------------------------
 # -----------------------------------------------------------------------------
-from pytermor.preset import fmt_bg_blue, fmt_yellow, fmt_green
+from pytermor.preset import fmt_yellow, fmt_green, fmt_bg_blue
 
 print(fmt_yellow('Basic'),
       fmt_bg_blue('text'),
@@ -38,7 +38,8 @@ from pytermor.preset import COLOR_OFF
 
 txt = '256 colors support'
 msg = f'{build("bold")}'
-for idx, c in enumerate([27, 63, 99, 135, 171, 207]):
+start_color = 41
+for idx, c in enumerate(range(start_color, start_color+(36*6), 36)):
     msg += f'{build_c256(c)}'
     msg += f'{txt[idx*3:(idx+1)*3]}{COLOR_OFF}'
 print(msg)
@@ -67,29 +68,30 @@ print(msg)
 
 # -----------------------------------------------------------------------------
 from pytermor.preset import *
-from pytermor.sequence import SGRSequence
+from pytermor.sequence import SequenceSGR
 
-msg = f'L{GREEN}ow {fmt_inverse.open}-{ITALIC}le{fmt_inverse.close}ve{ITALIC_OFF}l ' \
-      f'f{BG_HI_YELLOW}o{fmt_underline.open}r{BG_COLOR_OFF}ma{fmt_underline.close}t ' \
-      f'c{RESET}{SGRSequence(38, 5, 214)}on{SGRSequence(38, 5, 208)}tr{SGRSequence(38, 5, 202)}ol' \
-      f'{RESET}'
+msg = f'{CYAN}L{GREEN}ow-{fmt_inverse.open}l{ITALIC}e{fmt_inverse.close}ve{ITALIC_OFF}l ' \
+      f'{BG_HI_YELLOW}fo{fmt_underline.open}rm{BG_COLOR_OFF}at ' \
+      f'c{SequenceSGR(*MODE8_START.params, 214)}on{RESET}' \
+      f'{SequenceSGR(*MODE8_START.params, 208)}t{fmt_underline.close}r{RESET}' \
+      f'{SequenceSGR(*MODE8_START.params, 202)}ol{RESET}'
 print(msg)
 
 # -----------------------------------------------------------------------------
-from pytermor.sequence import SGRSequence
+from pytermor.sequence import SequenceSGR
 
-seq = str(SGRSequence(4, 7))   # direct transform with str()
+seq = str(SequenceSGR(4, 7))   # direct transform with str()
 msg = f'({seq})'               # f-string var substitution
-print(msg + f'{SGRSequence(0)}',  # f-string value
+print(msg + f'{SequenceSGR(0)}',  # f-string value
       str(seq.encode()),
       seq.encode().hex(':'))
 
 # -----------------------------------------------------------------------------
-from pytermor import SGRSequence
+from pytermor import SequenceSGR
 from pytermor.preset import RESET
 
-mixed = SGRSequence(1, 31) + SGRSequence(4)
-print(f'{mixed}mixed{RESET}', str(mixed).encode())
+mixed = SequenceSGR(1, 31) + SequenceSGR(4)
+print(f'{mixed}combined{RESET}', str(mixed).encode())
 
 # -----------------------------------------------------------------------------
 from pytermor.preset import BLACK, BG_HI_GREEN, RESET
@@ -120,12 +122,12 @@ print(orig_text, '\n', updated_text)
 
 # -----------------------------------------------------------------------------
 from pytermor.preset import fmt_red
-from pytermor.string_filter import ReplaceSGRs
+from pytermor.string_filter import ReplaceSGR
 
 formatted = fmt_red('this text is red')
-replaced = ReplaceSGRs('[LIE]').invoke(formatted)
+replaced = ReplaceSGR('[LIE]').invoke(formatted)
 # or directly:
-# replaced = ReplaceSGRSequences('[LIE]')(formatted)
+# replaced = ReplaceSequenceSGRs('[LIE]')(formatted)
 
 print(formatted, '\n', replaced)
 

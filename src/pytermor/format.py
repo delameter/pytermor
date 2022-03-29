@@ -6,13 +6,13 @@ from __future__ import annotations
 
 from typing import AnyStr
 
-from .sequence import SGRSequence
+from .sequence import SequenceSGR
 
 
 class Format:
-    def __init__(self, opening_seq: SGRSequence, closing_seq: SGRSequence = None, reset_after: bool = False):
-        self._opening_seq: SGRSequence = opening_seq
-        self._closing_seq: SGRSequence|None = SGRSequence(0) if reset_after else closing_seq
+    def __init__(self, opening_seq: SequenceSGR, closing_seq: SequenceSGR = None, reset_after: bool = False):
+        self._opening_seq: SequenceSGR = opening_seq
+        self._closing_seq: SequenceSGR|None = SequenceSGR(0) if reset_after else closing_seq
 
     def __call__(self, text: AnyStr = None) -> AnyStr:
         result = str(self._opening_seq)
