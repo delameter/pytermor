@@ -70,7 +70,7 @@ print(msg)
 from pytermor.preset import *
 from pytermor.sequence import SequenceSGR
 
-msg = f'{CYAN}L{GREEN}ow-{fmt_inverse.open}l{ITALIC}e{fmt_inverse.close}ve{ITALIC_OFF}l ' \
+msg = f'{CYAN}L{GREEN}ow-{fmt_inverse("l"+str(ITALIC)+"e")}ve{ITALIC_OFF}l ' \
       f'{BG_HI_YELLOW}fo{fmt_underline.open}rm{BG_COLOR_OFF}at ' \
       f'c{SequenceSGR(*MODE8_START.params, 214)}on{RESET}' \
       f'{SequenceSGR(*MODE8_START.params, 208)}t{fmt_underline.close}r{RESET}' \

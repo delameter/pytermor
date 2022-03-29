@@ -1,22 +1,30 @@
-# pytermor
+# PyTermor
 
-Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+(yet another) Python library designed for formatting terminal output using ANSI escape codes. Provides a registry with most useful SGR sequences and predefined formats.
 
-Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?
+## Motivation
+
+Key feature of this library is providing necessary abstractions for building complex text sections with lots of formatting, while keeping the application code clear and readable. 
+
+## Installation
+
+    pip install pytermor
 
 ## Use cases
 
 > <img src="./doc/uc1.png"/>
 >
+> `Format` instances are callable; they wraps specified string with preset leading and trailing control sequences.
+> 
 > ```python
 > from pytermor.preset import fmt_yellow, fmt_green, fmt_bg_blue
 >
->  print(fmt_yellow('Basic'),
->       fmt_bg_blue('text'),
->       fmt_green('coloring'))
+> print(fmt_yellow('Basic'), fmt_bg_blue('text'), fmt_green('coloring'))
 > ```
 
 > <img src="./doc/uc2.png"/>
+>
+> Preset formats can safely overlap with each other (as long as they belong to different _modifier groups_).
 >
 > ```python
 > from pytermor.preset import fmt_green, fmt_inverse, fmt_underline
@@ -26,8 +34,11 @@ Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, ad
 > ``` 
 
 > <img src="./doc/uc3.png"/>
+>
 > <details><summary><b>code</b> <i>(click)</i></summary>
 >
+> Use `build_c256()` to change text (or background) color to any of [xterm-256 colors](https://www.ditig.com/256-colors-cheat-sheet).
+> 
 > ```python
 > from pytermor import build_c256, build
 > from pytermor.preset import COLOR_OFF
@@ -45,13 +56,14 @@ Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, ad
 > <img src="./doc/uc4.png"/>
 > <details><summary><b>code</b> <i>(click)</i></summary>
 >
+> Create your own SGR sequences with `build()` method, which accepts color/attribute keys, integer param values and even existing SGRs in any order. Keys can be specified using any case. 
+> 
 > ```python
 > from pytermor import build
 > from pytermor.preset import RESET, UNDERLINED
-> # create your own reusable sequences with pytermor.build():
 > 
 > seq1 = build('red', 1, UNDERLINED)  # keys, integer codes or existing sequences
-> seq2 = build('inversed', 'YELLOW')  # keys are case-insensitive
+> seq2 = build('inversed', 'YELLOW')  # case-insensitive
 > 
 > msg = f'{seq1}Flexible{RESET} ' +
 >       f'{build(seq1, 3)}sequence{RESET} ' +
@@ -62,6 +74,8 @@ Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, ad
 
 > <img src="./doc/uc5.png"/>
 > <details><summary><b>code</b> <i>(click)</i></summary>
+>
+> It's also possible to create custom wrapper presets which include both starting and ending control sequences.
 >
 > ```python
 > from pytermor.preset import *
@@ -77,34 +91,42 @@ Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, ad
 > <img src="./doc/uc6.png"/>
 > <details><summary><b>code</b> <i>(click)</i></summary>
 >
+> Mix high-level and low-level abstractions if necessary.
+>
 > ```python
 > from pytermor.preset import *
 > from pytermor.sequence import SequenceSGR
-> 
-> msg = f'{CYAN}L{GREEN}ow-{fmt_inverse.open}l{ITALIC}e{fmt_inverse.close}ve{ITALIC_OFF}l '
->       f'{BG_HI_YELLOW}fo{fmt_underline.open}rm{BG_COLOR_OFF}at '
->       f'c{SequenceSGR(*MODE8_START.params, 214)}on{RESET}'
->       f'{SequenceSGR(*MODE8_START.params, 208)}t{fmt_underline.close}r{RESET}'
+>
+> msg = f'{CYAN}L{GREEN}ow-{fmt_inverse("l"+str(ITALIC)+"e")}ve{ITALIC_OFF}l ' \
+>       f'{BG_HI_YELLOW}fo{fmt_underline.open}rm{BG_COLOR_OFF}at ' \
+>       f'c{SequenceSGR(*MODE8_START.params, 214)}on{RESET}' \
+>       f'{SequenceSGR(*MODE8_START.params, 208)}t{fmt_underline.close}r{RESET}' \
 >       f'{SequenceSGR(*MODE8_START.params, 202)}ol{RESET}'
 > print(msg)
 > ```
 > </details>
+
+
+## API [module]
+
+### `build(*params str|int|SequenceSGR) -> SequenceSGR`
+
+Creates new `SequenceSGR` instance with specified params. Resulting sequence params order is the same as argument order. Each param can be specified as:
+- string key (see [API: Preset](#api-preset))
+- integer param value
+- existing `SequenceSGR` instance (params will be extracted)
+
+### `build_c256(color: int, bg: bool = False) -> SequenceSGR`
+
+Creates new `SequenceSGR` instance either of `MODE8_START` type (set text color to `color`), or `BG_MODE8_START` type (same, but for background color), depending on `bg` value.
 <br>
 
-## API | `pytermor` module
-
-### build()
-
-Sed rutrum nibh id suscipit cursus. Integer fermentum pretium purus vitae lacinia. Aenean ullamcorper mattis urna vitae varius. Morbi sed imperdiet lorem. Nulla scelerisque justo est. Quisque non tincidunt sem, sit amet vulputate ligula. Vivamus nec justo nibh. Vestibulum elementum sodales neque, sed mollis tellus pharetra non. Fusce accumsan nunc vitae tincidunt vestibulum.
-
-### build_c256()
-
-In dictum risus mauris, sit amet finibus elit iaculis a. Quisque non felis nibh. Fusce condimentum ligula id ligula ultrices, a pharetra justo malesuada. In id mi quis dui lobortis sollicitudin at at elit. Donec laoreet tincidunt magna in lacinia. Duis felis lacus, vestibulum et lobortis nec, pellentesque ac tellus. In tempus vestibulum feugiat.
-<br><br>
-
-## API | `SequenceSGR` class
+## API: SequenceSGR
 
 Class describing SGR-mode ANSI escape sequence with varying amount of parameters.
+
+<details>
+<summary><b>Details</b> <i>(click)</i></summary>
 
 - To get the resulting sequence simply cast instance to `str`:
 
@@ -145,6 +167,7 @@ Class describing SGR-mode ANSI escape sequence with varying amount of parameters
     ```
     <img src="./doc/ex2.png"/> 
 
+
 - Pretty much all single-param sequences (that can be used at least for _something_) are specified in `pytermor.preset` module. Example usage:
     
     ```python
@@ -154,12 +177,17 @@ Class describing SGR-mode ANSI escape sequence with varying amount of parameters
     ```
     <img src="./doc/ex3.png"/>
 
-  <i>Complete list is given at the end of this document.</i>
-  <br><br>
 
-## API | `Format` class
+<i>Complete list is given at the end of this document.</i>
+<br>
+</details>
+
+## API: Format
 
 `Format` is a wrapper class that contains starting (i.e. opening) `SequenceSGR` and (optionally) closing `SequenceSGR`.
+
+<details>
+<summary><b>Details</b> <i>(click)</i></summary>
 
 - You can define your own reusable formats or import predefined ones from `pytermor.preset`:
 
@@ -200,9 +228,10 @@ Class describing SGR-mode ANSI escape sequence with varying amount of parameters
 
 
 - As you can see, the update went well &mdash; we kept all the previously applied formatting. Of course, this method cannot be 100% applicable &mdash; for example, imagine that original text was colored blue. After the update "string" word won't be blue anymore, as we used `COLOR_OFF` escape sequence to neutralize our own red color. But it still can be helpful for a majority of cases (especially when text is generated and formatted by the same program and in one go).
-  <br><br>
+<br>
+</details>
 
-## API | `StringFilter` superclass
+## API: StringFilter
 
 Common string modifier interface with dynamic configuration support.
 
@@ -217,42 +246,131 @@ Common string modifier interface with dynamic configuration support.
 
 ### Standalone usage
 
-```python
-from pytermor.preset import fmt_red
-from pytermor.string_filter import ReplaceSGR
-
-formatted = fmt_red('this text is red')
-replaced = ReplaceSGR('[LIE]').invoke(formatted)
-# or directly:
-# replaced = ReplaceSequenceSGRs('[LIE]')(formatted)
-
-print(formatted, '\n', replaced)
-``` 
-<img src="./doc/ex6.png"/>
+- Can be executed with `.invoke()` method or with direct call.
+    
+    ```python
+    from pytermor.preset import fmt_red
+    from pytermor.string_filter import ReplaceSGR
+    
+    formatted = fmt_red('this text is red')
+    replaced = ReplaceSGR('[LIE]').invoke(formatted)
+    # or directly:
+    # replaced = ReplaceSequenceSGRs('[LIE]')(formatted)
+    
+    print(formatted, '\n', replaced)
+    ``` 
+    <img src="./doc/ex6.png"/>
 
 
 ### Usage with `apply_filters`
 
-```python
-from pytermor import apply_filters
-from pytermor.string_filter import ReplaceNonAsciiBytes
+- `apply_filters` accepts both `StringFilter` (and subclasses) instances and subclass types, but latter is not configurable and will be invoked using default settings.
+    
+    ```python
+    from pytermor import apply_filters
+    from pytermor.string_filter import ReplaceNonAsciiBytes
+    
+    ascii_and_binary = b'\xc0\xff\xeeQWE\xffRT\xeb\x00\xc0\xcd\xed'
+    
+    # can either provide filter by type:
+    # result = apply_filters(ascii_and_binary, ReplaceNonAsciiBytes)
+    # ..or instantiate and configure it:
+    result = apply_filters(ascii_and_binary, ReplaceNonAsciiBytes(b'.'))
+    
+    print(ascii_and_binary, '\n', result)
+    ``` 
+    <img src="./doc/ex7.png"/>
 
-ascii_and_binary = b'\xc0\xff\xeeQWE\xffRT\xeb\x00\xc0\xcd\xed'
+<br>
+</details>
 
-# can either provide filter by type (default settings will be used):
-# result = apply_filters(ascii_and_binary, ReplaceNonAsciiBytes)
-# ..or instantiate and configure it:
-result = apply_filters(ascii_and_binary, ReplaceNonAsciiBytes(b'.'))
+## API: Preset
 
-print(ascii_and_binary, '\n', result)
-``` 
-<img src="./doc/ex7.png"/>
+Sequence and format registry.
+
+<details>
+<summary><b>SGR sequences</b> <i>(click)</i></summary>
+
+
+- `var` &mdash; variable name defined in `pytermor.preset`;
+- `key` &mdash; string that will be recognised by `build()` method;
+- `params` &mdash; list of default CSI params for specified seqeunce.
+
+
+| var | key | params | comment |
+|---|-----|:---:|---|
+| `RESET` | `"reset"` | 0 | disables all colors and attributes | |
+| **attributes**
+| `BOLD` | `"bold"` | 1 | | 
+| `DIM` | `"dim"` | 2 | | 
+| `ITALIC` | `"italic"` | 3 | | 
+| `UNDERLINED` | `"underlined"` | 4 | | 
+| `BLINK_SLOW` | `"blink_slow"` | 5 | | 
+| `BLINK_FAST` | `"blink_fast"` | 6 | | 
+| `INVERSED` | `"inversed"` | 7 | | 
+| `HIDDEN` | `"hidden"` | 8 | | 
+| `CROSSLINED` | `"crosslined"` | 9 | | 
+| `DOUBLE_UNDERLINED` | `"double_underlined"` | 21 | | 
+| `OVERLINED` | `"overlined"` | 53 | | 
+| `DIM_BOLD_OFF` | `"dim_bold_off"` | 22 | | 
+| `ITALIC_OFF` | `"italic_off"` | 23 | | 
+| `UNDERLINED_OFF` | `"underlined_off"` | 24 | | 
+| `BLINK_OFF` | `"blink_off"` | 25 | | 
+| `INVERSED_OFF` | `"inversed_off"` | 27 | | 
+| `HIDDEN_OFF` | `"hidden_off"` | 28 | | 
+| `CROSSLINED_OFF` | `"crosslined_off"` | 29 | | 
+| `OVERLINED_OFF` | `"overlined_off"` | 55 | | 
+|**text colors**
+| `BLACK` | `"black"` | 30 | | 
+| `RED` | `"red"` | 31 | | 
+| `GREEN` | `"green"` | 32 | | 
+| `YELLOW` | `"yellow"` | 33 | | 
+| `BLUE` | `"blue"` | 34 | | 
+| `MAGENTA` | `"magenta"` | 35 | | 
+| `CYAN` | `"cyan"` | 36 | | 
+| `WHITE` | `"white"` | 37 | | 
+| `MODE24_START` | `"mode24_start"` | 38 2 | set text color to specified;<br> 3 more params required: `r`,`g`,`b`<br> valid values: [0-255] | |
+| `MODE8_START` | `"mode8_start"` | 38 5 | set text color to specified;<br> 1 more param required: `code`<br> valid value: [0-255] | | 
+| `COLOR_OFF` | `"color_off"` | 39 | reset text color | 
+|**background colors**
+| `BG_BLACK` | `"bg_black"` | 40 | | 
+| `BG_RED` | `"bg_red"` | 41 | | 
+| `BG_GREEN` | `"bg_green"` | 42 | | 
+| `BG_YELLOW` | `"bg_yellow"` | 43 | | 
+| `BG_BLUE` | `"bg_blue"` | 44 | | 
+| `BG_MAGENTA` | `"bg_magenta"` | 45 | | 
+| `BG_CYAN` | `"bg_cyan"` | 46 | | 
+| `BG_WHITE` | `"bg_white"` | 47 | | 
+| `BG_MODE24_START` | `"bg_mode24_start"` | 48 2 |  set bg color to specified;<br> 3 more params required: `r`,`g`,`b`<br> valid values: [0-255] | |
+| `BG_MODE8_START` | `"bg_mode8_start"` | 48 5 | set bg color to specified;<br> 1 more param required: `code`<br> valid value: [0-255] (color code) |
+| `BG_COLOR_OFF` | `"bg_color_off"` | 49 | reset bg color | 
+|**high intensity text colors**
+| `GRAY` | `"gray"` | 90 | | 
+| `HI_RED` | `"hi_red"` | 91 | | 
+| `HI_GREEN` | `"hi_green"` | 92 | | 
+| `HI_YELLOW` | `"hi_yellow"` | 93 | | 
+| `HI_BLUE` | `"hi_blue"` | 94 | | 
+| `HI_MAGENTA` | `"hi_magenta"` | 95 | | 
+| `HI_CYAN` | `"hi_cyan"` | 96 | | 
+| `HI_WHITE` | `"hi_white"` | 97 | | 
+|**high intensity bg colors**
+| `BG_GRAY` | `"bg_gray"` | 100 | | 
+| `BG_HI_RED` | `"bg_hi_red"` | 101 | | 
+| `BG_HI_GREEN` | `"bg_hi_green"` | 102 | | 
+| `BG_HI_YELLOW` | `"bg_hi_yellow"` | 103 | | 
+| `BG_HI_BLUE` | `"bg_hi_blue"` | 104 | | 
+| `BG_HI_MAGENTA` | `"bg_hi_magenta"` | 105 | | 
+| `BG_HI_CYAN` | `"bg_hi_cyan"` | 106 | | 
+| `BG_HI_WHITE` | `"bg_hi_white"` | 107 | |
 </details>
 <br>
 
-## Presets
 
-At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.
+<details>
+<summary><b>SGR formats</b> <i>(click)</i></summary>
 
-* Prefix `BG_*` indicates that this sequence changes background color, not the text color.
-* Prefix `HI_*` means "high intensity" &mdash; brighter versions of default colors.
+</details>
+
+## References
+
+- https://en.wikipedia.org/wiki/ANSI_escape_code

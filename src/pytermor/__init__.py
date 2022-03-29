@@ -14,7 +14,7 @@ from .sequence import SequenceSGR
 from .string_filter import StringFilter
 
 
-def build(*args: Union[str, int, SequenceSGR]) -> SequenceSGR:
+def build(*args: str|int|SequenceSGR) -> SequenceSGR:
     result = SequenceSGR()
     for arg in args:
         if isinstance(arg, str):
