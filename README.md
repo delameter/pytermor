@@ -37,7 +37,7 @@ Key feature of this library is providing necessary abstractions for building com
 >
 > <details><summary><b>code</b> <i>(click)</i></summary>
 >
-> Use `build_c256()` to change text (or background) color to any of [xterm-256 colors](https://www.ditig.com/256-colors-cheat-sheet).
+> Use `build_c256()` to change text (or background) color to any of [↗ xterm-256 colors](https://www.ditig.com/256-colors-cheat-sheet).
 > 
 > ```python
 > from pytermor import build_c256, build
