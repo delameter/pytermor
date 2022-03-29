@@ -1,10 +1,10 @@
-# PyTermor
+# pytermor
 
-(yet another) Python library designed for formatting terminal output using ANSI escape codes. Provides a registry with most useful SGR sequences and predefined formats.
+_(yet another)_ Python library designed for formatting terminal output using ANSI escape codes. Also provides a registry of SGR sequences and formats (=combined sequences).
 
 ## Motivation
 
-Key feature of this library is providing necessary abstractions for building complex text sections with lots of formatting, while keeping the application code clear and readable. 
+Key feature of this library is providing necessary abstractions for building complex text sections with lots of formatting, while keeping the application code clear and readable.
 
 ## Installation
 
@@ -14,7 +14,7 @@ Key feature of this library is providing necessary abstractions for building com
 
 > <img src="./doc/uc1.png"/>
 >
-> `Format` instances are callable; they wraps specified string with preset leading and trailing control sequences.
+> `Format` is a combination of two control sequences; it wraps specified string with pre-defined leading and trailing SGR sequence.
 > 
 > ```python
 > from pytermor.preset import fmt_yellow, fmt_green, fmt_bg_blue
@@ -37,7 +37,7 @@ Key feature of this library is providing necessary abstractions for building com
 >
 > <details><summary><b>code</b> <i>(click)</i></summary>
 >
-> Use `build_c256()` to change text (or background) color to any of [↗ xterm-256 colors](https://www.ditig.com/256-colors-cheat-sheet).
+> Use `build_c256()` to set text/background color to any of [↗ xterm-256 colors](https://www.ditig.com/256-colors-cheat-sheet).
 > 
 > ```python
 > from pytermor import build_c256, build
@@ -56,7 +56,7 @@ Key feature of this library is providing necessary abstractions for building com
 > <img src="./doc/uc4.png"/>
 > <details><summary><b>code</b> <i>(click)</i></summary>
 >
-> Create your own SGR sequences with `build()` method, which accepts color/attribute keys, integer param values and even existing SGRs in any order. Keys can be specified using any case. 
+> Create your own SGR sequences with `build()` method, which accepts color/attribute keys, integer param values and even existing SGRs, in any amount and in any order. Key resolving is case-insensitive.
 > 
 > ```python
 > from pytermor import build
@@ -75,7 +75,7 @@ Key feature of this library is providing necessary abstractions for building com
 > <img src="./doc/uc5.png"/>
 > <details><summary><b>code</b> <i>(click)</i></summary>
 >
-> It's also possible to create custom wrapper presets which include both starting and ending control sequences.
+> It's possible to create custom wrapper presets as well, which represent two control sequences - opening and closing.
 >
 > ```python
 > from pytermor.preset import *
