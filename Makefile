@@ -19,6 +19,9 @@ cleanup:
 
 ## Generic commands
 
+prepare:
+	python3 -m pip install --upgrade build twine
+
 set-version: ## set new package version
 	@echo "Current version: ${YELLOW}${VERSION}${RESET}"
 	read -p "New version (press enter to keep current): " VERSION
@@ -46,10 +49,10 @@ release-dev: cleanup build upload-dev install-dev
 ## Primary repository
 
 upload: ## upload module
-	echo "upload"
+	python3 -m twine upload dist/* -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD}
 
 install: ## install module
-	echo "install"
+	pip install -i pytermor==${VERSION}
 
 release: ## build, upload and install module
 release: cleanup build upload install
