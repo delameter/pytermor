@@ -132,8 +132,7 @@ replaced = ReplaceSGR('[LIE]').invoke(formatted)
 print(formatted, '\n', replaced)
 
 # -----------------------------------------------------------------------------
-from pytermor import apply_filters
-from pytermor.string_filter import ReplaceNonAsciiBytes
+from pytermor.string_filter import apply_filters, ReplaceNonAsciiBytes
 
 ascii_and_binary = b'\xc0\xff\xeeQWE\xffRT\xeb\x00\xc0\xcd\xed'
 

@@ -4,9 +4,6 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
-from functools import reduce
-from typing import AnyStr, Union, Type
-
 from . import preset
 from .format import Format
 from .preset import MODE8_START, BG_MODE8_START
@@ -40,6 +37,5 @@ def build_c256(color: int, bg: bool = False) -> SequenceSGR:
     return (MODE8_START if not bg else BG_MODE8_START) + SequenceSGR(color)
 
 
-def apply_filters(string: AnyStr, *args: StringFilter | Type[StringFilter]) -> AnyStr:
-    filters = map(lambda t: t() if isinstance(t, type) else t, args)
-    return reduce(lambda s, f: f(s), filters, string)
+def autof(*args: str|int|SequenceSGR) -> Format:
+    raise NotImplementedError

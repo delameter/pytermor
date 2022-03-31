@@ -14,7 +14,7 @@ Key feature of this library is providing necessary abstractions for building com
 
 > <img src="./doc/uc1.png"/>
 >
-> `Format` is a combination of two control sequences; it wraps specified string with pre-defined leading and trailing SGR sequence.
+> `Format` is a combination of two control sequences; it wraps specified string with pre-defined leading and trailing SGR definitions.
 > 
 > ```python
 > from pytermor.preset import fmt_yellow, fmt_green, fmt_bg_blue
@@ -267,8 +267,7 @@ Common string modifier interface with dynamic configuration support.
 - `apply_filters` accepts both `StringFilter` (and subclasses) instances and subclass types, but latter is not configurable and will be invoked using default settings.
     
     ```python
-    from pytermor import apply_filters
-    from pytermor.string_filter import ReplaceNonAsciiBytes
+    from pytermor.string_filter import apply_filters, ReplaceNonAsciiBytes
     
     ascii_and_binary = b'\xc0\xff\xeeQWE\xffRT\xeb\x00\xc0\xcd\xed'
     
@@ -296,72 +295,442 @@ Sequence and format registry.
 - `key` &mdash; string that will be recognised by `build()` method;
 - `params` &mdash; list of default CSI params for specified seqeunce.
 
+<table>
+  <tr>
+    <th> variable </th>
+    <th> key </th>
+    <th> params </th>
+    <th> modifier groups </th>
+    <th> comment </th>
+  </tr>
+  <tr>
+    <td><code>RESET</code></td>
+    <td><code>&quot;reset&quot;</code></td>
+    <td>0</td>
+    <td>[breaker], super</td>
+    <td>Reset all attributes and colors</td>
+  </tr>
+  <tr><td colspan="5">
 
-| var | key | params | comment |
-|---|-----|:---:|---|
-| `RESET` | `"reset"` | 0 | disables all colors and attributes | |
-| **attributes**
-| `BOLD` | `"bold"` | 1 | | 
-| `DIM` | `"dim"` | 2 | | 
-| `ITALIC` | `"italic"` | 3 | | 
-| `UNDERLINED` | `"underlined"` | 4 | | 
-| `BLINK_SLOW` | `"blink_slow"` | 5 | | 
-| `BLINK_FAST` | `"blink_fast"` | 6 | | 
-| `INVERSED` | `"inversed"` | 7 | | 
-| `HIDDEN` | `"hidden"` | 8 | | 
-| `CROSSLINED` | `"crosslined"` | 9 | | 
-| `DOUBLE_UNDERLINED` | `"double_underlined"` | 21 | | 
-| `OVERLINED` | `"overlined"` | 53 | | 
-| `DIM_BOLD_OFF` | `"dim_bold_off"` | 22 | | 
-| `ITALIC_OFF` | `"italic_off"` | 23 | | 
-| `UNDERLINED_OFF` | `"underlined_off"` | 24 | | 
-| `BLINK_OFF` | `"blink_off"` | 25 | | 
-| `INVERSED_OFF` | `"inversed_off"` | 27 | | 
-| `HIDDEN_OFF` | `"hidden_off"` | 28 | | 
-| `CROSSLINED_OFF` | `"crosslined_off"` | 29 | | 
-| `OVERLINED_OFF` | `"overlined_off"` | 55 | | 
-|**text colors**
-| `BLACK` | `"black"` | 30 | | 
-| `RED` | `"red"` | 31 | | 
-| `GREEN` | `"green"` | 32 | | 
-| `YELLOW` | `"yellow"` | 33 | | 
-| `BLUE` | `"blue"` | 34 | | 
-| `MAGENTA` | `"magenta"` | 35 | | 
-| `CYAN` | `"cyan"` | 36 | | 
-| `WHITE` | `"white"` | 37 | | 
-| `MODE24_START` | `"mode24_start"` | 38 2 | set text color to specified;<br> 3 more params required: `r`,`g`,`b`<br> valid values: [0-255] | |
-| `MODE8_START` | `"mode8_start"` | 38 5 | set text color to specified;<br> 1 more param required: `code`<br> valid value: [0-255] | | 
-| `COLOR_OFF` | `"color_off"` | 39 | reset text color | 
-|**background colors**
-| `BG_BLACK` | `"bg_black"` | 40 | | 
-| `BG_RED` | `"bg_red"` | 41 | | 
-| `BG_GREEN` | `"bg_green"` | 42 | | 
-| `BG_YELLOW` | `"bg_yellow"` | 43 | | 
-| `BG_BLUE` | `"bg_blue"` | 44 | | 
-| `BG_MAGENTA` | `"bg_magenta"` | 45 | | 
-| `BG_CYAN` | `"bg_cyan"` | 46 | | 
-| `BG_WHITE` | `"bg_white"` | 47 | | 
-| `BG_MODE24_START` | `"bg_mode24_start"` | 48 2 |  set bg color to specified;<br> 3 more params required: `r`,`g`,`b`<br> valid values: [0-255] | |
-| `BG_MODE8_START` | `"bg_mode8_start"` | 48 5 | set bg color to specified;<br> 1 more param required: `code`<br> valid value: [0-255] (color code) |
-| `BG_COLOR_OFF` | `"bg_color_off"` | 49 | reset bg color | 
-|**high intensity text colors**
-| `GRAY` | `"gray"` | 90 | | 
-| `HI_RED` | `"hi_red"` | 91 | | 
-| `HI_GREEN` | `"hi_green"` | 92 | | 
-| `HI_YELLOW` | `"hi_yellow"` | 93 | | 
-| `HI_BLUE` | `"hi_blue"` | 94 | | 
-| `HI_MAGENTA` | `"hi_magenta"` | 95 | | 
-| `HI_CYAN` | `"hi_cyan"` | 96 | | 
-| `HI_WHITE` | `"hi_white"` | 97 | | 
-|**high intensity bg colors**
-| `BG_GRAY` | `"bg_gray"` | 100 | | 
-| `BG_HI_RED` | `"bg_hi_red"` | 101 | | 
-| `BG_HI_GREEN` | `"bg_hi_green"` | 102 | | 
-| `BG_HI_YELLOW` | `"bg_hi_yellow"` | 103 | | 
-| `BG_HI_BLUE` | `"bg_hi_blue"` | 104 | | 
-| `BG_HI_MAGENTA` | `"bg_hi_magenta"` | 105 | | 
-| `BG_HI_CYAN` | `"bg_hi_cyan"` | 106 | | 
-| `BG_HI_WHITE` | `"bg_hi_white"` | 107 | |
+  </td></tr>
+  <tr><th colspan="5">group: attribute</th></tr>
+  <tr>
+    <td><code>BOLD</code></td>
+    <td><code>&quot;bold&quot;</code></td>
+    <td>1</td>
+    <td>bold</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>DIM</code></td>
+    <td><code>&quot;dim&quot;</code></td>
+    <td>2</td>
+    <td>dim</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>ITALIC</code></td>
+    <td><code>&quot;italic&quot;</code></td>
+    <td>3</td>
+    <td>italic</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>UNDERLINED</code></td>
+    <td><code>&quot;underlined&quot;</code></td>
+    <td>4</td>
+    <td>underlined</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BLINK_SLOW</code></td>
+    <td><code>&quot;blink_slow&quot;</code></td>
+    <td>5</td>
+    <td>blink</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BLINK_FAST</code></td>
+    <td><code>&quot;blink_fast&quot;</code></td>
+    <td>6</td>
+    <td>blink</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>INVERSED</code></td>
+    <td><code>&quot;inversed&quot;</code></td>
+    <td>7</td>
+    <td>inversed</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>HIDDEN</code></td>
+    <td><code>&quot;hidden&quot;</code></td>
+    <td>8</td>
+    <td>inversed</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>CROSSLINED</code></td>
+    <td><code>&quot;crosslined&quot;</code></td>
+    <td>9</td>
+    <td>crosslined</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>DOUBLE_UNDERLINED</code></td>
+    <td><code>&quot;double_underlined&quot;</code></td>
+    <td>21</td>
+    <td>underlined</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>OVERLINED</code></td>
+    <td><code>&quot;overlined&quot;</code></td>
+    <td>53</td>
+    <td>overlined</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BOLD_DIM_OFF</code></td>
+    <td><code>&quot;bold_dim_off&quot;</code></td>
+    <td>22</td>
+    <td>[breaker], bold, dim</td>
+    <td><i>Special aspects... It's impossible to disable them separately.</i></td>
+  </tr>
+  <tr>
+    <td><code>ITALIC_OFF</code></td>
+    <td><code>&quot;italic_off&quot;</code></td>
+    <td>23</td>
+    <td>[breaker], italic</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>UNDERLINED_OFF</code></td>
+    <td><code>&quot;underlined_off&quot;</code></td>
+    <td>24</td>
+    <td>[breaker], underlined</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BLINK_OFF</code></td>
+    <td><code>&quot;blink_off&quot;</code></td>
+    <td>25</td>
+    <td>[breaker], blink</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>INVERSED_OFF</code></td>
+    <td><code>&quot;inversed_off&quot;</code></td>
+    <td>27</td>
+    <td>[breaker], inversed</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>HIDDEN_OFF</code></td>
+    <td><code>&quot;hidden_off&quot;</code></td>
+    <td>28</td>
+    <td>[breaker], hidden</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>CROSSLINED_OFF</code></td>
+    <td><code>&quot;crosslined_off&quot;</code></td>
+    <td>29</td>
+    <td>[breaker], crosslined</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>OVERLINED_OFF</code></td>
+    <td><code>&quot;overlined_off&quot;</code></td>
+    <td>55</td>
+    <td>[breaker], overlined</td>
+    <td></td>
+  </tr>
+  <tr><td colspan="5">
+
+  </td></tr>
+  <tr><th colspan="5">group: color</th></tr>
+  <tr>
+    <td><code>BLACK</code></td>
+    <td><code>&quot;black&quot;</code></td>
+    <td>30</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>RED</code></td>
+    <td><code>&quot;red&quot;</code></td>
+    <td>31</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>GREEN</code></td>
+    <td><code>&quot;green&quot;</code></td>
+    <td>32</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>YELLOW</code></td>
+    <td><code>&quot;yellow&quot;</code></td>
+    <td>33</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BLUE</code></td>
+    <td><code>&quot;blue&quot;</code></td>
+    <td>34</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>MAGENTA</code></td>
+    <td><code>&quot;magenta&quot;</code></td>
+    <td>35</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>CYAN</code></td>
+    <td><code>&quot;cyan&quot;</code></td>
+    <td>36</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>WHITE</code></td>
+    <td><code>&quot;white&quot;</code></td>
+    <td>37</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>MODE24_START</code></td>
+    <td><code>&quot;mode24_start&quot;</code></td>
+    <td>38;2;<code>r</code>;<code>g</code>;<code>b</code></td>
+    <td>color</td>
+    <td>Set text color to <code>rrggbb</code> translated. Valid values (for all): [0-255]</td>
+  </tr>
+  <tr>
+    <td><code>MODE8_START</code></td>
+    <td><code>&quot;mode8_start&quot;</code></td>
+    <td>38;5;<code>color</code></td>
+    <td>color</td>
+    <td>Set text color to <code>code</code>. Valid values: [0-255]</td>
+  </tr>
+  <tr>
+    <td><code>COLOR_OFF</code></td>
+    <td><code>&quot;color_off&quot;</code></td>
+    <td>39</td>
+    <td>[breaker], color</td>
+    <td>Reset text color</td>
+  </tr>
+  <tr><td colspan="5">
+
+  </td></tr>
+  <tr><th colspan="5">group: background color</th></tr>
+  <tr>
+    <td><code>BG_BLACK</code></td>
+    <td><code>&quot;bg_black&quot;</code></td>
+    <td>40</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BG_RED</code></td>
+    <td><code>&quot;bg_red&quot;</code></td>
+    <td>41</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BG_GREEN</code></td>
+    <td><code>&quot;bg_green&quot;</code></td>
+    <td>42</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BG_YELLOW</code></td>
+    <td><code>&quot;bg_yellow&quot;</code></td>
+    <td>43</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BG_BLUE</code></td>
+    <td><code>&quot;bg_blue&quot;</code></td>
+    <td>44</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BG_MAGENTA</code></td>
+    <td><code>&quot;bg_magenta&quot;</code></td>
+    <td>45</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BG_CYAN</code></td>
+    <td><code>&quot;bg_cyan&quot;</code></td>
+    <td>46</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BG_WHITE</code></td>
+    <td><code>&quot;bg_white&quot;</code></td>
+    <td>47</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BG_MODE24_START</code></td>
+    <td><code>&quot;bg_mode24_start&quot;</code></td>
+    <td>48;2;<code>r</code>;<code>g</code>;<code>b</code></td>
+    <td>bg_color</td>
+    <td>Set bg color to <code>rrggbb</code> (translated). Valid values (for all): [0-255]</td>
+  </tr>
+  <tr>
+    <td><code>BG_MODE8_START</code></td>
+    <td><code>&quot;bg_mode8_start&quot;</code></td>
+    <td>48;5;<code>color</code></td>
+    <td>bg_color</td>
+    <td>Set bg color to <code>code</code>. Valid values: [0-255]</td>
+  </tr>
+  <tr>
+    <td><code>BG_COLOR_OFF</code></td>
+    <td><code>&quot;bg_color_off&quot;</code></td>
+    <td>49</td>
+    <td>[breaker], bg_color</td>
+    <td>Reset bg color</td>
+  </tr>
+  <tr><td colspan="5">
+
+  </td></tr>
+  <tr><th colspan="5">group: high intensity color</th></tr>
+  <tr>
+    <td><code>GRAY</code></td>
+    <td><code>&quot;gray&quot;</code></td>
+    <td>90</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>HI_RED</code></td>
+    <td><code>&quot;hi_red&quot;</code></td>
+    <td>91</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>HI_GREEN</code></td>
+    <td><code>&quot;hi_green&quot;</code></td>
+    <td>92</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>HI_YELLOW</code></td>
+    <td><code>&quot;hi_yellow&quot;</code></td>
+    <td>93</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>HI_BLUE</code></td>
+    <td><code>&quot;hi_blue&quot;</code></td>
+    <td>94</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>HI_MAGENTA</code></td>
+    <td><code>&quot;hi_magenta&quot;</code></td>
+    <td>95</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>HI_CYAN</code></td>
+    <td><code>&quot;hi_cyan&quot;</code></td>
+    <td>96</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>HI_WHITE</code></td>
+    <td><code>&quot;hi_white&quot;</code></td>
+    <td>97</td>
+    <td>color</td>
+    <td></td>
+  </tr>
+  <tr><td colspan="5">
+
+  </td></tr>
+  <tr><th colspan="5">group: high intensity background color</th></tr>
+  <tr>
+    <td><code>BG_GRAY</code></td>
+    <td><code>&quot;bg_gray&quot;</code></td>
+    <td>100</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BG_HI_RED</code></td>
+    <td><code>&quot;bg_hi_red&quot;</code></td>
+    <td>101</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BG_HI_GREEN</code></td>
+    <td><code>&quot;bg_hi_green&quot;</code></td>
+    <td>102</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BG_HI_YELLOW</code></td>
+    <td><code>&quot;bg_hi_yellow&quot;</code></td>
+    <td>103</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BG_HI_BLUE</code></td>
+    <td><code>&quot;bg_hi_blue&quot;</code></td>
+    <td>104</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BG_HI_MAGENTA</code></td>
+    <td><code>&quot;bg_hi_magenta&quot;</code></td>
+    <td>105</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BG_HI_CYAN</code></td>
+    <td><code>&quot;bg_hi_cyan&quot;</code></td>
+    <td>106</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><code>BG_HI_WHITE</code></td>
+    <td><code>&quot;bg_hi_white&quot;</code></td>
+    <td>107</td>
+    <td>bg_color</td>
+    <td></td>
+  </tr>
+</table>
+
 </details>
 <br>
 
