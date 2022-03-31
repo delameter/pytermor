@@ -2,10 +2,8 @@
 # pytermor [ANSI formatted terminal output toolset]
 # (C) 2022 A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
-from .format import Format
-from .sequence import SequenceSGR
-# -----------------------------------------------------------------------------
 # SGR = "Select Graphic Rendition", most common escape sequence variety
+from .sequence import SequenceSGR
 
 RESET = SequenceSGR(0)
 
@@ -22,7 +20,7 @@ CROSSLINED = SequenceSGR(9)
 DOUBLE_UNDERLINED = SequenceSGR(21)
 OVERLINED = SequenceSGR(53)
 
-DIM_BOLD_OFF = SequenceSGR(22)
+BOLD_DIM_OFF = SequenceSGR(22)
 ITALIC_OFF = SequenceSGR(23)
 UNDERLINED_OFF = SequenceSGR(24)
 BLINK_OFF = SequenceSGR(25)
@@ -88,25 +86,52 @@ BG_HI_WHITE = SequenceSGR(107)
 # 73-75: superscript and subscript
 
 # -----------------------------------------------------------------------------
+# modifier groups for format auto-breaking
+from .sequence import ModifierGroup
+
+_mgroup_super = ModifierGroup(RESET, [])
+_mgroup_bold = ModifierGroup(BOLD_DIM_OFF, [BOLD])
+_mgroup_dim = ModifierGroup(BOLD_DIM_OFF, [DIM])
+_mgroup_italic = ModifierGroup(ITALIC_OFF, [ITALIC])
+_mgroup_underlined = ModifierGroup(UNDERLINED_OFF, [UNDERLINED, DOUBLE_UNDERLINED])
+_mgroup_blink = ModifierGroup(BLINK_OFF, [BLINK_SLOW, BLINK_FAST])
+_mgroup_inversed = ModifierGroup(INVERSED_OFF, [INVERSED])
+_mgroup_hidden = ModifierGroup(HIDDEN_OFF, [HIDDEN])
+_mgroup_crosslined = ModifierGroup(CROSSLINED_OFF, [CROSSLINED])
+_mgroup_overlined = ModifierGroup(OVERLINED_OFF, [OVERLINED])
+_mgroup_color = ModifierGroup(COLOR_OFF, [
+    BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE,
+    GRAY, HI_RED, HI_GREEN, HI_YELLOW, HI_BLUE, HI_MAGENTA, HI_CYAN, HI_WHITE, 
+    MODE24_START, MODE8_START,
+])
+_mgroup_bg_color = ModifierGroup(BG_COLOR_OFF, [
+    BG_BLACK, BG_RED, BG_GREEN, BG_YELLOW, BG_BLUE, BG_MAGENTA, BG_CYAN, BG_WHITE, 
+    BG_GRAY, BG_HI_RED, BG_HI_GREEN, BG_HI_YELLOW, BG_HI_BLUE, BG_HI_MAGENTA, BG_HI_CYAN, BG_HI_WHITE,
+    BG_MODE24_START, BG_MODE8_START,
+])
+
+# -----------------------------------------------------------------------------
 # ready to use combined SGRs with "soft" format reset
+from .format import Format
 
-fmt_bold = Format(BOLD, DIM_BOLD_OFF) # noqa DuplicatedCode
-fmt_dim = Format(DIM, DIM_BOLD_OFF)
-fmt_italic = Format(ITALIC, ITALIC_OFF)
-fmt_underline = Format(UNDERLINED, UNDERLINED_OFF)
-fmt_inverse = Format(INVERSED, INVERSED_OFF)
-fmt_overline = Format(OVERLINED, OVERLINED_OFF)
 
-fmt_red = Format(RED, COLOR_OFF)
-fmt_green = Format(GREEN, COLOR_OFF)
-fmt_yellow = Format(YELLOW, COLOR_OFF)
-fmt_blue = Format(BLUE, COLOR_OFF) # noqa DuplicatedCode
-fmt_magenta = Format(MAGENTA, COLOR_OFF)  # it's duplicated purposely, geez
-fmt_cyan = Format(CYAN, COLOR_OFF)
+fmt_bold = Format(BOLD, _mgroup_bold.breaker)
+fmt_dim = Format(DIM, _mgroup_dim.breaker)
+fmt_italic = Format(ITALIC, _mgroup_italic.breaker)
+fmt_underline = Format(UNDERLINED, _mgroup_underlined.breaker)
+fmt_inverse = Format(INVERSED, _mgroup_inversed.breaker)
+fmt_overline = Format(OVERLINED, _mgroup_overlined.breaker)
 
-fmt_bg_red = Format(BG_RED, BG_COLOR_OFF)
-fmt_bg_green = Format(BG_GREEN, BG_COLOR_OFF)
-fmt_bg_yellow = Format(BG_YELLOW, BG_COLOR_OFF)
-fmt_bg_blue = Format(BG_BLUE, BG_COLOR_OFF)
-fmt_bg_magenta = Format(BG_MAGENTA, BG_COLOR_OFF)
-fmt_bg_cyan = Format(BG_CYAN, BG_COLOR_OFF)
+fmt_red = Format(RED, _mgroup_color.breaker)
+fmt_green = Format(GREEN, _mgroup_color.breaker)
+fmt_yellow = Format(YELLOW, _mgroup_color.breaker)
+fmt_blue = Format(BLUE, _mgroup_color.breaker)
+fmt_magenta = Format(MAGENTA, _mgroup_color.breaker)
+fmt_cyan = Format(CYAN, _mgroup_color.breaker)
+
+fmt_bg_red = Format(BG_RED, _mgroup_bg_color.breaker)
+fmt_bg_green = Format(BG_GREEN, _mgroup_bg_color.breaker)
+fmt_bg_yellow = Format(BG_YELLOW, _mgroup_bg_color.breaker)
+fmt_bg_blue = Format(BG_BLUE, _mgroup_bg_color.breaker)
+fmt_bg_magenta = Format(BG_MAGENTA, _mgroup_bg_color.breaker)
+fmt_bg_cyan = Format(BG_CYAN, _mgroup_bg_color.breaker)
