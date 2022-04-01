@@ -60,7 +60,7 @@ print(msg)
 # -----------------------------------------------------------------------------
 from pytermor.preset import *
 
-fmt1 = Format(HI_BLUE + BOLD, reset_after=True)
+fmt1 = Format(HI_BLUE + BOLD, hard_reset_after=True)
 fmt2 = Format(BG_BLACK + INVERSED + UNDERLINED + ITALIC,
               BG_COLOR_OFF + INVERSED_OFF + UNDERLINED_OFF + ITALIC_OFF)
 msg = fmt1(f'Custom n{fmt2("establ")}e formats')
@@ -114,7 +114,7 @@ from pytermor.preset import *
 fmt_warn = Format(
     HI_YELLOW + UNDERLINED,  # sequences can be summed up, remember?
     COLOR_OFF + UNDERLINED_OFF,  # "counteractive" sequences
-    reset_after=False
+    hard_reset_after=False
 )
 orig_text = fmt_bold(f'{BG_BLACK}this is the original string{RESET}')
 updated_text = orig_text.replace('original', fmt_warn('updated'), 1)

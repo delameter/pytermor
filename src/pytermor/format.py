@@ -10,9 +10,9 @@ from .sequence import SequenceSGR
 
 
 class Format:
-    def __init__(self, opening_seq: SequenceSGR, closing_seq: SequenceSGR = None, reset_after: bool = False):
+    def __init__(self, opening_seq: SequenceSGR, closing_seq: SequenceSGR = None, hard_reset_after: bool = False):
         self._opening_seq: SequenceSGR = opening_seq
-        self._closing_seq: SequenceSGR|None = SequenceSGR(0) if reset_after else closing_seq
+        self._closing_seq: SequenceSGR|None = SequenceSGR(0) if hard_reset_after else closing_seq
 
     def __call__(self, text: AnyStr = None) -> AnyStr:
         result = str(self._opening_seq)
