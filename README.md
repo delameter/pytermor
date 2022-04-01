@@ -1,6 +1,6 @@
 # pytermor
 
-_(yet another)_ Python library designed for formatting terminal output using ANSI escape codes. Also provides a registry of SGR sequences and formats (=combined sequences).
+_(yet another)_ Python library designed for formatting terminal output using ANSI escape codes. Implements automatic closing sequence compose. Also provides a registry of ready-to-use SGR sequences and formats (=combined sequences).
 
 ## Motivation
 
@@ -54,7 +54,7 @@ Key feature of this library is providing necessary abstractions for building com
 > </details>
 
 > <img src="./doc/uc4.png"/>
--> <details><summary><b>code</b> <i>(click)</i></summary>
+> <details><summary><b>code</b> <i>(click)</i></summary>
 >
 > Create your own SGR sequences with `build()` method, which accepts color/attribute keys, integer param values and even existing SGRs, in any amount and in any order. Key resolving is case-insensitive.
 >
@@ -80,7 +80,7 @@ Key feature of this library is providing necessary abstractions for building com
 > ```python
 > from pytermor.preset import *
 > 
-> fmt1 = Format(HI_BLUE + BOLD, reset_after=True)
+> fmt1 = Format(HI_BLUE + BOLD, hard_reset_after=True)
 > fmt2 = Format(BG_BLACK + INVERSED + UNDERLINED + ITALIC,
 >               BG_COLOR_OFF + INVERSED_OFF + UNDERLINED_OFF + ITALIC_OFF)
 > msg = fmt1(f'Custom n{fmt2("establ")}e formats')
@@ -106,45 +106,90 @@ Key feature of this library is providing necessary abstractions for building com
 > ```
 > </details>
 
+## Format soft reset
+
+There are two ways to manage text color and attribute termination:
+ 
+ - hard reset (SGR 0 | `\e[m`)
+ - soft reset (SGR 22, 23, 24 etc.)
+
+The main difference beetween them is that **hard** reset disables all formatting after itself, while **soft** reset disables only actually necessary attributes (i.e. used as opening sequence in _Format_ instance's context) and keeps the other.
+
+That's what _Format_ class and `autof` method are designed for: to simplify creation of soft-resetting text spans, so that developer doesn't have to restore all previously applied formats after every closing sequence.
+
+Example: we are given a text span which is initially **bold** and <u>underlined</u>. We want to recolor a few words inside of this span. By default this will result in losing all the formatting to the right of updated text span (because `RESET`|`\e[m` clears all text attributes).
+
+However, there is an option to specify what attributes should be disabled (instead of disabling _all_ of them):
+
+  ```python
+  from pytermor.preset import *
+  
+  fmt_warn = Format(
+    HI_YELLOW + UNDERLINED,  # sequences can be summed up, remember?
+    COLOR_OFF + UNDERLINED_OFF,  # "counteractive" sequences
+    hard_reset_after=False
+  )
+  orig_text = fmt_bold(f'{BG_BLACK}this is the original string{RESET}')
+  updated_text = orig_text.replace('original', fmt_warn('updated'), 1)
+  print(orig_text, '\n', updated_text)
+  ```
+  <img src="./doc/ex5.png"/>
+
+As you can see, the update went well &mdash; we kept all the previously applied formatting. Of course, this method cannot be 100% applicable &mdash; for example, imagine that original text was colored blue. After the update "string" word won't be blue anymore, as we used `COLOR_OFF` escape sequence to neutralize our own red color. But it still can be helpful for a majority of cases (especially when text is generated and formatted by the same program and in one go).
 
 ## API [module]
 
-### `build(*params str|int|SequenceSGR) -> SequenceSGR`
+### autof
 
-Creates new `SequenceSGR` instance with specified params. Resulting sequence params order is the same as argument order. Each param can be specified as:
+Signature: `autof(*params str|int|SequenceSGR) -> Format`
+
+Create new _Format_ with specified control sequence(s) as a opening/starter sequence and **automatically compose** closing sequence that will terminate attributes defined in opening sequence while keeping the others (soft reset). 
+
+Resulting sequence params order is the same as argument order.
+
+Each sequence param can be specified as:
 - string key (see [API: Preset](#api-preset))
 - integer param value
-- existing `SequenceSGR` instance (params will be extracted)
+- existing _SequenceSGR_ instance (params will be extracted)
 
-### `build_c256(color: int, bg: bool = False) -> SequenceSGR`
+### build
 
-Creates new `SequenceSGR` instance either of `MODE8_START` type (set text color to `color`), or `BG_MODE8_START` type (same, but for background color), depending on `bg` value.
+Signature: `build(*params str|int|SequenceSGR) -> SequenceSGR`
+
+Create new _SequenceSGR_ with specified params. Resulting sequence params order is the same as argument order. Parameter specification is the same as for `autof`.
+
+### build_c256
+
+Signature:`build_c256(color: int, bg: bool = False) -> SequenceSGR`
+
+Create new _SequenceSGR_ that sets text color or background color, depending on _bg_ value, in 256-color mode. Valid values for _color_ argument: [0; 255], see more at [↗ xterm-256 colors](https://www.ditig.com/256-colors-cheat-sheet) page.
 <br>
 
 ## API: SequenceSGR
 
 Class describing SGR-mode ANSI escape sequence with varying amount of parameters.
 
-<details>
-<summary><b>Details</b> <i>(click)</i></summary>
+You can use any of predefined sequences from `pytermor.preset` or create your own via standard constructor. Argument values as well as preset constants are described in [API: Preset](#api-preset) section.
 
-- To get the resulting sequence simply cast instance to `str`:
+### Applying the sequence
 
-    ```python
-    from pytermor.sequence import SequenceSGR
-    
-    seq = str(SequenceSGR(4, 7))   # direct transform with str()
-    msg = f'({seq})'               # f-string var substitution
-    print(msg + f'{SequenceSGR(0)}',  # f-string value
-          str(seq.encode()),
-          seq.encode().hex(':'))
-    ```
-    <img src="./doc/ex1.png"/>
+To get the resulting sequence chars simply cast instance to _str_:
+
+  ```python
+  from pytermor.sequence import SequenceSGR
+  
+  seq = str(SequenceSGR(4, 7))   # direct transform with str()
+  msg = f'({seq})'               # f-string var substitution
+  print(msg + f'{SequenceSGR(0)}',  # f-string value
+        str(seq.encode()),
+        seq.encode().hex(':'))
+  ```
+  <img src="./doc/ex1.png"/>
 
   1st part consists of "applied" escape sequences; 2nd part shows up one of the sequences in raw mode, as if it was ignored by the terminal; 3rd part is hexademical sequence byte values.
 
-    <details>
-    <summary><b>SGR sequence structure</b> <i>(click)</i></summary>
+<details>
+<summary><b>SGR sequence structure</b> <i>(click)</i></summary>
 
   1. `\x1b`|`1b` is ESC _control character_, which opens a control sequence.
 
@@ -153,19 +198,21 @@ Class describing SGR-mode ANSI escape sequence with varying amount of parameters
   3. `4` and `7` are _parameters_ of the escape sequence; they mean "underlined" and "inversed" attributes respectively. Those parameters must be separated by `;`.
 
   4. `m` is sequence _terminator_; it also determines the sub-type of sequence, in our case SGR, or "Select Graphic Rendition". Sequences of this kind are most commonly encountered.
-    </details>
 
+</details>
 
-- One instance of `SequenceSGR` can be added to another. This will result in a new `SequenceSGR` instance with combined params.
+### Combining SGRs
+
+One instance of _SequenceSGR_ can be added to another. This will result in a new _SequenceSGR_ with combined params.
     
-    ```python
-    from pytermor import SequenceSGR
-    from pytermor.preset import RESET
-      
-    mixed = SequenceSGR(1, 31) + SequenceSGR(4)
-    print(f'{mixed}combined{RESET}', str(mixed).encode())
-    ```
-    <img src="./doc/ex2.png"/> 
+```python
+from pytermor import SequenceSGR
+from pytermor.preset import RESET
+  
+mixed = SequenceSGR(1, 31) + SequenceSGR(4)
+print(f'{mixed}combined{RESET}', str(mixed).encode())
+```
+<img src="./doc/ex2.png"/> 
 
 
 - Pretty much all single-param sequences (that can be used at least for _something_) are specified in `pytermor.preset` module. Example usage:
@@ -178,9 +225,6 @@ Class describing SGR-mode ANSI escape sequence with varying amount of parameters
     <img src="./doc/ex3.png"/>
 
 
-<i>Complete list is given at the end of this document.</i>
-<br>
-</details>
 
 ## API: Format
 
@@ -204,30 +248,6 @@ Class describing SGR-mode ANSI escape sequence with varying amount of parameters
     <img src="./doc/ex4.png"/>
 
 
-- The main purpose of `Format` is to simplify creation of non-resetting text spans, so that developer doesn't have to restore all previously applied formats after every closing sequence (which usually consists of `RESET`).
-
-
-- Example: we are given a text span which is initially **bold** and <u>underlined</u>. We want to recolor a few words inside of this span. By default this will result in losing all the formatting to the right of updated text span (because `RESET`|`\e[m` clears all text attributes).
-
-
-- However, there is an option to specify what attributes should be disabled (instead of disabling _all_ of them):
-
-    ```python
-    from pytermor.preset import *
-    
-    fmt_warn = Format(
-      HI_YELLOW + UNDERLINED,  # sequences can be summed up, remember?
-      COLOR_OFF + UNDERLINED_OFF,  # "counteractive" sequences
-      reset_after=False
-    )
-    orig_text = fmt_bold(f'{BG_BLACK}this is the original string{RESET}')
-    updated_text = orig_text.replace('original', fmt_warn('updated'), 1)
-    print(orig_text, '\n', updated_text)
-    ```
-    <img src="./doc/ex5.png"/>
-
-
-- As you can see, the update went well &mdash; we kept all the previously applied formatting. Of course, this method cannot be 100% applicable &mdash; for example, imagine that original text was colored blue. After the update "string" word won't be blue anymore, as we used `COLOR_OFF` escape sequence to neutralize our own red color. But it still can be helpful for a majority of cases (especially when text is generated and formatted by the same program and in one go).
 <br>
 </details>
 
@@ -291,22 +311,26 @@ Sequence and format registry.
 <summary><b>SGR sequences</b> <i>(click)</i></summary>
 
 
-- `var` &mdash; variable name defined in `pytermor.preset`;
-- `key` &mdash; string that will be recognised by `build()` method;
-- `params` &mdash; list of default CSI params for specified seqeunce.
+- **name** &mdash; variable name defined in `pytermor.preset`;
+- **keys** &mdash; strings that will be recognised by `build()` method;
+- **params** &mdash; list of SGR params for specified seqeunce;
+- **modifier groups** &mdash; list of modifier group the sequence is belong to; used for soft reset sequence autocomposing;
+- **comment** &mdash; effect of applying the sequence and additional notes.
+
+As a rule of a thumb, primary **key** equals to **name** in lower case. 
 
 <table>
   <tr>
-    <th> variable </th>
-    <th> key </th>
+    <th> name </th>
+    <th> keys </th>
     <th> params </th>
     <th> modifier groups </th>
     <th> comment </th>
   </tr>
   <tr>
     <td><code>RESET</code></td>
-    <td><code>&quot;reset&quot;</code></td>
-    <td>0</td>
+    <td><code>reset</code></td>
+    <td align=center>0</td>
     <td>[breaker], super</td>
     <td>Reset all attributes and colors</td>
   </tr>
@@ -316,134 +340,134 @@ Sequence and format registry.
   <tr><th colspan="5">group: attribute</th></tr>
   <tr>
     <td><code>BOLD</code></td>
-    <td><code>&quot;bold&quot;</code></td>
-    <td>1</td>
+    <td><code>bold</code>, <code>b</code></td>
+    <td align=center>1</td>
     <td>bold</td>
     <td></td>
   </tr>
   <tr>
     <td><code>DIM</code></td>
-    <td><code>&quot;dim&quot;</code></td>
-    <td>2</td>
+    <td><code>dim</code></td>
+    <td align=center>2</td>
     <td>dim</td>
     <td></td>
   </tr>
   <tr>
     <td><code>ITALIC</code></td>
-    <td><code>&quot;italic&quot;</code></td>
-    <td>3</td>
+    <td><code>italic</code>, <code>i</code></td>
+    <td align=center>3</td>
     <td>italic</td>
     <td></td>
   </tr>
   <tr>
     <td><code>UNDERLINED</code></td>
-    <td><code>&quot;underlined&quot;</code></td>
-    <td>4</td>
+    <td><code>underlined</code>, <code>u</code></td>
+    <td align=center>4</td>
     <td>underlined</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BLINK_SLOW</code></td>
-    <td><code>&quot;blink_slow&quot;</code></td>
-    <td>5</td>
+    <td><code>blink_slow</code></td>
+    <td align=center>5</td>
     <td>blink</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BLINK_FAST</code></td>
-    <td><code>&quot;blink_fast&quot;</code></td>
-    <td>6</td>
+    <td><code>blink_fast</code></td>
+    <td align=center>6</td>
     <td>blink</td>
     <td></td>
   </tr>
   <tr>
     <td><code>INVERSED</code></td>
-    <td><code>&quot;inversed&quot;</code></td>
-    <td>7</td>
+    <td><code>inversed</code>, <code>inv</code></td>
+    <td align=center>7</td>
     <td>inversed</td>
     <td></td>
   </tr>
   <tr>
     <td><code>HIDDEN</code></td>
-    <td><code>&quot;hidden&quot;</code></td>
-    <td>8</td>
+    <td><code>hidden</code></td>
+    <td align=center>8</td>
     <td>inversed</td>
     <td></td>
   </tr>
   <tr>
     <td><code>CROSSLINED</code></td>
-    <td><code>&quot;crosslined&quot;</code></td>
-    <td>9</td>
+    <td><code>crosslined</code></td>
+    <td align=center>9</td>
     <td>crosslined</td>
     <td></td>
   </tr>
   <tr>
     <td><code>DOUBLE_UNDERLINED</code></td>
-    <td><code>&quot;double_underlined&quot;</code></td>
-    <td>21</td>
+    <td><code>double_underlined</code></td>
+    <td align=center>21</td>
     <td>underlined</td>
     <td></td>
   </tr>
   <tr>
     <td><code>OVERLINED</code></td>
-    <td><code>&quot;overlined&quot;</code></td>
-    <td>53</td>
+    <td><code>overlined</code></td>
+    <td align=center>53</td>
     <td>overlined</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BOLD_DIM_OFF</code></td>
-    <td><code>&quot;bold_dim_off&quot;</code></td>
-    <td>22</td>
+    <td><code>bold_dim_off</code></td>
+    <td align=center>22</td>
     <td>[breaker], bold, dim</td>
     <td><i>Special aspects... It's impossible to disable them separately.</i></td>
   </tr>
   <tr>
     <td><code>ITALIC_OFF</code></td>
-    <td><code>&quot;italic_off&quot;</code></td>
-    <td>23</td>
+    <td><code>italic_off</code></td>
+    <td align=center>23</td>
     <td>[breaker], italic</td>
     <td></td>
   </tr>
   <tr>
     <td><code>UNDERLINED_OFF</code></td>
-    <td><code>&quot;underlined_off&quot;</code></td>
-    <td>24</td>
+    <td><code>underlined_off</code></td>
+    <td align=center>24</td>
     <td>[breaker], underlined</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BLINK_OFF</code></td>
-    <td><code>&quot;blink_off&quot;</code></td>
-    <td>25</td>
+    <td><code>blink_off</code></td>
+    <td align=center>25</td>
     <td>[breaker], blink</td>
     <td></td>
   </tr>
   <tr>
     <td><code>INVERSED_OFF</code></td>
-    <td><code>&quot;inversed_off&quot;</code></td>
-    <td>27</td>
+    <td><code>inversed_off</code></td>
+    <td align=center>27</td>
     <td>[breaker], inversed</td>
     <td></td>
   </tr>
   <tr>
     <td><code>HIDDEN_OFF</code></td>
-    <td><code>&quot;hidden_off&quot;</code></td>
-    <td>28</td>
+    <td><code>hidden_off</code></td>
+    <td align=center>28</td>
     <td>[breaker], hidden</td>
     <td></td>
   </tr>
   <tr>
     <td><code>CROSSLINED_OFF</code></td>
-    <td><code>&quot;crosslined_off&quot;</code></td>
-    <td>29</td>
+    <td><code>crosslined_off</code></td>
+    <td align=center>29</td>
     <td>[breaker], crosslined</td>
     <td></td>
   </tr>
   <tr>
     <td><code>OVERLINED_OFF</code></td>
-    <td><code>&quot;overlined_off&quot;</code></td>
-    <td>55</td>
+    <td><code>overlined_off</code></td>
+    <td align=center>55</td>
     <td>[breaker], overlined</td>
     <td></td>
   </tr>
@@ -453,78 +477,78 @@ Sequence and format registry.
   <tr><th colspan="5">group: color</th></tr>
   <tr>
     <td><code>BLACK</code></td>
-    <td><code>&quot;black&quot;</code></td>
-    <td>30</td>
+    <td><code>black</code></td>
+    <td align=center>30</td>
     <td>color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>RED</code></td>
-    <td><code>&quot;red&quot;</code></td>
-    <td>31</td>
+    <td><code>red</code></td>
+    <td align=center>31</td>
     <td>color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>GREEN</code></td>
-    <td><code>&quot;green&quot;</code></td>
-    <td>32</td>
+    <td><code>green</code></td>
+    <td align=center>32</td>
     <td>color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>YELLOW</code></td>
-    <td><code>&quot;yellow&quot;</code></td>
-    <td>33</td>
+    <td><code>yellow</code></td>
+    <td align=center>33</td>
     <td>color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BLUE</code></td>
-    <td><code>&quot;blue&quot;</code></td>
-    <td>34</td>
+    <td><code>blue</code></td>
+    <td align=center>34</td>
     <td>color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>MAGENTA</code></td>
-    <td><code>&quot;magenta&quot;</code></td>
-    <td>35</td>
+    <td><code>magenta</code></td>
+    <td align=center>35</td>
     <td>color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>CYAN</code></td>
-    <td><code>&quot;cyan&quot;</code></td>
-    <td>36</td>
+    <td><code>cyan</code></td>
+    <td align=center>36</td>
     <td>color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>WHITE</code></td>
-    <td><code>&quot;white&quot;</code></td>
-    <td>37</td>
+    <td><code>white</code></td>
+    <td align=center>37</td>
     <td>color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>MODE24_START</code></td>
-    <td><code>&quot;mode24_start&quot;</code></td>
-    <td>38;2;<code>r</code>;<code>g</code>;<code>b</code></td>
+    <td><code>mode24_start</code>, <code>text_rgb</code></td>
+    <td align=center>38;2;<code>r</code>;<code>g</code>;<code>b</code></td>
     <td>color</td>
     <td>Set text color to <code>rrggbb</code> translated. Valid values (for all): [0-255]</td>
   </tr>
   <tr>
     <td><code>MODE8_START</code></td>
-    <td><code>&quot;mode8_start&quot;</code></td>
-    <td>38;5;<code>color</code></td>
+    <td><code>mode8_start</code>, <code>text_256</code></td>
+    <td align=center>38;5;<code>color</code></td>
     <td>color</td>
     <td>Set text color to <code>code</code>. Valid values: [0-255]</td>
   </tr>
   <tr>
     <td><code>COLOR_OFF</code></td>
-    <td><code>&quot;color_off&quot;</code></td>
-    <td>39</td>
+    <td><code>color_off</code></td>
+    <td align=center>39</td>
     <td>[breaker], color</td>
     <td>Reset text color</td>
   </tr>
@@ -534,78 +558,78 @@ Sequence and format registry.
   <tr><th colspan="5">group: background color</th></tr>
   <tr>
     <td><code>BG_BLACK</code></td>
-    <td><code>&quot;bg_black&quot;</code></td>
-    <td>40</td>
+    <td><code>bg_black</code></td>
+    <td align=center>40</td>
     <td>bg_color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BG_RED</code></td>
-    <td><code>&quot;bg_red&quot;</code></td>
-    <td>41</td>
+    <td><code>bg_red</code></td>
+    <td align=center>41</td>
     <td>bg_color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BG_GREEN</code></td>
-    <td><code>&quot;bg_green&quot;</code></td>
-    <td>42</td>
+    <td><code>bg_green</code></td>
+    <td align=center>42</td>
     <td>bg_color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BG_YELLOW</code></td>
-    <td><code>&quot;bg_yellow&quot;</code></td>
-    <td>43</td>
+    <td><code>bg_yellow</code></td>
+    <td align=center>43</td>
     <td>bg_color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BG_BLUE</code></td>
-    <td><code>&quot;bg_blue&quot;</code></td>
-    <td>44</td>
+    <td><code>bg_blue</code></td>
+    <td align=center>44</td>
     <td>bg_color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BG_MAGENTA</code></td>
-    <td><code>&quot;bg_magenta&quot;</code></td>
-    <td>45</td>
+    <td><code>bg_magenta</code></td>
+    <td align=center>45</td>
     <td>bg_color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BG_CYAN</code></td>
-    <td><code>&quot;bg_cyan&quot;</code></td>
-    <td>46</td>
+    <td><code>bg_cyan</code></td>
+    <td align=center>46</td>
     <td>bg_color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BG_WHITE</code></td>
-    <td><code>&quot;bg_white&quot;</code></td>
-    <td>47</td>
+    <td><code>bg_white</code></td>
+    <td align=center>47</td>
     <td>bg_color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BG_MODE24_START</code></td>
-    <td><code>&quot;bg_mode24_start&quot;</code></td>
-    <td>48;2;<code>r</code>;<code>g</code>;<code>b</code></td>
+    <td><code>bg_mode24_start</code>, <code>bg_rgb</code></td>
+    <td align=center>48;2;<code>r</code>;<code>g</code>;<code>b</code></td>
     <td>bg_color</td>
     <td>Set bg color to <code>rrggbb</code> (translated). Valid values (for all): [0-255]</td>
   </tr>
   <tr>
     <td><code>BG_MODE8_START</code></td>
-    <td><code>&quot;bg_mode8_start&quot;</code></td>
-    <td>48;5;<code>color</code></td>
+    <td><code>bg_mode8_start</code>, <code>bg_256</code></td>
+    <td align=center>48;5;<code>color</code></td>
     <td>bg_color</td>
     <td>Set bg color to <code>code</code>. Valid values: [0-255]</td>
   </tr>
   <tr>
     <td><code>BG_COLOR_OFF</code></td>
-    <td><code>&quot;bg_color_off&quot;</code></td>
-    <td>49</td>
+    <td><code>bg_color_off</code></td>
+    <td align=center>49</td>
     <td>[breaker], bg_color</td>
     <td>Reset bg color</td>
   </tr>
@@ -615,57 +639,57 @@ Sequence and format registry.
   <tr><th colspan="5">group: high intensity color</th></tr>
   <tr>
     <td><code>GRAY</code></td>
-    <td><code>&quot;gray&quot;</code></td>
-    <td>90</td>
+    <td><code>gray</code></td>
+    <td align=center>90</td>
     <td>color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>HI_RED</code></td>
-    <td><code>&quot;hi_red&quot;</code></td>
-    <td>91</td>
+    <td><code>hi_red</code></td>
+    <td align=center>91</td>
     <td>color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>HI_GREEN</code></td>
-    <td><code>&quot;hi_green&quot;</code></td>
-    <td>92</td>
+    <td><code>hi_green</code></td>
+    <td align=center>92</td>
     <td>color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>HI_YELLOW</code></td>
-    <td><code>&quot;hi_yellow&quot;</code></td>
-    <td>93</td>
+    <td><code>hi_yellow</code></td>
+    <td align=center>93</td>
     <td>color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>HI_BLUE</code></td>
-    <td><code>&quot;hi_blue&quot;</code></td>
-    <td>94</td>
+    <td><code>hi_blue</code></td>
+    <td align=center>94</td>
     <td>color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>HI_MAGENTA</code></td>
-    <td><code>&quot;hi_magenta&quot;</code></td>
-    <td>95</td>
+    <td><code>hi_magenta</code></td>
+    <td align=center>95</td>
     <td>color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>HI_CYAN</code></td>
-    <td><code>&quot;hi_cyan&quot;</code></td>
-    <td>96</td>
+    <td><code>hi_cyan</code></td>
+    <td align=center>96</td>
     <td>color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>HI_WHITE</code></td>
-    <td><code>&quot;hi_white&quot;</code></td>
-    <td>97</td>
+    <td><code>hi_white</code></td>
+    <td align=center>97</td>
     <td>color</td>
     <td></td>
   </tr>
@@ -675,57 +699,57 @@ Sequence and format registry.
   <tr><th colspan="5">group: high intensity background color</th></tr>
   <tr>
     <td><code>BG_GRAY</code></td>
-    <td><code>&quot;bg_gray&quot;</code></td>
-    <td>100</td>
+    <td><code>bg_gray</code></td>
+    <td align=center>100</td>
     <td>bg_color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BG_HI_RED</code></td>
-    <td><code>&quot;bg_hi_red&quot;</code></td>
-    <td>101</td>
+    <td><code>bg_hi_red</code></td>
+    <td align=center>101</td>
     <td>bg_color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BG_HI_GREEN</code></td>
-    <td><code>&quot;bg_hi_green&quot;</code></td>
-    <td>102</td>
+    <td><code>bg_hi_green</code></td>
+    <td align=center>102</td>
     <td>bg_color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BG_HI_YELLOW</code></td>
-    <td><code>&quot;bg_hi_yellow&quot;</code></td>
-    <td>103</td>
+    <td><code>bg_hi_yellow</code></td>
+    <td align=center>103</td>
     <td>bg_color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BG_HI_BLUE</code></td>
-    <td><code>&quot;bg_hi_blue&quot;</code></td>
-    <td>104</td>
+    <td><code>bg_hi_blue</code></td>
+    <td align=center>104</td>
     <td>bg_color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BG_HI_MAGENTA</code></td>
-    <td><code>&quot;bg_hi_magenta&quot;</code></td>
-    <td>105</td>
+    <td><code>bg_hi_magenta</code></td>
+    <td align=center>105</td>
     <td>bg_color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BG_HI_CYAN</code></td>
-    <td><code>&quot;bg_hi_cyan&quot;</code></td>
-    <td>106</td>
+    <td><code>bg_hi_cyan</code></td>
+    <td align=center>106</td>
     <td>bg_color</td>
     <td></td>
   </tr>
   <tr>
     <td><code>BG_HI_WHITE</code></td>
-    <td><code>&quot;bg_hi_white&quot;</code></td>
-    <td>107</td>
+    <td><code>bg_hi_white</code></td>
+    <td align=center>107</td>
     <td>bg_color</td>
     <td></td>
   </tr>
