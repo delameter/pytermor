@@ -4,33 +4,36 @@
 # -----------------------------------------------------------------------------
 from copy import copy
 
+import pytermor.seq
 from readme_examples import _outpath, _print
 from readme_examples import *
-from pytermor.preset import GRAY, RESET
 
-corner=[
+MAX_LEN = 50
+corner = [
     ['└', '┘', '└', '┘'],
     ['┌', '┐', '┌', '┐'],
 ]
 with open(_outpath, 'rt') as fp:
     for line in fp.readlines() + ['', '']:
         line = line.strip()
+        if line:
+            line = ' ' + line
         charlen = len(ReplaceSGR('').invoke(line))
-        pad = max(0, 50 - charlen)
+        pad = max(0, MAX_LEN - charlen)
         pad_left = pad//2
         pad_right = pad - pad_left
-        sep=['│', '│', '│', '│']
+        sep = ['│', '│', '│', '│']
         fill = ' '
-        if pad == 50:
-            sep=corner.pop(0)
+        if pad == MAX_LEN:
+            sep = corner.pop(0)
             corner.append(copy(sep))
             fill = '─'
-        _print(f'{GRAY}{sep.pop(0)}{fill*pad_left}{RESET}'
+        _print(
+               f'>{line}'
+               f'{" "*pad}{fill}<'
+               f'     '
+               f'{pytermor.seq.GRAY}{pytermor.seq.DIM}{sep.pop(0)}{pytermor.seq.RESET}'
                f'{line}'
-               f'{GRAY}{fill*pad_right}{sep.pop(0)}{RESET}'
-               '   '
-               f'{GRAY}{sep.pop(0)}{RESET}'
-               f'{line}'
-               f'{GRAY}{fill*pad}{sep.pop(0)}{RESET}'
+               f'{pytermor.seq.GRAY}{pytermor.seq.DIM}{fill * pad}{sep.pop(0)}{pytermor.seq.RESET}'
                )
 os.remove(_outpath)
