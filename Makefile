@@ -41,7 +41,7 @@ upload-dev: ## upload module to test repository
 	python3 -m twine upload --repository testpypi dist/* -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD}
 
 install-dev: ## install module from test repository
-	pip install -i https://test.pypi.org/simple/ pytermor==${VERSION}
+	pip install -i https://test.pypi.org/simple/ pytermor-delameter==${VERSION}
 
 release-dev: ## build, upload and install using test repository
 release-dev: cleanup build upload-dev install-dev
@@ -52,7 +52,7 @@ upload: ## upload module
 	python3 -m twine upload dist/* -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD}
 
 install: ## install module
-	pip install -i pytermor==${VERSION}
+	pip install pytermor==${VERSION}
 
 release: ## build, upload and install module
 release: cleanup build upload install

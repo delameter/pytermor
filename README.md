@@ -22,11 +22,12 @@ from pytermor import fmt
 print(fmt.blue('Use'), fmt.cyan('cases'))
 ```
 
-<details><summary><b>Examples</b> <i>(click)</i></summary>
+<details>
+<summary><b>Examples</b> <i>(click)</i></summary>
 
 ## * ![image](https://user-images.githubusercontent.com/50381946/161387692-4374edcb-c1fe-438f-96f1-dae3c5ad4088.png)
 
-Preset formats can safely overlap with each other (as long as they belong to different **modifier groups**).
+Preset formats can safely overlap with each other (as long as they require different **breaker** sequences to reset).
 
 ```python
 from pytermor import fmt
@@ -36,7 +37,7 @@ print(fmt.blue(fmt.underlined('Nested') + fmt.bold(' formats')))
 
 ## * ![image](https://user-images.githubusercontent.com/50381946/161387711-23746520-419b-4917-9401-257854ff2d8a.png)
 
-Built-in automatic content-aware format termination.
+Compose text formats with automatic content-aware format termination.
 
 ```python
 from pytermor import autof
@@ -50,7 +51,7 @@ print(msg)
 
 ## * ![image](https://user-images.githubusercontent.com/50381946/161387734-677d5b10-15c1-4926-933f-b1144b0ce5cb.png)
 
-Create your own SGR sequences with `build()` method, which accepts color/attribute keys, integer codes and even existing SGRs, in any amount and in any order. Key resolving is case-insensitive.
+Create your own _SGR_ _sequences_ with `build()` method, which accepts color/attribute keys, integer codes and even existing _SGRs_, in any amount and in any order. Key resolving is case-insensitive.
 
 ```python
 from pytermor import seq, build
@@ -67,7 +68,7 @@ print(msg)
 
 ## * ![image](https://user-images.githubusercontent.com/50381946/161387746-0a94e3d2-8295-478c-828c-333e99e5d50a.png)
 
-Use `build_c256()` to set text/background color to any of [↗ xterm-256 colors](https://www.ditig.com/256-colors-cheat-sheet).
+Use `build_c256()` to set foreground/background color to any of [↗ xterm-256 colors](https://www.ditig.com/256-colors-cheat-sheet).
 
 ```python
 from pytermor import build, build_c256
@@ -103,7 +104,7 @@ print(msg)
 
 ## Format soft reset
 
-There are two ways to manage text color and attribute termination:
+There are two ways to manage color and attribute termination:
 
 - hard reset (SGR 0 | `\e[m`)
 - soft reset (SGR 22, 23, 24 etc.)
@@ -138,7 +139,7 @@ print(orig_text, '\n', updated_text)
 As you can see, the update went well &mdash; we kept all the previously applied formatting. Of course, this method cannot be 100% applicable &mdash; for example, imagine that original text was colored blue. After the update "string" word won't be blue anymore, as we used `COLOR_OFF` escape sequence to neutralize our own yellow color. But it still can be helpful for a majority of cases (especially when text is generated and formatted by the same program and in one go).
 
 
-## API: [_pytermor_]
+## API: module
 
 ### autof
 
@@ -163,20 +164,23 @@ Create new _SequenceSGR_ with specified params. Resulting sequence params order 
 
 Signature:`build_c256(color: int, bg: bool = False) -> SequenceSGR`
 
-Create new _SequenceSGR_ that sets text color or background color, depending on `bg` value, in 256-color mode. Valid values for `color` are [0; 255], see more at [↗ xterm-256 colors](https://www.ditig.com/256-colors-cheat-sheet) page.
+Create new _SequenceSGR_ that sets foreground color or background color, depending on `bg` value, in 256-color mode. Valid values for `color` are [0; 255], see more at [↗ xterm-256 colors](https://www.ditig.com/256-colors-cheat-sheet) page.
 
 
 ### build_rgb
 
 Signature:`build_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR`
 
-Create new _SequenceSGR_ that sets text color or background color, depending on `bg` value, in 16M-color mode. Valid values for `r`, `g` and `b` are [0; 255]; this range is linearly translated into [0x00; 0xFF] for each channel; the result value is composed as #RRGGBB.
+Create new _SequenceSGR_ that sets foreground color or background color, depending on `bg` value, in 16M-color mode. Valid values for `r`, `g` and `b` are [0; 255]; this range is linearly translated into [0x00; 0xFF] for each channel; the result value is composed as #RRGGBB.
 
 
 
-## API: _SequenceSGR_
+## API: SGR sequences
 
 Class representing SGR-mode ANSI escape sequence with varying amount of parameters.
+
+<details>
+<summary><b>Details</b> <i>(click)</i></summary>
 
 ### Creating the sequence
 
@@ -228,11 +232,14 @@ print(f'{combined}combined{seq.RESET}', str(combined).encode())
 ```
 > ![image](https://user-images.githubusercontent.com/50381946/161387867-808831e5-784b-49ec-9c24-490734ef4eab.png)
 
+</details>
 
-
-## API: _Format_
+## API: Formats
 
 _Format_ is a wrapper class that contains starting (i.e. opening) _SequenceSGR_ and (optionally) closing _SequenceSGR_.
+
+<details>
+<summary><b>Details</b> <i>(click)</i></summary>
 
 ### Creating the format
 
@@ -257,13 +264,17 @@ print(msg)
 ```
 > ![image](https://user-images.githubusercontent.com/50381946/161387874-5c25a493-253b-4f9e-8dbf-8328add2e5d5.png)
 
+</details>
 
 
-## API: _StringFilter_
+## API: String filters
 
-Common string modifier interface with dynamic configuration support.
+_StringFilter_ is common string modifier interface with dynamic configuration support.
 
-### Subclasses
+<details>
+<summary><b>Details</b> <i>(click)</i></summary>
+
+### Implementations
 
 - ReplaceSGR
 - ReplaceCSI
@@ -271,7 +282,7 @@ Common string modifier interface with dynamic configuration support.
 
 ### Standalone usage
 
-Can be executed using `.invoke()` method or with direct call.
+Can be applied using `.invoke()` method or with direct call.
 
 ```python
 from pytermor.util import ReplaceSGR
@@ -288,7 +299,7 @@ print(formatted, '\n', replaced)
 
 ### Usage with helper
 
-Helper function `apply_filters` accepts both `StringFilter` (and subclasses) instances and subclasses' types, but latter is not configurable and will be invoked using default settings.
+Helper function `apply_filters` accepts both `StringFilter` implementation instances and types, but latter is not configurable and will be invoked using default settings.
 
 ```python
 from pytermor.util import apply_filters, ReplaceNonAsciiBytes
@@ -300,6 +311,7 @@ print(ascii_and_binary, '\n', result)
 ``` 
 > ![image](https://user-images.githubusercontent.com/50381946/161387889-a1920f13-f5fc-4d10-b535-93f1a1b1aa5c.png)
 
+</details>
 
 
 ## API: Registries
@@ -311,150 +323,140 @@ print(ascii_and_binary, '\n', result)
 - **code** &mdash; SGR integer code(s) for specified sequence (order is important)
 - **name** &mdash; variable name; usage: `from pytermor.seq import RESET`
 - **key** &mdash; string that will be recognised by `build()`|`autof()` etc.
-- **comment** &mdash; effect of applying the sequence / additional notes
+- **description** &mdash; effect of applying the sequence / additional notes
 
 As a rule of a thumb, **key** equals to **name** in lower case.
 
 <table>
   <tr>
-    <th><small>code</small></th>
+    <th>code</th>
     <th>name</th>
     <th>key</th>
-    <th>comment</th>
-    <th width="20px">G</th>
+    <th>description</th>
   </tr>
   <tr>
     <td align=center>0</td>
     <td><code>RESET</code></td>
     <td><code>reset</code></td>
     <td>Reset all attributes and colors</td>
-    <td width="20px" align="center" valign="center">
-      B
-    </td>
   </tr>
 
-  <tr><td colspan="5"></td></tr>
+  <tr><td colspan="4"><br><b>attributes</b></td></tr>
   <tr>
     <td align=center>1</td>
     <td><code>BOLD</code></td>
     <td><code>bold</code></td>
-    <td></td>
-    <td rowspan="11" width="20px" align="center" valign="center" >
-        A T T R I B U T E S
-    </td>
+    <td>Bold or increased intensity</td>
   </tr>
   <tr>
     <td align=center>2</td>
     <td><code>DIM</code></td>
     <td><code>dim</code></td>
-    <td></td>
+    <td>Faint, decreased intensity</td>
   </tr>
   <tr>
     <td align=center>3</td>
     <td><code>ITALIC</code></td>
     <td><code>italic</code></td>
-    <td></td>
+    <td>Italic; not widely supported</td>
   </tr>
   <tr>
     <td align=center>4</td>
     <td><code>UNDERLINED</code></td>
     <td><code>underlined</code></td>
-    <td></td>
+    <td>Underline</td>
   </tr>
   <tr>
     <td align=center>5</td>
     <td><code>BLINK_SLOW</code></td>
     <td><code>blink_slow</code></td>
-    <td></td>
+    <td>Sets blinking to &lt; 150 cpm</td>
   </tr>
   <tr>
     <td align=center>6</td>
     <td><code>BLINK_FAST</code></td>
     <td><code>blink_fast</code></td>
-    <td></td>
+    <td>150+ cpm; not widely supported</td>
   </tr>
   <tr>
     <td align=center>7</td>
     <td><code>INVERSED</code></td>
     <td><code>inversed</code></td>
-    <td></td>
+    <td>Swap foreground and background colors</td>
   </tr>
   <tr>
     <td align=center>8</td>
     <td><code>HIDDEN</code></td>
     <td><code>hidden</code></td>
-    <td></td>
+    <td>Conceal characters; not widely supported</td>
   </tr>
   <tr>
     <td align=center>9</td>
     <td><code>CROSSLINED</code></td>
     <td><code>crosslined</code></td>
-    <td></td>
+    <td>Strikethrough</td>
   </tr>
   <tr>
     <td align=center>21</td>
     <td><code>DOUBLE_UNDERLINED</code></td>
     <td><code>double_underlined</code></td>
-    <td></td>
+    <td>Double-underline; on several terminals disables <code>BOLD</code> instead</td>
   </tr>
   <tr>
     <td align=center>53</td>
     <td><code>OVERLINED</code></td>
     <td><code>overlined</code></td>
-    <td></td>
+    <td>Not widely supported</td>
   </tr>
 
-  <tr><td colspan="5"></td></tr>
+  <tr><td colspan="4"><br><b>breakers</b></td></tr>
   <tr>
     <td align=center>22</td>
     <td><code>BOLD_DIM_OFF</code></td>
     <td><code>bold_dim_off</code></td>
-    <td><i>Special aspects... It's impossible to disable them separately.</i></td>
-    <td rowspan="10" width="20px" align="center" valign="center" >
-        B R E A K E R S
-    </td>
+    <td>Disable <code>BOLD</code> and <code>DIM</code> attributes. <i>Special aspects... It's impossible to reliably disable them on a separate basis.</i></td>
   </tr>
   <tr>
     <td align=center>23</td>
     <td><code>ITALIC_OFF</code></td>
     <td><code>italic_off</code></td>
-    <td></td>
+    <td>Disable italic</td>
   </tr>
   <tr>
     <td align=center>24</td>
     <td><code>UNDERLINED_OFF</code></td>
     <td><code>underlined_off</code></td>
-    <td></td>
+    <td>Disable underlining</td>
   </tr>
   <tr>
     <td align=center>25</td>
     <td><code>BLINK_OFF</code></td>
     <td><code>blink_off</code></td>
-    <td></td>
+    <td>Disable blinking</td>
   </tr>
   <tr>
     <td align=center>27</td>
     <td><code>INVERSED_OFF</code></td>
     <td><code>inversed_off</code></td>
-    <td></td>
+    <td>Disable inversing</td>
   </tr>
   <tr>
     <td align=center>28</td>
     <td><code>HIDDEN_OFF</code></td>
     <td><code>hidden_off</code></td>
-    <td></td>
+    <td>Disable conecaling</td>
   </tr>
   <tr>
     <td align=center>29</td>
     <td><code>CROSSLINED_OFF</code></td>
     <td><code>crosslined_off</code></td>
-    <td></td>
+    <td>Disable strikethrough</td>
   </tr>
   <tr>
     <td align=center>39</td>
     <td><code>COLOR_OFF</code></td>
     <td><code>color_off</code></td>
-    <td>Reset text color</td>
+    <td>Reset foreground color</td>
   </tr>
   <tr>
     <td align=center>49</td>
@@ -466,253 +468,239 @@ As a rule of a thumb, **key** equals to **name** in lower case.
     <td align=center>55</td>
     <td><code>OVERLINED_OFF</code></td>
     <td><code>overlined_off</code></td>
-    <td></td>
+    <td>Disable overlining</td>
   </tr>
 
-  <tr><td colspan="5"></td></tr>
+  <tr><td colspan="4"><br><b>[foreground] colors</b></td></tr>
   <tr>
     <td align=center>30</td>
     <td><code>BLACK</code></td>
     <td><code>black</code></td>
-    <td></td>
-    <td rowspan="10" width="20px" align="center" valign="center" >
-        ﹇ T E X T ﹈ C O L O R S
-    </td>
+    <td>Set foreground color to black</td>
   </tr>
   <tr>
     <td align=center>31</td>
     <td><code>RED</code></td>
     <td><code>red</code></td>
-    <td></td>
+    <td>Set foreground color to red</td>
   </tr>
   <tr>
     <td align=center>32</td>
     <td><code>GREEN</code></td>
     <td><code>green</code></td>
-    <td></td>
+    <td>Set foreground color to green</td>
   </tr>
   <tr>
     <td align=center>33</td>
     <td><code>YELLOW</code></td>
     <td><code>yellow</code></td>
-    <td></td>
+    <td>Set foreground color to yellow</td>
   </tr>
   <tr>
     <td align=center>34</td>
     <td><code>BLUE</code></td>
     <td><code>blue</code></td>
-    <td></td>
+    <td>Set foreground color to blue</td>
   </tr>
   <tr>
     <td align=center>35</td>
     <td><code>MAGENTA</code></td>
     <td><code>magenta</code></td>
-    <td></td>
+    <td>Set foreground color to magneta</td>
   </tr>
   <tr>
     <td align=center>36</td>
     <td><code>CYAN</code></td>
     <td><code>cyan</code></td>
-    <td></td>
+    <td>Set foreground color to cyan</td>
   </tr>
   <tr>
     <td align=center>37</td>
     <td><code>WHITE</code></td>
     <td><code>white</code></td>
-    <td></td>
+    <td>Set foreground color to white</td>
   </tr>
   <tr>
     <td align=center><s>38;5</s></td>
     <td colspan="2" align="center">
         Use <code>color_c256()</code> instead
     </td>
-    <td>Set text color [256 mode]</td>
+    <td>Set foreground color [256 mode]</td>
   </tr>
   <tr>
     <td align=center><s>38;2</s></td>
     <td colspan="2" align="center">
         Use <code>color_rgb()</code> instead
     </td>
-    <td>Set text color [16M mode]</td>
+    <td>Set foreground color [16M mode]</td>
   </tr>
 
-  <tr><td colspan="5"></td></tr>
+  <tr><td colspan="4"><br><b>background colors</b></td></tr>
   <tr>
     <td align=center>40</td>
     <td><code>BG_BLACK</code></td>
     <td><code>bg_black</code></td>
-    <td></td>
-    <td rowspan="10" width="20px" align="center" valign="center" >
-        B G<br><br>C O L O R S
-    </td>
+    <td>Set background color to black</td>
   </tr>
   <tr>
     <td align=center>41</td>
     <td><code>BG_RED</code></td>
     <td><code>bg_red</code></td>
-    <td></td>
+    <td>Set background color to red</td>
   </tr>
   <tr>
     <td align=center>42</td>
     <td><code>BG_GREEN</code></td>
     <td><code>bg_green</code></td>
-    <td></td>
+    <td>Set background color to green</td>
   </tr>
   <tr>
     <td align=center>43</td>
     <td><code>BG_YELLOW</code></td>
     <td><code>bg_yellow</code></td>
-    <td></td>
+    <td>Set background color to yellow</td>
   </tr>
   <tr>
     <td align=center>44</td>
     <td><code>BG_BLUE</code></td>
     <td><code>bg_blue</code></td>
-    <td></td>
+    <td>Set background color to blue</td>
   </tr>
   <tr>
     <td align=center>45</td>
     <td><code>BG_MAGENTA</code></td>
     <td><code>bg_magenta</code></td>
-    <td></td>
+    <td>Set background color to magenta</td>
   </tr>
   <tr>
     <td align=center>46</td>
     <td><code>BG_CYAN</code></td>
     <td><code>bg_cyan</code></td>
-    <td></td>
+    <td>Set background color to cyan</td>
   </tr>
   <tr>
     <td align=center>47</td>
     <td><code>BG_WHITE</code></td>
     <td><code>bg_white</code></td>
-    <td></td>
+    <td>Set background color to white</td>
   </tr>
   <tr>
     <td align=center><s>48;5</s></td>
     <td colspan="2" align="center">
         Use <code>color_c256()</code> instead
     </td>
-    <td>Set bg color [256 mode]</td>
+    <td>Set background color [256 mode]</td>
   </tr>
   <tr>
     <td align=center><s>48;2</s></td>
     <td colspan="2" align="center">
         Use <code>color_rgb()</code> instead
     </td>
-    <td>Set bg color [16M mode]</td>
+    <td>Set background color [16M mode]</td>
   </tr>
 
-  <tr><td colspan="5"></td></tr>
+  <tr><td colspan="4"><br><b>high-intensity [foreground] colors</b></td></tr>
   <tr>
     <td align=center>90</td>
     <td><code>GRAY</code></td>
     <td><code>gray</code></td>
-    <td></td>
-    <td rowspan="8" width="20px" align="center" valign="center" >
-        H I ﹇ T E X T ﹈ C O L O R S
-    </td>
+    <td>Set foreground color to bright black/gray</td>
   </tr>
   <tr>
     <td align=center>91</td>
     <td><code>HI_RED</code></td>
     <td><code>hi_red</code></td>
-    <td></td>
+    <td>Set foreground color to bright red</td>
   </tr>
   <tr>
     <td align=center>92</td>
     <td><code>HI_GREEN</code></td>
     <td><code>hi_green</code></td>
-    <td></td>
+    <td>Set foreground color to bright green</td>
   </tr>
   <tr>
     <td align=center>93</td>
     <td><code>HI_YELLOW</code></td>
     <td><code>hi_yellow</code></td>
-    <td></td>
+    <td>Set foreground color to bright yellow</td>
   </tr>
   <tr>
     <td align=center>94</td>
     <td><code>HI_BLUE</code></td>
     <td><code>hi_blue</code></td>
-    <td></td>
+    <td>Set foreground color to bright blue</td>
   </tr>
   <tr>
     <td align=center>95</td>
     <td><code>HI_MAGENTA</code></td>
     <td><code>hi_magenta</code></td>
-    <td></td>
+    <td>Set foreground color to bright magenta</td>
   </tr>
   <tr>
     <td align=center>96</td>
     <td><code>HI_CYAN</code></td>
     <td><code>hi_cyan</code></td>
-    <td></td>
+    <td>Set foreground color to bright cyan</td>
   </tr>
   <tr>
     <td align=center>97</td>
     <td><code>HI_WHITE</code></td>
     <td><code>hi_white</code></td>
-    <td></td>
+    <td>Set foreground color to bright white</td>
   </tr>
 
-  <tr><td colspan="5"></td></tr>
+  <tr><td colspan="4"><br><b>high-intensity background colors</b></td></tr>
   <tr>
     <td align=center>100</td>
     <td><code>BG_GRAY</code></td>
     <td><code>bg_gray</code></td>
-    <td></td>
-    <td rowspan="8" width="20px" align="center" valign="center" >
-        H I <br><br> B G <br><br> C O L O R S
-    </td>
+    <td>Set background color to bright black/gray</td>
   </tr>
   <tr>
     <td align=center>101</td>
     <td><code>BG_HI_RED</code></td>
     <td><code>bg_hi_red</code></td>
-    <td></td>
+    <td>Set background color to bright red</td>
   </tr>
   <tr>
     <td align=center>102</td>
     <td><code>BG_HI_GREEN</code></td>
     <td><code>bg_hi_green</code></td>
-    <td></td>
+    <td>Set background color to bright green</td>
   </tr>
   <tr>
     <td align=center>103</td>
     <td><code>BG_HI_YELLOW</code></td>
     <td><code>bg_hi_yellow</code></td>
-    <td></td>
+    <td>Set background color to bright yellow</td>
   </tr>
   <tr>
     <td align=center>104</td>
     <td><code>BG_HI_BLUE</code></td>
     <td><code>bg_hi_blue</code></td>
-    <td></td>
+    <td>Set background color to bright blue</td>
   </tr>
   <tr>
     <td align=center>105</td>
     <td><code>BG_HI_MAGENTA</code></td>
     <td><code>bg_hi_magenta</code></td>
-    <td></td>
+    <td>Set background color to bright magenta</td>
   </tr>
   <tr>
     <td align=center>106</td>
     <td><code>BG_HI_CYAN</code></td>
     <td><code>bg_hi_cyan</code></td>
-    <td></td>
+    <td>Set background color to bright cyan</td>
   </tr>
   <tr>
     <td align=center>107</td>
     <td><code>BG_HI_WHITE</code></td>
     <td><code>bg_hi_white</code></td>
-    <td></td>
+    <td>Set background color to bright white</td>
   </tr>
 </table>
 
 </details>
-
-<br>
 
 <details>
 <summary><b>Formats</b> <i>(click)</i></summary>
@@ -727,15 +715,12 @@ As a rule of a thumb, **name** equals to **opening seq** in lower case.
     <th>name</th>
     <th>opening seq</th>
     <th>closing seq</th>
-    <th width="20px">G</th>
   </tr>
+  <tr><td colspan="3"><br><b>attributes</b></td></tr>
   <tr>
     <td><code>bold</code></td>
     <td><code>BOLD</code></td>
     <td><code>BOLD_DIM_OFF</code></td>
-    <td rowspan="6" width="20px" align="center" valign="center" >
-        A T T R I B U T E S
-    </td>
   </tr>
   <tr>
     <td><code>dim</code></td>
@@ -763,14 +748,11 @@ As a rule of a thumb, **name** equals to **opening seq** in lower case.
     <td><code>OVERLINED_OFF</code></td>
   </tr>
 
-  <tr><td colspan="4"></td></tr>
+  <tr><td colspan="3"><br><b>[foreground] colors</b></td></tr>
   <tr>
     <td><code>red</code></td>
     <td><code>RED</code></td>
     <td><code>COLOR_OFF</code></td>
-    <td rowspan="6" width="20px" align="center">
-        ﹇ T E X T ﹈ C O L O R S
-    </td>
   </tr>
   <tr>
     <td><code>green</code></td>
@@ -798,14 +780,11 @@ As a rule of a thumb, **name** equals to **opening seq** in lower case.
     <td><code>COLOR_OFF</code></td>
   </tr>
 
-  <tr><td colspan="4"></td></tr>
+  <tr><td colspan="3"><br><b>background colors</b></td></tr>
   <tr>
     <td><code>bg_red</code></td>
     <td><code>BG_RED</code></td>
     <td><code>BG_COLOR_OFF</code></td>
-    <td rowspan="6" width="20px" align="center">
-        B G<br><br>C O L O R S
-    </td>
   </tr>
   <tr>
     <td><code>bg_green</code></td>
@@ -836,7 +815,9 @@ As a rule of a thumb, **name** equals to **opening seq** in lower case.
 
 </details>
 
+You can of course create your own sequences and formats, but with one limitation &mdash; autoformatting will not work with custom defined sequences; unless you add the corresponding rule to `pytermor.registry.sgr_parity_registry`.
 
 ## References
 
 - https://en.wikipedia.org/wiki/ANSI_escape_code
+- [ANSI Escape Sequences](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797)
