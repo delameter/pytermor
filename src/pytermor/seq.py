@@ -61,6 +61,11 @@ class SequenceSGR(SequenceCSI):
             )
 
 
+class EmptySequenceSGR(SequenceSGR):
+    def __str__(self) -> str:
+        return ''
+
+
 def build(*args: str|int|SequenceSGR) -> SequenceSGR:
     result = SequenceSGR()
     for arg in args:
@@ -72,12 +77,17 @@ def build(*args: str|int|SequenceSGR) -> SequenceSGR:
             if not isinstance(resolved_param, int):
                 raise ValueError(f'Attribute is not valid SGR param: {resolved_param}')
             result += SequenceSGR(resolved_param)
+
         elif isinstance(arg, int):
             result += SequenceSGR(arg)
+
         elif isinstance(arg, SequenceSGR):
+            if isinstance(arg, EmptySequenceSGR):
+                continue
             result += arg
+
         else:
-            raise TypeError(f'Invalid argument type: {arg} ({type(arg)})')
+            raise TypeError(f'Invalid argument type: {arg!r})')
 
     return result
 

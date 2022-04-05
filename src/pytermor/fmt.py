@@ -15,7 +15,7 @@ class Format:
         self._closing_seq: SequenceSGR|None = SequenceSGR(0) if hard_reset_after else closing_seq
 
     def __repr__(self):
-        return f'{self._opening_seq!r}:{self._closing_seq!r}'
+        return f'{self.__class__.__name__}[{self._opening_seq!r}, {self._closing_seq!r}]'
 
     def __call__(self, text: str = None) -> str:
         result = str(self._opening_seq)
@@ -35,6 +35,24 @@ class Format:
     @property
     def closing(self) -> str:
         return str(self._closing_seq) if self._closing_seq else ''
+
+
+class EmptyFormat(Format):
+    def __init__(self):
+        self._opening_seq = None
+        self._closing_seq = None
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}[]'
+
+    def __call__(self, text: str = None) -> str:
+        if text is None:
+            return ''
+        return text
+
+    @property
+    def opening(self) -> str:
+        return ''
 
 
 def autof(*args: str|int|SequenceSGR) -> Format:

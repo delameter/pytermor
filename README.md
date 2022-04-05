@@ -817,6 +817,20 @@ As a rule of a thumb, **name** equals to **opening seq** in lower case.
 
 You can of course create your own sequences and formats, but with one limitation &mdash; autoformatting will not work with custom defined sequences; unless you add the corresponding rule to `pytermor.registry.sgr_parity_registry`.
 
+## Changelog
+
+### v1.2.0
+
+`EmptySequenceSGR` and `EmptyFormat` classes.
+
+### v1.1.0
+
+Autoformat feature.
+
+### v1.0.0
+
+First public version.
+
 ## References
 
 - https://en.wikipedia.org/wiki/ANSI_escape_code
