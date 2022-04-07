@@ -33,8 +33,16 @@ class Format:
         return str(self._opening_seq)
 
     @property
+    def opening_seq(self) -> SequenceSGR:
+        return self._opening_seq
+
+    @property
     def closing(self) -> str:
         return str(self._closing_seq) if self._closing_seq else ''
+
+    @property
+    def closing_seq(self) -> SequenceSGR|None:
+        return self._closing_seq
 
 
 class EmptyFormat(Format):
