@@ -13,25 +13,22 @@ class StringFilter(Generic[AnyStr]):
     def __init__(self, fn: Callable[[AnyStr], AnyStr]):
         self._fn = fn
 
-    def __call__(self, s: AnyStr) -> AnyStr:
+    def apply(self, s: AnyStr) -> AnyStr:
         return self._fn(s)
-
-    def invoke(self, s: AnyStr) -> AnyStr:
-        return self(s)
 
 
 class ReplaceSGR(StringFilter[str]):
     """Find all SGR seqs (e.g. '\\e[1;4m') and replace with given string.
     More specific version of ReplaceCSI()."""
     def __init__(self, repl: str = ''):
-        super().__init__(lambda s: re.sub(r'\033\[([0-9;]*)(m)', repl, s))
+        super().__init__(lambda s: re.sub(r'(\033)(\[)(([0-9;])*)(m)', repl, s))
 
 
 class ReplaceCSI(StringFilter[str]):
     """Find all CSI seqs (e.g. '\\e[*') and replace with given string.
     Less specific version of ReplaceSGR(), as CSI consists of SGR and many other seq subtypes."""
     def __init__(self, repl: str = ''):
-        super().__init__(lambda s: re.sub(r'\033\[([0-9;:<=>?]*)([@A-Za-z])', repl, s))
+        super().__init__(lambda s: re.sub(r'(\033)(\[)(([0-9;:<=>?])*)([@A-Za-z])', repl, s))
 
 
 class ReplaceNonAsciiBytes(StringFilter[bytes]):
@@ -42,4 +39,4 @@ class ReplaceNonAsciiBytes(StringFilter[bytes]):
 
 def apply_filters(string: AnyStr, *args: StringFilter|Type[StringFilter]) -> AnyStr:
     filters = map(lambda t: t() if isinstance(t, type) else t, args)
-    return reduce(lambda s, f: f(s), filters, string)
+    return reduce(lambda s, f: f.apply(s), filters, string)

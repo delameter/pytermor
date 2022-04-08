@@ -5,3 +5,4 @@
 from .seq import build, build_c256, build_rgb
 from .fmt import autof
 
+__all__ = ['build', 'build_c256', 'build_rgb', 'autof']

@@ -195,12 +195,13 @@ seq = SequenceSGR(4, 7)
 
 ### Applying the sequence
 
-To get the resulting sequence chars cast instance to _str_:
+To get the resulting sequence chars use `print()` method or cast instance to _str_:
 
 ```python
 ...
 msg = f'({seq})'
-print(msg + f'{SequenceSGR(0)}', str(msg.encode()), msg.encode().hex(':'))
+print(msg + f'{SequenceSGR(0).print()}', str(msg.encode()), msg.encode().hex(':'))
+# also works: print(f'{SequenceSGR(0)}')
 ```
 > ![image](https://user-images.githubusercontent.com/50381946/161387861-5203fff8-86c8-4c52-8518-63a5525c09f7.png)
 
@@ -255,11 +256,11 @@ fmt_error = Format(seq.BG_HI_RED + seq.UNDERLINED, seq.BG_COLOR_OFF + seq.UNDERL
 
 ### Applying the format
 
-Use `invoke()` method of _Format_ instance or call the instance itself to enclose specified string in starting/terminating SGR sequences:
+Use `wrap()` method of _Format_ instance or call the instance itself to enclose specified string in starting/terminating SGR sequences:
 
 ```python
 ...
-msg = fmt.italic.invoke('italic might ' + fmt_error('not') + ' work')
+msg = fmt.italic.wrap('italic might ' + fmt_error('not') + ' work')
 print(msg)
 ```
 > ![image](https://user-images.githubusercontent.com/50381946/161387874-5c25a493-253b-4f9e-8dbf-8328add2e5d5.png)
@@ -282,14 +283,14 @@ _StringFilter_ is common string modifier interface with dynamic configuration su
 
 ### Standalone usage
 
-Can be applied using `.invoke()` method or with direct call.
+Can be applied using `.apply()` method or with direct call.
 
 ```python
 from pytermor.util import ReplaceSGR
 from pytermor import fmt
 
 formatted = fmt.red('this text is red')
-replaced = ReplaceSGR('[LIE]').invoke(formatted)
+replaced = ReplaceSGR('[LIE]').apply(formatted)
 # replaced = ReplaceSequenceSGRs('[LIE]')(formatted)
 
 print(formatted, '\n', replaced)

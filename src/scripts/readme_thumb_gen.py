@@ -18,7 +18,7 @@ with open(_outpath, 'rt') as fp:
         line = line.strip()
         if line:
             line = ' ' + line
-        charlen = len(ReplaceSGR('').invoke(line))
+        charlen = len(ReplaceSGR('').apply(line))
         pad = max(0, MAX_LEN - charlen)
         pad_left = pad//2
         pad_right = pad - pad_left

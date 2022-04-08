@@ -90,7 +90,7 @@ from pytermor.seq import SequenceSGR
 
 seq = SequenceSGR(4, 7)
 msg = f'({seq})'
-print(msg + f'{SequenceSGR(0)}', str(msg.encode()), msg.encode().hex(':'))
+print(msg + f'{SequenceSGR(0).print()}', str(msg.encode()), msg.encode().hex(':'))
 
 # -----------------------------------------------------------------------------
 from pytermor.seq import SequenceSGR
@@ -104,7 +104,7 @@ from pytermor.fmt import Format
 from pytermor import seq, fmt
 
 fmt_error = Format(seq.BG_HI_RED + seq.UNDERLINED, seq.BG_COLOR_OFF + seq.UNDERLINED_OFF)
-msg = fmt.italic.invoke('italic might ' + fmt_error('not') + ' work')
+msg = fmt.italic.wrap('italic might ' + fmt_error('not') + ' work')
 print(msg)
 
 # -----------------------------------------------------------------------------
@@ -112,7 +112,7 @@ from pytermor.util import ReplaceSGR
 from pytermor import fmt
 
 formatted = fmt.red('this text is red')
-replaced = ReplaceSGR('[LIE]').invoke(formatted)
+replaced = ReplaceSGR('[LIE]').apply(formatted)
 # replaced = ReplaceSequenceSGRs('[LIE]')(formatted)
 
 print(formatted, '\n', replaced)

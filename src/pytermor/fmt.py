@@ -4,20 +4,68 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
+from abc import ABCMeta, abstractmethod
+
 from . import build, code
 from .registry import sgr_parity_registry
 from .seq import SequenceSGR
 
 
-class Format:
+class AbstractFormat(metaclass=ABCMeta):
+    def __repr__(self):
+        return f'{self.__class__.__name__}'
+
+    def __call__(self, text: str = None) -> str:
+        return self.wrap(text)
+
+    @abstractmethod
+    def wrap(self, text: str) -> str: raise NotImplementedError
+    @property
+    @abstractmethod
+    def opening_str(self) -> str: raise NotImplementedError
+    @property
+    @abstractmethod
+    def closing_str(self) -> str: raise NotImplementedError
+    @property
+    @abstractmethod
+    def opening_seq(self) -> SequenceSGR|None: raise NotImplementedError
+    @property
+    @abstractmethod
+    def closing_seq(self) -> SequenceSGR|None: raise NotImplementedError
+
+
+class EmptyFormat(AbstractFormat):
+    def wrap(self, text: str = None) -> str:
+        if text is None:
+            return ''
+        return text
+
+    @property
+    def opening_str(self) -> str:
+        return ''
+
+    @property
+    def closing_str(self) -> str:
+        return ''
+
+    @property
+    def opening_seq(self) -> SequenceSGR|None:
+        return None
+
+    @property
+    def closing_seq(self) -> SequenceSGR|None:
+        return None
+
+
+class Format(AbstractFormat):
     def __init__(self, opening_seq: SequenceSGR, closing_seq: SequenceSGR = None, hard_reset_after: bool = False):
         self._opening_seq: SequenceSGR = opening_seq
         self._closing_seq: SequenceSGR|None = SequenceSGR(0) if hard_reset_after else closing_seq
 
     def __repr__(self):
-        return f'{self.__class__.__name__}[{self._opening_seq!r}, {self._closing_seq!r}]'
+        return super().__repr__() + '[{!r}, {!r}]'.format(self._opening_seq, self._closing_seq)
 
-    def __call__(self, text: str = None) -> str:
+    def wrap(self, text: str = None) -> str:
         result = str(self._opening_seq)
         if text is not None:
             result += text
@@ -25,11 +73,8 @@ class Format:
             result += str(self._closing_seq)
         return result
 
-    def invoke(self, s: str) -> str:
-        return self(s)
-
     @property
-    def opening(self) -> str:
+    def opening_str(self) -> str:
         return str(self._opening_seq)
 
     @property
@@ -37,30 +82,12 @@ class Format:
         return self._opening_seq
 
     @property
-    def closing(self) -> str:
+    def closing_str(self) -> str:
         return str(self._closing_seq) if self._closing_seq else ''
 
     @property
     def closing_seq(self) -> SequenceSGR|None:
         return self._closing_seq
-
-
-class EmptyFormat(Format):
-    def __init__(self):
-        self._opening_seq = None
-        self._closing_seq = None
-
-    def __repr__(self):
-        return f'{self.__class__.__name__}[]'
-
-    def __call__(self, text: str = None) -> str:
-        if text is None:
-            return ''
-        return text
-
-    @property
-    def opening(self) -> str:
-        return ''
 
 
 def autof(*args: str|int|SequenceSGR) -> Format:

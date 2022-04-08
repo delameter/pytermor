@@ -4,13 +4,13 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
-import abc
-from typing import AnyStr, List, Any
+from abc import ABCMeta, abstractmethod
+from typing import List, Any
 
 from . import code
 
 
-class SequenceCSI(metaclass=abc.ABCMeta):
+class SequenceCSI(metaclass=ABCMeta):
     CONTROL_CHARACTER = '\033'
     INTRODUCER = '['
     SEPARATOR = ';'
@@ -18,12 +18,15 @@ class SequenceCSI(metaclass=abc.ABCMeta):
     def __init__(self, *params: int):
         self._params: List[int] = [int(p) for p in params]
 
+    @abstractmethod
+    def print(self) -> str: raise NotImplementedError
+
     @property
     def params(self) -> List[int]:
         return self._params
 
-    @abc.abstractmethod
-    def __str__(self) -> AnyStr: raise NotImplementedError
+    def __str__(self) -> str:
+        return self.print()
 
     def __repr__(self):
         return f'{self.__class__.__name__}[{";".join([str(p) for p in self._params])}]'
@@ -36,7 +39,7 @@ class SequenceSGR(SequenceCSI):
     def __init__(self, *params: int):
         super(SequenceSGR, self).__init__(*params)
 
-    def __str__(self) -> str:
+    def print(self) -> str:
         return f'{self.CONTROL_CHARACTER}{self.INTRODUCER}' \
                f'{self.SEPARATOR.join([str(param) for param in self._params])}' \
                f'{self.TERMINATOR}'
