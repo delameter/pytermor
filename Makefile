@@ -35,10 +35,11 @@ set-version: ## set new package version
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
 
 build: ## build module
-	python3 -m build
+build: cleanup
 	sed -E -i "s/^VERSION.+/VERSION=$$VERSION/" .env.dist
+	python3 -m build
 
-## Making new release (test repo)
+## Test repository
 
 upload-dev: ## upload module to test repository
 	python3 -m twine upload --repository testpypi dist/* -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD}
@@ -46,16 +47,10 @@ upload-dev: ## upload module to test repository
 install-dev: ## install module from test repository
 	pip install -i https://test.pypi.org/simple/ pytermor-delameter==${VERSION}
 
-release-dev: ## build, upload and install using test repository
-release-dev: cleanup build upload-dev install-dev
-
-## Making new release
+## Primary repository
 
 upload: ## upload module
 	python3 -m twine upload dist/* -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD} --verbose
 
 install: ## install module
 	pip install pytermor==${VERSION}
-
-release: ## build, upload and install module
-release: cleanup build upload install

@@ -780,6 +780,11 @@ As a rule of a thumb, **name** equals to **opening seq** in lower case.
     <td><code>CYAN</code></td>
     <td><code>COLOR_OFF</code></td>
   </tr>
+  <tr>
+    <td><code>gray</code></td>
+    <td><code>GRAY</code></td>
+    <td><code>COLOR_OFF</code></td>
+  </tr>
 
   <tr><td colspan="3"><br><b>background colors</b></td></tr>
   <tr>
@@ -812,6 +817,11 @@ As a rule of a thumb, **name** equals to **opening seq** in lower case.
     <td><code>BG_CYAN</code></td>
     <td><code>BG_COLOR_OFF</code></td>
   </tr>
+  <tr>
+    <td><code>bg_gray</code></td>
+    <td><code>BG_GRAY</code></td>
+    <td><code>BG_COLOR_OFF</code></td>
+  </tr>
 </table>
 
 </details>
@@ -819,6 +829,18 @@ As a rule of a thumb, **name** equals to **opening seq** in lower case.
 You can of course create your own sequences and formats, but with one limitation &mdash; autoformatting will not work with custom defined sequences; unless you add the corresponding rule to `pytermor.registry.sgr_parity_registry`.
 
 ## Changelog
+
+### v1.3.2
+
+Added `gray` and `bg_gray` format presets. 
+
+### v1.3.1
+
+Interface revisioning.
+
+### v1.2.1
+
+`opening_seq` and `closing_seq` properties for `Format` class.
 
 ### v1.2.0
 
