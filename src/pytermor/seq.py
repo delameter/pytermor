@@ -12,17 +12,18 @@ from . import code
 
 class AbstractSequence(metaclass=ABCMeta):
     def __init__(self, *params: int):
-        self._params: List[int] = [int(p) for p in params]
+        self._params: List[int] = [max(0, int(p)) for p in params]
 
     @abstractmethod
-    def print(self) -> str: raise NotImplementedError
+    def print(self) -> str:
+        raise NotImplementedError
 
     @property
     def params(self) -> List[int]:
         return self._params
 
     def __eq__(self, other: AbstractSequence):
-        if not isinstance(other, type(self)):
+        if type(self) != type(other):
             return False
         return self._params == other._params
 
@@ -42,57 +43,41 @@ class AbstractSequenceCSI(AbstractSequence, metaclass=ABCMeta):
         return self.print()
 
 
-class AbstractSequenceSGR(AbstractSequenceCSI, metaclass=ABCMeta):
+class SequenceSGR(AbstractSequenceCSI, metaclass=ABCMeta):
     TERMINATOR = 'm'
 
-    def __add__(self, other: AbstractSequenceSGR) -> AbstractSequenceSGR:
+    def print(self) -> str:
+        if len(self._params) == 0:
+            return ''
+        return f'{self.CONTROL_CHARACTER}' \
+               f'{self.INTRODUCER}' \
+               f'{self.SEPARATOR.join([str(param) for param in self._params])}' \
+               f'{self.TERMINATOR}'
+
+    def __add__(self, other: SequenceSGR) -> SequenceSGR:
         self._ensure_sequence(other)
         return SequenceSGR(*self._params, *other._params)
 
-    def __radd__(self, other: AbstractSequenceSGR) -> AbstractSequenceSGR:
+    def __radd__(self, other: SequenceSGR) -> SequenceSGR:
         return other.__add__(self)
 
-    def __iadd__(self, other: AbstractSequenceSGR) -> AbstractSequenceSGR:
+    def __iadd__(self, other: SequenceSGR) -> SequenceSGR:
         return self.__add__(other)
 
-    def __eq__(self, other: AbstractSequenceSGR):
-        self._ensure_sequence(other)
+    def __eq__(self, other: SequenceSGR):
         if type(self) != type(other):
             return False
         return self._params == other._params
 
     # noinspection PyMethodMayBeStatic
     def _ensure_sequence(self, subject: Any):
-        if not isinstance(subject, AbstractSequenceSGR):
+        if not isinstance(subject, SequenceSGR):
             raise TypeError(
-                f'Expected AbstractSequenceSGR, got {type(subject)}'
+                f'Expected SequenceSGR, got {type(subject)}'
             )
 
 
-class EmptySequenceSGR(AbstractSequenceSGR):
-    def __init__(self):
-        super(EmptySequenceSGR, self).__init__(*[])
-
-    def __add__(self, other: AbstractSequenceSGR) -> AbstractSequenceSGR:
-        return other
-
-    def print(self) -> str:
-        return ''
-
-
-class SequenceSGR(AbstractSequenceSGR):
-    def __init__(self, *params: int):
-        if len(params) == 0:
-            raise ValueError('Instantiate EmptySequenceSGR to create no-op SGR')
-        super(SequenceSGR, self).__init__(*params)
-
-    def print(self) -> str:
-        return f'{self.CONTROL_CHARACTER}{self.INTRODUCER}' \
-               f'{self.SEPARATOR.join([str(param) for param in self._params])}' \
-               f'{self.TERMINATOR}'
-
-
-def build(*args: str|int|AbstractSequenceSGR) -> AbstractSequenceSGR:
+def build(*args: str | int | SequenceSGR) -> SequenceSGR:
     result: List[int] = []
 
     for arg in args:
@@ -108,17 +93,12 @@ def build(*args: str|int|AbstractSequenceSGR) -> AbstractSequenceSGR:
         elif isinstance(arg, int):
             result.append(arg)
 
-        elif isinstance(arg, EmptySequenceSGR):
-            continue
-
         elif isinstance(arg, SequenceSGR):
             result.extend(arg.params)
 
         else:
             raise TypeError(f'Invalid argument type: {arg!r})')
 
-    if len(result) == 0:
-        return EmptySequenceSGR()
     return SequenceSGR(*result)
 
 

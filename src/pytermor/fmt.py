@@ -9,7 +9,7 @@ from typing import Any
 
 from . import build, code
 from .registry import sgr_parity_registry
-from .seq import AbstractSequenceSGR, SequenceSGR
+from .seq import SequenceSGR
 
 
 class AbstractFormat(metaclass=ABCMeta):
@@ -32,12 +32,12 @@ class AbstractFormat(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def opening_seq(self) -> AbstractSequenceSGR|None:
+    def opening_seq(self) -> SequenceSGR | None:
         raise NotImplementedError
 
     @property
     @abstractmethod
-    def closing_seq(self) -> AbstractSequenceSGR|None:
+    def closing_seq(self) -> SequenceSGR | None:
         raise NotImplementedError
 
     def __repr__(self):
@@ -59,18 +59,18 @@ class EmptyFormat(AbstractFormat):
         return ''
 
     @property
-    def opening_seq(self) -> AbstractSequenceSGR|None:
+    def opening_seq(self) -> SequenceSGR | None:
         return None
 
     @property
-    def closing_seq(self) -> AbstractSequenceSGR|None:
+    def closing_seq(self) -> SequenceSGR | None:
         return None
 
 
 class Format(AbstractFormat):
-    def __init__(self, opening_seq: AbstractSequenceSGR, closing_seq: AbstractSequenceSGR = None, hard_reset_after: bool = False):
-        self._opening_seq: AbstractSequenceSGR = opening_seq
-        self._closing_seq: AbstractSequenceSGR|None = closing_seq
+    def __init__(self, opening_seq: SequenceSGR, closing_seq: SequenceSGR = None, hard_reset_after: bool = False):
+        self._opening_seq: SequenceSGR = opening_seq
+        self._closing_seq: SequenceSGR | None = closing_seq
         if hard_reset_after:
             self._closing_seq = SequenceSGR(0)
 
@@ -87,7 +87,7 @@ class Format(AbstractFormat):
         return self._opening_seq.print()
 
     @property
-    def opening_seq(self) -> AbstractSequenceSGR:
+    def opening_seq(self) -> SequenceSGR:
         return self._opening_seq
 
     @property
@@ -97,7 +97,7 @@ class Format(AbstractFormat):
         return ''
 
     @property
-    def closing_seq(self) -> AbstractSequenceSGR|None:
+    def closing_seq(self) -> SequenceSGR | None:
         return self._closing_seq
 
     def __eq__(self, other: Format) -> bool:
@@ -111,7 +111,7 @@ class Format(AbstractFormat):
         return super().__repr__() + '[{!r}, {!r}]'.format(self._opening_seq, self._closing_seq)
 
 
-def autof(*args: str|int|AbstractSequenceSGR) -> Format:
+def autof(*args: str | int | SequenceSGR) -> Format:
     opening_seq = build(*args)
     closing_seq = sgr_parity_registry.get_closing_seq(opening_seq)
     return Format(opening_seq, closing_seq)

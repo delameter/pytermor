@@ -26,7 +26,7 @@ prepare:
 	python3 -m pip install --upgrade build twine
 
 test: ## Run tests
-	PYTHONPATH=src python3 -m unittest
+	PYTHONPATH=src python3 -m unittest -v
 
 set-version: ## Set new package version
 	@echo "Current version: ${YELLOW}${VERSION}${RESET}"

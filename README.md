@@ -106,14 +106,14 @@ print(msg)
 
 There are two ways to manage color and attribute termination:
 
-- hard reset (SGR 0 | `\e[m`)
+- hard reset (SGR 0 | `\e[0m`)
 - soft reset (SGR 22, 23, 24 etc.)
 
 The main difference between them is that **hard** reset disables all formatting after itself, while **soft** reset disables only actually necessary attributes (i.e. used as opening sequence in _Format_ instance's context) and keeps the other.
 
 That's what _Format_ class and `autof` method are designed for: to simplify creation of soft-resetting text spans, so that developer doesn't have to restore all previously applied formats after every closing sequence.
 
-Example: we are given a text span which is initially **bold** and <u>underlined</u>. We want to recolor a few words inside of this span. By default this will result in losing all the formatting to the right of updated text span (because `RESET`|`\e[m` clears all text attributes).
+Example: we are given a text span which is initially **bold** and <u>underlined</u>. We want to recolor a few words inside of this span. By default this will result in losing all the formatting to the right of updated text span (because `RESET`|`\e[0m` clears all text attributes).
 
 However, there is an option to specify what attributes should be disabled or let the library do that for you:
 
@@ -143,7 +143,7 @@ As you can see, the update went well &mdash; we kept all the previously applied 
 
 ### autof
 
-Signature: `autof(*params str|int|AbstractSequenceSGR) -> Format`
+Signature: `autof(*params str|int|SequenceSGR) -> Format`
 
 Create new _Format_ with specified control sequence(s) as a opening/starter sequence and **automatically compose** closing sequence that will terminate attributes defined in opening sequence while keeping the others (soft reset).
 
@@ -153,15 +153,14 @@ Each sequence param can be specified as:
 - string key (see [API: Registries](#api-registries))
 - integer param value
 - existing _SequenceSGR_ instance (params will be extracted)
-- another inheritor of _AbstractSequenceSGR_: _EmptySequenceSGR_
 
 ### build
 
-Signature: `build(*params str|int|AbstractSequenceSGR) -> AbstractSequenceSGR`
+Signature: `build(*params str|int|SequenceSGR) -> SequenceSGR`
 
 Create new _SequenceSGR_ with specified params. Resulting sequence params order is the same as argument order. Parameter specification is the same as for `autof`.
 
-Will create _EmptySequenceSGR_ when called without arguments. The purpose of this class is to serve as an empty placeholder when no SGR params are specified; without it method would have created `SequenceSGR()`, which translates to `\e[m`, hard reset sequence, and that's highly counter-intuitive.
+_SequenceSGR_ with zero params was specifically implemented to translate into empty string and not into `\e[m`, which wolud make sense, but also would be very entangling, as it's equivavlent of `\e[0m` &mdash; **hard reset** sequence.
 
 ### build_c256
 
@@ -832,6 +831,10 @@ As a rule of a thumb, **name** equals to **opening seq** in lower case.
 You can of course create your own sequences and formats, but with one limitation &mdash; autoformatting will not work with custom defined sequences; unless you add the corresponding rule to `pytermor.registry.sgr_parity_registry`.
 
 ## Changelog
+
+### v1.5.0
+
+- Removed excessive _EmptySequenceSGR_ &mdash; default _SGR_ class without params was specifically implemented to print out as empty string instead of `\e[m`.
 
 ### v1.4.0
 

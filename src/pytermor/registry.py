@@ -10,7 +10,7 @@ from typing import Dict, Tuple, List
 from pytermor import build
 
 from . import code
-from .seq import SequenceSGR, AbstractSequenceSGR
+from .seq import SequenceSGR
 
 
 class Registry:
@@ -32,7 +32,7 @@ class Registry:
         self._complex_code_def[starter_codes] = param_len
         self._complex_code_max_len = max(self._complex_code_max_len, len(starter_codes) + param_len)
 
-    def get_closing_seq(self, opening_seq: AbstractSequenceSGR) -> AbstractSequenceSGR:
+    def get_closing_seq(self, opening_seq: SequenceSGR) -> SequenceSGR:
         closing_seq_params: List[int] = []
         opening_params = copy(opening_seq.params)
         while len(opening_params):

@@ -1,7 +1,7 @@
 import unittest
 
 from pytermor import autof, seq, code
-from pytermor.seq import EmptySequenceSGR, SequenceSGR
+from pytermor.seq import SequenceSGR
 
 
 class FormatEqualityTestCase(unittest.TestCase):
@@ -26,13 +26,13 @@ class AutoFormatTestCase(unittest.TestCase):
         self.assertEqual(f.closing_seq, SequenceSGR(code.UNDERLINED_OFF, code.COLOR_OFF, code.BG_COLOR_OFF))
 
     def test_autof_empty_sgr(self):
-        f = autof(EmptySequenceSGR())
+        f = autof(SequenceSGR())
 
-        self.assertEqual(f.opening_seq, EmptySequenceSGR())
-        self.assertEqual(f.closing_seq, EmptySequenceSGR())
+        self.assertEqual(f.opening_seq, SequenceSGR())
+        self.assertEqual(f.closing_seq, SequenceSGR())
 
     def test_autof_multiple_with_empty_sgr(self):
-        f = autof(seq.BOLD, EmptySequenceSGR(), seq.RED)
+        f = autof(seq.BOLD, SequenceSGR(), seq.RED)
 
         self.assertEqual(f.opening_seq, SequenceSGR(code.BOLD, code.RED))
         self.assertEqual(f.closing_seq, SequenceSGR(code.BOLD_DIM_OFF, code.COLOR_OFF))
