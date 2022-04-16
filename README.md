@@ -143,7 +143,7 @@ As you can see, the update went well &mdash; we kept all the previously applied 
 
 ### autof
 
-Signature: `autof(*params str|int|SequenceSGR) -> Format`
+Signature: `autof(*params str|int|AbstractSequenceSGR) -> Format`
 
 Create new _Format_ with specified control sequence(s) as a opening/starter sequence and **automatically compose** closing sequence that will terminate attributes defined in opening sequence while keeping the others (soft reset).
 
@@ -153,12 +153,15 @@ Each sequence param can be specified as:
 - string key (see [API: Registries](#api-registries))
 - integer param value
 - existing _SequenceSGR_ instance (params will be extracted)
+- another inheritor of _AbstractSequenceSGR_: _EmptySequenceSGR_
 
 ### build
 
-Signature: `build(*params str|int|SequenceSGR) -> SequenceSGR`
+Signature: `build(*params str|int|AbstractSequenceSGR) -> AbstractSequenceSGR`
 
 Create new _SequenceSGR_ with specified params. Resulting sequence params order is the same as argument order. Parameter specification is the same as for `autof`.
+
+Will create _EmptySequenceSGR_ when called without arguments. The purpose of this class is to serve as an empty placeholder when no SGR params are specified; without it method would have created `SequenceSGR()`, which translates to `\e[m`, hard reset sequence, and that's highly counter-intuitive.
 
 ### build_c256
 
@@ -830,29 +833,36 @@ You can of course create your own sequences and formats, but with one limitation
 
 ## Changelog
 
+### v1.4.0
+
+- `Format.wrap()` now accepts any type of argument, not only _str_.
+- Rebuilt _Sequence_ inheritance tree.
+- Added equality methods for _Sequence_ and _Format_ classes/subclasses.
+- Added some tests for `fmt.*` and `seq.*` classes.
+
 ### v1.3.2
 
-Added `gray` and `bg_gray` format presets. 
+- Added `gray` and `bg_gray` format presets. 
 
 ### v1.3.1
 
-Interface revisioning.
+- Interface revisioning.
 
 ### v1.2.1
 
-`opening_seq` and `closing_seq` properties for `Format` class.
+- `opening_seq` and `closing_seq` properties for _Format_ class.
 
 ### v1.2.0
 
-`EmptySequenceSGR` and `EmptyFormat` classes.
+- _EmptySequenceSGR_ and _EmptyFormat_ classes.
 
 ### v1.1.0
 
-Autoformat feature.
+- Autoformat feature.
 
 ### v1.0.0
 
-First public version.
+- First public version.
 
 ## References
 

@@ -25,7 +25,10 @@ cleanup:
 prepare:
 	python3 -m pip install --upgrade build twine
 
-set-version: ## set new package version
+test: ## Run tests
+	PYTHONPATH=src python3 -m unittest
+
+set-version: ## Set new package version
 	@echo "Current version: ${YELLOW}${VERSION}${RESET}"
 	read -p "New version (press enter to keep current): " VERSION
 	if [ -z $$VERSION ] ; then echo "No changes" && return 0 ; fi
@@ -34,23 +37,23 @@ set-version: ## set new package version
 	sed -E -i "s/^version.+/version = $$VERSION/" setup.cfg
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
 
-build: ## build module
+build: ## Build module
 build: cleanup
 	sed -E -i "s/^VERSION.+/VERSION=$$VERSION/" .env.dist
 	python3 -m build
 
 ## Test repository
 
-upload-dev: ## upload module to test repository
+upload-dev: ## Upload module to test repository
 	python3 -m twine upload --repository testpypi dist/* -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD}
 
-install-dev: ## install module from test repository
+install-dev: ## Install module from test repository
 	pip install -i https://test.pypi.org/simple/ pytermor-delameter==${VERSION}
 
 ## Primary repository
 
-upload: ## upload module
+upload: ## Upload module
 	python3 -m twine upload dist/* -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD} --verbose
 
-install: ## install module
+install: ## Install module
 	pip install pytermor==${VERSION}

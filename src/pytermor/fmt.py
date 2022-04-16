@@ -5,40 +5,50 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
+from typing import Any
 
 from . import build, code
 from .registry import sgr_parity_registry
-from .seq import SequenceSGR
+from .seq import AbstractSequenceSGR, SequenceSGR
 
 
 class AbstractFormat(metaclass=ABCMeta):
-    def __repr__(self):
-        return f'{self.__class__.__name__}'
-
-    def __call__(self, text: str = None) -> str:
+    def __call__(self, text: Any = None) -> str:
         return self.wrap(text)
 
     @abstractmethod
-    def wrap(self, text: str) -> str: raise NotImplementedError
+    def wrap(self, text: Any) -> str:
+        raise NotImplementedError
+
     @property
     @abstractmethod
-    def opening_str(self) -> str: raise NotImplementedError
+    def opening_str(self) -> str:
+        raise NotImplementedError
+
     @property
     @abstractmethod
-    def closing_str(self) -> str: raise NotImplementedError
+    def closing_str(self) -> str:
+        raise NotImplementedError
+
     @property
     @abstractmethod
-    def opening_seq(self) -> SequenceSGR|None: raise NotImplementedError
+    def opening_seq(self) -> AbstractSequenceSGR|None:
+        raise NotImplementedError
+
     @property
     @abstractmethod
-    def closing_seq(self) -> SequenceSGR|None: raise NotImplementedError
+    def closing_seq(self) -> AbstractSequenceSGR|None:
+        raise NotImplementedError
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}'
 
 
 class EmptyFormat(AbstractFormat):
-    def wrap(self, text: str = None) -> str:
+    def wrap(self, text: Any = None) -> str:
         if text is None:
             return ''
-        return text
+        return str(text)
 
     @property
     def opening_str(self) -> str:
@@ -49,48 +59,59 @@ class EmptyFormat(AbstractFormat):
         return ''
 
     @property
-    def opening_seq(self) -> SequenceSGR|None:
+    def opening_seq(self) -> AbstractSequenceSGR|None:
         return None
 
     @property
-    def closing_seq(self) -> SequenceSGR|None:
+    def closing_seq(self) -> AbstractSequenceSGR|None:
         return None
 
 
 class Format(AbstractFormat):
-    def __init__(self, opening_seq: SequenceSGR, closing_seq: SequenceSGR = None, hard_reset_after: bool = False):
-        self._opening_seq: SequenceSGR = opening_seq
-        self._closing_seq: SequenceSGR|None = SequenceSGR(0) if hard_reset_after else closing_seq
+    def __init__(self, opening_seq: AbstractSequenceSGR, closing_seq: AbstractSequenceSGR = None, hard_reset_after: bool = False):
+        self._opening_seq: AbstractSequenceSGR = opening_seq
+        self._closing_seq: AbstractSequenceSGR|None = closing_seq
+        if hard_reset_after:
+            self._closing_seq = SequenceSGR(0)
 
-    def __repr__(self):
-        return super().__repr__() + '[{!r}, {!r}]'.format(self._opening_seq, self._closing_seq)
-
-    def wrap(self, text: str = None) -> str:
-        result = str(self._opening_seq)
+    def wrap(self, text: Any = None) -> str:
+        result = self._opening_seq.print()
         if text is not None:
-            result += text
+            result += str(text)
         if self._closing_seq is not None:
-            result += str(self._closing_seq)
+            result += self._closing_seq.print()
         return result
 
     @property
     def opening_str(self) -> str:
-        return str(self._opening_seq)
+        return self._opening_seq.print()
 
     @property
-    def opening_seq(self) -> SequenceSGR:
+    def opening_seq(self) -> AbstractSequenceSGR:
         return self._opening_seq
 
     @property
     def closing_str(self) -> str:
-        return str(self._closing_seq) if self._closing_seq else ''
+        if self._closing_seq is not None:
+            return self._closing_seq.print()
+        return ''
 
     @property
-    def closing_seq(self) -> SequenceSGR|None:
+    def closing_seq(self) -> AbstractSequenceSGR|None:
         return self._closing_seq
 
+    def __eq__(self, other: Format) -> bool:
+        if not isinstance(other, Format):
+            return False
 
-def autof(*args: str|int|SequenceSGR) -> Format:
+        return self._opening_seq == other._opening_seq \
+               and self._closing_seq == other._closing_seq
+
+    def __repr__(self):
+        return super().__repr__() + '[{!r}, {!r}]'.format(self._opening_seq, self._closing_seq)
+
+
+def autof(*args: str|int|AbstractSequenceSGR) -> Format:
     opening_seq = build(*args)
     closing_seq = sgr_parity_registry.get_closing_seq(opening_seq)
     return Format(opening_seq, closing_seq)

@@ -10,11 +10,7 @@ from typing import List, Any
 from . import code
 
 
-class SequenceCSI(metaclass=ABCMeta):
-    CONTROL_CHARACTER = '\033'
-    INTRODUCER = '['
-    SEPARATOR = ';'
-
+class AbstractSequence(metaclass=ABCMeta):
     def __init__(self, *params: int):
         self._params: List[int] = [int(p) for p in params]
 
@@ -25,18 +21,69 @@ class SequenceCSI(metaclass=ABCMeta):
     def params(self) -> List[int]:
         return self._params
 
-    def __str__(self) -> str:
-        return self.print()
+    def __eq__(self, other: AbstractSequence):
+        if not isinstance(other, type(self)):
+            return False
+        return self._params == other._params
 
     def __repr__(self):
         return f'{self.__class__.__name__}[{";".join([str(p) for p in self._params])}]'
 
 
-# CSI sequence sub-type
-class SequenceSGR(SequenceCSI):
-    TERMINATOR = 'm'
+class AbstractSequenceCSI(AbstractSequence, metaclass=ABCMeta):
+    CONTROL_CHARACTER = '\033'
+    INTRODUCER = '['
+    SEPARATOR = ';'
 
     def __init__(self, *params: int):
+        super(AbstractSequenceCSI, self).__init__(*params)
+
+    def __str__(self) -> str:
+        return self.print()
+
+
+class AbstractSequenceSGR(AbstractSequenceCSI, metaclass=ABCMeta):
+    TERMINATOR = 'm'
+
+    def __add__(self, other: AbstractSequenceSGR) -> AbstractSequenceSGR:
+        self._ensure_sequence(other)
+        return SequenceSGR(*self._params, *other._params)
+
+    def __radd__(self, other: AbstractSequenceSGR) -> AbstractSequenceSGR:
+        return other.__add__(self)
+
+    def __iadd__(self, other: AbstractSequenceSGR) -> AbstractSequenceSGR:
+        return self.__add__(other)
+
+    def __eq__(self, other: AbstractSequenceSGR):
+        self._ensure_sequence(other)
+        if type(self) != type(other):
+            return False
+        return self._params == other._params
+
+    # noinspection PyMethodMayBeStatic
+    def _ensure_sequence(self, subject: Any):
+        if not isinstance(subject, AbstractSequenceSGR):
+            raise TypeError(
+                f'Expected AbstractSequenceSGR, got {type(subject)}'
+            )
+
+
+class EmptySequenceSGR(AbstractSequenceSGR):
+    def __init__(self):
+        super(EmptySequenceSGR, self).__init__(*[])
+
+    def __add__(self, other: AbstractSequenceSGR) -> AbstractSequenceSGR:
+        return other
+
+    def print(self) -> str:
+        return ''
+
+
+class SequenceSGR(AbstractSequenceSGR):
+    def __init__(self, *params: int):
+        if len(params) == 0:
+            raise ValueError('Instantiate EmptySequenceSGR to create no-op SGR')
         super(SequenceSGR, self).__init__(*params)
 
     def print(self) -> str:
@@ -44,33 +91,10 @@ class SequenceSGR(SequenceCSI):
                f'{self.SEPARATOR.join([str(param) for param in self._params])}' \
                f'{self.TERMINATOR}'
 
-    def __add__(self, other: SequenceSGR) -> SequenceSGR:
-        self._ensure_sequence(other)
-        return SequenceSGR(*self._params, *other._params)
 
-    def __radd__(self, other: SequenceSGR) -> SequenceSGR:
-        self._ensure_sequence(other)
-        return SequenceSGR(*other._params, *self._params)
+def build(*args: str|int|AbstractSequenceSGR) -> AbstractSequenceSGR:
+    result: List[int] = []
 
-    def __iadd__(self, other: SequenceSGR) -> SequenceSGR:
-        self._ensure_sequence(other)
-        return SequenceSGR(*self._params, *other._params)
-
-    # noinspection PyMethodMayBeStatic
-    def _ensure_sequence(self, subject: Any):
-        if not isinstance(subject, SequenceSGR):
-            raise TypeError(
-                f'Add operation is allowed only for <SequenceSGR> + <SequenceSGR>, got {type(subject)}'
-            )
-
-
-class EmptySequenceSGR(SequenceSGR):
-    def __str__(self) -> str:
-        return ''
-
-
-def build(*args: str|int|SequenceSGR) -> SequenceSGR:
-    result = SequenceSGR()
     for arg in args:
         if isinstance(arg, str):
             arg_mapped = arg.upper()
@@ -79,33 +103,43 @@ def build(*args: str|int|SequenceSGR) -> SequenceSGR:
                 raise KeyError(f'Code "{arg}" -> "{arg_mapped}" not found in registry')
             if not isinstance(resolved_param, int):
                 raise ValueError(f'Attribute is not valid SGR param: {resolved_param}')
-            result += SequenceSGR(resolved_param)
+            result.append(resolved_param)
 
         elif isinstance(arg, int):
-            result += SequenceSGR(arg)
+            result.append(arg)
+
+        elif isinstance(arg, EmptySequenceSGR):
+            continue
 
         elif isinstance(arg, SequenceSGR):
-            if isinstance(arg, EmptySequenceSGR):
-                continue
-            result += arg
+            result.extend(arg.params)
 
         else:
             raise TypeError(f'Invalid argument type: {arg!r})')
 
-    return result
+    if len(result) == 0:
+        return EmptySequenceSGR()
+    return SequenceSGR(*result)
 
 
 def build_c256(color: int, bg: bool = False) -> SequenceSGR:
+    _validate_extended_color(color)
     key_code = code.BG_COLOR_EXTENDED if bg else code.COLOR_EXTENDED
     return SequenceSGR(key_code, code.EXTENDED_MODE_256, color)
 
 
 def build_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
+    [_validate_extended_color(color) for color in [r, g, b]]
     key_code = code.BG_COLOR_EXTENDED if bg else code.COLOR_EXTENDED
     return SequenceSGR(key_code, code.EXTENDED_MODE_RGB, r, g, b)
 
 
-RESET = SequenceSGR(code.RESET)  # 0
+def _validate_extended_color(value: int):
+    if value < 0 or value > 255:
+        raise ValueError(f'Invalid color value: {value}; valid values are 0-255 inclusive')
+
+
+RESET = SequenceSGR(0)  # 0
 
 # attributes
 BOLD = SequenceSGR(code.BOLD)  # 1

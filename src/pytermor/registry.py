@@ -5,10 +5,12 @@
 from __future__ import annotations
 
 from copy import copy
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
+
+from pytermor import build
 
 from . import code
-from .seq import SequenceSGR
+from .seq import SequenceSGR, AbstractSequenceSGR
 
 
 class Registry:
@@ -30,8 +32,8 @@ class Registry:
         self._complex_code_def[starter_codes] = param_len
         self._complex_code_max_len = max(self._complex_code_max_len, len(starter_codes) + param_len)
 
-    def get_closing_seq(self, opening_seq: SequenceSGR) -> SequenceSGR:
-        closing_seq = SequenceSGR()
+    def get_closing_seq(self, opening_seq: AbstractSequenceSGR) -> AbstractSequenceSGR:
+        closing_seq_params: List[int] = []
         opening_params = copy(opening_seq.params)
         while len(opening_params):
             key_params: int|Tuple[int, ...]|None = None
@@ -46,9 +48,9 @@ class Registry:
                 key_params = opening_params.pop(0)
             if key_params not in self._code_to_breaker_map:
                 continue
-            closing_seq += self._code_to_breaker_map[key_params]
+            closing_seq_params.extend(self._code_to_breaker_map[key_params].params)
 
-        return closing_seq
+        return build(*closing_seq_params)
 
 
 sgr_parity_registry = Registry()
