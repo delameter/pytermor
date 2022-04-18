@@ -10,19 +10,19 @@ from . import build, sgr, SequenceSGR
 from .registry import sgr_parity_registry
 
 
+# noinspection PyMethodMayBeStatic
 class Format:
-    def __init__(self, opening_seq: SequenceSGR, closing_seq: SequenceSGR = None, hard_reset_after: bool = False):
-        self._opening_seq: SequenceSGR = opening_seq
-        self._closing_seq: SequenceSGR | None = closing_seq
+    def __init__(self, opening_seq: SequenceSGR = None, closing_seq: SequenceSGR = None, hard_reset_after: bool = False):
+        self._opening_seq: SequenceSGR = self._opt_arg(opening_seq)
+        self._closing_seq: SequenceSGR = self._opt_arg(closing_seq)
         if hard_reset_after:
-            self._closing_seq = SequenceSGR(0)
+            self._closing_seq = SequenceSGR(sgr.RESET)
 
     def wrap(self, text: Any = None) -> str:
         result = self._opening_seq.print()
         if text is not None:
             result += str(text)
-        if self._closing_seq is not None:
-            result += self._closing_seq.print()
+        result += self._closing_seq.print()
         return result
 
     @property
@@ -35,13 +35,16 @@ class Format:
 
     @property
     def closing_str(self) -> str:
-        if self._closing_seq is not None:
-            return self._closing_seq.print()
-        return ''
+        return self._closing_seq.print()
 
     @property
-    def closing_seq(self) -> SequenceSGR | None:
+    def closing_seq(self) -> SequenceSGR:
         return self._closing_seq
+
+    def _opt_arg(self, arg: SequenceSGR | None) -> SequenceSGR:
+        if not arg:
+            return SequenceSGR()
+        return arg
 
     def __call__(self, text: Any = None) -> str:
         return self.wrap(text)
