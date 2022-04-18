@@ -720,6 +720,10 @@ You can of course create your own sequences and formats, but with one limitation
 
 ## Changelog
 
+### v1.6.2
+
+- Excluded `tests` dir from distribution package.
+
 ### v1.6.1
 
 - Ridded of _EmptyFormat_ and _AbstractFormat_ classes.
