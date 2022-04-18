@@ -4,70 +4,14 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
 from typing import Any
 
-from . import build, code
+from . import build, sgr
 from .registry import sgr_parity_registry
 from .seq import SequenceSGR
 
 
-class AbstractFormat(metaclass=ABCMeta):
-    def __call__(self, text: Any = None) -> str:
-        return self.wrap(text)
-
-    @abstractmethod
-    def wrap(self, text: Any) -> str:
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def opening_str(self) -> str:
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def closing_str(self) -> str:
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def opening_seq(self) -> SequenceSGR | None:
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def closing_seq(self) -> SequenceSGR | None:
-        raise NotImplementedError
-
-    def __repr__(self):
-        return f'{self.__class__.__name__}'
-
-
-class EmptyFormat(AbstractFormat):
-    def wrap(self, text: Any = None) -> str:
-        if text is None:
-            return ''
-        return str(text)
-
-    @property
-    def opening_str(self) -> str:
-        return ''
-
-    @property
-    def closing_str(self) -> str:
-        return ''
-
-    @property
-    def opening_seq(self) -> SequenceSGR | None:
-        return None
-
-    @property
-    def closing_seq(self) -> SequenceSGR | None:
-        return None
-
-
-class Format(AbstractFormat):
+class Format:
     def __init__(self, opening_seq: SequenceSGR, closing_seq: SequenceSGR = None, hard_reset_after: bool = False):
         self._opening_seq: SequenceSGR = opening_seq
         self._closing_seq: SequenceSGR | None = closing_seq
@@ -100,6 +44,9 @@ class Format(AbstractFormat):
     def closing_seq(self) -> SequenceSGR | None:
         return self._closing_seq
 
+    def __call__(self, text: Any = None) -> str:
+        return self.wrap(text)
+
     def __eq__(self, other: Format) -> bool:
         if not isinstance(other, Format):
             return False
@@ -117,25 +64,25 @@ def autof(*args: str | int | SequenceSGR) -> Format:
     return Format(opening_seq, closing_seq)
 
 
-bold = autof(code.BOLD)
-dim = autof(code.DIM)
-italic = autof(code.ITALIC)
-underlined = autof(code.UNDERLINED)
-inversed = autof(code.INVERSED)
-overlined = autof(code.OVERLINED)
+bold = autof(sgr.BOLD)
+dim = autof(sgr.DIM)
+italic = autof(sgr.ITALIC)
+underlined = autof(sgr.UNDERLINED)
+inversed = autof(sgr.INVERSED)
+overlined = autof(sgr.OVERLINED)
 
-red = autof(code.RED)
-green = autof(code.GREEN)
-yellow = autof(code.YELLOW)
-blue = autof(code.BLUE)
-magenta = autof(code.MAGENTA)
-cyan = autof(code.CYAN)
-gray = autof(code.GRAY)
+red = autof(sgr.RED)
+green = autof(sgr.GREEN)
+yellow = autof(sgr.YELLOW)
+blue = autof(sgr.BLUE)
+magenta = autof(sgr.MAGENTA)
+cyan = autof(sgr.CYAN)
+gray = autof(sgr.GRAY)
 
-bg_red = autof(code.BG_RED)
-bg_green = autof(code.BG_GREEN)
-bg_yellow = autof(code.BG_YELLOW)
-bg_blue = autof(code.BG_BLUE)
-bg_magenta = autof(code.BG_MAGENTA)
-bg_cyan = autof(code.BG_CYAN)
-bg_gray = autof(code.BG_GRAY)
+bg_red = autof(sgr.BG_RED)
+bg_green = autof(sgr.BG_GREEN)
+bg_yellow = autof(sgr.BG_YELLOW)
+bg_blue = autof(sgr.BG_BLUE)
+bg_magenta = autof(sgr.BG_MAGENTA)
+bg_cyan = autof(sgr.BG_CYAN)
+bg_gray = autof(sgr.BG_GRAY)

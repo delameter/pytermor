@@ -2,7 +2,8 @@
 # pytermor [ANSI formatted terminal output toolset]
 # (C) 2022 A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
-from .seq import build, build_c256, build_rgb
-from .fmt import autof
+import importlib
 
-__all__ = ['build', 'build_c256', 'build_rgb', 'autof']
+for i in range(0, 11):
+    importlib.import_module(f'examples.example{i:02d}', package=__name__)
+    print(end='\n'*2)

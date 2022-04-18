@@ -9,7 +9,7 @@ from typing import Dict, Tuple, List
 
 from pytermor import build
 
-from . import code
+from . import sgr
 from .seq import SequenceSGR
 
 
@@ -55,29 +55,29 @@ class Registry:
 
 sgr_parity_registry = Registry()
 
-sgr_parity_registry.register_single(code.BOLD, code.BOLD_DIM_OFF)
-sgr_parity_registry.register_single(code.DIM, code.BOLD_DIM_OFF)
-sgr_parity_registry.register_single(code.ITALIC, code.ITALIC_OFF)
-sgr_parity_registry.register_single(code.UNDERLINED, code.UNDERLINED_OFF)
-sgr_parity_registry.register_single(code.DOUBLE_UNDERLINED, code.UNDERLINED_OFF)
-sgr_parity_registry.register_single(code.BLINK_SLOW, code.BLINK_OFF)
-sgr_parity_registry.register_single(code.BLINK_FAST, code.BLINK_OFF)
-sgr_parity_registry.register_single(code.INVERSED, code.INVERSED_OFF)
-sgr_parity_registry.register_single(code.HIDDEN, code.HIDDEN_OFF)
-sgr_parity_registry.register_single(code.CROSSLINED, code.CROSSLINED_OFF)
-sgr_parity_registry.register_single(code.OVERLINED, code.OVERLINED_OFF)
+sgr_parity_registry.register_single(sgr.BOLD, sgr.BOLD_DIM_OFF)
+sgr_parity_registry.register_single(sgr.DIM, sgr.BOLD_DIM_OFF)
+sgr_parity_registry.register_single(sgr.ITALIC, sgr.ITALIC_OFF)
+sgr_parity_registry.register_single(sgr.UNDERLINED, sgr.UNDERLINED_OFF)
+sgr_parity_registry.register_single(sgr.DOUBLE_UNDERLINED, sgr.UNDERLINED_OFF)
+sgr_parity_registry.register_single(sgr.BLINK_SLOW, sgr.BLINK_OFF)
+sgr_parity_registry.register_single(sgr.BLINK_FAST, sgr.BLINK_OFF)
+sgr_parity_registry.register_single(sgr.INVERSED, sgr.INVERSED_OFF)
+sgr_parity_registry.register_single(sgr.HIDDEN, sgr.HIDDEN_OFF)
+sgr_parity_registry.register_single(sgr.CROSSLINED, sgr.CROSSLINED_OFF)
+sgr_parity_registry.register_single(sgr.OVERLINED, sgr.OVERLINED_OFF)
 
-for c in [code.BLACK, code.RED, code.GREEN, code.YELLOW, code.BLUE, code.MAGENTA, code.CYAN, code.WHITE, code.GRAY,
-          code.HI_RED, code.HI_GREEN, code.HI_YELLOW, code.HI_BLUE, code.HI_MAGENTA, code.HI_CYAN, code.HI_WHITE]:
-    sgr_parity_registry.register_single(c, code.COLOR_OFF)
+for c in [sgr.BLACK, sgr.RED, sgr.GREEN, sgr.YELLOW, sgr.BLUE, sgr.MAGENTA, sgr.CYAN, sgr.WHITE, sgr.GRAY,
+          sgr.HI_RED, sgr.HI_GREEN, sgr.HI_YELLOW, sgr.HI_BLUE, sgr.HI_MAGENTA, sgr.HI_CYAN, sgr.HI_WHITE]:
+    sgr_parity_registry.register_single(c, sgr.COLOR_OFF)
 
-for c in [code.BG_BLACK, code.BG_RED, code.BG_GREEN, code.BG_YELLOW, code.BG_BLUE, code.BG_MAGENTA, code.BG_CYAN,
-          code.BG_WHITE, code.BG_GRAY, code.BG_HI_RED, code.BG_HI_GREEN, code.BG_HI_YELLOW, code.BG_HI_BLUE,
-          code.BG_HI_MAGENTA, code.BG_HI_CYAN, code.BG_HI_WHITE]:
-    sgr_parity_registry.register_single(c, code.BG_COLOR_OFF)
+for c in [sgr.BG_BLACK, sgr.BG_RED, sgr.BG_GREEN, sgr.BG_YELLOW, sgr.BG_BLUE, sgr.BG_MAGENTA, sgr.BG_CYAN,
+          sgr.BG_WHITE, sgr.BG_GRAY, sgr.BG_HI_RED, sgr.BG_HI_GREEN, sgr.BG_HI_YELLOW, sgr.BG_HI_BLUE,
+          sgr.BG_HI_MAGENTA, sgr.BG_HI_CYAN, sgr.BG_HI_WHITE]:
+    sgr_parity_registry.register_single(c, sgr.BG_COLOR_OFF)
 
 
-sgr_parity_registry.register_complex((code.COLOR_EXTENDED, 5), 1, code.COLOR_OFF)
-sgr_parity_registry.register_complex((code.COLOR_EXTENDED, 2), 3, code.COLOR_OFF)
-sgr_parity_registry.register_complex((code.BG_COLOR_EXTENDED, 5), 1, code.BG_COLOR_OFF)
-sgr_parity_registry.register_complex((code.BG_COLOR_EXTENDED, 2), 3, code.BG_COLOR_OFF)
+sgr_parity_registry.register_complex((sgr.COLOR_EXTENDED, 5), 1, sgr.COLOR_OFF)
+sgr_parity_registry.register_complex((sgr.COLOR_EXTENDED, 2), 3, sgr.COLOR_OFF)
+sgr_parity_registry.register_complex((sgr.BG_COLOR_EXTENDED, 5), 1, sgr.BG_COLOR_OFF)
+sgr_parity_registry.register_complex((sgr.BG_COLOR_EXTENDED, 2), 3, sgr.BG_COLOR_OFF)

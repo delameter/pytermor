@@ -7,7 +7,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import List, Any
 
-from . import code
+from . import sgr
 
 
 class AbstractSequence(metaclass=ABCMeta):
@@ -83,7 +83,7 @@ def build(*args: str | int | SequenceSGR) -> SequenceSGR:
     for arg in args:
         if isinstance(arg, str):
             arg_mapped = arg.upper()
-            resolved_param = getattr(code, arg_mapped, None)
+            resolved_param = getattr(sgr, arg_mapped, None)
             if resolved_param is None:
                 raise KeyError(f'Code "{arg}" -> "{arg_mapped}" not found in registry')
             if not isinstance(resolved_param, int):
@@ -104,14 +104,14 @@ def build(*args: str | int | SequenceSGR) -> SequenceSGR:
 
 def build_c256(color: int, bg: bool = False) -> SequenceSGR:
     _validate_extended_color(color)
-    key_code = code.BG_COLOR_EXTENDED if bg else code.COLOR_EXTENDED
-    return SequenceSGR(key_code, code.EXTENDED_MODE_256, color)
+    key_code = sgr.BG_COLOR_EXTENDED if bg else sgr.COLOR_EXTENDED
+    return SequenceSGR(key_code, sgr.EXTENDED_MODE_256, color)
 
 
 def build_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
     [_validate_extended_color(color) for color in [r, g, b]]
-    key_code = code.BG_COLOR_EXTENDED if bg else code.COLOR_EXTENDED
-    return SequenceSGR(key_code, code.EXTENDED_MODE_RGB, r, g, b)
+    key_code = sgr.BG_COLOR_EXTENDED if bg else sgr.COLOR_EXTENDED
+    return SequenceSGR(key_code, sgr.EXTENDED_MODE_RGB, r, g, b)
 
 
 def _validate_extended_color(value: int):
@@ -122,70 +122,70 @@ def _validate_extended_color(value: int):
 RESET = SequenceSGR(0)  # 0
 
 # attributes
-BOLD = SequenceSGR(code.BOLD)  # 1
-DIM = SequenceSGR(code.DIM)  # 2
-ITALIC = SequenceSGR(code.ITALIC)  # 3
-UNDERLINED = SequenceSGR(code.UNDERLINED)  # 4
-BLINK_SLOW = SequenceSGR(code.BLINK_SLOW)  # 5
-BLINK_FAST = SequenceSGR(code.BLINK_FAST)  # 6
-INVERSED = SequenceSGR(code.INVERSED)  # 7
-HIDDEN = SequenceSGR(code.HIDDEN)  # 8
-CROSSLINED = SequenceSGR(code.CROSSLINED)  # 9
-DOUBLE_UNDERLINED = SequenceSGR(code.DOUBLE_UNDERLINED)  # 21
-OVERLINED = SequenceSGR(code.OVERLINED)  # 53
+BOLD = SequenceSGR(sgr.BOLD)  # 1
+DIM = SequenceSGR(sgr.DIM)  # 2
+ITALIC = SequenceSGR(sgr.ITALIC)  # 3
+UNDERLINED = SequenceSGR(sgr.UNDERLINED)  # 4
+BLINK_SLOW = SequenceSGR(sgr.BLINK_SLOW)  # 5
+BLINK_FAST = SequenceSGR(sgr.BLINK_FAST)  # 6
+INVERSED = SequenceSGR(sgr.INVERSED)  # 7
+HIDDEN = SequenceSGR(sgr.HIDDEN)  # 8
+CROSSLINED = SequenceSGR(sgr.CROSSLINED)  # 9
+DOUBLE_UNDERLINED = SequenceSGR(sgr.DOUBLE_UNDERLINED)  # 21
+OVERLINED = SequenceSGR(sgr.OVERLINED)  # 53
 
-BOLD_DIM_OFF = SequenceSGR(code.BOLD_DIM_OFF)  # 22
-ITALIC_OFF = SequenceSGR(code.ITALIC_OFF)  # 23
-UNDERLINED_OFF = SequenceSGR(code.UNDERLINED_OFF)  # 24
-BLINK_OFF = SequenceSGR(code.BLINK_OFF)  # 25
-INVERSED_OFF = SequenceSGR(code.INVERSED_OFF)  # 27
-HIDDEN_OFF = SequenceSGR(code.HIDDEN_OFF)  # 28
-CROSSLINED_OFF = SequenceSGR(code.CROSSLINED_OFF)  # 29
-OVERLINED_OFF = SequenceSGR(code.OVERLINED_OFF)  # 55
+BOLD_DIM_OFF = SequenceSGR(sgr.BOLD_DIM_OFF)  # 22
+ITALIC_OFF = SequenceSGR(sgr.ITALIC_OFF)  # 23
+UNDERLINED_OFF = SequenceSGR(sgr.UNDERLINED_OFF)  # 24
+BLINK_OFF = SequenceSGR(sgr.BLINK_OFF)  # 25
+INVERSED_OFF = SequenceSGR(sgr.INVERSED_OFF)  # 27
+HIDDEN_OFF = SequenceSGR(sgr.HIDDEN_OFF)  # 28
+CROSSLINED_OFF = SequenceSGR(sgr.CROSSLINED_OFF)  # 29
+OVERLINED_OFF = SequenceSGR(sgr.OVERLINED_OFF)  # 55
 
 # text colors
-BLACK = SequenceSGR(code.BLACK)  # 30
-RED = SequenceSGR(code.RED)  # 31
-GREEN = SequenceSGR(code.GREEN)  # 32
-YELLOW = SequenceSGR(code.YELLOW)  # 33
-BLUE = SequenceSGR(code.BLUE)  # 34
-MAGENTA = SequenceSGR(code.MAGENTA)  # 35
-CYAN = SequenceSGR(code.CYAN)  # 36
-WHITE = SequenceSGR(code.WHITE)  # 37
+BLACK = SequenceSGR(sgr.BLACK)  # 30
+RED = SequenceSGR(sgr.RED)  # 31
+GREEN = SequenceSGR(sgr.GREEN)  # 32
+YELLOW = SequenceSGR(sgr.YELLOW)  # 33
+BLUE = SequenceSGR(sgr.BLUE)  # 34
+MAGENTA = SequenceSGR(sgr.MAGENTA)  # 35
+CYAN = SequenceSGR(sgr.CYAN)  # 36
+WHITE = SequenceSGR(sgr.WHITE)  # 37
 # code.COLOR_EXTENDED is handled by build_c256()  # 38
-COLOR_OFF = SequenceSGR(code.COLOR_OFF)  # 39
+COLOR_OFF = SequenceSGR(sgr.COLOR_OFF)  # 39
 
 # background colors
-BG_BLACK = SequenceSGR(code.BG_BLACK)  # 40
-BG_RED = SequenceSGR(code.BG_RED)  # 41
-BG_GREEN = SequenceSGR(code.BG_GREEN)  # 42
-BG_YELLOW = SequenceSGR(code.BG_YELLOW)  # 43
-BG_BLUE = SequenceSGR(code.BG_BLUE)  # 44
-BG_MAGENTA = SequenceSGR(code.BG_MAGENTA)  # 45
-BG_CYAN = SequenceSGR(code.BG_CYAN)  # 46
-BG_WHITE = SequenceSGR(code.BG_WHITE)  # 47
+BG_BLACK = SequenceSGR(sgr.BG_BLACK)  # 40
+BG_RED = SequenceSGR(sgr.BG_RED)  # 41
+BG_GREEN = SequenceSGR(sgr.BG_GREEN)  # 42
+BG_YELLOW = SequenceSGR(sgr.BG_YELLOW)  # 43
+BG_BLUE = SequenceSGR(sgr.BG_BLUE)  # 44
+BG_MAGENTA = SequenceSGR(sgr.BG_MAGENTA)  # 45
+BG_CYAN = SequenceSGR(sgr.BG_CYAN)  # 46
+BG_WHITE = SequenceSGR(sgr.BG_WHITE)  # 47
 # code.BG_COLOR_EXTENDED is handled by build_c256()  # 48
-BG_COLOR_OFF = SequenceSGR(code.BG_COLOR_OFF)  # 49
+BG_COLOR_OFF = SequenceSGR(sgr.BG_COLOR_OFF)  # 49
 
 # high intensity text colors
-GRAY = SequenceSGR(code.GRAY)  # 90
-HI_RED = SequenceSGR(code.HI_RED)  # 91
-HI_GREEN = SequenceSGR(code.HI_GREEN)  # 92
-HI_YELLOW = SequenceSGR(code.HI_YELLOW)  # 93
-HI_BLUE = SequenceSGR(code.HI_BLUE)  # 94
-HI_MAGENTA = SequenceSGR(code.HI_MAGENTA)  # 95
-HI_CYAN = SequenceSGR(code.HI_CYAN)  # 96
-HI_WHITE = SequenceSGR(code.HI_WHITE)  # 97
+GRAY = SequenceSGR(sgr.GRAY)  # 90
+HI_RED = SequenceSGR(sgr.HI_RED)  # 91
+HI_GREEN = SequenceSGR(sgr.HI_GREEN)  # 92
+HI_YELLOW = SequenceSGR(sgr.HI_YELLOW)  # 93
+HI_BLUE = SequenceSGR(sgr.HI_BLUE)  # 94
+HI_MAGENTA = SequenceSGR(sgr.HI_MAGENTA)  # 95
+HI_CYAN = SequenceSGR(sgr.HI_CYAN)  # 96
+HI_WHITE = SequenceSGR(sgr.HI_WHITE)  # 97
 
 # high intensity background colors
-BG_GRAY = SequenceSGR(code.BG_GRAY)  # 100
-BG_HI_RED = SequenceSGR(code.BG_HI_RED)  # 101
-BG_HI_GREEN = SequenceSGR(code.BG_HI_GREEN)  # 102
-BG_HI_YELLOW = SequenceSGR(code.BG_HI_YELLOW)  # 103
-BG_HI_BLUE = SequenceSGR(code.BG_HI_BLUE)  # 104
-BG_HI_MAGENTA = SequenceSGR(code.BG_HI_MAGENTA)  # 105
-BG_HI_CYAN = SequenceSGR(code.BG_HI_CYAN)  # 106
-BG_HI_WHITE = SequenceSGR(code.BG_HI_WHITE)  # 107
+BG_GRAY = SequenceSGR(sgr.BG_GRAY)  # 100
+BG_HI_RED = SequenceSGR(sgr.BG_HI_RED)  # 101
+BG_HI_GREEN = SequenceSGR(sgr.BG_HI_GREEN)  # 102
+BG_HI_YELLOW = SequenceSGR(sgr.BG_HI_YELLOW)  # 103
+BG_HI_BLUE = SequenceSGR(sgr.BG_HI_BLUE)  # 104
+BG_HI_MAGENTA = SequenceSGR(sgr.BG_HI_MAGENTA)  # 105
+BG_HI_CYAN = SequenceSGR(sgr.BG_HI_CYAN)  # 106
+BG_HI_WHITE = SequenceSGR(sgr.BG_HI_WHITE)  # 107
 
 # rarely supported
 # 10-20: font selection

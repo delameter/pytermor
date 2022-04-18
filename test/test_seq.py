@@ -1,6 +1,6 @@
 import unittest
 
-from pytermor import seq, code, build, build_c256, build_rgb
+from pytermor import seq, sgr, build, build_c256, build_rgb
 from pytermor.seq import SequenceSGR
 
 
@@ -47,22 +47,22 @@ class SequenceAdditionTestCase(unittest.TestCase):
 class SequenceBuildTestCase(unittest.TestCase):  # @todo negative
     def test_build_code_args(self):
         s = build(1, 31, 43)
-        self.assertEqual(s, SequenceSGR(code.BOLD, code.RED, code.BG_YELLOW))
+        self.assertEqual(s, SequenceSGR(sgr.BOLD, sgr.RED, sgr.BG_YELLOW))
 
     def test_build_key_args(self):
         s = build('underlined', 'blue', 'bg_black')
-        self.assertEqual(s, SequenceSGR(code.UNDERLINED, code.BLUE, code.BG_BLACK))
+        self.assertEqual(s, SequenceSGR(sgr.UNDERLINED, sgr.BLUE, sgr.BG_BLACK))
 
     def test_build_key_args_invalid(self):
         self.assertRaises(KeyError, build, 'invalid')
 
     def test_build_sgr_args(self):
         s = build(seq.HI_CYAN, seq.ITALIC)
-        self.assertEqual(s, SequenceSGR(code.HI_CYAN, code.ITALIC))
+        self.assertEqual(s, SequenceSGR(sgr.HI_CYAN, sgr.ITALIC))
 
     def test_build_mixed_args(self):
         s = build(102, 'bold', seq.INVERSED)
-        self.assertEqual(s, SequenceSGR(code.BG_HI_GREEN, code.BOLD, code.INVERSED))
+        self.assertEqual(s, SequenceSGR(sgr.BG_HI_GREEN, sgr.BOLD, sgr.INVERSED))
 
     def test_build_mixed_args_invalid(self):
         self.assertRaises(KeyError, build, 1, 'red', '')
@@ -73,26 +73,26 @@ class SequenceBuildTestCase(unittest.TestCase):  # @todo negative
 
     def test_build_mixed_with_empty_arg(self):
         s = build(3, SequenceSGR())
-        self.assertEqual(s, SequenceSGR(code.ITALIC))
+        self.assertEqual(s, SequenceSGR(sgr.ITALIC))
 
     def test_build_c256_foreground(self):
         s = build_c256(141)
-        self.assertEqual(s, SequenceSGR(code.COLOR_EXTENDED, code.EXTENDED_MODE_256, 141))
+        self.assertEqual(s, SequenceSGR(sgr.COLOR_EXTENDED, sgr.EXTENDED_MODE_256, 141))
 
     def test_build_c256_background(self):
         s = build_c256(255, bg=True)
-        self.assertEqual(s, SequenceSGR(code.BG_COLOR_EXTENDED, code.EXTENDED_MODE_256, 255))
+        self.assertEqual(s, SequenceSGR(sgr.BG_COLOR_EXTENDED, sgr.EXTENDED_MODE_256, 255))
 
     def test_build_c256_invalid(self):
         self.assertRaises(ValueError, build_c256, 266, bg=True)
 
     def test_build_rgb_foreground(self):
         s = build_rgb(10, 20, 30)
-        self.assertEqual(s, SequenceSGR(code.COLOR_EXTENDED, code.EXTENDED_MODE_RGB, 10, 20, 30))
+        self.assertEqual(s, SequenceSGR(sgr.COLOR_EXTENDED, sgr.EXTENDED_MODE_RGB, 10, 20, 30))
 
     def test_build_rgb_background(self):
         s = build_rgb(50, 70, 90, bg=True)
-        self.assertEqual(s, SequenceSGR(code.BG_COLOR_EXTENDED, code.EXTENDED_MODE_RGB, 50, 70, 90))
+        self.assertEqual(s, SequenceSGR(sgr.BG_COLOR_EXTENDED, sgr.EXTENDED_MODE_RGB, 50, 70, 90))
 
     def test_build_rgb_invalid(self):
         self.assertRaises(ValueError, build_rgb, 10, 310, 30)
