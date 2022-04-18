@@ -1,7 +1,6 @@
 import unittest
 
-from pytermor import seq, sgr, build, build_c256, build_rgb
-from pytermor.seq import SequenceSGR
+from pytermor import seq, sgr, build, build_c256, build_rgb, SequenceSGR
 
 
 class SequenceEqualityTestCase(unittest.TestCase):
@@ -43,8 +42,11 @@ class SequenceAdditionTestCase(unittest.TestCase):
     def test_addition_of_reset_to_empty(self):
         self.assertEqual(SequenceSGR(0) + SequenceSGR(), SequenceSGR(0))
 
+    def test_invalid_type_addition(self):
+        self.assertRaises(TypeError, lambda: SequenceSGR(1) + 2)
 
-class SequenceBuildTestCase(unittest.TestCase):  # @todo negative
+
+class SequenceBuildTestCase(unittest.TestCase):
     def test_build_code_args(self):
         s = build(1, 31, 43)
         self.assertEqual(s, SequenceSGR(sgr.BOLD, sgr.RED, sgr.BG_YELLOW))

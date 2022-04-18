@@ -6,9 +6,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from . import build, sgr
+from . import build, sgr, SequenceSGR
 from .registry import sgr_parity_registry
-from .seq import SequenceSGR
 
 
 class Format:

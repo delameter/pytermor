@@ -7,10 +7,7 @@ from __future__ import annotations
 from copy import copy
 from typing import Dict, Tuple, List
 
-from pytermor import build
-
-from . import sgr
-from .seq import SequenceSGR
+from . import build, sgr, SequenceSGR
 
 
 class Registry:
