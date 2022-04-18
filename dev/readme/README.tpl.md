@@ -720,7 +720,7 @@ You can of course create your own sequences and formats, but with one limitation
 
 ## Changelog
 
-### v1.6.0
+### v1.6.1
 
 - Ridded of _EmptyFormat_ and _AbstractFormat_ classes.
 - Renamed `code` module to `sgr` because of conflicts in PyCharm debugger (`pydevd_console_integration.py`).

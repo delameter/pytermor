@@ -43,7 +43,6 @@ build: ## Build module
 build: cleanup
 	sed -E -i "s/^VERSION.+/VERSION=$$VERSION/" .env.dist
 	python3 -m build
-	mv -f ${PROJECT_NAME}/${PROJECT_NAME}.egg-info .
 
 generate-readme: ## Generate README file
 	PYTHONPATH=${PWD} python3 -s dev/readme/generate.py -v
