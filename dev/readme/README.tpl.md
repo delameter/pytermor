@@ -720,6 +720,11 @@ You can of course create your own sequences and formats, but with one limitation
 
 ## Changelog
 
+### v1.7.0
+
+- `Format()` constructor can be called without arguments.
+- Added SGR code lists.
+
 ### v1.6.2
 
 - Excluded `tests` dir from distribution package.

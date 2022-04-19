@@ -86,3 +86,12 @@ BG_HI_WHITE = 107
 # COLOR_EXTENDED and BG_COLOR_EXTENDED modes
 EXTENDED_MODE_256 = 5
 EXTENDED_MODE_RGB = 2
+
+# -----------------------------------------------------------------------------
+
+LIST_COLORS = list(range(30, 39))
+LIST_BG_COLORS = list(range(40, 49))
+LIST_HI_COLORS = list(range(90, 98))
+LIST_BG_HI_COLORS = list(range(100, 108))
+
+LIST_ALL_COLORS = LIST_COLORS + LIST_BG_COLORS + LIST_HI_COLORS + LIST_BG_HI_COLORS

@@ -39,16 +39,16 @@ set-version: ## Set new package version
 	sed -E -i "s/^version.+/version = $$VERSION/" setup.cfg
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
 
-build: ## Build module
-build: cleanup
-	sed -E -i "s/^VERSION.+/VERSION=$$VERSION/" .env.dist
-	python3 -m build
-
 generate-readme: ## Generate README file
 	PYTHONPATH=${PWD} python3 -s dev/readme/generate.py -v
 
 generate-thumbs: ## Generate README examples' thumbnails
 	PYTHONPATH=${PWD} python3 -s dev/readme/generate_thumbs.py -v
+
+build: ## Build module
+build: cleanup
+	sed -E -i "s/^VERSION.+/VERSION=$$VERSION/" .env.dist
+	python3 -m build
 
 ## Test repository
 
