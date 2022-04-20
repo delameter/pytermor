@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# pytermor [ANSI formatted terminal output toolset]
+# es7s/pytermor [ANSI formatted terminal output toolset]
 # (C) 2022 A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 import re
@@ -11,7 +11,8 @@ README_PATH = join(project_dir, 'README.md')
 
 
 def read_file(path: str) -> str:
-    return open(path, 'rt', encoding='utf8').read()
+    with open(path, 'rt', encoding='utf8') as f:
+        return f.read()
 
 
 def include_file(path: str) -> str:
