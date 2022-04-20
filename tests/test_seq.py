@@ -1,3 +1,7 @@
+# -----------------------------------------------------------------------------
+# pytermor [ANSI formatted terminal output toolset]
+# (C) 2022 A. Shavykin <0.delameter@gmail.com>
+# -----------------------------------------------------------------------------
 import unittest
 
 from pytermor import seq, sgr, build, build_c256, build_rgb, SequenceSGR
