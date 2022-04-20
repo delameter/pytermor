@@ -40,10 +40,10 @@ set-version: ## Set new package version
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
 
 generate-readme: ## Generate README file
-	PYTHONPATH=${PWD} python3 -s dev/readme/generate.py -v
+	PYTHONPATH=${PWD} python3 -s dev/readme/generate.py
 
 generate-thumbs: ## Generate README examples' thumbnails
-	PYTHONPATH=${PWD} python3 -s dev/readme/generate_thumbs.py -v
+	PYTHONPATH=${PWD} python3 -s dev/readme/generate_thumbs.py
 
 build: ## Build module
 build: cleanup
