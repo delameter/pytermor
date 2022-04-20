@@ -49,9 +49,14 @@ class SequenceSGR(AbstractSequenceCSI, metaclass=ABCMeta):
     def print(self) -> str:
         if len(self._params) == 0:
             return ''
+
+        params = self._params
+        if params == [0]:  # \e[0m <=> \em, saving 1 byte
+            params = []
+
         return f'{self.CONTROL_CHARACTER}' \
                f'{self.INTRODUCER}' \
-               f'{self.SEPARATOR.join([str(param) for param in self._params])}' \
+               f'{self.SEPARATOR.join([str(param) for param in params])}' \
                f'{self.TERMINATOR}'
 
     def __add__(self, other: SequenceSGR) -> SequenceSGR:

@@ -37,6 +37,7 @@ set-version: ## Set new package version
 	if [ ! -f .env ] ; then cp -u .env.dist .env ; fi
 	sed -E -i "s/^VERSION.+/VERSION=$$VERSION/" .env
 	sed -E -i "s/^version.+/version = $$VERSION/" setup.cfg
+	sed -E -i "s/^__version__.+/__version__ = '$$VERSION'/" ${PROJECT_NAME}/__init__.py
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
 
 generate-readme: ## Generate README file

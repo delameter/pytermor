@@ -815,6 +815,10 @@ You can of course create your own sequences and formats, but with one limitation
 
 ## Changelog
 
+### v1.7.1
+
+- Print reset sequence as `\e[m` instead of `\e[0m`.
+
 ### v1.7.0
 
 - `Format()` constructor can be called without arguments.
