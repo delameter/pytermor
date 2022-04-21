@@ -720,6 +720,10 @@ You can of course create your own sequences and formats, but with one limitation
 
 ## Changelog
 
+### v1.7.2
+
+- Added `ljust_fmtd`, `rjust_fmtd`, `center_fmtd` util functions to align strings with SGRs correctly.
+
 ### v1.7.1
 
 - Print reset sequence as `\e[m` instead of `\e[0m`.

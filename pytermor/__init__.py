@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 from .seq import build, build_c256, build_rgb, SequenceSGR
 from .fmt import autof, Format
-from .util import apply_filters, StringFilter, ReplaceCSI, ReplaceSGR, ReplaceNonAsciiBytes
+from .util import *
 
 __all__ = [
     'build',
@@ -16,9 +16,12 @@ __all__ = [
     'Format',
 
     'apply_filters',
+    'ljust_fmtd',
+    'rjust_fmtd',
+    'center_fmtd',
     'StringFilter',
     'ReplaceCSI',
     'ReplaceSGR',
     'ReplaceNonAsciiBytes',
 ]
-__version__ = '1.7.1'
+__version__ = '1.7.2'
