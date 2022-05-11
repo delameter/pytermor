@@ -81,6 +81,7 @@ magenta = autof(sgr.MAGENTA)
 cyan = autof(sgr.CYAN)
 gray = autof(sgr.GRAY)
 
+bg_black = autof(sgr.BG_BLACK)
 bg_red = autof(sgr.BG_RED)
 bg_green = autof(sgr.BG_GREEN)
 bg_yellow = autof(sgr.BG_YELLOW)

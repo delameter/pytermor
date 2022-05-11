@@ -1,4 +1,11 @@
-# pytermor
+<h1 align="center">
+  <img src="https://user-images.githubusercontent.com/50381946/167745623-66bcb825-f787-4f8a-a317-18775d3f104a.png">
+  <br>
+  <code>
+    pytermor
+  </code>
+  <br>
+</h1>
 
 _(yet another)_ Python library designed for formatting terminal output using ANSI escape codes. Implements automatic "soft" format termination. Provides a registry of ready-to-use SGR sequences and formats (=combined sequences).
 
@@ -773,6 +780,11 @@ As a rule of a thumb, **name** equals to **opening seq** in lower case.
 
   <tr><td colspan="3"><br><b>background colors</b></td></tr>
   <tr>
+    <td><code>bg_black</code></td>
+    <td><code>BG_BLACK</code></td>
+    <td><code>BG_COLOR_OFF</code></td>
+  </tr>
+  <tr>
     <td><code>bg_red</code></td>
     <td><code>BG_RED</code></td>
     <td><code>BG_COLOR_OFF</code></td>
@@ -814,6 +826,10 @@ As a rule of a thumb, **name** equals to **opening seq** in lower case.
 You can of course create your own sequences and formats, but with one limitation &mdash; autoformatting will not work with custom defined sequences; unless you add the corresponding rule to `pytermor.registry.sgr_parity_registry`.
 
 ## Changelog
+
+### v1.7.3
+
+- Added `bg_black` format.
 
 ### v1.7.2
 
