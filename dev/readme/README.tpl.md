@@ -732,6 +732,10 @@ You can of course create your own sequences and formats, but with one limitation
 
 ## Changelog
 
+### v1.7.4
+
+- Added 3 formatters: `fmt_prefixed_unit`, `fmt_time_delta`, `fmt_auto_float`.
+
 ### v1.7.3
 
 - Added `bg_black` format.
