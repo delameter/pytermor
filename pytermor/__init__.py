@@ -25,10 +25,11 @@ __all__ = [
     'rjust_fmtd',
     'center_fmtd',
 
+    'fmt_auto_float',
     'fmt_prefixed_unit',
     'fmt_time_delta',
-    'fmt_auto_float',
-    'PrefixedUnitFmtPreset',
-    'TimeDeltaFmtPreset',
+    'PrefixedUnitPreset',
+    'SiPrefixedUnitPreset',
+    'TimeDeltaPreset',
 ]
 __version__ = '1.7.4'

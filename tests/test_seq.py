@@ -7,7 +7,7 @@ import unittest
 from pytermor import seq, sgr, build, build_c256, build_rgb, SequenceSGR
 
 
-class SequenceEqualityTestCase(unittest.TestCase):
+class TestEquality(unittest.TestCase):
     def test_regular_is_equal_to_regular(self):
         self.assertEqual(SequenceSGR(1, 31, 42), SequenceSGR(1, 31, 42))
 
@@ -27,7 +27,7 @@ class SequenceEqualityTestCase(unittest.TestCase):
         self.assertNotEqual(SequenceSGR(), SequenceSGR(0))
 
 
-class SequenceAdditionTestCase(unittest.TestCase):
+class TestAddition(unittest.TestCase):
     def test_addition_of_regular_to_regular(self):
         self.assertEqual(SequenceSGR(1) + SequenceSGR(3), SequenceSGR(1, 3))
 
@@ -50,7 +50,7 @@ class SequenceAdditionTestCase(unittest.TestCase):
         self.assertRaises(TypeError, lambda: SequenceSGR(1) + 2)
 
 
-class SequenceBuildTestCase(unittest.TestCase):
+class TestBuild(unittest.TestCase):
     def test_build_code_args(self):
         s = build(1, 31, 43)
         self.assertEqual(s, SequenceSGR(sgr.BOLD, sgr.RED, sgr.BG_YELLOW))

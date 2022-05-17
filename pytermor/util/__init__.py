@@ -2,7 +2,7 @@
 # pytermor [ANSI formatted terminal output toolset]
 # (C) 2022 A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
-from .filter import *
+from .string_filter import *
 from .fmtd import *
 
 from .auto_float import *
@@ -21,8 +21,10 @@ __all__ = [
     'center_fmtd',
 
     'fmt_prefixed_unit',
+    'PrefixedUnitPreset',
+    'FMT_PRESET_SI_METRIC',
+    'FMT_PRESET_SI_BINARY',
     'fmt_time_delta',
+    'TimeDeltaPreset',
     'fmt_auto_float',
-    'PrefixedUnitFmtPreset',
-    'TimeDeltaFmtPreset',
 ]

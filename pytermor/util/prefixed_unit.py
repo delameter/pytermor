@@ -5,37 +5,55 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from math import trunc
 from typing import List
 
 from . import fmt_auto_float
 
 
 @dataclass
-class PrefixedUnitFmtPreset:
-    """
-    Default settings are suitable for formatting sizes in bytes (
-    *mcoef* =1024, prefixes are k, M, G, T etc.)
-
-    *max_value_len* cannot effectively be less than 3, at least
-    as long as *prefix_coef* =1024, because there is no way for
-    method to insert into output more digits than it can shift
-    back using multiplier (/divider) coefficient and prefixed units.
-    """
-    max_value_len: int = 5
-    expand_to_max: bool = False
-    mcoef: float = 1024.0
-    unit: str|None = 'b'
-    unit_separator: str|None = ' '
-    prefixes: List[str] = None
+class PrefixedUnitPreset:
+    max_value_len: int
+    integer_input: bool
+    unit: str|None
+    unit_separator: str|None
+    mcoef: float
+    prefixes: List[str|None]|None
+    prefix_zero_idx: int|None
 
 
-FMT_PRESET_DEFAULT_KEY = 8
-FMT_PRESETS = {FMT_PRESET_DEFAULT_KEY: PrefixedUnitFmtPreset()}
+PREFIXES_SI = ['y', 'z', 'a', 'f', 'p', 'n', 'μ', 'm', None, 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+PREFIX_ZERO_SI = 8
 
-FMT_PREFIXES_DEFAULT = ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z']
+"""
+Suitable for formatting any SI unit with values
+from approximately 10^-27 to 10^27 .
+
+*max_value_len* must be at least `4`, because it's a
+minimum requirement for displaying values from 999 to -999.
+Next number to 999 is 1000, which will be displayed as 1k.
+"""
+FMT_PRESET_SI_METRIC = PrefixedUnitPreset(
+    max_value_len=5,
+    integer_input=False,
+    unit='V',
+    unit_separator=' ',
+    mcoef=1000.0,
+    prefixes=PREFIXES_SI,
+    prefix_zero_idx=PREFIX_ZERO_SI,
+)
+FMT_PRESET_SI_BINARY = PrefixedUnitPreset(
+    max_value_len=5,
+    integer_input=True,
+    unit='b',
+    unit_separator=' ',
+    mcoef=1024.0,
+    prefixes=PREFIXES_SI,
+    prefix_zero_idx=PREFIX_ZERO_SI,
+)
 
 
-def fmt_prefixed_unit(value: int, preset: PrefixedUnitFmtPreset = None) -> str:
+def fmt_prefixed_unit(value: float, preset: PrefixedUnitPreset = None) -> str:
     """
     Format *value* using *preset* settings. The main idea of this method
     is to fit into specified string length as much significant digits as it's
@@ -43,33 +61,36 @@ def fmt_prefixed_unit(value: int, preset: PrefixedUnitFmtPreset = None) -> str:
     indicate power.
 
     :param value: input value
-    :param preset: formatter settings
+    :param preset: formatter settings, default is SiPrefixedUnitPreset with base 1024
     :return: formatted value
     """
     if preset is None:
-        preset = FMT_PRESETS[FMT_PRESET_DEFAULT_KEY]
-    value = max(0, value)
+        preset = FMT_PRESET_SI_BINARY
 
-    def iterator(_value: float) -> str:
-        prefixes = preset.prefixes if preset.prefixes else FMT_PREFIXES_DEFAULT
-        for unit_idx, unit_prefix in enumerate(prefixes):
-            unit = preset.unit if preset.unit else ""
-            unit_separator = preset.unit_separator if preset.unit_separator else ""
-            unit_full = f'{unit_prefix}{unit}'
+    prefixes = preset.prefixes or ['']
+    unit_separator = preset.unit_separator or ''
+    unit_idx = preset.prefix_zero_idx or ''
 
-            if _value >= preset.mcoef:
-                _value /= preset.mcoef
-                continue
+    while 0 <= unit_idx < len(prefixes):
+        if 0.0 < abs(value) <= 1/preset.mcoef:
+            value *= preset.mcoef
+            unit_idx -= 1
+            continue
+        elif abs(value) >= preset.mcoef:
+            value /= preset.mcoef
+            unit_idx += 1
+            continue
 
-            num_str = fmt_auto_float(_value, preset.max_value_len, (unit_idx == 0))
-            return f'{num_str}{unit_separator}{unit_full}'
+        unit_full = f'{prefixes[unit_idx] or ""}{preset.unit or ""}'
 
-        # no more prefixes left
-        return f'{_value!r:{preset.max_value_len}.{preset.max_value_len}}{preset.unit_separator or ""}' + \
-               '?' * max([len(p) for p in prefixes]) + \
-               (preset.unit or "")
+        if preset.integer_input and unit_idx == preset.prefix_zero_idx:
+            num_str = f'{trunc(value)!s:.{preset.max_value_len}s}'
+        else:
+            num_str = fmt_auto_float(value, preset.max_value_len)
 
-    result = iterator(value)
-    if not preset.expand_to_max:
-        result = result.strip()
-    return result
+        return f'{num_str.strip()}{unit_separator}{unit_full}'
+
+    # no more prefixes left
+    return f'{value!r:{preset.max_value_len}.{preset.max_value_len}}{preset.unit_separator or ""}' + \
+           '?' * max([len(p) for p in prefixes]) + \
+           (preset.unit or "")
