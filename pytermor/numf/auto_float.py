@@ -5,16 +5,16 @@
 from math import trunc
 
 
-def fmt_auto_float(value: float, max_len: int) -> str:
+def format_auto_float(value: float, max_len: int) -> str:
     """
-    Dynamically adjust decimal digits amount to fill up output string
-    with significant digits as much as possible.
+    Dynamically adjust decimal digit amount to fill the output string
+    up with significant digits as much as possible.
 
     Examples:
-      - auto_float(1234.56, 4) -> 1235
-      - auto_float( 123.56, 4) ->  124
-      - auto_float(  12.56, 4) -> 12.6
-      - auto_float(   1.56, 4) -> 1.56
+      - format_auto_float(1234.56, 4) -> 1235
+      - format_auto_float( 123.56, 4) ->  124
+      - format_auto_float(  12.56, 4) -> 12.6
+      - format_auto_float(   1.56, 4) -> 1.56
 
     :param value: value to format
     :param max_len: maximum output string length (total)

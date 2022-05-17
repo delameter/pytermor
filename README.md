@@ -262,7 +262,7 @@ print(msg)
 </details>
 
 
-## API: String filters
+## API: strf.StringFilter
 
 _StringFilter_ is common string modifier interface with dynamic configuration support.
 
@@ -306,6 +306,93 @@ print(ascii_and_binary, '\n', result)
 
 </details>
 
+
+## API: strf.fmtd
+
+Set of methods to make working with SGR sequences a bit easier.
+
+- `ljust_fmtd`   SGR-formatting-aware implementation of str.ljust()
+- `rjust_fmtd`  same, but for _str.rjust()_
+- `center_fmtd` same, but for _str.center()_
+
+
+## API: numf.*
+
+`pytermor` also includes a few helper formatters for numbers.
+
+<details>
+<summary><b>Details</b> <i>(click)</i></summary>
+
+### format_auto_float
+
+Dynamically adjust decimal digit amount to fill the output string up with significant digits as much as possible. Universal solution for situations when you don't know exaclty what values will be displayed, but have fixed output width. Invocation: `format_auto_float(value, 4)`.
+
+| value       |  result    |
+| ----------: | ---------- |
+| **1&nbsp;234.56** |  `"1235"`  |
+| **123.56**  |  `" 124"`  |
+| **12.56**   |  `"12.6"`  |
+| **1.56**    |  `"1.56"`  |
+                               
+
+### format_prefixed_unit
+
+Similar to previous method, but this one also supports metric prefixes and is highly customizable. Invocation: `format_prefixed_unit(value)`.
+
+| value  | **631**   | **1&nbsp;080**    | **45&nbsp;200**    | **1&nbsp;257&nbsp;800** |  4,31×10⁷ | 7,00×10⁸ | 2,50×10⁹ | 
+| :------: | :--------: | :--------: | :--------: | :--------: |  :--------: | :--------: | :--------: | 
+| result | <code>631&nbsp;b</code> | <code>1.05&nbsp;kb</code> | <code>44.14&nbsp;kb</code> | <code>1.20&nbsp;Mb</code> |  <code>41.11&nbsp;Mb</code> | <code>668.0&nbsp;Mb</code>  | <code>2.33&nbsp;Gb</code>    |
+
+| value  | **1**   | **0.1**    |  ... |
+| :------: | :--------: | :--------: |  :---: |
+| result | <code>1.00&nbsp;m</code> | <code>0.10&nbsp;m</code> | @TODO | 
+
+Settings example:
+```python
+PrefixedUnitPreset(
+    max_value_len=5, integer_input=True,
+    unit='b', unit_separator=' ',
+    mcoef=1024.0,
+    prefixes=[None, 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'],
+    prefix_zero_idx=0,
+)
+PrefixedUnitPreset(
+    max_value_len=7, integer_input=False,
+    unit='m', unit_separator='',
+    mcoef=1000.0,
+    prefixes=['y', 'z', 'a', 'f', 'p', 'n', 'μ', 'm', None],
+    prefix_zero_idx=8,
+)
+```
+
+### format_time_delta
+
+Formats time interval in 4 different variants - 3-char, 4-char, 6-char and 10-char width output. Usage: `format_time_delta(seconds, max_len)`.
+
+| width   | 2 | 10 | 60 | 2700 | 32&nbsp;340 | 273&nbsp;600 | 4&nbsp;752&nbsp;000 | 8,64×10⁸ |
+| ------:  | --- | --- | --- | --- | --- | --- | --- | --- |
+| **3&nbsp;chars**  | <code>2s</code>| <code>10s</code>| <code>1m</code>| <code>45m</code>| <code>8h</code>| <code>3d</code>| <code>55d</code>| -- |
+| **4&nbsp;chars**  | <code>2&nbsp;s </code>| <code>10&nbsp;s </code>| <code>1&nbsp;m </code>| <code>45&nbsp;m </code>| <code>8&nbsp;h </code>| <code>3&nbsp;d </code>| <code>1&nbsp;M </code>| <code>27&nbsp;y </code>|                  
+| **6&nbsp;chars**  | <code>2&nbsp;sec </code>| <code>10&nbsp;sec </code>| <code>1&nbsp;min </code>| <code>45&nbsp;min</code>| <code>8h&nbsp;59m </code>| <code>3d&nbsp;4h </code>| <code>1&nbsp;mon </code>| <code>27&nbsp;yr </code>|
+| **10&nbsp;chars** | <code>2&nbsp;secs </code>| <code>10&nbsp;secs </code>| <code>1&nbsp;min</code> | <code>45&nbsp;mins</code>| <code>8h&nbsp;59m </code>| <code>3d&nbsp;4h </code>| <code>1&nbsp;months </code>| <code>27&nbsp;years </code>|
+
+Settings example (for 10-char mode):
+```python
+TimeDeltaPreset([
+    TimeUnit('sec', 60), 
+    TimeUnit('min', 60, custom_short='min'), 
+    TimeUnit('hour', 24, collapsible_after=24),
+    TimeUnit('day', 30, collapsible_after=10),
+    TimeUnit('month', 12),
+    TimeUnit('year', overflow_afer=999),
+], allow_negative=True,
+    unit_separator=' ',
+    plural_suffix='s',
+    overflow_msg='OVERFLOW',
+),
+```
+
+</details>
 
 ## API: Registries
 
@@ -826,6 +913,13 @@ As a rule of a thumb, **name** equals to **opening seq** in lower case.
 You can of course create your own sequences and formats, but with one limitation &mdash; autoformatting will not work with custom defined sequences; unless you add the corresponding rule to `pytermor.registry.sgr_parity_registry`.
 
 ## Changelog
+
+### v1.8.0
+
+- `format_prefixed_unit` extended for working with decimal and binary metric prefixes.
+- `format_time_delta` extended with new settings.
+- Value rounding transferred from  `format_auto_float` to `format_prefixed_unit`
+- Utility classes reorganization.
 
 ### v1.7.4
 

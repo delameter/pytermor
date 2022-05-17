@@ -82,7 +82,7 @@ FMT_PRESETS = {
 }
 
 
-def fmt_time_delta(seconds: float, max_len: int = None) -> str:
+def format_time_delta(seconds: float, max_len: int = None) -> str:
     """
     Format time delta using suitable format (which depends on
     *max_len* argument). Key feature of this formatter is

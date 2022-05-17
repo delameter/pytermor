@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from math import trunc
 from typing import List
 
-from . import fmt_auto_float
+from . import format_auto_float
 
 
 @dataclass
@@ -33,16 +33,16 @@ from approximately 10^-27 to 10^27 .
 minimum requirement for displaying values from 999 to -999.
 Next number to 999 is 1000, which will be displayed as 1k.
 """
-FMT_PRESET_SI_METRIC = PrefixedUnitPreset(
+PRESET_SI_METRIC = PrefixedUnitPreset(
     max_value_len=5,
     integer_input=False,
-    unit='V',
+    unit='m',
     unit_separator=' ',
     mcoef=1000.0,
     prefixes=PREFIXES_SI,
     prefix_zero_idx=PREFIX_ZERO_SI,
 )
-FMT_PRESET_SI_BINARY = PrefixedUnitPreset(
+PRESET_SI_BINARY = PrefixedUnitPreset(
     max_value_len=5,
     integer_input=True,
     unit='b',
@@ -53,19 +53,23 @@ FMT_PRESET_SI_BINARY = PrefixedUnitPreset(
 )
 
 
-def fmt_prefixed_unit(value: float, preset: PrefixedUnitPreset = None) -> str:
+def format_prefixed_unit(value: float, preset: PrefixedUnitPreset = None) -> str:
     """
     Format *value* using *preset* settings. The main idea of this method
     is to fit into specified string length as much significant digits as it's
-    theoretically possible, using increasing coefficients and unit prefixes to
-    indicate power.
+    theoretically possible, using multipliers and unit prefixes to
+    indicate them.
+
+    Default *preset* is PRESET_SI_BINARY, PrefixedUnitPreset with base 1024
+    made for binary sizes (bytes, kbytes, Mbytes).
 
     :param value: input value
-    :param preset: formatter settings, default is SiPrefixedUnitPreset with base 1024
+    :param preset: formatter settings
     :return: formatted value
+    :rtype: str
     """
     if preset is None:
-        preset = FMT_PRESET_SI_BINARY
+        preset = PRESET_SI_BINARY
 
     prefixes = preset.prefixes or ['']
     unit_separator = preset.unit_separator or ''
@@ -81,12 +85,12 @@ def fmt_prefixed_unit(value: float, preset: PrefixedUnitPreset = None) -> str:
             unit_idx += 1
             continue
 
-        unit_full = f'{prefixes[unit_idx] or ""}{preset.unit or ""}'
+        unit_full = (prefixes[unit_idx] or '') + (preset.unit or '')
 
         if preset.integer_input and unit_idx == preset.prefix_zero_idx:
             num_str = f'{trunc(value)!s:.{preset.max_value_len}s}'
         else:
-            num_str = fmt_auto_float(value, preset.max_value_len)
+            num_str = format_auto_float(value, preset.max_value_len)
 
         return f'{num_str.strip()}{unit_separator}{unit_full}'
 
