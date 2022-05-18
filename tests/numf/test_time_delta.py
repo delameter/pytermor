@@ -6,7 +6,7 @@ import unittest
 from datetime import timedelta
 
 from pytermor import format_time_delta
-from tests import print_verbose
+from tests import verb_print_info, verb_print_header, verb_print_subtests
 
 
 class TestTimeDelta(unittest.TestCase):
@@ -76,30 +76,45 @@ class TestTimeDelta(unittest.TestCase):
     ]
 
     def test_output_has_expected_format(self):
-        for idx, (expected_output, input_arg) in enumerate(self.expected_format_dataset):
-            with self.subTest(msg=f'Test #{idx}: "{input_arg}" -> "{expected_output}"'):
-                if type(input_arg) is not timedelta:
-                    input_arg = timedelta(days=input_arg)
+        verb_print_info()
 
+        for idx, (expected_output, input_arg) in enumerate(self.expected_format_dataset):
+            subtest_msg = f'tdelta/match #{idx}: "{input_arg}" -> "{expected_output}"'
+
+            with self.subTest(msg=subtest_msg):
                 actual_output = format_time_delta(input_arg.total_seconds(), self.expected_format_max_len)
-                print_verbose(actual_output, end=', ')
+                verb_print_info(subtest_msg + f' => "{actual_output}"')
                 self.assertEqual(expected_output, actual_output)
+
+        verb_print_subtests(len(self.expected_format_dataset))
+
+    """ ----------------------------------------------------------------------------------------------------------- """
 
     req_len_expected_len_list = [3, 4, 6, 10, 9, 1000]
     req_len_input_delta_list = [el[1] for el in expected_format_dataset]
 
     def test_output_fits_in_required_length(self):
+        verb_print_info()
+
         for idx, expected_max_len in enumerate(self.req_len_expected_len_list):
-            print_verbose(f'\nLEN={expected_max_len:d}', end=': ')
-            for input_td in self.req_len_input_delta_list:
-                with self.subTest(msg=f'Testing #{idx} "{input_td}" -> max length {expected_max_len}'):
+            verb_print_header(f'expected_max_len={expected_max_len:d}:')
+
+            for input_idx, input_td in enumerate(self.req_len_input_delta_list):
+                subtest_msg = f'tdelta/len #{input_idx}: "{input_td}" -> (len {expected_max_len})'
+
+                with self.subTest(msg=subtest_msg):
                     actual_output = format_time_delta(input_td.total_seconds(), expected_max_len)
-                    print_verbose(actual_output, end=', ')
-                    self.assertGreaterEqual(expected_max_len, len(actual_output))
+                    verb_print_info(subtest_msg + f' => (len {len(actual_output)}) "{actual_output}"')
+
+                    self.assertGreaterEqual(expected_max_len,
+                                            len(actual_output),
+                                            f'Actual output ("{actual_output}") exceeds maximum')
+
+    """ ----------------------------------------------------------------------------------------------------------- """
 
     invalid_len_list = [-5, 0, 1, 2]
 
     def test_invalid_max_length_fails(self):
         for invalid_max_len in self.invalid_len_list:
-            with self.subTest(msg=f'Testing invalid max length {invalid_max_len}'):
+            with self.subTest(msg=f'invalid max length {invalid_max_len}'):
                 self.assertRaises(ValueError, lambda: format_time_delta(100, invalid_max_len))

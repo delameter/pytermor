@@ -25,16 +25,8 @@ class PrefixedUnitPreset:
 PREFIXES_SI = ['y', 'z', 'a', 'f', 'p', 'n', 'μ', 'm', None, 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
 PREFIX_ZERO_SI = 8
 
-"""
-Suitable for formatting any SI unit with values
-from approximately 10^-27 to 10^27 .
-
-*max_value_len* must be at least `4`, because it's a
-minimum requirement for displaying values from 999 to -999.
-Next number to 999 is 1000, which will be displayed as 1k.
-"""
 PRESET_SI_METRIC = PrefixedUnitPreset(
-    max_value_len=5,
+    max_value_len=4,
     integer_input=False,
     unit='m',
     unit_separator=' ',
@@ -42,6 +34,15 @@ PRESET_SI_METRIC = PrefixedUnitPreset(
     prefixes=PREFIXES_SI,
     prefix_zero_idx=PREFIX_ZERO_SI,
 )
+"""
+Suitable for formatting any SI unit with values
+from approximately `10^-27` to `10^27`.
+
+``max_value_len`` must be at least **4**, because it's a
+minimum requirement for displaying values from `999` to `-999`.
+Next number to `999` is `1000`, which will be displayed as ``1k``.
+"""
+
 PRESET_SI_BINARY = PrefixedUnitPreset(
     max_value_len=5,
     integer_input=True,
@@ -51,6 +52,19 @@ PRESET_SI_BINARY = PrefixedUnitPreset(
     prefixes=PREFIXES_SI,
     prefix_zero_idx=PREFIX_ZERO_SI,
 )
+"""
+Similar to ``PRESET_SI_METRIC``, but this preset differs in
+ one aspect.  Given a variable with default value = `995`, printing
+it's value out using this preset results in ``995 b``. After
+increasing it by `20` we'll have `1015`, but it's still not enough
+to become a kilobyte -- so displayed value will be ``1015 b``. Only
+after one more increasing (at *1024* and more) the value will be
+in a form of ``1.00 kb``.  
+
+So, in this case``max_value_len`` must be at least **5** (not 4),
+because it's a minimum requirement for displaying values from `1023` 
+to `-1023`.
+"""
 
 
 def format_prefixed_unit(value: float, preset: PrefixedUnitPreset = None) -> str:

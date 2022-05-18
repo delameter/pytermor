@@ -27,8 +27,22 @@ cleanup:
 prepare:
 	python3 -m pip install --upgrade build twine
 
+init-venv:
+	python3 -m venv venv
+	. venv/bin/activate
+	pip3 install -r requirements-dev.txt
+
 test: ## Run tests
-	PYTHONPATH=${PWD} python3 -s -m unittest -v
+	. venv/bin/activate
+	PYTHONPATH=${PWD} python3 -s tests/run.py
+
+test-verbose: ## Run tests with detailed output
+	. venv/bin/activate
+	PYTHONPATH=${PWD} python3 -s tests/run.py -v
+
+test-debug: ## Debug tests
+	. venv/bin/activate
+	PYTHONPATH=${PWD} python3 -s tests/run.py -vv
 
 set-version: ## Set new package version
 	@echo "Current version: ${YELLOW}${VERSION}${RESET}"
@@ -39,9 +53,11 @@ set-version: ## Set new package version
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
 
 generate-readme: ## Generate README file
+	. venv/bin/activate
 	PYTHONPATH=${PWD} python3 -s dev/readme/generate.py
 
 generate-thumbs: ## Generate README examples' thumbnails
+	. venv/bin/activate
 	PYTHONPATH=${PWD} python3 -s dev/readme/generate_thumbs.py
 
 build: ## Build module

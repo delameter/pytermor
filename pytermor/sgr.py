@@ -2,6 +2,10 @@
 # pytermor [ANSI formatted terminal output toolset]
 # (C) 2022 A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
+"""
+SGR parameter integer codes.
+"""
+
 RESET = 0
 
 # attributes

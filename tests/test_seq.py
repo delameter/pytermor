@@ -12,7 +12,7 @@ class TestEquality(unittest.TestCase):
         self.assertEqual(SequenceSGR(1, 31, 42), SequenceSGR(1, 31, 42))
 
     def test_empty_is_equal_to_empty(self):
-        self.assertEqual(SequenceSGR(), SequenceSGR())
+        self.assertEqual(seq.NOOP, SequenceSGR())
 
     def test_regular_is_not_equal_to_regular(self):
         self.assertNotEqual(SequenceSGR(2, 31, 42), SequenceSGR(1, 31, 42))
@@ -24,7 +24,7 @@ class TestEquality(unittest.TestCase):
         self.assertNotEqual(SequenceSGR(), SequenceSGR(0))
 
     def test_reset_is_not_equal_to_empty(self):
-        self.assertNotEqual(SequenceSGR(), SequenceSGR(0))
+        self.assertNotEqual(seq.NOOP, SequenceSGR(0))
 
 
 class TestAddition(unittest.TestCase):
@@ -32,13 +32,13 @@ class TestAddition(unittest.TestCase):
         self.assertEqual(SequenceSGR(1) + SequenceSGR(3), SequenceSGR(1, 3))
 
     def test_addition_of_regular_to_empty(self):
-        self.assertEqual(SequenceSGR(41) + SequenceSGR(), SequenceSGR(41))
+        self.assertEqual(SequenceSGR(41) + seq.NOOP, SequenceSGR(41))
 
     def test_addition_of_empty_to_regular(self):
         self.assertEqual(SequenceSGR() + SequenceSGR(44), SequenceSGR(44))
 
     def test_addition_of_empty_to_empty(self):
-        self.assertEqual(SequenceSGR() + SequenceSGR(), SequenceSGR())
+        self.assertEqual(SequenceSGR() + seq.NOOP, SequenceSGR())
 
     def test_addition_of_empty_to_reset(self):
         self.assertEqual(SequenceSGR() + SequenceSGR(0), SequenceSGR(0))
@@ -75,7 +75,7 @@ class TestBuild(unittest.TestCase):
 
     def test_build_empty_arg(self):
         s = build(SequenceSGR())
-        self.assertEqual(s, SequenceSGR())
+        self.assertEqual(s, seq.NOOP)
 
     def test_build_mixed_with_empty_arg(self):
         s = build(3, SequenceSGR())

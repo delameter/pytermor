@@ -45,7 +45,7 @@ class TestEquality(unittest.TestCase):
 
     def test_empty_are_equal(self):
         f1 = Format(SequenceSGR())
-        f2 = Format(SequenceSGR())
+        f2 = Format(seq.NOOP)
 
         self.assertEqual(f1, f2)
 
@@ -83,7 +83,7 @@ class TestAutoFormat(unittest.TestCase):
         f = autof(SequenceSGR())
 
         self.assertEqual(f.opening_seq, SequenceSGR())
-        self.assertEqual(f.closing_seq, SequenceSGR())
+        self.assertEqual(f.closing_seq, seq.NOOP)
 
     def test_autof_multiple_with_empty_sgr(self):
         f = autof(seq.BOLD, SequenceSGR(), seq.RED)
