@@ -1,0 +1,2 @@
+blessings~=1.7
+Pygments~=2.12.0

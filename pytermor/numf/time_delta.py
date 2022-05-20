@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import floor
+from math import floor, trunc, isclose
 from typing import List
 
 
@@ -19,54 +19,70 @@ class TimeUnit:
 
 
 @dataclass
-class TimeDeltaFmtPreset:
-    units: List[TimeUnit] = List[TimeUnit]
-    allow_negative: bool = True
-    unit_separator: str|None = ' '
-    plural_suffix: str|None = 's'
-    overflow_msg: str|None = 'OVERFLOW'
+class TimeDeltaPreset:
+    units: List[TimeUnit]
+    allow_negative: bool
+    unit_separator: str|None
+    plural_suffix: str|None
+    overflow_msg: str|None
 
 
 FMT_PRESET_DEFAULT_KEY = 10
+
 FMT_PRESETS = {
-    3: TimeDeltaFmtPreset([
+    3: TimeDeltaPreset([
         TimeUnit('s', 60),
         TimeUnit('m', 60),
         TimeUnit('h', 24),
         TimeUnit('d', overflow_afer=99),
-    ], allow_negative=False, unit_separator=None,
-    plural_suffix=None, overflow_msg='ERR'),
+    ], allow_negative=False,
+        unit_separator=None,
+        plural_suffix=None,
+        overflow_msg='ERR',
+    ),
 
-    4: TimeDeltaFmtPreset([
+    4: TimeDeltaPreset([
         TimeUnit('s', 60),
         TimeUnit('m', 60),
         TimeUnit('h', 24),
         TimeUnit('d', 30),
         TimeUnit('M', 12),
         TimeUnit('y', overflow_afer=99),
-    ], allow_negative=False, plural_suffix=None, overflow_msg='ERRO'),
+    ], allow_negative=False,
+        unit_separator=' ',
+        plural_suffix=None,
+        overflow_msg='ERRO',
+    ),
 
-    6: TimeDeltaFmtPreset([
+    6: TimeDeltaPreset([
         TimeUnit('sec', 60),
         TimeUnit('min', 60),
         TimeUnit('hr', 24, collapsible_after=10),
         TimeUnit('day', 30, collapsible_after=10),
         TimeUnit('mon', 12),
         TimeUnit('yr', overflow_afer=99),
-    ], allow_negative=False, plural_suffix=None),
+    ], allow_negative=False,
+        unit_separator=' ',
+        plural_suffix=None,
+        overflow_msg='OVERFL',
+    ),
 
-    FMT_PRESET_DEFAULT_KEY: TimeDeltaFmtPreset([
+    FMT_PRESET_DEFAULT_KEY: TimeDeltaPreset([
         TimeUnit('sec', 60),
         TimeUnit('min', 60, custom_short='min'),
         TimeUnit('hour', 24, collapsible_after=24),
         TimeUnit('day', 30, collapsible_after=10),
         TimeUnit('month', 12),
         TimeUnit('year', overflow_afer=999),
-    ])
+    ], allow_negative=True,
+        unit_separator=' ',
+        plural_suffix='s',
+        overflow_msg='OVERFLOW',
+    ),
 }
 
 
-def fmt_time_delta(seconds: float, max_len: int = None) -> str:
+def format_time_delta(seconds: float, max_len: int = None) -> str:
     """
     Format time delta using suitable format (which depends on
     *max_len* argument). Key feature of this formatter is
@@ -94,7 +110,8 @@ def fmt_time_delta(seconds: float, max_len: int = None) -> str:
     else:
         fmt_preset_list = sorted(
             [key for key in FMT_PRESETS.keys() if key <= max_len],
-            key=lambda k: k, reverse=True
+            key=lambda k: k,
+            reverse=True,
         )
         if len(fmt_preset_list) > 0:
             preset = FMT_PRESETS[fmt_preset_list[0]]
@@ -102,41 +119,51 @@ def fmt_time_delta(seconds: float, max_len: int = None) -> str:
     if not preset:
         raise ValueError(f'No settings defined for max length = {max_len} (or less)')
 
-    def iterator(abs_seconds: float) -> str|None:
-        num = abs_seconds
-        unit_idx = 0
-        prev_frac = ''
+    num = abs(seconds)
+    unit_idx = 0
+    prev_frac = ''
 
-        while unit_idx < len(preset.units):
-            unit = preset.units[unit_idx]
-            if unit.overflow_afer and num > unit.overflow_afer:
-                return preset.overflow_msg[0:max_len]
+    negative = preset.allow_negative and seconds < 0
+    sign = '-' if negative else ''
+    result = None
 
-            unit_name = unit.name
-            unit_name_suffixed = unit_name
-            if preset.plural_suffix and num > 1:
-                unit_name_suffixed += preset.plural_suffix
+    while result is None and unit_idx < len(preset.units):
+        unit = preset.units[unit_idx]
+        if unit.overflow_afer and num > unit.overflow_afer:
+            result = preset.overflow_msg[0:max_len]
+            break
 
-            short_unit_name = unit_name[0]
-            if unit.custom_short:
-                short_unit_name = unit.custom_short
+        unit_name = unit.name
+        unit_name_suffixed = unit_name
+        if preset.plural_suffix and trunc(num) != 1:
+            unit_name_suffixed += preset.plural_suffix
 
-            next_unit_ratio = unit.in_next
-            unit_separator = preset.unit_separator or ''
+        short_unit_name = unit_name[0]
+        if unit.custom_short:
+            short_unit_name = unit.custom_short
 
-            if num < 1:
-                return f'0{unit_separator}{unit_name_suffixed:3s}'
-            elif unit.collapsible_after is not None and num < unit.collapsible_after:
-                return f'{num:1.0f}{short_unit_name:1s}{unit_separator}{prev_frac:<3s}'
-            elif not next_unit_ratio or num < next_unit_ratio:
-                return f'{num:>2.0f}{unit_separator}{unit_name_suffixed:<3s}'
+        next_unit_ratio = unit.in_next
+        unit_separator = preset.unit_separator or ''
+
+        if abs(num) < 1:
+            if negative:
+                result = f'~0{unit_separator}{unit_name_suffixed:s}'
+            elif isclose(num, 0, abs_tol=1e-03):
+                result = f'0{unit_separator}{unit_name_suffixed:s}'
             else:
-                next_num = floor(num / next_unit_ratio)
-                prev_frac = '{:d}{:1s}'.format(floor(num - (next_num * next_unit_ratio)), short_unit_name)
-                num = next_num
-                unit_idx += 1
-                continue
+                result = f'<1{unit_separator}{unit_name:s}'
 
-    sign = '-' if preset.allow_negative and seconds < 0 else ''
-    result = iterator(abs(seconds))
-    return sign + result.strip() if result else ''
+        elif unit.collapsible_after is not None and num < unit.collapsible_after:
+            result = f'{sign}{floor(num):d}{short_unit_name:s}{unit_separator}{prev_frac:<s}'
+
+        elif not next_unit_ratio or num < next_unit_ratio:
+            result = f'{sign}{floor(num):d}{unit_separator}{unit_name_suffixed:s}'
+
+        else:
+            next_num = floor(num / next_unit_ratio)
+            prev_frac = '{:d}{:s}'.format(floor(num - (next_num * next_unit_ratio)), short_unit_name)
+            num = next_num
+            unit_idx += 1
+            continue
+
+    return result or ''

@@ -7,12 +7,12 @@ import unittest
 from pytermor import seq, sgr, build, build_c256, build_rgb, SequenceSGR
 
 
-class SequenceEqualityTestCase(unittest.TestCase):
+class TestEquality(unittest.TestCase):
     def test_regular_is_equal_to_regular(self):
         self.assertEqual(SequenceSGR(1, 31, 42), SequenceSGR(1, 31, 42))
 
     def test_empty_is_equal_to_empty(self):
-        self.assertEqual(SequenceSGR(), SequenceSGR())
+        self.assertEqual(seq.NOOP, SequenceSGR())
 
     def test_regular_is_not_equal_to_regular(self):
         self.assertNotEqual(SequenceSGR(2, 31, 42), SequenceSGR(1, 31, 42))
@@ -24,21 +24,21 @@ class SequenceEqualityTestCase(unittest.TestCase):
         self.assertNotEqual(SequenceSGR(), SequenceSGR(0))
 
     def test_reset_is_not_equal_to_empty(self):
-        self.assertNotEqual(SequenceSGR(), SequenceSGR(0))
+        self.assertNotEqual(seq.NOOP, SequenceSGR(0))
 
 
-class SequenceAdditionTestCase(unittest.TestCase):
+class TestAddition(unittest.TestCase):
     def test_addition_of_regular_to_regular(self):
         self.assertEqual(SequenceSGR(1) + SequenceSGR(3), SequenceSGR(1, 3))
 
     def test_addition_of_regular_to_empty(self):
-        self.assertEqual(SequenceSGR(41) + SequenceSGR(), SequenceSGR(41))
+        self.assertEqual(SequenceSGR(41) + seq.NOOP, SequenceSGR(41))
 
     def test_addition_of_empty_to_regular(self):
         self.assertEqual(SequenceSGR() + SequenceSGR(44), SequenceSGR(44))
 
     def test_addition_of_empty_to_empty(self):
-        self.assertEqual(SequenceSGR() + SequenceSGR(), SequenceSGR())
+        self.assertEqual(SequenceSGR() + seq.NOOP, SequenceSGR())
 
     def test_addition_of_empty_to_reset(self):
         self.assertEqual(SequenceSGR() + SequenceSGR(0), SequenceSGR(0))
@@ -50,7 +50,7 @@ class SequenceAdditionTestCase(unittest.TestCase):
         self.assertRaises(TypeError, lambda: SequenceSGR(1) + 2)
 
 
-class SequenceBuildTestCase(unittest.TestCase):
+class TestBuild(unittest.TestCase):
     def test_build_code_args(self):
         s = build(1, 31, 43)
         self.assertEqual(s, SequenceSGR(sgr.BOLD, sgr.RED, sgr.BG_YELLOW))
@@ -75,7 +75,7 @@ class SequenceBuildTestCase(unittest.TestCase):
 
     def test_build_empty_arg(self):
         s = build(SequenceSGR())
-        self.assertEqual(s, SequenceSGR())
+        self.assertEqual(s, seq.NOOP)
 
     def test_build_mixed_with_empty_arg(self):
         s = build(3, SequenceSGR())

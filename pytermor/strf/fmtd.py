@@ -7,14 +7,10 @@ from . import ReplaceSGR
 
 def ljust_fmtd(s: str, width: int, fillchar: str = ' ') -> str:
     """
-    Correctly justifies input that can include SGR sequences. Apart from
-    that is very similar to regular str.ljust().
+    SGR-formatting-aware implementation of str.ljust().
 
-    :param s: string to extend
-    :param width: target string length
-    :param fillchar: append this char to target
-    :return: **s** padded to the left side with *fillchars* so that now it's
-            length corresponds to *width*
+    Return a left-justified string of length width. Padding is done
+    using the specified fill character (default is a space).
     """
     sanitized = ReplaceSGR().apply(s)
     return s + fillchar * max(0, width - len(sanitized))
@@ -22,7 +18,10 @@ def ljust_fmtd(s: str, width: int, fillchar: str = ' ') -> str:
 
 def rjust_fmtd(s: str, width: int, fillchar: str = ' ') -> str:
     """
-    SGR-aware implementation of str.rjust(). @see: ljust_fmtd
+    SGR-formatting-aware implementation of str.rjust().
+
+    Return a right-justified string of length width. Padding is done
+    using the specified fill character (default is a space).
     """
     sanitized = ReplaceSGR().apply(s)
     return fillchar * max(0, width - len(sanitized)) + s
@@ -30,11 +29,10 @@ def rjust_fmtd(s: str, width: int, fillchar: str = ' ') -> str:
 
 def center_fmtd(s: str, width: int, fillchar: str = ' ') -> str:
     """
-    SGR-aware implementation of str.rjust().
+    SGR-formatting-aware implementation of str.center().
 
-    .. seealso:: ljust_fmtd
-    .. note:: blabla
-    .. todo:: blabla
+    Return a centered string of length width. Padding is done using the
+    specified fill character (default is a space).
     """
     sanitized = ReplaceSGR().apply(s)
     fill_len = max(0, width - len(sanitized))

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from . import build, sgr, SequenceSGR
+from . import build, sgr, seq, SequenceSGR
 from .registry import sgr_parity_registry
 
 
@@ -43,7 +43,7 @@ class Format:
 
     def _opt_arg(self, arg: SequenceSGR | None) -> SequenceSGR:
         if not arg:
-            return SequenceSGR()
+            return seq.NOOP
         return arg
 
     def __call__(self, text: Any = None) -> str:
@@ -52,9 +52,7 @@ class Format:
     def __eq__(self, other: Format) -> bool:
         if not isinstance(other, Format):
             return False
-
-        return self._opening_seq == other._opening_seq \
-               and self._closing_seq == other._closing_seq
+        return self._opening_seq == other._opening_seq and self._closing_seq == other._closing_seq
 
     def __repr__(self):
         return super().__repr__() + '[{!r}, {!r}]'.format(self._opening_seq, self._closing_seq)
@@ -65,6 +63,15 @@ def autof(*args: str | int | SequenceSGR) -> Format:
     closing_seq = sgr_parity_registry.get_closing_seq(opening_seq)
     return Format(opening_seq, closing_seq)
 
+
+noop = autof()
+"""Special instance in cases where you *have to* select one or 
+another Format, but do not want anything to be actually printed. 
+
+- ``noop(string)`` or ``noop.wrap(string)`` returns ``string`` without any modifications;
+- ``noop.opening_str`` and ``noop.closing_str`` are empty strings;
+- ``noop.opening_seq`` and ``noop.closing_seq`` both returns ``seq.NOOP``.
+"""
 
 bold = autof(sgr.BOLD)
 dim = autof(sgr.DIM)

@@ -7,7 +7,7 @@ import unittest
 from pytermor import autof, seq, sgr, SequenceSGR, Format
 
 
-class FormatEqualityTestCase(unittest.TestCase):
+class TestEquality(unittest.TestCase):
     def test_same_are_equal(self):
         f1 = Format(SequenceSGR(sgr.BOLD), SequenceSGR(sgr.RESET))
         f2 = Format(SequenceSGR(sgr.BOLD), SequenceSGR(sgr.RESET))
@@ -45,7 +45,7 @@ class FormatEqualityTestCase(unittest.TestCase):
 
     def test_empty_are_equal(self):
         f1 = Format(SequenceSGR())
-        f2 = Format(SequenceSGR())
+        f2 = Format(seq.NOOP)
 
         self.assertEqual(f1, f2)
 
@@ -56,11 +56,11 @@ class FormatEqualityTestCase(unittest.TestCase):
         self.assertNotEqual(f1, f2)
 
 
-class FormatWrapTestCase(unittest.TestCase):
+class TestWrap(unittest.TestCase):
     pass  # @todo
 
 
-class AutoFormatTestCase(unittest.TestCase):
+class TestAutoFormat(unittest.TestCase):
     def test_autof_single_sgr(self):
         f = autof(seq.BOLD)
 
@@ -83,7 +83,7 @@ class AutoFormatTestCase(unittest.TestCase):
         f = autof(SequenceSGR())
 
         self.assertEqual(f.opening_seq, SequenceSGR())
-        self.assertEqual(f.closing_seq, SequenceSGR())
+        self.assertEqual(f.closing_seq, seq.NOOP)
 
     def test_autof_multiple_with_empty_sgr(self):
         f = autof(seq.BOLD, SequenceSGR(), seq.RED)

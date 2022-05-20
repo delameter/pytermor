@@ -32,6 +32,10 @@ class AbstractSequence(metaclass=ABCMeta):
 
 
 class AbstractSequenceCSI(AbstractSequence, metaclass=ABCMeta):
+    """
+    Class representing CSI-type ANSI escape sequence. All subtypes of this
+    sequence have something in common - they all start with ``\\e[``.
+    """
     CONTROL_CHARACTER = '\033'
     INTRODUCER = '['
     SEPARATOR = ';'
@@ -44,10 +48,14 @@ class AbstractSequenceCSI(AbstractSequence, metaclass=ABCMeta):
 
 
 class SequenceSGR(AbstractSequenceCSI, metaclass=ABCMeta):
+    """
+    Class representing SGR-type ANSI escape sequence with varying amount of parameters.
+    Addition of one SGR sequence to another is supported.
+    """
     TERMINATOR = 'm'
 
     def print(self) -> str:
-        if len(self._params) == 0:
+        if len(self._params) == 0:  # noop
             return ''
 
         params = self._params
@@ -123,6 +131,15 @@ def _validate_extended_color(value: int):
     if value < 0 or value > 255:
         raise ValueError(f'Invalid color value: {value}; valid values are 0-255 inclusive')
 
+
+NOOP = SequenceSGR()
+"""
+Special instance in cases where you *have to* select one or
+another SGR, but do not want anything to be actually printed. 
+
+- ``NOOP.print()`` returns empty string.
+- ``NOOP.params()`` returns empty list.
+"""
 
 RESET = SequenceSGR(0)  # 0
 
