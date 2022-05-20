@@ -146,9 +146,9 @@ print(orig_text, '\n', updated_text)
 As you can see, the update went well &mdash; we kept all the previously applied formatting. Of course, this method cannot be 100% applicable &mdash; for example, imagine that original text was colored blue. After the update "string" word won't be blue anymore, as we used `COLOR_OFF` escape sequence to neutralize our own yellow color. But it still can be helpful for a majority of cases (especially when text is generated and formatted by the same program and in one go).
 
 
-## API: module
+## API: pytermor
 
-### autof
+### &gt; `autof`
 
 Signature: `autof(*params str|int|SequenceSGR) -> Format`
 
@@ -161,7 +161,7 @@ Each sequence param can be specified as:
 - integer param value
 - existing _SequenceSGR_ instance (params will be extracted)
 
-### build
+### &gt; `build`
 
 Signature: `build(*params str|int|SequenceSGR) -> SequenceSGR`
 
@@ -169,13 +169,13 @@ Create new _SequenceSGR_ with specified params. Resulting sequence params order 
 
 _SequenceSGR_ with zero params was specifically implemented to translate into empty string and not into `\e[m`, which wolud make sense, but also would be very entangling, as it's equivavlent of `\e[0m` &mdash; **hard reset** sequence.
 
-### build_c256
+### &gt; `build_c256`
 
 Signature:`build_c256(color: int, bg: bool = False) -> SequenceSGR`
 
 Create new _SequenceSGR_ that sets foreground color or background color, depending on `bg` value, in 256-color mode. Valid values for `color` are [0; 255], see more at [↗ xterm-256 colors](https://www.ditig.com/256-colors-cheat-sheet) page.
 
-### build_rgb
+### &gt; `build_rgb`
 
 Signature:`build_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR`
 
@@ -184,7 +184,7 @@ Create new _SequenceSGR_ that sets foreground color or background color, dependi
 
 ## API: SGR sequences
 
-Class representing SGR-mode ANSI escape sequence with varying amount of parameters.
+Class representing SGR-type ANSI escape sequence with varying amount of parameters.
 
 <details>
 <summary><b>Details</b> <i>(click)</i></summary>
@@ -293,7 +293,7 @@ print(formatted, '\n', replaced)
 
 ### Usage with helper
 
-Helper function `apply_filters` accepts both `StringFilter` implementation instances and types, but latter is not configurable and will be invoked using default settings.
+Helper function `apply_filters` accepts both `StringFilter` instances and types, but latter is not configurable and will be invoked using default settings.
 
 ```python3
 from pytermor import apply_filters, ReplaceNonAsciiBytes
@@ -311,9 +311,9 @@ print(ascii_and_binary, '\n', result)
 
 Set of methods to make working with SGR sequences a bit easier.
 
-- `ljust_fmtd`   SGR-formatting-aware implementation of str.ljust()
-- `rjust_fmtd`  same, but for _str.rjust()_
-- `center_fmtd` same, but for _str.center()_
+- `ljust_fmtd()`   SGR-formatting-aware implementation of str.ljust()
+- `rjust_fmtd()`  same, but for _str.rjust()_
+- `center_fmtd()` same, but for _str.center()_
 
 
 ## API: numf.*
@@ -323,7 +323,7 @@ Set of methods to make working with SGR sequences a bit easier.
 <details>
 <summary><b>Details</b> <i>(click)</i></summary>
 
-### format_auto_float
+### &gt; `format_auto_float`
 
 Dynamically adjust decimal digit amount to fill the output string up with significant digits as much as possible. Universal solution for situations when you don't know exaclty what values will be displayed, but have fixed output width. Invocation: `format_auto_float(value, 4)`.
 
@@ -335,7 +335,7 @@ Dynamically adjust decimal digit amount to fill the output string up with signif
 | **1.56**    |  `"1.56"`  |
                                
 
-### format_prefixed_unit
+### &gt; `format_prefixed_unit`
 
 Similar to previous method, but this one also supports metric prefixes and is highly customizable. Invocation: `format_prefixed_unit(value)`.
 
@@ -343,11 +343,7 @@ Similar to previous method, but this one also supports metric prefixes and is hi
 | :------: | :--------: | :--------: | :--------: | :--------: |  :--------: | :--------: | :--------: | 
 | result | <code>631&nbsp;b</code> | <code>1.05&nbsp;kb</code> | <code>44.14&nbsp;kb</code> | <code>1.20&nbsp;Mb</code> |  <code>41.11&nbsp;Mb</code> | <code>668.0&nbsp;Mb</code>  | <code>2.33&nbsp;Gb</code>    |
 
-| value  | **1**   | **0.1**    |  ... |
-| :------: | :--------: | :--------: |  :---: |
-| result | <code>1.00&nbsp;m</code> | <code>0.10&nbsp;m</code> | @TODO | 
-
-Settings example:
+Settings:
 ```python
 PrefixedUnitPreset(
     max_value_len=5, integer_input=True,
@@ -356,8 +352,17 @@ PrefixedUnitPreset(
     prefixes=[None, 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'],
     prefix_zero_idx=0,
 )
+```
+
+Example #2 illustrating small numbers: 
+
+| value  | **-1.2345×10⁻¹¹**   | **1.2345×10⁻⁸**    |  **1.2345×10⁻⁴** | **0.01234** | **1.23456** | **123.456** | **−12 345** |
+| :------: | :--------: | :--------: |  :---: | :---: | :---: | :---: | :---: |
+| result | <code>-0.012nm</code> | <code>0.0123μm</code> | <code>0.1235mm</code> | <code>0.0123m</code> | <code>1.2346m</code> | <code>123.46m</code> | <code>-12.35km</code>
+
+```python
 PrefixedUnitPreset(
-    max_value_len=7, integer_input=False,
+    max_value_len=6, integer_input=False,
     unit='m', unit_separator='',
     mcoef=1000.0,
     prefixes=['y', 'z', 'a', 'f', 'p', 'n', 'μ', 'm', None],
@@ -365,7 +370,7 @@ PrefixedUnitPreset(
 )
 ```
 
-### format_time_delta
+### &gt; `format_time_delta`
 
 Formats time interval in 4 different variants - 3-char, 4-char, 6-char and 10-char width output. Usage: `format_time_delta(seconds, max_len)`.
 
@@ -916,11 +921,14 @@ You can of course create your own sequences and formats, but with one limitation
 
 ### v1.8.0
 
-- `format_prefixed_unit` extended for working with decimal and binary metric prefixes.
-- `format_time_delta` extended with new settings.
-- Value rounding transferred from  `format_auto_float` to `format_prefixed_unit`
-- Utility classes reorganization.
-
+- `format_prefixed_unit` extended for working with decimal and binary metric prefixes;
+- `format_time_delta` extended with new settings;
+- Value rounding transferred from  `format_auto_float` to `format_prefixed_unit`;
+- Utility classes reorganization;
+- Unit tests output formatting;
+- `noop` SGR sequence and `noop` format;
+- Max decimal points for `auto_float` extended from (2) to (max-2).
+- 
 ### v1.7.4
 
 - Added 3 formatters: `fmt_prefixed_unit`, `fmt_time_delta`, `fmt_auto_float`.

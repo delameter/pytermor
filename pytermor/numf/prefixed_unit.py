@@ -21,6 +21,14 @@ class PrefixedUnitPreset:
     prefixes: List[str|None]|None
     prefix_zero_idx: int|None
 
+    @property
+    def max_len(self) -> int:
+        result = self.max_value_len
+        result += len(self.unit_separator or '')
+        result += len(self.unit or '')
+        result += max([len(p) for p in self.prefixes if p])
+        return result
+
 
 PREFIXES_SI = ['y', 'z', 'a', 'f', 'p', 'n', 'μ', 'm', None, 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
 PREFIX_ZERO_SI = 8
@@ -41,6 +49,9 @@ from approximately `10^-27` to `10^27`.
 ``max_value_len`` must be at least **4**, because it's a
 minimum requirement for displaying values from `999` to `-999`.
 Next number to `999` is `1000`, which will be displayed as ``1k``.
+
+Total maximum length is ``max_value_len + 3 =`` **7** (+3 is from separator,
+unit and prefix, assuming all of them have 1-char width).
 """
 
 PRESET_SI_BINARY = PrefixedUnitPreset(
@@ -64,6 +75,9 @@ in a form of ``1.00 kb``.
 So, in this case``max_value_len`` must be at least **5** (not 4),
 because it's a minimum requirement for displaying values from `1023` 
 to `-1023`.
+
+Total maximum length is ``max_value_len + 3 =`` **8** (+3 is from separator,
+unit and prefix, assuming all of them have 1-char width).
 """
 
 
@@ -110,5 +124,5 @@ def format_prefixed_unit(value: float, preset: PrefixedUnitPreset = None) -> str
 
     # no more prefixes left
     return f'{value!r:{preset.max_value_len}.{preset.max_value_len}}{preset.unit_separator or ""}' + \
-           '?' * max([len(p) for p in prefixes]) + \
+           '?' * max([len(p) for p in prefixes if p]) + \
            (preset.unit or "")

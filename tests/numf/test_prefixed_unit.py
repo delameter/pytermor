@@ -24,11 +24,11 @@ class TestPrefixedUnit(unittest.TestCase):
             ['1 b', 1], ['10 b', 10],
             ['43 b', 43], ['180 b', 180],
             ['631 b', 631], ['1010 b', 1010],
-            ['1.00 kb', 1024], ['1.05 kb', 1080],
-            ['6.08 kb', 6230], ['14.65 kb', 15000],
+            ['1.000 kb', 1024], ['1.055 kb', 1080],
+            ['6.084 kb', 6230], ['14.65 kb', 15000],
             ['44.14 kb', 45200], ['130.2 kb', 133300],
-            ['1.20 Mb', 1257800], ['41.11 Mb', 43106100],
-            ['668.0 Mb', 700500000], ['2.33 Gb', 2501234567],
+            ['1.200 Mb', 1257800], ['41.11 Mb', 43106100],
+            ['668.0 Mb', 700500000], ['2.329 Gb', 2501234567],
             ['13.53 Gb', 14530231500], ['142.4 Tb', 156530231500223],
         ]], [PRESET_SI_METRIC, [
             ['1.23 m', 1.23456789],
@@ -59,16 +59,16 @@ class TestPrefixedUnit(unittest.TestCase):
     """ ----------------------------------------------------------------------------------------------------------- """
 
     req_len_dataset = [
-        [8, PRESET_SI_METRIC],
+        [7, PRESET_SI_METRIC],
         [8, PRESET_SI_BINARY],
         [5, PrefixedUnitPreset(
-            max_value_len=3, integer_input=True, mcoef=1000.0,
+            max_value_len=4, integer_input=False, mcoef=1000.0,
             prefixes=PRESET_SI_METRIC.prefixes,
             prefix_zero_idx=PRESET_SI_METRIC.prefix_zero_idx,
             unit=None, unit_separator=None,
         )],
-        [6, PrefixedUnitPreset(
-            max_value_len=4, integer_input=True, mcoef=1000.0,
+        [10, PrefixedUnitPreset(
+            max_value_len=9, integer_input=False, mcoef=1000.0,
             prefixes=PRESET_SI_METRIC.prefixes,
             prefix_zero_idx=PRESET_SI_METRIC.prefix_zero_idx,
             unit=None, unit_separator=None,
@@ -81,14 +81,18 @@ class TestPrefixedUnit(unittest.TestCase):
         subtest_count = 0
 
         for preset_idx, (expected_max_len, preset) in enumerate(self.req_len_dataset):
-            verb_print_header(f'expected_max_len={expected_max_len:d}: ')
+            verb_print_header(f'expected_max_len={expected_max_len}: ')
+            self.assertEqual(expected_max_len,
+                             preset.max_len,
+                             f'Expected max len {expected_max_len} doesn\'t correspond to preset property ({preset.max_len})'
+                             )
 
             for input_idx, input_num in enumerate(self.req_len_input_num_list):
                 subtest_msg = f'prefixed/len P{preset_idx} #{input_idx} "{input_num:.2e}" -> (len {expected_max_len})'
 
                 with self.subTest(msg=subtest_msg):
                     actual_output = format_prefixed_unit(input_num, preset)
-                    verb_print_info(subtest_msg + f' => (len {actual_output}) "{actual_output}"')
+                    verb_print_info(subtest_msg + f' => (len {len(actual_output)}) "{actual_output}"')
                     subtest_count += 1
                     self.assertGreaterEqual(expected_max_len,
                                             len(actual_output),

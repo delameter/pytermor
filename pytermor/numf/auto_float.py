@@ -20,7 +20,9 @@ def format_auto_float(value: float, max_len: int) -> str:
     :param max_len: maximum output string length (total)
     :return: formatted value
     """
-    max_decimals_len = 2
+    max_decimals_len = max_len - 2
+    if value < 0:
+        max_decimals_len -= 1  # minus sign
     integer_len = len(str(trunc(value)))
     decimals_and_point_len = min(max_decimals_len + 1, max_len - integer_len)
 

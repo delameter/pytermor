@@ -204,7 +204,7 @@ Can be applied using `.apply()` method or with direct call.
 
 ### Usage with helper
 
-Helper function `apply_filters` accepts both `StringFilter` implementation instances and types, but latter is not configurable and will be invoked using default settings.
+Helper function `apply_filters` accepts both `StringFilter` instances and types, but latter is not configurable and will be invoked using default settings.
 
 @{dev/readme/examples/example11.py}
 > ![image](https://user-images.githubusercontent.com/50381946/161387889-a1920f13-f5fc-4d10-b535-93f1a1b1aa5c.png)
@@ -248,11 +248,7 @@ Similar to previous method, but this one also supports metric prefixes and is hi
 | :------: | :--------: | :--------: | :--------: | :--------: |  :--------: | :--------: | :--------: | 
 | result | <code>631&nbsp;b</code> | <code>1.05&nbsp;kb</code> | <code>44.14&nbsp;kb</code> | <code>1.20&nbsp;Mb</code> |  <code>41.11&nbsp;Mb</code> | <code>668.0&nbsp;Mb</code>  | <code>2.33&nbsp;Gb</code>    |
 
-| value  | **1**   | **0.1**    |  ... |
-| :------: | :--------: | :--------: |  :---: |
-| result | <code>1.00&nbsp;m</code> | <code>0.10&nbsp;m</code> | @TODO | 
-
-Settings example:
+Settings:
 ```python
 PrefixedUnitPreset(
     max_value_len=5, integer_input=True,
@@ -261,8 +257,17 @@ PrefixedUnitPreset(
     prefixes=[None, 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'],
     prefix_zero_idx=0,
 )
+```
+
+Example #2 illustrating small numbers: 
+
+| value  | **-1.2345×10⁻¹¹**   | **1.2345×10⁻⁸**    |  **1.2345×10⁻⁴** | **0.01234** | **1.23456** | **123.456** | **−12 345** |
+| :------: | :--------: | :--------: |  :---: | :---: | :---: | :---: | :---: |
+| result | <code>-0.012nm</code> | <code>0.0123μm</code> | <code>0.1235mm</code> | <code>0.0123m</code> | <code>1.2346m</code> | <code>123.46m</code> | <code>-12.35km</code>
+
+```python
 PrefixedUnitPreset(
-    max_value_len=7, integer_input=False,
+    max_value_len=6, integer_input=False,
     unit='m', unit_separator='',
     mcoef=1000.0,
     prefixes=['y', 'z', 'a', 'f', 'p', 'n', 'μ', 'm', None],
@@ -826,8 +831,9 @@ You can of course create your own sequences and formats, but with one limitation
 - Value rounding transferred from  `format_auto_float` to `format_prefixed_unit`;
 - Utility classes reorganization;
 - Unit tests output formatting;
-- `noop` SGR sequence and `noop` format.
-
+- `noop` SGR sequence and `noop` format;
+- Max decimal points for `auto_float` extended from (2) to (max-2).
+- 
 ### v1.7.4
 
 - Added 3 formatters: `fmt_prefixed_unit`, `fmt_time_delta`, `fmt_auto_float`.
