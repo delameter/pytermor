@@ -1,7 +1,7 @@
-from pytermor import autof
+from pytermor import autocomplete
 
-fmt1 = autof('hi_cyan', 'bold')
-fmt2 = autof('bg_black', 'inversed', 'underlined', 'italic')
+span1 = autocomplete('hi_cyan', 'bold')
+span2 = autocomplete('bg_black', 'inversed', 'underlined', 'italic')
 
-msg = fmt1(f'Content{fmt2("-aware format")} nesting')
+msg = span1(f'Content{span2("-aware format")} nesting')
 print(msg)

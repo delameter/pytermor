@@ -1,5 +1,5 @@
-from pytermor import seq, fmt, Format
+from pytermor import sequence, span, Span
 
-fmt_error = Format(seq.BG_HI_RED + seq.UNDERLINED, seq.BG_COLOR_OFF + seq.UNDERLINED_OFF)
-msg = fmt.italic.wrap('italic might ' + fmt_error('not') + ' work')
+span_error = Span(sequence.BG_HI_RED + sequence.UNDERLINED, sequence.BG_COLOR_OFF + sequence.UNDERLINED_OFF)
+msg = span.italic.wrap('italic might ' + span_error('not') + ' work')
 print(msg)
