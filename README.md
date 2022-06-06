@@ -24,14 +24,14 @@ Key feature of this library is providing necessary abstractions for building com
     pip install pytermor
 
 
-## Use cases
+## Features
 
 _Span_ is a combination of two control sequences; it wraps specified string with pre-defined leading and trailing SGR definitions.
 
 ```python3
 from pytermor import span
 
-print(span.blue('Use'), span.cyan('cases'))
+print(span.red('Feat') + span.bold('ures'))
 ```
 
 <details>
@@ -44,7 +44,9 @@ Preset spans can safely overlap with each other (as long as they require differe
 ```python3
 from pytermor import span
 
-print(span.blue(span.underlined('Nested') + span.bold(' formats')))
+print('... ' +
+      span.blue(span.underlined('nested') +
+                span.bold(' styles')) + ' in...')
 ```
 
 ## * ![image](https://user-images.githubusercontent.com/50381946/161387711-23746520-419b-4917-9401-257854ff2d8a.png)
@@ -54,8 +56,8 @@ Compose text spans with automatic content-aware format termination.
 ```python3
 from pytermor import autocomplete
 
-span1 = autocomplete('hi_cyan', 'bold')
-span2 = autocomplete('bg_black', 'inversed', 'underlined', 'italic')
+span1 = autocomplete('blue', 'bold')
+span2 = autocomplete('cyan', 'inversed', 'underlined', 'italic')
 
 msg = span1(f'Content{span2("-aware format")} nesting')
 print(msg)
@@ -69,7 +71,7 @@ Create your own _SGR_ _sequences_ with `build()` method, which accepts color/att
 from pytermor import sequence, build
 
 seq1 = build('red', 1)  # keys or integer codes
-seq2 = build(seq1, sequence.ITALIC)  # existing SGRs as part of a new one
+seq2 = build(seq1, sequence.ITALIC)  # existing SGRs
 seq3 = build('underlined', 'YELLOW')  # case-insensitive
 
 msg = f'{seq1}Flexible{sequence.RESET} ' + \
@@ -131,7 +133,8 @@ Example: we are given a text span which is initially **bold** and <u>underlined<
 However, there is an option to specify what attributes should be disabled or let the library do that for you:
 
 ```python3
-from pytermor import sequence, span, autocomplete, Span
+from pytermor import sequence, span, autocomplete
+from pytermor.span import Span
 
 # automatically:
 span_warn = autocomplete(sequence.HI_YELLOW + sequence.UNDERLINED)
@@ -204,11 +207,14 @@ You can use any of predefined sequences from `pytermor.sequence` or create your 
 To get the resulting sequence chars use `print()` method or cast instance to _str_:
 
 ```python3
-from pytermor import SequenceSGR
+from pytermor.sequence import SequenceSGR
 
 seq = SequenceSGR(4, 7)
 msg = f'({seq})'
-print(msg + f'{SequenceSGR(0).print()}', str(msg.encode()), msg.encode().hex(':'))
+
+print(msg + f'{SequenceSGR(0).print()}')
+print(str(msg.encode()))
+print(msg.encode().hex(':'))
 ```
 > ![image](https://user-images.githubusercontent.com/50381946/161387861-5203fff8-86c8-4c52-8518-63a5525c09f7.png)
 
@@ -232,7 +238,8 @@ print(msg + f'{SequenceSGR(0).print()}', str(msg.encode()), msg.encode().hex(':'
 One instance of _SequenceSGR_ can be added to another. This will result in a new _SequenceSGR_ with combined params.
 
 ```python3
-from pytermor import sequence, SequenceSGR
+from pytermor import sequence
+from pytermor.sequence import SequenceSGR
 
 combined = SequenceSGR(1, 31) + SequenceSGR(4)
 print(f'{combined}combined{sequence.RESET}', str(combined).encode())
@@ -259,7 +266,8 @@ You can define your own reusable <i>Span</i>s (see below) or import predefined o
 Use `wrap()` method of _Span_ instance or call the instance itself to enclose specified string in opening/closing SGR sequences:
 
 ```python3
-from pytermor import sequence, span, Span
+from pytermor import sequence, span
+from pytermor.span import Span
 
 span_error = Span(sequence.BG_HI_RED + sequence.UNDERLINED, sequence.BG_COLOR_OFF + sequence.UNDERLINED_OFF)
 msg = span.italic.wrap('italic might ' + span_error('not') + ' work')
@@ -306,7 +314,7 @@ Similar to previous method, but this one also supports metric prefixes and is hi
 
 Settings:
 ```python3
-from pytermor.formatters import PrefixedUnitPreset
+from pytermor.util import PrefixedUnitPreset
 
 PrefixedUnitPreset(
     max_value_len=5, integer_input=True,
@@ -324,7 +332,7 @@ Example #2 illustrating small numbers:
 | result | <code>-0.012nm</code> | <code>0.0123μm</code> | <code>0.1235mm</code> | <code>0.0123m</code> | <code>1.2346m</code> | <code>123.46m</code> | <code>-12.35km</code>
 
 ```python3
-from pytermor.formatters import PrefixedUnitPreset
+from pytermor.util import PrefixedUnitPreset
 
 PrefixedUnitPreset(
     max_value_len=6, integer_input=False,
@@ -355,20 +363,27 @@ Formats time interval in 4 different variants - 3-char, 4-char, 6-char and 10-ch
 
 Settings example (for 10-char mode):
 ```python3
-from pytermor.formatters import TimeDeltaFormatter, TimeUnit
+from pytermor import span, sequence, autocomplete
+from pytermor.util import time_delta
 
-TimeDeltaFormatter([
-    TimeUnit('sec', 60),
-    TimeUnit('min', 60, custom_short='min'),
-    TimeUnit('hour', 24, collapsible_after=24),
-    TimeUnit('day', 30, collapsible_after=10),
-    TimeUnit('month', 12),
-    TimeUnit('year', overflow_afer=999),
-], allow_negative=True,
-    unit_separator=' ',
-    plural_suffix='s',
-    overflow_msg='OVERFLOW',
+seconds_list = [2, 10, 60, 2700, 32340, 273600, 4752000, 864000000]
+max_len_list = [3, 6, 10]
+
+custom_stylesheet = time_delta.TimeDeltaStylesheet(
+    default=span.bg_black,
+    digit=autocomplete(sequence.BG_BLACK, 33),
+    unit=autocomplete('BG_BLACK', 'GREEN'),
+    overflow=autocomplete(sequence.BG_RED + sequence.BLACK),
 )
+for max_len in max_len_list:
+    formatter = time_delta.registry.find_matching(max_len)
+    formatter.stylesheet = custom_stylesheet
+
+for seconds in seconds_list:
+    for max_len in max_len_list:
+        formatter = time_delta.registry.get_by_max_len(max_len)
+        print(formatter.format(seconds, True), end=' ')
+    print()
 ```
 
 </details>

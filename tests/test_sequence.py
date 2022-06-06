@@ -4,7 +4,8 @@
 # -----------------------------------------------------------------------------
 import unittest
 
-from pytermor import sequence, intcode, build, color_indexed, color_rgb, SequenceSGR
+from pytermor import intcode, build, color_indexed, color_rgb, sequence
+from pytermor.sequence import SequenceSGR, sgr_parity_registry
 
 
 class TestEquality(unittest.TestCase):
@@ -105,3 +106,12 @@ class TestBuild(unittest.TestCase):
         self.assertRaises(ValueError, color_rgb, 10, 310, 30)
         self.assertRaises(ValueError, color_rgb, 310, 10, 130)
         self.assertRaises(ValueError, color_rgb, 0, 0, 256, bg=True)
+
+
+
+class TestRegistry(unittest.TestCase):  # @TODO more
+    def test_closing_seq(self):
+        self.assertEqual(
+            sgr_parity_registry.get_closing_seq(sequence.BOLD + sequence.RED),
+            sequence.NO_BOLD_DIM + sequence.COLOR_OFF
+        )

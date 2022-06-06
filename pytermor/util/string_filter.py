@@ -12,9 +12,9 @@ from __future__ import annotations
 
 import abc
 import re
-from abc import abstractmethod
 from functools import reduce
-from typing import Generic, AnyStr, Type
+from re import Match
+from typing import Generic, AnyStr, Type, Callable
 
 
 def apply_filters(string: AnyStr, *args: StringFilter[AnyStr]|Type[StringFilter[AnyStr]]) -> AnyStr:
@@ -48,60 +48,56 @@ class StringFilter(Generic[AnyStr], metaclass=abc.ABCMeta):
     """
     Common string modifier interface.
     """
-    def __init__(self, repl: AnyStr):
-        self._repl: AnyStr = repl
+    def __init__(self, pattern: AnyStr, repl: AnyStr|Callable[[AnyStr|Match], AnyStr]):
+        self._regex = re.compile(pattern)
+        self._repl = repl
 
     def __call__(self, s: AnyStr) -> AnyStr:
         return self.apply(s)
 
-    @abstractmethod
-    def apply(self, s: AnyStr) -> AnyStr: raise NotImplementedError
+    def apply(self, s: AnyStr) -> AnyStr:
+        return self._regex.sub(self._repl, s)
+
+
+class VisualuzeWhitespace(StringFilter[str]):
+    """
+    Replace every invisible character with visible '·', execpt
+    newlines. Newlines are kept and gets prepneded with same char.
+    """
+    def __init__(self):
+        super().__init__(r'\s(\n|.)]', '·\\1')
 
 
 class ReplaceSGR(StringFilter[str]):
     """
-    Find all SGR seqs (e.g. 'ESC[1;4m') and replace with given string.
-
-    More specific version of ``ReplaceCSI``.
+    Find all SGR seqs (e.g. 'ESC[1;4m') and replace with given string. More
+    specific version of ``ReplaceCSI``.
 
     :param repl:
         Replacement, can contain regexp groups (see `apply_filters`).
     """
     def __init__(self, repl: AnyStr = ''):
-        super().__init__(repl)
-
-    def apply(self, s: str) -> str:
-        return re.sub(r'(\x1b)(\[)(([0-9;])*)(m)', self._repl, s)
+        super().__init__(r'(\x1b)(\[)(([0-9;])*)(m)', repl)
 
 
 class ReplaceCSI(StringFilter[str]):
     """
-    Find all CSI seqs (i.e. 'ESC[\*') and replace with given string.
-
-    Less specific version of ``ReplaceSGR``, as CSI consists of SGR
-    and many other sequence subtypes.
+    Find all CSI seqs (i.e. 'ESC[\*') and replace with given string. Less
+    specific version of ``ReplaceSGR``, as CSI consists of SGR and many other
+    sequence subtypes.
 
     :param repl:
         Replacement, can contain regexp groups (see `apply_filters`).
     """
-
     def __init__(self, repl: AnyStr = ''):
-        super().__init__(repl)
-
-    def apply(self, s: str) -> str:
-        return re.sub(r'(\x1b)(\[)(([0-9;:<=>?])*)([@A-Za-z])', self._repl, s)
+        super().__init__(r'(\x1b)(\[)(([0-9;:<=>?])*)([@A-Za-z])', repl)
 
 
 class ReplaceNonAsciiBytes(StringFilter[bytes]):
     """
-    Keep 7-bit ASCII bytes `[0x00 - 0x7f]`,
-    replace other to '?' (by default).
+    Keep 7-bit ASCII bytes `[0x00 - 0x7f]`, replace other to '?'.
 
-    :param repl:
-        Replacement bytes. To delete non-ASCII bytes define it as b''.
+    :param repl: Replacement byte-string.
     """
-    def __init__(self, repl: AnyStr = b''):
-        super().__init__(repl)
-
-    def apply(self, s: bytes) -> bytes:
-        return re.sub(b'[\x80-\xff]', self._repl, s)
+    def __init__(self, repl: AnyStr = b'?'):
+        super().__init__(b'[\x80-\xff]', repl)

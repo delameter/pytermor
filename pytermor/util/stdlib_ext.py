@@ -20,7 +20,7 @@ def ljust_sgr(s: str, width: int, fillchar: str = ' ') -> str:
     return s + fillchar * max(0, width - len(sanitized))
 
 
-def rjust_aware(s: str, width: int, fillchar: str = ' ') -> str:
+def rjust_sgr(s: str, width: int, fillchar: str = ' ') -> str:
     """
     SGR-formatting-aware implementation of ``str.rjust``.
 
@@ -31,7 +31,7 @@ def rjust_aware(s: str, width: int, fillchar: str = ' ') -> str:
     return fillchar * max(0, width - len(sanitized)) + s
 
 
-def center_aware(s: str, width: int, fillchar: str = ' ') -> str:
+def center_sgr(s: str, width: int, fillchar: str = ' ') -> str:
     """
     SGR-formatting-aware implementation of ``str.center``.
 

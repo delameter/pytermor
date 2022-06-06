@@ -1,0 +1,43 @@
+table.intro a {
+    font-size: 1.5em;
+}
+table.core-api-refs p {
+    font-size: 1.33em;
+}
+table.intro td, table.core-api-refs td {
+    padding: 1rem;
+}
+
+.bottom-of-page .icons {
+    gap: 0.75rem;
+}
+
+.toc-tree li.scroll-current>.reference {
+    color: var(--color-toc-item-text);
+}
+
+.smaller { font-size: 90%; }
+.dense { line-height: 1.2; }
+
+code.literal {
+    font-size: 100%;
+}
+
+kbd:not(.compound) {
+    vertical-align: middle;
+}
+
+table.docutils th {
+    padding-block: 0.75rem;
+}
+
+table.xterm-colors td {
+    padding: 0 0.5rem;
+}
+table.xterm-colors td.hex {
+    font-family: monospace;
+}
+
+article .align-center, article .align-default {
+    padding-block: 1.5em;
+}

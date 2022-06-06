@@ -94,9 +94,11 @@ install: ## Install module
 
 build-docs-toc: ## Erase and recreate docs table of contents
 	rm docs/*.rst
+	. venv/bin/activate
 	sphinx-apidoc --force --separate --module-first --tocfile index --output-dir docs pytermor
 
 build-docs: ## Build documentation
 	rm -rf docs/_build
+	. venv/bin/activate
 	sphinx-build -aEn docs docs/_build -b html
 ##
