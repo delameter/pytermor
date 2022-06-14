@@ -3,9 +3,10 @@ v2.0.0
 
 - Complete library reorganization.
 - Formatters rewrite.
-- pytest and coverage integration.
 - Unit tests for formatters.
-- pydoc, sphinx and readthedocs integraton.
+- High-level abstractions `Color`, ’Renderer’ and ’Style’.
+- ``pytest`` and ``coverage`` integration.
+- ``sphinx`` and ``readthedocs`` integraton.
 
 v1.8.0
 ------

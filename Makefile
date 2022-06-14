@@ -2,7 +2,7 @@
 ## (C) 2022       ## A. Shavykin <0.delameter@gmail.com>
 ##----------------##-------------------------------------------------------------
 .ONESHELL:
-.PHONY: help test
+.PHONY: help test docs
 
 PROJECT_NAME = pytermor
 
@@ -96,12 +96,12 @@ install: ## Install module
 
 ## Documentation
 
-build-docs-toc: ## Erase and recreate docs table of contents
+docs-reinit: ## Erase and reinit docs with auto table of contents
 	rm docs/*.rst
 	. venv/bin/activate
 	sphinx-apidoc --force --separate --module-first --tocfile index --output-dir docs pytermor
 
-build-docs: ## Build documentation
+docs: ## Build documentation
 	rm -rf docs/_build
 	. venv/bin/activate
 	sphinx-build -aEn docs docs/_build -b html
