@@ -5,7 +5,7 @@
 import io
 from contextlib import redirect_stdout
 
-from pytermor import autospan, sequence
+from pytermor import Span, sequence
 from pytermor.util import ReplaceSGR
 
 class Cycle:
@@ -29,7 +29,7 @@ corners = Cycle(
     Cycle('┌', '┐'),
 )
 lineseps = Cycle('│', '│')
-span_sep = autospan(sequence.GRAY + sequence.DIM)
+span_sep = Span(sequence.GRAY + sequence.DIM)
 
 for line in s.splitlines(keepends=True):
     line = line.strip()

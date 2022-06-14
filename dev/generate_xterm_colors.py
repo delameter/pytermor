@@ -40,9 +40,9 @@ html_output = '<table class="xterm-colors docutils align-default">' \
               '<tr>' \
               '<th>Ex</th>' \
               '<th>Code</th>' \
+              '<th class="smaller dense">RGB<br>hex code</th>' \
               '<th>XTerm name</th>' \
               '<th class="smaller dense">Default mode<br>counterpart</th>' \
-              '<th class="smaller dense">RGB<br>hex code</th>' \
               '</tr>'
 
 latex_separator = '   '
@@ -59,27 +59,28 @@ latex_output += f'   {"Code":<{col_len_list[0]}s}{"XTerm name":<{col_len_list[1]
 for table_data in table_datas:
     html_output += '<tr>' \
                    '<td class="xterm-color-cell" style="background-color: {hexString}"></td>' \
-                   '<td>{colorId}</td>' \
+                   '<td><pre>{colorId}</pre></td>' \
+                   '<td><pre>{hexString}</pre></td>' \
                    '<td>{name}</td>' \
-                   '<td><code>' \
-                   '<a class="reference internal" ' \
-                   'href="../apidoc/sequence.html#pytermor.sequence.{seq16}" ' \
-                   'title="pytermor.sequence.{seq16}">' \
-                   '<code class="xref any py py-data docutils literal notranslate">' \
-                   '<span class="pre">{seq16}</span>' \
-                   '</code>' \
-                   '</a>' \
-                   '</code></td>' \
-                   '<td>{hexString}</td>' \
-                   '</tr>'.format(**table_data)
+                   '<td>'.format(**table_data)
+    if table_data['seq16']:
+        html_output += '<a class="reference internal" ' \
+                       'href="../apidoc/sequence.html#pytermor.sequence.{seq16}" ' \
+                       'title="pytermor.sequence.{seq16}">' \
+                       '<code class="xref any py py-data docutils literal notranslate">' \
+                       '<span class="pre">{seq16}</span>' \
+                       '</code>' \
+                       '</a>' \
+                       '</td>'.format(**table_data)
+    html_output += '</tr>'
 
     latex_output += '   '
     for key in ['colorId', 'name', 'seq16', 'hexString']:
         latex_output += f'{table_data[key]:<{col_len[key]}}'
     latex_output += '\n'
 
-    im = PIL.Image.new('RGB', (591,591), table_data['hexString'])
-    im.save(f'_include/xterm-colors-table/color{table_data["colorId"]}.png')
+    #im = PIL.Image.new('RGB', (591,591), table_data['hexString'])
+    #im.save(f'_include/xterm-colors-table/color{table_data["colorId"]}.png')
 
 html_output += '</table>'
 

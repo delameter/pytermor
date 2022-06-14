@@ -1,6 +1,6 @@
-from pytermor.util import PrefixedUnitPreset
+from pytermor.util import PrefixedUnitFormatter
 
-PrefixedUnitPreset(
+PrefixedUnitFormatter(
     max_value_len=5, integer_input=True,
     unit='b', unit_separator=' ',
     mcoef=1024.0,

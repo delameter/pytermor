@@ -38,6 +38,29 @@ table.xterm-colors td.hex {
     font-family: monospace;
 }
 
+table.xterm-palette td {
+    font-family: monospace;
+    text-align: center;
+}
+body table.xterm-palette td {
+    border: 1px solid var(--color-background-secondary);
+}
+body[data-theme="dark"] table.xterm-palette td {
+    border: 1px solid var(--color-background-secondary);
+}
+span.xterm-palette-id {
+    font-weight: bold;
+}
+span.xterm-palette-color {
+    font-size: var(--font-size--small);
+}
+td.xterm-palette-light {
+    color: #ffffff;
+}
+td.xterm-palette-dark {
+    color: #000000;
+}
+
 article .align-center, article .align-default {
-    padding-block: 1.5em;
+    margin-block: 0.5em 1.0em;
 }

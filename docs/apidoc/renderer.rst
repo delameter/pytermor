@@ -1,11 +1,11 @@
-.. _apidoc.adapter:
+.. _apidoc.renderer:
 
 .. default-role:: any
 
 
-adapter
+renderer
 ========================
 
-.. automodule:: pytermor.adapter
+.. automodule:: pytermor.renderer
    :members:
    :undoc-members:

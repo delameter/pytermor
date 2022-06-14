@@ -12,7 +12,7 @@ from pytermor.sequence import SequenceSGR
 class TestStringFilter(unittest.TestCase):  # @TODO
     def test_replace_sgr_filter(self):
         self.assertEqual(
-            ReplaceSGR().apply(span.red('213')),
+            ReplaceSGR().apply(span.RED('213')),
             '213'
         )
     pass
@@ -21,6 +21,6 @@ class TestStringFilter(unittest.TestCase):  # @TODO
 class TestStdlibExtensions(unittest.TestCase):  # @TODO
     def test_center_method(self):
         self.assertRegexpMatches(
-            center_sgr(span.red('123'), 7),
+            center_sgr(span.RED('123'), 7),
             f'  {SequenceSGR.regexp()}123{SequenceSGR.regexp()}  '
         )

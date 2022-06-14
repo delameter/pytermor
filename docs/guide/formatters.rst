@@ -5,6 +5,7 @@
 Formatters and Filters
 =======================================
 
+The library contains 
 
 ---------------------------
 Auto-float formatter

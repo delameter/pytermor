@@ -10,32 +10,32 @@ possible working with filters like with objects rather than with functions/lambd
 """
 from __future__ import annotations
 
-import abc
 import re
 from functools import reduce
 from re import Match
 from typing import Generic, AnyStr, Type, Callable
 
+from .. import span
+
 
 def apply_filters(string: AnyStr, *args: StringFilter[AnyStr]|Type[StringFilter[AnyStr]]) -> AnyStr:
     """
     Method for applying dynamic filter list to a target str/bytes.
-    Example (will replace all `\\\\x1b` control characters to `E` and
-    make SGR params visible):
+    Example (will replace all :kbd:`ESC` control characters to :kbd:`E` and
+    thus make SGR params visible)::
 
-        ``>>> apply_filters(span.red('test'), ReplaceSGR(r'E\\2\\3\\5'))``
+        >>> apply_filters(span.RED('test'), ReplaceSGR(r'E\\2\\3\\5'))
+        'E[31mtestE[39m'
 
-        ``'E[31mtestE[39m'``
-
-    Note that type of ``string`` argument must correspond to `StringFilter's`
-    types, i.e. ``ReplaceNonAsciiBytes`` is `StringFilter[bytes]` type, so
+    Note that type of ``string`` argument must correspond to ``StringFilter``
+    types, i.e. :class:`ReplaceNonAsciiBytes` is ``StringFilter[bytes]`` type, so
     you can apply it only to bytes-type strings.
 
     :param AnyStr string:
         String for filter application (str or bytes-type).
 
     :param args:
-        `StringFilter` instances or `StringFilter` types.
+        `StringFilter` instances or ``StringFilter`` types.
 
     :return:
         String with applied filters.
@@ -44,7 +44,7 @@ def apply_filters(string: AnyStr, *args: StringFilter[AnyStr]|Type[StringFilter[
     return reduce(lambda s, f: f.apply(s), filters, string)
 
 
-class StringFilter(Generic[AnyStr], metaclass=abc.ABCMeta):
+class StringFilter(Generic[AnyStr]):
     """
     Common string modifier interface.
     """
@@ -61,8 +61,13 @@ class StringFilter(Generic[AnyStr], metaclass=abc.ABCMeta):
 
 class VisualuzeWhitespace(StringFilter[str]):
     """
-    Replace every invisible character with visible '·', execpt
+    Replace every invisible character with visible :kbd:`·`, execpt
     newlines. Newlines are kept and gets prepneded with same char.
+
+    Example usages::
+
+        output = VisualuzeWhitespace().apply(input)  # OR
+        output = apply_filters(input, VisualuzeWhitespace)
     """
     def __init__(self):
         super().__init__(r'\s(\n|.)]', '·\\1')
@@ -70,11 +75,11 @@ class VisualuzeWhitespace(StringFilter[str]):
 
 class ReplaceSGR(StringFilter[str]):
     """
-    Find all SGR seqs (e.g. 'ESC[1;4m') and replace with given string. More
-    specific version of ``ReplaceCSI``.
+    Find all SGR seqs (e.g. :kbd:`ESC[1;4m`) and replace with given string. More
+    specific version of :class:`ReplaceCSI`.
 
     :param repl:
-        Replacement, can contain regexp groups (see `apply_filters`).
+        Replacement, can contain regexp groups (see :meth:`apply_filters()`).
     """
     def __init__(self, repl: AnyStr = ''):
         super().__init__(r'(\x1b)(\[)(([0-9;])*)(m)', repl)
@@ -82,12 +87,12 @@ class ReplaceSGR(StringFilter[str]):
 
 class ReplaceCSI(StringFilter[str]):
     """
-    Find all CSI seqs (i.e. 'ESC[\*') and replace with given string. Less
-    specific version of ``ReplaceSGR``, as CSI consists of SGR and many other
+    Find all CSI seqs (i.e. :kbd:`ESC[*`) and replace with given string. Less
+    specific version of :class:`ReplaceSGR`, as CSI consists of SGR and many other
     sequence subtypes.
 
     :param repl:
-        Replacement, can contain regexp groups (see `apply_filters`).
+        Replacement, can contain regexp groups (see :meth:`apply_filters()`).
     """
     def __init__(self, repl: AnyStr = ''):
         super().__init__(r'(\x1b)(\[)(([0-9;:<=>?])*)([@A-Za-z])', repl)
@@ -95,7 +100,7 @@ class ReplaceCSI(StringFilter[str]):
 
 class ReplaceNonAsciiBytes(StringFilter[bytes]):
     """
-    Keep 7-bit ASCII bytes `[0x00 - 0x7f]`, replace other to '?'.
+    Keep 7-bit ASCII bytes [:kbd:`0x00` - :kbd:`0x7f`], replace other to :kbd:`?`.
 
     :param repl: Replacement byte-string.
     """

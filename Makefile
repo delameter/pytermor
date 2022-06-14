@@ -42,6 +42,10 @@ test-debug: ## Run tests with VERY detailed output
 	. venv/bin/activate
 	PYTHONPATH=${PWD} python3 -m pytest tests -v --log-cli-level=DEBUG
 
+doctest: ## Run doc-tests
+	. venv/bin/activate
+	PYTHONPATH=${PWD} python3 -m doctest tests/_doctest.py
+
 coverage: ## Run coverage tool
 	. venv/bin/activate
 	PYTHONPATH=${PWD} coverage run tests -vv

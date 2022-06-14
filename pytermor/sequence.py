@@ -3,11 +3,13 @@
 # (C) 2022 A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-Module contains definitions for working with ANSI escape sequences as classes
-and instances.
+Module contains definitions for low-level ANSI escape sequences handling.
 
-Each preset defined below is a valid argument for :func:`.autospan` and
-:func:`.build` methods.
+Each preset defined below is a valid argument for :class:`.Span` and
+:class:`.SequenceSGR` default constructors (case-insensitive)::
+
+    Span(sequence.BG_GREEN, sequence.UNDERLINED)
+
 """
 from __future__ import annotations
 
@@ -26,8 +28,17 @@ def build(*args: str | int | SequenceSGR) -> SequenceSGR:
 
     Each sequence param can be specified as:
       - string key (see :mod:`.span`)
-      - integer param value (see :mod:`.intcode`)
+      - integer param value (from :mod:`.intcode`)
       - existing `SequenceSGR` instance (params will be extracted).
+
+    Examples::
+
+        >>> build('yellow', 'bold')
+        SGR[33;1]
+        >>> build(91, 7)
+        SGR[91;7]
+        >>> build(HI_CYAN, UNDERLINED)
+        SGR[96;4]
     """
 
     result: List[int] = []
@@ -67,7 +78,7 @@ def color_indexed(color: int, bg: bool = False) -> SequenceSGR:
 
     _validate_extended_color(color)
     key_code = intcode.BG_COLOR_EXTENDED if bg else intcode.COLOR_EXTENDED
-    return SequenceSGR(key_code, intcode.EXTENDED_MODE_256, color)
+    return SequenceSGR(key_code, intcode._EXTENDED_MODE_256, color)
 
 
 def color_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
@@ -90,7 +101,7 @@ def color_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
 
     [_validate_extended_color(color) for color in [r, g, b]]
     key_code = intcode.BG_COLOR_EXTENDED if bg else intcode.COLOR_EXTENDED
-    return SequenceSGR(key_code, intcode.EXTENDED_MODE_RGB, r, g, b)
+    return SequenceSGR(key_code, intcode._EXTENDED_MODE_RGB, r, g, b)
 
 
 def _validate_extended_color(value: int):
@@ -176,7 +187,7 @@ class SequenceSGR(_AbstractSequenceCSI, metaclass=ABCMeta):
     _TERMINATOR = 'm'
 
     def print(self) -> str:
-        if len(self._params) == 0:  # noop
+        if len(self._params) == 0:  # NOOP
             return ''
 
         params = self._params

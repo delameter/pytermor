@@ -85,22 +85,22 @@ class TestBuild(unittest.TestCase):
 
     def test_color_indexed_foreground(self):
         s = color_indexed(141)
-        self.assertEqual(s, SequenceSGR(intcode.COLOR_EXTENDED, intcode.EXTENDED_MODE_256, 141))
+        self.assertEqual(s, SequenceSGR(intcode.COLOR_EXTENDED, intcode._EXTENDED_MODE_256, 141))
 
     def test_color_indexed_background(self):
         s = color_indexed(255, bg=True)
-        self.assertEqual(s, SequenceSGR(intcode.BG_COLOR_EXTENDED, intcode.EXTENDED_MODE_256, 255))
+        self.assertEqual(s, SequenceSGR(intcode.BG_COLOR_EXTENDED, intcode._EXTENDED_MODE_256, 255))
 
     def test_color_indexed_invalid(self):
         self.assertRaises(ValueError, color_indexed, 266, bg=True)
 
     def test_color_rgb_foreground(self):
         s = color_rgb(10, 20, 30)
-        self.assertEqual(s, SequenceSGR(intcode.COLOR_EXTENDED, intcode.EXTENDED_MODE_RGB, 10, 20, 30))
+        self.assertEqual(s, SequenceSGR(intcode.COLOR_EXTENDED, intcode._EXTENDED_MODE_RGB, 10, 20, 30))
 
     def test_color_rgb_background(self):
         s = color_rgb(50, 70, 90, bg=True)
-        self.assertEqual(s, SequenceSGR(intcode.BG_COLOR_EXTENDED, intcode.EXTENDED_MODE_RGB, 50, 70, 90))
+        self.assertEqual(s, SequenceSGR(intcode.BG_COLOR_EXTENDED, intcode._EXTENDED_MODE_RGB, 50, 70, 90))
 
     def test_color_rgb_invalid(self):
         self.assertRaises(ValueError, color_rgb, 10, 310, 30)

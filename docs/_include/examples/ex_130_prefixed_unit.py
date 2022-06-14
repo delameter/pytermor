@@ -1,6 +1,6 @@
-from pytermor.util import PrefixedUnitPreset
+from pytermor.util import PrefixedUnitFormatter
 
-PrefixedUnitPreset(
+PrefixedUnitFormatter(
     max_value_len=6, integer_input=False,
     unit='m', unit_separator='',
     mcoef=1000.0,

@@ -36,8 +36,8 @@ os.remove(README_PATH)
 
 with open(README_PATH, 'wt', encoding='utf8') as f:
     length = f.write(result)
-    print(f'Wrote {span.bold.wrap(format_thousand_sep(length))} bytes '
-          f'to {span.blue(README_PATH)}')
+    print(f'Wrote {span.BOLD.wrap(format_thousand_sep(length))} bytes '
+          f'to {span.BLUE(README_PATH)}')
 
 mode = os.stat(README_PATH).st_mode
 ro_mask = 0o777 ^ (stat.S_IWRITE | stat.S_IWGRP | stat.S_IWOTH)

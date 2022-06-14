@@ -3,16 +3,10 @@
 # (C) 2022 A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-Module introducing `Span` abstractions. The key difference beetween them and
+Module introducing `Span` low-level  abstractions. The key difference beetween them and
 ``Sequences`` is that sequence can *open* text style and also *close*, or terminate
 it. As for ``Spans`` -- they always do both; typical use-case of `Span` is to wrap
 some text in opening SGR and closing one.
-
-Name of any format preset in this module can be used as a string argument in
-:func:`.build` and :func:`.autospan` methods::
-
-    autospan('red', 'bold')
-
 """
 
 from __future__ import annotations
@@ -23,48 +17,64 @@ from . import sequence
 from .sequence import build, intcode, SequenceSGR, sgr_parity_registry
 
 
-def autospan(*args: str | int | SequenceSGR) -> Span:
-    """
-    Create new `Span` with specified control sequence(s) as an opening sequence
-    and **automatically compose** closing sequence that will terminate attributes
-    defined in the first one while keeping the others (soft reset).
-
-    Resulting sequence param order is same as an argument order.
-
-    Each sequence param can be specified as:
-      - string key (see :mod:`.span`)
-      - integer param value (see :mod:`~pytermor.intcode`)
-      - existing `SequenceSGR` instance (params will be extracted).
-    """
-
-    opening_seq = build(*args)
-    closing_seq = sgr_parity_registry.get_closing_seq(opening_seq)
-    return Span(opening_seq, closing_seq)
-
-
 # noinspection PyMethodMayBeStatic
 class Span:
     """
-    Wrapper class that contains starter, or *opening*
-    sequence and (optionally) *closing* sequence.
+    Create a `Span` with specified control sequence(s) as an opening sequence
+    and **automatically compose** second (closing) sequence that will terminate attributes
+    defined in the first one while keeping the others (*soft* reset).
 
-    Note that `closing_seq` gets overwritten with
-    :data:`.sequence.RESET` if ``hard_reset_after`` is *True*.
+    Resulting sequence param order is same as an argument order.
 
-    :param opening_seq:      Starter sequence, in general determening how
-                              `Span` will actually look like.
-    :param closing_seq:      Finisher SGR sequence.
-    :param hard_reset_after: Set `closing_seq` to a hard reset sequence.
+    Each argument can be specified as:
+      - string key (name of any constant defined in :mod:`.intcode`, case-insensitive)
+      - integer param value (defined in :mod:`.intcode`)
+      - existing `SequenceSGR` instance (params will be extracted).
+
+    Examples::
+
+        >>> Span('red', 'bold')
+        Span[SGR[31;1], SGR[39;22]]
+        >>> Span(intcode.GREEN)
+        Span[SGR[32], SGR[39]]
+        >>> Span(93, 4)
+        Span[SGR[93;4], SGR[39;24]]
+        >>> Span(sequence.BG_BLACK + sequence.RED)
+        Span[SGR[40;31], SGR[49;39]]
+
+    :param opening_params: string keys, integer codes or existing ``SequenceSGR``
+                           instances to build ``Span`` from.
     """
-    def __init__(self, opening_seq: SequenceSGR = None, closing_seq: SequenceSGR = None, hard_reset_after: bool = False):
-        self._opening_seq: SequenceSGR = self._opt_arg(opening_seq)
-        self._closing_seq: SequenceSGR = self._opt_arg(closing_seq)
+    def __init__(self, *opening_params: str|int|SequenceSGR):
+        self._opening_seq = build(*opening_params)
+        self._closing_seq = sgr_parity_registry.get_closing_seq(self._opening_seq)
+
+    @classmethod
+    def new(cls, opening_seq: SequenceSGR = None, closing_seq: SequenceSGR = None,
+            hard_reset_after: bool = False) -> Span:
+        """
+        Create new `Span` with explicitly specified opening and closing sequences.
+
+        .. note ::
+
+            `closing_seq` gets overwritten with :data:`.sequence.RESET` if ``hard_reset_after`` is *True*.
+
+        :param opening_seq:      Starter sequence, in general determening how `Span` will actually look like.
+        :param closing_seq:      Finisher SGR sequence.
+        :param hard_reset_after: Terminate *all* formatting after this span.
+        """
+        instance = Span()
+        instance._opening_seq = cls._opt_arg(opening_seq)
+        instance._closing_seq = cls._opt_arg(closing_seq)
+
         if hard_reset_after:
-            self._closing_seq = SequenceSGR(intcode.RESET)
+            instance._closing_seq = SequenceSGR(intcode.RESET)
+
+        return instance
 
     def wrap(self, text: Any = None) -> str:
         """
-        Wrap given ``text`` with ``SGRs`` of the ``Span`` -- `opening_seq`
+        Wrap given ``text`` string with ``SGRs`` defined on initialization -- `opening_seq`
         on the left, `closing_seq` on the right. ``str(text)`` will
         be invoked for all argument types with the exception of *None*,
         which will be replaced with an empty string.
@@ -100,6 +110,7 @@ class Span:
         """ Return closing SGR sequence instance. """
         return self._closing_seq
 
+    @classmethod
     def _opt_arg(self, arg: SequenceSGR | None) -> SequenceSGR:
         if not arg:
             return sequence.NOOP
@@ -107,6 +118,7 @@ class Span:
 
     def __call__(self, text: Any = None) -> str:
         """
+        :meta: public
         `red("string")` is the same as `red.wrap("string")`.
         """
         return self.wrap(text)
@@ -124,43 +136,44 @@ class Span:
 # Span presets
 # ---------------------------------------------------------------------------
 
-noop = autospan()
+NOOP = Span()
 """
 Special `Span` in cases where you *have to* select one or 
 another `Span`, but do not want anything to be actually printed. 
 
-- ``noop(string)`` or ``noop.wrap(string)`` returns ``string`` without any modifications;
-- ``noop.opening_str`` and ``noop.closing_str`` are empty strings;
-- ``noop.opening_seq`` and ``noop.closing_seq`` both returns ``sequence.NOOP``.
+- ``NOOP(string)`` or ``NOOP.wrap(string)`` returns ``string`` without any modifications;
+- ``NOOP.opening_str`` and ``NOOP.closing_str`` are empty strings;
+- ``NOOP.opening_seq`` and ``NOOP.closing_seq`` both returns `sequence.NOOP`.
 """
 
-bold = autospan(intcode.BOLD)              #:
-dim = autospan(intcode.DIM)                #:
-italic = autospan(intcode.ITALIC)          #:
-underlined = autospan(intcode.UNDERLINED)  #:
-inversed = autospan(intcode.INVERSED)      #:
-overlined = autospan(intcode.OVERLINED)    #:
+BOLD = Span(intcode.BOLD)               #:
+DIM = Span(intcode.DIM)                 #:
+ITALIC = Span(intcode.ITALIC)           #:
+UNDERLINED = Span(intcode.UNDERLINED)   #:
+INVERSED = Span(intcode.INVERSED)       #:
+OVERLINED = Span(intcode.OVERLINED)     #:
 
-black = autospan(intcode.BLACK)            #:
-red = autospan(intcode.RED)                #:
-green = autospan(intcode.GREEN)            #:
-yellow = autospan(intcode.YELLOW)          #:
-blue = autospan(intcode.BLUE)              #:
-magenta = autospan(intcode.MAGENTA)        #:
-cyan = autospan(intcode.CYAN)              #:
-gray = autospan(intcode.GRAY)              #:
-hi_red = autospan(intcode.HI_RED)          #:
-hi_green = autospan(intcode.HI_GREEN)      #:
-hi_yellow = autospan(intcode.HI_YELLOW)    #:
-hi_blue = autospan(intcode.HI_BLUE)        #:
-hi_magenta = autospan(intcode.HI_MAGENTA)  #:
-hi_cyan = autospan(intcode.HI_CYAN)        #:
+BLACK = Span(intcode.BLACK)             #:
+RED = Span(intcode.RED)                 #:
+GREEN = Span(intcode.GREEN)             #:
+YELLOW = Span(intcode.YELLOW)           #:
+BLUE = Span(intcode.BLUE)               #:
+MAGENTA = Span(intcode.MAGENTA)         #:
+CYAN = Span(intcode.CYAN)               #:
 
-bg_black = autospan(intcode.BG_BLACK)      #:
-bg_red = autospan(intcode.BG_RED)          #:
-bg_green = autospan(intcode.BG_GREEN)      #:
-bg_yellow = autospan(intcode.BG_YELLOW)    #:
-bg_blue = autospan(intcode.BG_BLUE)        #:
-bg_magenta = autospan(intcode.BG_MAGENTA)  #:
-bg_cyan = autospan(intcode.BG_CYAN)        #:
-bg_gray = autospan(intcode.BG_GRAY)        #:
+GRAY = Span(intcode.GRAY)               #:
+HI_RED = Span(intcode.HI_RED)           #:
+HI_GREEN = Span(intcode.HI_GREEN)       #:
+HI_YELLOW = Span(intcode.HI_YELLOW)     #:
+HI_BLUE = Span(intcode.HI_BLUE)         #:
+HI_MAGENTA = Span(intcode.HI_MAGENTA)   #:
+HI_CYAN = Span(intcode.HI_CYAN)         #:
+
+BG_BLACK = Span(intcode.BG_BLACK)       #:
+BG_RED = Span(intcode.BG_RED)           #:
+BG_GREEN = Span(intcode.BG_GREEN)       #:
+BG_YELLOW = Span(intcode.BG_YELLOW)     #:
+BG_BLUE = Span(intcode.BG_BLUE)         #:
+BG_MAGENTA = Span(intcode.BG_MAGENTA)   #:
+BG_CYAN = Span(intcode.BG_CYAN)         #:
+BG_GRAY = Span(intcode.BG_GRAY)         #:

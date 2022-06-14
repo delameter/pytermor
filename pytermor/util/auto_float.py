@@ -15,31 +15,36 @@ def format_auto_float(value: float, req_len: int, allow_exponent_notation: bool 
     digits as possible, and keep the output length
     strictly equal to `req_len`  at the same time.
 
-    Examples:
-     ============================== =======
-     format_auto_float( 0.0167, 5)  '0.017'
-     format_auto_float(  0.167, 5)  '0.167'
-     format_auto_float(  1.567, 5)  '1.567'
-     format_auto_float(  12.56, 5)  '12.56'
-     format_auto_float( 123.56, 5)  '123.6'
-     format_auto_float(1234.56, 5)  ' 1235'
-     format_auto_float(12345.6, 5)  '12346'
-     ============================== =======
+    Examples::
+
+        >>> format_auto_float( 0.0167, 5)
+        '0.017'
+        >>> format_auto_float(  0.167, 5)
+        '0.167'
+        >>> format_auto_float(  1.567, 5)
+        '1.567'
+        >>> format_auto_float(  12.56, 5)
+        '12.56'
+        >>> format_auto_float( 123.56, 5)
+        '123.6'
+        >>> format_auto_float(1234.56, 5)
+        ' 1235'
+        >>> format_auto_float(12345.6, 5)
+        '12346'
 
     For cases when it's impossible to fit a number in the required length
     and rounding doesn't help (e.g. 12 500 000 and 5 chars) algorithm
     switches to scientific notation and the result looks like '1.2e7'.
 
-    When exponent form is disabled, there is two options for value that cannot
+    When exponent form is disabled, there are two options for value that cannot
     fit into required length:
 
-        1) if absolute value is less than 1, zeros will be displayed ('0.0000');
-        2) in case of big numbers (like 10\ :sup:`9`) ValueError will be raised instead.
+    1) if absolute value is less than 1, zeros will be displayed ('0.0000');
+    2) in case of big numbers (like 10\ :sup:`9`) ValueError will be raised instead.
 
     :param value:   Value to format
     :param req_len: Required output string length
-    :param allow_exponent_notation:
-        Enable/disable exponent form.
+    :param allow_exponent_notation: Enable/disable exponent form.
 
     :return: Formatted string of required length
     :except ValueError:

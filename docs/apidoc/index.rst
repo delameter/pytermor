@@ -8,9 +8,9 @@ API docs
 
 .. toctree::
 
-   adapter
    color
    intcode
+   renderer
    sequence
    span
    style

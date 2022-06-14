@@ -14,9 +14,9 @@ from math import floor, trunc, isclose
 from re import Match
 from typing import List, Dict
 
+from .stdlib_ext import rjust_sgr
 from .string_filter import StringFilter
-from .. import span
-from ..span import Span
+from ..style import Stylesheet, Style
 
 
 def format_time_delta(seconds: float, max_len: int = None) -> str:
@@ -32,11 +32,16 @@ def format_time_delta(seconds: float, max_len: int = None) -> str:
     will be less or equal to required length. If `max_len` is
     omitted, longest registred formatter will be used.
 
-    Example output:
-      -  max_len=3: "10s", "5m", "4h", "5d"
-      -  max_len=4: "10 s", "5 m", "4 h", "5 d"
-      -  max_len=6: "10 sec", "5 min", "4h 15m", "5d 22h"
-      - max_len=10: "10 secs", "5 mins", "4h 15min", "5d 22h"
+    Example output::
+
+       >>> format_time_delta(10, 3)
+       '10s'
+       >>> format_time_delta(10, 6)
+       '10 sec'
+       >>> format_time_delta(15350, 4)
+       '4 h'
+       >>> format_time_delta(15350)
+       '4h 15min'
 
     :param seconds: Value to format
     :param max_len: Maximum output string length (total)
@@ -53,20 +58,16 @@ def format_time_delta(seconds: float, max_len: int = None) -> str:
     return formatter.format(seconds)
 
 
-@dataclass(frozen=True)
-class TimeUnit:
-    name: str
-    in_next: int = None
-    custom_short: str = None
-    collapsible_after: int = None
-    overflow_afer: int = None
-
-
 class TimeDeltaFormatter:
     """
     Formatter for time intervals. Key feature of this formatter is
     ability to combine two units and display them simultaneously,
     e.g. print "3h 48min" instead of "228 mins" or "3 hours", etc.
+
+    You can create your own formatters if you need fine tuning of the
+    output and customization. If that's not the case, there is a
+    facade method :meth:`format_time_delta()` which will select appropriate
+    formatter automatically.
 
     Example output::
 
@@ -94,22 +95,42 @@ class TimeDeltaFormatter:
     def max_len(self) -> int:
         """
         This property cannot be set manually, it is
-        computed in constructor automatically.
+        computed on initialization automatically.
 
         :return: Maximum possible output string length.
         """
         return self._max_len
 
-    def format(self, seconds: float, expand_to_max: bool = False) -> str:
+    def format(self, seconds: float, always_max_len: bool = False) -> str:
+        """
+        Format the requested amount of seconds and apply styles to the result as
+        defined in current formatter's `stylesheet`. Default ``stylesheet`` contains
+        "noop" spans only and thus no styles will be applied.
+
+        :param seconds: Input value.
+        :param always_max_len: If result string is less than `max_len` it will be returned
+                               as is, unless this flag is set to *True*. In that case output
+                               string will be paded with spaces on the left side so that
+                               resulting length would be always equal to maximum length.
+        :return: Formatted string with applied styles if they are defined, raw string otherwise.
+        """
         result = self.format_raw(seconds)
-        if isinstance(result, bool) and not result:
-            return self._stylesheet.overflow.wrap(self._overflow_msg[:self.max_len])
+        if result is None:
+            return self._stylesheet.overflow.render(self._overflow_msg[:self.max_len])
 
-        if expand_to_max:
-            result = result.rjust(self._max_len)
-        return _TimeDeltaStyler(self._stylesheet).apply(result)
+        if always_max_len:
+            result = rjust_sgr(result, self._max_len)
 
-    def format_raw(self, seconds: float) -> str|bool:
+        return self._Styler(self._stylesheet).apply(result)
+
+    def format_raw(self, seconds: float) -> str|None:
+        """
+        Format the requested amount of seconds as raw string without styling.
+
+        :param seconds: Input value.
+        :return:        Formatted string or *None* on overflow (if input
+                        value is too big for the current formatter to handle).
+        """
         num = abs(seconds)
         unit_idx = 0
         prev_frac = ''
@@ -121,9 +142,9 @@ class TimeDeltaFormatter:
         while result is None and unit_idx < len(self._units):
             unit = self._units[unit_idx]
             if unit.overflow_afer and num > unit.overflow_afer:
-                if not self._max_len:
+                if not self._max_len:  # max len is being computed now
                     raise RecursionError()
-                return False
+                return None
 
             unit_name = unit.name
             unit_name_suffixed = unit_name
@@ -173,7 +194,7 @@ class TimeDeltaFormatter:
             test_val_seconds = coef * (test_val - 1) * (-1 if self._allow_negative else 1)
 
             try:
-                max_len_unit = self.format(test_val_seconds)
+                max_len_unit = self.format_raw(test_val_seconds)
             except RecursionError:
                 continue
 
@@ -181,6 +202,36 @@ class TimeDeltaFormatter:
             coef *= unit.in_next or unit.overflow_afer
 
         return max_len
+
+    class _Styler(StringFilter[str]):
+        def __init__(self, ss: TimeDeltaStylesheet):
+            self._ss = ss
+            super().__init__(r'(\d+)|(\w+)|(\W+)', self._replace)
+
+        def _replace(self, m: Match):
+            if m.group(1):
+                return self._ss.digit.render(m.group(0))
+            elif m.group(2):
+                return self._ss.unit.render(m.group(0))
+
+            return self._ss.default.render(m.group(0))
+
+
+@dataclass(frozen=True)
+class TimeUnit:
+    name: str
+    in_next: int = None
+    custom_short: str = None
+    collapsible_after: int = None
+    overflow_afer: int = None
+
+
+class TimeDeltaStylesheet(Stylesheet):
+    def __init__(self, default: Style = None, digit: Style = None, unit: Style = None, overflow: Style = None):
+        super().__init__(default)
+        self.digit = self._opt_arg(digit)
+        self.unit = self._opt_arg(unit)
+        self.overflow = self._opt_arg(overflow)
 
 
 class _TimeDeltaFormatterRegistry:
@@ -220,30 +271,8 @@ class _TimeDeltaFormatterRegistry:
         return self._formatters.get(max(self._formatters.keys() or [None]))
 
 
-@dataclass(frozen=True)
-class TimeDeltaStylesheet:
-    default: Span = span.noop
-    digit: Span = span.noop
-    unit: Span = span.noop
-    overflow: Span = span.noop
-
-
-class _TimeDeltaStyler(StringFilter[str]):
-    def __init__(self, ss: TimeDeltaStylesheet):
-        self._ss = ss
-        super().__init__(r'(\d+)|(\w+)|(\W+)', self._replace)
-
-    def _replace(self, m: Match):
-        if m.group(1):
-            return self._ss.digit.wrap(m.group(0))
-        elif m.group(2):
-            return self._ss.unit.wrap(m.group(0))
-
-        return self._ss.default.wrap(m.group(0))
-
-
 # ---------------------------------------------------------------------------
-# Formatter presets
+# Preset formatters
 # ---------------------------------------------------------------------------
 
 registry = _TimeDeltaFormatterRegistry()

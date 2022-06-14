@@ -96,6 +96,6 @@ autodoc_typehints_format = 'short'
 
 modindex_common_prefix = ['pytermor']
 
-# numfig = True
+autosummary_generate = True
 
-#autosummary_generate = True
+keep_warnings = True

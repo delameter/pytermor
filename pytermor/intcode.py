@@ -6,24 +6,23 @@
 Module with SGR param integer codes, contains a complete or almost complete
 list of reliably working ones.
 
-Suitable for :func:`.autospan` and :func:`.build` library methods.
+Suitable for :class:`.Span` and :class:`.SequenceSGR` default constructors.
 """
 
-RESET = 0                #:  without these comments (#:) autodoc ignores module-level variables :(
-""" Hard reset code. """ #:  https://github.com/sphinx-doc/sphinx/issues/1063
-                         #:
-BOLD = 1                 #:
-DIM = 2                  #:
-ITALIC = 3               #:
-UNDERLINED = 4           #:
-BLINK_SLOW = 5           #:
-BLINK_FAST = 6           #:
-INVERSED = 7             #:
-HIDDEN = 8               #:
-CROSSLINED = 9           #:
-DOUBLE_UNDERLINED = 21   #:
-OVERLINED = 53           #:
-
+RESET = 0                 #:  without these comments (#:) autodoc ignores module-level variables :(
+""" Hard reset code. """  #:  https://github.com/sphinx-doc/sphinx/issues/1063
+                          #:
+BOLD = 1                  #:
+DIM = 2                   #:
+ITALIC = 3                #:
+UNDERLINED = 4            #:
+BLINK_SLOW = 5            #:
+BLINK_FAST = 6            #:
+INVERSED = 7              #:
+HIDDEN = 8                #:
+CROSSLINED = 9            #:
+DOUBLE_UNDERLINED = 21    #:
+OVERLINED = 53            #:
 NO_BOLD_DIM = 22
 """ 
 .. important::
@@ -40,7 +39,6 @@ CROSSLINED_OFF = 29  #:
 COLOR_OFF = 39       #:
 BG_COLOR_OFF = 49    #:
 OVERLINED_OFF = 55   #:
-
 BLACK = 30          #:
 RED = 31            #:
 GREEN = 32          #:
@@ -55,7 +53,6 @@ COLOR_EXTENDED = 38
    Use :meth:`color_indexed() <pytermor.sequence.color_indexed>` and 
    :meth:`color_rgb() <pytermor.sequence.color_rgb>` instead. 
 """
-
 BG_BLACK = 40       #:
 BG_RED = 41         #:
 BG_GREEN = 42       #:
@@ -70,9 +67,6 @@ BG_COLOR_EXTENDED = 48
    Use :meth:`color_indexed() <pytermor.sequence.color_indexed>` and 
    :meth:`color_rgb() <pytermor.sequence.color_rgb>` instead. 
 """
-
-# HIGH INTENCITY     #:
-#        TEXT COLORS #:
 GRAY = 90            #:
 HI_RED = 91          #:
 HI_GREEN = 92        #:
@@ -81,9 +75,6 @@ HI_BLUE = 94         #:
 HI_MAGENTA = 95      #:
 HI_CYAN = 96         #:
 HI_WHITE = 97        #:
-
-# HIGH INTENCITY     #:
-#  BACKGROUND COLORS #:
 BG_GRAY = 100        #:
 BG_HI_RED = 101      #:
 BG_HI_GREEN = 102    #:
@@ -105,11 +96,8 @@ BG_HI_WHITE = 107    #:
 
 # ---------------------------------------------------------------------------
 
-EXTENDED_MODE_256 = 5
-""" :meta private: """
-
-EXTENDED_MODE_RGB = 2
-""" :meta private: """
+_EXTENDED_MODE_256 = 5
+_EXTENDED_MODE_RGB = 2
 
 # ---------------------------------------------------------------------------
 

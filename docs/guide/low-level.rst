@@ -19,7 +19,7 @@ There are two ways to manage color and attribute termination:
 
 The main difference between them is that *hard* reset disables all formatting after itself, while *soft* reset disables only actually necessary attributes (i.e. used as opening sequence in `Span` instance's context) and keeps the other.
 
-That's what ``Span`` class and `autospan()` method are designed for: to simplify creation of soft-resetting text spans, so that developer doesn't have to restore all previously applied formats after every closing sequence.
+That's what ``Span`` class is designed for: to simplify creation of soft-resetting text spans, so that developer doesn't have to restore all previously applied formats after every closing sequence.
 
 .. rubric:: Example
 
@@ -42,7 +42,7 @@ As you can see, the update went well -- we kept all the previously applied forma
 Working with *Spans*
 --------------------------------
 
-Use `autospan()` to create new `Span` with specified control sequence(s) as a opening/starter sequence and **automatically composed** closing sequence that will terminate attributes defined in opening sequence while keeping the others (soft reset).
+Use `Span` constructor to create new instance with specified control sequence(s) as a opening/starter sequence and **automatically composed** closing sequence that will terminate attributes defined in opening sequence while keeping the others (soft reset).
 
 Resulting sequence params' order is the same as argument's order.
 
@@ -51,6 +51,8 @@ Each sequence param can be specified as:
 - string key (see `presets`);
 - integer param value;
 - existing `SequenceSGR` instance (params will be extracted).
+
+It's also possible to avoid auto-composing mechanism and create `Span` with explicitly set parameters using `Span.new()`.
 
 
 ----------------------------
@@ -114,7 +116,7 @@ Core API
 .. table::
    :class: core-api-refs
 
-   ============= =================== ================
-   `build()`     `color_indexed()`   `color_rgb()`
-   `autospan()`  `SequenceSGR` class `Span` class
-   ============= =================== ================
+   ===================== =================== ================
+   `build()`             `color_indexed()`   `color_rgb()`
+   `SequenceSGR` class   `Span` constructor  `Span.new()`
+   ===================== =================== ================

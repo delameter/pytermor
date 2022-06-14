@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 import unittest
 
-from pytermor import autospan, sequence, intcode
+from pytermor import sequence, intcode
 from pytermor.sequence import SequenceSGR
 from pytermor.span import Span
 
@@ -64,31 +64,31 @@ class TestWrap(unittest.TestCase):
 
 class TestAutoCompletion(unittest.TestCase):
     def test_autocomplete_single_sgr(self):
-        f = autospan(sequence.BOLD)
+        f = Span(sequence.BOLD)
 
         self.assertEqual(f.opening_seq, SequenceSGR(intcode.BOLD))
         self.assertEqual(f.closing_seq, SequenceSGR(intcode.NO_BOLD_DIM))
 
     def test_autocomplete_multiple_sgr(self):
-        f = autospan(sequence.UNDERLINED + sequence.YELLOW + sequence.BG_RED)
+        f = Span(sequence.UNDERLINED + sequence.YELLOW + sequence.BG_RED)
 
         self.assertEqual(f.opening_seq, SequenceSGR(intcode.UNDERLINED, intcode.YELLOW, intcode.BG_RED))
         self.assertEqual(f.closing_seq, SequenceSGR(intcode.UNDERLINED_OFF, intcode.COLOR_OFF, intcode.BG_COLOR_OFF))
 
     def test_autocomplete_no_args(self):
-        f = autospan()
+        f = Span()
 
         self.assertEqual(f.opening_seq, SequenceSGR())
         self.assertEqual(f.closing_seq, SequenceSGR())
 
     def test_autocomplete_empty_sgr(self):
-        f = autospan(SequenceSGR())
+        f = Span(SequenceSGR())
 
         self.assertEqual(f.opening_seq, SequenceSGR())
         self.assertEqual(f.closing_seq, sequence.NOOP)
 
     def test_autocomplete_multiple_with_empty_sgr(self):
-        f = autospan(sequence.BOLD, SequenceSGR(), sequence.RED)
+        f = Span(sequence.BOLD, SequenceSGR(), sequence.RED)
 
         self.assertEqual(f.opening_seq, SequenceSGR(intcode.BOLD, intcode.RED))
         self.assertEqual(f.closing_seq, SequenceSGR(intcode.NO_BOLD_DIM, intcode.COLOR_OFF))

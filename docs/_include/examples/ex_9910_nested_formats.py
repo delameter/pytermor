@@ -1,5 +1,5 @@
 from pytermor import span
 
 print('... ' +
-      span.blue(span.underlined('nested') +
-                span.bold(' styles')) + ' in...')
+      span.BLUE(span.UNDERLINED('nested') +
+                span.BOLD(' styles')) + ' in...')
