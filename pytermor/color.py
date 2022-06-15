@@ -16,7 +16,9 @@ class Color(metaclass=ABCMeta):
 
     @staticmethod
     def hex_value_to_channels(hex_value: int) -> Tuple[int, int, int]:
-        return (hex_value & 0xFF0000) >> 16, (hex_value & 0xFF00) >> 8, (hex_value & 0xFF)
+        return (hex_value & 0xFF0000) >> 16, \
+               (hex_value & 0xFF00) >> 8,    \
+               (hex_value & 0xFF)
 
     @classmethod
     def _get_hex_color_map(cls):
@@ -43,6 +45,8 @@ class Color(metaclass=ABCMeta):
 
         if closest is None:
             raise RuntimeError(f'There are no registred {cls.__name__} instances')
+
+        hex_color_map[hex_value] = closest  # cache the result
         return closest
 
     def __init__(self, hex_value: int = None):
@@ -147,11 +151,25 @@ class ColorRGB(Color):
 # -----------------------------------------------------------------------------
 
 NOOP = ColorRGB()
+"""
+Special instance of `Color` class always rendering into empty string.
+"""
 
-WHITE = ColorRGB(0xffffff)
-RED = ColorDefault(0x800000, sequence.RED, sequence.BG_RED)
-GREEN = ColorDefault(0x008000, sequence.GREEN, sequence.BG_GREEN)
-YELLOW = ColorDefault(0x808000, sequence.YELLOW, sequence.BG_YELLOW)
-HI_RED = ColorIndexed(0xff0000, 9)
+BLACK =   ColorDefault(0x000000, sequence.BLACK,   sequence.BG_BLACK)
+RED =     ColorDefault(0x800000, sequence.RED,     sequence.BG_RED)
+GREEN =   ColorDefault(0x008000, sequence.GREEN,   sequence.BG_GREEN)
+YELLOW =  ColorDefault(0x808000, sequence.YELLOW,  sequence.BG_YELLOW)
+BLUE =    ColorDefault(0x000080, sequence.BLUE,    sequence.BG_BLUE)
+MAGENTA = ColorDefault(0x800080, sequence.MAGENTA, sequence.BG_MAGENTA)
+CYAN =    ColorDefault(0x008080, sequence.CYAN,    sequence.BG_CYAN)
+WHITE =   ColorDefault(0xc0c0c0, sequence.WHITE,   sequence.BG_WHITE)
+GRAY =    ColorDefault(0x808080, sequence.GRAY,    sequence.BG_GRAY)
+HI_RED =     ColorDefault(0xff0000, sequence.HI_RED,     sequence.BG_HI_RED)
+HI_GREEN =   ColorDefault(0x00ff00, sequence.HI_GREEN,   sequence.BG_HI_GREEN)
+HI_YELLOW =  ColorDefault(0xffff00, sequence.HI_YELLOW,  sequence.BG_HI_YELLOW)
+HI_BLUE =    ColorDefault(0x0000ff, sequence.HI_BLUE,    sequence.BG_HI_BLUE)
+HI_MAGENTA = ColorDefault(0xff00ff, sequence.HI_MAGENTA, sequence.BG_HI_MAGENTA)
+HI_CYAN =    ColorDefault(0x00ffff, sequence.HI_CYAN,    sequence.BG_HI_CYAN)
+HI_WHITE =   ColorDefault(0xffffff, sequence.HI_WHITE,   sequence.BG_HI_WHITE)
+
 LIGHT_GREEN = ColorIndexed(0x87ff87, 119)
-BLACK = ColorDefault(0x000000, sequence.BLACK, sequence.BG_BLACK)

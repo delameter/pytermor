@@ -2,6 +2,12 @@
 # pytermor [ANSI formatted terminal output toolset]
 # (C) 2022 A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
+"""
+.. testsetup:: *
+
+    from pytermor.util import format_si_metric, format_si_binary
+
+"""
 from __future__ import annotations
 
 from math import trunc
@@ -15,7 +21,7 @@ def format_si_metric(value: float) -> str:
     Format ``value`` as unitless value with SI-prefixes, max
     result length is *6* chars. Base is *1000*.
 
-    Examples::
+    .. doctest::
 
         >>> format_si_metric(123.456)
         '123'
@@ -39,7 +45,7 @@ def format_si_binary(value: float) -> str:
     Format ``value`` as binary size (bytes, kbytes, Mbytes), max
     result length is *8* chars. Base is *1024*.
 
-    Examples::
+    .. doctest::
 
         >>> format_si_binary(631)
         '631 b'
@@ -66,9 +72,11 @@ class PrefixedUnitFormatter:
     indicate them.
 
     You can create your own formatters if you need fine tuning of the
-    output and customization. If that's not the case, there is a
+    output and customization. If that's not the case, there are a
     facade methods :meth:`format_si_metric()` and :meth:`format_si_binary()`,
-    which will invoke predefined formatters and therefore doesn't require setting up.
+    which will invoke predefined formatters and doesn't require setting up.
+
+    @TODO params
 
     :param prefix_zero_idx:
             Index of prefix which will be used as default, i.e. without multiplying coefficients.
@@ -162,8 +170,8 @@ Suitable for formatting any SI unit with values
 from approximately ``10^-27`` to ``10^27``.
 
 ``max_value_len`` must be at least **4**, because it's a
-minimum requirement for displaying values from ``999`` to ``-999``.
-Next number to 999 is ``1000``, which will be displayed as "1k".
+minimum requirement for formatting values from ``999`` to ``-999``.
+Next number to 999 is ``1000``, which will be formatted as "1k".
 
 Total maximum length is ``max_value_len + 3``, which is **7** 
 (+3 is from separator, unit and prefix, assuming all of them
@@ -181,15 +189,15 @@ _formatter_si_binary = PrefixedUnitFormatter(
 )
 """
 Similar to `_formatter_si_metric`, but this formatter differs in 
-one aspect.  Given a variable with default value = ``995``, printing
-it's value out using this preset results in "995 b". After
-increasing it by ``20`` we'll have ``1015``, but it's still not enough
-to become a kilobyte -- so displayed value will be "1015 b". Only
-after one more increasing (at ``1024`` and more) the value will be
-in a form of "1.00 kb".  
+one aspect.  Given a variable with default value = ``995``,
+formatting it's value results in "995 b". After increasing it 
+by ``20`` we'll have ``1015``, but it's still not enough to become 
+a kilobyte -- so returned value will be "1015 b". Only after one 
+more increase (at ``1024`` and more) the value will be in a form
+of "1.00 kb".  
 
 So, in this case ``max_value_len`` must be at least **5** (not 4),
-because it's a minimum requirement for displaying values from ``1023`` 
+because it's a minimum requirement for formatting values from ``1023`` 
 to ``-1023``.
 
 Total maximum length is ``max_value_len + 3`` = **8** (+3 is from separator,

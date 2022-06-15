@@ -7,6 +7,12 @@ Module introducing `Span` low-level  abstractions. The key difference beetween t
 ``Sequences`` is that sequence can *open* text style and also *close*, or terminate
 it. As for ``Spans`` -- they always do both; typical use-case of `Span` is to wrap
 some text in opening SGR and closing one.
+
+.. testsetup:: *
+
+    from pytermor import sequence, intcode
+    from pytermor.span import Span, NOOP
+
 """
 
 from __future__ import annotations
@@ -31,7 +37,7 @@ class Span:
       - integer param value (defined in :mod:`.intcode`)
       - existing `SequenceSGR` instance (params will be extracted).
 
-    Examples::
+    .. doctest::
 
         >>> Span('red', 'bold')
         Span[SGR[31;1], SGR[39;22]]
@@ -68,7 +74,7 @@ class Span:
         instance._closing_seq = cls._opt_arg(closing_seq)
 
         if hard_reset_after:
-            instance._closing_seq = SequenceSGR(intcode.RESET)
+            instance._closing_seq = sequence.RESET
 
         return instance
 
@@ -82,18 +88,18 @@ class Span:
         :param text:  String to wrap.
         :return:      Resulting string; input argument enclosed to instance's ``SGRs``, if any.
         """
-        result = self._opening_seq.print()
+        result = self._opening_seq.encode()
 
         if text is not None:
             result += str(text)
 
-        result += self._closing_seq.print()
+        result += self._closing_seq.encode()
         return result
 
     @property
     def opening_str(self) -> str:
         """ Return opening SGR sequence encoded. """
-        return self._opening_seq.print()
+        return self._opening_seq.encode()
 
     @property
     def opening_seq(self) -> 'SequenceSGR':
@@ -103,7 +109,7 @@ class Span:
     @property
     def closing_str(self) -> str:
         """ Return closing SGR sequence encoded. """
-        return self._closing_seq.print()
+        return self._closing_seq.encode()
 
     @property
     def closing_seq(self) -> 'SequenceSGR':
@@ -139,41 +145,51 @@ class Span:
 NOOP = Span()
 """
 Special `Span` in cases where you *have to* select one or 
-another `Span`, but do not want anything to be actually printed. 
+another `Span`, but do not want any control sequence to be actually included. 
 
 - ``NOOP(string)`` or ``NOOP.wrap(string)`` returns ``string`` without any modifications;
 - ``NOOP.opening_str`` and ``NOOP.closing_str`` are empty strings;
 - ``NOOP.opening_seq`` and ``NOOP.closing_seq`` both returns `sequence.NOOP`.
+
+.. doctest::
+    
+    >>> NOOP('text')
+    'text'
+    >>> NOOP.opening_str
+    ''
+    >>> NOOP.opening_seq
+    SGR[]
+
 """
 
-BOLD = Span(intcode.BOLD)               #:
-DIM = Span(intcode.DIM)                 #:
-ITALIC = Span(intcode.ITALIC)           #:
-UNDERLINED = Span(intcode.UNDERLINED)   #:
-INVERSED = Span(intcode.INVERSED)       #:
-OVERLINED = Span(intcode.OVERLINED)     #:
+BOLD = Span(intcode.BOLD)
+DIM = Span(intcode.DIM)
+ITALIC = Span(intcode.ITALIC)
+UNDERLINED = Span(intcode.UNDERLINED)
+INVERSED = Span(intcode.INVERSED)
+OVERLINED = Span(intcode.OVERLINED)
 
-BLACK = Span(intcode.BLACK)             #:
-RED = Span(intcode.RED)                 #:
-GREEN = Span(intcode.GREEN)             #:
-YELLOW = Span(intcode.YELLOW)           #:
-BLUE = Span(intcode.BLUE)               #:
-MAGENTA = Span(intcode.MAGENTA)         #:
-CYAN = Span(intcode.CYAN)               #:
+BLACK = Span(intcode.BLACK)
+RED = Span(intcode.RED)
+GREEN = Span(intcode.GREEN)
+YELLOW = Span(intcode.YELLOW)
+BLUE = Span(intcode.BLUE)
+MAGENTA = Span(intcode.MAGENTA)
+CYAN = Span(intcode.CYAN)
 
-GRAY = Span(intcode.GRAY)               #:
-HI_RED = Span(intcode.HI_RED)           #:
-HI_GREEN = Span(intcode.HI_GREEN)       #:
-HI_YELLOW = Span(intcode.HI_YELLOW)     #:
-HI_BLUE = Span(intcode.HI_BLUE)         #:
-HI_MAGENTA = Span(intcode.HI_MAGENTA)   #:
-HI_CYAN = Span(intcode.HI_CYAN)         #:
+GRAY = Span(intcode.GRAY)
+HI_RED = Span(intcode.HI_RED)
+HI_GREEN = Span(intcode.HI_GREEN)
+HI_YELLOW = Span(intcode.HI_YELLOW)
+HI_BLUE = Span(intcode.HI_BLUE)
+HI_MAGENTA = Span(intcode.HI_MAGENTA)
+HI_CYAN = Span(intcode.HI_CYAN)
 
-BG_BLACK = Span(intcode.BG_BLACK)       #:
-BG_RED = Span(intcode.BG_RED)           #:
-BG_GREEN = Span(intcode.BG_GREEN)       #:
-BG_YELLOW = Span(intcode.BG_YELLOW)     #:
-BG_BLUE = Span(intcode.BG_BLUE)         #:
-BG_MAGENTA = Span(intcode.BG_MAGENTA)   #:
-BG_CYAN = Span(intcode.BG_CYAN)         #:
-BG_GRAY = Span(intcode.BG_GRAY)         #:
+BG_BLACK = Span(intcode.BG_BLACK)
+BG_RED = Span(intcode.BG_RED)
+BG_GREEN = Span(intcode.BG_GREEN)
+BG_YELLOW = Span(intcode.BG_YELLOW)
+BG_BLUE = Span(intcode.BG_BLUE)
+BG_MAGENTA = Span(intcode.BG_MAGENTA)
+BG_CYAN = Span(intcode.BG_CYAN)
+BG_GRAY = Span(intcode.BG_GRAY)

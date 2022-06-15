@@ -3,9 +3,10 @@
 # (C) 2022 A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-Utility package for removing some of the boilerplate code when
-dealing with escape sequences. Also contains set of formatters for
-prettier output.
+.. testsetup:: *
+
+    from pytermor.util import format_thousand_sep
+
 """
 from __future__ import annotations
 
@@ -17,5 +18,17 @@ from .string_filter import apply_filters, StringFilter, ReplaceSGR, ReplaceCSI, 
 from .stdlib_ext import ljust_sgr, rjust_sgr, center_sgr
 
 
-def format_thousand_sep(value: int | float, separator=' '):
+def format_thousand_sep(value: int|float, separator=' '):
+    """
+    Returns input ``value`` with integer part splitted into groups of three digits,
+    joined then with ``separator`` string.
+
+    .. doctest::
+
+        >>> format_thousand_sep(260341)
+        '260 341'
+        >>> format_thousand_sep(-9123123123.55, ',')
+        '-9,123,123,123.55'
+
+    """
     return f'{value:_}'.replace('_', separator)

@@ -1,12 +1,26 @@
 sequences:
   - section_name: ~
     items:
+      - name: NOOP
+        intcode: ~
+        sequence: True
+        span: True
+        color: True
+        description: No-operation, dummy instance without actual output
       - name: RESET
+        intcode: 0
+        sequence: True
+        span: False
+        color: False
         description: Reset all attributes and colors
 
   - section_name: attributes
     items:
       - name: BOLD
+        intcode: 1
+        sequence: True
+        span: True
+        color: False
         description: Bold or increased intensity
       - name: DIM
         description: Faint, decreased intensity

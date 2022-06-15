@@ -6,6 +6,11 @@
 Module for time difference formatting (e.g. "4 days 15 hours", "8h 59m").
 
 Supports several output lengths and can be customized even more.
+
+.. testsetup:: *
+
+    from pytermor.util import format_time_delta
+
 """
 from __future__ import annotations
 
@@ -24,7 +29,7 @@ def format_time_delta(seconds: float, max_len: int = None) -> str:
     Format time delta using suitable format (which depends on
     ``max_len`` argument). Key feature of this formatter is
     ability to combine two units and display them simultaneously,
-    e.g. print "3h 48min" instead of "228 mins" or "3 hours",
+    e.g. return "3h 48min" instead of "228 mins" or "3 hours",
 
     There are predefined formatters with output length of 3, 4,
     6 and 10 characters. Therefore, you can pass in any value
@@ -32,7 +37,7 @@ def format_time_delta(seconds: float, max_len: int = None) -> str:
     will be less or equal to required length. If `max_len` is
     omitted, longest registred formatter will be used.
 
-    Example output::
+    .. doctest::
 
        >>> format_time_delta(10, 3)
        '10s'
@@ -62,7 +67,7 @@ class TimeDeltaFormatter:
     """
     Formatter for time intervals. Key feature of this formatter is
     ability to combine two units and display them simultaneously,
-    e.g. print "3h 48min" instead of "228 mins" or "3 hours", etc.
+    e.g. return "3h 48min" instead of "228 mins" or "3 hours", etc.
 
     You can create your own formatters if you need fine tuning of the
     output and customization. If that's not the case, there is a

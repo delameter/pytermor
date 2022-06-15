@@ -7,6 +7,12 @@ String filtering module.
 
 Main idea is to provide a common interface for string filtering, that can make
 possible working with filters like with objects rather than with functions/lambdas.
+
+.. testsetup:: *
+
+    from pytermor import span
+    from pytermor.util import apply_filters, ReplaceSGR
+
 """
 from __future__ import annotations
 
@@ -22,7 +28,9 @@ def apply_filters(string: AnyStr, *args: StringFilter[AnyStr]|Type[StringFilter[
     """
     Method for applying dynamic filter list to a target str/bytes.
     Example (will replace all :kbd:`ESC` control characters to :kbd:`E` and
-    thus make SGR params visible)::
+    thus make SGR params visible):
+
+    .. doctest::
 
         >>> apply_filters(span.RED('test'), ReplaceSGR(r'E\\2\\3\\5'))
         'E[31mtestE[39m'

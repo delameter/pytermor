@@ -30,6 +30,7 @@ extensions = [
     'sphinx.ext.autodoc',     'sphinx.ext.todo',
     'sphinx.ext.autosummary', 'sphinx.ext.extlinks',
     'sphinx.ext.viewcode',    'sphinx.ext.inheritance_diagram',
+    'sphinx.ext.doctest',
     'sphinx_copybutton'
 ]
 
@@ -86,6 +87,21 @@ html_theme_options = {
 
 # ----------------------------------------------------------------------------
 
+#latex_engine = 'xelatex'
+
+#latex_elements = {
+#    'inputenc': '',
+#    'utf8extra': '⡲',
+#    'preamble': '''
+#
+#\usepackage{fontspec}
+#\setsansfont{Arial}
+#\setromanfont{Arial}
+#\setmonofont{DejaVu Sans Mono}
+#
+#''',
+#}
+
 latex_logo = '_static/logo-96.png'
 
 # ----------------------------------------------------------------------------
@@ -99,3 +115,5 @@ modindex_common_prefix = ['pytermor']
 autosummary_generate = True
 
 keep_warnings = True
+
+doctest_test_doctest_blocks = 'True'

@@ -16,4 +16,6 @@ API docs
    style
    util/index
 
-:ref:`modindex`
+.. only :: html
+
+   :ref:`modindex`

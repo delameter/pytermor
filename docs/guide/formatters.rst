@@ -5,7 +5,7 @@
 Formatters and Filters
 =======================================
 
-The library contains 
+The library contains @TODO
 
 ---------------------------
 Auto-float formatter
@@ -27,6 +27,7 @@ Time delta formatter
    :align: center
    :class: no-scaled-link
 
+
 ----------------
 *StringFilters*
 ----------------
@@ -34,3 +35,5 @@ Time delta formatter
 ---------------------------
 Standard Library extensions
 ---------------------------
+
+@TODO

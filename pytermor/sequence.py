@@ -10,6 +10,10 @@ Each preset defined below is a valid argument for :class:`.Span` and
 
     Span(sequence.BG_GREEN, sequence.UNDERLINED)
 
+.. testsetup:: *
+
+    from pytermor.sequence import build, SequenceSGR, NOOP, HI_CYAN, UNDERLINED
+
 """
 from __future__ import annotations
 
@@ -31,7 +35,9 @@ def build(*args: str | int | SequenceSGR) -> SequenceSGR:
       - integer param value (from :mod:`.intcode`)
       - existing `SequenceSGR` instance (params will be extracted).
 
-    Examples::
+    Examples:
+
+    .. doctest::
 
         >>> build('yellow', 'bold')
         SGR[33;1]
@@ -122,7 +128,7 @@ class _AbstractSequence(metaclass=ABCMeta):
         return self._params
 
     @abstractmethod
-    def print(self) -> str:
+    def encode(self) -> str:
         """
         Build up actual byte sequence and return
         as an ASCII-encoded string.
@@ -159,7 +165,7 @@ class _AbstractSequenceCSI(_AbstractSequence, metaclass=ABCMeta):
         super(_AbstractSequenceCSI, self).__init__(*params)
 
     def __str__(self) -> str:
-        return self.print()
+        return self.encode()
 
     @classmethod
     @abstractmethod
@@ -176,17 +182,17 @@ class SequenceSGR(_AbstractSequenceCSI, metaclass=ABCMeta):
     equivalent of ``\e[0m`` -- hard reset sequence. The empty-string-sequence
     is predefined as :data:`.NOOP`.
 
-    It's possible to add of one SGR sequence to another::
+    It's possible to add of one SGR sequence to another:
 
-        SequenceSGR(31) + SequenceSGR(1)
+    .. doctest::
 
-    which is equivalent to::
+        >>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
+        True
 
-        SequenceSGR(31, 1)
     """
     _TERMINATOR = 'm'
 
-    def print(self) -> str:
+    def encode(self) -> str:
         if len(self._params) == 0:  # NOOP
             return ''
 
@@ -284,90 +290,91 @@ class _SgrPairityRegistry:
 NOOP = SequenceSGR()
 """
 Special sequence in case where you *have to* provide one or
-another SGR, but do not want anything to be actually printed. 
+another SGR, but do not want any control sequence to be actually included. 
 
-- ``NOOP.print()`` returns empty string.
-- ``NOOP.params()`` returns empty list.
+- ``NOOP.encode()`` returns empty string.
+- ``NOOP.params`` returns empty list.
+
+.. doctest::
+
+    >>> NOOP.encode()
+    ''
+    >>> NOOP.params
+    []
 
 .. versionadded:: 1.8
 """
 
 RESET = SequenceSGR(intcode.RESET)
 """
-Reset all attributes and colors.
+Resets all attributes and colors.
 """
 
 # attributes
-BOLD = SequenceSGR(intcode.BOLD)  #:
-DIM = SequenceSGR(intcode.DIM)  #:
-ITALIC = SequenceSGR(intcode.ITALIC)  #:
-UNDERLINED = SequenceSGR(intcode.UNDERLINED)  #:
-BLINK_SLOW = SequenceSGR(intcode.BLINK_SLOW)  #:
-BLINK_FAST = SequenceSGR(intcode.BLINK_FAST)  #:
-INVERSED = SequenceSGR(intcode.INVERSED)  #:
-HIDDEN = SequenceSGR(intcode.HIDDEN)  #:
-CROSSLINED = SequenceSGR(intcode.CROSSLINED)  #:
-DOUBLE_UNDERLINED = SequenceSGR(intcode.DOUBLE_UNDERLINED)  #:
-OVERLINED = SequenceSGR(intcode.OVERLINED)  #:
+BOLD = SequenceSGR(intcode.BOLD)
+DIM = SequenceSGR(intcode.DIM)
+ITALIC = SequenceSGR(intcode.ITALIC)
+UNDERLINED = SequenceSGR(intcode.UNDERLINED)
+BLINK_SLOW = SequenceSGR(intcode.BLINK_SLOW)
+BLINK_FAST = SequenceSGR(intcode.BLINK_FAST)
+INVERSED = SequenceSGR(intcode.INVERSED)
+HIDDEN = SequenceSGR(intcode.HIDDEN)
+CROSSLINED = SequenceSGR(intcode.CROSSLINED)
+DOUBLE_UNDERLINED = SequenceSGR(intcode.DOUBLE_UNDERLINED)
+OVERLINED = SequenceSGR(intcode.OVERLINED)
 
-NO_BOLD_DIM = SequenceSGR(intcode.NO_BOLD_DIM)  #:
-""" 
-.. important::
-   There is no separate sequence for
-   disabling either of :data:`BOLD` or
-   :data:`DIM` while keeping the other.
-"""
-ITALIC_OFF = SequenceSGR(intcode.ITALIC_OFF)  #:
-UNDERLINED_OFF = SequenceSGR(intcode.UNDERLINED_OFF)  #:
-BLINK_OFF = SequenceSGR(intcode.BLINK_OFF)  #:
-INVERSED_OFF = SequenceSGR(intcode.INVERSED_OFF)  #:
-HIDDEN_OFF = SequenceSGR(intcode.HIDDEN_OFF)  #:
-CROSSLINED_OFF = SequenceSGR(intcode.CROSSLINED_OFF)  #:
-OVERLINED_OFF = SequenceSGR(intcode.OVERLINED_OFF)  #:
+NO_BOLD_DIM = SequenceSGR(intcode.NO_BOLD_DIM)  # there is no separate sequence for disabling either of BOLD or DIM while keeping the other
+ITALIC_OFF = SequenceSGR(intcode.ITALIC_OFF)
+UNDERLINED_OFF = SequenceSGR(intcode.UNDERLINED_OFF)
+BLINK_OFF = SequenceSGR(intcode.BLINK_OFF)
+INVERSED_OFF = SequenceSGR(intcode.INVERSED_OFF)
+HIDDEN_OFF = SequenceSGR(intcode.HIDDEN_OFF)
+CROSSLINED_OFF = SequenceSGR(intcode.CROSSLINED_OFF)
+OVERLINED_OFF = SequenceSGR(intcode.OVERLINED_OFF)
 
 # text colors
-BLACK = SequenceSGR(intcode.BLACK)  #:
-RED = SequenceSGR(intcode.RED)  #:
-GREEN = SequenceSGR(intcode.GREEN)  #:
-YELLOW = SequenceSGR(intcode.YELLOW)  #:
-BLUE = SequenceSGR(intcode.BLUE)  #:
-MAGENTA = SequenceSGR(intcode.MAGENTA)  #:
-CYAN = SequenceSGR(intcode.CYAN)  #:
-WHITE = SequenceSGR(intcode.WHITE)  #:
-# code.COLOR_EXTENDED is handled by color_indexed()  #:
-COLOR_OFF = SequenceSGR(intcode.COLOR_OFF)  #:
+BLACK = SequenceSGR(intcode.BLACK)
+RED = SequenceSGR(intcode.RED)
+GREEN = SequenceSGR(intcode.GREEN)
+YELLOW = SequenceSGR(intcode.YELLOW)
+BLUE = SequenceSGR(intcode.BLUE)
+MAGENTA = SequenceSGR(intcode.MAGENTA)
+CYAN = SequenceSGR(intcode.CYAN)
+WHITE = SequenceSGR(intcode.WHITE)
+# code.COLOR_EXTENDED is handled by color_indexed()
+COLOR_OFF = SequenceSGR(intcode.COLOR_OFF)
 
 # background colors
-BG_BLACK = SequenceSGR(intcode.BG_BLACK)  #:
-BG_RED = SequenceSGR(intcode.BG_RED)  #:
-BG_GREEN = SequenceSGR(intcode.BG_GREEN)  #:
-BG_YELLOW = SequenceSGR(intcode.BG_YELLOW)  #:
-BG_BLUE = SequenceSGR(intcode.BG_BLUE)  #:
-BG_MAGENTA = SequenceSGR(intcode.BG_MAGENTA)  #:
-BG_CYAN = SequenceSGR(intcode.BG_CYAN)  #:
-BG_WHITE = SequenceSGR(intcode.BG_WHITE)  #:
-# code.BG_COLOR_EXTENDED is handled by color_indexed()  #:
-BG_COLOR_OFF = SequenceSGR(intcode.BG_COLOR_OFF)  #:
+BG_BLACK = SequenceSGR(intcode.BG_BLACK)
+BG_RED = SequenceSGR(intcode.BG_RED)
+BG_GREEN = SequenceSGR(intcode.BG_GREEN)
+BG_YELLOW = SequenceSGR(intcode.BG_YELLOW)
+BG_BLUE = SequenceSGR(intcode.BG_BLUE)
+BG_MAGENTA = SequenceSGR(intcode.BG_MAGENTA)
+BG_CYAN = SequenceSGR(intcode.BG_CYAN)
+BG_WHITE = SequenceSGR(intcode.BG_WHITE)
+# code.BG_COLOR_EXTENDED is handled by color_indexed()
+BG_COLOR_OFF = SequenceSGR(intcode.BG_COLOR_OFF)
 
 # high intensity text colors
-GRAY = SequenceSGR(intcode.GRAY)  #:
-HI_RED = SequenceSGR(intcode.HI_RED)  #:
-HI_GREEN = SequenceSGR(intcode.HI_GREEN)  #:
-HI_YELLOW = SequenceSGR(intcode.HI_YELLOW)  #:
-HI_BLUE = SequenceSGR(intcode.HI_BLUE)  #:
-HI_MAGENTA = SequenceSGR(intcode.HI_MAGENTA)  #:
-HI_CYAN = SequenceSGR(intcode.HI_CYAN)  #:
-HI_WHITE = SequenceSGR(intcode.HI_WHITE)  #:
+GRAY = SequenceSGR(intcode.GRAY)
+HI_RED = SequenceSGR(intcode.HI_RED)
+HI_GREEN = SequenceSGR(intcode.HI_GREEN)
+HI_YELLOW = SequenceSGR(intcode.HI_YELLOW)
+HI_BLUE = SequenceSGR(intcode.HI_BLUE)
+HI_MAGENTA = SequenceSGR(intcode.HI_MAGENTA)
+HI_CYAN = SequenceSGR(intcode.HI_CYAN)
+HI_WHITE = SequenceSGR(intcode.HI_WHITE)
 
 # high intensity background colors
-BG_GRAY = SequenceSGR(intcode.BG_GRAY)  #:
-BG_HI_RED = SequenceSGR(intcode.BG_HI_RED)  #:
-BG_HI_GREEN = SequenceSGR(intcode.BG_HI_GREEN)  #:
-BG_HI_YELLOW = SequenceSGR(intcode.BG_HI_YELLOW)  #:
-BG_HI_BLUE = SequenceSGR(intcode.BG_HI_BLUE)  #:
-BG_HI_MAGENTA = SequenceSGR(intcode.BG_HI_MAGENTA)  #:
-BG_HI_CYAN = SequenceSGR(intcode.BG_HI_CYAN)  #:
-BG_HI_WHITE = SequenceSGR(intcode.BG_HI_WHITE)  #:
+BG_GRAY = SequenceSGR(intcode.BG_GRAY)
+BG_HI_RED = SequenceSGR(intcode.BG_HI_RED)
+BG_HI_GREEN = SequenceSGR(intcode.BG_HI_GREEN)
+BG_HI_YELLOW = SequenceSGR(intcode.BG_HI_YELLOW)
+BG_HI_BLUE = SequenceSGR(intcode.BG_HI_BLUE)
+BG_HI_MAGENTA = SequenceSGR(intcode.BG_HI_MAGENTA)
+BG_HI_CYAN = SequenceSGR(intcode.BG_HI_CYAN)
+BG_HI_WHITE = SequenceSGR(intcode.BG_HI_WHITE)
 
 # rarely supported
 # 10-20: font selection
@@ -379,6 +386,10 @@ BG_HI_WHITE = SequenceSGR(intcode.BG_HI_WHITE)  #:
 # 60-65: ideogram attributes
 # 73-75: superscript and subscript
 
+
+# ---------------------------------------------------------------------------
+# Openinng <-> closing sequences matches
+# ---------------------------------------------------------------------------
 
 sgr_parity_registry = _SgrPairityRegistry()
 

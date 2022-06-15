@@ -4,7 +4,7 @@ v2.0.0
 - Complete library reorganization.
 - Formatters rewrite.
 - Unit tests for formatters.
-- High-level abstractions `Color`, ’Renderer’ and ’Style’.
+- High-level abstractions `Color`, `Renderer <SGRRenderer>` and `Style`.
 - ``pytest`` and ``coverage`` integration.
 - ``sphinx`` and ``readthedocs`` integraton.
 
@@ -27,7 +27,7 @@ v1.7.4
 v1.7.3
 ------
 
-- Added `span.BG_BLACK` format.
+- Added ``span.BG_BLACK`` format.
 
 v1.7.2
 ------
@@ -59,7 +59,7 @@ v1.6.1
 v1.5.0
 ------
 
-- Removed excessive ``EmptySequenceSGR`` &mdash; default ``SGR`` class was specifically implemented to print out as empty string instead of ``\e[m`` if constructed without params.
+- Removed excessive ``EmptySequenceSGR`` -- default ``SGR`` class was specifically implemented to print out as empty string instead of ``\e[m`` if constructed without params.
 
 v1.4.0
 ------
@@ -72,7 +72,7 @@ v1.4.0
 v1.3.2
 ------
 
-- Added `span.GRAY` and `span.BG_GRAY` format presets.
+- Added ``span.GRAY`` and ``span.BG_GRAY`` format presets.
 
 v1.3.1
 ------

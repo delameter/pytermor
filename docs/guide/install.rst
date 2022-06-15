@@ -19,7 +19,8 @@ Installation
 Features
 -------------------
 
-One of the core concepts of the library is `Span` class. ``Span`` is a combination of two control sequences; it wraps specified string with pre-defined leading and trailing SGR definitions.
+One of the core concepts of the library is `Span` class. ``Span`` is a combination of two control sequences;
+it wraps specified string with pre-defined leading and trailing SGR definitions.
 
 Example code:
 
@@ -28,7 +29,8 @@ Example code:
 
 .. rubric:: Content-aware format nesting
 
-Compose text spans with automatic content-aware span termination. Preset spans can safely overlap with each other (as long as they require different *breaker* sequences to reset).
+Compose text spans with automatic content-aware span termination. Preset spans can safely overlap with each
+other (as long as they require different *breaker* sequences to reset).
 
 .. literalinclude:: /_include/examples/ex_20_content_aware_nesting.py
    :linenos:
@@ -41,7 +43,8 @@ Compose text spans with automatic content-aware span termination. Preset spans c
 
 .. rubric:: Flexible sequence builder
 
-Create your own `SGR sequences <SequenceSGR>` with `build()` method, which accepts color/attribute keys, integer codes and even existing *SGRs*, in any amount and in any order. Key resolving is case-insensitive.
+Create your own `SGR sequences <SequenceSGR>` with `build()` method, which accepts color/attribute keys,
+integer codes and even existing *SGRs*, in any amount and in any order. Key resolving is case-insensitive.
 
 .. literalinclude:: /_include/examples/ex_30_flexible.py
    :linenos:

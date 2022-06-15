@@ -44,7 +44,7 @@ test-debug: ## Run tests with VERY detailed output
 
 doctest: ## Run doc-tests
 	. venv/bin/activate
-	PYTHONPATH=${PWD} python3 -m doctest tests/_doctest.py
+	make -C docs doctest
 
 coverage: ## Run coverage tool
 	. venv/bin/activate
@@ -96,13 +96,21 @@ install: ## Install module
 
 ## Documentation
 
-docs-reinit: ## Erase and reinit docs with auto table of contents
+reinit-docs: ## Erase and reinit docs with auto table of contents
 	rm docs/*.rst
 	. venv/bin/activate
 	sphinx-apidoc --force --separate --module-first --tocfile index --output-dir docs pytermor
 
-docs: ## Build documentation
+docs: ## Build HTML documentation
 	rm -rf docs/_build
 	. venv/bin/activate
 	sphinx-build -aEn docs docs/_build -b html
+
+docs-pdf: ## Build PDF documentation (requires - latexmk texlive-latex-extra tex-gyre)
+	rm -rf docs/_build/latex
+	. venv/bin/activate
+	make -C docs latex
+	make -C docs latexpdf  # twice for correct toc
+	make -C docs latexpdf  # @FIXME broken unicode
+
 ##

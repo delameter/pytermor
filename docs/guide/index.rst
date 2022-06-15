@@ -10,6 +10,6 @@ Guide
    install
    high-level
    low-level
-   formatters
    presets
    xterm-colors
+   formatters

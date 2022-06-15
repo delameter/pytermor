@@ -3,13 +3,18 @@
 # (C) 2022 A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-Module containing different output formatters. By default :class:`SGRRenderer` is used.
+Module contains different output formatters. By default :class:`SGRRenderer` is used.
 
-There is a module-level variable :data:`default_renderer` that is called from `style.Style.render()` method.
-You can change the default renderer by calling ``set_as_default()`` class method of one
-of the renderers. Alternatively, you can use renderer's own class method ``render()``.
+There is a module-level variable :data:`default_renderer` that is used by `Style.render() <style.Style.render>`
+method. Default renderer can be changed by calling ``set_as_default()`` class method of another renderer.
+Alternatively, you can use renderer's own class method ``render()``.
 
-Usage::
+.. testsetup:: *
+
+    from pytermor.renderer import DebugRenderer, NoOpRenderer
+    from pytermor.style import Style
+
+.. doctest::
 
     >>> DebugRenderer.set_as_default()
     >>> Style('red').render('_text_')
@@ -18,11 +23,6 @@ Usage::
     'text'
 
 """
-# terminal -> \e[nm
-# tmux -> #[fg= bg=]
-# html -> <span style='color: n'>
-# debug -> ǝ[30;46m
-# text ->
 from __future__ import annotations
 
 import abc
@@ -39,6 +39,9 @@ from .color import Color, ColorRGB, ColorIndexed, ColorDefault
 class _Renderer(metaclass=abc.ABCMeta):
     @classmethod
     def set_as_default(cls):
+        """
+        Set renderer as default for `Style.render() <style.Style.render>` invocations.
+        """
         this.default_renderer = cls
 
     @classmethod
@@ -48,8 +51,8 @@ class _Renderer(metaclass=abc.ABCMeta):
 
 class SGRRenderer(_Renderer):
     """
-    Default renderer that `style.Style.render()` invokes. Transforms `Color` instances defined in ``style``
-    argument into ANSI control sequence characters and merges them with input string.
+    Default renderer that `Style.render() <style.Style.render>` invokes. Transforms `Color` instances defined
+    in ``style`` argument into ANSI control sequence characters and merges them with input string.
     """
     _terminal_supports_indexed: bool|None = None
     _terminal_supports_rgb: bool|None = None
@@ -104,8 +107,8 @@ class SGRRenderer(_Renderer):
 
     @classmethod
     def _determine_capabilities(cls):
-        cls._terminal_supports_indexed = False
-        cls._terminal_supports_rgb = False  # @TODO
+        cls._terminal_supports_indexed = True
+        cls._terminal_supports_rgb = True  # @TODO
 
 
 class TmuxRenderer(_Renderer):
@@ -115,6 +118,18 @@ class TmuxRenderer(_Renderer):
 class NoOpRenderer(_Renderer):
     @classmethod
     def render(cls, style: Style, text: str) -> str:
+        """
+        Special renderer type that does nothing with the input string and just returns it as is.
+
+        .. doctest::
+
+            >>> NoOpRenderer.render(Style(0xff00ff), 'text')
+            'text'
+
+        :param style: Style to ignore.
+        :param text: Input string.
+        :return: Input string without changes.
+        """
         return text
 
 
