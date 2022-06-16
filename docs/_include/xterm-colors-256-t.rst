@@ -1,8 +1,13 @@
-   .. table::                                                                            
+   .. |code| replace:: **Code**
+   .. |rgb| replace:: **RGB hex**
+   .. |xterm| replace:: **XTerm name**
+   .. |def| replace:: **Default counterpart**
+
+   .. table::
       :widths: 5 10 20 40 30                                                             
                                                                                          
       +--------------------------------------------------------+---------+-------------+-------------------+-----------------+
-      | Ex                                                     | Code    | RGB hex     | XTerm name        | Counterpart     |
+      | **Ex**                                                 | |code|  | |rgb|       | |xterm|           | |def|           |
       +========================================================+=========+=============+===================+=================+
       |  .. image:: /_include/xterm-colors-256-t/color0.png    | ``0``   | ``#000000`` | Black             | ``BLACK``       |
       |      :height: 60px                                     |         |             |                   |                 |

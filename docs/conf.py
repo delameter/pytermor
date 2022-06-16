@@ -108,9 +108,18 @@ latex_logo = '_static/logo-96.png'
 
 autodoc_typehints_format = 'short'
 
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': True,  # @TODO remove
+    'inherited-members': True,
+    'show-inheritance': True,
+    'member-order': 'groupwise',
+    # 'member-order': 'bysource',
+}
+
 #add_module_names = True
 
-modindex_common_prefix = ['pytermor']
+#modindex_common_prefix = ['pytermor']
 
 autosummary_generate = True
 

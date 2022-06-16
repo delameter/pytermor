@@ -29,11 +29,14 @@ def find_color16(hex: str) -> str:
 def get_color16_ref(name: str|None) -> str:
     if not name:
         return ''
-    return '<a class="reference internal" href="presets.html#{color_name}">' \
-           '<code class="xref any py py-data docutils literal notranslate">' \
+    return '<code class="xref any py py-data docutils literal notranslate">' \
            '<span class="pre">{color_name}</span>' \
-           '</code>' \
-           '</a>'.format(color_name=name)
+           '</code>'.format(color_name=name)
+    # return '<a class="reference internal" href="presets.html#{color_name}">' \
+    #        '<code class="xref any py py-data docutils literal notranslate">' \
+    #        '<span class="pre">{color_name}</span>' \
+    #        '</code>' \
+    #        '</a>'.format(color_name=name)
 
 COLORS_16 = [
     'BLACK', 'RED', 'GREEN', 'YELLOW',

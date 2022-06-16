@@ -11,7 +11,7 @@ possible working with filters like with objects rather than with functions/lambd
 .. testsetup:: *
 
     from pytermor import span
-    from pytermor.util import apply_filters, ReplaceSGR
+    from pytermor.util import apply_filters, ReplaceSGR, VisualuzeWhitespace
 
 """
 from __future__ import annotations
@@ -69,16 +69,18 @@ class StringFilter(Generic[AnyStr]):
 
 class VisualuzeWhitespace(StringFilter[str]):
     """
-    Replace every invisible character with visible :kbd:`·`, execpt
-    newlines. Newlines are kept and gets prepneded with same char.
+    Replace every invisible character with ``repl`` (default is :kbd:`·`),
+    except newlines. Newlines are kept and get prepneded with same string.
 
-    Example usages::
+    .. doctest ::
 
-        output = VisualuzeWhitespace().apply(input)  # OR
-        output = apply_filters(input, VisualuzeWhitespace)
+        >>> VisualuzeWhitespace().apply('A  B  C')
+        'A··B··C'
+        >>> apply_filters('1. D\\n2. L ', VisualuzeWhitespace)
+        '1.·D·\\n2.·L·'
     """
-    def __init__(self):
-        super().__init__(r'\s(\n|.)]', '·\\1')
+    def __init__(self, repl: AnyStr = '·'):
+        super().__init__(r'(\n)|\s', repl + '\\1')
 
 
 class ReplaceSGR(StringFilter[str]):

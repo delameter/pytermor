@@ -71,6 +71,7 @@ BG_HI_WHITE = 107
 
 # RARELY SUPPORTED (thus excluded)
 # 10-20: font selection
+#    26: proportional spacing
 #    50: disable proportional spacing
 #    51: framed
 #    52: encircled

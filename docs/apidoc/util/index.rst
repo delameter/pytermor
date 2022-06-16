@@ -1,3 +1,4 @@
+=====================
 util
 =====================
 
@@ -6,8 +7,6 @@ some of the boilerplate code when dealing with escape sequences.
 
 
 .. automodule:: pytermor.util
-   :members:
-   :undoc-members:
 
 
 .. toctree::

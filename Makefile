@@ -110,7 +110,7 @@ docs-pdf: ## Build PDF documentation (requires - latexmk texlive-latex-extra tex
 	rm -rf docs/_build/latex
 	. venv/bin/activate
 	make -C docs latex
-	make -C docs latexpdf  # twice for correct toc
-	make -C docs latexpdf  # @FIXME broken unicode
+	yes "" | make -C docs latexpdf  # twice for correct toc
+	yes "" | make -C docs latexpdf  # @FIXME broken unicode
 
 ##

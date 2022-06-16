@@ -39,8 +39,7 @@ class Style:
     """
     def __init__(self, fg_color: Color|str|int = None, bg_color: Color|str|int = None, blink: bool = False,
                  bold: bool = False, crosslined: bool = False, dim: bool = False, double_underlined: bool = False,
-                 hidden: bool = False, inversed: bool = False, italic: bool = False, overlined: bool = False,
-                 underlined: bool = False):
+                 inversed: bool = False, italic: bool = False, overlined: bool = False, underlined: bool = False):
         self.fg_color: Color = self._resolve_color(fg_color)
         self.bg_color: Color = self._resolve_color(bg_color)
         self.blink: bool = blink
@@ -48,7 +47,6 @@ class Style:
         self.crosslined: bool = crosslined
         self.dim: bool = dim
         self.double_underlined: bool = double_underlined
-        self.hidden: bool = hidden
         self.inversed: bool = inversed
         self.italic: bool = italic
         self.overlined: bool = overlined

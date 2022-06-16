@@ -2,22 +2,23 @@
 
 .. default-role:: any
 
+=======================================
 Formatters and Filters
 =======================================
 
 The library contains @TODO
 
----------------------------
+
 Auto-float formatter
----------------------------
+====================
 
----------------------------
+
 Prefixed-unit formatter
----------------------------
+=======================
 
----------------------------
+
 Time delta formatter
----------------------------
+====================
 
 .. literalinclude:: /_include/examples/ex_140_time_delta.py
    :linenos:
@@ -28,12 +29,11 @@ Time delta formatter
    :class: no-scaled-link
 
 
-----------------
 *StringFilters*
-----------------
+===============
 
----------------------------
+
 Standard Library extensions
----------------------------
+===========================
 
 @TODO

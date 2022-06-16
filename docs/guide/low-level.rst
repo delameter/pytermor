@@ -2,15 +2,15 @@
 
 .. default-role:: any
 
+==========================
 Low-level abstractions
 ==========================
 
 So, what's happening under the hood?
 
 
---------------------
 Format soft reset
---------------------
+=================
 
 There are two ways to manage color and attribute termination:
 
@@ -47,9 +47,8 @@ But it still can be helpful for a majority of cases (especially when text is gen
 program and in one go).
 
 
---------------------------------
 Working with *Spans*
---------------------------------
+====================
 
 Use `Span` constructor to create new instance with specified control sequence(s) as a opening/starter sequence
 and **automatically composed** closing sequence that will terminate attributes defined in opening sequence while
@@ -67,9 +66,8 @@ It's also possible to avoid auto-composing mechanism and create `Span` with expl
 using `Span.new()`.
 
 
-----------------------------
 Creating and applying *SGRs*
-----------------------------
+============================
 
 You can use any of predefined sequences from `sequence` or create your own via standard constructor. Valid
 argument values as well as preset constants are described in `presets` page.
@@ -103,9 +101,8 @@ To get the resulting sequence chars use `encode()` method or cast instance to *s
 - Third line is hexademical string representation.
 
 
------------------------
 SGR sequence structure
------------------------
+======================
 
 1. :kbd:`\\x1b` is ESC *control character*, which opens a control sequence.
 
@@ -119,9 +116,8 @@ SGR sequence structure
    case :abbr:`SGR (Select Graphic Rendition)`. Sequences of this kind are most commonly encountered.
 
 
------------------------
 Combining *SGRs*
------------------------
+================
 
 One instance of `SequenceSGR` can be added to another. This will result in a new ``SequenceSGR`` with combined params.
 
@@ -129,14 +125,21 @@ One instance of `SequenceSGR` can be added to another. This will result in a new
    :linenos:
 
 
-------------------
 Core API
-------------------
+========
 
-.. table::
-   :class: core-api-refs
+.. only :: html
 
-   ===================== =================== ================
-   `build()`             `color_indexed()`   `color_rgb()`
-   `SequenceSGR` class   `Span` constructor  `Span.new()`
-   ===================== =================== ================
+   .. table::
+      :class: core-api-refs
+
+      ===================== =================== ================
+      `build()`             `color_indexed()`   `color_rgb()`
+      `SequenceSGR` class   `Span` constructor  `Span.new()`
+      ===================== =================== ================
+
+.. only :: latex
+
+   * @TODO
+   * `Span` constructor
+   * `Span.new()`

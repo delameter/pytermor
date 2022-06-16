@@ -2,6 +2,7 @@
 
 .. default-role:: any
 
+==========================
 XTerm Colors
 ==========================
 
@@ -18,7 +19,7 @@ forcefully override default colors with custom ones (in any case, that can be ac
 to use them for regular output).
 
 *Default* mode table
------------------------
+====================
 
 .. only:: html
 
@@ -31,7 +32,7 @@ to use them for regular output).
 
 
 *Indexed* mode palette
--------------------------
+======================
 
 .. only:: html
 
@@ -50,7 +51,7 @@ to use them for regular output).
 
 
 *Indexed* mode table
-----------------------
+====================
 
 .. only:: html
 
@@ -61,6 +62,8 @@ to use them for regular output).
 
    .. include:: ../_include/xterm-colors-256-t.rst
 
+
+-----
 
 .. rubric:: Sources
 

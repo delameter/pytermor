@@ -72,8 +72,8 @@ class PrefixedUnitFormatter:
     indicate them.
 
     You can create your own formatters if you need fine tuning of the
-    output and customization. If that's not the case, there are a
-    facade methods :meth:`format_si_metric()` and :meth:`format_si_binary()`,
+    output and customization. If that's not the case, there are facade
+    methods :meth:`format_si_metric()` and :meth:`format_si_binary()`,
     which will invoke predefined formatters and doesn't require setting up.
 
     @TODO params
