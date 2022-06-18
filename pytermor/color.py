@@ -5,63 +5,31 @@
 from __future__ import annotations
 
 from abc import abstractmethod, ABCMeta
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Generic, TypeVar
 
 from . import sequence
 from .sequence import SequenceSGR, color_indexed, color_rgb
 
 
 class Color(metaclass=ABCMeta):
-    _type_color_map: Dict[type, Dict[int, Color]] = dict()
+    _color_map: _ColorMap[Color]
 
     @staticmethod
     def hex_value_to_channels(hex_value: int) -> Tuple[int, int, int]:
-        return (hex_value & 0xFF0000) >> 16, \
-               (hex_value & 0xFF00) >> 8,    \
-               (hex_value & 0xFF)
+        return ((hex_value & 0xff0000) >> 16,
+                (hex_value & 0xff00) >> 8,
+                (hex_value & 0xff))
 
     @classmethod
-    def _get_hex_color_map(cls):
-        return cls._type_color_map[cls]
-
-    @classmethod
-    def find_closest(cls, hex_value: int) -> Color:
-        hex_color_map = cls._get_hex_color_map()
-        if hex_value in hex_color_map.keys():
-            return hex_color_map.get(hex_value)
-
-        input_r, input_g, input_b = cls.hex_value_to_channels(hex_value)
-        min_distance_sq = pow(255, 2) * 3
-        closest = None
-        for map_hex, map_color in hex_color_map.items():
-            # sRGB euclidean distance
-            # https://en.wikipedia.org/wiki/Color_difference#sRGB
-            map_r, map_g, map_b = cls.hex_value_to_channels(map_hex)
-            distance_sq = pow(map_r - input_r, 2) + pow(map_g - input_g, 2) + pow(map_b - input_b, 2)
-
-            if distance_sq < min_distance_sq:
-                min_distance_sq = distance_sq
-                closest = map_color
-
-        if closest is None:
-            raise RuntimeError(f'There are no registred {cls.__name__} instances')
-
-        hex_color_map[hex_value] = closest  # cache the result
-        return closest
+    def _init_color_map(cls):
+        if not hasattr(cls, '_color_map'):
+            cls._color_map = _ColorMap[cls.__class__]()
 
     def __init__(self, hex_value: int = None):
         self._hex_value: int | None = hex_value
 
-        if type(self) not in self._type_color_map:
-            self._type_color_map[type(self)] = dict()
-
-        if hex_value not in self._type_color_map[type(self)].keys():
-            self._type_color_map[type(self)][hex_value] = self
-
-    def __eq__(self, other) -> bool:
-        if not isinstance(other, self.__class__):
-            return False
-        return self._hex_value == other._hex_value
+        self._init_color_map()
+        self._color_map.add_exact(self)
 
     @abstractmethod
     def to_sgr_default(self, bg: bool) -> SequenceSGR: raise NotImplementedError
@@ -75,6 +43,16 @@ class Color(metaclass=ABCMeta):
     @property
     def hex_value(self) -> int|None:
         return self._hex_value
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        return self._hex_value == other._hex_value
+
+    def _repr_hex_value(self):  # pragma: no cover
+        if self._hex_value is not None:
+            return f'0x{self._hex_value:06x}'
+        return ''
 
 
 class ColorDefault(Color):
@@ -90,6 +68,11 @@ class ColorDefault(Color):
                self._seq_bg == other._seq_bg and \
                self._seq_fg == other._seq_fg
 
+    @classmethod
+    def find_closest(cls, hex_value: int) -> ColorDefault:
+        cls._init_color_map()
+        return cls._color_map.find_closest(hex_value)
+
     def to_sgr_default(self, bg: bool) -> SequenceSGR:
         if bg:
             return self._seq_bg
@@ -100,6 +83,9 @@ class ColorDefault(Color):
 
     def to_sgr_rgb(self, bg: bool) -> SequenceSGR:
         return ColorRGB(self.hex_value).to_sgr_rgb(bg=bg)
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}[fg={self._seq_fg!r}, bg={self._seq_bg!r}, {self._repr_hex_value()}]'
 
 
 class ColorIndexed(Color):
@@ -113,6 +99,11 @@ class ColorIndexed(Color):
         return self._hex_value == other._hex_value and \
                self._code == other._code
 
+    @classmethod
+    def find_closest(cls, hex_value: int) -> ColorIndexed:
+        cls._init_color_map()
+        return cls._color_map.find_closest(hex_value)
+
     def to_sgr_default(self, bg: bool) -> SequenceSGR:
         return ColorRGB(self.hex_value).to_sgr_default(bg=bg)
 
@@ -122,8 +113,16 @@ class ColorIndexed(Color):
     def to_sgr_rgb(self, bg: bool) -> SequenceSGR:
         return ColorRGB(self.hex_value).to_sgr_rgb(bg=bg)
 
+    def __repr__(self):
+        return f'{self.__class__.__name__}[{self._code}, {self._repr_hex_value()}]'
+
 
 class ColorRGB(Color):
+    @classmethod
+    def find_closest(cls, hex_value: int) -> ColorRGB:
+        cls._init_color_map()
+        return cls._color_map.find_closest(hex_value)
+
     def to_sgr_default(self, bg: bool) -> SequenceSGR:
         if not self._hex_value:
             return sequence.NOOP
@@ -140,10 +139,50 @@ class ColorRGB(Color):
         return color_rgb(*self.hex_value_to_channels(self._hex_value), bg=bg)
 
     def __repr__(self):
-        value = '[]'
-        if self._hex_value is not None:
-            value = f'[0x{self._hex_value:06x}]'
-        return self.__class__.__name__ + value
+        return f'{self.__class__.__name__}[{self._repr_hex_value()}]'
+
+
+TypeColor = TypeVar('TypeColor', ColorDefault, ColorIndexed, ColorRGB)
+
+
+class _ColorMap(Generic[TypeColor]):
+    def __init__(self):
+        self._exact_color_map: Dict[int, TypeColor] = dict()
+        self._approximate_cache: Dict[int, TypeColor] = dict()
+
+    def add_exact(self, color: TypeColor):
+        self._approximate_cache.clear()
+
+        if color.hex_value is not None:
+            if color.hex_value not in self._exact_color_map.keys():
+                self._exact_color_map[color.hex_value] = color
+
+    def find_closest(self, hex_value: int) -> TypeColor:
+        if hex_value in self._exact_color_map.keys():
+            return self._exact_color_map.get(hex_value)
+        if hex_value in self._approximate_cache.keys():
+            return self._approximate_cache.get(hex_value)
+        if len(self._approximate_cache) == 0:
+            self._approximate_cache = self._exact_color_map.copy()
+
+        input_r, input_g, input_b = Color.hex_value_to_channels(hex_value)
+        min_distance_sq = pow(255, 2) * 3 + 1
+        closest = None
+        for cached_hex, cached_color in self._approximate_cache.items():
+            # sRGB euclidean distance
+            # https://en.wikipedia.org/wiki/Color_difference#sRGB
+            map_r, map_g, map_b = Color.hex_value_to_channels(cached_hex)
+            distance_sq = pow(map_r - input_r, 2) + pow(map_g - input_g, 2) + pow(map_b - input_b, 2)
+
+            if distance_sq < min_distance_sq:
+                min_distance_sq = distance_sq
+                closest = cached_color
+
+        if closest is None:
+            raise RuntimeError(f'There are no registred {self!r} instances')
+
+        self._approximate_cache[hex_value] = closest
+        return closest
 
 
 # -----------------------------------------------------------------------------
@@ -171,5 +210,3 @@ HI_BLUE =    ColorDefault(0x0000ff, sequence.HI_BLUE,    sequence.BG_HI_BLUE)
 HI_MAGENTA = ColorDefault(0xff00ff, sequence.HI_MAGENTA, sequence.BG_HI_MAGENTA)
 HI_CYAN =    ColorDefault(0x00ffff, sequence.HI_CYAN,    sequence.BG_HI_CYAN)
 HI_WHITE =   ColorDefault(0xffffff, sequence.HI_WHITE,   sequence.BG_HI_WHITE)
-
-LIGHT_GREEN = ColorIndexed(0x87ff87, 119)

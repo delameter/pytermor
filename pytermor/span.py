@@ -11,7 +11,7 @@ some text in opening SGR and closing one.
 .. testsetup:: *
 
     from pytermor import sequence, intcode
-    from pytermor.span import Span, NOOP
+    from pytermor.span import Span, NOOP, RED
 
 """
 
@@ -86,7 +86,7 @@ class Span:
         which will be replaced with an empty string.
 
         :param text:  String to wrap.
-        :return:      Resulting string; input argument enclosed to instance's ``SGRs``, if any.
+        :return:      ``text`` enclosed in instance's ``SGRs``, if any.
         """
         result = self._opening_seq.encode()
 
@@ -124,8 +124,10 @@ class Span:
 
     def __call__(self, text: Any = None) -> str:
         """
-        :meta: public
-        `red("string")` is the same as `red.wrap("string")`.
+        Can be used instead of `wrap()` method.
+
+        >>> RED('text') == RED.wrap('text')
+        True
         """
         return self.wrap(text)
 

@@ -86,7 +86,7 @@ There is also a set of methods for dynamic ``SequenceSGR`` creation:
 - `color_rgb()` for setting the colors in True Color 16M mode (however, some terminal emulators doesn't
   support it).
 
-To get the resulting sequence chars use `encode()` method or cast instance to *str*.
+To get the resulting sequence chars use `encode() <SequenceSGR.encode()>` method or cast instance to *str*.
 
 .. literalinclude:: /_include/examples/ex_70_sgr_structure.py
    :linenos:

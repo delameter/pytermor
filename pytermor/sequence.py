@@ -33,7 +33,7 @@ def build(*args: str | int | SequenceSGR) -> SequenceSGR:
     Each sequence param can be specified as:
       - string key (see :mod:`.span`)
       - integer param value (from :mod:`.intcode`)
-      - existing `SequenceSGR` instance (params will be extracted).
+      - existing ``SequenceSGR`` instance (params will be extracted).
 
     Examples:
 
@@ -91,7 +91,7 @@ def color_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
     """
     Wrapper for creation of `SequenceSGR` operating in True Color mode (16M).
     Valid values for *r*, *g* and *b* are in range [0; 255]. This range
-    linearly translates into [0x00; 0xFF] for each channel. The result
+    linearly translates into [``0x00``; ``0xFF``] for each channel. The result
     value is composed as ``#RRGGBB``. For example, sequence with color of
     ``#FF3300`` can be created with::
 
@@ -122,11 +122,6 @@ class _AbstractSequence(metaclass=ABCMeta):
     def __init__(self, *params: int):
         self._params: List[int] = [max(0, int(p)) for p in params]
 
-    @property
-    def params(self) -> List[int]:
-        """ Return internal params as array. """
-        return self._params
-
     @abstractmethod
     def encode(self) -> str:
         """
@@ -134,6 +129,11 @@ class _AbstractSequence(metaclass=ABCMeta):
         as an ASCII-encoded string.
         """
         raise NotImplementedError
+
+    @property
+    def params(self) -> List[int]:
+        """ Return internal params as array. """
+        return self._params
 
     @classmethod
     @abstractmethod
@@ -151,21 +151,21 @@ class _AbstractSequence(metaclass=ABCMeta):
 class _AbstractSequenceCSI(_AbstractSequence, metaclass=ABCMeta):
     """
     Class representing CSI-type ANSI escape sequence. All subtypes of this
-    sequence have something in common - they all start with ``\\e[``.
+    sequence have something in common - they all start with :kbd:`\\e[`.
     """
     _CONTROL_CHARACTER = '\x1b'
     _INTRODUCER = '['
     _SEPARATOR = ';'
-
-    @classmethod
-    def regexp(cls) -> str:
-        return f'\\x1b\\[[0-9;]*{cls._terminator()}'
 
     def __init__(self, *params: int):
         super(_AbstractSequenceCSI, self).__init__(*params)
 
     def __str__(self) -> str:
         return self.encode()
+
+    @classmethod
+    def regexp(cls) -> str:
+        return f'\\x1b\\[[0-9;]*{cls._terminator()}'
 
     @classmethod
     @abstractmethod
@@ -177,9 +177,9 @@ class SequenceSGR(_AbstractSequenceCSI, metaclass=ABCMeta):
     Class representing SGR-type escape sequence with varying amount of parameters.
 
     `SequenceSGR` with zero params was specifically implemented to
-    translate into empty string and not into ``\e[m``, which would have
+    translate into empty string and not into :kbd:`\e[m`, which would have
     made sense, but also would be very entangling, as this sequence is
-    equivalent of ``\e[0m`` -- hard reset sequence. The empty-string-sequence
+    equivalent of :kbd:`\e[0m` -- hard reset sequence. The empty-string-sequence
     is predefined as :data:`.NOOP`.
 
     It's possible to add of one SGR sequence to another:

@@ -23,8 +23,8 @@ class Style:
 
     Both ``fg_color`` and ``bg_color`` can be specified as:
 
-    1. :class:`.color.Color` instance or library preset;
-    2. key code -- name of for any of aformentioned presets, case-insensitive;
+    1. :class:`.Color` instance or library preset;
+    2. key code -- name of for any of aforementioned presets, case-insensitive;
     3. integer color value in hexademical RGB format.
 
     Example usage::
@@ -33,9 +33,18 @@ class Style:
         Style('green', bold=True).render('Green text')
         Style(bg_color=0x0000ff).render('Blue background')
 
-    :param fg_color:  Foreground (i.e., text) color.
-    :param bg_color:  Background color.
-    :param blink:  .... @TODO
+    :param fg_color:    Foreground (i.e., text) color.
+    :param bg_color:    Background color.
+    :param blink:       Blinking effect; *supported by limited amount of Renderers*.
+    :param bold:        Bold or increased intensity.
+    :param crosslined:  Strikethrough.
+    :param dim:         Faint, decreased intensity.
+    :param double_underlined:
+        Faint, decreased intensity.
+    :param inversed:    Swap foreground and background colors.
+    :param italic:      Italic.
+    :param overlined:   Overline.
+    :param underlined:  Underline.
     """
     def __init__(self, fg_color: Color|str|int = None, bg_color: Color|str|int = None, blink: bool = False,
                  bold: bool = False, crosslined: bool = False, dim: bool = False, double_underlined: bool = False,

@@ -24,9 +24,9 @@ from typing import Generic, AnyStr, Type, Callable
 from .. import span
 
 
-def apply_filters(string: AnyStr, *args: StringFilter[AnyStr]|Type[StringFilter[AnyStr]]) -> AnyStr:
+def apply_filters(s: AnyStr, *args: StringFilter[AnyStr]|Type[StringFilter[AnyStr]]) -> AnyStr:  # @FIXME StringFilter[AnyStr] -> StringFilter ?
     """
-    Method for applying dynamic filter list to a target str/bytes.
+    Method for applying dynamic filter list to a target string/bytes.
     Example (will replace all :kbd:`ESC` control characters to :kbd:`E` and
     thus make SGR params visible):
 
@@ -35,21 +35,16 @@ def apply_filters(string: AnyStr, *args: StringFilter[AnyStr]|Type[StringFilter[
         >>> apply_filters(span.RED('test'), ReplaceSGR(r'E\\2\\3\\5'))
         'E[31mtestE[39m'
 
-    Note that type of ``string`` argument must correspond to ``StringFilter``
-    types, i.e. :class:`ReplaceNonAsciiBytes` is ``StringFilter[bytes]`` type, so
+    Note that type of ``s`` argument must be same as ``StringFilter`` parameterized
+    type, i.e. :class:`ReplaceNonAsciiBytes` is ``StringFilter[bytes]`` type, so
     you can apply it only to bytes-type strings.
 
-    :param AnyStr string:
-        String for filter application (str or bytes-type).
-
-    :param args:
-        `StringFilter` instances or ``StringFilter`` types.
-
-    :return:
-        String with applied filters.
+    :param AnyStr s: String to filter.
+    :param args:     `StringFilter` instance(s) or ``StringFilter`` class(es).
+    :return:         Filtered ``s``.
     """
     filters = map(lambda t: t() if isinstance(t, type) else t, args)
-    return reduce(lambda s, f: f.apply(s), filters, string)
+    return reduce(lambda s_, f: f.apply(s_), filters, s)
 
 
 class StringFilter(Generic[AnyStr]):
@@ -61,9 +56,11 @@ class StringFilter(Generic[AnyStr]):
         self._repl = repl
 
     def __call__(self, s: AnyStr) -> AnyStr:
+        """ Can be used instead of `apply()` """
         return self.apply(s)
 
     def apply(self, s: AnyStr) -> AnyStr:
+        """ Apply filter to ``s`` string (or bytes). """
         return self._regex.sub(self._repl, s)
 
 

@@ -9,7 +9,7 @@ Presets
 Summary list of presets defined in the library (not including `util.* <util>`). Preset lists are
 omitted from API docs to avoid unnesessary duplication.
 
-.. |int| replace:: :abbr:`int (intcode module)`
+.. |int| replace:: :abbr:`int (intcode module -- first SGR param value)`
 .. |seq| replace:: :abbr:`seq (sequence module)`
 .. |spn| replace:: :abbr:`spn (span module)`
 .. |clr| replace:: :abbr:`clr (color module)`

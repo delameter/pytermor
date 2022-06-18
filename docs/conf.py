@@ -6,6 +6,9 @@
 
 import os
 import sys
+
+from sphinx.application import Sphinx
+
 sys.path.insert(0, os.path.abspath('..'))
 
 root_doc = 'index'
@@ -106,15 +109,24 @@ latex_logo = '_static/logo-96.png'
 
 # ----------------------------------------------------------------------------
 
+# def setup(app: Sphinx):
+#     app.connect('autodoc-skip-member', autodoc_skip_member)
+#
+# def autodoc_skip_member(app, what, name, obj, skip, options):
+#     if what == 'class' and name.startswith('__'):
+#         print(what, name, obj, skip, options)
+
 autodoc_typehints_format = 'short'
 
 autodoc_default_options = {
     'members': True,
     'undoc-members': True,  # @TODO remove
     'inherited-members': True,
+    #'private-members': True,
     'show-inheritance': True,
+    'special-members': '__call__',
+    #'member-order': 'bysource',
     'member-order': 'groupwise',
-    # 'member-order': 'bysource',
 }
 
 #add_module_names = True
@@ -123,6 +135,48 @@ autodoc_default_options = {
 
 autosummary_generate = True
 
+#autodoc_class_signature = 'separated'
+
+#autodoc_typehints = 'both'
+autodoc_typehints = 'signature'
+#autodoc_typehints = 'description'
+
 keep_warnings = True
 
 doctest_test_doctest_blocks = 'True'
+
+# ----------------------------------------------------------------------------
+
+# ClassDocumenter.add_directive_header uses ClassDocumenter.add_line to
+#   write the class documentation.
+# We'll monkeypatch the add_line method and intercept lines that begin
+#   with "Bases:".
+# In order to minimize the risk of accidentally intercepting a wrong line,
+#   we'll apply this patch inside of the add_directive_header method.
+# https://stackoverflow.com/a/46284013/5834973
+
+from sphinx.ext.autodoc import ClassDocumenter, _
+
+add_line = ClassDocumenter.add_line
+line_to_delete = _(u'Bases: %s') % u':py:class:`object`'
+
+
+def add_line_no_object_base(self, text, *args, **kwargs):
+    if text.strip() == line_to_delete:
+        return
+
+    add_line(self, text, *args, **kwargs)
+
+
+def add_directive_header_no_object_base(self, *args, **kwargs):
+    self.add_line = add_line_no_object_base.__get__(self)
+
+    result = add_directive_header(self, *args, **kwargs)
+
+    del self.add_line
+
+    return result
+
+
+add_directive_header = ClassDocumenter.add_directive_header
+ClassDocumenter.add_directive_header = add_directive_header_no_object_base

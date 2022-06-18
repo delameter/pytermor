@@ -47,9 +47,11 @@ doctest: ## Run doc-tests
 	make -C docs doctest
 
 coverage: ## Run coverage tool
+	rm -rf coverage-report/*
 	. venv/bin/activate
 	PYTHONPATH=${PWD} coverage run tests -vv
 	coverage report
+	coverage html
 
 set-version: ## Set new package version
 	@echo "Current version: ${YELLOW}${VERSION}${RESET}"
