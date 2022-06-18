@@ -7,10 +7,7 @@
 import os
 import sys
 
-from sphinx.application import Sphinx
-
 sys.path.insert(0, os.path.abspath('..'))
-
 root_doc = 'index'
 
 # -- Project information -----------------------------------------------------
@@ -52,6 +49,10 @@ html_static_path = ['_static']
 
 html_css_files = [
     'custom-furo.css',
+]
+
+html_js_files = [
+    'custom.js',
 ]
 
 html_favicon = '_static/favicon.svg'
@@ -109,6 +110,8 @@ latex_logo = '_static/logo-96.png'
 
 # ----------------------------------------------------------------------------
 
+# from sphinx.application import Sphinx  # noqa E402
+#
 # def setup(app: Sphinx):
 #     app.connect('autodoc-skip-member', autodoc_skip_member)
 #
@@ -155,7 +158,7 @@ doctest_test_doctest_blocks = 'True'
 #   we'll apply this patch inside of the add_directive_header method.
 # https://stackoverflow.com/a/46284013/5834973
 
-from sphinx.ext.autodoc import ClassDocumenter, _
+from sphinx.ext.autodoc import ClassDocumenter, _  # noqa E402
 
 add_line = ClassDocumenter.add_line
 line_to_delete = _(u'Bases: %s') % u':py:class:`object`'
@@ -164,17 +167,13 @@ line_to_delete = _(u'Bases: %s') % u':py:class:`object`'
 def add_line_no_object_base(self, text, *args, **kwargs):
     if text.strip() == line_to_delete:
         return
-
     add_line(self, text, *args, **kwargs)
 
 
 def add_directive_header_no_object_base(self, *args, **kwargs):
     self.add_line = add_line_no_object_base.__get__(self)
-
-    result = add_directive_header(self, *args, **kwargs)
-
+    result = add_directive_header(self, *args, **kwargs)  # noqa E1111
     del self.add_line
-
     return result
 
 

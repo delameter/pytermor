@@ -64,3 +64,7 @@ td.xterm-palette-dark {
 article .align-center, article .align-default {
     margin-block: 0.5em 1.0em;
 }
+
+.sidebar-brand {
+    padding: var(--sidebar-item-spacing-vertical) 0;
+}

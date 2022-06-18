@@ -98,3 +98,9 @@ v1.0.0
 ------
 
 - First public version.
+
+
+-----
+
+
+This project uses Semantic Versioning -- https://semver.org *(starting from 2.0.0)*
