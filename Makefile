@@ -16,42 +16,25 @@ GREEN  := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)
 RESET  := $(shell tput -Txterm sgr0)
 
+
 ## Common commands
 
 help:   ## Show this help
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s*([^#]+)#*\s*(.*)/\1${YELLOW}\2${RESET}#\3/' -e 's/(.+):(#|\s)+(.+)/##   ${GREEN}\1${RESET}#\3/' | column -t -s '#'
 
-cleanup:
+demolish:  ## Purge module build output directory
 	rm -f -v dist/* ${PROJECT_NAME}.egg-info/*
 
-prepare:  ## Init environemnt
+prepare:  ## Prepare environment for module building
 	python3 -m pip install --upgrade build twine
 	python3 -m venv venv
 	. venv/bin/activate
 	pip3 install -r requirements-dev.txt
 
-test: ## Run tests
-	. venv/bin/activate
-	PYTHONPATH=${PWD} python3 -m pytest tests
-
-test-verbose: ## Run tests with detailed output
-	. venv/bin/activate
-	PYTHONPATH=${PWD} python3 -m pytest tests -v
-
-test-debug: ## Run tests with VERY detailed output
-	. venv/bin/activate
-	PYTHONPATH=${PWD} python3 -m pytest tests -v --log-cli-level=DEBUG
-
-doctest: ## Run doc-tests
-	. venv/bin/activate
-	make -C docs doctest
-
-coverage: ## Run coverage tool
-	rm -rf coverage-report/*
-	. venv/bin/activate
-	PYTHONPATH=${PWD} coverage run tests -vv
-	coverage report
-	coverage html
+prepare-pdf:  ## Prepare environment for pdf rendering
+	sudo apt install texlive-latex-recommended \
+					 texlive-fonts-recommended \
+					 texlive-latex-extra latexmk
 
 set-version: ## Set new package version
 	@echo "Current version: ${YELLOW}${VERSION}${RESET}"
@@ -63,21 +46,76 @@ set-version: ## Set new package version
 	sed -E -i "s/^__version__.+/__version__ = '$$VERSION'/" ${PROJECT_NAME}/_version.py
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
 
-update-readme: ## Generate and rewrite README
+
+## Local testing
+
+test: ## Run pytest
 	. venv/bin/activate
-	PYTHONPATH=${PWD} python3 -s dev/readme/update_readme.py
+	PYTHONPATH=${PWD} python3 -m pytest tests
+
+test-verbose: ## Run pytest with detailed output
+	. venv/bin/activate
+	PYTHONPATH=${PWD} python3 -m pytest tests -v
+
+test-debug: ## Run pytest with VERY detailed output
+	. venv/bin/activate
+	PYTHONPATH=${PWD} python3 -m pytest tests -v --log-cli-level=DEBUG
+
+doctest: ## Run doctest
+	. venv/bin/activate
+	make -C docs doctest
+
+coverage: ## Run coverage and make a report
+	rm -rf coverage-report/*
+	. venv/bin/activate
+	PYTHONPATH=${PWD} coverage run tests -vv
+	coverage report
+	coverage html
+
+#update-readme: # Generate and rewrite README
+#	. venv/bin/activate
+#	PYTHONPATH=${PWD} python3 -s dev/readme/update_readme.py
 
 
-## Test repository
+## Documentation
 
-build-dev: ## Build module with dev name
-build-dev: cleanup
+reinit-docs: ## Erase and reinit docs with auto table of contents
+	rm docs/*.rst
+	. venv/bin/activate
+	sphinx-apidoc --force --separate \
+		--module-first --tocfile index \
+		--output-dir docs pytermor
+
+demolish-docs: ## Purge docs output directory
+	rm -rf docs/_build
+
+docs: ## Build HTML documentation
+docs: demolish-docs
+	. venv/bin/activate
+	sphinx-build -aEn docs docs/_build -b html
+
+docs-all: ## Build HTML & PDF documentation
+docs-all: docs
+	. venv/bin/activate
+	yes "" | make -C docs latexpdf  # twice for building pdf toc
+	yes "" | make -C docs latexpdf  # @FIXME broken unicode
+
+
+## Dev repository
+
+build-dev: ## Build module with dev project name
+build-dev: demolish
 	sed -E -i "s/^name.+/name = ${PROJECT_NAME}-delameter/" setup.cfg
 	python3 -m build
 	sed -E -i "s/^name.+/name = ${PROJECT_NAME}/" setup.cfg
 
 upload-dev: ## Upload module to dev repository
-	python3 -m twine upload --repository testpypi dist/* -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD_DEV} --verbose
+	python3 -m twine \
+		upload --repository testpypi \
+		dist/* \
+		-u ${PYPI_USERNAME} \
+		-p ${PYPI_PASSWORD_DEV} \
+		--verbose
 
 install-dev: ## Install module from dev repository
 	pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME}-delameter==${VERSION}
@@ -86,7 +124,7 @@ install-dev: ## Install module from dev repository
 ## Primary repository
 
 build: ## Build module
-build: cleanup
+build: demolish
 	python3 -m build
 
 upload: ## Upload module
@@ -94,25 +132,5 @@ upload: ## Upload module
 
 install: ## Install module
 	pip install ${PROJECT_NAME}==${VERSION}
-
-
-## Documentation
-
-reinit-docs: ## Erase and reinit docs with auto table of contents
-	rm docs/*.rst
-	. venv/bin/activate
-	sphinx-apidoc --force --separate --module-first --tocfile index --output-dir docs pytermor
-
-docs: ## Build HTML documentation
-	rm -rf docs/_build
-	. venv/bin/activate
-	sphinx-build -aEn docs docs/_build -b html
-
-docs-pdf: ## Build PDF documentation (requires - latexmk texlive-latex-extra tex-gyre)
-	rm -rf docs/_build/latex
-	. venv/bin/activate
-	make -C docs latex
-	yes "" | make -C docs latexpdf  # twice for correct toc
-	yes "" | make -C docs latexpdf  # @FIXME broken unicode
 
 ##

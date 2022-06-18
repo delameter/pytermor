@@ -142,10 +142,15 @@ class ColorRGB(Color):
         return f'{self.__class__.__name__}[{self._repr_hex_value()}]'
 
 
-TypeColor = TypeVar('TypeColor', ColorDefault, ColorIndexed, ColorRGB)
+TypeColor = TypeVar('TypeColor', 'ColorDefault', 'ColorIndexed', 'ColorRGB')
+""" Any non-abstract Color type for ColorMap generic. """
 
 
 class _ColorMap(Generic[TypeColor]):
+    """
+    Class containing a dictionary of registred Colors indexed by hex code as well as cached
+    nearest color search results to avoid unnecessary instance copies and repeats of algorithm invocation.
+    """
     def __init__(self):
         self._exact_color_map: Dict[int, TypeColor] = dict()
         self._approximate_cache: Dict[int, TypeColor] = dict()
