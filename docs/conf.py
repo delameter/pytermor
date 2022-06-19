@@ -1,16 +1,20 @@
-# -- Path setup --------------------------------------------------------------
+# -----------------------------------------------------------------------------
+#  pytermor [ANSI formatted terminal output toolset]
+#  (c) 2022. A. Shavykin <0.delameter@gmail.com>
+# -----------------------------------------------------------------------------
+import os
+import sys
+
+# -- Path setup ---------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-import os
-import sys
-
 sys.path.insert(0, os.path.abspath('..'))
 root_doc = 'index'
 
-# -- Project information -----------------------------------------------------
+# -- Project information ------------------------------------------------------
 
 project = 'pytermor'
 copyright = '2022, Alexandr Shavykin'
@@ -24,7 +28,7 @@ import pytermor
 version = pytermor.__version__
 release = version
 
-# -- General configuration ---------------------------------------------------
+# -- General configuration ----------------------------------------------------
 
 extensions = [
     'sphinx.ext.autodoc',     'sphinx.ext.todo',
@@ -33,30 +37,23 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx_copybutton'
 ]
-
 templates_path = ['_templates']
-
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '_temp']
 
-nitpick_ignore = [('py:class', 'Match')]
-
-# ----------------------------------------------------------------------------
+# -- HTML ---------------------------------------------------------------------
 
 #html_theme = 'alabaster'  # alibabaster f[f[f[
 html_theme = 'furo'
 
+if len(version) > 5:
+    html_title = f'pytermor<br>{version}'
+else:
+    html_title = f'pytermor {version}'
+
 html_static_path = ['_static']
-
-html_css_files = [
-    'custom-furo.css',
-]
-
-html_js_files = [
-    'custom.js',
-]
-
+html_css_files = ['custom-furo.css']
+html_js_files = ['custom.js']
 html_favicon = '_static/favicon.svg'
-
 html_logo = '_static/logo-96.png'
 
 html_theme_options = {
@@ -89,26 +86,11 @@ html_theme_options = {
 }
 
 
-# ----------------------------------------------------------------------------
-
-#latex_engine = 'xelatex'
-
-#latex_elements = {
-#    'inputenc': '',
-#    'utf8extra': '⡲',
-#    'preamble': '''
-#
-#\usepackage{fontspec}
-#\setsansfont{Arial}
-#\setromanfont{Arial}
-#\setmonofont{DejaVu Sans Mono}
-#
-#''',
-#}
+# -- LaTeX / PDF --------------------------------------------------------------
 
 latex_logo = '_static/logo-96.png'
 
-# ----------------------------------------------------------------------------
+# -- autodoc ------------------------------------------------------------------
 
 # from sphinx.application import Sphinx  # noqa E402
 #
@@ -119,8 +101,7 @@ latex_logo = '_static/logo-96.png'
 #     if what == 'class' and name.startswith('__'):
 #         print(what, name, obj, skip, options)
 
-autodoc_typehints_format = 'short'
-
+#autodoc_typehints_format = 'short'
 autodoc_default_options = {
     'members': True,
     'undoc-members': True,  # @TODO remove
@@ -131,24 +112,18 @@ autodoc_default_options = {
     #'member-order': 'bysource',
     'member-order': 'groupwise',
 }
-
 #add_module_names = True
-
 #modindex_common_prefix = ['pytermor']
-
-autosummary_generate = True
-
+#autosummary_generate = True
 #autodoc_class_signature = 'separated'
-
 #autodoc_typehints = 'both'
 autodoc_typehints = 'signature'
 #autodoc_typehints = 'description'
-
-keep_warnings = True
-
+#keep_warnings = True
 doctest_test_doctest_blocks = 'True'
+nitpick_ignore = [('py:class', 'Match'), ('py:class', 'pytermor.color.TypeColor')]
 
-# ----------------------------------------------------------------------------
+# -- Hide "bases: object" elements --------------------------------------------
 
 # ClassDocumenter.add_directive_header uses ClassDocumenter.add_line to
 #   write the class documentation.

@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
-# pytermor [ANSI formatted terminal output toolset]
-# (C) 2022 A. Shavykin <0.delameter@gmail.com>
+#  pytermor [ANSI formatted terminal output toolset]
+#  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 from .color import Color, ColorRGB, ColorIndexed, ColorDefault
 from .sequence import build, color_indexed, color_rgb

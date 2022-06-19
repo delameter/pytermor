@@ -15,7 +15,3 @@ API docs
    span
    style
    util/index
-
-.. only :: html
-
-   :ref:`modindex`

@@ -62,8 +62,8 @@ for color_name in COLORS_16:
     html_16_output += '''
     <tr>
         <td class="xterm-color-cell" style="background-color: #{color.hex_value:06x}"></td>
-        <td><pre>{color._seq_fg.params[0]}</pre></td>
-        <td><pre>{color._seq_bg.params[0]}</pre></td>
+        <td><pre>{color._code_fg}</pre></td>
+        <td><pre>{color._code_bg}</pre></td>
         <td><pre>0x{color.hex_value:06x}</pre></td>
         <td><pre>{color_name}</pre></td>
         <td><pre>{bg_color_name}</pre></td>

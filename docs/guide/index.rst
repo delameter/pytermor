@@ -12,5 +12,4 @@ Guide
    high-level
    low-level
    presets
-   xterm-colors
    formatters

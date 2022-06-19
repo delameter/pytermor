@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
-# pytermor [ANSI formatted terminal output toolset]
-# (C) 2022 A. Shavykin <0.delameter@gmail.com>
+#  pytermor [ANSI formatted terminal output toolset]
+#  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
 Module for time difference formatting (e.g. "4 days 15 hours", "8h 59m").

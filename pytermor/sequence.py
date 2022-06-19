@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
-# pytermor [ANSI formatted terminal output toolset]
-# (C) 2022 A. Shavykin <0.delameter@gmail.com>
+#  pytermor [ANSI formatted terminal output toolset]
+#  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
 Module contains definitions for low-level ANSI escape sequences handling.
@@ -283,9 +283,7 @@ class _SgrPairityRegistry:
         return build(*closing_seq_params)
 
 
-# ---------------------------------------------------------------------------
-# SequenceSGR presets
-# ---------------------------------------------------------------------------
+# -- SequenceSGR presets ------------------------------------------------------
 
 NOOP = SequenceSGR()
 """
@@ -387,9 +385,7 @@ BG_HI_WHITE = SequenceSGR(intcode.BG_HI_WHITE)
 # 73-75: superscript and subscript
 
 
-# ---------------------------------------------------------------------------
-# Openinng <-> closing sequences matches
-# ---------------------------------------------------------------------------
+# -- Openinng <-> closing sequences matches -----------------------------------
 
 sgr_parity_registry = _SgrPairityRegistry()
 

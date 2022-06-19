@@ -1,5 +1,5 @@
 ## pytermor       ## ANSI formatted terminal output toolset
-## (C) 2022       ## A. Shavykin <0.delameter@gmail.com>
+## (c) 2022       ## A. Shavykin <0.delameter@gmail.com>
 ##----------------##-------------------------------------------------------------
 .ONESHELL:
 .PHONY: help test docs
@@ -23,7 +23,7 @@ help:   ## Show this help
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s*([^#]+)#*\s*(.*)/\1${YELLOW}\2${RESET}#\3/' -e 's/(.+):(#|\s)+(.+)/##   ${GREEN}\1${RESET}#\3/' | column -t -s '#'
 
 demolish:  ## Purge module build output directory
-	rm -f -v dist/* ${PROJECT_NAME}.egg-info/*
+	rm -v dist/* ${PROJECT_NAME}.egg-info/*
 
 prepare:  ## Prepare environment for module building
 	python3 -m pip install --upgrade build twine
@@ -51,54 +51,55 @@ set-version: ## Set new package version
 
 test: ## Run pytest
 	. venv/bin/activate
-	PYTHONPATH=${PWD} python3 -m pytest tests
+	PYTHONPATH=`pwd` python3 -m pytest tests
 
 test-verbose: ## Run pytest with detailed output
 	. venv/bin/activate
-	PYTHONPATH=${PWD} python3 -m pytest tests -v
+	PYTHONPATH=`pwd` python3 -m pytest tests -v
 
 test-debug: ## Run pytest with VERY detailed output
 	. venv/bin/activate
-	PYTHONPATH=${PWD} python3 -m pytest tests -v --log-cli-level=DEBUG
+	PYTHONPATH=`pwd` python3 -m pytest tests -v --log-cli-level=DEBUG
 
 doctest: ## Run doctest
 	. venv/bin/activate
 	make -C docs doctest
 
 coverage: ## Run coverage and make a report
-	rm -rf coverage-report/*
+	rm -v coverage-report/*
 	. venv/bin/activate
-	PYTHONPATH=${PWD} coverage run tests -vv
+	PYTHONPATH=`pwd` coverage run tests -vv
 	coverage report
 	coverage html
+	xdg-open coverage-report/index.html
 
 #update-readme: # Generate and rewrite README
 #	. venv/bin/activate
-#	PYTHONPATH=${PWD} python3 -s dev/readme/update_readme.py
+#	PYTHONPATH=`pwd` python3 -s dev/readme/update_readme.py
 
 
 ## Documentation
 
 reinit-docs: ## Erase and reinit docs with auto table of contents
-	rm docs/*.rst
+	rm -v docs/*.rst
 	. venv/bin/activate
-	sphinx-apidoc --force --separate \
-		--module-first --tocfile index \
-		--output-dir docs pytermor
+	sphinx-apidoc --force --separate --module-first --tocfile index --output-dir docs pytermor
 
 demolish-docs: ## Purge docs output directory
-	rm -rf docs/_build
+	rm -rvf docs/_build/*
 
 docs: ## Build HTML documentation
 docs: demolish-docs
 	. venv/bin/activate
 	sphinx-build -aEn docs docs/_build -b html
+	xdg-open docs/_build/index.html
 
 docs-all: ## Build HTML & PDF documentation
 docs-all: docs
 	. venv/bin/activate
 	yes "" | make -C docs latexpdf  # twice for building pdf toc
 	yes "" | make -C docs latexpdf  # @FIXME broken unicode
+	xdg-open docs/_build/latex/pytermor.pdf
 
 
 ## Dev repository
@@ -110,12 +111,8 @@ build-dev: demolish
 	sed -E -i "s/^name.+/name = ${PROJECT_NAME}/" setup.cfg
 
 upload-dev: ## Upload module to dev repository
-	python3 -m twine \
-		upload --repository testpypi \
-		dist/* \
-		-u ${PYPI_USERNAME} \
-		-p ${PYPI_PASSWORD_DEV} \
-		--verbose
+	python3 -m twine upload --repository testpypi dist/* \
+			-u ${PYPI_USERNAME} -p ${PYPI_PASSWORD_DEV} --verbose
 
 install-dev: ## Install module from dev repository
 	pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME}-delameter==${VERSION}

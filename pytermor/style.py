@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
-# pytermor [ANSI formatted terminal output toolset]
-# (C) 2022 A. Shavykin <0.delameter@gmail.com>
+#  pytermor [ANSI formatted terminal output toolset]
+#  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
 High-level abstraction defining text colors and attributes.
@@ -68,8 +68,8 @@ class Style:
         By default uses `SequenceSGR` renderer, that means that output will contain
         ANSI escape sequences.
         """
-        from .renderer import default_renderer
-        return default_renderer.render(self, text)
+        from .renderer import this
+        return this.default_renderer.render(self, text)
 
     def _resolve_color(self, arg: Color|int|str|None) -> Color:
         if isinstance(arg, Color):

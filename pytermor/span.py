@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
-# pytermor [ANSI formatted terminal output toolset]
-# (C) 2022 A. Shavykin <0.delameter@gmail.com>
+#  pytermor [ANSI formatted terminal output toolset]
+#  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
 Module introducing `Span` low-level  abstractions. The key difference beetween them and
@@ -140,9 +140,7 @@ class Span:
         return self.__class__.__name__ + '[{!r}, {!r}]'.format(self._opening_seq, self._closing_seq)
 
 
-# ---------------------------------------------------------------------------
-# Span presets
-# ---------------------------------------------------------------------------
+# -- Span presets -------------------------------------------------------------
 
 NOOP = Span()
 """

@@ -82,7 +82,7 @@ There is also a set of methods for dynamic ``SequenceSGR`` creation:
      that sequence as :kbd:`\e[0m`, which is *hard* reset sequence.
 
 - `color_indexed()` for complex color selection sequences operating in 256-colors mode (for a complete list
-  see `xterm-colors`);
+  see `presets`);
 - `color_rgb()` for setting the colors in True Color 16M mode (however, some terminal emulators doesn't
   support it).
 

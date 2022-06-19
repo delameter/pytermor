@@ -36,3 +36,4 @@ Key feature of this library is providing necessary abstractions for building com
    guide/index
    apidoc/index
    changes
+   license
