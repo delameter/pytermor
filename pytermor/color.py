@@ -99,9 +99,9 @@ class Color(metaclass=ABCMeta):
 
 class ColorDefault(Color):
     def __init__(self, hex_value: int, code_fg: int, code_bg: int):
-        super().__init__(hex_value)
         self._code_fg = code_fg
         self._code_bg = code_bg
+        super().__init__(hex_value)
 
     @classmethod
     def get_default(cls) -> ColorDefault:
@@ -151,8 +151,8 @@ class ColorDefault(Color):
 
 class ColorIndexed(Color):
     def __init__(self, hex_value: int, code: int):
-        super().__init__(hex_value)
         self._code = code
+        super().__init__(hex_value)
 
     @classmethod
     def get_default(cls) -> ColorIndexed:
