@@ -4,6 +4,11 @@
 # -----------------------------------------------------------------------------
 """
 High-level abstraction defining text colors and attributes.
+
+.. testsetup:: *
+
+    from pytermor import color, Style
+
 """
 from __future__ import annotations
 
@@ -27,14 +32,20 @@ class Style:
     2. key code -- name of for any of aforementioned presets, case-insensitive;
     3. integer color value in hexademical RGB format.
 
-    Example usage::
+    .. doctest ::
 
-        Style(color.RED).render('Red text')
-        Style('green', bold=True).render('Green text')
-        Style(bg_color=0x0000ff).render('Blue background')
+        >>> Style('green', bold=True)
+        Style[fg=008000, no bg, bold]
+        >>> Style(bg_color=0x0000ff)
+        Style[no fg, bg=0000ff]
+        >>> Style(color.IDX_DEEP_SKY_BLUE_1, color.IDX_GREY_93)
+        Style[fg=00afff, bg=eeeeee]
 
     :param fg_color:    Foreground (i.e., text) color.
     :param bg_color:    Background color.
+    :param auto_fg:
+        Automatically select ``fg_color`` based on ``bg_color`` (black or white
+        depending on background brightness, if ``bg_color`` is defined).
     :param blink:       Blinking effect; *supported by limited amount of Renderers*.
     :param bold:        Bold or increased intensity.
     :param crosslined:  Strikethrough.
@@ -46,9 +57,12 @@ class Style:
     :param overlined:   Overline.
     :param underlined:  Underline.
     """
-    def __init__(self, fg_color: Color|str|int = None, bg_color: Color|str|int = None, blink: bool = False,
-                 bold: bool = False, crosslined: bool = False, dim: bool = False, double_underlined: bool = False,
-                 inversed: bool = False, italic: bool = False, overlined: bool = False, underlined: bool = False):
+    def __init__(self, fg_color: str|int|Color = None, bg_color: str|int|Color = None,
+                 auto_fg: bool = False, blink: bool = False, bold: bool = False,
+                 crosslined: bool = False, dim: bool = False,
+                 double_underlined: bool = False, inversed: bool = False,
+                 italic: bool = False, overlined: bool = False,
+                 underlined: bool = False):
         self.fg_color: Color = self._resolve_color(fg_color)
         self.bg_color: Color = self._resolve_color(bg_color)
         self.blink: bool = blink
@@ -61,6 +75,9 @@ class Style:
         self.overlined: bool = overlined
         self.underlined: bool = underlined
 
+        if auto_fg:
+            self._pick_fg_for_bg()
+
     def render(self, text: Any = None) -> str:
         """
         Returns ``text`` with all attributes and colors applied.
@@ -68,10 +85,21 @@ class Style:
         By default uses `SequenceSGR` renderer, that means that output will contain
         ANSI escape sequences.
         """
-        from .renderer import this
-        return this.default_renderer.render(self, text)
+        from .renderer import DefaultRenderer
+        return DefaultRenderer.render(self, text)
 
-    def _resolve_color(self, arg: Color|int|str|None) -> Color:
+    def _pick_fg_for_bg(self):
+        if self.bg_color is None or self.bg_color.hex_value is None:
+            return
+
+        h, s, v = Color.hex_value_to_hsv_channels(self.bg_color.hex_value)
+        if v >= .45:
+            self.fg_color = color.RGB_BLACK
+        else:
+            self.fg_color = color.RGB_WHITE
+
+    # noinspection PyMethodMayBeStatic
+    def _resolve_color(self, arg: str|int|Color|None) -> Color:
         if isinstance(arg, Color):
             return arg
 
@@ -82,7 +110,8 @@ class Style:
             arg_mapped = arg.upper()
             resolved_color = getattr(color, arg_mapped, None)
             if resolved_color is None:
-                raise KeyError(f'Code "{arg}" -> "{arg_mapped}" is not a name of Color preset')
+                raise KeyError(
+                    f'Code "{arg}" -> "{arg_mapped}" is not a name of Color preset')
             if not isinstance(resolved_color, Color):
                 raise ValueError(f'Attribute is not valid Color: {resolved_color}')
             return resolved_color
@@ -90,10 +119,8 @@ class Style:
         return NOOP_COLOR
 
     def __repr__(self):
-        props_set = [
-            f'fg={self.fg_color.hex_value:06x}' if self.fg_color.hex_value else 'no fg',
-            f'bg={self.bg_color.hex_value:06x}' if self.bg_color.hex_value else 'no bg',
-        ]
+        props_set = [self.fg_color.format_value('fg=') or 'no fg',
+                     self.bg_color.format_value('bg=') or 'no bg', ]
         for attr_name in dir(self):
             if not attr_name.startswith('_'):
                 attr = getattr(self, attr_name)
@@ -112,13 +139,11 @@ class Stylesheet:
     def __init__(self, default: Style = None):
         self.default: Style = self._opt_arg(default)
 
-    @classmethod
-    def _opt_arg(cls, arg: Style|None):
+    def _opt_arg(self, arg: Style|None):
         return arg or NOOP
 
     def __repr__(self):
-        props_set = len(list(filter(
-            lambda a: isinstance(a, Style),
-            [getattr(self, attr_name) for attr_name in dir(self) if not attr_name.startswith('_')]
-        )))
-        return self.__class__.__name__ + '[{:d} props]'.format(props_set)
+        styles_set = sum(map(lambda a: int(isinstance(a, Style)),
+            [getattr(self, attr_name) for attr_name in dir(self) if
+             not attr_name.startswith('_')]))
+        return self.__class__.__name__ + '[{:d} props]'.format(styles_set)

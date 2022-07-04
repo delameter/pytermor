@@ -3,6 +3,12 @@ source =
     pytermor
 
 branch = True
+omit =
+    */__init__.py
+    pytermor/__main__.py
+    pytermor/_version.py
+
+dynamic_context = test_function
 
 [report]
 # Regexes for lines to exclude from consideration
@@ -26,3 +32,4 @@ ignore_errors = True
 
 [html]
 directory = coverage-report
+title = pytermor coverage report

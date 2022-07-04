@@ -13,7 +13,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod, ABCMeta
-from typing import Dict, Tuple, Generic, TypeVar
+from typing import Dict, Tuple, Generic, TypeVar, Deque
 
 from . import sequence, intcode
 from .exception import LogicError
@@ -33,23 +33,67 @@ class Color(metaclass=ABCMeta):
         self._color_map.add_to_map(self)
 
     @staticmethod
-    def hex_value_to_channels(hex_value: int) -> Tuple[int, int, int]:
+    def hex_value_to_rgb_channels(hex_value: int) -> Tuple[int, int, int]:
         """
         Transforms ``hex_value`` in ``0xFFFFFF`` format into tuple of three
         integers corresponding to *red*, *blue* and *green* channel value
-        respectively. Values are in [0; 255] range.
+        respectively. Values are within [0; 255] range.
 
         .. doctest ::
 
-            >>> Color.hex_value_to_channels(0x80ff80)
+            >>> Color.hex_value_to_rgb_channels(0x80ff80)
             (128, 255, 128)
-            >>> Color.hex_value_to_channels(0x000001)
+            >>> Color.hex_value_to_rgb_channels(0x000001)
             (0, 0, 1)
 
         """
+        if not isinstance(hex_value, int):
+            raise TypeError(f"Argument type should be 'int', got: {type(hex_value)}")
+
         return ((hex_value & 0xff0000) >> 16,
                 (hex_value & 0xff00) >> 8,
                 (hex_value & 0xff))
+
+    @staticmethod
+    def hex_value_to_hsv_channels(hex_value: int) -> Tuple[int, float, float]:
+        """
+        Transforms ``hex_value`` in ``0xFFFFFF`` format into tuple of three
+        numbers corresponding to *hue*, *saturation* and *value* channel values
+        respectively. *Hue* is within [0, 359] range, *saturation* and *value* are
+        within [0; 1] range.
+
+        :param hex_value:
+        :return:
+        """
+        if not isinstance(hex_value, int):
+            raise TypeError(f"Argument type should be 'int', got: {type(hex_value)}")
+
+        # https://en.wikipedia.org/wiki/HSL_and_HSV#From_RGB
+        r, g, b = Color.hex_value_to_rgb_channels(hex_value)
+        rn, gn, bn = r/255, g/255, b/255
+
+        vmax = max(rn, gn, bn)
+        vmin = min(rn, gn, bn)
+        c = vmax - vmin
+        v = vmax
+
+        if c == 0:
+            h = 0
+        elif v == rn:
+            h = 60 * (0 + (gn - bn)/c)
+        elif v == gn:
+            h = 60 * (2 + (bn - rn)/c)
+        elif v == bn:
+            h = 60 * (4 + (rn - gn)/c)
+        else:
+            raise LogicError('Impossible if-branch, algorithm is implemented incorrectly')
+
+        if v == 0:
+            s = 0
+        else:
+            s = c/v
+
+        return h, s, v
 
     @classmethod
     def _init_color_map(cls):
@@ -91,21 +135,21 @@ class Color(metaclass=ABCMeta):
     def hex_value(self) -> int | None:
         return self._hex_value
 
-    def _repr_hex_value(self):  # pragma: no cover
-        if self._hex_value is not None:
-            return f'0x{self._hex_value:06x}'
-        return ''
+    def format_value(self, prefix: str|None = '0x') -> str:
+        if self._hex_value is None:
+            return ''
+        return f'{prefix or "":s}{self._hex_value:06x}'
 
 
 class ColorDefault(Color):
     def __init__(self, hex_value: int, code_fg: int, code_bg: int):
-        self._code_fg = code_fg
-        self._code_bg = code_bg
+        self._code_fg: int = code_fg
+        self._code_bg: int = code_bg
         super().__init__(hex_value)
 
     @classmethod
     def get_default(cls) -> ColorDefault:
-        return ColorDefault(0x000000, intcode.BLACK, intcode.BG_BLACK)
+        return BLACK
 
     @classmethod
     def find_closest(cls, hex_value: int) -> ColorDefault:
@@ -146,7 +190,7 @@ class ColorDefault(Color):
         return f'{self.__class__.__name__}[' \
                f'fg={self._code_fg!r}, ' \
                f'bg={self._code_bg!r}, ' \
-               f'{self._repr_hex_value()}]'
+               f'{self.format_value()}]'
 
 
 class ColorIndexed(Color):
@@ -156,7 +200,7 @@ class ColorIndexed(Color):
 
     @classmethod
     def get_default(cls) -> ColorIndexed:
-        return ColorIndexed(0x000000, 16)  # to constant @TODO
+        return IDX_BLACK
 
     @classmethod
     def find_closest(cls, hex_value: int) -> ColorIndexed:
@@ -168,8 +212,8 @@ class ColorIndexed(Color):
 
         .. doctest ::
 
-            >>> ColorIndexed.find_closest(0x000000)  # @FIXME
-            ColorIndexed[code=16, 0x000000]
+            >>> ColorIndexed.find_closest(0xd9dbdb)
+            ColorIndexed[code=253, 0xdadada]
 
         """
         cls._init_color_map()
@@ -193,22 +237,23 @@ class ColorIndexed(Color):
     def __repr__(self):
         return f'{self.__class__.__name__}[' \
                f'code={self._code}, ' \
-               f'{self._repr_hex_value()}]'
+               f'{self.format_value()}]'
 
 
 class ColorRGB(Color):
     @classmethod
     def get_default(cls) -> ColorRGB:
-        return ColorRGB(0x000000)
+        return RGB_BLACK
 
     @classmethod
     def find_closest(cls, hex_value: int) -> ColorRGB:
         """
-        Wrapper for `_ColorMap.find_closest()`. `ColorRGB`-type color map
-        doesn't involve caching and searching, it just checks if instance with
-        same hex value was already created, and returns it if it was, or returns
-        a fresh new instance with required color value. In second case color
-        map also puts new instance into its lookup table.
+        Wrapper for `_ColorMap.find_closest()`. `ColorRGB`-type color map 
+        works by simplified algorithm -- without caching and searching --
+        it just checks if instance with same hex value was already created, 
+        and returns it if it was, or returns a brand new instance with required 
+        color value. In second case color map also puts new instance into its 
+        lookup table.
 
         :param hex_value: Integer color value in ``0xFFFFFF`` format.
         :return:          Existing `ColorRGB` instance or newly created one.
@@ -243,7 +288,7 @@ class ColorRGB(Color):
     def to_sgr_rgb(self, bg: bool) -> SequenceSGR:
         if not self._hex_value:
             return sequence.NOOP
-        return color_rgb(*self.hex_value_to_channels(self._hex_value), bg=bg)
+        return color_rgb(*self.hex_value_to_rgb_channels(self._hex_value), bg=bg)
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, self.__class__):
@@ -251,13 +296,13 @@ class ColorRGB(Color):
         return self._hex_value == other._hex_value
 
     def __repr__(self):
-        return f'{self.__class__.__name__}[{self._repr_hex_value()}]'
+        return f'{self.__class__.__name__}[{self.format_value()}]'
 
 
 # -----------------------------------------------------------------------------
 
 TypeColor = TypeVar('TypeColor', 'ColorDefault', 'ColorIndexed', 'ColorRGB')
-""" Any non-abstract `Color` type for `_ColorMap` generic. """
+""" Any non-abstract `Color` type. """
 
 
 class _ColorMap(Generic[TypeColor]):
@@ -332,14 +377,14 @@ class _ColorMap(Generic[TypeColor]):
             # return the first available instance of the required type:
             return self._parent_type.get_default()
 
-        input_r, input_g, input_b = Color.hex_value_to_channels(hex_value)
+        input_r, input_g, input_b = Color.hex_value_to_rgb_channels(hex_value)
         min_distance_sq = None
         closest = None
 
         for cached_hex, cached_color in self._approximate_cache.items():
             # sRGB euclidean distance:
             # https://en.wikipedia.org/wiki/Color_difference#sRGB
-            map_r, map_g, map_b = Color.hex_value_to_channels(cached_hex)
+            map_r, map_g, map_b = Color.hex_value_to_rgb_channels(cached_hex)
             distance_sq = (pow(map_r - input_r, 2) +
                            pow(map_g - input_g, 2) +
                            pow(map_b - input_b, 2))

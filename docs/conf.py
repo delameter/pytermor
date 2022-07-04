@@ -109,8 +109,8 @@ autodoc_default_options = {
     #'private-members': True,
     'show-inheritance': True,
     'special-members': '__call__',
-    #'member-order': 'bysource',
-    'member-order': 'groupwise',
+    'member-order': 'bysource',
+    #'member-order': 'groupwise',
 }
 #add_module_names = True
 #modindex_common_prefix = ['pytermor']
@@ -121,7 +121,9 @@ autodoc_typehints = 'signature'
 #autodoc_typehints = 'description'
 #keep_warnings = True
 doctest_test_doctest_blocks = 'True'
-nitpick_ignore = [('py:class', 'Match'), ('py:class', 'pytermor.color.TypeColor')]
+nitpick_ignore = [('py:class', 'Match'),
+                  ('py:class', 'pytermor.sequence._SequenceCSI'),
+                  ('py:class', 'pytermor.color.TypeColor')]
 
 # -- Hide "bases: object" elements --------------------------------------------
 

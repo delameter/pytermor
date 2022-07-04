@@ -115,7 +115,7 @@ def _validate_extended_color(value: int):
         raise ValueError(f'Invalid color value: {value}; valid values are 0-255 inclusive')
 
 
-class _AbstractSequence(metaclass=ABCMeta):
+class _Sequence(metaclass=ABCMeta):
     """
     Common ancestor of all possible escape sequenes.
     """
@@ -139,7 +139,7 @@ class _AbstractSequence(metaclass=ABCMeta):
     @abstractmethod
     def _short_class_name(cls): raise NotImplementedError
 
-    def __eq__(self, other: _AbstractSequence):
+    def __eq__(self, other: _Sequence):
         if type(self) != type(other):
             return False
         return self._params == other._params
@@ -148,17 +148,17 @@ class _AbstractSequence(metaclass=ABCMeta):
         return f'{self._short_class_name()}[{";".join([str(p) for p in self._params])}]'
 
 
-class _AbstractSequenceCSI(_AbstractSequence, metaclass=ABCMeta):
+class _SequenceCSI(_Sequence, metaclass=ABCMeta):
     """
     Class representing CSI-type ANSI escape sequence. All subtypes of this
-    sequence have something in common - they all start with :kbd:`\\e[`.
+    sequence have something in common -- all of them start with :kbd:`\\e[`.
     """
     _CONTROL_CHARACTER = '\x1b'
     _INTRODUCER = '['
     _SEPARATOR = ';'
 
     def __init__(self, *params: int):
-        super(_AbstractSequenceCSI, self).__init__(*params)
+        super(_SequenceCSI, self).__init__(*params)
 
     def __str__(self) -> str:
         return self.encode()
@@ -172,7 +172,7 @@ class _AbstractSequenceCSI(_AbstractSequence, metaclass=ABCMeta):
     def _terminator(cls) -> str: raise NotImplementedError
 
 
-class SequenceSGR(_AbstractSequenceCSI, metaclass=ABCMeta):
+class SequenceSGR(_SequenceCSI, metaclass=ABCMeta):
     """
     Class representing SGR-type escape sequence with varying amount of parameters.
 

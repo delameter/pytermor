@@ -225,10 +225,10 @@ class TimeDeltaFormatter:
 @dataclass(frozen=True)
 class TimeUnit:
     name: str
-    in_next: int = None
+    in_next: int = None             # how many current units equal to the (one) next unit
     custom_short: str = None
-    collapsible_after: int = None
-    overflow_afer: int = None
+    collapsible_after: int = None   # min threshold for double-delta to become regular
+    overflow_afer: int = None       # max threshold
 
 
 class TimeDeltaStylesheet(Stylesheet):

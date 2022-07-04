@@ -22,8 +22,8 @@ RESET  := $(shell tput -Txterm sgr0)
 help:   ## Show this help
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s*([^#]+)#*\s*(.*)/\1${YELLOW}\2${RESET}#\3/' -e 's/(.+):(#|\s)+(.+)/##   ${GREEN}\1${RESET}#\3/' | column -t -s '#'
 
-demolish:  ## Purge module build output directory
-	rm -v dist/* ${PROJECT_NAME}.egg-info/*
+all:   ## Prepare, run tests, generate docs and reports, build module
+all: prepare prepare-pdf test doctest coverage docs-all build
 
 prepare:  ## Prepare environment for module building
 	python3 -m pip install --upgrade build twine
@@ -45,6 +45,9 @@ set-version: ## Set new package version
 	sed -E -i "s/^version.+/version = $$VERSION/" setup.cfg
 	sed -E -i "s/^__version__.+/__version__ = '$$VERSION'/" ${PROJECT_NAME}/_version.py
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
+
+demolish-build:
+	rm -f -v dist/* ${PROJECT_NAME}.egg-info/*
 
 
 ## Local testing
@@ -71,7 +74,7 @@ coverage: ## Run coverage and make a report
 	PYTHONPATH=`pwd` coverage run tests -vv
 	coverage report
 	coverage html
-	xdg-open coverage-report/index.html
+	if [ -n $$DISPLAY ] ; then xdg-open coverage-report/index.html ; fi
 
 #update-readme: # Generate and rewrite README
 #	. venv/bin/activate
@@ -85,27 +88,30 @@ reinit-docs: ## Erase and reinit docs with auto table of contents
 	. venv/bin/activate
 	sphinx-apidoc --force --separate --module-first --tocfile index --output-dir docs pytermor
 
-demolish-docs: ## Purge docs output directory
+demolish-docs:
 	rm -rvf docs/_build/*
 
 docs: ## Build HTML documentation
 docs: demolish-docs
 	. venv/bin/activate
 	sphinx-build -aEn docs docs/_build -b html
-	xdg-open docs/_build/index.html
+	if [ -n $$DISPLAY ] ; then xdg-open docs/_build/index.html ; fi
 
-docs-all: ## Build HTML & PDF documentation
-docs-all: docs
+docs-pdf: ## Build PDF documentation
 	. venv/bin/activate
 	yes "" | make -C docs latexpdf  # twice for building pdf toc
 	yes "" | make -C docs latexpdf  # @FIXME broken unicode
-	xdg-open docs/_build/latex/pytermor.pdf
+	cp docs/_build/latex/pytermor.pdf docs/pytermor.pdf
+	if [ -n $$DISPLAY ] ; then xdg-open docs/_build/latex/pytermor.pdf ; fi
+
+docs-all: ## Build documentation in all formats
+docs-all: docs docs-pdf
 
 
 ## Dev repository
 
 build-dev: ## Build module with dev project name
-build-dev: demolish
+build-dev: demolish-build
 	sed -E -i "s/^name.+/name = ${PROJECT_NAME}-delameter/" setup.cfg
 	python3 -m build
 	sed -E -i "s/^name.+/name = ${PROJECT_NAME}/" setup.cfg
@@ -121,7 +127,7 @@ install-dev: ## Install module from dev repository
 ## Primary repository
 
 build: ## Build module
-build: demolish
+build: demolish-build
 	python3 -m build
 
 upload: ## Upload module

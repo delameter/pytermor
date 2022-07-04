@@ -8,12 +8,12 @@ from copy import copy
 from typing import Dict
 
 from pytermor import sequence, color, intcode
-from pytermor.color import Color, ColorDefault, ColorIndexed, ColorRGB, _ColorMap
+from pytermor.color import Color, ColorDefault, ColorIndexed, ColorRGB
 from pytermor.sequence import SequenceSGR
 
 
 class TestStatic(unittest.TestCase):
-    def test_hex_value_to_channels(self):
+    def test_hex_value_to_rgb_channels(self):
         for input_idx, ((expected_output), input_num) in enumerate([
             [(0, 0, 0), 0x000000],
             [(255, 255, 255), 0xffffff],
@@ -26,7 +26,7 @@ class TestStatic(unittest.TestCase):
         ]):
             subtest_msg = f'"#{input_num:06x}" -> "{expected_output}"'
             with self.subTest(msg=subtest_msg):
-                actual_output = Color.hex_value_to_channels(input_num)
+                actual_output = Color.hex_value_to_rgb_channels(input_num)
                 logging.debug(subtest_msg + f' => "{actual_output}"')
                 self.assertEquals(expected_output, actual_output)
 
@@ -39,6 +39,14 @@ class TestStatic(unittest.TestCase):
 
         self.assertEquals(sequence.NOOP, color.NOOP.to_sgr_default(False))
         self.assertEquals(sequence.NOOP, color.NOOP.to_sgr_default(True))
+
+    def test_format_value(self):
+        self.assertEquals('0xff00ff', ColorRGB(0xff00ff).format_value())
+        self.assertEquals('#ff00ff', ColorRGB(0xff00ff).format_value('#'))
+
+    def test_format_noop_color_value(self):
+        self.assertEqual('', color.NOOP.format_value())
+        self.assertEqual('', color.NOOP.format_value('#'))
 
 
 class TestColorMap(unittest.TestCase):
@@ -72,6 +80,7 @@ class TestColorMap(unittest.TestCase):
         # like ``importlib.reload(color)``, but this messes up ``isinstance()``
         # checks further in tests, as `color` classes are recreated and even
         # if they have the same name, they are not same objects anymore.
+
         ColorDefault._color_map._lookup_table = cls._color_default_lookup_table
         ColorIndexed._color_map._lookup_table = cls._color_indexed_lookup_table
         ColorRGB._color_map._lookup_table = cls._color_rgb_lookup_table
@@ -180,7 +189,12 @@ class TestColorDefault(unittest.TestCase):
                           .to_sgr_default(True))
 
     def test_to_sgr_indexed(self):
-        pass  # @TODO after indexed presets list
+        self.assertEquals(SequenceSGR(38, 5, intcode.IDX_MAROON),
+                          ColorDefault(0x800000, intcode.RED, intcode.BG_RED)
+                          .to_sgr_indexed(False))
+        self.assertEquals(SequenceSGR(48, 5, intcode.IDX_GREEN_1),
+                          ColorDefault(0x00ee00, intcode.HI_GREEN, intcode.BG_HI_GREEN)
+                          .to_sgr_indexed(True))
 
     def test_to_sgr_rgb(self):
         self.assertEquals(SequenceSGR(38, 2, 128, 0, 0),
@@ -234,7 +248,10 @@ class TestColorRGB(unittest.TestCase):
         self.assertEquals(SequenceSGR(105), ColorRGB(0xff3399).to_sgr_default(True))
 
     def test_to_sgr_indexed(self):
-        pass  # @TODO after indexed presets list
+        self.assertEquals(SequenceSGR(38, 5, intcode.IDX_VIOLET),
+                          ColorRGB(0xd888fe).to_sgr_indexed(False))
+        self.assertEquals(SequenceSGR(48, 5, intcode.IDX_FUCHSIA),
+                          ColorRGB(0xfd03fd).to_sgr_indexed(True))
 
     def test_to_sgr_rgb(self):
         self.assertEquals(SequenceSGR(38, 2, 255, 51, 153),

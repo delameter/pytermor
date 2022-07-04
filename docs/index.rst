@@ -12,6 +12,9 @@ pytermor
 
 Key feature of this library is providing necessary abstractions for building complex text sections with lots of formatting, while keeping the application code clear and readable.
 
+No dependencies besides Python Standard Library required (there are some for testing and docs building, though).
+
+
 .. only :: html
 
    .. table::

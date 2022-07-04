@@ -7,4 +7,3 @@ renderer
 ========================
 
 .. automodule:: pytermor.renderer
-   :private-members: _Renderer
