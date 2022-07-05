@@ -85,7 +85,7 @@ reinit-docs: ## Erase and reinit docs with auto table of contents
 	. venv/bin/activate
 	sphinx-apidoc --force --separate --module-first --tocfile index --output-dir docs pytermor
 
-demolish-docs: ## Purge docs output directory
+demolish-docs: ## Purge docs build output directory
 	rm -rvf docs/_build/*
 
 docs: ## Build HTML documentation
