@@ -12,4 +12,5 @@ Guide
    high-level
    low-level
    presets
+   color-palette
    formatters

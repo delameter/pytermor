@@ -104,8 +104,15 @@ docs-pdf: ## Build PDF documentation
 	cp docs/_build/latex/pytermor.pdf docs/pytermor.pdf
 	if [ -n $$DISPLAY ] ; then xdg-open docs/_build/latex/pytermor.pdf ; fi
 
+docs-man: ## Build man pages
+	. venv/bin/activate
+	sed -i.bak -Ee 's/^.+<<<MAKE_DOCS_MAN<<</#&/' docs/conf.py
+	make -C docs man
+	mv docs/conf.py.bak docs/conf.py
+	cp docs/_build/man/pytermor.1 docs/pytermor.1 && stat docs/pytermor.1 | head -n 2
+
 docs-all: ## Build documentation in all formats
-docs-all: docs docs-pdf
+docs-all: docs docs-pdf docs-man
 
 
 ## Dev repository

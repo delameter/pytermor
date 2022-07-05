@@ -2,31 +2,21 @@
 
 .. default-role:: any
 
-===============================
-Color and attribute preset list
-===============================
+======================================
+Color / attribute preset list
+======================================
 
 Preset lists are omitted from API docs to avoid unnesessary duplication;
 summary list of all presets defined in the library (not including
 `util.* <util>`) is displayed here.
+
+``@TODO`` USAGE - list all memthods that accept string keys of those prsets.
 
 There are two types of color palettes used in modern terminals -- first one
 containing 16 colors (library references that palette as *default*, see
 `ColorDefault`), and second one consisting of 256 colors (referenced as
 *indexed*, e.g. `ColorIndexed`). There is also True Color mode (referenced as
 *RGB* mode), but it is not palette-based.
-
-Actual colors of *default* palette depend on user's terminal settings, i.e.
-the result color of ``ColorDefault`` is not guaranteed to exactly match the
-corresponding color in the list below. However, usually that's not an issue,
-because users expect their terminal theme to work (almost) everythere and
-will be surprised when the applicationforcefully override default colors with
-custom ones (in any case, that can be accomplished by using `ColorRGB`
-or ``ColorIndexed``; their color values are hard to customize without special
-configurations; but it's recommended notto use them for regular output).
-
-Presets
-=======
 
 .. |int| replace:: :abbr:`int (intcode module -- 1st or 3rd SGR param value)`
 .. |seq| replace:: :abbr:`seq (sequence module)`
@@ -49,7 +39,11 @@ Presets
    - |clr|
    - |sty|
 
-.. table:: Meta, attribute and breaker presets
+
+Meta, attributes, breakers
+==========================
+
+.. table::
    :widths: 8 50 12 11 11 11 11 43 43
    :class: presets preset-attributes
 
@@ -122,14 +116,18 @@ Presets
    |                                                                                                                                                                                                                               |
    +--------------------------------------------------------------------------+------------------------------+---------+-----+-----+-----+-----------------+----------------------+------------------------------------------------+
 
-.. table:: *Default* and *indexed* color presets
+
+:mono:`Default` colors
+======================
+
+.. table::
    :widths: 8 60 12 11 11 11 11 30 46
    :class: presets preset-colors
 
    +--------------------------------------------------------------------------+------------------------------+---------+-----+-----+-----+-----------------+----------------------+------------------------------------------------+
    |                                                                          |           **Name**           |  |int|  ||seq|||spn|||clr||     |sty|       |     **RGB code**     |                 **XTerm name**                 |
    +==========================================================================+==============================+=========+=====+=====+=====+=================+======================+================================================+
-   | .. rubric:: Foreground *default* colors                                                                                                                                                                                       |
+   | .. rubric:: Foreground ``default`` colors                                                                                                                                                                                     |
    +--------------------------------------------------------------------------+------------------------------+---------+-----+-----+-----+-----------------+----------------------+------------------------------------------------+
    | .. image:: /_include/xterm-colors-256-t/color0.png                       | ``BLACK``                    |  ``30`` | |V| | |V| | |V| |                 | ``#000000``          | Black                                          |
    |    :height: 60px                                                         |                              |         |     |     |     |                 |                      |                                                |
@@ -163,7 +161,7 @@ Presets
    |    :height: 60px                                                         |                              |         |     |     |     |                 |                      |                                                |
    |    :class: no-scaled-link                                                |                              |         |     |     |     |                 |                      |                                                |
    +--------------------------------------------------------------------------+------------------------------+---------+-----+-----+-----+-----------------+----------------------+------------------------------------------------+
-   | .. rubric:: Background *default* colors                                                                                                                                                                                       |
+   | .. rubric:: Background ``default`` colors                                                                                                                                                                                     |
    +--------------------------------------------------------------------------+------------------------------+---------+-----+-----+-----+-----------------+----------------------+------------------------------------------------+
    | .. image:: /_include/xterm-colors-256-t/color0.png                       | ``BG_BLACK``                 |  ``40`` | |V| | |V| | |V| |                 | ``#000000``          | Black                                          |
    |    :height: 60px                                                         |                              |         |     |     |     |                 |                      |                                                |
@@ -197,7 +195,7 @@ Presets
    |    :height: 60px                                                         |                              |         |     |     |     |                 |                      |                                                |
    |    :class: no-scaled-link                                                |                              |         |     |     |     |                 |                      |                                                |
    +--------------------------------------------------------------------------+------------------------------+---------+-----+-----+-----+-----------------+----------------------+------------------------------------------------+
-   | .. rubric:: High-intensity foreground *default* colors                                                                                                                                                                        |
+   | .. rubric:: High-intensity foreground ``default`` colors                                                                                                                                                                      |
    +--------------------------------------------------------------------------+------------------------------+---------+-----+-----+-----+-----------------+----------------------+------------------------------------------------+
    | .. image:: /_include/xterm-colors-256-t/color8.png                       | ``GRAY``                     |  ``90`` | |V| | |V| | |V| |                 | ``#808080``          | Grey                                           |
    |    :height: 60px                                                         |                              |         |     |     |     |                 |                      |                                                |
@@ -231,7 +229,7 @@ Presets
    |    :height: 60px                                                         |                              |         |     |     |     |                 |                      |                                                |
    |    :class: no-scaled-link                                                |                              |         |     |     |     |                 |                      |                                                |
    +--------------------------------------------------------------------------+------------------------------+---------+-----+-----+-----+-----------------+----------------------+------------------------------------------------+
-   | .. rubric:: High-intensity background *default* colors                                                                                                                                                                        |
+   | .. rubric:: High-intensity background ``default`` colors                                                                                                                                                                      |
    +--------------------------------------------------------------------------+------------------------------+---------+-----+-----+-----+-----------------+----------------------+------------------------------------------------+
    | .. image:: /_include/xterm-colors-256-t/color8.png                       | ``BG_GRAY``                  | ``100`` | |V| | |V| | |V| |                 | ``#808080``          | Grey                                           |
    |    :height: 60px                                                         |                              |         |     |     |     |                 |                      |                                                |
@@ -265,8 +263,18 @@ Presets
    |    :height: 60px                                                         |                              |         |     |     |     |                 |                      |                                                |
    |    :class: no-scaled-link                                                |                              |         |     |     |     |                 |                      |                                                |
    +--------------------------------------------------------------------------+------------------------------+---------+-----+-----+-----+-----------------+----------------------+------------------------------------------------+
-   | .. rubric:: *Indexed* colors                                                                                                                                                                                                  |
+
+
+:mono:`Indexed` colors
+========================
+
+.. table::
+   :widths: 8 60 12 11 11 11 11 30 46
+   :class: presets preset-colors
+
    +--------------------------------------------------------------------------+------------------------------+---------+-----+-----+-----+-----------------+----------------------+------------------------------------------------+
+   |                                                                          |           **Name**           |  |int|  ||seq|||spn|||clr||     |sty|       |     **RGB code**     |                 **XTerm name**                 |
+   +==========================================================================+==============================+=========+=====+=====+=====+=================+======================+================================================+
    | .. image:: /_include/xterm-colors-256-t/color0.png                       | ``IDX_BLACK`` [3]_           | ``0``   |     |     | |V| |                 | ``#000000``          | Black                                          |
    |    :height: 60px                                                         |                              |         |     |     |     |                 |                      |                                                |
    |    :class: no-scaled-link                                                |                              |         |     |     |     |                 |                      |                                                |
@@ -1292,27 +1300,11 @@ Presets
    |    :class: no-scaled-link                                                |                              |         |     |     |     |                 |                      |                                                |
    +--------------------------------------------------------------------------+------------------------------+---------+-----+-----+-----+-----------------+----------------------+------------------------------------------------+
    |                                                                                                                                                                                                                               |
-   |  .. [3] First 16 colors are effectively the same as colors in *default* 16-color mode and share with them the same color values (and depend on terminal color scheme as well).                                                |
+   |  .. [3] First 16 colors are effectively the same as colors in ``default`` 16-color mode and share with them the same color values (and depend on terminal color scheme as well).                                              |
    |                                                                                                                                                                                                                               |
    |  .. [4] XTerm name list contains duplicates; variable names for these were slightly modified (different numbers at the end) to avoid namespace conflicts. All non-matching names are displayed using **bold** font.           |
    |                                                                                                                                                                                                                               |
    +--------------------------------------------------------------------------+------------------------------+---------+-----+-----+-----+-----------------+----------------------+------------------------------------------------+
-
-
-*Indexed* mode palette
-======================
-
-.. only:: html
-
-   .. raw:: html
-      :file: ../_include/xterm-colors-256-p.html
-
-.. only:: latex
-
-   .. figure:: ../_include/xterm-colors-256-p.png
-      :align: center
-
-      *Indexed* mode palette
 
 
 -----
@@ -1320,5 +1312,4 @@ Presets
 .. rubric:: Sources
 
 1. https://en.wikipedia.org/wiki/ANSI_escape_code
-2. https://www.tweaking4all.com/software/linux-software/xterm-color-cheat-sheet/
-3. https://www.ditig.com/256-colors-cheat-sheet
+2. https://www.ditig.com/256-colors-cheat-sheet

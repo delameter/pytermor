@@ -29,7 +29,7 @@ class Style:
     Both ``fg_color`` and ``bg_color`` can be specified as:
 
     1. :class:`.Color` instance or library preset;
-    2. key code -- name of for any of aforementioned presets, case-insensitive;
+    2. key code -- name of any of aforementioned presets, case-insensitive;
     3. integer color value in hexademical RGB format.
 
     .. doctest ::

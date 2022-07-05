@@ -29,8 +29,8 @@ Time delta formatter
    :class: no-scaled-link
 
 
-*StringFilters*
-===============
+String filters
+=====================
 
 
 Standard Library extensions

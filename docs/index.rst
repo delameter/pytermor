@@ -2,9 +2,6 @@
 
 .. default-role:: any
 
-.. role:: underline
-    :class: underline
-
 .. title:: pytermor
 
 =====================
@@ -20,7 +17,7 @@ No dependencies besides Python Standard Library are required (there are some for
 
 .. only :: html
 
-   .. grid:: 2
+   .. grid:: 3
       :gutter: 1
       :class-container: intro
 
@@ -28,15 +25,19 @@ No dependencies besides Python Standard Library are required (there are some for
 
          :ref:`guide.index`
 
-         .. line-block::
-
-            in-depth review with examples
+         *in-depth review with examples*
 
       .. grid-item-card::
 
          :ref:`apidoc.index`
 
          *complete API reference*
+
+      .. grid-item-card::
+
+         :ref:`Presets <guide.presets>`
+
+         *color and attribute preset list*
 
       .. grid-item-card::
 

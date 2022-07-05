@@ -68,7 +68,7 @@ class Renderer(metaclass=abc.ABCMeta):
             * If set to *None*, all renderers will pass input text through themselves
               without any changes (i.e. no colors and attributes will be applied).
             * If set to *True*, renderers will always apply the formatting regardless
-              of another internal rules and algorithms.
+              of other internal rules and algorithms.
             * If set to *False* [default], the final decision will be made
               by every renderer independently, based on their own algorithms.
 
@@ -81,7 +81,7 @@ class Renderer(metaclass=abc.ABCMeta):
 
         :param compatibility_default:
 
-            Disable *indexed* output mode and use *default* 16-color sequences instead.
+            Disable *indexed* output mode and use ``default`` 16-color sequences instead.
             If this setting is set to *True*, the value of ``compatibility_indexed``
             will be ignored completely. Useful when combined with ``curses`` -- that
             way you can check the terminal capabilities from the inside of that
@@ -124,7 +124,7 @@ class SGRRenderer(Renderer):
 
         Respects compatibility preferences (see `set_up()`) and maps RGB colors to
         closest *indexed* colors if terminal doesn't support RGB output. In case
-        terminal doesn't support even 256 colors, falls back to *default* colors,
+        terminal doesn't support even 256 colors, falls back to ``default`` colors,
         searching for closest counterparts in 16-color table.
 
         Type of output ``SequenceSGR`` depends on type of `Color` variables in ``style`` argument. Keeping all that

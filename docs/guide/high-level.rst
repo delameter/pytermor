@@ -6,8 +6,8 @@
 High-level abstractions
 ==========================
 
-*Colors* and *Styles*
-=====================
+:mono:`Colors` and :mono:`Styles`
+=======================================
 
 Output format control
 =====================

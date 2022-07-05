@@ -47,8 +47,8 @@ But it still can be helpful for a majority of cases (especially when text is gen
 program and in one go).
 
 
-Working with *Spans*
-====================
+Working with :mono:`Spans`
+=============================
 
 Use `Span` constructor to create new instance with specified control sequence(s) as a opening/starter sequence
 and **automatically composed** closing sequence that will terminate attributes defined in opening sequence while
@@ -66,8 +66,8 @@ It's also possible to avoid auto-composing mechanism and create `Span` with expl
 using `Span.new()`.
 
 
-Creating and applying *SGRs*
-============================
+Creating and applying :mono:`SGRs`
+==================================
 
 You can use any of predefined sequences from `sequence` or create your own via standard constructor. Valid
 argument values as well as preset constants are described in `presets` page.
@@ -101,8 +101,8 @@ To get the resulting sequence chars use `encode() <SequenceSGR.encode()>` method
 - Third line is hexademical string representation.
 
 
-SGR sequence structure
-======================
+:mono:`SGR` sequence structure
+================================
 
 1. :kbd:`\\x1b` is ESC *control character*, which opens a control sequence.
 
@@ -116,8 +116,8 @@ SGR sequence structure
    case :abbr:`SGR (Select Graphic Rendition)`. Sequences of this kind are most commonly encountered.
 
 
-Combining *SGRs*
-================
+Combining :mono:`SGRs`
+=========================
 
 One instance of `SequenceSGR` can be added to another. This will result in a new ``SequenceSGR`` with combined params.
 

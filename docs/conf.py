@@ -36,10 +36,18 @@ extensions = [
     'sphinx.ext.viewcode',    'sphinx.ext.inheritance_diagram',
     'sphinx.ext.doctest',
     'sphinx_copybutton',
-    'sphinx_design',
+    'sphinx_design',           # <<<MAKE_DOCS_MAN<<<
 ]
+# sphinx-design breaks building docs in man format, so `make` comments that
+# line before building it and uncomments it afterwards (yeah I know it's ugly)
+
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '_temp']
+
+rst_prolog = """
+.. role:: mono
+    :class: entity
+"""
 
 # -- HTML ---------------------------------------------------------------------
 

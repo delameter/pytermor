@@ -1,0 +1,7894 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "PYTERMOR" "1" "Jul 06, 2022" "2.0.0-dev.11" "pytermor"
+.SH NAME
+pytermor \- pytermor 2.0.0-dev.11
+.sp
+\fI(yet another)\fP Python library designed for formatting terminal output using ANSI escape codes. Implements automatic \fI\%\(dqsoft\(dq\fP format termination. Provides a registry of low\-level SGR \fI\%sequences\fP and formatting \fI\%spans\fP (or combined sequences). Also includes a set of formatters for pretty output.
+.sp
+Key feature of this library is providing necessary abstractions for building complex text sections with lots of formatting, while keeping the application code clear and readable.
+.sp
+No dependencies besides Python Standard Library are required (there are some for testing and docs building, though).
+.sp
+\fB@TODO\fP This is how you \fBshould\fP format examples:
+.INDENT 0.0
+.INDENT 2.5
+[image]
+\fI\%https://chrisyeh96.github.io/2020/03/28/terminal\-colors.html#color\-schemes\fP.UNINDENT
+.UNINDENT
+.SH GUIDE
+.SS Getting started
+.SS Installation
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+pip install pytermor
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Features
+.sp
+One of the core concepts of the library is \fI\%Span\fP class. \fBSpan\fP is a combination of two control sequences;
+it wraps specified string with pre\-defined leading and trailing SGR definitions.
+.sp
+Example code:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from pytermor import span
+
+print(span.RED(\(aqFeat\(aq) + span.BOLD(\(aqures\(aq))
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Content\-aware format nesting
+.sp
+Compose text spans with automatic content\-aware span termination. Preset spans can safely overlap with each
+other (as long as they require different \fIbreaker\fP sequences to reset).
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from pytermor import Span
+
+span1 = Span(\(aqblue\(aq, \(aqbold\(aq)
+span2 = Span(\(aqcyan\(aq, \(aqinversed\(aq, \(aqunderlined\(aq, \(aqitalic\(aq)
+
+msg = span1(f\(aqContent{span2(\(dq\-aware format\(dq)} nesting\(aq)
+print(msg)
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+[image]
+.sp
+Flexible sequence builder
+.sp
+Create your own \fI\%SGR sequences\fP with \fI\%build()\fP method, which accepts color/attribute keys,
+integer codes and even existing \fISGRs\fP, in any amount and in any order. Key resolving is case\-insensitive.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from pytermor import sequence, build
+
+seq1 = build(\(aqhi_blue\(aq, 1)  # keys or integer codes
+seq2 = build(seq1, sequence.ITALIC)  # existing SGRs
+seq3 = build(\(aqunderlined\(aq, \(aqYELLOW\(aq)  # case\-insensitive
+
+msg = f\(aq{seq1}Flexible{sequence.RESET} \(aq + \e
+      f\(aq{seq2}sequence{sequence.RESET} \(aq + \e
+      str(seq3) + \(aqbuilder\(aq + str(sequence.RESET)
+print(msg)
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+256 colors / True Color support
+.sp
+The library supports extended color modes:
+.INDENT 0.0
+.IP \(bu 2
+XTerm 256 colors indexed mode (see \fI\%Color / attribute preset list\fP);
+.IP \(bu 2
+True Color RGB mode (16M colors).
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from pytermor import color_indexed, color_rgb, sequence
+
+start_color = 41
+for idx, c in enumerate(range(start_color, start_color+(36*6), 36)):
+    print(f\(aq{color_indexed(c)}███{sequence.COLOR_OFF}\(aq, end=\(aq\(aq)
+
+print(\(aq\en\(aq)
+for idx, c in enumerate(range(0, 256, 256//17)):
+    r = max(0, 255\-c)
+    g = max(0, min(255, 127\-(c*2)))
+    b = c
+    print(f\(aq{color_rgb(r, g, b)}█{sequence.COLOR_OFF}\(aq, end=\(aq\(aq)
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+[image]
+.sp
+Customizable output formats
+.sp
+@TODO
+.sp
+String and number formatters
+.sp
+@TODO
+.SS High\-level abstractions
+.SS Colors and Styles
+.SS Output format control
+.SS Color mode fallbacks
+.SS Core API
+.sp
+@EXAMPLES
+.SS Low\-level abstractions
+.sp
+So, what\(aqs happening under the hood?
+.SS Format soft reset
+.sp
+There are two ways to manage color and attribute termination:
+.INDENT 0.0
+.IP \(bu 2
+hard reset (SGR\-0 or \fBe[0m\fP)
+.IP \(bu 2
+soft reset (SGR\-22, 23, 24 etc.)
+.UNINDENT
+.sp
+The main difference between them is that \fIhard\fP reset disables all formatting after itself, while \fIsoft\fP
+reset disables only actually necessary attributes (i.e. used as opening sequence in \fI\%Span\fP instance\(aqs context)
+and keeps the other.
+.sp
+That\(aqs what \fBSpan\fP class is designed for: to simplify creation of soft\-resetting text spans, so that developer
+doesn\(aqt have to restore all previously applied formats after every closing sequence.
+.sp
+Example
+.sp
+We are given a text span which is initially \fIbold\fP and \fIunderlined\fP\&. We want to recolor a few words inside of this
+span. By default this will result in losing all the formatting to the right of updated text span (because
+\fI\%RESET\fP, or \fBe[0m\fP, clears all text attributes).
+.sp
+However, there is an option to specify what attributes should be disabled or let the library do that for you:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from pytermor import sequence, span, Span
+
+# automatically:
+span_warn = Span(sequence.HI_YELLOW + sequence.UNDERLINED)
+# or explicitly:
+span_warn = Span.new(
+    sequence.HI_YELLOW + sequence.UNDERLINED,  # sequences can be summed up, remember?
+    sequence.COLOR_OFF + sequence.UNDERLINED_OFF,  # \(dqcounteractive\(dq sequences
+    hard_reset_after=False
+)
+
+orig_text = span.BOLD(f\(aqthis is {sequence.BG_GRAY}the original{sequence.RESET} string\(aq)
+updated_text = orig_text.replace(\(aqoriginal\(aq, span_warn(\(aqupdated\(aq), 1)
+print(orig_text, \(aq\en\(aq, updated_text)
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+[image]
+.sp
+As you can see, the update went well \-\- we kept all the previously applied formatting. Of course, this method
+cannot be 100% applicable; for example, imagine that original text was colored blue. After the update \(dqstring\(dq
+word won\(aqt be blue anymore, as we used \fBsequence.COLOR_OFF\fP escape sequence to neutralize our own yellow color.
+But it still can be helpful for a majority of cases (especially when text is generated and formatted by the same
+program and in one go).
+.SS Working with Spans
+.sp
+Use \fI\%Span\fP constructor to create new instance with specified control sequence(s) as a opening/starter sequence
+and \fBautomatically composed\fP closing sequence that will terminate attributes defined in opening sequence while
+keeping the others (soft reset).
+.sp
+Resulting sequence params\(aq order is the same as argument\(aqs order.
+.sp
+Each sequence param can be specified as:
+.INDENT 0.0
+.IP \(bu 2
+string key (see \fI\%Color / attribute preset list\fP);
+.IP \(bu 2
+integer param value;
+.IP \(bu 2
+existing \fI\%SequenceSGR\fP instance (params will be extracted).
+.UNINDENT
+.sp
+It\(aqs also possible to avoid auto\-composing mechanism and create \fI\%Span\fP with explicitly set parameters
+using \fI\%Span.new()\fP\&.
+.SS Creating and applying SGRs
+.sp
+You can use any of predefined sequences from \fI\%sequence\fP or create your own via standard constructor. Valid
+argument values as well as preset constants are described in \fI\%Color / attribute preset list\fP page.
+.sp
+There is also a set of methods for dynamic \fBSequenceSGR\fP creation:
+.INDENT 0.0
+.IP \(bu 2
+\fI\%build()\fP for non\-specific sequences;
+.sp
+\fBIMPORTANT:\fP
+.INDENT 2.0
+.INDENT 3.5
+\fBSequenceSGR\fP with zero params was specifically implemented to translate into an empty string and not
+into \fBe[m\fP, which would make sense, but also could be very entangling, as terminal emulators interpret
+that sequence as \fBe[0m\fP, which is \fIhard\fP reset sequence.
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+\fI\%color_indexed()\fP for complex color selection sequences operating in 256\-colors mode (for a complete list
+see \fI\%Color / attribute preset list\fP);
+.IP \(bu 2
+\fI\%color_rgb()\fP for setting the colors in True Color 16M mode (however, some terminal emulators doesn\(aqt
+support it).
+.UNINDENT
+.sp
+To get the resulting sequence chars use \fI\%encode()\fP method or cast instance to \fIstr\fP\&.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from pytermor.sequence import SequenceSGR
+
+seq = SequenceSGR(4, 7)
+msg = f\(aq({seq})\(aq
+
+print(msg + f\(aq{SequenceSGR(0).encode()}\(aq)
+print(str(msg.encode()))
+print(msg.encode().hex(\(aq:\(aq))
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+[image]
+.INDENT 0.0
+.IP \(bu 2
+First line is the string with encoded escape sequence;
+.IP \(bu 2
+Second line shows up the string in raw mode, as if sequences were ignored by the terminal;
+.IP \(bu 2
+Third line is hexademical string representation.
+.UNINDENT
+.SS SGR sequence structure
+.INDENT 0.0
+.IP 1. 3
+\fB\ex1b\fP is ESC \fIcontrol character\fP, which opens a control sequence.
+.IP 2. 3
+\fB[\fP is sequence \fIintroducer\fP; it determines the type of control sequence (in this case
+it\(aqs CSI).
+.IP 3. 3
+\fB4\fP and \fB7\fP are \fIparameters\fP of the escape sequence; they mean \(dqunderlined\(dq and \(dqinversed\(dq
+attributes respectively. Those parameters must be separated by \fB;\fP\&.
+.IP 4. 3
+\fBm\fP is sequence \fIterminator\fP; it also determines the sub\-type of sequence, in our
+case SGR\&. Sequences of this kind are most commonly encountered.
+.UNINDENT
+.SS Combining SGRs
+.sp
+One instance of \fI\%SequenceSGR\fP can be added to another. This will result in a new \fBSequenceSGR\fP with combined params.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from pytermor import sequence
+from pytermor.sequence import SequenceSGR
+
+combined = SequenceSGR(1, 31) + SequenceSGR(4)
+print(f\(aq{combined}combined{sequence.RESET}\(aq, str(combined).encode())
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Core API
+.SS Color / attribute preset list
+.sp
+Preset lists are omitted from API docs to avoid unnesessary duplication;
+summary list of all presets defined in the library (not including
+\fI\%util.*\fP) is displayed here.
+.sp
+\fB@TODO\fP USAGE \- list all memthods that accept string keys of those prsets.
+.sp
+There are two types of color palettes used in modern terminals \-\- first one
+containing 16 colors (library references that palette as \fIdefault\fP, see
+\fI\%ColorDefault\fP), and second one consisting of 256 colors (referenced as
+\fIindexed\fP, e.g. \fI\%ColorIndexed\fP). There is also True Color mode (referenced as
+\fIRGB\fP mode), but it is not palette\-based.
+.SS Meta, attributes, breakers
+.TS
+center;
+|l|l|l|l|l|l|l|l|.
+_
+T{
+T}	T{
+\fBName\fP
+T}	T{
+int
+T}	T{
+seq
+T}	T{
+spn
+T}	T{
+clr
+T}	T{
+sty
+T}	T{
+\fBDescription\fP
+T}
+_
+T{
+Meta
+T}
+_
+T{
+T}	T{
+\fBNOOP\fP
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+No\-operation; always encoded as empty string
+T}
+_
+T{
+T}	T{
+\fBRESET\fP
+T}	T{
+\fB0\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Reset all attributes and colors
+T}
+_
+T{
+Attributes
+T}
+_
+T{
+T}	T{
+\fBBOLD\fP
+T}	T{
+\fB1\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fBV\fP\ [1]
+T}	T{
+Bold or increased intensity
+T}
+_
+T{
+T}	T{
+\fBDIM\fP
+T}	T{
+\fB2\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+Faint, decreased intensity
+T}
+_
+T{
+T}	T{
+\fBITALIC\fP
+T}	T{
+\fB3\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+Italic; \fInot widely supported\fP
+T}
+_
+T{
+T}	T{
+\fBUNDERLINED\fP
+T}	T{
+\fB4\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+Underline
+T}
+_
+T{
+T}	T{
+\fBBLINK_SLOW\fP
+T}	T{
+\fB5\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP\ [2]
+T}	T{
+Set blinking to < 150 cpm
+T}
+_
+T{
+T}	T{
+\fBBLINK_FAST\fP
+T}	T{
+\fB6\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Set blinking to 150+ cpm; \fInot widely supported\fP
+T}
+_
+T{
+T}	T{
+\fBINVERSED\fP
+T}	T{
+\fB7\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+Swap foreground and background colors
+T}
+_
+T{
+T}	T{
+\fBHIDDEN\fP
+T}	T{
+\fB8\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Conceal characters; \fInot widely supported\fP
+T}
+_
+T{
+T}	T{
+\fBCROSSLINED\fP
+T}	T{
+\fB9\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+Strikethrough
+T}
+_
+T{
+T}	T{
+\fBDOUBLE_UNDERLINED\fP
+T}	T{
+\fB21\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Double\-underline; \fIon several terminals disables\fP \fBBOLD\fP \fIinstead\fP
+T}
+_
+T{
+T}	T{
+\fBCOLOR_EXTENDED\fP
+T}	T{
+\fB38\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Set foreground color [\fIindexed\fP/\fIRGB\fP mode];
+\fIuse\fP \fI\%color_indexed\fP \fIand\fP \fI\%color_rgb\fP \fIinstead\fP
+T}
+_
+T{
+T}	T{
+\fBBG_COLOR_EXTENDED\fP
+T}	T{
+\fB48\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Set background color [\fIindexed\fP/\fIRGB\fP mode];
+\fIuse\fP \fI\%color_indexed\fP \fIand\fP \fI\%color_rgb\fP \fIinstead\fP
+T}
+_
+T{
+T}	T{
+\fBOVERLINED\fP
+T}	T{
+\fB53\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+Overline; \fInot widely supported\fP
+T}
+_
+T{
+Breakers
+T}
+_
+T{
+T}	T{
+\fBBOLD_DIM_OFF\fP
+T}	T{
+\fB22\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Disable \fBBOLD\fP and \fBDIM\fP attributes. \fISpecial aspects... It\(aqs
+impossible to reliably disable them on a separate basis.\fP
+T}
+_
+T{
+T}	T{
+\fBITALIC_OFF\fP
+T}	T{
+\fB23\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Disable italic
+T}
+_
+T{
+T}	T{
+\fBUNDERLINED_OFF\fP
+T}	T{
+\fB24\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Disable underlining
+T}
+_
+T{
+T}	T{
+\fBBLINK_OFF\fP
+T}	T{
+\fB25\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Disable blinking
+T}
+_
+T{
+T}	T{
+\fBINVERSED_OFF\fP
+T}	T{
+\fB27\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Disable inversing
+T}
+_
+T{
+T}	T{
+\fBHIDDEN_OFF\fP
+T}	T{
+\fB28\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Disable conecaling
+T}
+_
+T{
+T}	T{
+\fBCROSSLINED_OFF\fP
+T}	T{
+\fB29\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Disable strikethrough
+T}
+_
+T{
+T}	T{
+\fBCOLOR_OFF\fP
+T}	T{
+\fB39\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Reset foreground color
+T}
+_
+T{
+T}	T{
+\fBBG_COLOR_OFF\fP
+T}	T{
+\fB49\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Reset background color
+T}
+_
+T{
+T}	T{
+\fBOVERLINED_OFF\fP
+T}	T{
+\fB55\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+T}	T{
+T}	T{
+Disable overlining
+T}
+_
+T{
+.IP [1] 5
+for this and subsequent items in \(dqAttributes\(dq section: as boolean flags.
+.IP [2] 5
+as \fBblink\fP\&.
+T}
+_
+.TE
+.SS Default colors
+.TS
+center;
+|l|l|l|l|l|l|l|l|l|.
+_
+T{
+T}	T{
+\fBName\fP
+T}	T{
+int
+T}	T{
+seq
+T}	T{
+spn
+T}	T{
+clr
+T}	T{
+sty
+T}	T{
+\fBRGB code\fP
+T}	T{
+\fBXTerm name\fP
+T}
+_
+T{
+Foreground \fBdefault\fP colors
+T}
+_
+T{
+[image]
+T}	T{
+\fBBLACK\fP
+T}	T{
+\fB30\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#000000\fP
+T}	T{
+Black
+T}
+_
+T{
+[image]
+T}	T{
+\fBRED\fP
+T}	T{
+\fB31\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#800000\fP
+T}	T{
+Maroon
+T}
+_
+T{
+[image]
+T}	T{
+\fBGREEN\fP
+T}	T{
+\fB32\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#008000\fP
+T}	T{
+Green
+T}
+_
+T{
+[image]
+T}	T{
+\fBYELLOW\fP
+T}	T{
+\fB33\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#808000\fP
+T}	T{
+Olive
+T}
+_
+T{
+[image]
+T}	T{
+\fBBLUE\fP
+T}	T{
+\fB34\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#000080\fP
+T}	T{
+Navy
+T}
+_
+T{
+[image]
+T}	T{
+\fBMAGENTA\fP
+T}	T{
+\fB35\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#800080\fP
+T}	T{
+Purple
+T}
+_
+T{
+[image]
+T}	T{
+\fBCYAN\fP
+T}	T{
+\fB36\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#008080\fP
+T}	T{
+Teal
+T}
+_
+T{
+[image]
+T}	T{
+\fBWHITE\fP
+T}	T{
+\fB37\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#c0c0c0\fP
+T}	T{
+Silver
+T}
+_
+T{
+Background \fBdefault\fP colors
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_BLACK\fP
+T}	T{
+\fB40\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#000000\fP
+T}	T{
+Black
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_RED\fP
+T}	T{
+\fB41\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#800000\fP
+T}	T{
+Maroon
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_GREEN\fP
+T}	T{
+\fB42\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#008000\fP
+T}	T{
+Green
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_YELLOW\fP
+T}	T{
+\fB43\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#808000\fP
+T}	T{
+Olive
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_BLUE\fP
+T}	T{
+\fB44\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#000080\fP
+T}	T{
+Navy
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_MAGENTA\fP
+T}	T{
+\fB45\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#800080\fP
+T}	T{
+Purple
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_CYAN\fP
+T}	T{
+\fB46\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#008080\fP
+T}	T{
+Teal
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_WHITE\fP
+T}	T{
+\fB47\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#c0c0c0\fP
+T}	T{
+Silver
+T}
+_
+T{
+High\-intensity foreground \fBdefault\fP colors
+T}
+_
+T{
+[image]
+T}	T{
+\fBGRAY\fP
+T}	T{
+\fB90\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#808080\fP
+T}	T{
+Grey
+T}
+_
+T{
+[image]
+T}	T{
+\fBHI_RED\fP
+T}	T{
+\fB91\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff0000\fP
+T}	T{
+Red
+T}
+_
+T{
+[image]
+T}	T{
+\fBHI_GREEN\fP
+T}	T{
+\fB92\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00ff00\fP
+T}	T{
+Lime
+T}
+_
+T{
+[image]
+T}	T{
+\fBHI_YELLOW\fP
+T}	T{
+\fB93\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffff00\fP
+T}	T{
+Yellow
+T}
+_
+T{
+[image]
+T}	T{
+\fBHI_BLUE\fP
+T}	T{
+\fB94\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#0000ff\fP
+T}	T{
+Blue
+T}
+_
+T{
+[image]
+T}	T{
+\fBHI_MAGENTA\fP
+T}	T{
+\fB95\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff00ff\fP
+T}	T{
+Fuchsia
+T}
+_
+T{
+[image]
+T}	T{
+\fBHI_CYAN\fP
+T}	T{
+\fB96\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00ffff\fP
+T}	T{
+Aqua
+T}
+_
+T{
+[image]
+T}	T{
+\fBHI_WHITE\fP
+T}	T{
+\fB97\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffffff\fP
+T}	T{
+White
+T}
+_
+T{
+High\-intensity background \fBdefault\fP colors
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_GRAY\fP
+T}	T{
+\fB100\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#808080\fP
+T}	T{
+Grey
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_HI_RED\fP
+T}	T{
+\fB101\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff0000\fP
+T}	T{
+Red
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_HI_GREEN\fP
+T}	T{
+\fB102\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00ff00\fP
+T}	T{
+Lime
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_HI_YELLOW\fP
+T}	T{
+\fB103\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffff00\fP
+T}	T{
+Yellow
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_HI_BLUE\fP
+T}	T{
+\fB104\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#0000ff\fP
+T}	T{
+Blue
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_HI_MAGENTA\fP
+T}	T{
+\fB105\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff00ff\fP
+T}	T{
+Fuchsia
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_HI_CYAN\fP
+T}	T{
+\fB106\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00ffff\fP
+T}	T{
+Aqua
+T}
+_
+T{
+[image]
+T}	T{
+\fBBG_HI_WHITE\fP
+T}	T{
+\fB107\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffffff\fP
+T}	T{
+White
+T}
+_
+.TE
+.SS Indexed colors
+.TS
+center;
+|l|l|l|l|l|l|l|l|l|.
+_
+T{
+T}	T{
+\fBName\fP
+T}	T{
+int
+T}	T{
+seq
+T}	T{
+spn
+T}	T{
+clr
+T}	T{
+sty
+T}	T{
+\fBRGB code\fP
+T}	T{
+\fBXTerm name\fP
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_BLACK\fP [3]
+T}	T{
+\fB0\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#000000\fP
+T}	T{
+Black
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MAROON\fP
+T}	T{
+\fB1\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#800000\fP
+T}	T{
+Maroon
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREEN\fP
+T}	T{
+\fB2\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#008000\fP
+T}	T{
+Green
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_OLIVE\fP
+T}	T{
+\fB3\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#808000\fP
+T}	T{
+Olive
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_NAVY\fP
+T}	T{
+\fB4\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#000080\fP
+T}	T{
+Navy
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PURPLE\fP
+T}	T{
+\fB5\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#800080\fP
+T}	T{
+Purple
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_TEAL\fP
+T}	T{
+\fB6\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#008080\fP
+T}	T{
+Teal
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SILVER\fP
+T}	T{
+\fB7\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#c0c0c0\fP
+T}	T{
+Silver
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GRAY\fP
+T}	T{
+\fB8\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#808080\fP
+T}	T{
+Grey
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_RED\fP
+T}	T{
+\fB9\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff0000\fP
+T}	T{
+Red
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIME\fP
+T}	T{
+\fB10\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00ff00\fP
+T}	T{
+Lime
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_YELLOW\fP
+T}	T{
+\fB11\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffff00\fP
+T}	T{
+Yellow
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_BLUE\fP
+T}	T{
+\fB12\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#0000ff\fP
+T}	T{
+Blue
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_FUCHSIA\fP
+T}	T{
+\fB13\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff00ff\fP
+T}	T{
+Fuchsia
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_AQUA\fP
+T}	T{
+\fB14\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00ffff\fP
+T}	T{
+Aqua
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_WHITE\fP
+T}	T{
+\fB15\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffffff\fP
+T}	T{
+White
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_0\fP
+T}	T{
+\fB16\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#000000\fP
+T}	T{
+Grey0
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_NAVY_BLUE\fP
+T}	T{
+\fB17\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00005f\fP
+T}	T{
+NavyBlue
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_BLUE\fP
+T}	T{
+\fB18\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#000087\fP
+T}	T{
+DarkBlue
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_BLUE_3\fP
+T}	T{
+\fB19\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#0000af\fP
+T}	T{
+Blue3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_BLUE_2\fP
+T}	T{
+\fB20\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#0000d7\fP
+T}	T{
+\fBBlue3\fP [4]
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_BLUE_1\fP
+T}	T{
+\fB21\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#0000ff\fP
+T}	T{
+Blue1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_GREEN\fP
+T}	T{
+\fB22\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#005f00\fP
+T}	T{
+DarkGreen
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DEEP_SKY_BLUE_4\fP
+T}	T{
+\fB23\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#005f5f\fP
+T}	T{
+DeepSkyBlue4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DEEP_SKY_BLUE_4\fP
+T}	T{
+\fB24\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#005f87\fP
+T}	T{
+DeepSkyBlue4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DEEP_SKY_BLUE_4\fP
+T}	T{
+\fB25\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#005faf\fP
+T}	T{
+DeepSkyBlue4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DODGER_BLUE_3\fP
+T}	T{
+\fB26\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#005fd7\fP
+T}	T{
+DodgerBlue3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DODGER_BLUE_2\fP
+T}	T{
+\fB27\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#005fff\fP
+T}	T{
+DodgerBlue2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREEN_4\fP
+T}	T{
+\fB28\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#008700\fP
+T}	T{
+Green4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SPRING_GREEN_4\fP
+T}	T{
+\fB29\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00875f\fP
+T}	T{
+SpringGreen4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_TURQUOISE_4\fP
+T}	T{
+\fB30\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#008787\fP
+T}	T{
+Turquoise4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DEEP_SKY_BLUE_3\fP
+T}	T{
+\fB31\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#0087af\fP
+T}	T{
+DeepSkyBlue3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DEEP_SKY_BLUE_3\fP
+T}	T{
+\fB32\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#0087d7\fP
+T}	T{
+DeepSkyBlue3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DODGER_BLUE_1\fP
+T}	T{
+\fB33\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#0087ff\fP
+T}	T{
+DodgerBlue1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREEN_3\fP
+T}	T{
+\fB34\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00af00\fP
+T}	T{
+Green3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SPRING_GREEN_3\fP
+T}	T{
+\fB35\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00af5f\fP
+T}	T{
+SpringGreen3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_CYAN\fP
+T}	T{
+\fB36\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00af87\fP
+T}	T{
+DarkCyan
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_SEA_GREEN\fP
+T}	T{
+\fB37\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00afaf\fP
+T}	T{
+LightSeaGreen
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DEEP_SKY_BLUE_2\fP
+T}	T{
+\fB38\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00afd7\fP
+T}	T{
+DeepSkyBlue2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DEEP_SKY_BLUE_1\fP
+T}	T{
+\fB39\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00afff\fP
+T}	T{
+DeepSkyBlue1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREEN_3\fP
+T}	T{
+\fB40\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00d700\fP
+T}	T{
+Green3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SPRING_GREEN_3\fP
+T}	T{
+\fB41\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00d75f\fP
+T}	T{
+SpringGreen3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SPRING_GREEN_2\fP
+T}	T{
+\fB42\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00d787\fP
+T}	T{
+SpringGreen2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_CYAN_3\fP
+T}	T{
+\fB43\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00d7af\fP
+T}	T{
+Cyan3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_TURQUOISE\fP
+T}	T{
+\fB44\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00d7d7\fP
+T}	T{
+DarkTurquoise
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_TURQUOISE_2\fP
+T}	T{
+\fB45\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00d7ff\fP
+T}	T{
+Turquoise2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREEN_1\fP
+T}	T{
+\fB46\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00ff00\fP
+T}	T{
+Green1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SPRING_GREEN_2\fP
+T}	T{
+\fB47\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00ff5f\fP
+T}	T{
+SpringGreen2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SPRING_GREEN_1\fP
+T}	T{
+\fB48\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00ff87\fP
+T}	T{
+SpringGreen1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MEDIUM_SPRING_GREEN\fP
+T}	T{
+\fB49\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00ffaf\fP
+T}	T{
+MediumSpringGreen
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_CYAN_2\fP
+T}	T{
+\fB50\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00ffd7\fP
+T}	T{
+Cyan2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_CYAN_1\fP
+T}	T{
+\fB51\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#00ffff\fP
+T}	T{
+Cyan1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_RED\fP
+T}	T{
+\fB52\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f0000\fP
+T}	T{
+DarkRed
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DEEP_PINK_4\fP
+T}	T{
+\fB53\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f005f\fP
+T}	T{
+DeepPink4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PURPLE_4\fP
+T}	T{
+\fB54\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f0087\fP
+T}	T{
+Purple4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PURPLE_4\fP
+T}	T{
+\fB55\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f00af\fP
+T}	T{
+Purple4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PURPLE_3\fP
+T}	T{
+\fB56\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f00d7\fP
+T}	T{
+Purple3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_BLUE_VIOLET\fP
+T}	T{
+\fB57\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f00ff\fP
+T}	T{
+BlueViolet
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_ORANGE_4\fP
+T}	T{
+\fB58\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f5f00\fP
+T}	T{
+Orange4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_37\fP
+T}	T{
+\fB59\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f5f5f\fP
+T}	T{
+Grey37
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MEDIUM_PURPLE_4\fP
+T}	T{
+\fB60\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f5f87\fP
+T}	T{
+MediumPurple4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SLATE_BLUE_3\fP
+T}	T{
+\fB61\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f5faf\fP
+T}	T{
+SlateBlue3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SLATE_BLUE_3\fP
+T}	T{
+\fB62\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f5fd7\fP
+T}	T{
+SlateBlue3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_ROYAL_BLUE_1\fP
+T}	T{
+\fB63\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f5fff\fP
+T}	T{
+RoyalBlue1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_CHARTREUSE_4\fP
+T}	T{
+\fB64\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f8700\fP
+T}	T{
+Chartreuse4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_SEA_GREEN_4\fP
+T}	T{
+\fB65\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f875f\fP
+T}	T{
+DarkSeaGreen4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PALE_TURQUOISE_4\fP
+T}	T{
+\fB66\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f8787\fP
+T}	T{
+PaleTurquoise4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_STEEL_BLUE\fP
+T}	T{
+\fB67\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f87af\fP
+T}	T{
+SteelBlue
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_STEEL_BLUE_3\fP
+T}	T{
+\fB68\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f87d7\fP
+T}	T{
+SteelBlue3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_CORNFLOWER_BLUE\fP
+T}	T{
+\fB69\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5f87ff\fP
+T}	T{
+CornflowerBlue
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_CHARTREUSE_3\fP
+T}	T{
+\fB70\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5faf00\fP
+T}	T{
+Chartreuse3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_SEA_GREEN_4\fP
+T}	T{
+\fB71\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5faf5f\fP
+T}	T{
+DarkSeaGreen4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_CADET_BLUE\fP
+T}	T{
+\fB72\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5faf87\fP
+T}	T{
+CadetBlue
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_CADET_BLUE\fP
+T}	T{
+\fB73\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5fafaf\fP
+T}	T{
+CadetBlue
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SKY_BLUE_3\fP
+T}	T{
+\fB74\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5fafd7\fP
+T}	T{
+SkyBlue3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_STEEL_BLUE_1\fP
+T}	T{
+\fB75\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5fafff\fP
+T}	T{
+SteelBlue1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_CHARTREUSE_3\fP
+T}	T{
+\fB76\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5fd700\fP
+T}	T{
+Chartreuse3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PALE_GREEN_3\fP
+T}	T{
+\fB77\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5fd75f\fP
+T}	T{
+PaleGreen3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SEA_GREEN_3\fP
+T}	T{
+\fB78\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5fd787\fP
+T}	T{
+SeaGreen3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_AQUAMARINE_3\fP
+T}	T{
+\fB79\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5fd7af\fP
+T}	T{
+Aquamarine3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MEDIUM_TURQUOISE\fP
+T}	T{
+\fB80\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5fd7d7\fP
+T}	T{
+MediumTurquoise
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_STEEL_BLUE_1\fP
+T}	T{
+\fB81\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5fd7ff\fP
+T}	T{
+SteelBlue1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_CHARTREUSE_2\fP
+T}	T{
+\fB82\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5fff00\fP
+T}	T{
+Chartreuse2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SEA_GREEN_2\fP
+T}	T{
+\fB83\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5fff5f\fP
+T}	T{
+SeaGreen2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SEA_GREEN_1\fP
+T}	T{
+\fB84\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5fff87\fP
+T}	T{
+SeaGreen1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SEA_GREEN_1\fP
+T}	T{
+\fB85\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5fffaf\fP
+T}	T{
+SeaGreen1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_AQUAMARINE_2\fP
+T}	T{
+\fB86\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5fffd7\fP
+T}	T{
+\fBAquamarine1\fP
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_SLATE_GRAY_2\fP
+T}	T{
+\fB87\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#5fffff\fP
+T}	T{
+DarkSlateGray2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_RED\fP
+T}	T{
+\fB88\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#870000\fP
+T}	T{
+DarkRed
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DEEP_PINK_4\fP
+T}	T{
+\fB89\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87005f\fP
+T}	T{
+DeepPink4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_MAGENTA\fP
+T}	T{
+\fB90\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#870087\fP
+T}	T{
+DarkMagenta
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_MAGENTA\fP
+T}	T{
+\fB91\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#8700af\fP
+T}	T{
+DarkMagenta
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_VIOLET\fP
+T}	T{
+\fB92\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#8700d7\fP
+T}	T{
+DarkViolet
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PURPLE\fP
+T}	T{
+\fB93\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#8700ff\fP
+T}	T{
+Purple
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_ORANGE_4\fP
+T}	T{
+\fB94\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#875f00\fP
+T}	T{
+Orange4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_PINK_4\fP
+T}	T{
+\fB95\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#875f5f\fP
+T}	T{
+LightPink4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PLUM_4\fP
+T}	T{
+\fB96\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#875f87\fP
+T}	T{
+Plum4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MEDIUM_PURPLE_3\fP
+T}	T{
+\fB97\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#875faf\fP
+T}	T{
+MediumPurple3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MEDIUM_PURPLE_3\fP
+T}	T{
+\fB98\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#875fd7\fP
+T}	T{
+MediumPurple3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SLATE_BLUE_1\fP
+T}	T{
+\fB99\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#875fff\fP
+T}	T{
+SlateBlue1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_YELLOW_4\fP
+T}	T{
+\fB100\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#878700\fP
+T}	T{
+Yellow4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_WHEAT_4\fP
+T}	T{
+\fB101\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87875f\fP
+T}	T{
+Wheat4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_53\fP
+T}	T{
+\fB102\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#878787\fP
+T}	T{
+Grey53
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_SLATE_GREY\fP
+T}	T{
+\fB103\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#8787af\fP
+T}	T{
+LightSlateGrey
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MEDIUM_PURPLE\fP
+T}	T{
+\fB104\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#8787d7\fP
+T}	T{
+MediumPurple
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_SLATE_BLUE\fP
+T}	T{
+\fB105\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#8787ff\fP
+T}	T{
+LightSlateBlue
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_YELLOW_4\fP
+T}	T{
+\fB106\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87af00\fP
+T}	T{
+Yellow4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_OLIVE_GREEN_3\fP
+T}	T{
+\fB107\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87af5f\fP
+T}	T{
+DarkOliveGreen3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_SEA_GREEN\fP
+T}	T{
+\fB108\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87af87\fP
+T}	T{
+DarkSeaGreen
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_SKY_BLUE_3\fP
+T}	T{
+\fB109\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87afaf\fP
+T}	T{
+LightSkyBlue3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_SKY_BLUE_3\fP
+T}	T{
+\fB110\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87afd7\fP
+T}	T{
+LightSkyBlue3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SKY_BLUE_2\fP
+T}	T{
+\fB111\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87afff\fP
+T}	T{
+SkyBlue2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_CHARTREUSE_2\fP
+T}	T{
+\fB112\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87d700\fP
+T}	T{
+Chartreuse2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_OLIVE_GREEN_3\fP
+T}	T{
+\fB113\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87d75f\fP
+T}	T{
+DarkOliveGreen3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PALE_GREEN_3\fP
+T}	T{
+\fB114\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87d787\fP
+T}	T{
+PaleGreen3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_SEA_GREEN_3\fP
+T}	T{
+\fB115\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87d7af\fP
+T}	T{
+DarkSeaGreen3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_SLATE_GRAY_3\fP
+T}	T{
+\fB116\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87d7d7\fP
+T}	T{
+DarkSlateGray3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SKY_BLUE_1\fP
+T}	T{
+\fB117\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87d7ff\fP
+T}	T{
+SkyBlue1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_CHARTREUSE_1\fP
+T}	T{
+\fB118\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87ff00\fP
+T}	T{
+Chartreuse1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_GREEN\fP
+T}	T{
+\fB119\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87ff5f\fP
+T}	T{
+LightGreen
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_GREEN\fP
+T}	T{
+\fB120\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87ff87\fP
+T}	T{
+LightGreen
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PALE_GREEN_1\fP
+T}	T{
+\fB121\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87ffaf\fP
+T}	T{
+PaleGreen1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_AQUAMARINE_1\fP
+T}	T{
+\fB122\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87ffd7\fP
+T}	T{
+Aquamarine1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_SLATE_GRAY_1\fP
+T}	T{
+\fB123\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#87ffff\fP
+T}	T{
+DarkSlateGray1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_RED_3\fP
+T}	T{
+\fB124\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af0000\fP
+T}	T{
+Red3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DEEP_PINK_4\fP
+T}	T{
+\fB125\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af005f\fP
+T}	T{
+DeepPink4
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MEDIUM_VIOLET_RED\fP
+T}	T{
+\fB126\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af0087\fP
+T}	T{
+MediumVioletRed
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MAGENTA_3\fP
+T}	T{
+\fB127\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af00af\fP
+T}	T{
+Magenta3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_VIOLET\fP
+T}	T{
+\fB128\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af00d7\fP
+T}	T{
+DarkViolet
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PURPLE\fP
+T}	T{
+\fB129\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af00ff\fP
+T}	T{
+Purple
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_ORANGE_3\fP
+T}	T{
+\fB130\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af5f00\fP
+T}	T{
+DarkOrange3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_INDIAN_RED\fP
+T}	T{
+\fB131\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af5f5f\fP
+T}	T{
+IndianRed
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_HOT_PINK_3\fP
+T}	T{
+\fB132\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af5f87\fP
+T}	T{
+HotPink3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MEDIUM_ORCHID_3\fP
+T}	T{
+\fB133\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af5faf\fP
+T}	T{
+MediumOrchid3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MEDIUM_ORCHID\fP
+T}	T{
+\fB134\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af5fd7\fP
+T}	T{
+MediumOrchid
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MEDIUM_PURPLE_2\fP
+T}	T{
+\fB135\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af5fff\fP
+T}	T{
+MediumPurple2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_GOLDENROD\fP
+T}	T{
+\fB136\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af8700\fP
+T}	T{
+DarkGoldenrod
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_SALMON_3\fP
+T}	T{
+\fB137\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af875f\fP
+T}	T{
+LightSalmon3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_ROSY_BROWN\fP
+T}	T{
+\fB138\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af8787\fP
+T}	T{
+RosyBrown
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_63\fP
+T}	T{
+\fB139\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af87af\fP
+T}	T{
+Grey63
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MEDIUM_PURPLE_2\fP
+T}	T{
+\fB140\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af87d7\fP
+T}	T{
+MediumPurple2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MEDIUM_PURPLE_1\fP
+T}	T{
+\fB141\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#af87ff\fP
+T}	T{
+MediumPurple1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GOLD_3\fP
+T}	T{
+\fB142\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afaf00\fP
+T}	T{
+Gold3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_KHAKI\fP
+T}	T{
+\fB143\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afaf5f\fP
+T}	T{
+DarkKhaki
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_NAVAJO_WHITE_3\fP
+T}	T{
+\fB144\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afaf87\fP
+T}	T{
+NavajoWhite3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_69\fP
+T}	T{
+\fB145\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afafaf\fP
+T}	T{
+Grey69
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_STEEL_BLUE_3\fP
+T}	T{
+\fB146\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afafd7\fP
+T}	T{
+LightSteelBlue3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_STEEL_BLUE\fP
+T}	T{
+\fB147\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afafff\fP
+T}	T{
+LightSteelBlue
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_YELLOW_3\fP
+T}	T{
+\fB148\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afd700\fP
+T}	T{
+Yellow3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_OLIVE_GREEN_3\fP
+T}	T{
+\fB149\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afd75f\fP
+T}	T{
+DarkOliveGreen3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_SEA_GREEN_3\fP
+T}	T{
+\fB150\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afd787\fP
+T}	T{
+DarkSeaGreen3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_SEA_GREEN_2\fP
+T}	T{
+\fB151\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afd7af\fP
+T}	T{
+DarkSeaGreen2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_CYAN_3\fP
+T}	T{
+\fB152\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afd7d7\fP
+T}	T{
+LightCyan3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_SKY_BLUE_1\fP
+T}	T{
+\fB153\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afd7ff\fP
+T}	T{
+LightSkyBlue1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREEN_YELLOW\fP
+T}	T{
+\fB154\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afff00\fP
+T}	T{
+GreenYellow
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_OLIVE_GREEN_2\fP
+T}	T{
+\fB155\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afff5f\fP
+T}	T{
+DarkOliveGreen2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PALE_GREEN_1\fP
+T}	T{
+\fB156\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afff87\fP
+T}	T{
+PaleGreen1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_SEA_GREEN_2\fP
+T}	T{
+\fB157\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afffaf\fP
+T}	T{
+DarkSeaGreen2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_SEA_GREEN_1\fP
+T}	T{
+\fB158\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afffd7\fP
+T}	T{
+DarkSeaGreen1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PALE_TURQUOISE_1\fP
+T}	T{
+\fB159\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#afffff\fP
+T}	T{
+PaleTurquoise1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_RED_3\fP
+T}	T{
+\fB160\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d70000\fP
+T}	T{
+Red3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DEEP_PINK_3\fP
+T}	T{
+\fB161\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7005f\fP
+T}	T{
+DeepPink3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DEEP_PINK_3\fP
+T}	T{
+\fB162\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d70087\fP
+T}	T{
+DeepPink3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MAGENTA_3\fP
+T}	T{
+\fB163\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d700af\fP
+T}	T{
+Magenta3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MAGENTA_3\fP
+T}	T{
+\fB164\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d700d7\fP
+T}	T{
+Magenta3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MAGENTA_2\fP
+T}	T{
+\fB165\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d700ff\fP
+T}	T{
+Magenta2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_ORANGE_3\fP
+T}	T{
+\fB166\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d75f00\fP
+T}	T{
+DarkOrange3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_INDIAN_RED\fP
+T}	T{
+\fB167\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d75f5f\fP
+T}	T{
+IndianRed
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_HOT_PINK_3\fP
+T}	T{
+\fB168\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d75f87\fP
+T}	T{
+HotPink3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_HOT_PINK_2\fP
+T}	T{
+\fB169\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d75faf\fP
+T}	T{
+HotPink2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_ORCHID\fP
+T}	T{
+\fB170\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d75fd7\fP
+T}	T{
+Orchid
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MEDIUM_ORCHID_1\fP
+T}	T{
+\fB171\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d75fff\fP
+T}	T{
+MediumOrchid1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_ORANGE_3\fP
+T}	T{
+\fB172\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d78700\fP
+T}	T{
+Orange3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_SALMON_3\fP
+T}	T{
+\fB173\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7875f\fP
+T}	T{
+LightSalmon3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_PINK_3\fP
+T}	T{
+\fB174\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d78787\fP
+T}	T{
+LightPink3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PINK_3\fP
+T}	T{
+\fB175\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d787af\fP
+T}	T{
+Pink3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PLUM_3\fP
+T}	T{
+\fB176\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d787d7\fP
+T}	T{
+Plum3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_VIOLET\fP
+T}	T{
+\fB177\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d787ff\fP
+T}	T{
+Violet
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GOLD_3\fP
+T}	T{
+\fB178\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7af00\fP
+T}	T{
+Gold3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_GOLDENROD_3\fP
+T}	T{
+\fB179\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7af5f\fP
+T}	T{
+LightGoldenrod3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_TAN\fP
+T}	T{
+\fB180\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7af87\fP
+T}	T{
+Tan
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MISTY_ROSE_3\fP
+T}	T{
+\fB181\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7afaf\fP
+T}	T{
+MistyRose3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_THISTLE_3\fP
+T}	T{
+\fB182\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7afd7\fP
+T}	T{
+Thistle3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PLUM_2\fP
+T}	T{
+\fB183\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7afff\fP
+T}	T{
+Plum2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_YELLOW_3\fP
+T}	T{
+\fB184\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7d700\fP
+T}	T{
+Yellow3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_KHAKI_3\fP
+T}	T{
+\fB185\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7d75f\fP
+T}	T{
+Khaki3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_GOLDENROD_2\fP
+T}	T{
+\fB186\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7d787\fP
+T}	T{
+LightGoldenrod2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_YELLOW_3\fP
+T}	T{
+\fB187\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7d7af\fP
+T}	T{
+LightYellow3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_84\fP
+T}	T{
+\fB188\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7d7d7\fP
+T}	T{
+Grey84
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_STEEL_BLUE_1\fP
+T}	T{
+\fB189\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7d7ff\fP
+T}	T{
+LightSteelBlue1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_YELLOW_2\fP
+T}	T{
+\fB190\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7ff00\fP
+T}	T{
+Yellow2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_OLIVE_GREEN_1\fP
+T}	T{
+\fB191\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7ff5f\fP
+T}	T{
+DarkOliveGreen1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_OLIVE_GREEN_1\fP
+T}	T{
+\fB192\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7ff87\fP
+T}	T{
+DarkOliveGreen1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_SEA_GREEN_1\fP
+T}	T{
+\fB193\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7ffaf\fP
+T}	T{
+DarkSeaGreen1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_HONEYDEW_2\fP
+T}	T{
+\fB194\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7ffd7\fP
+T}	T{
+Honeydew2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_CYAN_1\fP
+T}	T{
+\fB195\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d7ffff\fP
+T}	T{
+LightCyan1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_RED_1\fP
+T}	T{
+\fB196\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff0000\fP
+T}	T{
+Red1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DEEP_PINK_2\fP
+T}	T{
+\fB197\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff005f\fP
+T}	T{
+DeepPink2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DEEP_PINK_1\fP
+T}	T{
+\fB198\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff0087\fP
+T}	T{
+DeepPink1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DEEP_PINK_1\fP
+T}	T{
+\fB199\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff00af\fP
+T}	T{
+DeepPink1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MAGENTA_2\fP
+T}	T{
+\fB200\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff00d7\fP
+T}	T{
+Magenta2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MAGENTA_1\fP
+T}	T{
+\fB201\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff00ff\fP
+T}	T{
+Magenta1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_ORANGE_RED_1\fP
+T}	T{
+\fB202\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff5f00\fP
+T}	T{
+OrangeRed1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_INDIAN_RED_1\fP
+T}	T{
+\fB203\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff5f5f\fP
+T}	T{
+IndianRed1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_INDIAN_RED_1\fP
+T}	T{
+\fB204\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff5f87\fP
+T}	T{
+IndianRed1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_HOT_PINK\fP
+T}	T{
+\fB205\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff5faf\fP
+T}	T{
+HotPink
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_HOT_PINK\fP
+T}	T{
+\fB206\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff5fd7\fP
+T}	T{
+HotPink
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MEDIUM_ORCHID_1\fP
+T}	T{
+\fB207\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff5fff\fP
+T}	T{
+MediumOrchid1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_DARK_ORANGE\fP
+T}	T{
+\fB208\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff8700\fP
+T}	T{
+DarkOrange
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SALMON_1\fP
+T}	T{
+\fB209\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff875f\fP
+T}	T{
+Salmon1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_CORAL\fP
+T}	T{
+\fB210\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff8787\fP
+T}	T{
+LightCoral
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PALE_VIOLET_RED_1\fP
+T}	T{
+\fB211\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff87af\fP
+T}	T{
+PaleVioletRed1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_ORCHID_2\fP
+T}	T{
+\fB212\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff87d7\fP
+T}	T{
+Orchid2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_ORCHID_1\fP
+T}	T{
+\fB213\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ff87ff\fP
+T}	T{
+Orchid1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_ORANGE_1\fP
+T}	T{
+\fB214\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffaf00\fP
+T}	T{
+Orange1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_SANDY_BROWN\fP
+T}	T{
+\fB215\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffaf5f\fP
+T}	T{
+SandyBrown
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_SALMON_1\fP
+T}	T{
+\fB216\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffaf87\fP
+T}	T{
+LightSalmon1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_PINK_1\fP
+T}	T{
+\fB217\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffafaf\fP
+T}	T{
+LightPink1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PINK_1\fP
+T}	T{
+\fB218\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffafd7\fP
+T}	T{
+Pink1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_PLUM_1\fP
+T}	T{
+\fB219\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffafff\fP
+T}	T{
+Plum1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GOLD_1\fP
+T}	T{
+\fB220\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffd700\fP
+T}	T{
+Gold1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_GOLDENROD_2\fP
+T}	T{
+\fB221\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffd75f\fP
+T}	T{
+LightGoldenrod2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_GOLDENROD_2\fP
+T}	T{
+\fB222\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffd787\fP
+T}	T{
+LightGoldenrod2
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_NAVAJO_WHITE_1\fP
+T}	T{
+\fB223\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffd7af\fP
+T}	T{
+NavajoWhite1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_MISTY_ROSE_1\fP
+T}	T{
+\fB224\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffd7d7\fP
+T}	T{
+MistyRose1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_THISTLE_1\fP
+T}	T{
+\fB225\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffd7ff\fP
+T}	T{
+Thistle1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_YELLOW_1\fP
+T}	T{
+\fB226\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffff00\fP
+T}	T{
+Yellow1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_LIGHT_GOLDENROD_1\fP
+T}	T{
+\fB227\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffff5f\fP
+T}	T{
+LightGoldenrod1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_KHAKI_1\fP
+T}	T{
+\fB228\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffff87\fP
+T}	T{
+Khaki1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_WHEAT_1\fP
+T}	T{
+\fB229\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffffaf\fP
+T}	T{
+Wheat1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_CORNSILK_1\fP
+T}	T{
+\fB230\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffffd7\fP
+T}	T{
+Cornsilk1
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_100\fP
+T}	T{
+\fB231\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#ffffff\fP
+T}	T{
+Grey100
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_3\fP
+T}	T{
+\fB232\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#080808\fP
+T}	T{
+Grey3
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_7\fP
+T}	T{
+\fB233\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#121212\fP
+T}	T{
+Grey7
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_11\fP
+T}	T{
+\fB234\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#1c1c1c\fP
+T}	T{
+Grey11
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_15\fP
+T}	T{
+\fB235\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#262626\fP
+T}	T{
+Grey15
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_19\fP
+T}	T{
+\fB236\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#303030\fP
+T}	T{
+Grey19
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_23\fP
+T}	T{
+\fB237\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#3a3a3a\fP
+T}	T{
+Grey23
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_27\fP
+T}	T{
+\fB238\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#444444\fP
+T}	T{
+Grey27
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_30\fP
+T}	T{
+\fB239\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#4e4e4e\fP
+T}	T{
+Grey30
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_35\fP
+T}	T{
+\fB240\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#585858\fP
+T}	T{
+Grey35
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_39\fP
+T}	T{
+\fB241\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#626262\fP
+T}	T{
+Grey39
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_42\fP
+T}	T{
+\fB242\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#6c6c6c\fP
+T}	T{
+Grey42
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_46\fP
+T}	T{
+\fB243\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#767676\fP
+T}	T{
+Grey46
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_50\fP
+T}	T{
+\fB244\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#808080\fP
+T}	T{
+Grey50
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_54\fP
+T}	T{
+\fB245\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#8a8a8a\fP
+T}	T{
+Grey54
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_58\fP
+T}	T{
+\fB246\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#949494\fP
+T}	T{
+Grey58
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_62\fP
+T}	T{
+\fB247\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#9e9e9e\fP
+T}	T{
+Grey62
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_66\fP
+T}	T{
+\fB248\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#a8a8a8\fP
+T}	T{
+Grey66
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_70\fP
+T}	T{
+\fB249\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#b2b2b2\fP
+T}	T{
+Grey70
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_74\fP
+T}	T{
+\fB250\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#bcbcbc\fP
+T}	T{
+Grey74
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_78\fP
+T}	T{
+\fB251\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#c6c6c6\fP
+T}	T{
+Grey78
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_82\fP
+T}	T{
+\fB252\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#d0d0d0\fP
+T}	T{
+Grey82
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_85\fP
+T}	T{
+\fB253\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#dadada\fP
+T}	T{
+Grey85
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_89\fP
+T}	T{
+\fB254\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#e4e4e4\fP
+T}	T{
+Grey89
+T}
+_
+T{
+[image]
+T}	T{
+\fBIDX_GREY_93\fP
+T}	T{
+\fB255\fP
+T}	T{
+T}	T{
+T}	T{
+\fBV\fP
+T}	T{
+T}	T{
+\fB#eeeeee\fP
+T}	T{
+Grey93
+T}
+_
+T{
+.IP [3] 5
+First 16 colors are effectively the same as colors in \fBdefault\fP 16\-color mode and share with them the same color values (and depend on terminal color scheme as well).
+.IP [4] 5
+XTerm name list contains duplicates; variable names for these were slightly modified (different numbers at the end) to avoid namespace conflicts. All non\-matching names are displayed using \fBbold\fP font.
+T}
+_
+.TE
+
+.sp
+.ce
+----
+
+.ce 0
+.sp
+.sp
+Sources
+.INDENT 0.0
+.IP 1. 3
+\fI\%https://en.wikipedia.org/wiki/ANSI_escape_code\fP
+.IP 2. 3
+\fI\%https://www.ditig.com/256\-colors\-cheat\-sheet\fP
+.UNINDENT
+.SS Color palette
+.sp
+Actual colors of \fBdefault\fP palette depend on user\(aqs terminal settings, i.e.
+the result color of \fBColorDefault\fP is not guaranteed to exactly match the
+corresponding color in the list below.
+.sp
+However, usually that\(aqs not an issue, because users expect their terminal
+theme to work (almost) everythere and will be surprised when the application
+forcefully override default colors with custom ones (in any case, that can be
+accomplished by using \fI\%ColorRGB\fP or \fBColorIndexed\fP; their color values are
+hard to customize without special configurations; but it\(aqs recommended not to
+use them for regular output).
+.sp
+Note that \fBdefault\fP palette is actually a part of \fIindexed\fP one (the first 16
+colors of 256\-color table).
+
+.sp
+.ce
+----
+
+.ce 0
+.sp
+.sp
+Sources
+.INDENT 0.0
+.IP 1. 3
+\fI\%https://www.tweaking4all.com/software/linux\-software/xterm\-color\-cheat\-sheet/\fP
+.UNINDENT
+.SS Formatters and Filters
+.sp
+The library contains @TODO
+.SS Auto\-float formatter
+.SS Prefixed\-unit formatter
+.SS Time delta formatter
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from pytermor import Style, color, ColorRGB
+from pytermor import renderer
+from pytermor.util import time_delta
+
+seconds_list = [2, 10, 60, 2700, 32340, 273600, 4752000, 864000000]
+max_len_list = [3, 6, 10]
+
+custom_stylesheet = time_delta.TimeDeltaStylesheet(
+    default=Style(bg_color=0x202028),
+    digit=Style(0x3333000, \(aqyellow\(aq),
+    unit=Style(fg_color=\(aqgreen\(aq, bg_color=0x202028, underlined=True),
+    overflow=Style(fg_color=color.BLACK, bg_color=\(aqhi_red\(aq, bold=True),
+)
+for max_len in max_len_list:
+    formatter = time_delta.registry.find_matching(max_len)
+    formatter.stylesheet = custom_stylesheet
+
+renderer.SGRRenderer.set_as_default()
+for seconds in seconds_list:
+    for max_len in max_len_list:
+        formatter = time_delta.registry.get_by_max_len(max_len)
+        print(formatter.format(seconds, True), end=\(aq \(aq)
+    print()
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+[image]
+.SS String filters
+.SS Standard Library extensions
+.sp
+@TODO
+.SH API DOCS
+.SS color
+.sp
+@TODO
+.INDENT 0.0
+.TP
+.B class  pytermor.color.Color(hex_value:  Optional[int]  =  None)
+Abstract superclass for other \fBColors\fP\&.
+.INDENT 7.0
+.TP
+.B static  hex_value_to_rgb_channels(hex_value:  int) -> Tuple[int,  int,  int]
+Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+integers corresponding to \fIred\fP, \fIblue\fP and \fIgreen\fP channel value
+respectively. Values are within [0; 255] range.
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> Color.hex_value_to_rgb_channels(0x80ff80)
+(128, 255, 128)
+>>> Color.hex_value_to_rgb_channels(0x000001)
+(0, 0, 1)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  hex_value_to_hsv_channels(hex_value:  int) -> Tuple[int,  float,  float]
+Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+numbers corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values
+respectively. \fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are
+within [0; 1] range.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBhex_value\fP \-\- 
+.TP
+.B Returns
+
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B abstract  classmethod  get_default() -> \fI\%Color\fP
+.INDENT 7.0
+.TP
+.B Returns
+Fallback instance of \fI\%Color\fP inheritor (if registries are empty).
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B abstract  classmethod  find_closest(hex_value:  int) -> \fI\%Color\fP
+Wrapper for \fI\%_ColorMap.find_closest()\fP\&.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBhex_value\fP \-\- Integer color value in \fB0xFFFFFF\fP format.
+.TP
+.B Returns
+Nearest found color of specified type.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B abstract  to_sgr_default(bg:  bool) -> \fI\%SequenceSGR\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B abstract  to_sgr_indexed(bg:  bool) -> \fI\%SequenceSGR\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B abstract  to_sgr_rgb(bg:  bool) -> \fI\%SequenceSGR\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  hex_value:  int  |  None
+.UNINDENT
+.INDENT 7.0
+.TP
+.B format_value(prefix:  str  |  None  =  \(aq0x\(aq) -> str
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.color.ColorDefault(hex_value:  int, code_fg:  int, code_bg:  int)
+Bases: \fI\%Color\fP
+.INDENT 7.0
+.TP
+.B classmethod  get_default() -> \fI\%ColorDefault\fP
+.INDENT 7.0
+.TP
+.B Returns
+Fallback instance of \fI\%Color\fP inheritor (if registries are empty).
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  find_closest(hex_value:  int) -> \fI\%ColorDefault\fP
+Wrapper for \fI\%_ColorMap.find_closest()\fP\&.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBhex_value\fP \-\- Integer color value in \fB0xFFFFFF\fP format.
+.TP
+.B Returns
+Nearest found \fI\%ColorDefault\fP instance.
+.UNINDENT
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> ColorDefault.find_closest(0x660000)
+ColorDefault[fg=31, bg=41, 0x800000]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B to_sgr_default(bg:  bool) -> \fI\%SequenceSGR\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B to_sgr_indexed(bg:  bool) -> \fI\%SequenceSGR\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B to_sgr_rgb(bg:  bool) -> \fI\%SequenceSGR\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B format_value(prefix:  str  |  None  =  \(aq0x\(aq) -> str
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  hex_value:  int  |  None
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  hex_value_to_hsv_channels(hex_value:  int) -> Tuple[int,  float,  float]
+Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+numbers corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values
+respectively. \fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are
+within [0; 1] range.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBhex_value\fP \-\- 
+.TP
+.B Returns
+
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  hex_value_to_rgb_channels(hex_value:  int) -> Tuple[int,  int,  int]
+Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+integers corresponding to \fIred\fP, \fIblue\fP and \fIgreen\fP channel value
+respectively. Values are within [0; 255] range.
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> Color.hex_value_to_rgb_channels(0x80ff80)
+(128, 255, 128)
+>>> Color.hex_value_to_rgb_channels(0x000001)
+(0, 0, 1)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.color.ColorIndexed(hex_value:  int, code:  int)
+Bases: \fI\%Color\fP
+.INDENT 7.0
+.TP
+.B classmethod  get_default() -> \fI\%ColorIndexed\fP
+.INDENT 7.0
+.TP
+.B Returns
+Fallback instance of \fI\%Color\fP inheritor (if registries are empty).
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  find_closest(hex_value:  int) -> \fI\%ColorIndexed\fP
+Wrapper for \fI\%_ColorMap.find_closest()\fP\&.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBhex_value\fP \-\- Integer color value in \fB0xFFFFFF\fP format.
+.TP
+.B Returns
+Nearest found \fI\%ColorIndexed\fP instance.
+.UNINDENT
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> ColorIndexed.find_closest(0xd9dbdb)
+ColorIndexed[code=253, 0xdadada]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B to_sgr_default(bg:  bool) -> \fI\%SequenceSGR\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B to_sgr_indexed(bg:  bool) -> \fI\%SequenceSGR\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B to_sgr_rgb(bg:  bool) -> \fI\%SequenceSGR\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B format_value(prefix:  str  |  None  =  \(aq0x\(aq) -> str
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  hex_value:  int  |  None
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  hex_value_to_hsv_channels(hex_value:  int) -> Tuple[int,  float,  float]
+Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+numbers corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values
+respectively. \fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are
+within [0; 1] range.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBhex_value\fP \-\- 
+.TP
+.B Returns
+
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  hex_value_to_rgb_channels(hex_value:  int) -> Tuple[int,  int,  int]
+Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+integers corresponding to \fIred\fP, \fIblue\fP and \fIgreen\fP channel value
+respectively. Values are within [0; 255] range.
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> Color.hex_value_to_rgb_channels(0x80ff80)
+(128, 255, 128)
+>>> Color.hex_value_to_rgb_channels(0x000001)
+(0, 0, 1)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.color.ColorRGB(hex_value:  Optional[int]  =  None)
+Bases: \fI\%Color\fP
+.INDENT 7.0
+.TP
+.B classmethod  get_default() -> \fI\%ColorRGB\fP
+.INDENT 7.0
+.TP
+.B Returns
+Fallback instance of \fI\%Color\fP inheritor (if registries are empty).
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  find_closest(hex_value:  int) -> \fI\%ColorRGB\fP
+Wrapper for \fI\%_ColorMap.find_closest()\fP\&. \fI\%ColorRGB\fP\-type color map 
+works by simplified algorithm \-\- without caching and searching \-\-
+it just checks if instance with same hex value was already created, 
+and returns it if it was, or returns a brand new instance with required 
+color value. In second case color map also puts new instance into its 
+lookup table.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBhex_value\fP \-\- Integer color value in \fB0xFFFFFF\fP format.
+.TP
+.B Returns
+Existing \fI\%ColorRGB\fP instance or newly created one.
+.UNINDENT
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> existing_color1 = ColorRGB(0x660000)
+>>> existing_color2 = ColorRGB(0x660000)
+>>> existing_color1 == existing_color2
+True
+>>> existing_color1 is existing_color2  # different instances
+False
+>>> existing_color1 == ColorRGB.find_closest(0x660000)
+True
+>>> existing_color1 is ColorRGB.find_closest(0x660000)  # same instance
+True
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B to_sgr_default(bg:  bool) -> \fI\%SequenceSGR\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B to_sgr_indexed(bg:  bool) -> \fI\%SequenceSGR\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B to_sgr_rgb(bg:  bool) -> \fI\%SequenceSGR\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B format_value(prefix:  str  |  None  =  \(aq0x\(aq) -> str
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  hex_value:  int  |  None
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  hex_value_to_hsv_channels(hex_value:  int) -> Tuple[int,  float,  float]
+Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+numbers corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values
+respectively. \fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are
+within [0; 1] range.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBhex_value\fP \-\- 
+.TP
+.B Returns
+
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  hex_value_to_rgb_channels(hex_value:  int) -> Tuple[int,  int,  int]
+Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+integers corresponding to \fIred\fP, \fIblue\fP and \fIgreen\fP channel value
+respectively. Values are within [0; 255] range.
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> Color.hex_value_to_rgb_channels(0x80ff80)
+(128, 255, 128)
+>>> Color.hex_value_to_rgb_channels(0x000001)
+(0, 0, 1)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.color.TypeColor
+Any non\-abstract \fI\%Color\fP type.
+.sp
+alias of TypeVar(\(aqTypeColor\(aq, ColorDefault, ColorIndexed, ColorRGB)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.color._ColorMap(parent_type:  TypeColor)
+Bases: \fBGeneric\fP[\fI\%TypeColor\fP]
+.sp
+Class contains a dictionary of registred \fI\%Colors\fP indexed by hex code
+along with cached nearest color search results to avoid unnecessary instance
+copies and search repeating.
+.INDENT 7.0
+.TP
+.B add_to_map(color:  TypeColor)
+Called in \fI\%Color\fP\-type class constructors. Add a new element in color
+lookup table if it wasn\(aqt there, and then drop cached search results
+as they are most probably useless after registering a new color (i.e.
+now there will be better result for at least one cached value).
+.INDENT 7.0
+.TP
+.B Parameters
+\fBcolor\fP \-\- \fI\%Color\fP instance being created.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B find_closest(hex_value:  int) -> TypeColor
+Search for nearest to \fBhex_value\fP registered color. Is used by
+\fI\%SGRRenderer\fP to find supported color alternatives in case user\(aqs terminal is
+incapable of operating in better mode. For example, renderer will try to pick
+most suitable \fIindexed\fP colors instead of \fIRGB\fP colors if it ensures that
+terminal doesn\(aqt support True Color mode.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBhex_value\fP \-\- Rendering color RGB value.
+.TP
+.B Returns
+Nearest to \fBhex_value\fP registered \fBColor\fP\&. Type is equal
+to parent \fI\%Color\fP type.
+If no colors of required type were created (table and cache
+are empty), invokes \fI\%get_default()\fP
+\fBColor\fP method.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.color.NOOP  =  ColorRGB[]
+Special instance of \fI\%Color\fP class always rendering into empty string.
+.UNINDENT
+.sp
+\fBATTENTION:\fP
+.INDENT 0.0
+.INDENT 3.5
+Preset constants are omitted from API doc pages to improve readability and avoid
+duplication. Summary list of all presets can be found in \fI\%Color / attribute preset list\fP section of the guide.
+.UNINDENT
+.UNINDENT
+.SS intcode
+.sp
+Module with SGR param integer codes, contains a complete or almost complete
+list of reliably working ones.
+.sp
+Suitable for \fI\%Span\fP and \fI\%SequenceSGR\fP default constructors.
+.sp
+\fBATTENTION:\fP
+.INDENT 0.0
+.INDENT 3.5
+Preset constants are omitted from API doc pages to improve readability and avoid
+duplication. Summary list of all presets can be found in \fI\%Color / attribute preset list\fP section of the guide.
+.UNINDENT
+.UNINDENT
+.SS renderer
+.sp
+Module with output formatters. By default \fI\%SGRRenderer\fP is used.
+.sp
+Abstract parent class \fI\%Renderer\fP contains global (library\-wide) compatibility
+settings. See \fI\%Renderer.set_up()\fP\&.
+.sp
+Working with non\-default renderer can be accomplished in two ways:
+.INDENT 0.0
+.INDENT 3.5
+1. There is a module\-level variable \fI\%DefaultRenderer\fP determining what renderer
+\fI\%Style.render()\fP method will be using. Default renderer can be
+swapped with another one using \fI\%Renderer.set_as_default()\fP class method of the
+latter.
+.sp
+2. Alternatively, you can use renderer\(aqs own class method \fI\%Renderer.render()\fP
+directly and avoid calling \fBStyle.render()\fP method whatsoever.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> Renderer.set_up(True)
+>>> DebugRenderer.set_as_default()
+>>> Style(\(aqred\(aq).render(\(aq_text_\(aq)
+\(aqǝ[31m_text_ǝ[39m\(aq
+>>> NoOpRenderer.render(Style(\(aqred\(aq), \(aqtext\(aq)
+\(aqtext\(aq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.renderer.Renderer
+Abstract parent of all other renderers. Among other things also contains
+settings shared between all renderer types that can be customized by developer
+at runtime.
+.INDENT 7.0
+.TP
+.B static  set_up(force_styles:  bool  |  None  =  False, compatibility_indexed:  bool  =  False, compatibility_default:  bool  =  False)
+Set up renderer preferences. Affects all renderer types.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBforce_styles\fP \-\- .INDENT 2.0
+.IP \(bu 2
+If set to \fINone\fP, all renderers will pass input text through themselves
+without any changes (i.e. no colors and attributes will be applied).
+.IP \(bu 2
+If set to \fITrue\fP, renderers will always apply the formatting regardless
+of other internal rules and algorithms.
+.IP \(bu 2
+If set to \fIFalse\fP [default], the final decision will be made
+by every renderer independently, based on their own algorithms.
+.UNINDENT
+
+.IP \(bu 2
+\fBcompatibility_indexed\fP \-\- Disable \fIRGB\fP (or True Color) output mode. 256\-color (\fIindexed\fP) sequences
+will be printed out instead of disabled ones. Useful when combined with
+\fBcurses\fP \-\- that way you can check the terminal capabilities from the
+inside of that terminal and switch to different output mode at once.
+.IP \(bu 2
+\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fBdefault\fP 16\-color sequences instead.
+If this setting is set to \fITrue\fP, the value of \fBcompatibility_indexed\fP
+will be ignored completely. Useful when combined with \fBcurses\fP \-\- that
+way you can check the terminal capabilities from the inside of that
+terminal and switch to different output mode at once.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  set_as_default()
+Set renderer as default for \fI\%Style.render()\fP invocations.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B abstract  classmethod  render(style:  \fI\%Style\fP, text:  str) -> str
+Apply colors and attributes described in \fBstyle\fP argument to
+\fBtext\fP and return the result. Output format depends on renderer\(aqs
+class (which defines the implementation).
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.renderer.SGRRenderer
+Bases: \fI\%Renderer\fP
+.sp
+Default renderer that \fI\%Style.render()\fP invokes. Transforms \fI\%Color\fP instances defined
+in \fBstyle\fP argument into ANSI control sequence characters and merges them with input string.
+.INDENT 7.0
+.TP
+.B classmethod  render(style:  \fI\%Style\fP, text:  str)
+Render \fBtext\fP with \fBstyle\fP applied as ANSI control sequences.
+.sp
+Respects compatibility preferences (see \fI\%set_up()\fP) and maps RGB colors to
+closest \fIindexed\fP colors if terminal doesn\(aqt support RGB output. In case
+terminal doesn\(aqt support even 256 colors, falls back to \fBdefault\fP colors,
+searching for closest counterparts in 16\-color table.
+.sp
+Type of output \fBSequenceSGR\fP depends on type of \fI\%Color\fP variables in \fBstyle\fP argument. Keeping all that
+in mind, let\(aqs summarize:
+.INDENT 7.0
+.IP 1. 3
+\fI\%ColorRGB\fP can be rendered as True Color sequence, indexed sequence
+and default (16\-color) sequence depending on terminal capabilities.
+.IP 2. 3
+\fI\%ColorIndexed\fP can be rendered as indexed sequence or default sequence.
+.IP 3. 3
+\fI\%ColorDefault\fP will be rendered as default\-color sequence.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBstyle\fP \-\- Style to apply.
+.IP \(bu 2
+\fBtext\fP \-\- Input string.
+.UNINDENT
+.TP
+.B Returns
+Input string enclosed in SGR sequences.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  set_as_default()
+Set renderer as default for \fI\%Style.render()\fP invocations.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  set_up(force_styles:  bool  |  None  =  False, compatibility_indexed:  bool  =  False, compatibility_default:  bool  =  False)
+Set up renderer preferences. Affects all renderer types.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBforce_styles\fP \-\- .INDENT 2.0
+.IP \(bu 2
+If set to \fINone\fP, all renderers will pass input text through themselves
+without any changes (i.e. no colors and attributes will be applied).
+.IP \(bu 2
+If set to \fITrue\fP, renderers will always apply the formatting regardless
+of other internal rules and algorithms.
+.IP \(bu 2
+If set to \fIFalse\fP [default], the final decision will be made
+by every renderer independently, based on their own algorithms.
+.UNINDENT
+
+.IP \(bu 2
+\fBcompatibility_indexed\fP \-\- Disable \fIRGB\fP (or True Color) output mode. 256\-color (\fIindexed\fP) sequences
+will be printed out instead of disabled ones. Useful when combined with
+\fBcurses\fP \-\- that way you can check the terminal capabilities from the
+inside of that terminal and switch to different output mode at once.
+.IP \(bu 2
+\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fBdefault\fP 16\-color sequences instead.
+If this setting is set to \fITrue\fP, the value of \fBcompatibility_indexed\fP
+will be ignored completely. Useful when combined with \fBcurses\fP \-\- that
+way you can check the terminal capabilities from the inside of that
+terminal and switch to different output mode at once.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.renderer.TmuxRenderer
+Bases: \fI\%Renderer\fP
+.INDENT 7.0
+.TP
+.B abstract  classmethod  render(style:  \fI\%Style\fP, text:  str) -> str
+Apply colors and attributes described in \fBstyle\fP argument to
+\fBtext\fP and return the result. Output format depends on renderer\(aqs
+class (which defines the implementation).
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  set_as_default()
+Set renderer as default for \fI\%Style.render()\fP invocations.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  set_up(force_styles:  bool  |  None  =  False, compatibility_indexed:  bool  =  False, compatibility_default:  bool  =  False)
+Set up renderer preferences. Affects all renderer types.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBforce_styles\fP \-\- .INDENT 2.0
+.IP \(bu 2
+If set to \fINone\fP, all renderers will pass input text through themselves
+without any changes (i.e. no colors and attributes will be applied).
+.IP \(bu 2
+If set to \fITrue\fP, renderers will always apply the formatting regardless
+of other internal rules and algorithms.
+.IP \(bu 2
+If set to \fIFalse\fP [default], the final decision will be made
+by every renderer independently, based on their own algorithms.
+.UNINDENT
+
+.IP \(bu 2
+\fBcompatibility_indexed\fP \-\- Disable \fIRGB\fP (or True Color) output mode. 256\-color (\fIindexed\fP) sequences
+will be printed out instead of disabled ones. Useful when combined with
+\fBcurses\fP \-\- that way you can check the terminal capabilities from the
+inside of that terminal and switch to different output mode at once.
+.IP \(bu 2
+\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fBdefault\fP 16\-color sequences instead.
+If this setting is set to \fITrue\fP, the value of \fBcompatibility_indexed\fP
+will be ignored completely. Useful when combined with \fBcurses\fP \-\- that
+way you can check the terminal capabilities from the inside of that
+terminal and switch to different output mode at once.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.renderer.NoOpRenderer
+Bases: \fI\%Renderer\fP
+.INDENT 7.0
+.TP
+.B classmethod  render(style:  \fI\%Style\fP, text:  str) -> str
+Special renderer type that does nothing with the input string and just returns it as is.
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> NoOpRenderer.render(Style(0xff00ff), \(aqtext\(aq)
+\(aqtext\(aq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBstyle\fP \-\- Style to ignore.
+.IP \(bu 2
+\fBtext\fP \-\- Input string.
+.UNINDENT
+.TP
+.B Returns
+Input string without changes.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  set_as_default()
+Set renderer as default for \fI\%Style.render()\fP invocations.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  set_up(force_styles:  bool  |  None  =  False, compatibility_indexed:  bool  =  False, compatibility_default:  bool  =  False)
+Set up renderer preferences. Affects all renderer types.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBforce_styles\fP \-\- .INDENT 2.0
+.IP \(bu 2
+If set to \fINone\fP, all renderers will pass input text through themselves
+without any changes (i.e. no colors and attributes will be applied).
+.IP \(bu 2
+If set to \fITrue\fP, renderers will always apply the formatting regardless
+of other internal rules and algorithms.
+.IP \(bu 2
+If set to \fIFalse\fP [default], the final decision will be made
+by every renderer independently, based on their own algorithms.
+.UNINDENT
+
+.IP \(bu 2
+\fBcompatibility_indexed\fP \-\- Disable \fIRGB\fP (or True Color) output mode. 256\-color (\fIindexed\fP) sequences
+will be printed out instead of disabled ones. Useful when combined with
+\fBcurses\fP \-\- that way you can check the terminal capabilities from the
+inside of that terminal and switch to different output mode at once.
+.IP \(bu 2
+\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fBdefault\fP 16\-color sequences instead.
+If this setting is set to \fITrue\fP, the value of \fBcompatibility_indexed\fP
+will be ignored completely. Useful when combined with \fBcurses\fP \-\- that
+way you can check the terminal capabilities from the inside of that
+terminal and switch to different output mode at once.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.renderer.HtmlRenderer
+Bases: \fI\%Renderer\fP
+.INDENT 7.0
+.TP
+.B classmethod  render(style:  \fI\%Style\fP, text:  str) -> str
+Apply colors and attributes described in \fBstyle\fP argument to
+\fBtext\fP and return the result. Output format depends on renderer\(aqs
+class (which defines the implementation).
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  set_as_default()
+Set renderer as default for \fI\%Style.render()\fP invocations.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  set_up(force_styles:  bool  |  None  =  False, compatibility_indexed:  bool  =  False, compatibility_default:  bool  =  False)
+Set up renderer preferences. Affects all renderer types.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBforce_styles\fP \-\- .INDENT 2.0
+.IP \(bu 2
+If set to \fINone\fP, all renderers will pass input text through themselves
+without any changes (i.e. no colors and attributes will be applied).
+.IP \(bu 2
+If set to \fITrue\fP, renderers will always apply the formatting regardless
+of other internal rules and algorithms.
+.IP \(bu 2
+If set to \fIFalse\fP [default], the final decision will be made
+by every renderer independently, based on their own algorithms.
+.UNINDENT
+
+.IP \(bu 2
+\fBcompatibility_indexed\fP \-\- Disable \fIRGB\fP (or True Color) output mode. 256\-color (\fIindexed\fP) sequences
+will be printed out instead of disabled ones. Useful when combined with
+\fBcurses\fP \-\- that way you can check the terminal capabilities from the
+inside of that terminal and switch to different output mode at once.
+.IP \(bu 2
+\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fBdefault\fP 16\-color sequences instead.
+If this setting is set to \fITrue\fP, the value of \fBcompatibility_indexed\fP
+will be ignored completely. Useful when combined with \fBcurses\fP \-\- that
+way you can check the terminal capabilities from the inside of that
+terminal and switch to different output mode at once.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.renderer.DebugRenderer
+Bases: \fI\%Renderer\fP
+.INDENT 7.0
+.TP
+.B classmethod  render(style:  \fI\%Style\fP, text:  str) -> str
+Apply colors and attributes described in \fBstyle\fP argument to
+\fBtext\fP and return the result. Output format depends on renderer\(aqs
+class (which defines the implementation).
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  set_as_default()
+Set renderer as default for \fI\%Style.render()\fP invocations.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  set_up(force_styles:  bool  |  None  =  False, compatibility_indexed:  bool  =  False, compatibility_default:  bool  =  False)
+Set up renderer preferences. Affects all renderer types.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBforce_styles\fP \-\- .INDENT 2.0
+.IP \(bu 2
+If set to \fINone\fP, all renderers will pass input text through themselves
+without any changes (i.e. no colors and attributes will be applied).
+.IP \(bu 2
+If set to \fITrue\fP, renderers will always apply the formatting regardless
+of other internal rules and algorithms.
+.IP \(bu 2
+If set to \fIFalse\fP [default], the final decision will be made
+by every renderer independently, based on their own algorithms.
+.UNINDENT
+
+.IP \(bu 2
+\fBcompatibility_indexed\fP \-\- Disable \fIRGB\fP (or True Color) output mode. 256\-color (\fIindexed\fP) sequences
+will be printed out instead of disabled ones. Useful when combined with
+\fBcurses\fP \-\- that way you can check the terminal capabilities from the
+inside of that terminal and switch to different output mode at once.
+.IP \(bu 2
+\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fBdefault\fP 16\-color sequences instead.
+If this setting is set to \fITrue\fP, the value of \fBcompatibility_indexed\fP
+will be ignored completely. Useful when combined with \fBcurses\fP \-\- that
+way you can check the terminal capabilities from the inside of that
+terminal and switch to different output mode at once.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.renderer.DefaultRenderer
+alias of \fI\%SGRRenderer\fP
+.UNINDENT
+.SS sequence
+.sp
+Module contains definitions for low\-level ANSI escape sequences handling.
+.sp
+Each preset defined below is a valid argument for \fI\%Span\fP and
+\fI\%SequenceSGR\fP default constructors (case\-insensitive):
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+Span(sequence.BG_GREEN, sequence.UNDERLINED)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.sequence.build(*args:  str  |  int  |  \fI\%SequenceSGR\fP) -> \fI\%SequenceSGR\fP
+Create new \fI\%SequenceSGR\fP with specified \fBargs\fP as params.
+.sp
+Resulting sequence param order is same as an argument order.
+.INDENT 7.0
+.TP
+.B Each sequence param can be specified as:
+.INDENT 7.0
+.IP \(bu 2
+string key (see \fI\%span\fP)
+.IP \(bu 2
+integer param value (from \fI\%intcode\fP)
+.IP \(bu 2
+existing \fBSequenceSGR\fP instance (params will be extracted).
+.UNINDENT
+.UNINDENT
+.sp
+Examples:
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> build(\(aqyellow\(aq, \(aqbold\(aq)
+SGR[33;1]
+>>> build(91, 7)
+SGR[91;7]
+>>> build(HI_CYAN, UNDERLINED)
+SGR[96;4]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.sequence.color_indexed(color:  int, bg:  bool  =  False) -> \fI\%SequenceSGR\fP
+Wrapper for creation of \fI\%SequenceSGR\fP that sets foreground
+(or background) to one of 256\-color pallete value.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBcolor\fP \-\- Index of the color in the pallete, 0 \-\- 255.
+.IP \(bu 2
+\fBbg\fP \-\- Set to \fITrue\fP to change the background color
+(default is foreground).
+.UNINDENT
+.TP
+.B Returns
+\fI\%SequenceSGR\fP with required params.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.sequence.color_rgb(r:  int, g:  int, b:  int, bg:  bool  =  False) -> \fI\%SequenceSGR\fP
+Wrapper for creation of \fI\%SequenceSGR\fP operating in True Color mode (16M).
+Valid values for \fIr\fP, \fIg\fP and \fIb\fP are in range [0; 255]. This range
+linearly translates into [\fB0x00\fP; \fB0xFF\fP] for each channel. The result
+value is composed as \fB#RRGGBB\fP\&. For example, sequence with color of
+\fB#FF3300\fP can be created with:
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+color_rgb(255, 51, 0)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBr\fP \-\- Red channel value, 0 \-\- 255.
+.IP \(bu 2
+\fBg\fP \-\- Blue channel value, 0 \-\- 255.
+.IP \(bu 2
+\fBb\fP \-\- Green channel value, 0 \-\- 255.
+.IP \(bu 2
+\fBbg\fP \-\- Set to \fITrue\fP to change the background color
+(default is foreground).
+.UNINDENT
+.TP
+.B Returns
+\fI\%SequenceSGR\fP with required params.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.sequence.SequenceSGR(*params:  int)
+Bases: \fB_SequenceCSI\fP
+.sp
+Class representing SGR\-type escape sequence with varying amount of parameters.
+.sp
+\fI\%SequenceSGR\fP with zero params was specifically implemented to
+translate into empty string and not into \fBe[m\fP, which would have
+made sense, but also would be very entangling, as this sequence is
+equivalent of \fBe[0m\fP \-\- hard reset sequence. The empty\-string\-sequence
+is predefined as \fI\%NOOP\fP\&.
+.sp
+It\(aqs possible to add of one SGR sequence to another:
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
+True
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B encode() -> str
+Build up actual byte sequence and return
+as an ASCII\-encoded string.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  params:  List[int]
+Return internal params as array.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  regexp() -> str
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.sequence.NOOP  =  SGR[]
+Special sequence in case where you \fIhave to\fP provide one or
+another SGR, but do not want any control sequence to be actually included.
+.INDENT 7.0
+.IP \(bu 2
+\fBNOOP.encode()\fP returns empty string.
+.IP \(bu 2
+\fBNOOP.params\fP returns empty list.
+.UNINDENT
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> NOOP.encode()
+\(aq\(aq
+>>> NOOP.params
+[]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+New in version 1.8.
+
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.sequence.RESET  =  SGR[0]
+Resets all attributes and colors.
+.UNINDENT
+.sp
+\fBATTENTION:\fP
+.INDENT 0.0
+.INDENT 3.5
+Preset constants are omitted from API doc pages to improve readability and avoid
+duplication. Summary list of all presets can be found in \fI\%Color / attribute preset list\fP section of the guide.
+.UNINDENT
+.UNINDENT
+.SS span
+.sp
+Module introducing \fI\%Span\fP low\-level  abstractions. The key difference beetween them and
+\fBSequences\fP is that sequence can \fIopen\fP text style and also \fIclose\fP, or terminate
+it. As for \fBSpans\fP \-\- they always do both; typical use\-case of \fI\%Span\fP is to wrap
+some text in opening SGR and closing one.
+.INDENT 0.0
+.TP
+.B class  pytermor.span.Span(*opening_params:  str  |  int  |  \fI\%SequenceSGR\fP)
+Create a \fI\%Span\fP with specified control sequence(s) as an opening sequence
+and \fBautomatically compose\fP second (closing) sequence that will terminate attributes
+defined in the first one while keeping the others (\fIsoft\fP reset).
+.sp
+Resulting sequence param order is same as an argument order.
+.INDENT 7.0
+.TP
+.B Each argument can be specified as:
+.INDENT 7.0
+.IP \(bu 2
+string key (name of any constant defined in \fI\%intcode\fP, case\-insensitive)
+.IP \(bu 2
+integer param value (defined in \fI\%intcode\fP)
+.IP \(bu 2
+existing \fI\%SequenceSGR\fP instance (params will be extracted).
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> Span(\(aqred\(aq, \(aqbold\(aq)
+Span[SGR[31;1], SGR[39;22]]
+>>> Span(intcode.GREEN)
+Span[SGR[32], SGR[39]]
+>>> Span(93, 4)
+Span[SGR[93;4], SGR[39;24]]
+>>> Span(sequence.BG_BLACK + sequence.RED)
+Span[SGR[40;31], SGR[49;39]]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Parameters
+\fBopening_params\fP \-\- string keys, integer codes or existing \fBSequenceSGR\fP
+instances to build \fBSpan\fP from.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  new(opening_seq:  Optional[\fI\%SequenceSGR\fP]  =  None, closing_seq:  Optional[\fI\%SequenceSGR\fP]  =  None, hard_reset_after:  bool  =  False) -> \fI\%Span\fP
+Create new \fI\%Span\fP with explicitly specified opening and closing sequences.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+\fI\%closing_seq\fP gets overwritten with \fI\%sequence.RESET\fP if \fBhard_reset_after\fP is \fITrue\fP\&.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBopening_seq\fP \-\- Starter sequence, in general determening how \fI\%Span\fP will actually look like.
+.IP \(bu 2
+\fBclosing_seq\fP \-\- Finisher SGR sequence.
+.IP \(bu 2
+\fBhard_reset_after\fP \-\- Terminate \fIall\fP formatting after this span.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B wrap(text:  Optional[Any]  =  None) -> str
+Wrap given \fBtext\fP string with \fBSGRs\fP defined on initialization \-\- \fI\%opening_seq\fP
+on the left, \fI\%closing_seq\fP on the right. \fBstr(text)\fP will
+be invoked for all argument types with the exception of \fINone\fP,
+which will be replaced with an empty string.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBtext\fP \-\- String to wrap.
+.TP
+.B Returns
+\fBtext\fP enclosed in instance\(aqs \fBSGRs\fP, if any.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  opening_str:  str
+Return opening SGR sequence encoded.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  opening_seq:  \fI\%SequenceSGR\fP
+Return opening SGR sequence instance.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  closing_str:  str
+Return closing SGR sequence encoded.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  closing_seq:  \fI\%SequenceSGR\fP
+Return closing SGR sequence instance.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B __call__(text:  Optional[Any]  =  None) -> str
+Can be used instead of \fI\%wrap()\fP method.
+.sp
+.nf
+.ft C
+>>> RED(\(aqtext\(aq) == RED.wrap(\(aqtext\(aq)
+True
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.span.NOOP  =  Span[SGR[], SGR[]]
+Special \fI\%Span\fP in cases where you \fIhave to\fP select one or 
+another \fI\%Span\fP, but do not want any control sequence to be actually included.
+.INDENT 7.0
+.IP \(bu 2
+\fBNOOP(string)\fP or \fBNOOP.wrap(string)\fP returns \fBstring\fP without any modifications;
+.IP \(bu 2
+\fBNOOP.opening_str\fP and \fBNOOP.closing_str\fP are empty strings;
+.IP \(bu 2
+\fBNOOP.opening_seq\fP and \fBNOOP.closing_seq\fP both returns \fI\%sequence.NOOP\fP\&.
+.UNINDENT
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> NOOP(\(aqtext\(aq)
+\(aqtext\(aq
+>>> NOOP.opening_str
+\(aq\(aq
+>>> NOOP.opening_seq
+SGR[]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBATTENTION:\fP
+.INDENT 0.0
+.INDENT 3.5
+Preset constants are omitted from API doc pages to improve readability and avoid
+duplication. Summary list of all presets can be found in \fI\%Color / attribute preset list\fP section of the guide.
+.UNINDENT
+.UNINDENT
+.SS style
+.sp
+High\-level abstraction defining text colors and attributes.
+.INDENT 0.0
+.TP
+.B class  pytermor.style.Style(fg_color:  str  |  int  |  \fI\%Color\fP  =  None, bg_color:  str  |  int  |  \fI\%Color\fP  =  None, auto_fg:  bool  =  False, blink:  bool  =  False, bold:  bool  =  False, crosslined:  bool  =  False, dim:  bool  =  False, double_underlined:  bool  =  False, inversed:  bool  =  False, italic:  bool  =  False, overlined:  bool  =  False, underlined:  bool  =  False)
+Create a new \fBStyle()\fP\&.
+.sp
+Key difference between \fBStyles\fP and \fBSpans\fP or \fBSGRs\fP is that
+\fBStyles\fP describe colors in RGB format and therefore support output
+rendering in several different formats (see \fI\%renderer\fP).
+.sp
+Both \fBfg_color\fP and \fBbg_color\fP can be specified as:
+.INDENT 7.0
+.IP 1. 3
+\fI\%Color\fP instance or library preset;
+.IP 2. 3
+key code \-\- name of any of aforementioned presets, case\-insensitive;
+.IP 3. 3
+integer color value in hexademical RGB format.
+.UNINDENT
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> Style(\(aqgreen\(aq, bold=True)
+Style[fg=008000, no bg, bold]
+>>> Style(bg_color=0x0000ff)
+Style[no fg, bg=0000ff]
+>>> Style(color.IDX_DEEP_SKY_BLUE_1, color.IDX_GREY_93)
+Style[fg=00afff, bg=eeeeee]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBfg_color\fP \-\- Foreground (i.e., text) color.
+.IP \(bu 2
+\fBbg_color\fP \-\- Background color.
+.IP \(bu 2
+\fBauto_fg\fP \-\- Automatically select \fBfg_color\fP based on \fBbg_color\fP (black or white
+depending on background brightness, if \fBbg_color\fP is defined).
+.IP \(bu 2
+\fBblink\fP \-\- Blinking effect; \fIsupported by limited amount of Renderers\fP\&.
+.IP \(bu 2
+\fBbold\fP \-\- Bold or increased intensity.
+.IP \(bu 2
+\fBcrosslined\fP \-\- Strikethrough.
+.IP \(bu 2
+\fBdim\fP \-\- Faint, decreased intensity.
+.IP \(bu 2
+\fBdouble_underlined\fP \-\- Faint, decreased intensity.
+.IP \(bu 2
+\fBinversed\fP \-\- Swap foreground and background colors.
+.IP \(bu 2
+\fBitalic\fP \-\- Italic.
+.IP \(bu 2
+\fBoverlined\fP \-\- Overline.
+.IP \(bu 2
+\fBunderlined\fP \-\- Underline.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B render(text:  Optional[Any]  =  None) -> str
+Returns \fBtext\fP with all attributes and colors applied.
+.sp
+By default uses \fI\%SequenceSGR\fP renderer, that means that output will contain
+ANSI escape sequences.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.style.Stylesheet(default:  Optional[\fI\%Style\fP]  =  None)
+.UNINDENT
+.SS util
+.sp
+Package containing a set of formatters for prettier output, as well as utility classes for removing
+some of the boilerplate code when dealing with escape sequences.
+.INDENT 0.0
+.TP
+.B pytermor.util.format_thousand_sep(value:  int  |  float, separator=\(aq \(aq)
+Returns input \fBvalue\fP with integer part splitted into groups of three digits,
+joined then with \fBseparator\fP string.
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> format_thousand_sep(260341)
+\(aq260 341\(aq
+>>> format_thousand_sep(\-9123123123.55, \(aq,\(aq)
+\(aq\-9,123,123,123.55\(aq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS auto_float
+.INDENT 0.0
+.TP
+.B pytermor.util.auto_float.format_auto_float(value:  float, req_len:  int, allow_exponent_notation:  bool  =  True) -> str
+Dynamically adjust decimal digit amount and format
+to fill up the output string with as many significant
+digits as possible, and keep the output length
+strictly equal to \fIreq_len\fP  at the same time.
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> format_auto_float(0.016789, 5)
+\(aq0.017\(aq
+>>> format_auto_float(0.167891, 5)
+\(aq0.168\(aq
+>>> format_auto_float(1.567891, 5)
+\(aq1.568\(aq
+>>> format_auto_float(12.56789, 5)
+\(aq12.57\(aq
+>>> format_auto_float(123.5678, 5)
+\(aq123.6\(aq
+>>> format_auto_float(1234.567, 5)
+\(aq 1235\(aq
+>>> format_auto_float(12345.67, 5)
+\(aq12346\(aq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+For cases when it\(aqs impossible to fit a number in the required length
+and rounding doesn\(aqt help (e.g. 12 500 000 and 5 chars) algorithm
+switches to scientific notation and the result looks like \(aq1.2e7\(aq.
+.sp
+When exponent form is disabled, there are two options for value that cannot
+fit into required length:
+.INDENT 7.0
+.IP 1. 3
+if absolute value is less than 1, zeros will be displayed (\(aq0.0000\(aq);
+.IP 2. 3
+in case of big numbers (like 10\s-2\u9\d\s0) ValueError will be raised instead.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBvalue\fP \-\- Value to format
+.IP \(bu 2
+\fBreq_len\fP \-\- Required output string length
+.IP \(bu 2
+\fBallow_exponent_notation\fP \-\- Enable/disable exponent form.
+.UNINDENT
+.TP
+.B Returns
+Formatted string of required length
+.TP
+.B Raises
+\fBValueError\fP \-\- 
+.UNINDENT
+.sp
+New in version 1.7.
+
+.UNINDENT
+.SS prefixed_unit
+.INDENT 0.0
+.TP
+.B pytermor.util.prefixed_unit.format_si_metric(value:  float) -> str
+Format \fBvalue\fP as unitless value with SI\-prefixes, max
+result length is \fI6\fP chars. Base is \fI1000\fP\&.
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> format_si_metric(123.456)
+\(aq123\(aq
+>>> format_si_metric(1080)
+\(aq1.08 k\(aq
+>>> format_si_metric(45200)
+\(aq45.2 k\(aq
+>>> format_si_metric(1257800)
+\(aq1.26 M\(aq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Parameters
+\fBvalue\fP \-\- Input value (unitless).
+.TP
+.B Returns
+Formatted string with SI\-prefix if necessary.
+.UNINDENT
+.sp
+New in version 2.0.
+
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.util.prefixed_unit.format_si_binary(value:  float) -> str
+Format \fBvalue\fP as binary size (bytes, kbytes, Mbytes), max
+result length is \fI8\fP chars. Base is \fI1024\fP\&.
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> format_si_binary(631)
+\(aq631 b\(aq
+>>> format_si_binary(1080)
+\(aq1.055 kb\(aq
+>>> format_si_binary(45200)
+\(aq44.14 kb\(aq
+>>> format_si_binary(1257800)
+\(aq1.200 Mb\(aq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Parameters
+\fBvalue\fP \-\- Input value in bytes.
+.TP
+.B Returns
+Formatted string with SI\-prefix if necessary.
+.UNINDENT
+.sp
+New in version 2.0.
+
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.util.prefixed_unit.PrefixedUnitFormatter(max_value_len:  int, integer_input:  bool  =  False, unit:  str  =  None, unit_separator:  str  =  None, mcoef:  float  =  1000.0, prefixes:  List[str  |  None]  =  None, prefix_zero_idx:  int  =  None)
+Formats \fBvalue\fP using settings passed to constructor. The main idea of this class
+is to fit into specified string length as much significant digits as it\(aqs
+theoretically possible by using multipliers and unit prefixes to
+indicate them.
+.sp
+You can create your own formatters if you need fine tuning of the
+output and customization. If that\(aqs not the case, there are facade
+methods \fI\%format_si_metric()\fP and \fI\%format_si_binary()\fP,
+which will invoke predefined formatters and doesn\(aqt require setting up.
+.sp
+@TODO params
+.INDENT 7.0
+.TP
+.B Parameters
+\fBprefix_zero_idx\fP \-\- Index of prefix which will be used as default, i.e. without multiplying coefficients.
+.UNINDENT
+.sp
+New in version 1.7.
+
+.INDENT 7.0
+.TP
+.B property  max_len:  int
+.INDENT 7.0
+.TP
+.B Returns
+Maximum length of the result. Note that constructor argument
+is \fImax_value_len\fP, which is different parameter.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B format(value:  float) -> str
+.INDENT 7.0
+.TP
+.B Parameters
+\fBvalue\fP \-\- Input value
+.TP
+.B Returns
+Formatted value
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.util.prefixed_unit.PREFIXES_SI  =  [\(aqy\(aq, \(aqz\(aq, \(aqa\(aq, \(aqf\(aq, \(aqp\(aq, \(aqn\(aq, \(aqμ\(aq, \(aqm\(aq, None, \(aqk\(aq, \(aqM\(aq, \(aqG\(aq, \(aqT\(aq, \(aqP\(aq, \(aqE\(aq, \(aqZ\(aq, \(aqY\(aq]
+Prefix presets used by default module formatters. Can be
+useful if you are building your own formatter.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.util.prefixed_unit.PREFIX_ZERO_SI  =  8
+Index of prefix which will be used as default, i.e. without 
+multiplying coefficients.
+.UNINDENT
+.SS time_delta
+.sp
+Module for time difference formatting (e.g. \(dq4 days 15 hours\(dq, \(dq8h 59m\(dq).
+.sp
+Supports several output lengths and can be customized even more.
+.INDENT 0.0
+.TP
+.B pytermor.util.time_delta.format_time_delta(seconds:  float, max_len:  Optional[int]  =  None) -> str
+Format time delta using suitable format (which depends on
+\fBmax_len\fP argument). Key feature of this formatter is
+ability to combine two units and display them simultaneously,
+e.g. return \(dq3h 48min\(dq instead of \(dq228 mins\(dq or \(dq3 hours\(dq,
+.sp
+There are predefined formatters with output length of 3, 4,
+6 and 10 characters. Therefore, you can pass in any value
+from 3 inclusive and it\(aqs guarenteed that result\(aqs length
+will be less or equal to required length. If \fImax_len\fP is
+omitted, longest registred formatter will be used.
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> format_time_delta(10, 3)
+\(aq10s\(aq
+>>> format_time_delta(10, 6)
+\(aq10 sec\(aq
+>>> format_time_delta(15350, 4)
+\(aq4 h\(aq
+>>> format_time_delta(15350)
+\(aq4h 15min\(aq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBseconds\fP \-\- Value to format
+.IP \(bu 2
+\fBmax_len\fP \-\- Maximum output string length (total)
+.UNINDENT
+.TP
+.B Returns
+Formatted string
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.util.time_delta.TimeDeltaFormatter(units:  List[\fI\%TimeUnit\fP], allow_negative:  bool, unit_separator:  Optional[str]  =  None, plural_suffix:  Optional[str]  =  None, stylesheet:  Optional[\fI\%TimeDeltaStylesheet\fP]  =  None, overflow_msg:  str  =  \(aqOVERFLOW\(aq)
+Formatter for time intervals. Key feature of this formatter is
+ability to combine two units and display them simultaneously,
+e.g. return \(dq3h 48min\(dq instead of \(dq228 mins\(dq or \(dq3 hours\(dq, etc.
+.sp
+You can create your own formatters if you need fine tuning of the
+output and customization. If that\(aqs not the case, there is a
+facade method \fI\%format_time_delta()\fP which will select appropriate
+formatter automatically.
+.sp
+Example output:
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+\(dq10 secs\(dq, \(dq5 mins\(dq, \(dq4h 15min\(dq, \(dq5d 22h\(dq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  stylesheet:  \fI\%TimeDeltaStylesheet\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  max_len:  int
+This property cannot be set manually, it is
+computed on initialization automatically.
+.INDENT 7.0
+.TP
+.B Returns
+Maximum possible output string length.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B format(seconds:  float, always_max_len:  bool  =  False) -> str
+Format the requested amount of seconds and apply styles to the result as
+defined in current formatter\(aqs \fIstylesheet\fP\&. Default \fBstylesheet\fP contains
+\(dqnoop\(dq spans only and thus no styles will be applied.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBseconds\fP \-\- Input value.
+.IP \(bu 2
+\fBalways_max_len\fP \-\- If result string is less than \fImax_len\fP it will be returned
+as is, unless this flag is set to \fITrue\fP\&. In that case output
+string will be paded with spaces on the left side so that
+resulting length would be always equal to maximum length.
+.UNINDENT
+.TP
+.B Returns
+Formatted string with applied styles if they are defined, raw string otherwise.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B format_raw(seconds:  float) -> str  |  None
+Format the requested amount of seconds as raw string without styling.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBseconds\fP \-\- Input value.
+.TP
+.B Returns
+Formatted string or \fINone\fP on overflow (if input
+value is too big for the current formatter to handle).
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.util.time_delta.TimeUnit(name:  \(aqstr\(aq, in_next:  \(aqint\(aq  =  None, custom_short:  \(aqstr\(aq  =  None, collapsible_after:  \(aqint\(aq  =  None, overflow_afer:  \(aqint\(aq  =  None)
+.INDENT 7.0
+.TP
+.B name:  str
+.UNINDENT
+.INDENT 7.0
+.TP
+.B in_next:  int  =  None
+.UNINDENT
+.INDENT 7.0
+.TP
+.B custom_short:  str  =  None
+.UNINDENT
+.INDENT 7.0
+.TP
+.B collapsible_after:  int  =  None
+.UNINDENT
+.INDENT 7.0
+.TP
+.B overflow_afer:  int  =  None
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.util.time_delta.TimeDeltaStylesheet(default:  Optional[\fI\%Style\fP]  =  None, digit:  Optional[\fI\%Style\fP]  =  None, unit:  Optional[\fI\%Style\fP]  =  None, overflow:  Optional[\fI\%Style\fP]  =  None)
+Bases: \fI\%Stylesheet\fP
+.UNINDENT
+.SS stdlib_ext
+.sp
+Some of the Python Standard Library methods rewritten
+for correct work with strings containing control sequences.
+.INDENT 0.0
+.TP
+.B pytermor.util.stdlib_ext.ljust_sgr(s:  str, width:  int, fillchar:  str  =  \(aq \(aq) -> str
+SGR\-formatting\-aware implementation of \fBstr.ljust\fP\&.
+.sp
+Return a left\-justified string of length \fBwidth\fP\&. Padding is done
+using the specified fill character (default is a space).
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.util.stdlib_ext.rjust_sgr(s:  str, width:  int, fillchar:  str  =  \(aq \(aq) -> str
+SGR\-formatting\-aware implementation of \fBstr.rjust\fP\&.
+.sp
+Return a right\-justified string of length \fBwidth\fP\&. Padding is done
+using the specified fill character (default is a space).
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.util.stdlib_ext.center_sgr(s:  str, width:  int, fillchar:  str  =  \(aq \(aq) -> str
+SGR\-formatting\-aware implementation of \fBstr.center\fP\&.
+.sp
+Return a centered string of length \fBwidth\fP\&. Padding is done using the
+specified fill character (default is a space).
+.UNINDENT
+.SS string_filter
+.sp
+String filtering module.
+.sp
+Main idea is to provide a common interface for string filtering, that can make
+possible working with filters like with objects rather than with functions/lambdas.
+.INDENT 0.0
+.TP
+.B pytermor.util.string_filter.apply_filters(s:  AnyStr, *args:  \fI\%StringFilter\fP[AnyStr]  |  Type[\fI\%StringFilter\fP[AnyStr]]) -> AnyStr
+Method for applying dynamic filter list to a target string/bytes.
+Example (will replace all \fBESC\fP control characters to \fBE\fP and
+thus make SGR params visible):
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> apply_filters(span.RED(\(aqtest\(aq), ReplaceSGR(r\(aqE\e2\e3\e5\(aq))
+\(aqE[31mtestE[39m\(aq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Note that type of \fBs\fP argument must be same as \fBStringFilter\fP parameterized
+type, i.e. \fI\%ReplaceNonAsciiBytes\fP is \fBStringFilter[bytes]\fP type, so
+you can apply it only to bytes\-type strings.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBs\fP (\fIAnyStr\fP) \-\- String to filter.
+.IP \(bu 2
+\fBargs\fP \-\- \fIStringFilter\fP instance(s) or \fBStringFilter\fP class(es).
+.UNINDENT
+.TP
+.B Returns
+Filtered \fBs\fP\&.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.util.string_filter.StringFilter(pattern:  AnyStr, repl:  AnyStr  |  Callable[[AnyStr  |  Match],  AnyStr])
+Bases: \fBGeneric\fP
+.sp
+Common string modifier interface.
+.INDENT 7.0
+.TP
+.B __call__(s:  AnyStr) -> AnyStr
+Can be used instead of \fIapply()\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B apply(s:  AnyStr) -> AnyStr
+Apply filter to \fBs\fP string (or bytes).
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.util.string_filter.VisualuzeWhitespace(repl:  AnyStr  =  \(aq·\(aq)
+Bases: \fI\%StringFilter\fP[\fBstr\fP]
+.sp
+Replace every invisible character with \fBrepl\fP (default is \fB·\fP),
+except newlines. Newlines are kept and get prepneded with same string.
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> VisualuzeWhitespace().apply(\(aqA  B  C\(aq)
+\(aqA··B··C\(aq
+>>> apply_filters(\(aq1. D\en2. L \(aq, VisualuzeWhitespace)
+\(aq1.·D·\en2.·L·\(aq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B __call__(s:  AnyStr) -> AnyStr
+Can be used instead of \fIapply()\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B apply(s:  AnyStr) -> AnyStr
+Apply filter to \fBs\fP string (or bytes).
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.util.string_filter.ReplaceSGR(repl:  AnyStr  =  \(aq\(aq)
+Bases: \fI\%StringFilter\fP[\fBstr\fP]
+.sp
+Find all SGR seqs (e.g. \fBESC[1;4m\fP) and replace with given string. More
+specific version of \fI\%ReplaceCSI\fP\&.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBrepl\fP \-\- Replacement, can contain regexp groups (see \fI\%apply_filters()\fP).
+.UNINDENT
+.INDENT 7.0
+.TP
+.B __call__(s:  AnyStr) -> AnyStr
+Can be used instead of \fIapply()\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B apply(s:  AnyStr) -> AnyStr
+Apply filter to \fBs\fP string (or bytes).
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.util.string_filter.ReplaceCSI(repl:  AnyStr  =  \(aq\(aq)
+Bases: \fI\%StringFilter\fP[\fBstr\fP]
+.sp
+Find all CSI seqs (i.e. \fBESC[*\fP) and replace with given string. Less
+specific version of \fI\%ReplaceSGR\fP, as CSI consists of SGR and many other
+sequence subtypes.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBrepl\fP \-\- Replacement, can contain regexp groups (see \fI\%apply_filters()\fP).
+.UNINDENT
+.INDENT 7.0
+.TP
+.B __call__(s:  AnyStr) -> AnyStr
+Can be used instead of \fIapply()\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B apply(s:  AnyStr) -> AnyStr
+Apply filter to \fBs\fP string (or bytes).
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.util.string_filter.ReplaceNonAsciiBytes(repl:  AnyStr  =  b\(aq?\(aq)
+Bases: \fI\%StringFilter\fP[\fBbytes\fP]
+.sp
+Keep 7\-bit ASCII bytes [\fB0x00\fP \- \fB0x7f\fP], replace other to \fB?\fP\&.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBrepl\fP \-\- Replacement byte\-string.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B __call__(s:  AnyStr) -> AnyStr
+Can be used instead of \fIapply()\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B apply(s:  AnyStr) -> AnyStr
+Apply filter to \fBs\fP string (or bytes).
+.UNINDENT
+.UNINDENT
+.SH CHANGELOG
+.SS v2.0.0
+.INDENT 0.0
+.IP \(bu 2
+Complete library rewrite.
+.IP \(bu 2
+High\-level abstractions \fI\%Color\fP, \fI\%Renderer\fP and \fI\%Style\fP\&.
+.IP \(bu 2
+Unit tests for formatters and new modules.
+.IP \(bu 2
+\fBpytest\fP and \fBcoverage\fP integration.
+.IP \(bu 2
+\fBsphinx\fP and \fBreadthedocs\fP integraton.
+.UNINDENT
+.SS v1.8.0
+.INDENT 0.0
+.IP \(bu 2
+\fBformat_prefixed_unit\fP extended for working with decimal and binary metric prefixes.
+.IP \(bu 2
+\fI\%format_time_delta\fP extended with new settings.
+.IP \(bu 2
+Value rounding transferred from  \fI\%format_auto_float\fP to \fBformat_prefixed_unit\fP\&.
+.IP \(bu 2
+Utility classes reorganization.
+.IP \(bu 2
+Unit tests output formatting.
+.IP \(bu 2
+\fI\%sequence.NOOP\fP SGR sequence and \fI\%span.NOOP\fP format.
+.IP \(bu 2
+Max decimal points for \fI\%auto_float\fP extended from (2) to (max\-2).
+.UNINDENT
+.SS v1.7.4
+.INDENT 0.0
+.IP \(bu 2
+Added 3 formatters: \fBformat_prefixed_unit\fP, \fI\%format_time_delta\fP, \fI\%format_auto_float\fP\&.
+.UNINDENT
+.SS v1.7.3
+.INDENT 0.0
+.IP \(bu 2
+Added \fBspan.BG_BLACK\fP format.
+.UNINDENT
+.SS v1.7.2
+.INDENT 0.0
+.IP \(bu 2
+Added \fI\%ljust_sgr\fP, \fI\%rjust_sgr\fP, \fI\%center_sgr\fP util functions to align strings with SGRs correctly.
+.UNINDENT
+.SS v1.7.1
+.INDENT 0.0
+.IP \(bu 2
+Print reset sequence as \fB\ee[m\fP instead of \fB\ee[0m\fP\&.
+.UNINDENT
+.SS v1.7.0
+.INDENT 0.0
+.IP \(bu 2
+\fI\%Span\fP constructor can be called without arguments.
+.IP \(bu 2
+Added SGR code lists.
+.UNINDENT
+.SS v1.6.2
+.INDENT 0.0
+.IP \(bu 2
+Excluded \fBtests\fP dir from distribution package.
+.UNINDENT
+.SS v1.6.1
+.INDENT 0.0
+.IP \(bu 2
+Ridded of \fBEmptyFormat\fP and \fBAbstractFormat\fP classes.
+.IP \(bu 2
+Renamed \fBcode\fP module to \fBsgr\fP because of conflicts in PyCharm debugger (\fBpydevd_console_integration.py\fP).
+.UNINDENT
+.SS v1.5.0
+.INDENT 0.0
+.IP \(bu 2
+Removed excessive \fBEmptySequenceSGR\fP \-\- default \fBSGR\fP class was specifically implemented to print out as empty string instead of \fB\ee[m\fP if constructed without params.
+.UNINDENT
+.SS v1.4.0
+.INDENT 0.0
+.IP \(bu 2
+\fI\%Span.wrap()\fP now accepts any type of argument, not only \fBstr\fP\&.
+.IP \(bu 2
+Rebuilt \fBSequence\fP inheritance tree.
+.IP \(bu 2
+Added equality methods for \fI\%SequenceSGR\fP and \fI\%Span\fP classes/subclasses.
+.IP \(bu 2
+Added some tests for \fBfmt.*\fP and \fBseq.*\fP classes.
+.UNINDENT
+.SS v1.3.2
+.INDENT 0.0
+.IP \(bu 2
+Added \fBspan.GRAY\fP and \fBspan.BG_GRAY\fP format presets.
+.UNINDENT
+.SS v1.3.1
+.INDENT 0.0
+.IP \(bu 2
+Interface revisioning.
+.UNINDENT
+.SS v1.2.1
+.INDENT 0.0
+.IP \(bu 2
+\fI\%opening_seq\fP and \fI\%closing_seq\fP properties for \fI\%Span\fP class.
+.UNINDENT
+.SS v1.2.0
+.INDENT 0.0
+.IP \(bu 2
+\fBEmptySequenceSGR\fP and \fBEmptyFormat\fP classes.
+.UNINDENT
+.SS v1.1.0
+.INDENT 0.0
+.IP \(bu 2
+Autoformat feature.
+.UNINDENT
+.SS v1.0.0
+.INDENT 0.0
+.IP \(bu 2
+First public version.
+.UNINDENT
+
+.sp
+.ce
+----
+
+.ce 0
+.sp
+.sp
+This project uses Semantic Versioning \-\- \fI\%https://semver.org\fP \fI(starting from 2.0.0)\fP
+.SH LICENSE
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+MIT License
+
+Copyright (c) 2022 Aleksandr Shavykin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the \(dqSoftware\(dq), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED \(dqAS IS\(dq, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH AUTHOR
+Alexandr Shavykin
+.SH COPYRIGHT
+2022, Alexandr Shavykin
+.\" Generated by docutils manpage writer.
+.
