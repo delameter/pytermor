@@ -35,7 +35,8 @@ extensions = [
     'sphinx.ext.autosummary', 'sphinx.ext.extlinks',
     'sphinx.ext.viewcode',    'sphinx.ext.inheritance_diagram',
     'sphinx.ext.doctest',
-    'sphinx_copybutton'
+    'sphinx_copybutton',
+    'sphinx_design',
 ]
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '_temp']
@@ -135,7 +136,7 @@ nitpick_ignore = [('py:class', 'Match'),
 #   we'll apply this patch inside of the add_directive_header method.
 # https://stackoverflow.com/a/46284013/5834973
 
-from sphinx.ext.autodoc import ClassDocumenter, _  # noqa E402
+from sphinx.ext.autodoc import ClassDocumenter, _
 
 add_line = ClassDocumenter.add_line
 line_to_delete = _(u'Bases: %s') % u':py:class:`object`'
@@ -149,7 +150,7 @@ def add_line_no_object_base(self, text, *args, **kwargs):
 
 def add_directive_header_no_object_base(self, *args, **kwargs):
     self.add_line = add_line_no_object_base.__get__(self)
-    result = add_directive_header(self, *args, **kwargs)  # noqa E1111
+    result = add_directive_header(self, *args, **kwargs)  # noqa
     del self.add_line
     return result
 

@@ -3,13 +3,20 @@
 /* (c) 2022. A. Shavykin <0.delameter@gmail.com>                             */
 /*---------------------------------------------------------------------------*/
 
-table.intro a {
-    font-size: 1.5em;
+.intro a.reference {
+    font-size: 1.5rem;
 }
+.intro p {
+    margin: 0;
+}
+.intro em {
+    font-size: 0.8rem;
+}
+
 table.core-api-refs p {
     font-size: 1.33em;
 }
-table.intro td, table.core-api-refs td {
+table.core-api-refs td {
     padding: 1rem;
 }
 

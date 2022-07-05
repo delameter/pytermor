@@ -20,19 +20,35 @@ No dependencies besides Python Standard Library are required (there are some for
 
 .. only :: html
 
-   .. table::
-      :class: intro
-      :widths: 50 50
+   .. grid:: 2
+      :gutter: 1
+      :class-container: intro
 
-      +-----------------------------------+----------------------------------+
-      | :ref:`guide.index`                | :ref:`apidoc.index`              |
-      |                                   |                                  |
-      | *in-depth review with examples*   | *complete API reference*         |
-      +-----------------------------------+----------------------------------+
-      | :ref:`changes`                    | :ref:`genindex`                  |
-      |                                   |                                  |
-      | *release history*                 | *all functions, classes, terms*  |
-      +-----------------------------------+----------------------------------+
+      .. grid-item-card::
+
+         :ref:`guide.index`
+
+         .. line-block::
+
+            in-depth review with examples
+
+      .. grid-item-card::
+
+         :ref:`apidoc.index`
+
+         *complete API reference*
+
+      .. grid-item-card::
+
+         :ref:`changes`
+
+         *release history*
+
+      .. grid-item-card::
+
+         :ref:`genindex`
+
+         *all functions, classes, terms*
 
 
 ``@TODO`` This is how you **should** format examples:

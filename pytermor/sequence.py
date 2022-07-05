@@ -112,7 +112,7 @@ def color_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
 
 def _validate_extended_color(value: int):
     if value < 0 or value > 255:
-        raise ValueError(f'Invalid color value: {value}; valid values are 0-255 inclusive')
+        raise ValueError(f'Invalid color value: expected range [0-255], got: {value}')
 
 
 class _Sequence(metaclass=ABCMeta):
@@ -244,18 +244,22 @@ class _SgrPairityRegistry:
 
     def register_single(self, starter_code: int | Tuple[int, ...], breaker_code: int):
         if starter_code in self._code_to_breaker_map:
-            raise RuntimeError(f'Conflict: SGR code {starter_code} already has a registered breaker')
+            raise RuntimeError(f'Conflict: SGR code {starter_code} already '
+                               f'has a registered breaker')
 
         self._code_to_breaker_map[starter_code] = SequenceSGR(breaker_code)
 
-    def register_complex(self, starter_codes: Tuple[int, ...], param_len: int, breaker_code: int):
+    def register_complex(self, starter_codes: Tuple[int, ...], param_len: int,
+                         breaker_code: int):
         self.register_single(starter_codes, breaker_code)
 
         if starter_codes in self._complex_code_def:
-            raise RuntimeError(f'Conflict: SGR complex {starter_codes} already has a registered breaker')
+            raise RuntimeError(f'Conflict: SGR complex {starter_codes} already '
+                               f'has a registered breaker')
 
         self._complex_code_def[starter_codes] = param_len
-        self._complex_code_max_len = max(self._complex_code_max_len, len(starter_codes) + param_len)
+        self._complex_code_max_len = max(self._complex_code_max_len,
+                                         len(starter_codes) + param_len)
 
     def get_closing_seq(self, opening_seq: SequenceSGR) -> SequenceSGR:
         closing_seq_params: List[int] = []
@@ -264,12 +268,15 @@ class _SgrPairityRegistry:
         while len(opening_params):
             key_params: int|Tuple[int, ...]|None = None
 
-            for complex_len in range(1, min(len(opening_params), self._complex_code_max_len + 1)):
+            for complex_len in range(1, min(len(opening_params),
+                                            self._complex_code_max_len + 1)):
                 opening_complex_suggestion = tuple(opening_params[:complex_len])
 
                 if opening_complex_suggestion in self._complex_code_def:
                     key_params = opening_complex_suggestion
-                    complex_total_len = complex_len + self._complex_code_def[opening_complex_suggestion]
+                    complex_total_len = (
+                        complex_len + self._complex_code_def[opening_complex_suggestion]
+                    )
                     opening_params = opening_params[complex_total_len:]
                     break
 
@@ -321,9 +328,9 @@ CROSSLINED = SequenceSGR(intcode.CROSSLINED)
 DOUBLE_UNDERLINED = SequenceSGR(intcode.DOUBLE_UNDERLINED)
 OVERLINED = SequenceSGR(intcode.OVERLINED)
 
-NO_BOLD_DIM = SequenceSGR(intcode.NO_BOLD_DIM)  # there is no separate sequence for disabling either of BOLD or DIM while keeping the other
-ITALIC_OFF = SequenceSGR(intcode.ITALIC_OFF)
-UNDERLINED_OFF = SequenceSGR(intcode.UNDERLINED_OFF)
+NO_BOLD_DIM = SequenceSGR(intcode.NO_BOLD_DIM)       # there is no separate sequence for
+ITALIC_OFF = SequenceSGR(intcode.ITALIC_OFF)           # disabling either of BOLD or DIM
+UNDERLINED_OFF = SequenceSGR(intcode.UNDERLINED_OFF)   # while keeping the other
 BLINK_OFF = SequenceSGR(intcode.BLINK_OFF)
 INVERSED_OFF = SequenceSGR(intcode.INVERSED_OFF)
 HIDDEN_OFF = SequenceSGR(intcode.HIDDEN_OFF)
@@ -401,17 +408,25 @@ sgr_parity_registry.register_single(intcode.HIDDEN, intcode.HIDDEN_OFF)
 sgr_parity_registry.register_single(intcode.CROSSLINED, intcode.CROSSLINED_OFF)
 sgr_parity_registry.register_single(intcode.OVERLINED, intcode.OVERLINED_OFF)
 
-for c in [intcode.BLACK, intcode.RED, intcode.GREEN, intcode.YELLOW, intcode.BLUE, intcode.MAGENTA, intcode.CYAN, intcode.WHITE, intcode.GRAY,
-          intcode.HI_RED, intcode.HI_GREEN, intcode.HI_YELLOW, intcode.HI_BLUE, intcode.HI_MAGENTA, intcode.HI_CYAN, intcode.HI_WHITE]:
+for c in [intcode.BLACK, intcode.RED, intcode.GREEN, intcode.YELLOW, intcode.BLUE,
+          intcode.MAGENTA, intcode.CYAN, intcode.WHITE, intcode.GRAY,
+          intcode.HI_RED, intcode.HI_GREEN, intcode.HI_YELLOW, intcode.HI_BLUE,
+          intcode.HI_MAGENTA, intcode.HI_CYAN, intcode.HI_WHITE]:
     sgr_parity_registry.register_single(c, intcode.COLOR_OFF)
 
-for c in [intcode.BG_BLACK, intcode.BG_RED, intcode.BG_GREEN, intcode.BG_YELLOW, intcode.BG_BLUE, intcode.BG_MAGENTA, intcode.BG_CYAN,
-          intcode.BG_WHITE, intcode.BG_GRAY, intcode.BG_HI_RED, intcode.BG_HI_GREEN, intcode.BG_HI_YELLOW, intcode.BG_HI_BLUE,
+for c in [intcode.BG_BLACK, intcode.BG_RED, intcode.BG_GREEN, intcode.BG_YELLOW,
+          intcode.BG_BLUE, intcode.BG_MAGENTA, intcode.BG_CYAN,
+          intcode.BG_WHITE, intcode.BG_GRAY, intcode.BG_HI_RED,
+          intcode.BG_HI_GREEN, intcode.BG_HI_YELLOW, intcode.BG_HI_BLUE,
           intcode.BG_HI_MAGENTA, intcode.BG_HI_CYAN, intcode.BG_HI_WHITE]:
     sgr_parity_registry.register_single(c, intcode.BG_COLOR_OFF)
 
 
-sgr_parity_registry.register_complex((intcode.COLOR_EXTENDED, 5), 1, intcode.COLOR_OFF)
-sgr_parity_registry.register_complex((intcode.COLOR_EXTENDED, 2), 3, intcode.COLOR_OFF)
-sgr_parity_registry.register_complex((intcode.BG_COLOR_EXTENDED, 5), 1, intcode.BG_COLOR_OFF)
-sgr_parity_registry.register_complex((intcode.BG_COLOR_EXTENDED, 2), 3, intcode.BG_COLOR_OFF)
+sgr_parity_registry.register_complex((intcode.COLOR_EXTENDED, 5),
+                                     1, intcode.COLOR_OFF)
+sgr_parity_registry.register_complex((intcode.COLOR_EXTENDED, 2),
+                                     3, intcode.COLOR_OFF)
+sgr_parity_registry.register_complex((intcode.BG_COLOR_EXTENDED, 5),
+                                     1, intcode.BG_COLOR_OFF)
+sgr_parity_registry.register_complex((intcode.BG_COLOR_EXTENDED, 2),
+                                     3, intcode.BG_COLOR_OFF)
