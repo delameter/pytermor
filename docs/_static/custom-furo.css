@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------*/
+/* pytermor [ANSI formatted terminal output toolset]                         */
+/* (c) 2022. A. Shavykin <0.delameter@gmail.com>                             */
+/*---------------------------------------------------------------------------*/
+
 table.intro a {
     font-size: 1.5em;
 }
@@ -58,6 +63,10 @@ table caption {
     margin-bottom: 1rem;
 }
 
+figcaption {
+    font-size: var(--font-size--small);
+}
+
 article .align-center, article .align-default {
     margin-block: 0.5em 1.0em;
 }
@@ -93,7 +102,7 @@ table.presets {
 }
 table.presets img {
     height: 24px !important;
-    border: 1px dotted var(--color-background-item);
+    border: 1px solid var(--color-background-item);
     vertical-align: middle;
 }
 table.presets td, table.presets th {
@@ -111,4 +120,9 @@ table.preset-colors {
 }
 table.preset-attributes td:nth-child(8) {
     font-size: 0.9rem;
+}
+
+a.image-reference img {
+    border: 1px dotted var(--color-background-item);
+    padding: 5px;
 }

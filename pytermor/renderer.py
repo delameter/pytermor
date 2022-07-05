@@ -76,14 +76,14 @@ class Renderer(metaclass=abc.ABCMeta):
 
             Disable *RGB* (or True Color) output mode. 256-color (*indexed*) sequences
             will be printed out instead of disabled ones. Useful when combined with
-            `curses` -- that way you can check the terminal capabilities from the
+            ``curses`` -- that way you can check the terminal capabilities from the
             inside of that terminal and switch to different output mode at once.
 
         :param compatibility_default:
 
             Disable *indexed* output mode and use *default* 16-color sequences instead.
             If this setting is set to *True*, the value of ``compatibility_indexed``
-            will be ignored completely. Useful when combined with `curses` -- that
+            will be ignored completely. Useful when combined with ``curses`` -- that
             way you can check the terminal capabilities from the inside of that
             terminal and switch to different output mode at once.
 

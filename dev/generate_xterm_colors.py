@@ -45,37 +45,37 @@ COLORS_16 = [
     'HI_BLUE', 'HI_MAGENTA', 'HI_CYAN', 'HI_WHITE',
 ]
 
-html_16_output = '''
-<table class="xterm-colors docutils align-default">
-    <tr>
-        <th>Ex</th>
-        <th>Fg code</th>
-        <th>Bg code</th>
-        <th class="smaller dense">RGB<br>hex code</th>
-        <th>Fg preset</th>
-        <th>Bg preset</th>
-    </tr>
-'''
+# html_16_output = '''
+# <table class="xterm-colors docutils align-default">
+#     <tr>
+#         <th>Ex</th>
+#         <th>Fg code</th>
+#         <th>Bg code</th>
+#         <th class="smaller dense">RGB<br>hex code</th>
+#         <th>Fg preset</th>
+#         <th>Bg preset</th>
+#     </tr>
+# '''
 
-for color_name in COLORS_16:
-    color_ = getattr(color, color_name)
-    html_16_output += '''
-    <tr>
-        <td class="xterm-color-cell" style="background-color: #{color.hex_value:06x}"></td>
-        <td><pre>{color._code_fg}</pre></td>
-        <td><pre>{color._code_bg}</pre></td>
-        <td><pre>0x{color.hex_value:06x}</pre></td>
-        <td><pre>{color_name}</pre></td>
-        <td><pre>{bg_color_name}</pre></td>
-    </tr>
-'''.format(color=color_, 
-           color_name=get_color16_ref(color_name),
-           bg_color_name=get_color16_ref('BG_' + color_name))
+# for color_name in COLORS_16:
+#     color_ = getattr(color, color_name)
+#     html_16_output += '''
+#     <tr>
+#         <td class="xterm-color-cell" style="background-color: #{color.hex_value:06x}"></td>
+#         <td><pre>{color._code_fg}</pre></td>
+#         <td><pre>{color._code_bg}</pre></td>
+#         <td><pre>0x{color.hex_value:06x}</pre></td>
+#         <td><pre>{color_name}</pre></td>
+#         <td><pre>{bg_color_name}</pre></td>
+#     </tr>
+# '''.format(color=color_,
+#            color_name=get_color16_ref(color_name),
+#            bg_color_name=get_color16_ref('BG_' + color_name))
+#
+# html_16_output += '</table>\n'
 
-html_16_output += '</table>\n'
-
-with open('_include/xterm-colors-16-t.html', 'w') as output:
-    output.write(html_16_output)
+#with open('_include/xterm-colors-16-t.html', 'w') as output:
+#    output.write(html_16_output)
 
 
 # -----------------------------------------------------------------------------

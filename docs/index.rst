@@ -2,6 +2,9 @@
 
 .. default-role:: any
 
+.. role:: underline
+    :class: underline
+
 .. title:: pytermor
 
 =====================
@@ -12,7 +15,7 @@ pytermor
 
 Key feature of this library is providing necessary abstractions for building complex text sections with lots of formatting, while keeping the application code clear and readable.
 
-No dependencies besides Python Standard Library required (there are some for testing and docs building, though).
+No dependencies besides Python Standard Library are required (there are some for testing and docs building, though).
 
 
 .. only :: html
@@ -30,6 +33,14 @@ No dependencies besides Python Standard Library required (there are some for tes
       |                                   |                                  |
       | *release history*                 | *all functions, classes, terms*  |
       +-----------------------------------+----------------------------------+
+
+
+``@TODO`` This is how you **should** format examples:
+
+.. figure:: /_static/ex_ex.png
+
+   https://chrisyeh96.github.io/2020/03/28/terminal-colors.html#color-schemes
+
 
 
 .. toctree::

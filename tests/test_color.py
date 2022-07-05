@@ -192,7 +192,7 @@ class TestColorDefault(unittest.TestCase):
         self.assertEquals(SequenceSGR(38, 5, intcode.IDX_MAROON),
                           ColorDefault(0x800000, intcode.RED, intcode.BG_RED)
                           .to_sgr_indexed(False))
-        self.assertEquals(SequenceSGR(48, 5, intcode.IDX_GREEN_1),
+        self.assertEquals(SequenceSGR(48, 5, intcode.IDX_LIME),
                           ColorDefault(0x00ee00, intcode.HI_GREEN, intcode.BG_HI_GREEN)
                           .to_sgr_indexed(True))
 

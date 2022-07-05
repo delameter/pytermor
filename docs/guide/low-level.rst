@@ -14,8 +14,8 @@ Format soft reset
 
 There are two ways to manage color and attribute termination:
 
-- hard reset (SGR 0 | :kbd:`\e[0m`)
-- soft reset (SGR 22, 23, 24 etc.)
+- hard reset (SGR-0 or :kbd:`\e[0m`)
+- soft reset (SGR-22, 23, 24 etc.)
 
 The main difference between them is that *hard* reset disables all formatting after itself, while *soft*
 reset disables only actually necessary attributes (i.e. used as opening sequence in `Span` instance's context)

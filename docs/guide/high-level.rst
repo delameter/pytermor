@@ -12,6 +12,26 @@ High-level abstractions
 Output format control
 =====================
 
+Color mode fallbacks
+====================
+
+.. only:: html
+
+   .. figure:: ../_include/approx/output-bgwhite.png
+      :width: 400px
+      :align: center
+
+      Color approximations for indexed modes
+      *(click to enlarge)*
+
+.. only:: latex
+
+   .. figure:: ../_include/approx/output-bgwhite.png
+      :align: center
+
+      Color approximations for indexed modes
+
+
 Core API
 ========
 

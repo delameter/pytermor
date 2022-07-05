@@ -200,10 +200,10 @@ class SequenceSGR(_SequenceCSI, metaclass=ABCMeta):
         if params == [0]:  # \e[0m <=> \em, saving 1 byte
             params = []
 
-        return f'{self._CONTROL_CHARACTER}' \
-               f'{self._INTRODUCER}' \
-               f'{self._SEPARATOR.join([str(param) for param in params])}' \
-               f'{self._TERMINATOR}'
+        return (self._CONTROL_CHARACTER +
+                self._INTRODUCER +
+                self._SEPARATOR.join([str(param) for param in params]) +
+                self._TERMINATOR)
 
     def __add__(self, other: SequenceSGR) -> SequenceSGR:
         self._ensure_sequence(other)

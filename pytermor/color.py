@@ -381,7 +381,7 @@ class _ColorMap(Generic[TypeColor]):
         min_distance_sq = None
         closest = None
 
-        for cached_hex, cached_color in self._approximate_cache.items():
+        for cached_hex, cached_color in self._lookup_table.items():
             # sRGB euclidean distance:
             # https://en.wikipedia.org/wiki/Color_difference#sRGB
             map_r, map_g, map_b = Color.hex_value_to_rgb_channels(cached_hex)
@@ -457,7 +457,7 @@ IDX_GREY_0 = ColorIndexed(0x000000, intcode.IDX_GREY_0)
 IDX_NAVY_BLUE = ColorIndexed(0x00005f, intcode.IDX_NAVY_BLUE)
 IDX_DARK_BLUE = ColorIndexed(0x000087, intcode.IDX_DARK_BLUE)
 IDX_BLUE_3 = ColorIndexed(0x0000af, intcode.IDX_BLUE_3)
-IDX_BLUE_3 = ColorIndexed(0x0000d7, intcode.IDX_BLUE_3)
+IDX_BLUE_2 = ColorIndexed(0x0000d7, intcode.IDX_BLUE_2)  # Blue3
 IDX_BLUE_1 = ColorIndexed(0x0000ff, intcode.IDX_BLUE_1)
 IDX_DARK_GREEN = ColorIndexed(0x005f00, intcode.IDX_DARK_GREEN)
 IDX_DEEP_SKY_BLUE_4 = ColorIndexed(0x005f5f, intcode.IDX_DEEP_SKY_BLUE_4)
@@ -693,3 +693,6 @@ IDX_GREY_82 = ColorIndexed(0xd0d0d0, intcode.IDX_GREY_82)
 IDX_GREY_85 = ColorIndexed(0xdadada, intcode.IDX_GREY_85)
 IDX_GREY_89 = ColorIndexed(0xe4e4e4, intcode.IDX_GREY_89)
 IDX_GREY_93 = ColorIndexed(0xeeeeee, intcode.IDX_GREY_93)
+
+RGB_BLACK = ColorRGB(0x000000)
+RGB_WHITE = ColorRGB(0xffffff)
