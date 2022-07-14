@@ -95,14 +95,14 @@ docs: ## Build HTML documentation
 docs: demolish-docs
 	. venv/bin/activate
 	sphinx-build -aEn docs docs/_build -b html
-	if [ -n $$DISPLAY ] ; then xdg-open docs/_build/index.html ; fi
+	if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/index.html ; fi
 
 docs-pdf: ## Build PDF documentation
 	. venv/bin/activate
 	yes "" | make -C docs latexpdf  # twice for building pdf toc
 	yes "" | make -C docs latexpdf  # @FIXME broken unicode
 	cp docs/_build/latex/pytermor.pdf docs/pytermor.pdf
-	if [ -n $$DISPLAY ] ; then xdg-open docs/_build/latex/pytermor.pdf ; fi
+	if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/latex/pytermor.pdf ; fi
 
 docs-man: ## Build man pages
 	. venv/bin/activate
