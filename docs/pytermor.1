@@ -27,15 +27,15 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "PYTERMOR" "1" "Jul 06, 2022" "2.0.0-dev.11" "pytermor"
+.TH "PYTERMOR" "1" "Jul 14, 2022" "2.0.0-dev.12" "pytermor"
 .SH NAME
-pytermor \- pytermor 2.0.0-dev.11
+pytermor \- pytermor 2.0.0-dev.12
 .sp
 \fI(yet another)\fP Python library designed for formatting terminal output using ANSI escape codes. Implements automatic \fI\%\(dqsoft\(dq\fP format termination. Provides a registry of low\-level SGR \fI\%sequences\fP and formatting \fI\%spans\fP (or combined sequences). Also includes a set of formatters for pretty output.
 .sp
 Key feature of this library is providing necessary abstractions for building complex text sections with lots of formatting, while keeping the application code clear and readable.
 .sp
-No dependencies besides Python Standard Library are required (there are some for testing and docs building, though).
+No dependencies besides Python Standard Library are required \fI(there are some for testing and docs building, though).\fP
 .sp
 \fB@TODO\fP This is how you \fBshould\fP format examples:
 .INDENT 0.0
@@ -129,7 +129,7 @@ print(msg)
 The library supports extended color modes:
 .INDENT 0.0
 .IP \(bu 2
-XTerm 256 colors indexed mode (see \fI\%Color / attribute preset list\fP);
+XTerm 256 colors indexed mode (see \fI\%Preset list\fP);
 .IP \(bu 2
 True Color RGB mode (16M colors).
 .UNINDENT
@@ -205,10 +205,10 @@ However, there is an option to specify what attributes should be disabled or let
 .ft C
 from pytermor import sequence, span, Span
 
-# automatically:
-span_warn = Span(sequence.HI_YELLOW + sequence.UNDERLINED)
+# implicitly:
+span_warn = Span(93, 4)
 # or explicitly:
-span_warn = Span.new(
+span_warn = Span.from_seq(
     sequence.HI_YELLOW + sequence.UNDERLINED,  # sequences can be summed up, remember?
     sequence.COLOR_OFF + sequence.UNDERLINED_OFF,  # \(dqcounteractive\(dq sequences
     hard_reset_after=False
@@ -240,19 +240,19 @@ Resulting sequence params\(aq order is the same as argument\(aqs order.
 Each sequence param can be specified as:
 .INDENT 0.0
 .IP \(bu 2
-string key (see \fI\%Color / attribute preset list\fP);
+string key (see \fI\%Preset list\fP);
 .IP \(bu 2
 integer param value;
 .IP \(bu 2
 existing \fI\%SequenceSGR\fP instance (params will be extracted).
 .UNINDENT
 .sp
-It\(aqs also possible to avoid auto\-composing mechanism and create \fI\%Span\fP with explicitly set parameters
-using \fI\%Span.new()\fP\&.
+It\(aqs also possible to avoid auto\-composing mechanism and create \fI\%Span\fP with
+explicitly set parameters using \fI\%Span.from_seq()\fP\&.
 .SS Creating and applying SGRs
 .sp
 You can use any of predefined sequences from \fI\%sequence\fP or create your own via standard constructor. Valid
-argument values as well as preset constants are described in \fI\%Color / attribute preset list\fP page.
+argument values as well as preset constants are described in \fI\%Preset list\fP page.
 .sp
 There is also a set of methods for dynamic \fBSequenceSGR\fP creation:
 .INDENT 0.0
@@ -269,7 +269,7 @@ that sequence as \fBe[0m\fP, which is \fIhard\fP reset sequence.
 .UNINDENT
 .IP \(bu 2
 \fI\%color_indexed()\fP for complex color selection sequences operating in 256\-colors mode (for a complete list
-see \fI\%Color / attribute preset list\fP);
+see \fI\%Preset list\fP);
 .IP \(bu 2
 \fI\%color_rgb()\fP for setting the colors in True Color 16M mode (however, some terminal emulators doesn\(aqt
 support it).
@@ -336,7 +336,7 @@ print(f\(aq{combined}combined{sequence.RESET}\(aq, str(combined).encode())
 .UNINDENT
 .UNINDENT
 .SS Core API
-.SS Color / attribute preset list
+.SS Preset list
 .sp
 Preset lists are omitted from API docs to avoid unnesessary duplication;
 summary list of all presets defined in the library (not including
@@ -783,7 +783,7 @@ T}	T{
 T}
 _
 T{
-Foreground \fBdefault\fP colors
+Foreground \fIdefault\fP colors
 T}
 _
 T{
@@ -939,7 +939,7 @@ Silver
 T}
 _
 T{
-Background \fBdefault\fP colors
+Background \fIdefault\fP colors
 T}
 _
 T{
@@ -1095,7 +1095,7 @@ Silver
 T}
 _
 T{
-High\-intensity foreground \fBdefault\fP colors
+High\-intensity foreground \fIdefault\fP colors
 T}
 _
 T{
@@ -1251,7 +1251,7 @@ White
 T}
 _
 T{
-High\-intensity background \fBdefault\fP colors
+High\-intensity background \fIdefault\fP colors
 T}
 _
 T{
@@ -5785,7 +5785,7 @@ T}
 _
 T{
 .IP [3] 5
-First 16 colors are effectively the same as colors in \fBdefault\fP 16\-color mode and share with them the same color values (and depend on terminal color scheme as well).
+First 16 colors are effectively the same as colors in \fIdefault\fP 16\-color mode and share with them the same color values (and depend on terminal color scheme as well).
 .IP [4] 5
 XTerm name list contains duplicates; variable names for these were slightly modified (different numbers at the end) to avoid namespace conflicts. All non\-matching names are displayed using \fBbold\fP font.
 T}
@@ -5808,19 +5808,37 @@ Sources
 .UNINDENT
 .SS Color palette
 .sp
-Actual colors of \fBdefault\fP palette depend on user\(aqs terminal settings, i.e.
-the result color of \fBColorDefault\fP is not guaranteed to exactly match the
-corresponding color in the list below.
+Actual colors of \fIdefault\fP palette depend on user\(aqs terminal settings, i.e.
+the result color of \fI\%ColorDefault\fP is not guaranteed to exactly match the
+corresponding color listed below. What\(aqs more, note that \fIdefault\fP palette
+is actually a part of \fIindexed\fP one (first 16 colors of 256\-color table).
 .sp
-However, usually that\(aqs not an issue, because users expect their terminal
-theme to work (almost) everythere and will be surprised when the application
-forcefully override default colors with custom ones (in any case, that can be
-accomplished by using \fI\%ColorRGB\fP or \fBColorIndexed\fP; their color values are
-hard to customize without special configurations; but it\(aqs recommended not to
-use them for regular output).
+\fBIMPORTANT:\fP
+.INDENT 0.0
+.INDENT 3.5
+\fB@TODO\fP
+The approximation algomanrithm was explicitly made to ignore these colors because
+otherwise the results of transforming \fIRGB\fP values into \fIindexed\fP ones would be
+unpredictable, in addition to different results for different users, depending
+on their terminal emulator setup.
+.UNINDENT
+.UNINDENT
 .sp
-Note that \fBdefault\fP palette is actually a part of \fIindexed\fP one (the first 16
-colors of 256\-color table).
+However, it doesn\(aqt mean that \fI\%ColorDefault\fP is useless. Just the opposite \-\- it\(aqs
+ideal for situtations when you don\(aqt actually \fBhave to\fP set exact values and
+it\(aqs easier to specify estimation of desired color. I.e. setting color to \fB\(aqred\(aq\fP
+is usually more than enough for displaying an error message \-\- we don\(aqt really care
+of precise hue or brightness values for it.
+.sp
+Approximation algorithm is as simple as iterating through all colors in the \fIlookup
+table\fP (which contains all possible ... \fB@TODO\fP finish
+
+.sp
+.ce
+----
+
+.ce 0
+.sp
 
 .sp
 .ce
@@ -5882,14 +5900,20 @@ for seconds in seconds_list:
 .SS color
 .sp
 @TODO
+.sp
+@TODO black/white text selection depending on bg
 .INDENT 0.0
 .TP
-.B class  pytermor.color.Color(hex_value:  Optional[int]  =  None)
+.B class  pytermor.color.Color
 Abstract superclass for other \fBColors\fP\&.
 .INDENT 7.0
 .TP
+.B __init__(hex_value:  Optional[int]  =  None)
+.UNINDENT
+.INDENT 7.0
+.TP
 .B static  hex_value_to_rgb_channels(hex_value:  int) -> Tuple[int,  int,  int]
-Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
 integers corresponding to \fIred\fP, \fIblue\fP and \fIgreen\fP channel value
 respectively. Values are within [0; 255] range.
 .INDENT 7.0
@@ -5909,7 +5933,7 @@ respectively. Values are within [0; 255] range.
 .INDENT 7.0
 .TP
 .B static  hex_value_to_hsv_channels(hex_value:  int) -> Tuple[int,  float,  float]
-Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
 numbers corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values
 respectively. \fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are
 within [0; 1] range.
@@ -5938,7 +5962,7 @@ Wrapper for \fI\%_ColorMap.find_closest()\fP\&.
 .INDENT 7.0
 .TP
 .B Parameters
-\fBhex_value\fP \-\- Integer color value in \fB0xFFFFFF\fP format.
+\fBhex_value\fP \-\- Integer color value in \fB0xffffff\fP format.
 .TP
 .B Returns
 Nearest found color of specified type.
@@ -5946,15 +5970,7 @@ Nearest found color of specified type.
 .UNINDENT
 .INDENT 7.0
 .TP
-.B abstract  to_sgr_default(bg:  bool) -> \fI\%SequenceSGR\fP
-.UNINDENT
-.INDENT 7.0
-.TP
-.B abstract  to_sgr_indexed(bg:  bool) -> \fI\%SequenceSGR\fP
-.UNINDENT
-.INDENT 7.0
-.TP
-.B abstract  to_sgr_rgb(bg:  bool) -> \fI\%SequenceSGR\fP
+.B abstract  to_sgr(bg:  bool  =  False) -> \fI\%SequenceSGR\fP
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -5967,8 +5983,12 @@ Nearest found color of specified type.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.color.ColorDefault(hex_value:  int, code_fg:  int, code_bg:  int)
+.B class  pytermor.color.ColorDefault
 Bases: \fI\%Color\fP
+.INDENT 7.0
+.TP
+.B __init__(hex_value:  int, code_fg:  int, code_bg:  int)
+.UNINDENT
 .INDENT 7.0
 .TP
 .B classmethod  get_default() -> \fI\%ColorDefault\fP
@@ -5982,10 +6002,21 @@ Fallback instance of \fI\%Color\fP inheritor (if registries are empty).
 .TP
 .B classmethod  find_closest(hex_value:  int) -> \fI\%ColorDefault\fP
 Wrapper for \fI\%_ColorMap.find_closest()\fP\&.
+.sp
+\fBATTENTION:\fP
+.INDENT 7.0
+.INDENT 3.5
+Use this method only if you know what you are doing. \fIDefault\fP mode
+colors may vary in a huge range depending on user terminal setup
+(colors even can have exactly the opposite value of what\(aqs listed in
+preset list). Much more reliable and predictable approach is to use
+\fI\%ColorIndexed.find_closest\fP instead.
+.UNINDENT
+.UNINDENT
 .INDENT 7.0
 .TP
 .B Parameters
-\fBhex_value\fP \-\- Integer color value in \fB0xFFFFFF\fP format.
+\fBhex_value\fP \-\- Integer color value in \fB0xffffff\fP format.
 .TP
 .B Returns
 Nearest found \fI\%ColorDefault\fP instance.
@@ -6004,15 +6035,7 @@ ColorDefault[fg=31, bg=41, 0x800000]
 .UNINDENT
 .INDENT 7.0
 .TP
-.B to_sgr_default(bg:  bool) -> \fI\%SequenceSGR\fP
-.UNINDENT
-.INDENT 7.0
-.TP
-.B to_sgr_indexed(bg:  bool) -> \fI\%SequenceSGR\fP
-.UNINDENT
-.INDENT 7.0
-.TP
-.B to_sgr_rgb(bg:  bool) -> \fI\%SequenceSGR\fP
+.B to_sgr(bg:  bool  =  False) -> \fI\%SequenceSGR\fP
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6025,7 +6048,7 @@ ColorDefault[fg=31, bg=41, 0x800000]
 .INDENT 7.0
 .TP
 .B static  hex_value_to_hsv_channels(hex_value:  int) -> Tuple[int,  float,  float]
-Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
 numbers corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values
 respectively. \fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are
 within [0; 1] range.
@@ -6041,7 +6064,7 @@ within [0; 1] range.
 .INDENT 7.0
 .TP
 .B static  hex_value_to_rgb_channels(hex_value:  int) -> Tuple[int,  int,  int]
-Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
 integers corresponding to \fIred\fP, \fIblue\fP and \fIgreen\fP channel value
 respectively. Values are within [0; 255] range.
 .INDENT 7.0
@@ -6061,8 +6084,12 @@ respectively. Values are within [0; 255] range.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.color.ColorIndexed(hex_value:  int, code:  int)
+.B class  pytermor.color.ColorIndexed
 Bases: \fI\%Color\fP
+.INDENT 7.0
+.TP
+.B __init__(hex_value:  int, code:  int)
+.UNINDENT
 .INDENT 7.0
 .TP
 .B classmethod  get_default() -> \fI\%ColorIndexed\fP
@@ -6076,10 +6103,22 @@ Fallback instance of \fI\%Color\fP inheritor (if registries are empty).
 .TP
 .B classmethod  find_closest(hex_value:  int) -> \fI\%ColorIndexed\fP
 Wrapper for \fI\%_ColorMap.find_closest()\fP\&.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+Approximation algorithm ignores colors 000\-015 from the \fIindexed\fP
+palette and will return colors with int codes in 016\-255 range only.
+The reason for this is the same as for discouraging the usage of
+\fI\%ColorDefault\fP method version \-\- because aforementioned colors actually
+depend on end\-user terminal settings and the final result can be
+differ drastically from what\(aqs the developer imagined.
+.UNINDENT
+.UNINDENT
 .INDENT 7.0
 .TP
 .B Parameters
-\fBhex_value\fP \-\- Integer color value in \fB0xFFFFFF\fP format.
+\fBhex_value\fP \-\- Integer color value in \fB0xffffff\fP format.
 .TP
 .B Returns
 Nearest found \fI\%ColorIndexed\fP instance.
@@ -6098,15 +6137,7 @@ ColorIndexed[code=253, 0xdadada]
 .UNINDENT
 .INDENT 7.0
 .TP
-.B to_sgr_default(bg:  bool) -> \fI\%SequenceSGR\fP
-.UNINDENT
-.INDENT 7.0
-.TP
-.B to_sgr_indexed(bg:  bool) -> \fI\%SequenceSGR\fP
-.UNINDENT
-.INDENT 7.0
-.TP
-.B to_sgr_rgb(bg:  bool) -> \fI\%SequenceSGR\fP
+.B to_sgr(bg:  bool  =  False) -> \fI\%SequenceSGR\fP
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6119,7 +6150,7 @@ ColorIndexed[code=253, 0xdadada]
 .INDENT 7.0
 .TP
 .B static  hex_value_to_hsv_channels(hex_value:  int) -> Tuple[int,  float,  float]
-Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
 numbers corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values
 respectively. \fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are
 within [0; 1] range.
@@ -6135,7 +6166,7 @@ within [0; 1] range.
 .INDENT 7.0
 .TP
 .B static  hex_value_to_rgb_channels(hex_value:  int) -> Tuple[int,  int,  int]
-Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
 integers corresponding to \fIred\fP, \fIblue\fP and \fIgreen\fP channel value
 respectively. Values are within [0; 255] range.
 .INDENT 7.0
@@ -6155,7 +6186,7 @@ respectively. Values are within [0; 255] range.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.color.ColorRGB(hex_value:  Optional[int]  =  None)
+.B class  pytermor.color.ColorRGB
 Bases: \fI\%Color\fP
 .INDENT 7.0
 .TP
@@ -6169,16 +6200,15 @@ Fallback instance of \fI\%Color\fP inheritor (if registries are empty).
 .INDENT 7.0
 .TP
 .B classmethod  find_closest(hex_value:  int) -> \fI\%ColorRGB\fP
-Wrapper for \fI\%_ColorMap.find_closest()\fP\&. \fI\%ColorRGB\fP\-type color map 
-works by simplified algorithm \-\- without caching and searching \-\-
-it just checks if instance with same hex value was already created, 
-and returns it if it was, or returns a brand new instance with required 
-color value. In second case color map also puts new instance into its 
-lookup table.
+In case of \fI\%ColorRGB\fP we suppose that user\(aqs terminal is not limited to a
+palette, therefore RGB\-type color map works by simplified algorithm \-\-
+it just checks if instance with same hex value was already created
+and returns it if that\(aqs the case, or returns a brand new instance
+with specified color value otherwise.
 .INDENT 7.0
 .TP
 .B Parameters
-\fBhex_value\fP \-\- Integer color value in \fB0xFFFFFF\fP format.
+\fBhex_value\fP \-\- Integer color value in \fB0xffffff\fP format.
 .TP
 .B Returns
 Existing \fI\%ColorRGB\fP instance or newly created one.
@@ -6205,15 +6235,11 @@ True
 .UNINDENT
 .INDENT 7.0
 .TP
-.B to_sgr_default(bg:  bool) -> \fI\%SequenceSGR\fP
+.B to_sgr(bg:  bool  =  False) -> \fI\%SequenceSGR\fP
 .UNINDENT
 .INDENT 7.0
 .TP
-.B to_sgr_indexed(bg:  bool) -> \fI\%SequenceSGR\fP
-.UNINDENT
-.INDENT 7.0
-.TP
-.B to_sgr_rgb(bg:  bool) -> \fI\%SequenceSGR\fP
+.B __init__(hex_value:  Optional[int]  =  None)
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6226,7 +6252,7 @@ True
 .INDENT 7.0
 .TP
 .B static  hex_value_to_hsv_channels(hex_value:  int) -> Tuple[int,  float,  float]
-Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
 numbers corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values
 respectively. \fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are
 within [0; 1] range.
@@ -6242,7 +6268,7 @@ within [0; 1] range.
 .INDENT 7.0
 .TP
 .B static  hex_value_to_rgb_channels(hex_value:  int) -> Tuple[int,  int,  int]
-Transforms \fBhex_value\fP in \fB0xFFFFFF\fP format into tuple of three
+Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
 integers corresponding to \fIred\fP, \fIblue\fP and \fIgreen\fP channel value
 respectively. Values are within [0; 255] range.
 .INDENT 7.0
@@ -6269,12 +6295,24 @@ alias of TypeVar(\(aqTypeColor\(aq, ColorDefault, ColorIndexed, ColorRGB)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.color._ColorMap(parent_type:  TypeColor)
+.B class  pytermor.color._ColorMap
 Bases: \fBGeneric\fP[\fI\%TypeColor\fP]
 .sp
 Class contains a dictionary of registred \fI\%Colors\fP indexed by hex code
 along with cached nearest color search results to avoid unnecessary instance
 copies and search repeating.
+.INDENT 7.0
+.TP
+.B __init__(parent_type:  TypeColor)
+Called in \fI\%Color\fP\-type class constructors. Each \fI\%Color\fP type should have
+class variable with instance of \fI\%_ColorMap\fP and create it by itself if it\(aqs
+not present.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBparent_type\fP \-\- Parent \fI\%Color\fP type.
+.UNINDENT
+.UNINDENT
 .INDENT 7.0
 .TP
 .B add_to_map(color:  TypeColor)
@@ -6290,24 +6328,74 @@ now there will be better result for at least one cached value).
 .UNINDENT
 .INDENT 7.0
 .TP
-.B find_closest(hex_value:  int) -> TypeColor
-Search for nearest to \fBhex_value\fP registered color. Is used by
-\fI\%SGRRenderer\fP to find supported color alternatives in case user\(aqs terminal is
-incapable of operating in better mode. For example, renderer will try to pick
-most suitable \fIindexed\fP colors instead of \fIRGB\fP colors if it ensures that
-terminal doesn\(aqt support True Color mode.
+.B get_exact(hex_value:  int) -> TypeColor  |  None
+Public interface for searching exact values in the \fIlookup table\fP, or
+global registry of created instances of specified \fBColor\fP class.
 .INDENT 7.0
 .TP
 .B Parameters
-\fBhex_value\fP \-\- Rendering color RGB value.
+\fBhex_value\fP \-\- Color value in RGB format.
+.TP
+.B Returns
+\fBColor\fP with specified value. Type is equal
+to type of the parent of selected color map.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B find_closest(hex_value:  int) -> TypeColor
+Search for nearest to \fBhex_value\fP registered color. Is used by
+\fI\%SGRRenderer\fP to find supported color alternatives in case user\(aqs terminal is
+incapable of operating in better mode.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBhex_value\fP \-\- Color value in RGB format.
 .TP
 .B Returns
 Nearest to \fBhex_value\fP registered \fBColor\fP\&. Type is equal
-to parent \fI\%Color\fP type.
+to type of the parent of selected color map.
 If no colors of required type were created (table and cache
 are empty), invokes \fI\%get_default()\fP
 \fBColor\fP method.
 .UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B approximate(hex_value:  int, max_results:  int  =  1) -> List[TypeColor]
+Core color approximation method. Iterate the registred SGRs table, or
+\fIlookup table\fP, containing parents\(aq instances, and compute the euclidean
+distance from argument to each color of the palette. Sort the results and
+return the first \fB<max_results>\fP of them.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+It\(aqs not guaranteed that this method will \fBalways\fP succeed in
+searching (the result list can be empty). Consider using \fI\%find_closest\fP
+instead, if you really want to be sure that at least some color will
+be returned. Another option is to use special \(dqcolor\(dq named \fI\%NOOP\fP\&.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBhex_value\fP \-\- Color RGB value.
+.IP \(bu 2
+\fBmax_results\fP \-\- Maximum amount of values to return.
+.UNINDENT
+.TP
+.B Returns
+Closest \fI\%Color\fP instances found, sorted by color
+distance descending (i.e. 0th element is always the
+closest to the input value).
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  __new__(cls, *args, **kwds)
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
@@ -6320,7 +6408,7 @@ Special instance of \fI\%Color\fP class always rendering into empty string.
 .INDENT 0.0
 .INDENT 3.5
 Preset constants are omitted from API doc pages to improve readability and avoid
-duplication. Summary list of all presets can be found in \fI\%Color / attribute preset list\fP section of the guide.
+duplication. Summary list of all presets can be found in \fI\%Preset list\fP section of the guide.
 .UNINDENT
 .UNINDENT
 .SS intcode
@@ -6334,7 +6422,7 @@ Suitable for \fI\%Span\fP and \fI\%SequenceSGR\fP default constructors.
 .INDENT 0.0
 .INDENT 3.5
 Preset constants are omitted from API doc pages to improve readability and avoid
-duplication. Summary list of all presets can be found in \fI\%Color / attribute preset list\fP section of the guide.
+duplication. Summary list of all presets can be found in \fI\%Preset list\fP section of the guide.
 .UNINDENT
 .UNINDENT
 .SS renderer
@@ -6404,7 +6492,7 @@ will be printed out instead of disabled ones. Useful when combined with
 \fBcurses\fP \-\- that way you can check the terminal capabilities from the
 inside of that terminal and switch to different output mode at once.
 .IP \(bu 2
-\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fBdefault\fP 16\-color sequences instead.
+\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fIdefault\fP 16\-color sequences instead.
 If this setting is set to \fITrue\fP, the value of \fBcompatibility_indexed\fP
 will be ignored completely. Useful when combined with \fBcurses\fP \-\- that
 way you can check the terminal capabilities from the inside of that
@@ -6439,7 +6527,7 @@ Render \fBtext\fP with \fBstyle\fP applied as ANSI control sequences.
 .sp
 Respects compatibility preferences (see \fI\%set_up()\fP) and maps RGB colors to
 closest \fIindexed\fP colors if terminal doesn\(aqt support RGB output. In case
-terminal doesn\(aqt support even 256 colors, falls back to \fBdefault\fP colors,
+terminal doesn\(aqt support even 256 colors, falls back to \fIdefault\fP colors,
 searching for closest counterparts in 16\-color table.
 .sp
 Type of output \fBSequenceSGR\fP depends on type of \fI\%Color\fP variables in \fBstyle\fP argument. Keeping all that
@@ -6499,7 +6587,7 @@ will be printed out instead of disabled ones. Useful when combined with
 \fBcurses\fP \-\- that way you can check the terminal capabilities from the
 inside of that terminal and switch to different output mode at once.
 .IP \(bu 2
-\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fBdefault\fP 16\-color sequences instead.
+\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fIdefault\fP 16\-color sequences instead.
 If this setting is set to \fITrue\fP, the value of \fBcompatibility_indexed\fP
 will be ignored completely. Useful when combined with \fBcurses\fP \-\- that
 way you can check the terminal capabilities from the inside of that
@@ -6551,7 +6639,7 @@ will be printed out instead of disabled ones. Useful when combined with
 \fBcurses\fP \-\- that way you can check the terminal capabilities from the
 inside of that terminal and switch to different output mode at once.
 .IP \(bu 2
-\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fBdefault\fP 16\-color sequences instead.
+\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fIdefault\fP 16\-color sequences instead.
 If this setting is set to \fITrue\fP, the value of \fBcompatibility_indexed\fP
 will be ignored completely. Useful when combined with \fBcurses\fP \-\- that
 way you can check the terminal capabilities from the inside of that
@@ -6625,7 +6713,7 @@ will be printed out instead of disabled ones. Useful when combined with
 \fBcurses\fP \-\- that way you can check the terminal capabilities from the
 inside of that terminal and switch to different output mode at once.
 .IP \(bu 2
-\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fBdefault\fP 16\-color sequences instead.
+\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fIdefault\fP 16\-color sequences instead.
 If this setting is set to \fITrue\fP, the value of \fBcompatibility_indexed\fP
 will be ignored completely. Useful when combined with \fBcurses\fP \-\- that
 way you can check the terminal capabilities from the inside of that
@@ -6677,7 +6765,7 @@ will be printed out instead of disabled ones. Useful when combined with
 \fBcurses\fP \-\- that way you can check the terminal capabilities from the
 inside of that terminal and switch to different output mode at once.
 .IP \(bu 2
-\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fBdefault\fP 16\-color sequences instead.
+\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fIdefault\fP 16\-color sequences instead.
 If this setting is set to \fITrue\fP, the value of \fBcompatibility_indexed\fP
 will be ignored completely. Useful when combined with \fBcurses\fP \-\- that
 way you can check the terminal capabilities from the inside of that
@@ -6729,7 +6817,7 @@ will be printed out instead of disabled ones. Useful when combined with
 \fBcurses\fP \-\- that way you can check the terminal capabilities from the
 inside of that terminal and switch to different output mode at once.
 .IP \(bu 2
-\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fBdefault\fP 16\-color sequences instead.
+\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fIdefault\fP 16\-color sequences instead.
 If this setting is set to \fITrue\fP, the value of \fBcompatibility_indexed\fP
 will be ignored completely. Useful when combined with \fBcurses\fP \-\- that
 way you can check the terminal capabilities from the inside of that
@@ -6778,6 +6866,9 @@ existing \fBSequenceSGR\fP instance (params will be extracted).
 .UNINDENT
 .UNINDENT
 .sp
+Deprecated since version 2.0: @TODO Выпилить, перенести функционал в конструктор
+
+.sp
 Examples:
 .INDENT 7.0
 .INDENT 3.5
@@ -6800,6 +6891,9 @@ SGR[96;4]
 .B pytermor.sequence.color_indexed(color:  int, bg:  bool  =  False) -> \fI\%SequenceSGR\fP
 Wrapper for creation of \fI\%SequenceSGR\fP that sets foreground
 (or background) to one of 256\-color pallete value.
+.sp
+Deprecated since version 2.0: @TODO Выпилить
+
 .INDENT 7.0
 .TP
 .B Parameters
@@ -6833,6 +6927,9 @@ color_rgb(255, 51, 0)
 .fi
 .UNINDENT
 .UNINDENT
+.sp
+Deprecated since version 2.0: @TODO Выпилить
+
 .INDENT 7.0
 .TP
 .B Parameters
@@ -6854,7 +6951,7 @@ color_rgb(255, 51, 0)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.sequence.SequenceSGR(*params:  int)
+.B class  pytermor.sequence.SequenceSGR
 Bases: \fB_SequenceCSI\fP
 .sp
 Class representing SGR\-type escape sequence with varying amount of parameters.
@@ -6882,6 +6979,10 @@ True
 .B encode() -> str
 Build up actual byte sequence and return
 as an ASCII\-encoded string.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B __init__(*params:  int)
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6931,7 +7032,7 @@ Resets all attributes and colors.
 .INDENT 0.0
 .INDENT 3.5
 Preset constants are omitted from API doc pages to improve readability and avoid
-duplication. Summary list of all presets can be found in \fI\%Color / attribute preset list\fP section of the guide.
+duplication. Summary list of all presets can be found in \fI\%Preset list\fP section of the guide.
 .UNINDENT
 .UNINDENT
 .SS span
@@ -6942,7 +7043,7 @@ it. As for \fBSpans\fP \-\- they always do both; typical use\-case of \fI\%Span\
 some text in opening SGR and closing one.
 .INDENT 0.0
 .TP
-.B class  pytermor.span.Span(*opening_params:  str  |  int  |  \fI\%SequenceSGR\fP)
+.B class  pytermor.span.Span
 Create a \fI\%Span\fP with specified control sequence(s) as an opening sequence
 and \fBautomatically compose\fP second (closing) sequence that will terminate attributes
 defined in the first one while keeping the others (\fIsoft\fP reset).
@@ -6985,7 +7086,11 @@ instances to build \fBSpan\fP from.
 .UNINDENT
 .INDENT 7.0
 .TP
-.B classmethod  new(opening_seq:  Optional[\fI\%SequenceSGR\fP]  =  None, closing_seq:  Optional[\fI\%SequenceSGR\fP]  =  None, hard_reset_after:  bool  =  False) -> \fI\%Span\fP
+.B __init__(*opening_params:  str  |  int  |  \fI\%SequenceSGR\fP)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  from_seq(opening_seq:  Optional[\fI\%SequenceSGR\fP]  =  None, closing_seq:  Optional[\fI\%SequenceSGR\fP]  =  None, hard_reset_after:  bool  =  False) -> \fI\%Span\fP
 Create new \fI\%Span\fP with explicitly specified opening and closing sequences.
 .sp
 \fBNOTE:\fP
@@ -7090,7 +7195,7 @@ SGR[]
 .INDENT 0.0
 .INDENT 3.5
 Preset constants are omitted from API doc pages to improve readability and avoid
-duplication. Summary list of all presets can be found in \fI\%Color / attribute preset list\fP section of the guide.
+duplication. Summary list of all presets can be found in \fI\%Preset list\fP section of the guide.
 .UNINDENT
 .UNINDENT
 .SS style
@@ -7098,7 +7203,7 @@ duplication. Summary list of all presets can be found in \fI\%Color / attribute 
 High\-level abstraction defining text colors and attributes.
 .INDENT 0.0
 .TP
-.B class  pytermor.style.Style(fg_color:  str  |  int  |  \fI\%Color\fP  =  None, bg_color:  str  |  int  |  \fI\%Color\fP  =  None, auto_fg:  bool  =  False, blink:  bool  =  False, bold:  bool  =  False, crosslined:  bool  =  False, dim:  bool  =  False, double_underlined:  bool  =  False, inversed:  bool  =  False, italic:  bool  =  False, overlined:  bool  =  False, underlined:  bool  =  False)
+.B class  pytermor.style.Style
 Create a new \fBStyle()\fP\&.
 .sp
 Key difference between \fBStyles\fP and \fBSpans\fP or \fBSGRs\fP is that
@@ -7162,6 +7267,10 @@ depending on background brightness, if \fBbg_color\fP is defined).
 .UNINDENT
 .INDENT 7.0
 .TP
+.B __init__(fg_color:  str  |  int  |  \fI\%Color\fP  =  None, bg_color:  str  |  int  |  \fI\%Color\fP  =  None, auto_fg:  bool  =  False, blink:  bool  =  False, bold:  bool  =  False, crosslined:  bool  =  False, dim:  bool  =  False, double_underlined:  bool  =  False, inversed:  bool  =  False, italic:  bool  =  False, overlined:  bool  =  False, underlined:  bool  =  False)
+.UNINDENT
+.INDENT 7.0
+.TP
 .B render(text:  Optional[Any]  =  None) -> str
 Returns \fBtext\fP with all attributes and colors applied.
 .sp
@@ -7171,7 +7280,11 @@ ANSI escape sequences.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.style.Stylesheet(default:  Optional[\fI\%Style\fP]  =  None)
+.B class  pytermor.style.Stylesheet
+.INDENT 7.0
+.TP
+.B __init__(default:  Optional[\fI\%Style\fP]  =  None)
+.UNINDENT
 .UNINDENT
 .SS util
 .sp
@@ -7333,7 +7446,7 @@ New in version 2.0.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.prefixed_unit.PrefixedUnitFormatter(max_value_len:  int, integer_input:  bool  =  False, unit:  str  =  None, unit_separator:  str  =  None, mcoef:  float  =  1000.0, prefixes:  List[str  |  None]  =  None, prefix_zero_idx:  int  =  None)
+.B class  pytermor.util.prefixed_unit.PrefixedUnitFormatter
 Formats \fBvalue\fP using settings passed to constructor. The main idea of this class
 is to fit into specified string length as much significant digits as it\(aqs
 theoretically possible by using multipliers and unit prefixes to
@@ -7353,6 +7466,10 @@ which will invoke predefined formatters and doesn\(aqt require setting up.
 .sp
 New in version 1.7.
 
+.INDENT 7.0
+.TP
+.B __init__(max_value_len:  int, integer_input:  bool  =  False, unit:  str  =  None, unit_separator:  str  =  None, mcoef:  float  =  1000.0, prefixes:  List[str  |  None]  =  None, prefix_zero_idx:  int  =  None)
+.UNINDENT
 .INDENT 7.0
 .TP
 .B property  max_len:  int
@@ -7439,7 +7556,7 @@ Formatted string
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.time_delta.TimeDeltaFormatter(units:  List[\fI\%TimeUnit\fP], allow_negative:  bool, unit_separator:  Optional[str]  =  None, plural_suffix:  Optional[str]  =  None, stylesheet:  Optional[\fI\%TimeDeltaStylesheet\fP]  =  None, overflow_msg:  str  =  \(aqOVERFLOW\(aq)
+.B class  pytermor.util.time_delta.TimeDeltaFormatter
 Formatter for time intervals. Key feature of this formatter is
 ability to combine two units and display them simultaneously,
 e.g. return \(dq3h 48min\(dq instead of \(dq228 mins\(dq or \(dq3 hours\(dq, etc.
@@ -7459,6 +7576,10 @@ Example output:
 .ft P
 .fi
 .UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B __init__(units:  List[\fI\%TimeUnit\fP], allow_negative:  bool, unit_separator:  Optional[str]  =  None, plural_suffix:  Optional[str]  =  None, stylesheet:  Optional[\fI\%TimeDeltaStylesheet\fP]  =  None, overflow_msg:  str  =  \(aqOVERFLOW\(aq)
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -7515,7 +7636,8 @@ value is too big for the current formatter to handle).
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.time_delta.TimeUnit(name:  \(aqstr\(aq, in_next:  \(aqint\(aq  =  None, custom_short:  \(aqstr\(aq  =  None, collapsible_after:  \(aqint\(aq  =  None, overflow_afer:  \(aqint\(aq  =  None)
+.B class  pytermor.util.time_delta.TimeUnit
+TimeUnit(name: \(aqstr\(aq, in_next: \(aqint\(aq = None, custom_short: \(aqstr\(aq = None, collapsible_after: \(aqint\(aq = None, overflow_afer: \(aqint\(aq = None)
 .INDENT 7.0
 .TP
 .B name:  str
@@ -7536,11 +7658,19 @@ value is too big for the current formatter to handle).
 .TP
 .B overflow_afer:  int  =  None
 .UNINDENT
+.INDENT 7.0
+.TP
+.B __init__(name:  str, in_next:  Optional[int]  =  None, custom_short:  Optional[str]  =  None, collapsible_after:  Optional[int]  =  None, overflow_afer:  Optional[int]  =  None) -> None
+.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.time_delta.TimeDeltaStylesheet(default:  Optional[\fI\%Style\fP]  =  None, digit:  Optional[\fI\%Style\fP]  =  None, unit:  Optional[\fI\%Style\fP]  =  None, overflow:  Optional[\fI\%Style\fP]  =  None)
+.B class  pytermor.util.time_delta.TimeDeltaStylesheet
 Bases: \fI\%Stylesheet\fP
+.INDENT 7.0
+.TP
+.B __init__(default:  Optional[\fI\%Style\fP]  =  None, digit:  Optional[\fI\%Style\fP]  =  None, unit:  Optional[\fI\%Style\fP]  =  None, overflow:  Optional[\fI\%Style\fP]  =  None)
+.UNINDENT
 .UNINDENT
 .SS stdlib_ext
 .sp
@@ -7613,10 +7743,14 @@ Filtered \fBs\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.string_filter.StringFilter(pattern:  AnyStr, repl:  AnyStr  |  Callable[[AnyStr  |  Match],  AnyStr])
+.B class  pytermor.util.string_filter.StringFilter
 Bases: \fBGeneric\fP
 .sp
 Common string modifier interface.
+.INDENT 7.0
+.TP
+.B __init__(pattern:  AnyStr, repl:  AnyStr  |  Callable[[AnyStr  |  Match],  AnyStr])
+.UNINDENT
 .INDENT 7.0
 .TP
 .B __call__(s:  AnyStr) -> AnyStr
@@ -7627,10 +7761,14 @@ Can be used instead of \fIapply()\fP
 .B apply(s:  AnyStr) -> AnyStr
 Apply filter to \fBs\fP string (or bytes).
 .UNINDENT
+.INDENT 7.0
+.TP
+.B static  __new__(cls, *args, **kwds)
+.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.string_filter.VisualuzeWhitespace(repl:  AnyStr  =  \(aq·\(aq)
+.B class  pytermor.util.string_filter.VisualuzeWhitespace
 Bases: \fI\%StringFilter\fP[\fBstr\fP]
 .sp
 Replace every invisible character with \fBrepl\fP (default is \fB·\fP),
@@ -7650,8 +7788,16 @@ except newlines. Newlines are kept and get prepneded with same string.
 .UNINDENT
 .INDENT 7.0
 .TP
+.B __init__(repl:  AnyStr  =  \(aq·\(aq)
+.UNINDENT
+.INDENT 7.0
+.TP
 .B __call__(s:  AnyStr) -> AnyStr
 Can be used instead of \fIapply()\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  __new__(cls, *args, **kwds)
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -7661,7 +7807,7 @@ Apply filter to \fBs\fP string (or bytes).
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.string_filter.ReplaceSGR(repl:  AnyStr  =  \(aq\(aq)
+.B class  pytermor.util.string_filter.ReplaceSGR
 Bases: \fI\%StringFilter\fP[\fBstr\fP]
 .sp
 Find all SGR seqs (e.g. \fBESC[1;4m\fP) and replace with given string. More
@@ -7673,8 +7819,16 @@ specific version of \fI\%ReplaceCSI\fP\&.
 .UNINDENT
 .INDENT 7.0
 .TP
+.B __init__(repl:  AnyStr  =  \(aq\(aq)
+.UNINDENT
+.INDENT 7.0
+.TP
 .B __call__(s:  AnyStr) -> AnyStr
 Can be used instead of \fIapply()\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  __new__(cls, *args, **kwds)
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -7684,7 +7838,7 @@ Apply filter to \fBs\fP string (or bytes).
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.string_filter.ReplaceCSI(repl:  AnyStr  =  \(aq\(aq)
+.B class  pytermor.util.string_filter.ReplaceCSI
 Bases: \fI\%StringFilter\fP[\fBstr\fP]
 .sp
 Find all CSI seqs (i.e. \fBESC[*\fP) and replace with given string. Less
@@ -7697,8 +7851,16 @@ sequence subtypes.
 .UNINDENT
 .INDENT 7.0
 .TP
+.B __init__(repl:  AnyStr  =  \(aq\(aq)
+.UNINDENT
+.INDENT 7.0
+.TP
 .B __call__(s:  AnyStr) -> AnyStr
 Can be used instead of \fIapply()\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  __new__(cls, *args, **kwds)
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -7708,7 +7870,7 @@ Apply filter to \fBs\fP string (or bytes).
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.string_filter.ReplaceNonAsciiBytes(repl:  AnyStr  =  b\(aq?\(aq)
+.B class  pytermor.util.string_filter.ReplaceNonAsciiBytes
 Bases: \fI\%StringFilter\fP[\fBbytes\fP]
 .sp
 Keep 7\-bit ASCII bytes [\fB0x00\fP \- \fB0x7f\fP], replace other to \fB?\fP\&.
@@ -7719,8 +7881,16 @@ Keep 7\-bit ASCII bytes [\fB0x00\fP \- \fB0x7f\fP], replace other to \fB?\fP\&.
 .UNINDENT
 .INDENT 7.0
 .TP
+.B __init__(repl:  AnyStr  =  b\(aq?\(aq)
+.UNINDENT
+.INDENT 7.0
+.TP
 .B __call__(s:  AnyStr) -> AnyStr
 Can be used instead of \fIapply()\fP
+.UNINDENT
+.INDENT 7.0
+.TP
+.B static  __new__(cls, *args, **kwds)
 .UNINDENT
 .INDENT 7.0
 .TP

@@ -14,3 +14,4 @@ License
 
 .. literalinclude:: ../LICENSE
    :language: text
+   :class: license

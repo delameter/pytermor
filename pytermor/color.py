@@ -5,6 +5,8 @@
 """
 @TODO
 
+@TODO black/white text selection depending on bg
+
 .. testsetup:: *
 
     from pytermor.color import Color, ColorDefault, ColorIndexed, ColorRGB
@@ -13,7 +15,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod, ABCMeta
-from typing import Dict, Tuple, Generic, TypeVar, Deque
+from typing import Dict, Tuple, Generic, TypeVar, List
 
 from . import sequence, intcode
 from .exception import LogicError
@@ -35,7 +37,7 @@ class Color(metaclass=ABCMeta):
     @staticmethod
     def hex_value_to_rgb_channels(hex_value: int) -> Tuple[int, int, int]:
         """
-        Transforms ``hex_value`` in ``0xFFFFFF`` format into tuple of three
+        Transforms ``hex_value`` in ``0xffffff`` format into tuple of three
         integers corresponding to *red*, *blue* and *green* channel value
         respectively. Values are within [0; 255] range.
 
@@ -57,7 +59,7 @@ class Color(metaclass=ABCMeta):
     @staticmethod
     def hex_value_to_hsv_channels(hex_value: int) -> Tuple[int, float, float]:
         """
-        Transforms ``hex_value`` in ``0xFFFFFF`` format into tuple of three
+        Transforms ``hex_value`` in ``0xffffff`` format into tuple of three
         numbers corresponding to *hue*, *saturation* and *value* channel values
         respectively. *Hue* is within [0, 359] range, *saturation* and *value* are
         within [0; 1] range.
@@ -114,21 +116,13 @@ class Color(metaclass=ABCMeta):
         """
         Wrapper for `_ColorMap.find_closest()`.
 
-        :param hex_value: Integer color value in ``0xFFFFFF`` format.
+        :param hex_value: Integer color value in ``0xffffff`` format.
         :return:          Nearest found color of specified type.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def to_sgr_default(self, bg: bool) -> SequenceSGR:
-        raise NotImplementedError
-
-    @abstractmethod
-    def to_sgr_indexed(self, bg: bool) -> SequenceSGR:
-        raise NotImplementedError
-
-    @abstractmethod
-    def to_sgr_rgb(self, bg: bool) -> SequenceSGR:
+    def to_sgr(self, bg: bool = False) -> SequenceSGR:
         raise NotImplementedError
 
     @property
@@ -156,7 +150,15 @@ class ColorDefault(Color):
         """
         Wrapper for `_ColorMap.find_closest()`.
 
-        :param hex_value: Integer color value in ``0xFFFFFF`` format.
+        .. attention::
+
+           Use this method only if you know what you are doing. *Default* mode
+           colors may vary in a huge range depending on user terminal setup
+           (colors even can have exactly the opposite value of what's listed in
+           preset list). Much more reliable and predictable approach is to use
+           `ColorIndexed.find_closest` instead.
+
+        :param hex_value: Integer color value in ``0xffffff`` format.
         :return:          Nearest found `ColorDefault` instance.
 
         .. doctest ::
@@ -168,16 +170,10 @@ class ColorDefault(Color):
         cls._init_color_map()
         return cls._color_map.find_closest(hex_value)
 
-    def to_sgr_default(self, bg: bool) -> SequenceSGR:
+    def to_sgr(self, bg: bool = False) -> SequenceSGR:
         if bg:
             return SequenceSGR(self._code_bg)
         return SequenceSGR(self._code_fg)
-
-    def to_sgr_indexed(self, bg: bool) -> SequenceSGR:
-        return ColorRGB(self.hex_value).to_sgr_indexed(bg=bg)
-
-    def to_sgr_rgb(self, bg: bool) -> SequenceSGR:
-        return ColorRGB(self.hex_value).to_sgr_rgb(bg=bg)
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, self.__class__):
@@ -207,7 +203,16 @@ class ColorIndexed(Color):
         """
         Wrapper for `_ColorMap.find_closest()`.
 
-        :param hex_value: Integer color value in ``0xFFFFFF`` format.
+        .. note::
+
+           Approximation algorithm ignores colors 000-015 from the *indexed*
+           palette and will return colors with int codes in 016-255 range only.
+           The reason for this is the same as for discouraging the usage of
+           `ColorDefault` method version -- because aforementioned colors actually
+           depend on end-user terminal settings and the final result can be
+           differ drastically from what's the developer imagined.
+
+        :param hex_value: Integer color value in ``0xffffff`` format.
         :return:          Nearest found `ColorIndexed` instance.
 
         .. doctest ::
@@ -219,14 +224,8 @@ class ColorIndexed(Color):
         cls._init_color_map()
         return cls._color_map.find_closest(hex_value)
 
-    def to_sgr_default(self, bg: bool) -> SequenceSGR:
-        return ColorRGB(self.hex_value).to_sgr_default(bg=bg)
-
-    def to_sgr_indexed(self, bg: bool) -> SequenceSGR:
+    def to_sgr(self, bg: bool = False) -> SequenceSGR:
         return color_indexed(self._code, bg=bg)
-
-    def to_sgr_rgb(self, bg: bool) -> SequenceSGR:
-        return ColorRGB(self.hex_value).to_sgr_rgb(bg=bg)
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, self.__class__):
@@ -248,14 +247,13 @@ class ColorRGB(Color):
     @classmethod
     def find_closest(cls, hex_value: int) -> ColorRGB:
         """
-        Wrapper for `_ColorMap.find_closest()`. `ColorRGB`-type color map 
-        works by simplified algorithm -- without caching and searching --
-        it just checks if instance with same hex value was already created, 
-        and returns it if it was, or returns a brand new instance with required 
-        color value. In second case color map also puts new instance into its 
-        lookup table.
+        In case of `ColorRGB` we suppose that user's terminal is not limited to a
+        palette, therefore RGB-type color map works by simplified algorithm --
+        it just checks if instance with same hex value was already created
+        and returns it if that's the case, or returns a brand new instance
+        with specified color value otherwise.
 
-        :param hex_value: Integer color value in ``0xFFFFFF`` format.
+        :param hex_value: Integer color value in ``0xffffff`` format.
         :return:          Existing `ColorRGB` instance or newly created one.
 
         .. doctest ::
@@ -273,19 +271,12 @@ class ColorRGB(Color):
 
         """
         cls._init_color_map()
-        return cls._color_map.find_closest(hex_value)
 
-    def to_sgr_default(self, bg: bool) -> SequenceSGR:
-        if not self._hex_value:
-            return sequence.NOOP
-        return ColorDefault.find_closest(self._hex_value).to_sgr_default(bg=bg)
+        if exact := cls._color_map.get_exact(hex_value):
+            return exact
+        return ColorRGB(hex_value)
 
-    def to_sgr_indexed(self, bg: bool) -> SequenceSGR:
-        if not self._hex_value:
-            return sequence.NOOP
-        return ColorIndexed.find_closest(self._hex_value).to_sgr_indexed(bg=bg)
-
-    def to_sgr_rgb(self, bg: bool) -> SequenceSGR:
+    def to_sgr(self, bg: bool = False) -> SequenceSGR:
         if not self._hex_value:
             return sequence.NOOP
         return color_rgb(*self.hex_value_to_rgb_channels(self._hex_value), bg=bg)
@@ -322,7 +313,7 @@ class _ColorMap(Generic[TypeColor]):
         """
         self._parent_type: TypeColor = parent_type
         self._lookup_table: Dict[int, TypeColor] = dict()
-        self._approximate_cache: Dict[int, TypeColor] = dict()
+        self._approximation_cache: Dict[int, TypeColor] = dict()
 
     def add_to_map(self, color: TypeColor):
         """
@@ -336,81 +327,99 @@ class _ColorMap(Generic[TypeColor]):
 
         if color.hex_value is not None:
             if color.hex_value not in self._lookup_table.keys():
-                self._approximate_cache.clear()
+                self._approximation_cache.clear()
                 self._lookup_table[color.hex_value] = color
+
+    def get_exact(self, hex_value: int) -> TypeColor|None:
+        """
+        Public interface for searching exact values in the *lookup table*, or
+        global registry of created instances of specified ``Color`` class.
+
+        :param hex_value: Color value in RGB format.
+        :return:          ``Color`` with specified value. Type is equal
+                          to type of the parent of selected color map.
+        """
+        return self._lookup_table.get(hex_value, None)
 
     def find_closest(self, hex_value: int) -> TypeColor:
         """
         Search for nearest to ``hex_value`` registered color. Is used by
         `SGRRenderer` to find supported color alternatives in case user's terminal is
-        incapable of operating in better mode. For example, renderer will try to pick
-        most suitable *indexed* colors instead of *RGB* colors if it ensures that
-        terminal doesn't support True Color mode.
+        incapable of operating in better mode.
 
-        :param hex_value: Rendering color RGB value.
+        :param hex_value: Color value in RGB format.
         :return:          Nearest to ``hex_value`` registered ``Color``. Type is equal
-                          to parent `Color` type.
+                          to type of the parent of selected color map.
                           If no colors of required type were created (table and cache
                           are empty), invokes `get_default() <Color.get_default()>`
                           ``Color`` method.
         """
-        if hex_value in self._lookup_table.keys():
-            return self._lookup_table.get(hex_value)
+        if hex_value in self._approximation_cache.keys():
+            return self._approximation_cache.get(hex_value)
 
-        if self._parent_type == ColorRGB:
-            # if required color type is `ColorRGB`, there is no need for searching
-            # and approximations -- user's terminal is not limited to 256 or 16 colors,
-            # therefore we can create new `ColorRGB` instance with exactly the same
-            # value as specified and just return it immediately:
-            return ColorRGB(hex_value)
+        if len(self._approximation_cache) == 0:  # there was on-addition cache reset
+            self._approximation_cache = self._lookup_table.copy()
 
-        if hex_value in self._approximate_cache.keys():
-            return self._approximate_cache.get(hex_value)
-
-        if len(self._approximate_cache) == 0:  # there was on-add cache reset
-            self._approximate_cache = self._lookup_table.copy()
-
-        if len(self._approximate_cache) == 0:
+        if len(self._approximation_cache) == 0:
             # rare case when `find_closest` classmethod is called from `Color` type
-            # without registered instances, # but it's still possible (for example,
+            # without registered instances, but it's still possible (for example,
             # developer can interrupt preset creation or just comment it out).
             # return the first available instance of the required type:
             return self._parent_type.get_default()
 
+        closest = self.approximate(hex_value)[0]
+        self._approximation_cache[hex_value] = closest
+        return closest
+
+    def approximate(self, hex_value: int, max_results: int = 1) -> List[TypeColor]:
+        """
+        Core color approximation method. Iterate the registred SGRs table, or
+        *lookup table*, containing parents' instances, and compute the euclidean
+        distance from argument to each color of the palette. Sort the results and
+        return the first ``<max_results>`` of them.
+
+        .. note::
+
+            It's not guaranteed that this method will **always** succeed in
+            searching (the result list can be empty). Consider using `find_closest`
+            instead, if you really want to be sure that at least some color will
+            be returned. Another option is to use special "color" named `NOOP`.
+
+
+        :param hex_value:   Color RGB value.
+        :param max_results: Maximum amount of values to return.
+        :return:            Closest `Color` instances found, sorted by color
+                            distance descending (i.e. 0th element is always the
+                            closest to the input value).
+        """
         input_r, input_g, input_b = Color.hex_value_to_rgb_channels(hex_value)
-        min_distance_sq = None
-        closest = None
+        result: Dict[int, float] = dict()
 
         for cached_hex, cached_color in self._lookup_table.items():
-            # sRGB euclidean distance:
+            # sRGB euclidean distance @TODO rewrite using HSV distance?
             # https://en.wikipedia.org/wiki/Color_difference#sRGB
+            # https://stackoverflow.com/a/35114586/5834973
             map_r, map_g, map_b = Color.hex_value_to_rgb_channels(cached_hex)
-            distance_sq = (pow(map_r - input_r, 2) +
-                           pow(map_g - input_g, 2) +
-                           pow(map_b - input_b, 2))
+            distance_sq = (pow(map_r - input_r, 2) + pow(map_g - input_g, 2) + pow(
+                map_b - input_b, 2))
 
-            # first encountered color is always marked as closest;
-            # that guarantees that we will get at least one result
-            # regardless of input value and cache state:
-            if min_distance_sq is None or distance_sq < min_distance_sq:
-                min_distance_sq = distance_sq
-                closest = cached_color
+            result[cached_color.hex_value] = distance_sq
 
-        if closest is None:
+        if len(result) == 0:
             # normally it's impossible to get here; this exception almost
             # certainly means that there is a bug somewhere in this class.
             raise LogicError(f'There are '  # pragma: no cover
                              f'no registred {self._parent_type.__name__} '
                              f'instances')
 
-        self._approximate_cache[hex_value] = closest
-        return closest
+        sorted_result = sorted(result.items(), key=lambda cd: cd[1])
+        return [self.get_exact(c) for c, d in sorted_result[:max_results]]
 
     def __repr__(self):
         return f'{self.__class__.__name__}[' \
                f'{self._parent_type.__name__}, ' \
                f'lookup {len(self._lookup_table)}, ' \
-               f'cached {len(self._approximate_cache)}]'
+               f'cached {len(self._approximation_cache)}]'
 
 
 # -- Color presets ------------------------------------------------------------
@@ -452,7 +461,7 @@ IDX_YELLOW = ColorIndexed(0xffff00, intcode.IDX_YELLOW)
 IDX_BLUE = ColorIndexed(0x0000ff, intcode.IDX_BLUE)  
 IDX_FUCHSIA = ColorIndexed(0xff00ff, intcode.IDX_FUCHSIA)
 IDX_AQUA = ColorIndexed(0x00ffff, intcode.IDX_AQUA)  
-IDX_WHITE = ColorIndexed(0xffffff, intcode.IDX_WHITE) 
+IDX_WHITE = ColorIndexed(0xffffff, intcode.IDX_WHITE)  #@ todo exclude 0-15 from approximations
 IDX_GREY_0 = ColorIndexed(0x000000, intcode.IDX_GREY_0)
 IDX_NAVY_BLUE = ColorIndexed(0x00005f, intcode.IDX_NAVY_BLUE)
 IDX_DARK_BLUE = ColorIndexed(0x000087, intcode.IDX_DARK_BLUE)

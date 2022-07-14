@@ -1,9 +1,9 @@
 from pytermor import sequence, span, Span
 
-# automatically:
-span_warn = Span(sequence.HI_YELLOW + sequence.UNDERLINED)
+# implicitly:
+span_warn = Span(93, 4)
 # or explicitly:
-span_warn = Span.new(
+span_warn = Span.from_seq(
     sequence.HI_YELLOW + sequence.UNDERLINED,  # sequences can be summed up, remember?
     sequence.COLOR_OFF + sequence.UNDERLINED_OFF,  # "counteractive" sequences
     hard_reset_after=False

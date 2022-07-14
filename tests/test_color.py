@@ -68,7 +68,7 @@ class TestColorMap(unittest.TestCase):
     def tearDown(self) -> None:
         if hasattr(ColorIndexed, '_color_map'):
             ColorIndexed._color_map._lookup_table.clear()
-            ColorIndexed._color_map._approximate_cache.clear()
+            ColorIndexed._color_map._approximation_cache.clear()
 
         if hasattr(ColorRGB, '_color_map'):
             ColorRGB._color_map._lookup_table.clear()
@@ -115,28 +115,28 @@ class TestColorMap(unittest.TestCase):
         expected = ColorIndexed(0x400000, 1)
 
         self.assertEquals(expected, ColorIndexed.find_closest(0x400000))
-        self.assertEquals(0, len(ColorIndexed._color_map._approximate_cache))
+        self.assertEquals(0, len(ColorIndexed._color_map._approximation_cache))
         self.assertDictEqual({0x400000: expected},
                              ColorIndexed._color_map._lookup_table)
 
     def test_cache_works(self):
         expected = ColorIndexed(0x400000, 1)
-        self.assertEquals(0, len(ColorIndexed._color_map._approximate_cache))
+        self.assertEquals(0, len(ColorIndexed._color_map._approximation_cache))
 
         ColorIndexed.find_closest(0x500000)
         self.assertDictEqual({0x400000: expected, 0x500000: expected},
-                             ColorIndexed._color_map._approximate_cache)
+                             ColorIndexed._color_map._approximation_cache)
 
         ColorIndexed.find_closest(0x300000)
         self.assertDictEqual(
             {0x400000: expected, 0x500000: expected, 0x300000: expected},
-            ColorIndexed._color_map._approximate_cache
+            ColorIndexed._color_map._approximation_cache
         )
 
         ColorIndexed.find_closest(0x500000)
         self.assertDictEqual(
             {0x400000: expected, 0x500000: expected, 0x300000: expected},
-            ColorIndexed._color_map._approximate_cache
+            ColorIndexed._color_map._approximation_cache
         )
 
     def test_cache_resets_on_new_color_creation(self):
@@ -144,37 +144,37 @@ class TestColorMap(unittest.TestCase):
         ColorIndexed.find_closest(0x500000)
         ColorIndexed(0x600000, 2)
 
-        self.assertEquals(0, len(ColorIndexed._color_map._approximate_cache))
+        self.assertEquals(0, len(ColorIndexed._color_map._approximation_cache))
 
     def test_cache_doesnt_change_on_repeated_search(self):
         ColorIndexed(0x400000, 1)
         ColorIndexed.find_closest(0x500000)
         ColorIndexed(0x600000, 2)
 
-        self.assertEquals(0, len(ColorIndexed._color_map._approximate_cache))
+        self.assertEquals(0, len(ColorIndexed._color_map._approximation_cache))
 
     def test_cache_is_not_invoked_for_rgb_color_search(self):
         ColorRGB(0x400000)
         ColorRGB.find_closest(0x141414)
 
-        self.assertEquals(0, len(ColorRGB._color_map._approximate_cache))
+        self.assertEquals(0, len(ColorRGB._color_map._approximation_cache))
 
     def test_search_returns_default_if_no_colors_registered(self):
         ColorRGB(0xffffff)
         ColorRGB._color_map._lookup_table.clear()
-        ColorRGB._color_map._approximate_cache.clear()
+        ColorRGB._color_map._approximation_cache.clear()
         self.assertEqual(ColorIndexed.find_closest(0xffffff),
                          ColorIndexed.get_default())
 
         ColorIndexed(0xffffff, 1)
         ColorIndexed._color_map._lookup_table.clear()
-        ColorIndexed._color_map._approximate_cache.clear()
+        ColorIndexed._color_map._approximation_cache.clear()
         self.assertEqual(ColorIndexed.find_closest(0xffffff),
                          ColorIndexed.get_default())
 
         ColorDefault(0xffffff, intcode.WHITE, intcode.BG_WHITE)
         ColorDefault._color_map._lookup_table.clear()
-        ColorDefault._color_map._approximate_cache.clear()
+        ColorDefault._color_map._approximation_cache.clear()
         self.assertEqual(ColorDefault.find_closest(0xffffff),
                          ColorDefault.get_default())
 

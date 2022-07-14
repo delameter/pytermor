@@ -88,6 +88,10 @@ section > dl.py:not(:last-of-type) {
     padding-bottom: 1rem;
 }
 
+dl.py.class > dd > dl.py { /* @FIXME not working */
+    padding-top: 1rem;
+}
+
 section > div.attention:last-child {
     margin-top: 2rem;
 }

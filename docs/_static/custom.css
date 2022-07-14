@@ -2,18 +2,25 @@
 /* pytermor [ANSI formatted terminal output toolset]                         */
 /* (c) 2022. A. Shavykin <0.delameter@gmail.com>                             */
 /*---------------------------------------------------------------------------*/
-
-.underline {
-    text-decoration: underline;
+@font-face {
+      font-family: ASM;
+      src: url("fonts/asm-regular.woff") format("woff");
 }
-
-/* monospace w/out background and borders;
-   for class names in headers */
-.entity {
-    font-family: var(--font-stack--monospace);
+@font-face {
+      font-family: "JetBrains Mono";
+      src: url("fonts/jetbrains-mono-regular.woff2") format("woff");
 }
 
 body {
     font-family: system-ui;
 }
-
+h1, .sidebar-brand-text, .brand {
+    font-family: ASM, monospace;
+    text-transform: lowercase;
+}
+.sidebar-brand-text, .brand {
+    font-size: 1rem;
+}
+.xterm-palette, pre, .pre, kbd {
+    font-family: "JetBrains Mono", monospace;
+}

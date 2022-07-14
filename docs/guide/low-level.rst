@@ -62,8 +62,8 @@ Each sequence param can be specified as:
 - integer param value;
 - existing `SequenceSGR` instance (params will be extracted).
 
-It's also possible to avoid auto-composing mechanism and create `Span` with explicitly set parameters
-using `Span.new()`.
+It's also possible to avoid auto-composing mechanism and create `Span` with
+explicitly set parameters using `Span.from_seq()`.
 
 
 Creating and applying :mono:`SGRs`
@@ -133,13 +133,13 @@ Core API
    .. table::
       :class: core-api-refs
 
-      ===================== =================== ================
+      ===================== =================== =================
       `build()`             `color_indexed()`   `color_rgb()`
-      `SequenceSGR` class   `Span` constructor  `Span.new()`
-      ===================== =================== ================
+      `SequenceSGR` class   `Span` constructor  `Span.from_seq()`
+      ===================== =================== =================
 
 .. only :: latex
 
    * @TODO
    * `Span` constructor
-   * `Span.new()`
+   * `Span.from_seq()`

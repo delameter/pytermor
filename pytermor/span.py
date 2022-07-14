@@ -56,8 +56,8 @@ class Span:
         self._closing_seq = sgr_parity_registry.get_closing_seq(self._opening_seq)
 
     @classmethod
-    def new(cls, opening_seq: SequenceSGR = None, closing_seq: SequenceSGR = None,
-            hard_reset_after: bool = False) -> Span:
+    def from_seq(cls, opening_seq: SequenceSGR = None, closing_seq: SequenceSGR = None,
+                 hard_reset_after: bool = False) -> Span:
         """
         Create new `Span` with explicitly specified opening and closing sequences.
 

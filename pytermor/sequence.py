@@ -35,6 +35,9 @@ def build(*args: str | int | SequenceSGR) -> SequenceSGR:
       - integer param value (from :mod:`.intcode`)
       - existing ``SequenceSGR`` instance (params will be extracted).
 
+    .. deprecated:: 2.0
+        @TODO Выпилить, перенести функционал в конструктор
+
     Examples:
 
     .. doctest::
@@ -76,6 +79,9 @@ def color_indexed(color: int, bg: bool = False) -> SequenceSGR:
     Wrapper for creation of `SequenceSGR` that sets foreground
     (or background) to one of 256-color pallete value.
 
+    .. deprecated:: 2.0
+        @TODO Выпилить
+
     :param color: Index of the color in the pallete, 0 -- 255.
     :param bg:    Set to *True* to change the background color
                   (default is foreground).
@@ -96,6 +102,9 @@ def color_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
     ``#FF3300`` can be created with::
 
         color_rgb(255, 51, 0)
+
+    .. deprecated:: 2.0
+        @TODO Выпилить
 
     :param r:  Red channel value, 0 -- 255.
     :param g:  Blue channel value, 0 -- 255.
@@ -381,16 +390,6 @@ BG_HI_MAGENTA = SequenceSGR(intcode.BG_HI_MAGENTA)
 BG_HI_CYAN = SequenceSGR(intcode.BG_HI_CYAN)
 BG_HI_WHITE = SequenceSGR(intcode.BG_HI_WHITE)
 
-# rarely supported
-# 10-20: font selection
-#    50: disable proportional spacing
-#    51: framed
-#    52: encircled
-#    54: neither framed nor encircled
-# 58-59: underline color
-# 60-65: ideogram attributes
-# 73-75: superscript and subscript
-
 
 # -- Openinng <-> closing sequences matches -----------------------------------
 
@@ -408,17 +407,10 @@ sgr_parity_registry.register_single(intcode.HIDDEN, intcode.HIDDEN_OFF)
 sgr_parity_registry.register_single(intcode.CROSSLINED, intcode.CROSSLINED_OFF)
 sgr_parity_registry.register_single(intcode.OVERLINED, intcode.OVERLINED_OFF)
 
-for c in [intcode.BLACK, intcode.RED, intcode.GREEN, intcode.YELLOW, intcode.BLUE,
-          intcode.MAGENTA, intcode.CYAN, intcode.WHITE, intcode.GRAY,
-          intcode.HI_RED, intcode.HI_GREEN, intcode.HI_YELLOW, intcode.HI_BLUE,
-          intcode.HI_MAGENTA, intcode.HI_CYAN, intcode.HI_WHITE]:
+for c in [*intcode.LIST_COLORS, *intcode.LIST_HI_COLORS]:
     sgr_parity_registry.register_single(c, intcode.COLOR_OFF)
 
-for c in [intcode.BG_BLACK, intcode.BG_RED, intcode.BG_GREEN, intcode.BG_YELLOW,
-          intcode.BG_BLUE, intcode.BG_MAGENTA, intcode.BG_CYAN,
-          intcode.BG_WHITE, intcode.BG_GRAY, intcode.BG_HI_RED,
-          intcode.BG_HI_GREEN, intcode.BG_HI_YELLOW, intcode.BG_HI_BLUE,
-          intcode.BG_HI_MAGENTA, intcode.BG_HI_CYAN, intcode.BG_HI_WHITE]:
+for c in [*intcode.LIST_BG_COLORS, *intcode.LIST_BG_HI_COLORS]:
     sgr_parity_registry.register_single(c, intcode.BG_COLOR_OFF)
 
 

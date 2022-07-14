@@ -121,15 +121,29 @@ autodoc_default_options = {
     'member-order': 'bysource',
     #'member-order': 'groupwise',
 }
-#add_module_names = True
+
+# class pytermor.color.Color(hex_value.. -> class Color(..
+#add_module_names = False
+
+# ???
 #modindex_common_prefix = ['pytermor']
 #autosummary_generate = True
-#autodoc_class_signature = 'separated'
+autodoc_class_signature = 'separated'
+#doctest_test_doctest_blocks = 'True'
+
+# static set_up(force_styles: bool | None = False, compatibility_indexed: bool.. ->
+# static set_up(force_styles=False, compatibility_indexed=False, compatibility_default..
+#
+# but "encode() → str" becomes:
+# encode()
+#   Build up actual byte sequence and return as an ASCII-encoded string.
+#     RETURN TYPE:
+#       str
 #autodoc_typehints = 'both'
 autodoc_typehints = 'signature'
 #autodoc_typehints = 'description'
-#keep_warnings = True
-doctest_test_doctest_blocks = 'True'
+
+keep_warnings = True
 nitpick_ignore = [('py:class', 'Match'),
                   ('py:class', 'pytermor.sequence._SequenceCSI'),
                   ('py:class', 'pytermor.color.TypeColor')]
