@@ -148,20 +148,22 @@ class SGRRenderer(Renderer):
         if not use_styles:
             return NOOP_SEQ
 
+        hex_value = color.hex_value
+
         if isinstance(color, ColorRGB):
             if cls._compatibility_default:
-                return color.to_sgr_default(bg=bg)
+                return ColorDefault.find_closest(hex_value).to_sgr(bg=bg)
             if cls._compatibility_indexed:
-                return color.to_sgr_indexed(bg=bg)
-            return color.to_sgr_rgb(bg=bg)
+                return ColorIndexed.find_closest(hex_value).to_sgr(bg=bg)
+            return color.to_sgr(bg=bg)
 
         elif isinstance(color, ColorIndexed):
             if cls._compatibility_default:
-                return color.to_sgr_default(bg=bg)
-            return color.to_sgr_indexed(bg=bg)
+                return ColorDefault.find_closest(hex_value).to_sgr(bg=bg)
+            return color.to_sgr(bg=bg)
 
         elif isinstance(color, ColorDefault):
-            return color.to_sgr_default(bg=bg)
+            return color.to_sgr(bg=bg)
 
         raise NotImplementedError(f'Unknown Color inhertior {color!s}')
 

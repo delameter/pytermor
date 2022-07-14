@@ -31,14 +31,8 @@ class TestStatic(unittest.TestCase):
                 self.assertEquals(expected_output, actual_output)
 
     def test_noop(self):
-        self.assertEquals(sequence.NOOP, color.NOOP.to_sgr_rgb(False))
-        self.assertEquals(sequence.NOOP, color.NOOP.to_sgr_rgb(True))
-
-        self.assertEquals(sequence.NOOP, color.NOOP.to_sgr_indexed(False))
-        self.assertEquals(sequence.NOOP, color.NOOP.to_sgr_indexed(True))
-
-        self.assertEquals(sequence.NOOP, color.NOOP.to_sgr_default(False))
-        self.assertEquals(sequence.NOOP, color.NOOP.to_sgr_default(True))
+        self.assertEquals(sequence.NOOP, color.NOOP.to_sgr(False))
+        self.assertEquals(sequence.NOOP, color.NOOP.to_sgr(True))
 
     def test_format_value(self):
         self.assertEquals('0xff00ff', ColorRGB(0xff00ff).format_value())
@@ -89,8 +83,7 @@ class TestColorMap(unittest.TestCase):
         expected = ColorRGB(0x000000)
 
         self.assertEquals(1, len(ColorRGB._color_map._lookup_table))
-        self.assertDictEqual({0x000000: expected},
-                             ColorRGB._color_map._lookup_table)
+        self.assertDictEqual({0x000000: expected}, ColorRGB._color_map._lookup_table)
 
     def test_lookup_table_stays_empty_on_noop_color_creation(self):
         ColorRGB()
@@ -111,14 +104,6 @@ class TestColorMap(unittest.TestCase):
 
         self.assertEquals(expected, ColorIndexed.find_closest(0x500000))
 
-    def test_find_closest_checks_lookup_table(self):
-        expected = ColorIndexed(0x400000, 1)
-
-        self.assertEquals(expected, ColorIndexed.find_closest(0x400000))
-        self.assertEquals(0, len(ColorIndexed._color_map._approximation_cache))
-        self.assertDictEqual({0x400000: expected},
-                             ColorIndexed._color_map._lookup_table)
-
     def test_cache_works(self):
         expected = ColorIndexed(0x400000, 1)
         self.assertEquals(0, len(ColorIndexed._color_map._approximation_cache))
@@ -130,14 +115,12 @@ class TestColorMap(unittest.TestCase):
         ColorIndexed.find_closest(0x300000)
         self.assertDictEqual(
             {0x400000: expected, 0x500000: expected, 0x300000: expected},
-            ColorIndexed._color_map._approximation_cache
-        )
+            ColorIndexed._color_map._approximation_cache)
 
         ColorIndexed.find_closest(0x500000)
         self.assertDictEqual(
             {0x400000: expected, 0x500000: expected, 0x300000: expected},
-            ColorIndexed._color_map._approximation_cache
-        )
+            ColorIndexed._color_map._approximation_cache)
 
     def test_cache_resets_on_new_color_creation(self):
         ColorIndexed(0x400000, 1)
@@ -180,56 +163,31 @@ class TestColorMap(unittest.TestCase):
 
 
 class TestColorDefault(unittest.TestCase):
-    def test_to_sgr_default(self):
+    def test_to_sgr(self):
         self.assertEquals(SequenceSGR(31),
-                          ColorDefault(0x800000, intcode.RED, intcode.BG_RED)
-                          .to_sgr_default(False))
+                          ColorDefault(0x800000, intcode.RED, intcode.BG_RED).to_sgr(
+                              False))
         self.assertEquals(SequenceSGR(41),
-                          ColorDefault(0x800000, intcode.RED, intcode.BG_RED)
-                          .to_sgr_default(True))
-
-    def test_to_sgr_indexed(self):
-        self.assertEquals(SequenceSGR(38, 5, intcode.IDX_MAROON),
-                          ColorDefault(0x800000, intcode.RED, intcode.BG_RED)
-                          .to_sgr_indexed(False))
-        self.assertEquals(SequenceSGR(48, 5, intcode.IDX_LIME),
-                          ColorDefault(0x00ee00, intcode.HI_GREEN, intcode.BG_HI_GREEN)
-                          .to_sgr_indexed(True))
-
-    def test_to_sgr_rgb(self):
-        self.assertEquals(SequenceSGR(38, 2, 128, 0, 0),
-                          ColorDefault(0x800000, intcode.RED, intcode.BG_RED)
-                          .to_sgr_rgb(False))
-        self.assertEquals(SequenceSGR(48, 2, 128, 0, 0),
-                          ColorDefault(0x800000, intcode.RED, intcode.BG_RED)
-                          .to_sgr_rgb(True))
+                          ColorDefault(0x800000, intcode.RED, intcode.BG_RED).to_sgr(
+                              True))
 
     def test_equality(self):
-        self.assertTrue(ColorDefault(0x010203, 11, 12) == ColorDefault(0x010203, 11, 12))
+        self.assertTrue(
+            ColorDefault(0x010203, 11, 12) == ColorDefault(0x010203, 11, 12))
 
     def test_not_equality(self):
-        self.assertFalse(ColorDefault(0x010203, 11, 12) == ColorDefault(0xffeedd, 11, 12))
-        self.assertFalse(ColorDefault(0x010203, 11, 12) == ColorDefault(0x010203, 12, 11))
+        self.assertFalse(
+            ColorDefault(0x010203, 11, 12) == ColorDefault(0xffeedd, 11, 12))
+        self.assertFalse(
+            ColorDefault(0x010203, 11, 12) == ColorDefault(0x010203, 12, 11))
         self.assertFalse(ColorDefault(0x010203, 11, 12) == ColorIndexed(0x010203, 12))
         self.assertFalse(ColorDefault(0x010203, 11, 12) == ColorRGB(0x010203))
 
 
 class TestColorIndexed(unittest.TestCase):
-    def test_to_sgr_default(self):
-        self.assertEquals(SequenceSGR(93), ColorIndexed(0xffcc01, 1).to_sgr_default(False))
-        self.assertEquals(SequenceSGR(103), ColorIndexed(0xffcc01, 1).to_sgr_default(True))
-
-    def test_to_sgr_indexed(self):
-        self.assertEquals(SequenceSGR(38, 5, 1),
-                          ColorIndexed(0xffcc01, 1).to_sgr_indexed(False))
-        self.assertEquals(SequenceSGR(48, 5, 2),
-                          ColorIndexed(0x010101, 2).to_sgr_indexed(True))
-
-    def test_to_sgr_rgb(self):
-        self.assertEquals(SequenceSGR(38, 2, 255, 254, 253),
-                          ColorIndexed(0xfffefd, 10).to_sgr_rgb(False))
-        self.assertEquals(SequenceSGR(48, 2, 1, 2, 3),
-                          ColorIndexed(0x010203, 20).to_sgr_rgb(True))
+    def test_to_sgr(self):
+        self.assertEquals(SequenceSGR(38, 5, 1), ColorIndexed(0xffcc01, 1).to_sgr(False))
+        self.assertEquals(SequenceSGR(48, 5, 1), ColorIndexed(0xffcc01, 1).to_sgr(True))
 
     def test_equality(self):
         self.assertTrue(ColorIndexed(0x010203, 11) == ColorIndexed(0x010203, 11))
@@ -243,21 +201,11 @@ class TestColorIndexed(unittest.TestCase):
 
 
 class TestColorRGB(unittest.TestCase):
-    def test_to_sgr_default(self):
-        self.assertEquals(SequenceSGR(95), ColorRGB(0xff33ff).to_sgr_default(False))
-        self.assertEquals(SequenceSGR(105), ColorRGB(0xff3399).to_sgr_default(True))
-
-    def test_to_sgr_indexed(self):
-        self.assertEquals(SequenceSGR(38, 5, intcode.IDX_VIOLET),
-                          ColorRGB(0xd888fe).to_sgr_indexed(False))
-        self.assertEquals(SequenceSGR(48, 5, intcode.IDX_FUCHSIA),
-                          ColorRGB(0xfd03fd).to_sgr_indexed(True))
-
-    def test_to_sgr_rgb(self):
-        self.assertEquals(SequenceSGR(38, 2, 255, 51, 153),
-                          ColorRGB(0xff3399).to_sgr_rgb(False))
+    def test_to_sgr(self):
+        self.assertEquals(SequenceSGR(38, 2, 255, 51, 255),
+                          ColorRGB(0xff33ff).to_sgr(False))
         self.assertEquals(SequenceSGR(48, 2, 255, 51, 153),
-                          ColorRGB(0xff3399).to_sgr_rgb(True))
+                          ColorRGB(0xff3399).to_sgr(True))
 
     def test_equality(self):
         self.assertTrue(ColorRGB(0x010203) == ColorRGB(0x010203))
@@ -265,5 +213,5 @@ class TestColorRGB(unittest.TestCase):
     def test_not_equality(self):
         self.assertFalse(ColorRGB(0x010203) == ColorRGB(0x030201))
         self.assertFalse(ColorRGB(0x010203) == ColorIndexed(0x010203, 1))
-        self.assertFalse(ColorRGB(0x010203) ==
-                         ColorDefault(0x556677, intcode.WHITE, intcode.BG_WHITE))
+        self.assertFalse(ColorRGB(0x010203) == ColorDefault(0x556677, intcode.WHITE,
+                                                            intcode.BG_WHITE))
