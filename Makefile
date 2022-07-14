@@ -14,7 +14,10 @@ VERSION ?= 0.0.0
 BOLD   := $(shell tput -Txterm bold)
 GREEN  := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)
+INV    := $(shell tput -Txterm rev)
 RESET  := $(shell tput -Txterm sgr0)
+SEP    := $(shell printf "+%40s+" "" | tr ' ' '-')
+log_success = (printf "%-40s\n" "$1 $2" | tr '\t' ' ' | sed -Ee "s/(\s*\S+\s+)(\S+)(\s+\S+\s?)(\s+)/${SEP}\n|\x01[m\2\4\x01[32m\1\x01[32;7m\3\x01[m|\n${SEP}/" | tr '\001' '\033')
 
 
 ## Common commands
@@ -95,24 +98,29 @@ docs: ## Build HTML documentation
 docs: demolish-docs
 	. venv/bin/activate
 	sphinx-build -aEn docs docs/_build -b html
-	if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/index.html ; fi
+	@$(call log_success,$$(du -hs docs/_build),OK)
+	@if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/index.html ; fi
 
 docs-pdf: ## Build PDF documentation
 	. venv/bin/activate
 	yes "" | make -C docs latexpdf  # twice for building pdf toc
 	yes "" | make -C docs latexpdf  # @FIXME broken unicode
 	cp docs/_build/latex/pytermor.pdf docs/pytermor.pdf
-	if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/latex/pytermor.pdf ; fi
+	@$(call log_success,$$(ls -hs docs/pytermor.pdf),OK)
+	@if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/latex/pytermor.pdf ; fi
 
 docs-man: ## Build man pages
 	. venv/bin/activate
 	sed -i.bak -Ee 's/^.+<<<MAKE_DOCS_MAN<<</#&/' docs/conf.py
-	make -C docs man
+	make -C docs man || echo 'Generation failed'
 	mv docs/conf.py.bak docs/conf.py
-	cp docs/_build/man/pytermor.1 docs/pytermor.1 && stat docs/pytermor.1 | head -n 2
+	cp docs/_build/man/pytermor.1 docs/pytermor.1
+	@$(call log_success,$$(ls -hs docs/pytermor.1),OK)
 
 docs-all: ## Build documentation in all formats
 docs-all: docs docs-pdf docs-man
+	@echo
+	@$(call log_success,$$(du -hs docs/_build),DONE)
 
 
 ## Dev repository
