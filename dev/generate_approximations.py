@@ -227,8 +227,8 @@ if __name__ == '__main__':
         (ColorIndexed, '(256 colors)'),
         (ColorDefault, '(16 colors)'),
     ]
-    font_header = PIL.ImageFont.truetype('../docs/_static/mononoki-Bold.ttf', size=16)
-    font_default = PIL.ImageFont.truetype('../docs/_static/mononoki-Regular.ttf', size=12)
+    font_header = PIL.ImageFont.truetype('../docs/_static/fonts/mononoki-Bold.ttf', size=16)
+    font_default = PIL.ImageFont.truetype('../docs/_static/fonts/mononoki-Regular.ttf', size=12)
 
     im = Image.new('RGB', size=(inp.width * len(samples), inp.height + LABEL_HEIGHT), color=(255, 255, 255))
     for ids, (s, caption) in enumerate(samples):

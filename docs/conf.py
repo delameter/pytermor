@@ -62,8 +62,8 @@ else:
 html_static_path = ['_static']
 html_css_files = ['custom.css', 'custom-furo.css']
 html_js_files = ['custom.js']
-html_favicon = '_static/favicon.svg'
-html_logo = '_static/logo-96.png'
+html_favicon = '_static/logo-96.svg'
+html_logo = '_static/logo-96.svg'
 
 html_theme_options = {
     "footer_icons": [

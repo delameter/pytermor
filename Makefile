@@ -16,8 +16,11 @@ GREEN  := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)
 INV    := $(shell tput -Txterm rev)
 RESET  := $(shell tput -Txterm sgr0)
-SEP    := $(shell printf "+%40s+" "" | tr ' ' '-')
-log_success = (printf "%-40s\n" "$1 $2" | tr '\t' ' ' | sed -Ee "s/(\s*\S+\s+)(\S+)(\s+\S+\s?)(\s+)/${SEP}\n|\x01[m\2\4\x01[32m\1\x01[32;7m\3\x01[m|\n${SEP}/" | tr '\001' '\033')
+SEPU   := $(shell printf "┌%48s┐" "" | sed 's/ /─/g')
+SEPD   := $(shell printf "└%48s┘" "" | sed 's/ /─/g')
+SEPL   := $(shell printf "│ ")
+SEPR   := $(shell printf " │")
+log_success = (echo ${SEPU}; printf "%-6s%-36sOK\n" $1 | tr '\t' ' ' | sed -Ee "s/(\s*\S+\s+)(\S+\s+)(\S+)/${SEPL}\x01[m\2\x01[32m\1\x01[32;1;7m \3 \x01[m${SEPR}/" | tr '\001' '\033'; echo ${SEPD})
 
 
 ## Common commands
@@ -92,35 +95,33 @@ reinit-docs: ## Erase and reinit docs with auto table of contents
 	sphinx-apidoc --force --separate --module-first --tocfile index --output-dir docs pytermor
 
 demolish-docs:
-	rm -rvf docs/_build/*
+	rm -rvf docs/_build
 
 docs: ## Build HTML documentation
 docs: demolish-docs
 	. venv/bin/activate
 	sphinx-build -aEn docs docs/_build -b html
-	@$(call log_success,$$(du -hs docs/_build),OK)
+	find docs/_build -type f -name '*.html' | sort | xargs -n1 grep -HnT ^ | sed s@^docs/_build/@@ > docs-build/pytermor.html.dump
 	@if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/index.html ; fi
 
 docs-pdf: ## Build PDF documentation
 	. venv/bin/activate
 	yes "" | make -C docs latexpdf  # twice for building pdf toc
 	yes "" | make -C docs latexpdf  # @FIXME broken unicode
-	cp docs/_build/latex/pytermor.pdf docs/pytermor.pdf
-	@$(call log_success,$$(ls -hs docs/pytermor.pdf),OK)
-	@if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/latex/pytermor.pdf ; fi
+	mv docs/_build/latex/pytermor.pdf docs-build/pytermor.pdf
+	@if [ -n "${DISPLAY}" ] ; then xdg-open docs-build/pytermor.pdf ; fi
 
 docs-man: ## Build man pages
 	. venv/bin/activate
 	sed -i.bak -Ee 's/^.+<<<MAKE_DOCS_MAN<<</#&/' docs/conf.py
 	make -C docs man || echo 'Generation failed'
 	mv docs/conf.py.bak docs/conf.py
-	cp docs/_build/man/pytermor.1 docs/pytermor.1
-	@$(call log_success,$$(ls -hs docs/pytermor.1),OK)
+	mv docs/_build/man/pytermor.1 docs-build/pytermor.1
 
 docs-all: ## Build documentation in all formats
 docs-all: docs docs-pdf docs-man
 	@echo
-	@$(call log_success,$$(du -hs docs/_build),DONE)
+	@$(call log_success,$$(du -h docs-build/*)) | sed -E '1s/^(..).{7}/\1SUMMARY/'
 
 
 ## Dev repository

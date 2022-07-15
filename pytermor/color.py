@@ -35,37 +35,12 @@ class Color(metaclass=ABCMeta):
         self._color_map.add_to_map(self)
 
     @staticmethod
-    def hex_value_to_rgb_channels(hex_value: int) -> Tuple[int, int, int]:
-        """
-        Transforms ``hex_value`` in ``0xffffff`` format into tuple of three
-        integers corresponding to *red*, *blue* and *green* channel value
-        respectively. Values are within [0; 255] range.
-
-        .. doctest ::
-
-            >>> Color.hex_value_to_rgb_channels(0x80ff80)
-            (128, 255, 128)
-            >>> Color.hex_value_to_rgb_channels(0x000001)
-            (0, 0, 1)
-
-        """
-        if not isinstance(hex_value, int):
-            raise TypeError(f"Argument type should be 'int', got: {type(hex_value)}")
-
-        return ((hex_value & 0xff0000) >> 16,
-                (hex_value & 0xff00) >> 8,
-                (hex_value & 0xff))
-
-    @staticmethod
     def hex_value_to_hsv_channels(hex_value: int) -> Tuple[int, float, float]:
         """
         Transforms ``hex_value`` in ``0xffffff`` format into tuple of three
         numbers corresponding to *hue*, *saturation* and *value* channel values
         respectively. *Hue* is within [0, 359] range, *saturation* and *value* are
         within [0; 1] range.
-
-        :param hex_value:
-        :return:
         """
         if not isinstance(hex_value, int):
             raise TypeError(f"Argument type should be 'int', got: {type(hex_value)}")
@@ -96,6 +71,28 @@ class Color(metaclass=ABCMeta):
             s = c/v
 
         return h, s, v
+
+    @staticmethod
+    def hex_value_to_rgb_channels(hex_value: int) -> Tuple[int, int, int]:
+        """
+        Transforms ``hex_value`` in ``0xffffff`` format into tuple of three
+        integers corresponding to *red*, *blue* and *green* channel value
+        respectively. Values are within [0; 255] range.
+
+        .. doctest ::
+
+            >>> Color.hex_value_to_rgb_channels(0x80ff80)
+            (128, 255, 128)
+            >>> Color.hex_value_to_rgb_channels(0x000001)
+            (0, 0, 1)
+
+        """
+        if not isinstance(hex_value, int):
+            raise TypeError(f"Argument type should be 'int', got: {type(hex_value)}")
+
+        return ((hex_value & 0xff0000) >> 16,
+                (hex_value & 0xff00) >> 8,
+                (hex_value & 0xff))
 
     @classmethod
     def _init_color_map(cls):

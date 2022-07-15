@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "PYTERMOR" "1" "Jul 14, 2022" "2.0.0-dev.12" "pytermor"
+.TH "PYTERMOR" "1" "Jul 15, 2022" "2.0.0-dev.12" "pytermor"
 .SH NAME
 pytermor \- pytermor 2.0.0-dev.12
 .sp
@@ -5912,6 +5912,14 @@ Abstract superclass for other \fBColors\fP\&.
 .UNINDENT
 .INDENT 7.0
 .TP
+.B static  hex_value_to_hsv_channels(hex_value:  int) -> Tuple[int,  float,  float]
+Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
+numbers corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values
+respectively. \fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are
+within [0; 1] range.
+.UNINDENT
+.INDENT 7.0
+.TP
 .B static  hex_value_to_rgb_channels(hex_value:  int) -> Tuple[int,  int,  int]
 Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
 integers corresponding to \fIred\fP, \fIblue\fP and \fIgreen\fP channel value
@@ -5928,22 +5936,6 @@ respectively. Values are within [0; 255] range.
 .ft P
 .fi
 .UNINDENT
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B static  hex_value_to_hsv_channels(hex_value:  int) -> Tuple[int,  float,  float]
-Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
-numbers corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values
-respectively. \fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are
-within [0; 1] range.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBhex_value\fP \-\- 
-.TP
-.B Returns
-
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
@@ -6052,14 +6044,6 @@ Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
 numbers corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values
 respectively. \fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are
 within [0; 1] range.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBhex_value\fP \-\- 
-.TP
-.B Returns
-
-.UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6154,14 +6138,6 @@ Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
 numbers corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values
 respectively. \fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are
 within [0; 1] range.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBhex_value\fP \-\- 
-.TP
-.B Returns
-
-.UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6256,14 +6232,6 @@ Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
 numbers corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values
 respectively. \fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are
 within [0; 1] range.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBhex_value\fP \-\- 
-.TP
-.B Returns
-
-.UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6434,15 +6402,14 @@ settings. See \fI\%Renderer.set_up()\fP\&.
 .sp
 Working with non\-default renderer can be accomplished in two ways:
 .INDENT 0.0
-.INDENT 3.5
-1. There is a module\-level variable \fI\%DefaultRenderer\fP determining what renderer
+.IP a. 3
+There is a module\-level variable \fI\%DefaultRenderer\fP determining what renderer
 \fI\%Style.render()\fP method will be using. Default renderer can be
 swapped with another one using \fI\%Renderer.set_as_default()\fP class method of the
 latter.
-.sp
-2. Alternatively, you can use renderer\(aqs own class method \fI\%Renderer.render()\fP
+.IP b. 3
+Alternatively, you can use renderer\(aqs own class method \fI\%Renderer.render()\fP
 directly and avoid calling \fBStyle.render()\fP method whatsoever.
-.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .INDENT 3.5

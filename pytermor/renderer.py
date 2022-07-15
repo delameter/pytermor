@@ -10,13 +10,13 @@ settings. See `Renderer.set_up()`.
 
 Working with non-default renderer can be accomplished in two ways:
 
-    1. There is a module-level variable :data:`DefaultRenderer` determining what renderer
-    `Style.render() <style.Style.render>` method will be using. Default renderer can be
-    swapped with another one using `Renderer.set_as_default()` class method of the
-    latter.
+a. There is a module-level variable :data:`DefaultRenderer` determining what renderer
+   `Style.render() <style.Style.render>` method will be using. Default renderer can be
+   swapped with another one using `Renderer.set_as_default()` class method of the
+   latter.
 
-    2. Alternatively, you can use renderer's own class method `Renderer.render()`
-    directly and avoid calling ``Style.render()`` method whatsoever.
+b. Alternatively, you can use renderer's own class method `Renderer.render()`
+   directly and avoid calling ``Style.render()`` method whatsoever.
 
 .. testsetup:: *
 

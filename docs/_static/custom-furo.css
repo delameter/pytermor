@@ -2,6 +2,22 @@
 /* pytermor [ANSI formatted terminal output toolset]                         */
 /* (c) 2022. A. Shavykin <0.delameter@gmail.com>                             */
 /*---------------------------------------------------------------------------*/
+body {
+    /*font-family: system-ui;*/
+}
+h1, .sidebar-brand-text, .brand {
+    font-family: ASM, monospace;
+    text-transform: lowercase;
+}
+.sidebar-brand-text, .brand {
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+}
+.xterm-palette, pre, .pre, kbd {
+    font-family: "JetBrains Mono", monospace;
+}
+
 
 .intro a.reference {
     font-size: 1.5rem;
@@ -78,33 +94,30 @@ article .align-center, article .align-default {
     margin-block: 0.5em 1.0em;
 }
 
-section > dl.py:first-of-type {
+section > dl.py.class {
     border-top: 1px solid var(--color-background-item);
-    padding-top: 1rem;
 }
 
-section > dl.py:not(:last-of-type) {
-    border-bottom: 1px solid var(--color-background-item);
-    padding-bottom: 1rem;
-}
-
-dl.py.class > dd > dl.py { /* @FIXME not working */
-    padding-top: 1rem;
-}
-
-section > div.attention:last-child {
-    margin-top: 2rem;
+dl.class > dt.sig {
+    margin-bottom: 1rem;
 }
 
 body[data-theme="dark"] .sig-name {
     color: #f5c13d;
 }
 body[data-theme="dark"] .sig-prename {
-    color: var(--color-api-overall);
+    color: #ee9a51;
     font-weight: 400;
 }
 body[data-theme="dark"] .highlight .s1 {
     color: #4e9a06;
+}
+
+.sig-return:before {
+    content: '➜';
+}
+.sig-return-icon {
+    display: none;
 }
 
 table.presets {
