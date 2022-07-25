@@ -4,28 +4,35 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
+import os
 import re
 from os.path import join, dirname
 
 import yaml
 from yaml import SafeLoader
 
+from pytermor import Style, ColorIndexed, color
+from pytermor.renderer import RendererManager, HtmlRenderer
+
 
 class PyModuleIntGenerator:
     def run(self, f, cfg_indexed):
-        print('# ---------------------------------- GENERATED ---------------------------------\n', file=f)
+        print('# ---------------------------------- GENERATED '
+              '---------------------------------\n', file=f)
         for cc in cfg_indexed:
             print(f'{cc["name_idx"]} = {cc["id"]}', file=f)
+
+        print(f.name)
 
 
 class PyModuleColorGenerator:
     def run(self, f, cfg_indexed):
-        print('# ---------------------------------- GENERATED ---------------------------------\n', file=f)
-        for cc in sorted(cfg_indexed, key=lambda v: v['name_idx']):
-            print(
-                f'{cc["name_idx"]} = ColorIndexed(0x{cc["value"]:06x}, intcode.'
-                f'{cc["name_idx"]})  # {cc["id"]} {cc["renamed_from"]}',
-                file=f)
+        print('# ---------------------------------- GENERATED '
+              '---------------------------------\n', file=f)
+        for cc in cfg_indexed:
+            print(f'{cc["name_idx"]} = ColorIndexed(0x{cc["value"]:06x}, intcode.'
+                  f'{cc["name_idx"]})  # {cc["id"]} {cc["renamed_from"]}', file=f)
+        print(f.name)
 
 
 class PresetListIndexedGenerator:
@@ -92,6 +99,43 @@ class PresetListIndexedGenerator:
             print(f'{" " * self.offset}| {fo:<{self.wt - 1}s}|', file=f)
             self.print_sep_merged()
         self.print_sep()
+        print(f.name)
+
+
+class HtmlTableGenerator:
+    def run(self, f, cfg_indexed):
+        default = Style(fg='hi_white')
+        RendererManager.set_up(HtmlRenderer)
+
+        html = '<html><body style="background-color: #161616; font-family: monospace; ' \
+               '' \
+               '' \
+               'font-size: 1.5em;">'
+        names = set()
+        for cc in cfg_indexed:
+            is_duplicate = (cc['name'] in names)
+            is_renamed = len(cc['renamed_from']) > 0
+            names.add(cc['name'])
+
+            id_str = f'{cc["id"]:_>3d}'
+            id_sty = default
+            if is_duplicate:
+                id_sty = Style(bg=color.HI_RED)
+            elif is_renamed:
+                id_sty = Style(fg='hi_white', crosslined=True)
+            html += id_sty.render(id_str)
+            html += '_' + Style(bg=cc['value'], auto_fg=True).render(f'{cc["name"]:_<20s}')
+
+            html += default.render(f'_[#{cc["value"]:06x}__')
+            html += default.render('{}_{}_{}]_'.format(*['{:_>3d}'.format(c) for c in
+                                                           ColorIndexed.hex_value_to_rgb_channels(
+                                                               cc['value'])]))
+
+            html += '<br>'
+
+        html += '</body></html>'
+        f.write(html.replace('_', '&nbsp;'))
+        print(f.name)
 
 
 # -----------------------------------------------------------------------------
@@ -116,18 +160,23 @@ class Main:
                                    'idx' + c['name']).upper()
             c['first'] = ' [3]_' if first else ''
             first = False
+        cfg_name_sorted = sorted(
+            cfg_indexed,
+            key=lambda v: (re.sub(r'\d|_', '', v['name']), -sum(ColorIndexed.hex_value_to_rgb_channels(v['value'])))
+        )
 
-        with open(join(dirname(__name__), '..', 'docs', '_generated', 'preset-table',
-                       'output.rst_'), 'wt') as f:
+        generated_dir = join(dirname(__name__), '..', 'docs', '_generated')
+        with open(join(generated_dir, 'preset-table', 'output.rst_'), 'wt') as f:
             PresetListIndexedGenerator().run(f, cfg_indexed)
 
-        with open(join(dirname(__name__), '..', 'docs', '_generated', 'preset-code',
-                       'intcode.py_'), 'wt') as f:
+        with open(join(generated_dir, 'preset-code', 'intcode.py_'), 'wt') as f:
             PyModuleIntGenerator().run(f, cfg_indexed)
 
-        with open(join(dirname(__name__), '..', 'docs', '_generated', 'preset-code',
-                       'color.py_'), 'wt') as f:
-            PyModuleColorGenerator().run(f, cfg_indexed)
+        with open(join(generated_dir, 'preset-code', 'color.py_'), 'wt') as f:
+            PyModuleColorGenerator().run(f, cfg_name_sorted)
+
+        with open(join(dirname(__name__), '..', 'presets.html'), 'wt') as f:
+            HtmlTableGenerator().run(f, cfg_name_sorted)
 
 
 if __name__ == '__main__':

@@ -149,8 +149,8 @@ class SGRRenderer(Renderer):
         :return: Input string enclosed in SGR sequences.
         """
         opening_seq = cls._render_attributes(style) + \
-                      cls._render_color(style.fg_color, False) + \
-                      cls._render_color(style.bg_color, True)
+                      cls._render_color(style.fg, False) + \
+                      cls._render_color(style.bg, True)
 
         return Span(opening_seq).wrap(text)
 
@@ -231,13 +231,21 @@ class HtmlRenderer(Renderer):
         '<span style="color: #800000; font-weight: bold">text</span>'
         """
         span_styles = []
-        if style.fg_color.hex_value is not None:
-            span_styles.append('color: {}'.format(style.fg_color.format_value("#")))
-        if style.bg_color.hex_value is not None:
-            span_styles.append(
-                'background-color: {}'.format(style.bg_color.format_value("#")))
+        span_classes = []
+        if style.fg.hex_value is not None:
+            span_styles.append(f'color: {style.fg.format_value("#")}')
+        if style.bg.hex_value is not None:
+            span_styles.append(f'background-color: {style.bg.format_value("#")}')
+        if style.blink:
+            pass  # modern browsers doesn't support it without piling up markup and stylesheets
+        if style.bold:
+            span_styles.append('font-weight: bold')
+        if style.crosslined:
+            span_styles.append('text-decoration: line-through')
+        if style.italic:
+            span_styles.append('font-style: italic')
 
-        return f'<span style="{"; ".join(span_styles)}">{text}</span>'  # @TODO
+        return f'<span style="{"; ".join(span_styles)}" class="{" ".join(span_classes)}">{text}</span>'  # @TODO
         # attribues, bg color
 
 

@@ -75,13 +75,13 @@ class TestPrefixedUnit(unittest.TestCase):
         [6, format_si_metric],
         [8, format_si_binary],
         [6, PrefixedUnitFormatter(
-            max_value_len=4, integer_input=False, mcoef=1000.0,
+            max_value_len=4, truncate_frac=False, mcoef=1000.0,
             prefixes=PREFIXES_SI,
             prefix_zero_idx=PREFIX_ZERO_SI,
             unit='m', unit_separator=None,
         ).format],
         [10, PrefixedUnitFormatter(
-            max_value_len=9, integer_input=False, mcoef=1000.0,
+            max_value_len=9, truncate_frac=False, mcoef=1000.0,
             prefixes=PREFIXES_SI,
             prefix_zero_idx=PREFIX_ZERO_SI,
             unit=None, unit_separator=None,

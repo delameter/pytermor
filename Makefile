@@ -72,7 +72,7 @@ test-debug: ## Run pytest with VERY detailed output
 
 doctest: ## Run doctest
 	. venv/bin/activate
-	make -C docs doctest
+	make -C docs doctest 2>&1 | grep -iEe 'failed example|summary' -A6 | sed -E -e 's/^\*+//' -e '/^\-/ d'
 
 coverage: ## Run coverage and make a report
 	rm -v coverage-report/*

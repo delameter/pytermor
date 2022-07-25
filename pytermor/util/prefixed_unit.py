@@ -16,32 +16,35 @@ from typing import List
 from .auto_float import format_auto_float
 
 
-def format_si_metric(value: float) -> str:
+def format_si_metric(value: float, unit: str = 'm') -> str:
     """
-    Format ``value`` as unitless value with SI-prefixes, max
-    result length is *6* chars. Base is *1000*.
+    Format ``value`` as meters with SI-prefixes, max
+    result length is *6* chars. Base is *1000*. Unit can be
+    customized.
 
     >>> format_si_metric(123.456)
-    '123'
-    >>> format_si_metric(1080)
-    '1.08 k'
-    >>> format_si_metric(45200)
-    '45.2 k'
-    >>> format_si_metric(1257800)
-    '1.26 M'
+    '123 m'
+    >>> format_si_metric(0.331, 'g')
+    '331 mg'
+    >>> format_si_metric(45200, 'V')
+    '45.2 kV'
+    >>> format_si_metric(1.26e-9, 'm²')
+    '1.26 nm²'
 
     :param value: Input value (unitless).
+    :param unit:  Value unit, printed right after the prefix.
     :return:      Formatted string with SI-prefix if necessary.
 
     .. versionadded:: 2.0
     """
-    return _formatter_si_metric.format(value)
+    return _formatter_si_metric.format(value, unit)
 
 
-def format_si_binary(value: float) -> str:
+def format_si_binary(value: float, unit: str = 'b') -> str:
     """
     Format ``value`` as binary size (bytes, kbytes, Mbytes), max
-    result length is *8* chars. Base is *1024*.
+    result length is *8* chars. Base is *1024*. Unit can be
+    customized.
 
     >>> format_si_binary(631)
     '631 b'
@@ -49,15 +52,16 @@ def format_si_binary(value: float) -> str:
     '1.055 kb'
     >>> format_si_binary(45200)
     '44.14 kb'
-    >>> format_si_binary(1257800)
-    '1.200 Mb'
+    >>> format_si_binary(1.258 * pow(10, 6), 'bps')
+    '1.200 Mbps'
 
     :param value: Input value in bytes.
+    :param unit:  Value unit, printed right after the prefix.
     :return:      Formatted string with SI-prefix if necessary.
 
     .. versionadded:: 2.0
     """
-    return _formatter_si_binary.format(value)
+    return _formatter_si_binary.format(value, unit)
 
 
 class PrefixedUnitFormatter:
@@ -72,17 +76,17 @@ class PrefixedUnitFormatter:
     methods :meth:`format_si_metric()` and :meth:`format_si_binary()`,
     which will invoke predefined formatters and doesn't require setting up.
 
-    @TODO params
+    @TODO params desc
 
     :param prefix_zero_idx:
             Index of prefix which will be used as default, i.e. without multiplying coefficients.
 
     .. versionadded:: 1.7
     """
-    def __init__(self, max_value_len: int, integer_input: bool = False, unit: str = None, unit_separator: str = None,
+    def __init__(self, max_value_len: int, truncate_frac: bool = False, unit: str = None, unit_separator: str = None,
                  mcoef: float = 1000.0, prefixes: List[str | None] = None, prefix_zero_idx: int = None):
         self._max_value_len: int = max_value_len
-        self._integer_input: bool = integer_input
+        self._truncate_frac: bool = truncate_frac
         self._unit: str = unit or ''
         self._unit_separator: str = unit_separator or ''
         self._mcoef: float = mcoef
@@ -101,40 +105,43 @@ class PrefixedUnitFormatter:
         result += max([len(p) for p in self._prefixes if p])
         return result
 
-    def format(self, value: float) -> str:
+    def format(self, value: float, unit: str = None) -> str:
         """
         :param value:  Input value
+        :param unit:   Unit override
         :return:       Formatted value
         """
         unit_idx = self._prefix_zero_idx
 
         while 0 <= unit_idx < len(self._prefixes):
-            if 0.0 < abs(value) <= 1 / self._mcoef:
+            if 0.0 < abs(value) <= 1:
                 value *= self._mcoef
                 unit_idx -= 1
-                continue
+                if abs(value) <= 1:
+                    continue
             elif abs(value) >= self._mcoef:
                 value /= self._mcoef
                 unit_idx += 1
                 continue
 
-            unit_full = (self._prefixes[unit_idx] or '') + self._unit
+            unit_full = (self._prefixes[unit_idx] or '') + \
+                        (unit or self._unit)
 
-            if self._integer_input and unit_idx == self._prefix_zero_idx:
+            if self._truncate_frac and unit_idx == self._prefix_zero_idx:
                 num_str = f'{trunc(value)!s:.{self._max_value_len}s}'
             else:
                 num_str = format_auto_float(value,
                                             self._max_value_len,
                                             allow_exponent_notation=False)
 
-            return f'{num_str.strip()}{self._unit_separator}{unit_full}'.strip()
+            return f'{num_str.strip()}{self._unit_separator}{unit_full.strip()}'
 
         # no more prefixes left
         num_str = format_auto_float(value,
                                     self._max_value_len,
                                     allow_exponent_notation=False)
         unit_full = ('?' * max([len(p) for p in self._prefixes if p])) + self._unit
-        return f'{num_str.strip()}{self._unit_separator}{unit_full}'.strip()
+        return f'{num_str.strip()}{self._unit_separator}{unit_full.strip()}'
 
 
 # ---------------------------------------------------------------------------
@@ -154,7 +161,7 @@ multiplying coefficients.
 
 _formatter_si_metric = PrefixedUnitFormatter(
     max_value_len=4,
-    integer_input=False,
+    truncate_frac=False,
     unit='',
     unit_separator=' ',
     mcoef=1000.0,
@@ -176,7 +183,7 @@ have 1-char width). Without unit (default) it's **6**.
 
 _formatter_si_binary = PrefixedUnitFormatter(
     max_value_len=5,
-    integer_input=True,
+    truncate_frac=True,
     unit='b',
     unit_separator=' ',
     mcoef=1024.0,
