@@ -101,6 +101,7 @@ _EXTENDED_MODE_RGB = 2
 
 
 # -- Indexed mode / 256 colors ------------------------------------------------
+# --------------------------------- GENERATED ---------------------------------
 
 IDX_BLACK = 0
 IDX_MAROON = 1
@@ -110,7 +111,7 @@ IDX_NAVY = 4
 IDX_PURPLE = 5
 IDX_TEAL = 6
 IDX_SILVER = 7
-IDX_GRAY = 8
+IDX_GREY = 8
 IDX_RED = 9
 IDX_LIME = 10
 IDX_YELLOW = 11
@@ -122,7 +123,7 @@ IDX_GREY_0 = 16
 IDX_NAVY_BLUE = 17
 IDX_DARK_BLUE = 18
 IDX_BLUE_3 = 19
-IDX_BLUE_2 = 20  # Blue3
+IDX_BLUE_2 = 20
 IDX_BLUE_1 = 21
 IDX_DARK_GREEN = 22
 IDX_DEEP_SKY_BLUE_4 = 23
@@ -188,7 +189,7 @@ IDX_CHARTREUSE_2 = 82
 IDX_SEA_GREEN_2 = 83
 IDX_SEA_GREEN_1 = 84
 IDX_SEA_GREEN_1 = 85
-IDX_AQUAMARINE_2 = 86
+IDX_AQUAMARINE_1 = 86
 IDX_DARK_SLATE_GRAY_2 = 87
 IDX_DARK_RED = 88
 IDX_DEEP_PINK_4 = 89

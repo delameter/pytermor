@@ -268,7 +268,7 @@ Meta, attributes, breakers
 :mono:`Indexed` colors
 ========================
 
-.. include:: /_generated/preset-table/output.rsti
+.. include:: /_generated/preset-table/output.rst_
 
 -----
 
