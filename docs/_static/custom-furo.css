@@ -59,6 +59,7 @@ table.docutils th {
     padding-block: 0.75rem;
 }
 
+
 table.xterm-palette td {
     font-family: monospace;
     text-align: center;
@@ -81,6 +82,13 @@ td.xterm-palette-light {
 td.xterm-palette-dark {
     color: #000000;
 }
+th abbr {
+    font-family: 'ASM', monospace;
+    font-size: var(--font-size--small);
+    text-transform: uppercase;
+}
+
+
 
 table caption {
     margin-bottom: 1rem;
@@ -102,23 +110,7 @@ dl.class > dt.sig {
     margin-bottom: 1rem;
 }
 
-body[data-theme="dark"] .sig-name {
-    color: #f5c13d;
-}
-body[data-theme="dark"] .sig-prename {
-    color: #ee9a51;
-    font-weight: 400;
-}
-body[data-theme="dark"] .highlight .s1 {
-    color: #4e9a06;
-}
 
-.sig-return:before {
-    content: '➜';
-}
-.sig-return-icon {
-    display: none;
-}
 
 table.presets {
     margin-inline: 0.125rem;
@@ -130,8 +122,11 @@ table.presets img {
     vertical-align: middle;
 }
 table.presets td, table.presets th {
-    padding: 0 0.05rem;
+    padding: 0 0 0.05rem;
     vertical-align: middle;
+}
+table.presets td:first-child, table.presets th:first-child {
+    padding: 0;
 }
 table.presets p.rubric {
     margin-block: 0.5rem;
@@ -146,7 +141,86 @@ table.preset-attributes td:nth-child(8) {
     font-size: 0.9rem;
 }
 
+
+
 a.image-reference img {
     border: 1px dotted var(--color-background-item);
     padding: 5px;
+}
+
+aside.footnote {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    margin: 0.5rem;
+}
+
+
+
+body[data-theme="dark"] .sig-name {
+    color: #f5c13d;
+}
+body[data-theme="dark"] .sig-prename {
+    color: #ee9a51;
+    font-weight: 400;
+}
+body[data-theme="dark"] .highlight .s1 {
+    color: #4e9a06;
+}
+
+
+.sig-return:before {
+    content: '➜';
+}
+.sig-return-icon {
+    display: none;
+}
+
+
+.sig-prename {
+    font-size: var(--font-size--small);
+}
+
+
+.sig a.reference .viewcode-link {
+    font-weight: normal;
+    width: 2.5rem;
+}
+.sig a.reference .viewcode-link:before {
+    content: '[src]';
+}
+.sig a.reference .viewcode-link .pre {
+    display: none;
+}
+.sig a.reference .viewcode-link:hover {
+    text-decoration: underline;
+    text-underline-position: under;
+}
+
+.sig {
+    /*font-weight: normal;*/
+}
+.sig .reference {
+    /*font-weight: bold;*/
+}
+.sig-name {
+    /*font-weight: bold;*/
+}
+.sig-param .n:first-child {
+    /*font-weight: bold;*/
+}
+.sig-param .n:not(:first-child) {
+    /*color: #f00;*/
+    /*font-weight: normal;*/
+}
+.sig-param .p,
+.sig-return-typehint .p {
+    /*color: #0f0;*/
+}
+
+.sig-param .default_value {
+    /*color: #71a5d9;*/
+}
+body[data-theme="dark"] .sig-param .default_value {
+    /*color: #71a5d9;*/
 }

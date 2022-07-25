@@ -17,7 +17,7 @@ Color mode fallbacks
 
 .. only:: html
 
-   .. figure:: ../_include/approx/output-bgwhite.png
+   .. figure:: /_generated/approx/output-bgwhite.png
       :width: 400px
       :align: center
 
@@ -26,7 +26,7 @@ Color mode fallbacks
 
 .. only:: latex
 
-   .. figure:: ../_include/approx/output-bgwhite.png
+   .. figure:: /_generated/approx/output-bgwhite.png
       :align: center
 
       Color approximations for indexed modes

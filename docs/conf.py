@@ -42,7 +42,7 @@ extensions = [
 # line before building it and uncomments it afterwards (yeah I know it's ugly)
 
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '_temp']
+exclude_patterns = ['_build', '_depreacted', '_generated']
 
 rst_prolog = """
 .. role:: mono
@@ -145,7 +145,6 @@ autodoc_typehints = 'signature'
 
 keep_warnings = True
 nitpick_ignore = [('py:class', 'Match'),
-                  ('py:class', 'pytermor.sequence._SequenceCSI'),
                   ('py:class', 'pytermor.color.TypeColor')]
 
 # -- Hide "bases: object" elements --------------------------------------------

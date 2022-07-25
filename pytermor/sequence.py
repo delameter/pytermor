@@ -6,15 +6,19 @@
 Module contains definitions for low-level ANSI escape sequences handling.
 
 Each preset defined below is a valid argument for :class:`.Span` and
-:class:`.SequenceSGR` default constructors (case-insensitive)::
-
-    Span(sequence.BG_GREEN, sequence.UNDERLINED)
+:class:`.SequenceSGR` default constructors (case-insensitive).
 
 .. testsetup:: *
 
+    from pytermor import sequence
     from pytermor.sequence import build, SequenceSGR, NOOP, HI_CYAN, UNDERLINED
+    from pytermor.span import Span
+
+>>> Span(sequence.BG_GREEN, sequence.UNDERLINED)
+Span[SGR[42;4], SGR[49;24]]
 
 """
+
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
@@ -38,18 +42,13 @@ def build(*args: str | int | SequenceSGR) -> SequenceSGR:
     .. deprecated:: 2.0
         @TODO Выпилить, перенести функционал в конструктор
 
-    Examples:
-
-    .. doctest::
-
-        >>> build('yellow', 'bold')
-        SGR[33;1]
-        >>> build(91, 7)
-        SGR[91;7]
-        >>> build(HI_CYAN, UNDERLINED)
-        SGR[96;4]
+    >>> build('yellow', 'bold')
+    SGR[33;1]
+    >>> build(91, 7)
+    SGR[91;7]
+    >>> build(HI_CYAN, UNDERLINED)
+    SGR[96;4]
     """
-
     result: List[int] = []
 
     for arg in args:
@@ -124,9 +123,9 @@ def _validate_extended_color(value: int):
         raise ValueError(f'Invalid color value: expected range [0-255], got: {value}')
 
 
-class _Sequence(metaclass=ABCMeta):
+class Sequence(metaclass=ABCMeta):
     """
-    Common ancestor of all possible escape sequenes.
+    Abstract ancestor of all escape sequenes.
     """
     def __init__(self, *params: int):
         self._params: List[int] = [max(0, int(p)) for p in params]
@@ -148,26 +147,29 @@ class _Sequence(metaclass=ABCMeta):
     @abstractmethod
     def _short_class_name(cls): raise NotImplementedError
 
-    def __eq__(self, other: _Sequence):
+    def __eq__(self, other: Sequence):
         if type(self) != type(other):
             return False
         return self._params == other._params
 
     def __repr__(self):
-        return f'{self._short_class_name()}[{";".join([str(p) for p in self._params])}]'
+        params = ";".join([str(p) for p in self._params])
+        if len(self._params) == 0:
+            params = '^'
+        return f'{self._short_class_name()}[{params}]'
 
 
-class _SequenceCSI(_Sequence, metaclass=ABCMeta):
+class SequenceCSI(Sequence, metaclass=ABCMeta):
     """
-    Class representing CSI-type ANSI escape sequence. All subtypes of this
-    sequence have something in common -- all of them start with :kbd:`\\e[`.
+    Abstract class representing CSI-type ANSI escape sequence. All subtypes
+    of this sequence start with :kbd:`\\e[`.
     """
     _CONTROL_CHARACTER = '\x1b'
     _INTRODUCER = '['
     _SEPARATOR = ';'
 
     def __init__(self, *params: int):
-        super(_SequenceCSI, self).__init__(*params)
+        super(SequenceCSI, self).__init__(*params)
 
     def __str__(self) -> str:
         return self.encode()
@@ -181,7 +183,7 @@ class _SequenceCSI(_Sequence, metaclass=ABCMeta):
     def _terminator(cls) -> str: raise NotImplementedError
 
 
-class SequenceSGR(_SequenceCSI, metaclass=ABCMeta):
+class SequenceSGR(SequenceCSI, metaclass=ABCMeta):
     """
     Class representing SGR-type escape sequence with varying amount of parameters.
 
@@ -193,10 +195,8 @@ class SequenceSGR(_SequenceCSI, metaclass=ABCMeta):
 
     It's possible to add of one SGR sequence to another:
 
-    .. doctest::
-
-        >>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
-        True
+    >>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
+    True
 
     """
     _TERMINATOR = 'm'
@@ -206,7 +206,7 @@ class SequenceSGR(_SequenceCSI, metaclass=ABCMeta):
             return ''
 
         params = self._params
-        if params == [0]:  # \e[0m <=> \em, saving 1 byte
+        if params == [0]:  # \x1b[0m <=> \x1b[m, saving 1 byte
             params = []
 
         return (self._CONTROL_CHARACTER +
@@ -309,12 +309,10 @@ another SGR, but do not want any control sequence to be actually included.
 - ``NOOP.encode()`` returns empty string.
 - ``NOOP.params`` returns empty list.
 
-.. doctest::
-
-    >>> NOOP.encode()
-    ''
-    >>> NOOP.params
-    []
+>>> NOOP.encode()
+''
+>>> NOOP.params
+[]
 
 .. versionadded:: 1.8
 """
@@ -331,6 +329,7 @@ ITALIC = SequenceSGR(intcode.ITALIC)
 UNDERLINED = SequenceSGR(intcode.UNDERLINED)
 BLINK_SLOW = SequenceSGR(intcode.BLINK_SLOW)
 BLINK_FAST = SequenceSGR(intcode.BLINK_FAST)
+BLINK_DEFAULT = BLINK_SLOW
 INVERSED = SequenceSGR(intcode.INVERSED)
 HIDDEN = SequenceSGR(intcode.HIDDEN)
 CROSSLINED = SequenceSGR(intcode.CROSSLINED)

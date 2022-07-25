@@ -12,6 +12,6 @@ License
 
    \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}%
 
-.. literalinclude:: ../LICENSE
+.. literalinclude:: /../LICENSE
    :language: text
    :class: license

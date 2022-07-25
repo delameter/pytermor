@@ -37,6 +37,9 @@ def center_sgr(s: str, width: int, fillchar: str = ' ') -> str:
 
     Return a centered string of length ``width``. Padding is done using the
     specified fill character (default is a space).
+
+    @ TODO поверить корректность работы в случае эмодзи (напр. 🔋)
+    # если алгоритм поедет -- можно заменить на f-стринги
     """
     sanitized = ReplaceSGR().apply(s)
     fill_len = max(0, width - len(sanitized))

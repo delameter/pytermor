@@ -28,7 +28,7 @@ Key feature of this library is providing necessary abstractions for building com
 
 _Span_ is a combination of two control sequences; it wraps specified string with pre-defined leading and trailing SGR definitions.
 
-@{docs/_include/examples/ex_0_features.py}
+@{docs/examples/ex_0_features.py}
 
 <details>
 <summary><b>Examples</b> <i>(click)</i></summary>
@@ -37,31 +37,31 @@ _Span_ is a combination of two control sequences; it wraps specified string with
 
 Preset spans can safely overlap with each other (as long as they require different **breaker** sequences to reset).
 
-@{docs/_include/examples/ex_10_nested_formats.py}
+@{docs/examples/ex_10_nested_formats.py}
 
 ## * ![image](https://user-images.githubusercontent.com/50381946/161387711-23746520-419b-4917-9401-257854ff2d8a.png)
 
 Compose text spans with automatic content-aware format termination.
 
-@{docs/_include/examples/ex_20_content_aware_nesting.py}
+@{docs/examples/ex_20_content_aware_nesting.py}
 
 ## * ![image](https://user-images.githubusercontent.com/50381946/161387734-677d5b10-15c1-4926-933f-b1144b0ce5cb.png)
 
 Create your own _SGR_ _sequences_ with `build()` method, which accepts color/attribute keys, integer codes and even existing _SGRs_, in any amount and in any order. Key resolving is case-insensitive.
 
-@{docs/_include/examples/ex_30_flexible.py}
+@{docs/examples/ex_30_flexible.py}
 
 ## * ![image](https://user-images.githubusercontent.com/50381946/161387746-0a94e3d2-8295-478c-828c-333e99e5d50a.png)
 
 Use `color_indexed()` to set foreground/background color to any of [↗ xterm-256 colors](https://www.ditig.com/256-colors-cheat-sheet).
 
-@{docs/_include/examples/ex_40_256_colors.py}
+@{docs/examples/ex_40_256_colors.py}
 
 ## * ![image](https://user-images.githubusercontent.com/50381946/161411577-743b9a81-eac3-47c0-9b59-82b289cc0f45.png)
 
 It's also possible to use 16M-color mode (or True color) &mdash; with `color_rgb()` wrapper method.
 
-@{docs/_include/examples/ex_50_true_color.py}
+@{docs/examples/ex_50_true_color.py}
 
 </details>
 
@@ -81,7 +81,7 @@ Example: we are given a text span which is initially **bold** and <u>underlined<
 
 However, there is an option to specify what attributes should be disabled or let the library do that for you:
 
-@{docs/_include/examples/ex_60_autocomplete.py}
+@{docs/examples/ex_60_autocomplete.py}
 > ![image](https://user-images.githubusercontent.com/50381946/163714299-1f7d3d52-0b9a-4d3e-91bf-26e8cce9b1f1.png)
 
 As you can see, the update went well &mdash; we kept all the previously applied formatting. Of course, this method cannot be 100% applicable &mdash; for example, imagine that original text was colored blue. After the update "string" word won't be blue anymore, as we used `COLOR_OFF` escape sequence to neutralize our own yellow color. But it still can be helpful for a majority of cases (especially when text is generated and formatted by the same program and in one go).
@@ -139,7 +139,7 @@ You can use any of predefined sequences from `pytermor.sequence` or create your 
 
 To get the resulting sequence chars use `print()` method or cast instance to _str_:
 
-@{docs/_include/examples/ex_70_sgr_structure.py}
+@{docs/examples/ex_70_sgr_structure.py}
 > ![image](https://user-images.githubusercontent.com/50381946/161387861-5203fff8-86c8-4c52-8518-63a5525c09f7.png)
 
 1st part is "applied" escape sequence; 2nd part shows up a sequence in raw mode, as if it was ignored by the terminal; 3rd part is hexademical sequence byte values.
@@ -161,7 +161,7 @@ To get the resulting sequence chars use `print()` method or cast instance to _st
 
 One instance of _SequenceSGR_ can be added to another. This will result in a new _SequenceSGR_ with combined params.
 
-@{docs/_include/examples/ex_80_combined.py}
+@{docs/examples/ex_80_combined.py}
 > ![image](https://user-images.githubusercontent.com/50381946/161387867-808831e5-784b-49ec-9c24-490734ef4eab.png)
 
 </details>
@@ -183,7 +183,7 @@ You can define your own reusable <i>Span</i>s (see below) or import predefined o
 
 Use `wrap()` method of _Span_ instance or call the instance itself to enclose specified string in opening/closing SGR sequences:
 
-@{docs/_include/examples/ex_90_applying_span.py}
+@{docs/examples/ex_90_applying_span.py}
 > ![image](https://user-images.githubusercontent.com/50381946/161387874-5c25a493-253b-4f9e-8dbf-8328add2e5d5.png)
 
 </details>
@@ -224,7 +224,7 @@ Similar to previous method, but this one also supports metric prefixes and is hi
 <summary><b>Details</b> <i>(click)</i></summary>
 
 Settings:
-@{docs/_include/examples/ex_120_prefixed_unit.py}
+@{docs/examples/ex_120_prefixed_unit.py}
 
 Example #2 illustrating small numbers:
 
@@ -232,7 +232,7 @@ Example #2 illustrating small numbers:
 | :------: | :--------: | :--------: |  :---: | :---: | :---: | :---: | :---: |
 | result | <code>-0.012nm</code> | <code>0.0123μm</code> | <code>0.1235mm</code> | <code>0.0123m</code> | <code>1.2346m</code> | <code>123.46m</code> | <code>-12.35km</code>
 
-@{docs/_include/examples/ex_130_prefixed_unit.py}
+@{docs/examples/ex_130_prefixed_unit.py}
 
 </details>
 
@@ -253,7 +253,7 @@ Formats time interval in 4 different variants - 3-char, 4-char, 6-char and 10-ch
 <summary><b>Details</b> <i>(click)</i></summary>
 
 Settings example (for 10-char mode):
-@{docs/_include/examples/ex_140_time_delta.py}
+@{docs/examples/ex_140_time_delta.py}
 
 </details>
 
@@ -278,7 +278,7 @@ _StringFilter_ is common string modifier interface with dynamic configuration su
 
 Can be applied using `.apply()` method or with direct call.
 
-@{docs/_include/examples/ex_100_replace_sgr.py}
+@{docs/examples/ex_100_replace_sgr.py}
 > ![image](https://user-images.githubusercontent.com/50381946/161387885-0fc0fcb5-09aa-4258-aa25-312220e7f994.png)
 
 
@@ -286,7 +286,7 @@ Can be applied using `.apply()` method or with direct call.
 
 Helper function `apply_filters` accepts both `StringFilter` instances and types, but latter is not configurable and will be invoked using default settings.
 
-@{docs/_include/examples/ex_110_string_filter.py}
+@{docs/examples/ex_110_string_filter.py}
 > ![image](https://user-images.githubusercontent.com/50381946/161387889-a1920f13-f5fc-4d10-b535-93f1a1b1aa5c.png)
 
 </details>

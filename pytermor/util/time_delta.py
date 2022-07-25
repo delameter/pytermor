@@ -37,16 +37,14 @@ def format_time_delta(seconds: float, max_len: int = None) -> str:
     will be less or equal to required length. If `max_len` is
     omitted, longest registred formatter will be used.
 
-    .. doctest::
-
-       >>> format_time_delta(10, 3)
-       '10s'
-       >>> format_time_delta(10, 6)
-       '10 sec'
-       >>> format_time_delta(15350, 4)
-       '4 h'
-       >>> format_time_delta(15350)
-       '4h 15min'
+    >>> format_time_delta(10, 3)
+    '10s'
+    >>> format_time_delta(10, 6)
+    '10 sec'
+    >>> format_time_delta(15350, 4)
+    '4 h'
+    >>> format_time_delta(15350)
+    '4h 15min'
 
     :param seconds: Value to format
     :param max_len: Maximum output string length (total)
@@ -110,7 +108,7 @@ class TimeDeltaFormatter:
         """
         Format the requested amount of seconds and apply styles to the result as
         defined in current formatter's `stylesheet`. Default ``stylesheet`` contains
-        "noop" spans only and thus no styles will be applied.
+        no-op spans only and thus no styles will be applied.
 
         :param seconds: Input value.
         :param always_max_len: If result string is less than `max_len` it will be returned

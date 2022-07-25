@@ -25,13 +25,19 @@ No dependencies besides Python Standard Library are required *(there are some fo
 
          :ref:`guide.index`
 
-         *in-depth review with examples*
+         *installation, in-depth review*
 
       .. grid-item-card::
 
-         :ref:`apidoc.index`
+         :ref:`API docs <apidoc.index>`
 
          *complete API reference*
+
+      .. grid-item-card::
+
+         :ref:`license`
+
+         *license*
 
       .. grid-item-card::
 

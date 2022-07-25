@@ -8,4 +8,4 @@ intcode
 
 .. automodule:: pytermor.intcode
 
-.. include:: ../_include/preset-contants-omitted.rst
+.. include:: /_include/preset-const-omitted.rst

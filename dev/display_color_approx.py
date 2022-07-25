@@ -23,7 +23,7 @@ def _main(target_color_hex: int):
              f'0x{target_color_hex:06x}')
 
     color_target = ColorRGB(target_color_hex)
-    colors_indexed = ColorIndexed._color_map.approximate(target_color_hex, 5)
+    colors_indexed = ColorIndexed._approx.approximate(target_color_hex, 5)
     for color_indexed in colors_indexed:
         sgr_indexed = color_indexed.to_sgr(True)
         if sgr_indexed.params[-1] < 16:  # @FIXME костыль

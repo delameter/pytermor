@@ -7,6 +7,6 @@ color
 ========================
 
 .. automodule:: pytermor.color
-   :private-members: _ColorMap
+   :private-members: Approximator
 
-.. include:: ../_include/preset-contants-omitted.rst
+.. include:: /_include/preset-const-omitted.rst

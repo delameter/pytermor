@@ -32,14 +32,12 @@ class Style:
     2. key code -- name of any of aforementioned presets, case-insensitive;
     3. integer color value in hexademical RGB format.
 
-    .. doctest ::
-
-        >>> Style('green', bold=True)
-        Style[fg=008000, no bg, bold]
-        >>> Style(bg_color=0x0000ff)
-        Style[no fg, bg=0000ff]
-        >>> Style(color.IDX_DEEP_SKY_BLUE_1, color.IDX_GREY_93)
-        Style[fg=00afff, bg=eeeeee]
+    >>> Style('green', bold=True)
+    Style[fg=008000, no bg, bold]
+    >>> Style(bg_color=0x0000ff)
+    Style[no fg, bg=0000ff]
+    >>> Style(color.IDX_DEEP_SKY_BLUE_1, color.IDX_GREY_93)
+    Style[fg=00afff, bg=eeeeee]
 
     :param fg_color:    Foreground (i.e., text) color.
     :param bg_color:    Background color.
@@ -85,8 +83,8 @@ class Style:
         By default uses `SequenceSGR` renderer, that means that output will contain
         ANSI escape sequences.
         """
-        from .renderer import DefaultRenderer
-        return DefaultRenderer.render(self, text)
+        from .renderer import RendererManager
+        return RendererManager.get_default().render(self, text)
 
     def _pick_fg_for_bg(self):
         if self.bg_color is None or self.bg_color.hex_value is None:
@@ -119,8 +117,8 @@ class Style:
         return NOOP_COLOR
 
     def __repr__(self):
-        props_set = [self.fg_color.format_value('fg=') or 'no fg',
-                     self.bg_color.format_value('bg=') or 'no bg', ]
+        props_set = [self.fg_color.format_value('fg=', 'no fg'),
+                     self.bg_color.format_value('bg=', 'no bg'), ]
         for attr_name in dir(self):
             if not attr_name.startswith('_'):
                 attr = getattr(self, attr_name)

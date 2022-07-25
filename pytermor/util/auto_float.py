@@ -21,22 +21,20 @@ def format_auto_float(value: float, req_len: int, allow_exponent_notation: bool 
     digits as possible, and keep the output length
     strictly equal to `req_len`  at the same time.
 
-    .. doctest::
-
-        >>> format_auto_float(0.016789, 5)
-        '0.017'
-        >>> format_auto_float(0.167891, 5)
-        '0.168'
-        >>> format_auto_float(1.567891, 5)
-        '1.568'
-        >>> format_auto_float(12.56789, 5)
-        '12.57'
-        >>> format_auto_float(123.5678, 5)
-        '123.6'
-        >>> format_auto_float(1234.567, 5)
-        ' 1235'
-        >>> format_auto_float(12345.67, 5)
-        '12346'
+    >>> format_auto_float(0.016789, 5)
+    '0.017'
+    >>> format_auto_float(0.167891, 5)
+    '0.168'
+    >>> format_auto_float(1.567891, 5)
+    '1.568'
+    >>> format_auto_float(12.56789, 5)
+    '12.57'
+    >>> format_auto_float(123.5678, 5)
+    '123.6'
+    >>> format_auto_float(1234.567, 5)
+    ' 1235'
+    >>> format_auto_float(12345.67, 5)
+    '12346'
 
     For cases when it's impossible to fit a number in the required length
     and rounding doesn't help (e.g. 12 500 000 and 5 chars) algorithm

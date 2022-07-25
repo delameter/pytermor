@@ -21,16 +21,14 @@ def format_si_metric(value: float) -> str:
     Format ``value`` as unitless value with SI-prefixes, max
     result length is *6* chars. Base is *1000*.
 
-    .. doctest::
-
-        >>> format_si_metric(123.456)
-        '123'
-        >>> format_si_metric(1080)
-        '1.08 k'
-        >>> format_si_metric(45200)
-        '45.2 k'
-        >>> format_si_metric(1257800)
-        '1.26 M'
+    >>> format_si_metric(123.456)
+    '123'
+    >>> format_si_metric(1080)
+    '1.08 k'
+    >>> format_si_metric(45200)
+    '45.2 k'
+    >>> format_si_metric(1257800)
+    '1.26 M'
 
     :param value: Input value (unitless).
     :return:      Formatted string with SI-prefix if necessary.
@@ -45,16 +43,14 @@ def format_si_binary(value: float) -> str:
     Format ``value`` as binary size (bytes, kbytes, Mbytes), max
     result length is *8* chars. Base is *1024*.
 
-    .. doctest::
-
-        >>> format_si_binary(631)
-        '631 b'
-        >>> format_si_binary(1080)
-        '1.055 kb'
-        >>> format_si_binary(45200)
-        '44.14 kb'
-        >>> format_si_binary(1257800)
-        '1.200 Mb'
+    >>> format_si_binary(631)
+    '631 b'
+    >>> format_si_binary(1080)
+    '1.055 kb'
+    >>> format_si_binary(45200)
+    '44.14 kb'
+    >>> format_si_binary(1257800)
+    '1.200 Mb'
 
     :param value: Input value in bytes.
     :return:      Formatted string with SI-prefix if necessary.

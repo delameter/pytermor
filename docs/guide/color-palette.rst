@@ -33,11 +33,11 @@ table* (which contains all possible ... ``@TODO`` finish
 .. only:: html
 
    .. raw:: html
-      :file: ../_include/xterm-colors-256-p.html
+      :file: ../_generated/color-palette/output.html
 
 .. only:: latex
 
-   .. figure:: ../_include/xterm-colors-256-p.png
+   .. figure:: /_generated/color-palette/output.png
       :align: center
 
       *Indexed* mode palette

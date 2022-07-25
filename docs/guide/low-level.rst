@@ -32,7 +32,7 @@ span. By default this will result in losing all the formatting to the right of u
 
 However, there is an option to specify what attributes should be disabled or let the library do that for you:
 
-.. literalinclude:: /_include/examples/ex_60_autocomplete.py
+.. literalinclude:: /examples/ex_60_autocomplete.py
    :linenos:
 
 .. image:: /_static/ex_60.png
@@ -88,7 +88,7 @@ There is also a set of methods for dynamic ``SequenceSGR`` creation:
 
 To get the resulting sequence chars use `encode() <SequenceSGR.encode()>` method or cast instance to *str*.
 
-.. literalinclude:: /_include/examples/ex_70_sgr_structure.py
+.. literalinclude:: /examples/ex_70_sgr_structure.py
    :linenos:
 
 .. image:: /_static/ex_70.png
@@ -121,7 +121,7 @@ Combining :mono:`SGRs`
 
 One instance of `SequenceSGR` can be added to another. This will result in a new ``SequenceSGR`` with combined params.
 
-.. literalinclude:: /_include/examples/ex_80_combined.py
+.. literalinclude:: /examples/ex_80_combined.py
    :linenos:
 
 

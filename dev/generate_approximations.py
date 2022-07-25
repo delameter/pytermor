@@ -90,10 +90,10 @@ def lab2rgb(l_s: float, a_s: float, b_s: float) -> Tuple[float, float, float]:
 def hsv_to_rgb(h, s, v):
     if s == 0.0: v *= 255; return (v, v, v)
     i = int(h * 6.)  # XXX assume int() truncates!
-    f = (h * 6.) - i;
+    f = (h * 6.) - i
     p, q, t = int(255 * (v * (1. - s))), int(255 * (v * (1. - s * f))), int(
-        255 * (v * (1. - s * (1. - f))));
-    v *= 255;
+        255 * (v * (1. - s * (1. - f))))
+    v *= 255
     i %= 6
     if i == 0: return (v, t, p)
     if i == 1: return (q, v, p)
@@ -105,17 +105,6 @@ def hsv_to_rgb(h, s, v):
 
 reset = sequence.RESET.encode()
 
-
-def render_terminal(params_to_rgb_fn):
-    for v in range(0, 100, 2):
-        t = ['', '', '']
-        for h in range(0, 360, 2):
-            r, g, b = params_to_rgb_fn(h, v)
-            hex = (floor(r) << 16) + (floor(g) << 8) + floor(b)
-            t[0] += ColorRGB(hex).to_sgr_rgb(bg=True).encode() + ' '
-            t[1] += ColorRGB(hex).to_sgr_indexed(bg=True).encode() + ' '
-            t[2] += ColorRGB(hex).to_sgr_default(bg=True).encode() + ' '
-        print(f'{reset}  '.join(t) + reset, file=sys.stdout)
 
 
 image_id = 0
@@ -170,58 +159,11 @@ def run_image():
                  'H=300, S=[0,1], V=[0,1]')
 
 
-def run_terminal():
-    print(f'{"ColorRGB":^72s}  {"ColorIndexed":^72s}  {"ColorDefault":^72s}')
-
-    render_terminal(lambda h, v: hsv_to_rgb(h / 360, 1, v / 100))
-    print()
-
-    render_terminal(lambda h, v: hsv_to_rgb(h / 360, .5, v / 100))
-    print()
-
-    render_terminal(lambda h, v: hsv_to_rgb(h / 360, .25, v / 100))
-    print()
-
-    render_terminal(lambda h, v: hsv_to_rgb(h / 360, v / 100, 1))
-    print()
-
-    render_terminal(lambda h, v: hsv_to_rgb(h / 360, v / 100, .5))
-    print()
-
-    render_terminal(lambda h, v: hsv_to_rgb(h / 360, v / 100, .25))
-    print()
-
-    render_terminal(lambda h, v: hsv_to_rgb(h / 360, 0, v / 100))
-    print()
-
-    render_terminal(lambda h, v: hsv_to_rgb(.0, v / 100, h / 360))
-    print()
-
-    render_terminal(lambda h, v: hsv_to_rgb(.166, v / 100, h / 360))
-    print()
-
-    render_terminal(lambda h, v: hsv_to_rgb(.33, v / 100, h / 360))
-    print()
-
-    render_terminal(lambda h, v: hsv_to_rgb(.5, v / 100, h / 360))
-    print()
-
-    render_terminal(lambda h, v: hsv_to_rgb(.66, v / 100, h / 360))
-    print()
-
-    render_terminal(lambda h, v: hsv_to_rgb(.833, v / 100, h / 360))
-    print()
-
 
 if __name__ == '__main__':
-    # ss = timeit.repeat(run_image, number=1, repeat=1)
-    # print(ss)
-    # print(get_obj_size(ColorRGB._color_map))
-    # print(get_obj_size(ColorDefault._color_map))
-
     LABEL_HEIGHT = 50
 
-    inp = Image.open('_include/approx/input-bgwhite.png', 'r')
+    inp = Image.open('_generated/approx/input-bgwhite.png', 'r')
     samples = [
         (None, '(16M colors)'),
         (ColorIndexed, '(256 colors)'),
@@ -262,4 +204,4 @@ if __name__ == '__main__':
             anchor='mm', font=font_default, fill=(0, 0, 0),
             text=caption)
 
-    im.save('_include/approx/output-bgwhite.png')
+    im.save('_generated/approx/output-bgwhite.png')

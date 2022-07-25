@@ -3,7 +3,7 @@
 .. default-role:: any
 
 ===================
-API docs
+API reference
 ===================
 
 .. toctree::

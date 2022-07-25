@@ -8,4 +8,4 @@ span
 
 .. automodule:: pytermor.span
 
-.. include:: ../_include/preset-contants-omitted.rst
+.. include:: /_include/preset-const-omitted.rst

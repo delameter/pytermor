@@ -30,10 +30,8 @@ def apply_filters(s: AnyStr, *args: StringFilter[AnyStr]|Type[StringFilter[AnySt
     Example (will replace all :kbd:`ESC` control characters to :kbd:`E` and
     thus make SGR params visible):
 
-    .. doctest::
-
-        >>> apply_filters(span.RED('test'), ReplaceSGR(r'E\\2\\3\\5'))
-        'E[31mtestE[39m'
+    >>> apply_filters(span.RED('test'), ReplaceSGR(r'E\\2\\3\\5'))
+    'E[31mtestE[39m'
 
     Note that type of ``s`` argument must be same as ``StringFilter`` parameterized
     type, i.e. :class:`ReplaceNonAsciiBytes` is ``StringFilter[bytes]`` type, so
@@ -69,12 +67,10 @@ class VisualuzeWhitespace(StringFilter[str]):
     Replace every invisible character with ``repl`` (default is :kbd:`·`),
     except newlines. Newlines are kept and get prepneded with same string.
 
-    .. doctest ::
-
-        >>> VisualuzeWhitespace().apply('A  B  C')
-        'A··B··C'
-        >>> apply_filters('1. D\\n2. L ', VisualuzeWhitespace)
-        '1.·D·\\n2.·L·'
+    >>> VisualuzeWhitespace().apply('A  B  C')
+    'A··B··C'
+    >>> apply_filters('1. D\\n2. L ', VisualuzeWhitespace)
+    '1.·D·\\n2.·L·'
     """
     def __init__(self, repl: AnyStr = '·'):
         super().__init__(r'(\n)|\s', repl + '\\1')

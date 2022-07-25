@@ -10,12 +10,11 @@
 .. testsetup:: *
 
     from pytermor.color import Color, ColorDefault, ColorIndexed, ColorRGB
-
 """
 from __future__ import annotations
 
 from abc import abstractmethod, ABCMeta
-from typing import Dict, Tuple, Generic, TypeVar, List
+from typing import Dict, Tuple, Generic, TypeVar, List, Optional
 
 from . import sequence, intcode
 from .exception import LogicError
@@ -26,13 +25,14 @@ class Color(metaclass=ABCMeta):
     """
     Abstract superclass for other ``Colors``.
     """
-    _color_map: _ColorMap[Color]
+    _approx_initialized: bool = False
+    _approx: Approximator[Color]
 
     def __init__(self, hex_value: int = None):
         self._hex_value: int | None = hex_value
 
-        self._init_color_map()
-        self._color_map.add_to_map(self)
+        self._init_approx()
+        self._approx.add_to_map(self)
 
     @staticmethod
     def hex_value_to_hsv_channels(hex_value: int) -> Tuple[int, float, float]:
@@ -79,13 +79,10 @@ class Color(metaclass=ABCMeta):
         integers corresponding to *red*, *blue* and *green* channel value
         respectively. Values are within [0; 255] range.
 
-        .. doctest ::
-
-            >>> Color.hex_value_to_rgb_channels(0x80ff80)
-            (128, 255, 128)
-            >>> Color.hex_value_to_rgb_channels(0x000001)
-            (0, 0, 1)
-
+        >>> Color.hex_value_to_rgb_channels(0x80ff80)
+        (128, 255, 128)
+        >>> Color.hex_value_to_rgb_channels(0x000001)
+        (0, 0, 1)
         """
         if not isinstance(hex_value, int):
             raise TypeError(f"Argument type should be 'int', got: {type(hex_value)}")
@@ -95,9 +92,11 @@ class Color(metaclass=ABCMeta):
                 (hex_value & 0xff))
 
     @classmethod
-    def _init_color_map(cls):
-        if not hasattr(cls, '_color_map'):
-            cls._color_map = _ColorMap[cls.__class__](cls)
+    def _init_approx(cls):
+        if cls._approx_initialized:
+            return
+        cls._approx_initialized = True
+        cls._approx = Approximator[cls.__class__](cls)
 
     @classmethod
     @abstractmethod
@@ -111,7 +110,7 @@ class Color(metaclass=ABCMeta):
     @abstractmethod
     def find_closest(cls, hex_value: int) -> Color:
         """
-        Wrapper for `_ColorMap.find_closest()`.
+        Wrapper for `Approximator.find_closest()`.
 
         :param hex_value: Integer color value in ``0xffffff`` format.
         :return:          Nearest found color of specified type.
@@ -126,9 +125,9 @@ class Color(metaclass=ABCMeta):
     def hex_value(self) -> int | None:
         return self._hex_value
 
-    def format_value(self, prefix: str|None = '0x') -> str:
+    def format_value(self, prefix: str|None = '0x', noop_str: str = '^') -> str:
         if self._hex_value is None:
-            return ''
+            return noop_str
         return f'{prefix or "":s}{self._hex_value:06x}'
 
 
@@ -145,10 +144,9 @@ class ColorDefault(Color):
     @classmethod
     def find_closest(cls, hex_value: int) -> ColorDefault:
         """
-        Wrapper for `_ColorMap.find_closest()`.
+        Wrapper for `Approximator.find_closest()`.
 
         .. attention::
-
            Use this method only if you know what you are doing. *Default* mode
            colors may vary in a huge range depending on user terminal setup
            (colors even can have exactly the opposite value of what's listed in
@@ -158,14 +156,10 @@ class ColorDefault(Color):
         :param hex_value: Integer color value in ``0xffffff`` format.
         :return:          Nearest found `ColorDefault` instance.
 
-        .. doctest ::
-
-            >>> ColorDefault.find_closest(0x660000)
-            ColorDefault[fg=31, bg=41, 0x800000]
-
+        >>> ColorDefault.find_closest(0x660000)
+        ColorDefault[fg=31, bg=41, 0x800000]
         """
-        cls._init_color_map()
-        return cls._color_map.find_closest(hex_value)
+        return cls._approx.find_closest(hex_value)
 
     def to_sgr(self, bg: bool = False) -> SequenceSGR:
         if bg:
@@ -198,7 +192,7 @@ class ColorIndexed(Color):
     @classmethod
     def find_closest(cls, hex_value: int) -> ColorIndexed:
         """
-        Wrapper for `_ColorMap.find_closest()`.
+        Wrapper for `Approximator.find_closest()`.
 
         .. note::
 
@@ -212,14 +206,10 @@ class ColorIndexed(Color):
         :param hex_value: Integer color value in ``0xffffff`` format.
         :return:          Nearest found `ColorIndexed` instance.
 
-        .. doctest ::
-
-            >>> ColorIndexed.find_closest(0xd9dbdb)
-            ColorIndexed[code=253, 0xdadada]
-
+        >>> ColorIndexed.find_closest(0xd9dbdb)
+        ColorIndexed[code=253, 0xdadada]
         """
-        cls._init_color_map()
-        return cls._color_map.find_closest(hex_value)
+        return cls._approx.find_closest(hex_value)
 
     def to_sgr(self, bg: bool = False) -> SequenceSGR:
         return color_indexed(self._code, bg=bg)
@@ -253,23 +243,19 @@ class ColorRGB(Color):
         :param hex_value: Integer color value in ``0xffffff`` format.
         :return:          Existing `ColorRGB` instance or newly created one.
 
-        .. doctest ::
-
-            >>> existing_color1 = ColorRGB(0x660000)
-            >>> existing_color2 = ColorRGB(0x660000)
-            >>> existing_color1 == existing_color2
-            True
-            >>> existing_color1 is existing_color2  # different instances
-            False
-            >>> existing_color1 == ColorRGB.find_closest(0x660000)
-            True
-            >>> existing_color1 is ColorRGB.find_closest(0x660000)  # same instance
-            True
-
+        >>> existing_color1 = ColorRGB(0x660000)
+        >>> existing_color2 = ColorRGB(0x660000)
+        >>> existing_color1 == existing_color2
+        True
+        >>> existing_color1 is existing_color2  # different instances
+        False
+        >>> existing_color1 == ColorRGB.find_closest(0x660000)
+        True
+        >>> existing_color1 is ColorRGB.find_closest(0x660000)  # same instance
+        True
         """
-        cls._init_color_map()
 
-        if exact := cls._color_map.get_exact(hex_value):
+        if exact := cls._approx.get_exact(hex_value):
             return exact
         return ColorRGB(hex_value)
 
@@ -293,7 +279,7 @@ TypeColor = TypeVar('TypeColor', 'ColorDefault', 'ColorIndexed', 'ColorRGB')
 """ Any non-abstract `Color` type. """
 
 
-class _ColorMap(Generic[TypeColor]):
+class Approximator(Generic[TypeColor]):
     """
     Class contains a dictionary of registred `Colors <Color>` indexed by hex code
     along with cached nearest color search results to avoid unnecessary instance
@@ -303,7 +289,7 @@ class _ColorMap(Generic[TypeColor]):
     def __init__(self, parent_type: TypeColor):
         """
         Called in `Color`-type class constructors. Each `Color` type should have
-        class variable with instance of `_ColorMap` and create it by itself if it's
+        class variable with instance of `Approximator` and create it by itself if it's
         not present.
 
         :param parent_type: Parent `Color` type.
@@ -327,7 +313,7 @@ class _ColorMap(Generic[TypeColor]):
                 self._approximation_cache.clear()
                 self._lookup_table[color.hex_value] = color
 
-    def get_exact(self, hex_value: int) -> TypeColor|None:
+    def get_exact(self, hex_value: int) -> Optional[TypeColor]:
         """
         Public interface for searching exact values in the *lookup table*, or
         global registry of created instances of specified ``Color`` class.
@@ -376,12 +362,10 @@ class _ColorMap(Generic[TypeColor]):
         return the first ``<max_results>`` of them.
 
         .. note::
-
             It's not guaranteed that this method will **always** succeed in
             searching (the result list can be empty). Consider using `find_closest`
             instead, if you really want to be sure that at least some color will
             be returned. Another option is to use special "color" named `NOOP`.
-
 
         :param hex_value:   Color RGB value.
         :param max_results: Maximum amount of values to return.
@@ -421,6 +405,10 @@ class _ColorMap(Generic[TypeColor]):
 
 # -- Color presets ------------------------------------------------------------
 
+ColorRGB._init_approx()
+ColorIndexed._init_approx()
+ColorDefault._init_approx()
+
 NOOP = ColorRGB()
 """
 Special instance of `Color` class always rendering into empty string.
@@ -444,20 +432,20 @@ HI_CYAN = ColorDefault(0x00ffff, intcode.HI_CYAN, intcode.BG_HI_CYAN)
 HI_WHITE = ColorDefault(0xffffff, intcode.HI_WHITE, intcode.BG_HI_WHITE)
 
 IDX_BLACK = ColorIndexed(0x000000, intcode.IDX_BLACK)
-IDX_MAROON = ColorIndexed(0x800000, intcode.IDX_MAROON) 
+IDX_MAROON = ColorIndexed(0x800000, intcode.IDX_MAROON)
 IDX_GREEN = ColorIndexed(0x008000, intcode.IDX_GREEN)
-IDX_OLIVE = ColorIndexed(0x808000, intcode.IDX_OLIVE)  
-IDX_NAVY = ColorIndexed(0x000080, intcode.IDX_NAVY)   
-IDX_PURPLE = ColorIndexed(0x800080, intcode.IDX_PURPLE) 
-IDX_TEAL = ColorIndexed(0x008080, intcode.IDX_TEAL)   
+IDX_OLIVE = ColorIndexed(0x808000, intcode.IDX_OLIVE)
+IDX_NAVY = ColorIndexed(0x000080, intcode.IDX_NAVY)
+IDX_PURPLE = ColorIndexed(0x800080, intcode.IDX_PURPLE)
+IDX_TEAL = ColorIndexed(0x008080, intcode.IDX_TEAL)
 IDX_SILVER = ColorIndexed(0xc0c0c0, intcode.IDX_SILVER)
-IDX_GRAY = ColorIndexed(0x808080, intcode.IDX_GRAY)   
-IDX_RED = ColorIndexed(0xff0000, intcode.IDX_RED)    
-IDX_LIME = ColorIndexed(0x00ff00, intcode.IDX_LIME)  
+IDX_GRAY = ColorIndexed(0x808080, intcode.IDX_GRAY)
+IDX_RED = ColorIndexed(0xff0000, intcode.IDX_RED)
+IDX_LIME = ColorIndexed(0x00ff00, intcode.IDX_LIME)
 IDX_YELLOW = ColorIndexed(0xffff00, intcode.IDX_YELLOW)
-IDX_BLUE = ColorIndexed(0x0000ff, intcode.IDX_BLUE)  
+IDX_BLUE = ColorIndexed(0x0000ff, intcode.IDX_BLUE)
 IDX_FUCHSIA = ColorIndexed(0xff00ff, intcode.IDX_FUCHSIA)
-IDX_AQUA = ColorIndexed(0x00ffff, intcode.IDX_AQUA)  
+IDX_AQUA = ColorIndexed(0x00ffff, intcode.IDX_AQUA)
 IDX_WHITE = ColorIndexed(0xffffff, intcode.IDX_WHITE)  #@ todo exclude 0-15 from approximations
 IDX_GREY_0 = ColorIndexed(0x000000, intcode.IDX_GREY_0)
 IDX_NAVY_BLUE = ColorIndexed(0x00005f, intcode.IDX_NAVY_BLUE)

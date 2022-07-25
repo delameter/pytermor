@@ -25,19 +25,18 @@ from .sequence import build, intcode, SequenceSGR, sgr_parity_registry
 
 # noinspection PyMethodMayBeStatic
 class Span:
-    """
-    Create a `Span` with specified control sequence(s) as an opening sequence
-    and **automatically compose** second (closing) sequence that will terminate attributes
-    defined in the first one while keeping the others (*soft* reset).
+    def __init__(self, *opening_params: str|int|SequenceSGR):
+        """
+        Create a `Span` with specified control sequence(s) as an opening sequence
+        and **automatically compose** second (closing) sequence that will terminate
+        attributes defined in the first one while keeping the others (*soft* reset).
 
-    Resulting sequence param order is same as an argument order.
+        Resulting sequence param order is same as an argument order.
 
-    Each argument can be specified as:
-      - string key (name of any constant defined in :mod:`.intcode`, case-insensitive)
-      - integer param value (defined in :mod:`.intcode`)
-      - existing `SequenceSGR` instance (params will be extracted).
-
-    .. doctest::
+        Each argument can be specified as:
+          - string key (name of any constant defined in :mod:`.intcode`, case-insensitive)
+          - integer param value (defined in :mod:`.intcode`)
+          - existing `SequenceSGR` instance (params will be extracted).
 
         >>> Span('red', 'bold')
         Span[SGR[31;1], SGR[39;22]]
@@ -48,10 +47,9 @@ class Span:
         >>> Span(sequence.BG_BLACK + sequence.RED)
         Span[SGR[40;31], SGR[49;39]]
 
-    :param opening_params: string keys, integer codes or existing ``SequenceSGR``
-                           instances to build ``Span`` from.
-    """
-    def __init__(self, *opening_params: str|int|SequenceSGR):
+        :param opening_params: string keys, integer codes or existing ``SequenceSGR``
+                               instances to build ``Span`` from.
+        """
         self._opening_seq = build(*opening_params)
         self._closing_seq = sgr_parity_registry.get_closing_seq(self._opening_seq)
 
@@ -62,8 +60,8 @@ class Span:
         Create new `Span` with explicitly specified opening and closing sequences.
 
         .. note ::
-
-            `closing_seq` gets overwritten with :data:`.sequence.RESET` if ``hard_reset_after`` is *True*.
+            `closing_seq` gets overwritten with :data:`.sequence.RESET` if
+            ``hard_reset_after`` is *True*.
 
         :param opening_seq:      Starter sequence, in general determening how `Span` will actually look like.
         :param closing_seq:      Finisher SGR sequence.
@@ -151,14 +149,12 @@ another `Span`, but do not want any control sequence to be actually included.
 - ``NOOP.opening_str`` and ``NOOP.closing_str`` are empty strings;
 - ``NOOP.opening_seq`` and ``NOOP.closing_seq`` both returns `sequence.NOOP`.
 
-.. doctest::
-    
-    >>> NOOP('text')
-    'text'
-    >>> NOOP.opening_str
-    ''
-    >>> NOOP.opening_seq
-    SGR[]
+>>> NOOP('text')
+'text'
+>>> NOOP.opening_str
+''
+>>> NOOP.opening_seq
+SGR[^]
 
 """
 

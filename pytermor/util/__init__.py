@@ -23,12 +23,10 @@ def format_thousand_sep(value: int|float, separator=' '):
     Returns input ``value`` with integer part splitted into groups of three digits,
     joined then with ``separator`` string.
 
-    .. doctest::
-
-        >>> format_thousand_sep(260341)
-        '260 341'
-        >>> format_thousand_sep(-9123123123.55, ',')
-        '-9,123,123,123.55'
+    >>> format_thousand_sep(260341)
+    '260 341'
+    >>> format_thousand_sep(-9123123123.55, ',')
+    '-9,123,123,123.55'
 
     """
     return f'{value:_}'.replace('_', separator)

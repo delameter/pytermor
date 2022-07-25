@@ -3,34 +3,21 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-Module with output formatters. By default :class:`SGRRenderer` is used.
+Module with output formatters. By default :class:`SGRRenderer` is used. It
+also contains compatibility settings, see `SGRRenderer.set_up()`.
 
-Abstract parent class `Renderer` contains global (library-wide) compatibility
-settings. See `Renderer.set_up()`.
+Working with non-default renderer can be achieved in two ways:
 
-Working with non-default renderer can be accomplished in two ways:
-
-a. There is a module-level variable :data:`DefaultRenderer` determining what renderer
-   `Style.render() <style.Style.render>` method will be using. Default renderer can be
-   swapped with another one using `Renderer.set_as_default()` class method of the
-   latter.
-
+a. Method `RendererManager.set_up()` sets the default renderer globally.
 b. Alternatively, you can use renderer's own class method `Renderer.render()`
-   directly and avoid calling ``Style.render()`` method whatsoever.
+   directly and avoid calling `Style.render()` method whatsoever.
 
 .. testsetup:: *
 
-    from pytermor.renderer import Renderer, DebugRenderer, NoOpRenderer
+    from pytermor.renderer import *
     from pytermor.style import Style
 
-.. doctest::
-
-    >>> Renderer.set_up(True)
-    >>> DebugRenderer.set_as_default()
-    >>> Style('red').render('_text_')
-    'ǝ[31m_text_ǝ[39m'
-    >>> NoOpRenderer.render(Style('red'), 'text')
-    'text'
+    SGRRenderer.set_up(force_styles = True)
 
 """
 from __future__ import annotations
@@ -38,26 +25,69 @@ from __future__ import annotations
 import abc
 import sys
 from abc import abstractmethod
+from typing import Type
 
-from .util import ReplaceSGR
-from .span import Span
-from .sequence import SequenceSGR, NOOP as NOOP_SEQ
-from .style import Style
+from . import sequence
 from .color import Color, ColorRGB, ColorIndexed, ColorDefault
+from .sequence import SequenceSGR, NOOP as NOOP_SEQ
+from .span import Span
+from .style import Style
+from .util import ReplaceSGR
+
+
+class RendererManager:
+    _default: Type[Renderer] = None
+
+    @classmethod
+    def set_up(cls, default_renderer: Type[Renderer]|None = None):
+        """
+        Set up renderer preferences. Affects all renderer types.
+
+        :param default_renderer:
+            Default renderer to use globally. Passing None will result in library
+            default setting restored (`SGRRenderer`).
+
+        >>> RendererManager.set_up(DebugRenderer)
+        >>> Style('red').render('text')
+        '|ǝ31|text|ǝ39|'
+
+        >>> NoOpRenderer.render(Style('red'), 'text')
+        'text'
+        """
+        cls._default = default_renderer or SGRRenderer
+
+    @classmethod
+    def get_default(cls) -> Type[Renderer]:
+        """ Get global default renderer type. """
+        return cls._default
 
 
 class Renderer(metaclass=abc.ABCMeta):
+    """ Abstract ancestor of all renderers. """
+
+    @classmethod
+    @abstractmethod
+    def render(cls, style: Style, text: str) -> str:
+        """
+        Apply colors and attributes described in ``style`` argument to
+        ``text`` and return the result. Output format depends on renderer's
+        class (which defines the implementation).
+        """
+        raise NotImplementedError
+
+
+class SGRRenderer(Renderer):
     """
-    Abstract parent of all other renderers. Among other things also contains
-    settings shared between all renderer types that can be customized by developer
-    at runtime.
+    Default renderer that `Style.render() <style.Style.render>` invokes. Transforms
+    `Color` instances defined in ``style`` argument into ANSI control sequence
+    characters and merges them with input string.
     """
     _force_styles: bool|None = False
     _compatibility_indexed: bool = False
     _compatibility_default: bool = False
 
-    @staticmethod
-    def set_up(force_styles: bool|None = False,
+    @classmethod
+    def set_up(cls, force_styles: bool|None = False,
                compatibility_indexed: bool = False,
                compatibility_default: bool = False):
         """
@@ -88,59 +118,55 @@ class Renderer(metaclass=abc.ABCMeta):
             terminal and switch to different output mode at once.
 
         """
-        Renderer._force_styles = force_styles
-        Renderer._compatibility_indexed = compatibility_indexed
-        Renderer._compatibility_default = compatibility_default
-
-    @classmethod
-    def set_as_default(cls):
-        """
-        Set renderer as default for `Style.render() <style.Style.render>` invocations.
-        """
-        global DefaultRenderer
-        DefaultRenderer = cls
-
-    @classmethod
-    @abstractmethod
-    def render(cls, style: Style, text: str) -> str:
-        """
-        Apply colors and attributes described in ``style`` argument to
-        ``text`` and return the result. Output format depends on renderer's
-        class (which defines the implementation).
-        """
-        raise NotImplementedError
-
-
-class SGRRenderer(Renderer):
-    """
-    Default renderer that `Style.render() <style.Style.render>` invokes. Transforms `Color` instances defined
-    in ``style`` argument into ANSI control sequence characters and merges them with input string.
-    """
+        cls._force_styles = force_styles
+        cls._compatibility_indexed = compatibility_indexed
+        cls._compatibility_default = compatibility_default
 
     @classmethod
     def render(cls, style: Style, text: str):
         """
         Render ``text`` with ``style`` applied as ANSI control sequences.
 
-        Respects compatibility preferences (see `set_up()`) and maps RGB colors to
-        closest *indexed* colors if terminal doesn't support RGB output. In case
-        terminal doesn't support even 256 colors, falls back to *default* colors,
-        searching for closest counterparts in 16-color table.
+        Respects compatibility preferences (see `RendererManager.set_up()`) and
+        maps RGB colors to closest *indexed* colors if terminal doesn't support
+        RGB output. In case terminal doesn't support even 256 colors, falls back
+        to *default* colors, searching for closest counterparts in 16-color table.
 
-        Type of output ``SequenceSGR`` depends on type of `Color` variables in ``style`` argument. Keeping all that
+        Type of output ``SequenceSGR`` depends on type of `Color` variables in
+        ``style`` argument. Keeping all that
         in mind, let's summarize:
 
         1. `ColorRGB` can be rendered as True Color sequence, indexed sequence
-           and default (16-color) sequence depending on terminal capabilities.
+           or default (16-color) sequence depending on terminal capabilities.
         2. `ColorIndexed` can be rendered as indexed sequence or default sequence.
         3. `ColorDefault` will be rendered as default-color sequence.
+
+        >>> SGRRenderer.render(Style('red', bold=True), 'text')
+        '\\x1b[1;31mtext\\x1b[22;39m'
 
         :param style: Style to apply.
         :param text: Input string.
         :return: Input string enclosed in SGR sequences.
         """
-        opening_seq = cls._render_color(style.fg_color, False) + cls._render_color(style.bg_color, True)
+        opening_seq = cls._render_attributes(style) + \
+                      cls._render_color(style.fg_color, False) + \
+                      cls._render_color(style.bg_color, True)
+
         return Span(opening_seq).wrap(text)
+
+    @classmethod
+    def _render_attributes(cls, style: Style) -> SequenceSGR:
+        result = NOOP_SEQ
+        if style.blink:             result += sequence.BLINK_DEFAULT
+        if style.bold:              result += sequence.BOLD
+        if style.crosslined:        result += sequence.CROSSLINED
+        if style.dim:               result += sequence.DIM
+        if style.double_underlined: result += sequence.DOUBLE_UNDERLINED
+        if style.inversed:          result += sequence.INVERSED
+        if style.italic:            result += sequence.ITALIC
+        if style.overlined:         result += sequence.OVERLINED
+        if style.underlined:        result += sequence.UNDERLINED
+        return result
 
     @classmethod
     def _render_color(cls, color: Color, bg: bool) -> SequenceSGR:
@@ -184,12 +210,11 @@ class NoOpRenderer(Renderer):
     @classmethod
     def render(cls, style: Style, text: str) -> str:
         """
-        Special renderer type that does nothing with the input string and just returns it as is.
+        Special renderer type that does nothing with the input string and just
+        returns it as is.
 
-        .. doctest::
-
-            >>> NoOpRenderer.render(Style(0xff00ff), 'text')
-            'text'
+        >>> NoOpRenderer.render(Style('red', bold=True), 'text')
+        'text'
 
         :param style: Style to ignore.
         :param text: Input string.
@@ -201,19 +226,29 @@ class NoOpRenderer(Renderer):
 class HtmlRenderer(Renderer):
     @classmethod
     def render(cls, style: Style, text: str) -> str:
+        """
+        >>> HtmlRenderer.render(Style('red', bold=True), 'text')
+        '<span style="color: #800000; font-weight: bold">text</span>'
+        """
         span_styles = []
         if style.fg_color.hex_value is not None:
             span_styles.append('color: {}'.format(style.fg_color.format_value("#")))
         if style.bg_color.hex_value is not None:
-            span_styles.append('background-color: {}'.format(style.bg_color.format_value("#")))
+            span_styles.append(
+                'background-color: {}'.format(style.bg_color.format_value("#")))
 
-        return f'<span style="{"; ".join(span_styles)}">{text}</span>' # @TODO attribues, bg color
+        return f'<span style="{"; ".join(span_styles)}">{text}</span>'  # @TODO
+        # attribues, bg color
 
 
 class DebugRenderer(Renderer):
     @classmethod
     def render(cls, style: Style, text: str) -> str:
-        return ReplaceSGR(r'ǝ\2\3\5').apply(SGRRenderer.render(style, text))
+        """
+        >>> DebugRenderer.render(Style('red', bold=True), 'text')
+        '|ǝ1;31|text|ǝ22;39|'
+        """
+        return ReplaceSGR(r'|ǝ\3|').apply(SGRRenderer.render(style, text))
 
 
-DefaultRenderer = SGRRenderer
+RendererManager.set_up()
