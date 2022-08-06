@@ -3,7 +3,7 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-Module introducing `Span` low-level  abstractions. The key difference beetween them and
+Module introducing `Span` low-level abstractions. The key difference beetween them and
 ``Sequences`` is that sequence can *open* text style and also *close*, or terminate
 it. As for ``Spans`` -- they always do both; typical use-case of `Span` is to wrap
 some text in opening SGR and closing one.

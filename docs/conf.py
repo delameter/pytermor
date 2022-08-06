@@ -145,6 +145,7 @@ autodoc_typehints = 'signature'
 
 keep_warnings = True
 nitpick_ignore = [('py:class', 'Match'),
+                  ('py:class', 'InitVar'),
                   ('py:class', 'pytermor.color.TypeColor')]
 
 # -- Hide "bases: object" elements --------------------------------------------

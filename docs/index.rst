@@ -23,7 +23,7 @@ No dependencies besides Python Standard Library are required *(there are some fo
 
       .. grid-item-card::
 
-         :ref:`guide.index`
+         :ref:`guide.install`
 
          *installation, in-depth review*
 

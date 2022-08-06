@@ -12,38 +12,31 @@ High-level abstraction defining text colors and attributes.
 """
 from __future__ import annotations
 
+from dataclasses import dataclass, field, InitVar
 from typing import Any
 
 from . import color
 from .color import Color, ColorRGB, NOOP as NOOP_COLOR
 
 
+@dataclass
 class Style:
-    """
-    Create a new ``Style()``.
+    """Create a new ``Style()``.
 
     Key difference between ``Styles`` and ``Spans`` or ``SGRs`` is that
     ``Styles`` describe colors in RGB format and therefore support output
     rendering in several different formats (see :mod:`.renderer`).
 
-    Both ``fg`` and ``bg_color`` can be specified as:
+    Both ``fg`` and ``bg`` can be specified as:
 
     1. :class:`.Color` instance or library preset;
     2. key code -- name of any of aforementioned presets, case-insensitive;
     3. integer color value in hexademical RGB format.
+    4. None -- the color will be unset.
 
-    >>> Style('green', bold=True)
-    Style[fg=008000, no bg, bold]
-    >>> Style(bg=0x0000ff)
-    Style[no fg, bg=0000ff]
-    >>> Style(color.IDX_DEEP_SKY_BLUE_1, color.IDX_GREY_93)
-    Style[fg=00afff, bg=eeeeee]
-
-    :param fg:    Foreground (i.e., text) color.
-    :param bg:    Background color.
-    :param auto_fg:
-        Automatically select ``fg`` based on ``bg_color`` (black or white
-        depending on background brightness, if ``bg_color`` is defined).
+    :param fg:          Foreground (i.e., text) color.
+    :param bg:          Background color.
+    :param inherit:     Parent instance to copy unset properties from.
     :param blink:       Blinking effect; *supported by limited amount of Renderers*.
     :param bold:        Bold or increased intensity.
     :param crosslined:  Strikethrough.
@@ -54,27 +47,44 @@ class Style:
     :param italic:      Italic.
     :param overlined:   Overline.
     :param underlined:  Underline.
-    """
-    def __init__(self, fg: str|int|Color = None, bg: str|int|Color = None,
-                 auto_fg: bool = False, blink: bool = False, bold: bool = False,
-                 crosslined: bool = False, dim: bool = False,
-                 double_underlined: bool = False, inversed: bool = False,
-                 italic: bool = False, overlined: bool = False,
-                 underlined: bool = False):
-        self._fg: Color = self._resolve_color(fg)
-        self._bg: Color = self._resolve_color(bg)
-        self._blink: bool = blink
-        self._bold: bool = bold
-        self._crosslined: bool = crosslined
-        self._dim: bool = dim
-        self._double_underlined: bool = double_underlined
-        self._inversed: bool = inversed
-        self._italic: bool = italic
-        self._overlined: bool = overlined
-        self._underlined: bool = underlined
 
-        if auto_fg:
-            self._pick_fg_for_bg()
+    >>> Style(fg='green', bold=True)
+    Style[fg=008000, no bg, bold]
+    >>> Style(bg=0x0000ff)
+    Style[no fg, bg=0000ff]
+    >>> Style(fg=color.IDX_DEEP_SKY_BLUE_1, bg=color.IDX_GREY_93)
+    Style[fg=00afff, bg=eeeeee]
+    """
+    _fg: Color = field(default=None, init=False)
+    _bg: Color = field(default=None, init=False)
+
+    def __init__(self, inherit: Style = None, fg: Color|int|str = None,
+                 bg: Color|int|str = None, blink: bool = None, bold: bool = None,
+                 crosslined: bool = None, dim: bool = None,
+                 double_underlined: bool = None, inversed: bool = None,
+                 italic: bool = None, overlined: bool = None, underlined: bool = None):
+        if fg is not None:
+            self._fg = self._resolve_color(fg, True)
+        if bg is not None:
+            self._bg = self._resolve_color(bg, True)
+
+        self.blink = blink
+        self.bold = bold
+        self.crosslined = crosslined
+        self.dim = dim
+        self.double_underlined = double_underlined
+        self.inversed = inversed
+        self.italic = italic
+        self.overlined = overlined
+        self.underlined = underlined
+
+        if inherit is not None:
+            self._clone_from(inherit)
+
+        if self._fg is None:
+            self._fg = NOOP_COLOR
+        if self._bg is None:
+            self._bg = NOOP_COLOR
 
     def render(self, text: Any = None) -> str:
         """
@@ -86,7 +96,14 @@ class Style:
         from .renderer import RendererManager
         return RendererManager.get_default().render(self, text)
     
-    def _pick_fg_for_bg(self):
+    def autopick_fg(self) -> Color|None:
+        """
+        Pick ``fg_color`` depending on ``bg_color`` brightness. Set pure black
+        or pure white as `fg_color` and return it, if ``bg_color`` is defined,
+        and do nothing and return None otherwise.
+
+        :return: Suitable foreground color or None.
+        """
         if self._bg is None or self._bg.hex_value is None:
             return
 
@@ -95,9 +112,12 @@ class Style:
             self._fg = color.RGB_BLACK
         else:
             self._fg = color.RGB_WHITE
+        # @TODO check if there is a better algorithm,
+        #       because current thinks text on #000080 should be black
+        return self._fg
 
     # noinspection PyMethodMayBeStatic
-    def _resolve_color(self, arg: str|int|Color|None) -> Color:
+    def _resolve_color(self, arg: str|int|Color, nullable: bool) -> Color|None:
         if isinstance(arg, Color):
             return arg
 
@@ -114,11 +134,19 @@ class Style:
                 raise ValueError(f'Attribute is not valid Color: {resolved_color}')
             return resolved_color
 
-        return NOOP_COLOR
+        return None if nullable else NOOP_COLOR
+
+    def _clone_from(self, inherit: Style):
+        for attr in list(self.__dict__.keys()) + ['_fg', '_bg']:
+            inherit_val = getattr(inherit, attr)
+            if getattr(self, attr) is None and inherit_val is not None:
+                setattr(self, attr, inherit_val)
 
     def __repr__(self):
-        props_set = [self._fg.format_value('fg=', 'no fg'),
-                     self._bg.format_value('bg=', 'no bg'), ]
+        if self._fg is None or self._bg is None:
+            return self.__class__.__name__ + '[uninitialized]'
+        props_set = [self.fg.format_value('fg=', 'no fg'),
+                     self.bg.format_value('bg=', 'no bg'), ]
         for attr_name in dir(self):
             if not attr_name.startswith('_'):
                 attr = getattr(self, attr_name)
@@ -131,32 +159,25 @@ class Style:
     def fg(self) -> Color: return self._fg
     @property
     def bg(self) -> Color: return self._bg
-    @property
-    def blink(self) -> bool: return self._blink
-    @property
-    def bold(self) -> bool: return self._bold
-    @property
-    def crosslined(self) -> bool: return self._crosslined
-    @property
-    def dim(self) -> bool: return self._dim
-    @property
-    def double_underlined(self) -> bool: return self._double_underlined
-    @property
-    def inversed(self) -> bool: return self._inversed
-    @property
-    def italic(self) -> bool: return self._italic
-    @property
-    def overlined(self): return self._overlined
-    @property
-    def underlined(self): return self._underlined
+
+    @fg.setter
+    def fg(self, val: str|int|Color):
+        self._fg: Color = self._resolve_color(val, nullable=False)
+
+    @bg.setter
+    def bg(self, val: str|int|Color):
+        self._bg: Color = self._resolve_color(val, nullable=False)
 
 
 NOOP = Style()
 
-
 # ---------------------------------------------------------------------------
 
+
 class Stylesheet:
+    """
+    whatwhenhow @FIXME
+    """
     def __init__(self, default: Style = None):
         self.default: Style = self._opt_arg(default)
 

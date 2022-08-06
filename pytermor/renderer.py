@@ -25,7 +25,8 @@ from __future__ import annotations
 import abc
 import sys
 from abc import abstractmethod
-from typing import Type
+from queue import Queue
+from typing import Type, Dict, Set, List
 
 from . import sequence
 from .color import Color, ColorRGB, ColorIndexed, ColorDefault
@@ -157,6 +158,9 @@ class SGRRenderer(Renderer):
     @classmethod
     def _render_attributes(cls, style: Style) -> SequenceSGR:
         result = NOOP_SEQ
+        if not cls._is_sgr_usage_allowed():
+            return result
+
         if style.blink:             result += sequence.BLINK_DEFAULT
         if style.bold:              result += sequence.BOLD
         if style.crosslined:        result += sequence.CROSSLINED
@@ -166,12 +170,12 @@ class SGRRenderer(Renderer):
         if style.italic:            result += sequence.ITALIC
         if style.overlined:         result += sequence.OVERLINED
         if style.underlined:        result += sequence.UNDERLINED
+
         return result
 
     @classmethod
     def _render_color(cls, color: Color, bg: bool) -> SequenceSGR:
-        use_styles = cls._determine_style_usage()
-        if not use_styles:
+        if not cls._is_sgr_usage_allowed():
             return NOOP_SEQ
 
         hex_value = color.hex_value
@@ -194,7 +198,7 @@ class SGRRenderer(Renderer):
         raise NotImplementedError(f'Unknown Color inhertior {color!s}')
 
     @classmethod
-    def _determine_style_usage(cls) -> bool:
+    def _is_sgr_usage_allowed(cls) -> bool:
         if cls._force_styles is True:
             return True
         if cls._force_styles is None:
@@ -224,29 +228,54 @@ class NoOpRenderer(Renderer):
 
 
 class HtmlRenderer(Renderer):
+    DEFAULT_ATTRS = ['color', 'background-color', 'font-weight', 'font-style',
+                     'text-decoration', 'border', 'filter', ]
+
     @classmethod
     def render(cls, style: Style, text: str) -> str:
         """
         >>> HtmlRenderer.render(Style('red', bold=True), 'text')
-        '<span style="color: #800000; font-weight: bold">text</span>'
+        '<span style="color: #800000; font-weight: 700">text</span>'
         """
-        span_styles = []
-        span_classes = []
-        if style.fg.hex_value is not None:
-            span_styles.append(f'color: {style.fg.format_value("#")}')
-        if style.bg.hex_value is not None:
-            span_styles.append(f'background-color: {style.bg.format_value("#")}')
-        if style.blink:
-            pass  # modern browsers doesn't support it without piling up markup and stylesheets
-        if style.bold:
-            span_styles.append('font-weight: bold')
-        if style.crosslined:
-            span_styles.append('text-decoration: line-through')
-        if style.italic:
-            span_styles.append('font-style: italic')
 
-        return f'<span style="{"; ".join(span_styles)}" class="{" ".join(span_classes)}">{text}</span>'  # @TODO
-        # attribues, bg color
+        span_styles: Dict[str, Set[str]] = dict()
+        for attr in cls._get_default_attrs():
+            span_styles[attr] = set()
+
+        if style.fg.hex_value is not None:
+            span_styles['color'].add(style.fg.format_value("#"))
+        if style.bg.hex_value is not None:
+            span_styles['background-color'].add(style.bg.format_value("#"))
+
+        if style.blink:  # modern browsers doesn't support it without shit piled up
+            span_styles['border'].update(('1px', 'dotted'))
+        if style.bold:
+            span_styles['font-weight'].add('700')
+        if style.crosslined:
+            span_styles['text-decoration'].add('line-through')
+        if style.dim:
+            span_styles['filter'].update(('saturate(0.5)', 'brightness(0.75)'))
+        if style.double_underlined:
+            span_styles['text-decoration'].update(('underline', 'double'))
+        if style.inversed:
+            span_styles['color'], span_styles['background-color'] = \
+                span_styles['background-color'], span_styles['color']
+        if style.italic:
+            span_styles['font-style'].add('italic')
+        if style.overlined:
+            span_styles['text-decoration'].add('overline')
+        if style.underlined:
+            span_styles['text-decoration'].add('underline')
+
+        span_style_str = '; '.join(
+            f"{k}: {' '.join(v)}"
+            for k, v in span_styles.items()
+            if len(v) > 0)
+        return f'<span style="{span_style_str}">{text}</span>'  # @TODO  # attribues
+
+    @classmethod
+    def _get_default_attrs(cls) -> List[str]:
+        return cls.DEFAULT_ATTRS
 
 
 class DebugRenderer(Renderer):

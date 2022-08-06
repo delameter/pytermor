@@ -4,15 +4,15 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
-import os
 import re
 from os.path import join, dirname
+from typing import Dict, Set
 
 import yaml
 from yaml import SafeLoader
 
-from pytermor import Style, ColorIndexed, color
-from pytermor.renderer import RendererManager, HtmlRenderer
+from pytermor import Style, ColorIndexed, color, Text, span
+from pytermor.renderer import RendererManager, HtmlRenderer, SGRRenderer
 
 
 class PyModuleIntGenerator:
@@ -80,7 +80,7 @@ class PresetListIndexedGenerator:
                        '**RGB code**', '**XTerm name**']
         self.lines = [['.. image:: /_generated/preset-samples/color{id}.png',
                        '``{name_idx}``{first}', '``{id}``', '', '', '**V**', '',
-                       '``#{value:06x}``', '{original_name}{first_rename}'],
+                       '``#{value:06x}``', '{original_name_rst}{first_rename}'],
                       ['    :height: 60px'], ['    :class: no-scaled-link']]
         with open(join(dirname(__name__), '..', 'docs', '_generated', 'preset-table',
                        'input.rst_'), 'rt') as ff:
@@ -104,38 +104,84 @@ class PresetListIndexedGenerator:
 
 class HtmlTableGenerator:
     def run(self, f, cfg_indexed):
-        default = Style(fg='hi_white')
         RendererManager.set_up(HtmlRenderer)
 
-        html = '<html><body style="background-color: #161616; font-family: monospace; ' \
-               '' \
-               '' \
-               'font-size: 1.5em;">'
-        names = set()
+        html = '''<html><head><style>
+            body {
+                background-color: #161616;
+                font-family: \'Iose7ka Editor\', monospace;
+                font-size: 1rem;
+                line-height: 1.4;
+                display: flex;
+                flex-wrap: wrap;
+                flex-direction: column;
+                box-sizing: border-box;
+                height: 100%;
+                margin: 0;
+                padding: 1em;
+                align-content: space-between;
+            }
+            body > * {
+                box-sizing: border-box;
+            }
+        </style></head>
+        <body>'''
+
+        key_max_index: Dict[str, int] = dict()
+        names: Set[str] = set()
+        max_name_len = max(len(cc['name']) for cc in cfg_indexed)
+
         for cc in cfg_indexed:
-            is_duplicate = (cc['name'] in names)
             is_renamed = len(cc['renamed_from']) > 0
+            is_duplicate = (cc['name'] in names)
+
             names.add(cc['name'])
+            if cc['key'] not in key_max_index.keys():
+                key_max_index[cc['key']] = 0
+            key_max_index[cc['key']] += 1
+
+            id_style = Style(fg='hi_white', bold=True)
+            name_style = Style(fg=cc['value'], blink=is_duplicate)
+            comment_label_style = Style(fg='gray', italic=True)
+            comment_value_style = Style(fg='gray', italic=True, dim=True)
+            value_style = Style(bg=cc['value'], fg=0x0)
+            value_style.autopick_fg()
+            if value_style.fg.hex_value != 0x0:
+                name_style.fg = value_style.fg
 
             id_str = f'{cc["id"]:_>3d}'
-            id_sty = default
-            if is_duplicate:
-                id_sty = Style(bg=color.HI_RED)
-            elif is_renamed:
-                id_sty = Style(fg='hi_white', crosslined=True)
-            html += id_sty.render(id_str)
-            html += '_' + Style(bg=cc['value'], auto_fg=True).render(f'{cc["name"]:_<20s}')
+            value_str = f'_#{cc["value"]:06x}_'
+            name_str = f'{cc["name"]:_<{max_name_len + 1}s}'
+            comment_str = ''
 
-            html += default.render(f'_[#{cc["value"]:06x}__')
-            html += default.render('{}_{}_{}]_'.format(*['{:_>3d}'.format(c) for c in
-                                                           ColorIndexed.hex_value_to_rgb_channels(
-                                                               cc['value'])]))
+            if is_renamed:
+                comment_str += (
+                    comment_label_style.render('<br>' + '_'*10 + 'was' + '_'*3) +
+                    comment_label_style.render(f"{cc['original_name']:_<{max_name_len}s}") +
+                    comment_value_style.render('<br>' + '_'*9 + 'sugg' + '_'*3) +
+                    comment_value_style.render(f"{cc['key'] + str(key_max_index.get(cc['key'])):_<{max_name_len}s}")
+                )
 
-            html += '<br>'
+                # different approach (output is Text, while in prev. example it is already str)
+                # comment_str += (
+                #     f"{Text('<br>' + '_'*10 + 'was' + '_'*3, comment_label_style)}"
+                #     f"{Text(cc['original_name'], comment_value_style):_<{max_name_len}s}"
+                #     f"{Text('<br>' + '_'*9 + 'sugg' + '_'*3, comment_label_style)}"
+                #     f"{Text(cc['key'] + str(key_max_index.get(cc['key'])), comment_value_style)}:_<{max_name_len}s"
+                # )
 
-        html += '</body></html>'
-        f.write(html.replace('_', '&nbsp;'))
-        print(f.name)
+            html += ('\n<div>' + id_style.render(id_str) +
+                     '_' + value_style.render(value_str) +
+                     '__' + name_style.render(name_str) +
+                     '_' + comment_str +
+                     '</div>')
+
+        html += '\n</body></html>'
+        html = html.replace('_', '&nbsp;')
+        f.write(html)
+
+        RendererManager.set_up(SGRRenderer)
+        print(f'Wrote {Text(len(html), Style(bold=True))} bytes to {Text(f.name, "blue")}')
 
 
 # -----------------------------------------------------------------------------
@@ -145,25 +191,28 @@ class Main:
         with open(join(dirname(__name__), 'indexed.yml'), 'r') as f:
             cfg_indexed = yaml.load(f, SafeLoader)
 
+        d = dict()
+        d.update()
         first = True
         first_rename = True
         for c in cfg_indexed:
             c['name'] = c.get('override_name', c['original_name'])
+            c['key'] = re.sub(r'\d|_', '', c['name'])
             c['first_rename'] = ''
+            c['original_name_rst'] = ''
             c['renamed_from'] = ''
             if c['name'] != c['original_name']:
                 c['renamed_from'] = f'(orig. {c["original_name"]})'
-                c['original_name'] = f'**{c["original_name"]}**'
+                c['original_name_rst'] = f'**{c["original_name"]}**'
                 c['first_rename'] = ' [4]_' if first_rename else ''
                 first_rename = False
             c['name_idx'] = re.sub(r'([a-z]|^)([A-Z0-9])', r'\1_\2',
                                    'idx' + c['name']).upper()
             c['first'] = ' [3]_' if first else ''
             first = False
-        cfg_name_sorted = sorted(
-            cfg_indexed,
-            key=lambda v: (re.sub(r'\d|_', '', v['name']), -sum(ColorIndexed.hex_value_to_rgb_channels(v['value'])))
-        )
+
+        cfg_name_sorted = sorted(cfg_indexed, key=lambda v: (
+            v['key'], -sum(ColorIndexed.hex_value_to_rgb_channels(v['value']))))
 
         generated_dir = join(dirname(__name__), '..', 'docs', '_generated')
         with open(join(generated_dir, 'preset-table', 'output.rst_'), 'wt') as f:
@@ -175,7 +224,7 @@ class Main:
         with open(join(generated_dir, 'preset-code', 'color.py_'), 'wt') as f:
             PyModuleColorGenerator().run(f, cfg_name_sorted)
 
-        with open(join(dirname(__name__), '..', 'presets.html'), 'wt') as f:
+        with open(join('/tmp', 'presets.html'), 'wt') as f:
             HtmlTableGenerator().run(f, cfg_name_sorted)
 
 
