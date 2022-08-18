@@ -260,7 +260,7 @@ class ColorRGB(Color):
         return ColorRGB(hex_value)
 
     def to_sgr(self, bg: bool = False) -> SequenceSGR:
-        if not self._hex_value:
+        if self._hex_value is None:
             return sequence.NOOP
         return color_rgb(*self.hex_value_to_rgb_channels(self._hex_value), bg=bg)
 

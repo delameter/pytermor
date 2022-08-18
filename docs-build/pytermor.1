@@ -27,9 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "PYTERMOR" "1" "Aug 05, 2022" "2.0.0-dev.14" "pytermor"
+.TH "PYTERMOR" "1" "Aug 18, 2022" "2.0.0-dev.15" "pytermor"
 .SH NAME
-pytermor \- pytermor 2.0.0-dev.14
+pytermor \- pytermor 2.0.0-dev.15
 .sp
 \fI(yet another)\fP Python library designed for formatting terminal output using ANSI escape codes. Implements automatic \fI\%\(dqsoft\(dq\fP format termination. Provides a registry of low\-level SGR \fI\%sequences\fP and formatting \fI\%spans\fP (or combined sequences). Also includes a set of formatters for pretty output.
 .sp
@@ -1445,7 +1445,6 @@ T}	T{
 T}	T{
 \fB#000000\fP
 T}	T{
-Black
 T}
 _
 T{
@@ -1462,13 +1461,12 @@ T}	T{
 T}	T{
 \fB#800000\fP
 T}	T{
-Maroon
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_GREEN_5\fP
+\fBIDX_GREEN\fP
 T}	T{
 \fB2\fP
 T}	T{
@@ -1479,7 +1477,6 @@ T}	T{
 T}	T{
 \fB#008000\fP
 T}	T{
-\fBGreen\fP [4]
 T}
 _
 T{
@@ -1496,7 +1493,6 @@ T}	T{
 T}	T{
 \fB#808000\fP
 T}	T{
-Olive
 T}
 _
 T{
@@ -1513,13 +1509,12 @@ T}	T{
 T}	T{
 \fB#000080\fP
 T}	T{
-Navy
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_PURPLE\fP
+\fBIDX_PURPLE_5\fP
 T}	T{
 \fB5\fP
 T}	T{
@@ -1530,7 +1525,7 @@ T}	T{
 T}	T{
 \fB#800080\fP
 T}	T{
-Purple
+\fBPurple\fP [4]
 T}
 _
 T{
@@ -1547,7 +1542,6 @@ T}	T{
 T}	T{
 \fB#008080\fP
 T}	T{
-Teal
 T}
 _
 T{
@@ -1564,7 +1558,6 @@ T}	T{
 T}	T{
 \fB#c0c0c0\fP
 T}	T{
-Silver
 T}
 _
 T{
@@ -1581,7 +1574,6 @@ T}	T{
 T}	T{
 \fB#808080\fP
 T}	T{
-Grey
 T}
 _
 T{
@@ -1598,7 +1590,6 @@ T}	T{
 T}	T{
 \fB#ff0000\fP
 T}	T{
-Red
 T}
 _
 T{
@@ -1615,7 +1606,6 @@ T}	T{
 T}	T{
 \fB#00ff00\fP
 T}	T{
-Lime
 T}
 _
 T{
@@ -1632,7 +1622,6 @@ T}	T{
 T}	T{
 \fB#ffff00\fP
 T}	T{
-Yellow
 T}
 _
 T{
@@ -1649,7 +1638,6 @@ T}	T{
 T}	T{
 \fB#0000ff\fP
 T}	T{
-Blue
 T}
 _
 T{
@@ -1666,7 +1654,6 @@ T}	T{
 T}	T{
 \fB#ff00ff\fP
 T}	T{
-Fuchsia
 T}
 _
 T{
@@ -1683,7 +1670,6 @@ T}	T{
 T}	T{
 \fB#00ffff\fP
 T}	T{
-Aqua
 T}
 _
 T{
@@ -1700,7 +1686,6 @@ T}	T{
 T}	T{
 \fB#ffffff\fP
 T}	T{
-White
 T}
 _
 T{
@@ -1717,7 +1702,6 @@ T}	T{
 T}	T{
 \fB#000000\fP
 T}	T{
-Grey0
 T}
 _
 T{
@@ -1734,7 +1718,6 @@ T}	T{
 T}	T{
 \fB#00005f\fP
 T}	T{
-NavyBlue
 T}
 _
 T{
@@ -1751,7 +1734,6 @@ T}	T{
 T}	T{
 \fB#000087\fP
 T}	T{
-DarkBlue
 T}
 _
 T{
@@ -1768,7 +1750,6 @@ T}	T{
 T}	T{
 \fB#0000af\fP
 T}	T{
-Blue3
 T}
 _
 T{
@@ -1802,7 +1783,6 @@ T}	T{
 T}	T{
 \fB#0000ff\fP
 T}	T{
-Blue1
 T}
 _
 T{
@@ -1819,7 +1799,6 @@ T}	T{
 T}	T{
 \fB#005f00\fP
 T}	T{
-DarkGreen
 T}
 _
 T{
@@ -1887,7 +1866,6 @@ T}	T{
 T}	T{
 \fB#005fd7\fP
 T}	T{
-DodgerBlue3
 T}
 _
 T{
@@ -1904,13 +1882,12 @@ T}	T{
 T}	T{
 \fB#005fff\fP
 T}	T{
-DodgerBlue2
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_GREEN_4\fP
+\fBIDX_GREEN_5\fP
 T}	T{
 \fB28\fP
 T}	T{
@@ -1921,7 +1898,7 @@ T}	T{
 T}	T{
 \fB#008700\fP
 T}	T{
-Green4
+\fBGreen4\fP
 T}
 _
 T{
@@ -1938,7 +1915,6 @@ T}	T{
 T}	T{
 \fB#00875f\fP
 T}	T{
-SpringGreen4
 T}
 _
 T{
@@ -1955,7 +1931,6 @@ T}	T{
 T}	T{
 \fB#008787\fP
 T}	T{
-Turquoise4
 T}
 _
 T{
@@ -1989,7 +1964,6 @@ T}	T{
 T}	T{
 \fB#0087d7\fP
 T}	T{
-DeepSkyBlue3
 T}
 _
 T{
@@ -2006,13 +1980,12 @@ T}	T{
 T}	T{
 \fB#0087ff\fP
 T}	T{
-DodgerBlue1
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_GREEN_3\fP
+\fBIDX_GREEN_4\fP
 T}	T{
 \fB34\fP
 T}	T{
@@ -2023,7 +1996,7 @@ T}	T{
 T}	T{
 \fB#00af00\fP
 T}	T{
-Green3
+\fBGreen3\fP
 T}
 _
 T{
@@ -2040,7 +2013,6 @@ T}	T{
 T}	T{
 \fB#00af5f\fP
 T}	T{
-SpringGreen3
 T}
 _
 T{
@@ -2057,7 +2029,6 @@ T}	T{
 T}	T{
 \fB#00af87\fP
 T}	T{
-DarkCyan
 T}
 _
 T{
@@ -2074,7 +2045,6 @@ T}	T{
 T}	T{
 \fB#00afaf\fP
 T}	T{
-LightSeaGreen
 T}
 _
 T{
@@ -2091,7 +2061,6 @@ T}	T{
 T}	T{
 \fB#00afd7\fP
 T}	T{
-DeepSkyBlue2
 T}
 _
 T{
@@ -2108,13 +2077,12 @@ T}	T{
 T}	T{
 \fB#00afff\fP
 T}	T{
-DeepSkyBlue1
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_GREEN_2\fP
+\fBIDX_GREEN_3\fP
 T}	T{
 \fB40\fP
 T}	T{
@@ -2125,7 +2093,6 @@ T}	T{
 T}	T{
 \fB#00d700\fP
 T}	T{
-\fBGreen3\fP
 T}
 _
 T{
@@ -2142,7 +2109,6 @@ T}	T{
 T}	T{
 \fB#00d75f\fP
 T}	T{
-SpringGreen3
 T}
 _
 T{
@@ -2159,7 +2125,6 @@ T}	T{
 T}	T{
 \fB#00d787\fP
 T}	T{
-SpringGreen2
 T}
 _
 T{
@@ -2176,7 +2141,6 @@ T}	T{
 T}	T{
 \fB#00d7af\fP
 T}	T{
-Cyan3
 T}
 _
 T{
@@ -2193,7 +2157,6 @@ T}	T{
 T}	T{
 \fB#00d7d7\fP
 T}	T{
-DarkTurquoise
 T}
 _
 T{
@@ -2210,13 +2173,12 @@ T}	T{
 T}	T{
 \fB#00d7ff\fP
 T}	T{
-Turquoise2
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_GREEN_1\fP
+\fBIDX_GREEN_2\fP
 T}	T{
 \fB46\fP
 T}	T{
@@ -2227,7 +2189,7 @@ T}	T{
 T}	T{
 \fB#00ff00\fP
 T}	T{
-Green1
+\fBGreen1\fP
 T}
 _
 T{
@@ -2244,7 +2206,6 @@ T}	T{
 T}	T{
 \fB#00ff5f\fP
 T}	T{
-SpringGreen2
 T}
 _
 T{
@@ -2261,7 +2222,6 @@ T}	T{
 T}	T{
 \fB#00ff87\fP
 T}	T{
-SpringGreen1
 T}
 _
 T{
@@ -2278,7 +2238,6 @@ T}	T{
 T}	T{
 \fB#00ffaf\fP
 T}	T{
-MediumSpringGreen
 T}
 _
 T{
@@ -2295,7 +2254,6 @@ T}	T{
 T}	T{
 \fB#00ffd7\fP
 T}	T{
-Cyan2
 T}
 _
 T{
@@ -2312,7 +2270,6 @@ T}	T{
 T}	T{
 \fB#00ffff\fP
 T}	T{
-Cyan1
 T}
 _
 T{
@@ -2352,7 +2309,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PURPLE_4\fP
+\fBIDX_PURPLE_6\fP
 T}	T{
 \fB54\fP
 T}	T{
@@ -2363,7 +2320,7 @@ T}	T{
 T}	T{
 \fB#5f0087\fP
 T}	T{
-Purple4
+\fBPurple4\fP
 T}
 _
 T{
@@ -2380,7 +2337,6 @@ T}	T{
 T}	T{
 \fB#5f00af\fP
 T}	T{
-Purple4
 T}
 _
 T{
@@ -2397,7 +2353,6 @@ T}	T{
 T}	T{
 \fB#5f00d7\fP
 T}	T{
-Purple3
 T}
 _
 T{
@@ -2414,7 +2369,6 @@ T}	T{
 T}	T{
 \fB#5f00ff\fP
 T}	T{
-BlueViolet
 T}
 _
 T{
@@ -2431,7 +2385,6 @@ T}	T{
 T}	T{
 \fB#5f5f00\fP
 T}	T{
-Orange4
 T}
 _
 T{
@@ -2448,7 +2401,6 @@ T}	T{
 T}	T{
 \fB#5f5f5f\fP
 T}	T{
-Grey37
 T}
 _
 T{
@@ -2482,7 +2434,6 @@ T}	T{
 T}	T{
 \fB#5f5faf\fP
 T}	T{
-SlateBlue3
 T}
 _
 T{
@@ -2499,7 +2450,6 @@ T}	T{
 T}	T{
 \fB#5f5fd7\fP
 T}	T{
-SlateBlue3
 T}
 _
 T{
@@ -2516,7 +2466,6 @@ T}	T{
 T}	T{
 \fB#5f5fff\fP
 T}	T{
-RoyalBlue1
 T}
 _
 T{
@@ -2567,7 +2516,6 @@ T}	T{
 T}	T{
 \fB#5f8787\fP
 T}	T{
-PaleTurquoise4
 T}
 _
 T{
@@ -2584,7 +2532,6 @@ T}	T{
 T}	T{
 \fB#5f87af\fP
 T}	T{
-SteelBlue
 T}
 _
 T{
@@ -2601,7 +2548,6 @@ T}	T{
 T}	T{
 \fB#5f87d7\fP
 T}	T{
-SteelBlue3
 T}
 _
 T{
@@ -2618,7 +2564,6 @@ T}	T{
 T}	T{
 \fB#5f87ff\fP
 T}	T{
-CornflowerBlue
 T}
 _
 T{
@@ -2675,7 +2620,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_CADET_BLUE_1\fP
+\fBIDX_CADET_BLUE\fP
 T}	T{
 \fB73\fP
 T}	T{
@@ -2686,7 +2631,6 @@ T}	T{
 T}	T{
 \fB#5fafaf\fP
 T}	T{
-\fBCadetBlue\fP
 T}
 _
 T{
@@ -2703,7 +2647,6 @@ T}	T{
 T}	T{
 \fB#5fafd7\fP
 T}	T{
-SkyBlue3
 T}
 _
 T{
@@ -2720,7 +2663,6 @@ T}	T{
 T}	T{
 \fB#5fafff\fP
 T}	T{
-SteelBlue1
 T}
 _
 T{
@@ -2771,7 +2713,6 @@ T}	T{
 T}	T{
 \fB#5fd787\fP
 T}	T{
-SeaGreen3
 T}
 _
 T{
@@ -2788,7 +2729,6 @@ T}	T{
 T}	T{
 \fB#5fd7af\fP
 T}	T{
-Aquamarine3
 T}
 _
 T{
@@ -2805,7 +2745,6 @@ T}	T{
 T}	T{
 \fB#5fd7d7\fP
 T}	T{
-MediumTurquoise
 T}
 _
 T{
@@ -2822,7 +2761,6 @@ T}	T{
 T}	T{
 \fB#5fd7ff\fP
 T}	T{
-SteelBlue1
 T}
 _
 T{
@@ -2839,7 +2777,6 @@ T}	T{
 T}	T{
 \fB#5fff00\fP
 T}	T{
-Chartreuse2
 T}
 _
 T{
@@ -2856,7 +2793,6 @@ T}	T{
 T}	T{
 \fB#5fff5f\fP
 T}	T{
-SeaGreen2
 T}
 _
 T{
@@ -2873,7 +2809,6 @@ T}	T{
 T}	T{
 \fB#5fff87\fP
 T}	T{
-SeaGreen1
 T}
 _
 T{
@@ -2890,7 +2825,6 @@ T}	T{
 T}	T{
 \fB#5fffaf\fP
 T}	T{
-SeaGreen1
 T}
 _
 T{
@@ -2924,13 +2858,12 @@ T}	T{
 T}	T{
 \fB#5fffff\fP
 T}	T{
-DarkSlateGray2
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_RED_1\fP
+\fBIDX_DARK_RED\fP
 T}	T{
 \fB88\fP
 T}	T{
@@ -2941,7 +2874,6 @@ T}	T{
 T}	T{
 \fB#870000\fP
 T}	T{
-\fBDarkRed\fP
 T}
 _
 T{
@@ -2981,7 +2913,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_MAGENTA_1\fP
+\fBIDX_DARK_MAGENTA\fP
 T}	T{
 \fB91\fP
 T}	T{
@@ -2992,7 +2924,6 @@ T}	T{
 T}	T{
 \fB#8700af\fP
 T}	T{
-\fBDarkMagenta\fP
 T}
 _
 T{
@@ -3015,7 +2946,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PURPLE\fP
+\fBIDX_PURPLE_2\fP
 T}	T{
 \fB93\fP
 T}	T{
@@ -3026,7 +2957,7 @@ T}	T{
 T}	T{
 \fB#8700ff\fP
 T}	T{
-Purple
+\fBPurple\fP
 T}
 _
 T{
@@ -3077,7 +3008,6 @@ T}	T{
 T}	T{
 \fB#875f87\fP
 T}	T{
-Plum4
 T}
 _
 T{
@@ -3128,7 +3058,6 @@ T}	T{
 T}	T{
 \fB#875fff\fP
 T}	T{
-SlateBlue1
 T}
 _
 T{
@@ -3145,7 +3074,6 @@ T}	T{
 T}	T{
 \fB#878700\fP
 T}	T{
-Yellow4
 T}
 _
 T{
@@ -3162,7 +3090,6 @@ T}	T{
 T}	T{
 \fB#87875f\fP
 T}	T{
-Wheat4
 T}
 _
 T{
@@ -3179,7 +3106,6 @@ T}	T{
 T}	T{
 \fB#878787\fP
 T}	T{
-Grey53
 T}
 _
 T{
@@ -3196,7 +3122,6 @@ T}	T{
 T}	T{
 \fB#8787af\fP
 T}	T{
-LightSlateGrey
 T}
 _
 T{
@@ -3230,7 +3155,6 @@ T}	T{
 T}	T{
 \fB#8787ff\fP
 T}	T{
-LightSlateBlue
 T}
 _
 T{
@@ -3247,7 +3171,6 @@ T}	T{
 T}	T{
 \fB#87af00\fP
 T}	T{
-Yellow4
 T}
 _
 T{
@@ -3298,7 +3221,6 @@ T}	T{
 T}	T{
 \fB#87afaf\fP
 T}	T{
-LightSkyBlue3
 T}
 _
 T{
@@ -3332,7 +3254,6 @@ T}	T{
 T}	T{
 \fB#87afff\fP
 T}	T{
-SkyBlue2
 T}
 _
 T{
@@ -3383,7 +3304,6 @@ T}	T{
 T}	T{
 \fB#87d787\fP
 T}	T{
-PaleGreen3
 T}
 _
 T{
@@ -3417,7 +3337,6 @@ T}	T{
 T}	T{
 \fB#87d7d7\fP
 T}	T{
-DarkSlateGray3
 T}
 _
 T{
@@ -3434,7 +3353,6 @@ T}	T{
 T}	T{
 \fB#87d7ff\fP
 T}	T{
-SkyBlue1
 T}
 _
 T{
@@ -3451,7 +3369,6 @@ T}	T{
 T}	T{
 \fB#87ff00\fP
 T}	T{
-Chartreuse1
 T}
 _
 T{
@@ -3474,7 +3391,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_GREEN_1\fP
+\fBIDX_LIGHT_GREEN\fP
 T}	T{
 \fB120\fP
 T}	T{
@@ -3485,7 +3402,6 @@ T}	T{
 T}	T{
 \fB#87ff87\fP
 T}	T{
-\fBLightGreen\fP
 T}
 _
 T{
@@ -3502,7 +3418,6 @@ T}	T{
 T}	T{
 \fB#87ffaf\fP
 T}	T{
-PaleGreen1
 T}
 _
 T{
@@ -3519,7 +3434,6 @@ T}	T{
 T}	T{
 \fB#87ffd7\fP
 T}	T{
-Aquamarine1
 T}
 _
 T{
@@ -3536,13 +3450,12 @@ T}	T{
 T}	T{
 \fB#87ffff\fP
 T}	T{
-DarkSlateGray1
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_RED_3\fP
+\fBIDX_RED_4\fP
 T}	T{
 \fB124\fP
 T}	T{
@@ -3553,7 +3466,7 @@ T}	T{
 T}	T{
 \fB#af0000\fP
 T}	T{
-Red3
+\fBRed3\fP
 T}
 _
 T{
@@ -3587,7 +3500,6 @@ T}	T{
 T}	T{
 \fB#af0087\fP
 T}	T{
-MediumVioletRed
 T}
 _
 T{
@@ -3610,7 +3522,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_VIOLET_1\fP
+\fBIDX_DARK_VIOLET\fP
 T}	T{
 \fB128\fP
 T}	T{
@@ -3621,7 +3533,6 @@ T}	T{
 T}	T{
 \fB#af00d7\fP
 T}	T{
-\fBDarkViolet\fP
 T}
 _
 T{
@@ -3638,7 +3549,6 @@ T}	T{
 T}	T{
 \fB#af00ff\fP
 T}	T{
-Purple
 T}
 _
 T{
@@ -3655,7 +3565,6 @@ T}	T{
 T}	T{
 \fB#af5f00\fP
 T}	T{
-DarkOrange3
 T}
 _
 T{
@@ -3740,7 +3649,6 @@ T}	T{
 T}	T{
 \fB#af5fff\fP
 T}	T{
-MediumPurple2
 T}
 _
 T{
@@ -3757,7 +3665,6 @@ T}	T{
 T}	T{
 \fB#af8700\fP
 T}	T{
-DarkGoldenrod
 T}
 _
 T{
@@ -3774,7 +3681,6 @@ T}	T{
 T}	T{
 \fB#af875f\fP
 T}	T{
-LightSalmon3
 T}
 _
 T{
@@ -3791,7 +3697,6 @@ T}	T{
 T}	T{
 \fB#af8787\fP
 T}	T{
-RosyBrown
 T}
 _
 T{
@@ -3808,7 +3713,6 @@ T}	T{
 T}	T{
 \fB#af87af\fP
 T}	T{
-Grey63
 T}
 _
 T{
@@ -3842,7 +3746,6 @@ T}	T{
 T}	T{
 \fB#af87ff\fP
 T}	T{
-MediumPurple1
 T}
 _
 T{
@@ -3859,7 +3762,6 @@ T}	T{
 T}	T{
 \fB#afaf00\fP
 T}	T{
-Gold3
 T}
 _
 T{
@@ -3876,7 +3778,6 @@ T}	T{
 T}	T{
 \fB#afaf5f\fP
 T}	T{
-DarkKhaki
 T}
 _
 T{
@@ -3893,7 +3794,6 @@ T}	T{
 T}	T{
 \fB#afaf87\fP
 T}	T{
-NavajoWhite3
 T}
 _
 T{
@@ -3910,7 +3810,6 @@ T}	T{
 T}	T{
 \fB#afafaf\fP
 T}	T{
-Grey69
 T}
 _
 T{
@@ -3927,7 +3826,6 @@ T}	T{
 T}	T{
 \fB#afafd7\fP
 T}	T{
-LightSteelBlue3
 T}
 _
 T{
@@ -3961,7 +3859,6 @@ T}	T{
 T}	T{
 \fB#afd700\fP
 T}	T{
-Yellow3
 T}
 _
 T{
@@ -4029,7 +3926,6 @@ T}	T{
 T}	T{
 \fB#afd7d7\fP
 T}	T{
-LightCyan3
 T}
 _
 T{
@@ -4046,7 +3942,6 @@ T}	T{
 T}	T{
 \fB#afd7ff\fP
 T}	T{
-LightSkyBlue1
 T}
 _
 T{
@@ -4063,7 +3958,6 @@ T}	T{
 T}	T{
 \fB#afff00\fP
 T}	T{
-GreenYellow
 T}
 _
 T{
@@ -4131,7 +4025,6 @@ T}	T{
 T}	T{
 \fB#afffd7\fP
 T}	T{
-DarkSeaGreen1
 T}
 _
 T{
@@ -4148,7 +4041,6 @@ T}	T{
 T}	T{
 \fB#afffff\fP
 T}	T{
-PaleTurquoise1
 T}
 _
 T{
@@ -4165,7 +4057,6 @@ T}	T{
 T}	T{
 \fB#d70000\fP
 T}	T{
-Red3
 T}
 _
 T{
@@ -4199,7 +4090,6 @@ T}	T{
 T}	T{
 \fB#d70087\fP
 T}	T{
-DeepPink3
 T}
 _
 T{
@@ -4216,7 +4106,6 @@ T}	T{
 T}	T{
 \fB#d700af\fP
 T}	T{
-Magenta3
 T}
 _
 T{
@@ -4409,7 +4298,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PINK_2\fP
+\fBIDX_PINK_3\fP
 T}	T{
 \fB175\fP
 T}	T{
@@ -4420,7 +4309,6 @@ T}	T{
 T}	T{
 \fB#d787af\fP
 T}	T{
-\fBPink3\fP
 T}
 _
 T{
@@ -4437,7 +4325,6 @@ T}	T{
 T}	T{
 \fB#d787d7\fP
 T}	T{
-Plum3
 T}
 _
 T{
@@ -4454,7 +4341,6 @@ T}	T{
 T}	T{
 \fB#d787ff\fP
 T}	T{
-Violet
 T}
 _
 T{
@@ -4505,7 +4391,6 @@ T}	T{
 T}	T{
 \fB#d7af87\fP
 T}	T{
-Tan
 T}
 _
 T{
@@ -4522,7 +4407,6 @@ T}	T{
 T}	T{
 \fB#d7afaf\fP
 T}	T{
-MistyRose3
 T}
 _
 T{
@@ -4539,7 +4423,6 @@ T}	T{
 T}	T{
 \fB#d7afd7\fP
 T}	T{
-Thistle3
 T}
 _
 T{
@@ -4556,7 +4439,6 @@ T}	T{
 T}	T{
 \fB#d7afff\fP
 T}	T{
-Plum2
 T}
 _
 T{
@@ -4573,7 +4455,6 @@ T}	T{
 T}	T{
 \fB#d7d700\fP
 T}	T{
-Yellow3
 T}
 _
 T{
@@ -4590,7 +4471,6 @@ T}	T{
 T}	T{
 \fB#d7d75f\fP
 T}	T{
-Khaki3
 T}
 _
 T{
@@ -4624,7 +4504,6 @@ T}	T{
 T}	T{
 \fB#d7d7af\fP
 T}	T{
-LightYellow3
 T}
 _
 T{
@@ -4641,7 +4520,6 @@ T}	T{
 T}	T{
 \fB#d7d7d7\fP
 T}	T{
-Grey84
 T}
 _
 T{
@@ -4658,7 +4536,6 @@ T}	T{
 T}	T{
 \fB#d7d7ff\fP
 T}	T{
-LightSteelBlue1
 T}
 _
 T{
@@ -4675,7 +4552,6 @@ T}	T{
 T}	T{
 \fB#d7ff00\fP
 T}	T{
-Yellow2
 T}
 _
 T{
@@ -4709,7 +4585,6 @@ T}	T{
 T}	T{
 \fB#d7ff87\fP
 T}	T{
-DarkOliveGreen1
 T}
 _
 T{
@@ -4743,7 +4618,6 @@ T}	T{
 T}	T{
 \fB#d7ffd7\fP
 T}	T{
-Honeydew2
 T}
 _
 T{
@@ -4760,7 +4634,6 @@ T}	T{
 T}	T{
 \fB#d7ffff\fP
 T}	T{
-LightCyan1
 T}
 _
 T{
@@ -4777,7 +4650,6 @@ T}	T{
 T}	T{
 \fB#ff0000\fP
 T}	T{
-Red1
 T}
 _
 T{
@@ -4828,7 +4700,6 @@ T}	T{
 T}	T{
 \fB#ff00af\fP
 T}	T{
-DeepPink1
 T}
 _
 T{
@@ -4845,7 +4716,6 @@ T}	T{
 T}	T{
 \fB#ff00d7\fP
 T}	T{
-Magenta2
 T}
 _
 T{
@@ -4862,7 +4732,6 @@ T}	T{
 T}	T{
 \fB#ff00ff\fP
 T}	T{
-Magenta1
 T}
 _
 T{
@@ -4879,13 +4748,12 @@ T}	T{
 T}	T{
 \fB#ff5f00\fP
 T}	T{
-OrangeRed1
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_INDIAN_RED_2\fP
+\fBIDX_INDIAN_RED_1\fP
 T}	T{
 \fB203\fP
 T}	T{
@@ -4896,13 +4764,12 @@ T}	T{
 T}	T{
 \fB#ff5f5f\fP
 T}	T{
-\fBIndianRed1\fP
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_INDIAN_RED_1\fP
+\fBIDX_INDIAN_RED_2\fP
 T}	T{
 \fB204\fP
 T}	T{
@@ -4913,7 +4780,7 @@ T}	T{
 T}	T{
 \fB#ff5f87\fP
 T}	T{
-IndianRed1
+\fBIndianRed1\fP
 T}
 _
 T{
@@ -4936,7 +4803,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_HOT_PINK_1\fP
+\fBIDX_HOT_PINK\fP
 T}	T{
 \fB206\fP
 T}	T{
@@ -4947,7 +4814,6 @@ T}	T{
 T}	T{
 \fB#ff5fd7\fP
 T}	T{
-\fBHotPink\fP
 T}
 _
 T{
@@ -4964,13 +4830,12 @@ T}	T{
 T}	T{
 \fB#ff5fff\fP
 T}	T{
-MediumOrchid1
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_ORANGE_1\fP
+\fBIDX_DARK_ORANGE\fP
 T}	T{
 \fB208\fP
 T}	T{
@@ -4981,7 +4846,6 @@ T}	T{
 T}	T{
 \fB#ff8700\fP
 T}	T{
-\fBDarkOrange\fP
 T}
 _
 T{
@@ -4998,7 +4862,6 @@ T}	T{
 T}	T{
 \fB#ff875f\fP
 T}	T{
-Salmon1
 T}
 _
 T{
@@ -5015,7 +4878,6 @@ T}	T{
 T}	T{
 \fB#ff8787\fP
 T}	T{
-LightCoral
 T}
 _
 T{
@@ -5032,7 +4894,6 @@ T}	T{
 T}	T{
 \fB#ff87af\fP
 T}	T{
-PaleVioletRed1
 T}
 _
 T{
@@ -5049,7 +4910,6 @@ T}	T{
 T}	T{
 \fB#ff87d7\fP
 T}	T{
-Orchid2
 T}
 _
 T{
@@ -5066,7 +4926,6 @@ T}	T{
 T}	T{
 \fB#ff87ff\fP
 T}	T{
-Orchid1
 T}
 _
 T{
@@ -5083,7 +4942,6 @@ T}	T{
 T}	T{
 \fB#ffaf00\fP
 T}	T{
-Orange1
 T}
 _
 T{
@@ -5100,7 +4958,6 @@ T}	T{
 T}	T{
 \fB#ffaf5f\fP
 T}	T{
-SandyBrown
 T}
 _
 T{
@@ -5117,7 +4974,6 @@ T}	T{
 T}	T{
 \fB#ffaf87\fP
 T}	T{
-LightSalmon1
 T}
 _
 T{
@@ -5134,7 +4990,6 @@ T}	T{
 T}	T{
 \fB#ffafaf\fP
 T}	T{
-LightPink1
 T}
 _
 T{
@@ -5151,7 +5006,6 @@ T}	T{
 T}	T{
 \fB#ffafd7\fP
 T}	T{
-Pink1
 T}
 _
 T{
@@ -5168,7 +5022,6 @@ T}	T{
 T}	T{
 \fB#ffafff\fP
 T}	T{
-Plum1
 T}
 _
 T{
@@ -5185,7 +5038,6 @@ T}	T{
 T}	T{
 \fB#ffd700\fP
 T}	T{
-Gold1
 T}
 _
 T{
@@ -5219,7 +5071,6 @@ T}	T{
 T}	T{
 \fB#ffd787\fP
 T}	T{
-LightGoldenrod2
 T}
 _
 T{
@@ -5236,7 +5087,6 @@ T}	T{
 T}	T{
 \fB#ffd7af\fP
 T}	T{
-NavajoWhite1
 T}
 _
 T{
@@ -5253,7 +5103,6 @@ T}	T{
 T}	T{
 \fB#ffd7d7\fP
 T}	T{
-MistyRose1
 T}
 _
 T{
@@ -5270,7 +5119,6 @@ T}	T{
 T}	T{
 \fB#ffd7ff\fP
 T}	T{
-Thistle1
 T}
 _
 T{
@@ -5287,7 +5135,6 @@ T}	T{
 T}	T{
 \fB#ffff00\fP
 T}	T{
-Yellow1
 T}
 _
 T{
@@ -5304,7 +5151,6 @@ T}	T{
 T}	T{
 \fB#ffff5f\fP
 T}	T{
-LightGoldenrod1
 T}
 _
 T{
@@ -5321,7 +5167,6 @@ T}	T{
 T}	T{
 \fB#ffff87\fP
 T}	T{
-Khaki1
 T}
 _
 T{
@@ -5338,7 +5183,6 @@ T}	T{
 T}	T{
 \fB#ffffaf\fP
 T}	T{
-Wheat1
 T}
 _
 T{
@@ -5355,7 +5199,6 @@ T}	T{
 T}	T{
 \fB#ffffd7\fP
 T}	T{
-Cornsilk1
 T}
 _
 T{
@@ -5372,7 +5215,6 @@ T}	T{
 T}	T{
 \fB#ffffff\fP
 T}	T{
-Grey100
 T}
 _
 T{
@@ -5389,7 +5231,6 @@ T}	T{
 T}	T{
 \fB#080808\fP
 T}	T{
-Grey3
 T}
 _
 T{
@@ -5406,7 +5247,6 @@ T}	T{
 T}	T{
 \fB#121212\fP
 T}	T{
-Grey7
 T}
 _
 T{
@@ -5423,7 +5263,6 @@ T}	T{
 T}	T{
 \fB#1c1c1c\fP
 T}	T{
-Grey11
 T}
 _
 T{
@@ -5440,7 +5279,6 @@ T}	T{
 T}	T{
 \fB#262626\fP
 T}	T{
-Grey15
 T}
 _
 T{
@@ -5457,7 +5295,6 @@ T}	T{
 T}	T{
 \fB#303030\fP
 T}	T{
-Grey19
 T}
 _
 T{
@@ -5474,7 +5311,6 @@ T}	T{
 T}	T{
 \fB#3a3a3a\fP
 T}	T{
-Grey23
 T}
 _
 T{
@@ -5491,7 +5327,6 @@ T}	T{
 T}	T{
 \fB#444444\fP
 T}	T{
-Grey27
 T}
 _
 T{
@@ -5508,7 +5343,6 @@ T}	T{
 T}	T{
 \fB#4e4e4e\fP
 T}	T{
-Grey30
 T}
 _
 T{
@@ -5525,7 +5359,6 @@ T}	T{
 T}	T{
 \fB#585858\fP
 T}	T{
-Grey35
 T}
 _
 T{
@@ -5542,7 +5375,6 @@ T}	T{
 T}	T{
 \fB#626262\fP
 T}	T{
-Grey39
 T}
 _
 T{
@@ -5559,7 +5391,6 @@ T}	T{
 T}	T{
 \fB#6c6c6c\fP
 T}	T{
-Grey42
 T}
 _
 T{
@@ -5576,7 +5407,6 @@ T}	T{
 T}	T{
 \fB#767676\fP
 T}	T{
-Grey46
 T}
 _
 T{
@@ -5593,7 +5423,6 @@ T}	T{
 T}	T{
 \fB#808080\fP
 T}	T{
-Grey50
 T}
 _
 T{
@@ -5610,7 +5439,6 @@ T}	T{
 T}	T{
 \fB#8a8a8a\fP
 T}	T{
-Grey54
 T}
 _
 T{
@@ -5627,7 +5455,6 @@ T}	T{
 T}	T{
 \fB#949494\fP
 T}	T{
-Grey58
 T}
 _
 T{
@@ -5644,7 +5471,6 @@ T}	T{
 T}	T{
 \fB#9e9e9e\fP
 T}	T{
-Grey62
 T}
 _
 T{
@@ -5661,7 +5487,6 @@ T}	T{
 T}	T{
 \fB#a8a8a8\fP
 T}	T{
-Grey66
 T}
 _
 T{
@@ -5678,7 +5503,6 @@ T}	T{
 T}	T{
 \fB#b2b2b2\fP
 T}	T{
-Grey70
 T}
 _
 T{
@@ -5695,7 +5519,6 @@ T}	T{
 T}	T{
 \fB#bcbcbc\fP
 T}	T{
-Grey74
 T}
 _
 T{
@@ -5712,7 +5535,6 @@ T}	T{
 T}	T{
 \fB#c6c6c6\fP
 T}	T{
-Grey78
 T}
 _
 T{
@@ -5729,7 +5551,6 @@ T}	T{
 T}	T{
 \fB#d0d0d0\fP
 T}	T{
-Grey82
 T}
 _
 T{
@@ -5746,7 +5567,6 @@ T}	T{
 T}	T{
 \fB#dadada\fP
 T}	T{
-Grey85
 T}
 _
 T{
@@ -5763,7 +5583,6 @@ T}	T{
 T}	T{
 \fB#e4e4e4\fP
 T}	T{
-Grey89
 T}
 _
 T{
@@ -5780,7 +5599,6 @@ T}	T{
 T}	T{
 \fB#eeeeee\fP
 T}	T{
-Grey93
 T}
 _
 T{
@@ -6494,7 +6312,7 @@ or default (16\-color) sequence depending on terminal capabilities.
 .sp
 .nf
 .ft C
->>> SGRRenderer.render(Style(\(aqred\(aq, bold=True), \(aqtext\(aq)
+>>> SGRRenderer.render(Style(fg=\(aqred\(aq, bold=True), \(aqtext\(aq)
 \(aq\ex1b[1;31mtext\ex1b[22;39m\(aq
 .ft P
 .fi
@@ -6562,12 +6380,16 @@ Input string without changes.
 Bases: \fI\%Renderer\fP
 .INDENT 7.0
 .TP
+.B DEFAULT_ATTRS  =  [\(aqcolor\(aq, \(aqbackground\-color\(aq, \(aqfont\-weight\(aq, \(aqfont\-style\(aq, \(aqtext\-decoration\(aq, \(aqborder\(aq, \(aqfilter\(aq]
+.UNINDENT
+.INDENT 7.0
+.TP
 .B classmethod  render(style:  \fI\%Style\fP, text:  str) -> str
 .sp
 .nf
 .ft C
 >>> HtmlRenderer.render(Style(\(aqred\(aq, bold=True), \(aqtext\(aq)
-\(aq<span style=\(dqcolor: #800000; font\-weight: bold\(dq>text</span>\(aq
+\(aq<span style=\(dqcolor: #800000; font\-weight: 700\(dq>text</span>\(aq
 .ft P
 .fi
 .UNINDENT
@@ -6824,7 +6646,7 @@ duplication. Summary list of all presets can be found in \fI\%Preset list\fP sec
 .UNINDENT
 .SS span
 .sp
-Module introducing \fI\%Span\fP low\-level  abstractions. The key difference beetween them and
+Module introducing \fI\%Span\fP low\-level abstractions. The key difference beetween them and
 \fBSequences\fP is that sequence can \fIopen\fP text style and also \fIclose\fP, or terminate
 it. As for \fBSpans\fP \-\- they always do both; typical use\-case of \fI\%Span\fP is to wrap
 some text in opening SGR and closing one.
@@ -6990,7 +6812,7 @@ Key difference between \fBStyles\fP and \fBSpans\fP or \fBSGRs\fP is that
 \fBStyles\fP describe colors in RGB format and therefore support output
 rendering in several different formats (see \fI\%renderer\fP).
 .sp
-Both \fBfg\fP and \fBbg_color\fP can be specified as:
+Both \fBfg\fP and \fBbg\fP can be specified as:
 .INDENT 7.0
 .IP 1. 3
 \fI\%Color\fP instance or library preset;
@@ -6998,18 +6820,9 @@ Both \fBfg\fP and \fBbg_color\fP can be specified as:
 key code \-\- name of any of aforementioned presets, case\-insensitive;
 .IP 3. 3
 integer color value in hexademical RGB format.
+.IP 4. 3
+None \-\- the color will be unset.
 .UNINDENT
-.sp
-.nf
-.ft C
->>> Style(\(aqgreen\(aq, bold=True)
-Style[fg=008000, no bg, bold]
->>> Style(bg=0x0000ff)
-Style[no fg, bg=0000ff]
->>> Style(color.IDX_DEEP_SKY_BLUE_1, color.IDX_GREY_93)
-Style[fg=00afff, bg=eeeeee]
-.ft P
-.fi
 .INDENT 7.0
 .TP
 .B Parameters
@@ -7019,8 +6832,7 @@ Style[fg=00afff, bg=eeeeee]
 .IP \(bu 2
 \fBbg\fP \-\- Background color.
 .IP \(bu 2
-\fBauto_fg\fP \-\- Automatically select \fBfg\fP based on \fBbg_color\fP (black or white
-depending on background brightness, if \fBbg_color\fP is defined).
+\fBinherit\fP \-\- Parent instance to copy unset properties from.
 .IP \(bu 2
 \fBblink\fP \-\- Blinking effect; \fIsupported by limited amount of Renderers\fP\&.
 .IP \(bu 2
@@ -7041,9 +6853,20 @@ depending on background brightness, if \fBbg_color\fP is defined).
 \fBunderlined\fP \-\- Underline.
 .UNINDENT
 .UNINDENT
+.sp
+.nf
+.ft C
+>>> Style(fg=\(aqgreen\(aq, bold=True)
+Style[fg=008000, no bg, bold]
+>>> Style(bg=0x0000ff)
+Style[no fg, bg=0000ff]
+>>> Style(fg=color.IDX_DEEP_SKY_BLUE_1, bg=color.IDX_GREY_93)
+Style[fg=00afff, bg=eeeeee]
+.ft P
+.fi
 .INDENT 7.0
 .TP
-.B __init__(fg:  str  |  int  |  \fI\%Color\fP  =  None, bg:  str  |  int  |  \fI\%Color\fP  =  None, auto_fg:  bool  =  False, blink:  bool  =  False, bold:  bool  =  False, crosslined:  bool  =  False, dim:  bool  =  False, double_underlined:  bool  =  False, inversed:  bool  =  False, italic:  bool  =  False, overlined:  bool  =  False, underlined:  bool  =  False)
+.B __init__(inherit:  \fI\%Style\fP  =  None, fg:  \fI\%Color\fP  |  int  |  str  =  None, bg:  \fI\%Color\fP  |  int  |  str  =  None, blink:  bool  =  None, bold:  bool  =  None, crosslined:  bool  =  None, dim:  bool  =  None, double_underlined:  bool  =  None, inversed:  bool  =  None, italic:  bool  =  None, overlined:  bool  =  None, underlined:  bool  =  None)
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -7055,52 +6878,29 @@ ANSI escape sequences.
 .UNINDENT
 .INDENT 7.0
 .TP
+.B autopick_fg() -> \fI\%Color\fP  |  None
+Pick \fBfg_color\fP depending on \fBbg_color\fP brightness. Set pure black
+or pure white as \fBfg_color\fP and return it, if \fBbg_color\fP is defined,
+and do nothing and return None otherwise.
+.INDENT 7.0
+.TP
+.B Returns
+Suitable foreground color or None.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
 .B property  fg:  \fI\%Color\fP
 .UNINDENT
 .INDENT 7.0
 .TP
 .B property  bg:  \fI\%Color\fP
 .UNINDENT
-.INDENT 7.0
-.TP
-.B property  blink:  bool
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  bold:  bool
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  crosslined:  bool
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  dim:  bool
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  double_underlined:  bool
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  inversed:  bool
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  italic:  bool
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  overlined
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  underlined
-.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
 .B class  pytermor.style.Stylesheet
+whatwhenhow @FIXME
 .INDENT 7.0
 .TP
 .B __init__(default:  Optional[\fI\%Style\fP]  =  None)
@@ -7198,7 +6998,7 @@ customized.
 .nf
 .ft C
 >>> format_si_metric(123.456)
-\(aq1213 m\(aq
+\(aq123 m\(aq
 >>> format_si_metric(0.331, \(aqg\(aq)
 \(aq331 mg\(aq
 >>> format_si_metric(45200, \(aqV\(aq)
@@ -7284,7 +7084,7 @@ New in version 1.7.
 
 .INDENT 7.0
 .TP
-.B __init__(max_value_len:  int, integer_input:  bool  =  False, unit:  str  =  None, unit_separator:  str  =  None, mcoef:  float  =  1000.0, prefixes:  List[str  |  None]  =  None, prefix_zero_idx:  int  =  None)
+.B __init__(max_value_len:  int, truncate_frac:  bool  =  False, unit:  str  =  None, unit_separator:  str  =  None, mcoef:  float  =  1000.0, prefixes:  List[str  |  None]  =  None, prefix_zero_idx:  int  =  None)
 .UNINDENT
 .INDENT 7.0
 .TP

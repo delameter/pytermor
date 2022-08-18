@@ -142,7 +142,7 @@ class SGRRenderer(Renderer):
         2. `ColorIndexed` can be rendered as indexed sequence or default sequence.
         3. `ColorDefault` will be rendered as default-color sequence.
 
-        >>> SGRRenderer.render(Style('red', bold=True), 'text')
+        >>> SGRRenderer.render(Style(fg='red', bold=True), 'text')
         '\\x1b[1;31mtext\\x1b[22;39m'
 
         :param style: Style to apply.
@@ -153,7 +153,14 @@ class SGRRenderer(Renderer):
                       cls._render_color(style.fg, False) + \
                       cls._render_color(style.bg, True)
 
-        return Span(opening_seq).wrap(text)
+        # in case there are line breaks -- split text to lines and apply
+        # SGRs for each line separately. it increases the chances that style
+        # will be correctly displayed regardless of implementation details of
+        # user's pager, multiplexer, terminal emulator etc.
+        rendered_text = ''
+        for line in text.splitlines(keepends=True):
+            rendered_text += Span(opening_seq).wrap(line)
+        return rendered_text
 
     @classmethod
     def _render_attributes(cls, style: Style) -> SequenceSGR:

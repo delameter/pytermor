@@ -45,7 +45,8 @@ class Text:
         if runs_amount > 1:
             raise RuntimeError(
                 f'Can only __format__ Texts consisting of 0 or 1 TextRuns, '
-                f'got {runs_amount})')
+                f'got {runs_amount}. Consider applying the styles and creating'
+                f' the Text instance after value formatting.')
         return self._runs[0].__format__(*args, **kwargs)
 
     def __add__(self, other: str|Text) -> Text:
