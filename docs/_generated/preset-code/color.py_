@@ -1,11 +1,11 @@
 # ---------------------------------- GENERATED ---------------------------------
 
-XTERM_AQUA = ColorIndexed(0x00ffff, intcode.XTERM_AQUA)  # 14 
+XTERM_AQUA = ColorIndexed(0x00ffff, intcode.XTERM_AQUA, use_for_approximations=False)  # 14 
 XTERM_AQUAMARINE_1 = ColorIndexed(0x87ffd7, intcode.XTERM_AQUAMARINE_1)  # 122 
 XTERM_AQUAMARINE_2 = ColorIndexed(0x5fffd7, intcode.XTERM_AQUAMARINE_2)  # 86 (orig. Aquamarine1)
 XTERM_AQUAMARINE_3 = ColorIndexed(0x5fd7af, intcode.XTERM_AQUAMARINE_3)  # 79 
-XTERM_BLACK = ColorIndexed(0x000000, intcode.XTERM_BLACK)  # 0 
-XTERM_BLUE = ColorIndexed(0x0000ff, intcode.XTERM_BLUE)  # 12 
+XTERM_BLACK = ColorIndexed(0x000000, intcode.XTERM_BLACK, use_for_approximations=False)  # 0 
+XTERM_BLUE = ColorIndexed(0x0000ff, intcode.XTERM_BLUE, use_for_approximations=False)  # 12 
 XTERM_BLUE_1 = ColorIndexed(0x0000ff, intcode.XTERM_BLUE_1)  # 21 
 XTERM_BLUE_2 = ColorIndexed(0x0000d7, intcode.XTERM_BLUE_2)  # 20 (orig. Blue3)
 XTERM_BLUE_3 = ColorIndexed(0x0000af, intcode.XTERM_BLUE_3)  # 19 
@@ -74,7 +74,7 @@ XTERM_DEEP_SKY_BLUE_7 = ColorIndexed(0x005f5f, intcode.XTERM_DEEP_SKY_BLUE_7)  #
 XTERM_DODGER_BLUE_1 = ColorIndexed(0x0087ff, intcode.XTERM_DODGER_BLUE_1)  # 33 
 XTERM_DODGER_BLUE_2 = ColorIndexed(0x005fff, intcode.XTERM_DODGER_BLUE_2)  # 27 
 XTERM_DODGER_BLUE_3 = ColorIndexed(0x005fd7, intcode.XTERM_DODGER_BLUE_3)  # 26 
-XTERM_FUCHSIA = ColorIndexed(0xff00ff, intcode.XTERM_FUCHSIA)  # 13 
+XTERM_FUCHSIA = ColorIndexed(0xff00ff, intcode.XTERM_FUCHSIA, use_for_approximations=False)  # 13 
 XTERM_GOLD_1 = ColorIndexed(0xffd700, intcode.XTERM_GOLD_1)  # 220 
 XTERM_GOLD_2 = ColorIndexed(0xd7af00, intcode.XTERM_GOLD_2)  # 178 (orig. Gold3)
 XTERM_GOLD_3 = ColorIndexed(0xafaf00, intcode.XTERM_GOLD_3)  # 142 
@@ -82,7 +82,7 @@ XTERM_GREEN_2 = ColorIndexed(0x00ff00, intcode.XTERM_GREEN_2)  # 46 (orig. Green
 XTERM_GREEN_3 = ColorIndexed(0x00d700, intcode.XTERM_GREEN_3)  # 40 
 XTERM_GREEN_4 = ColorIndexed(0x00af00, intcode.XTERM_GREEN_4)  # 34 (orig. Green3)
 XTERM_GREEN_5 = ColorIndexed(0x008700, intcode.XTERM_GREEN_5)  # 28 (orig. Green4)
-XTERM_GREEN = ColorIndexed(0x008000, intcode.XTERM_GREEN)  # 2 
+XTERM_GREEN = ColorIndexed(0x008000, intcode.XTERM_GREEN, use_for_approximations=False)  # 2 
 XTERM_GREEN_YELLOW = ColorIndexed(0xafff00, intcode.XTERM_GREEN_YELLOW)  # 154 
 XTERM_GREY_100 = ColorIndexed(0xffffff, intcode.XTERM_GREY_100)  # 231 
 XTERM_GREY_93 = ColorIndexed(0xeeeeee, intcode.XTERM_GREY_93)  # 255 
@@ -100,7 +100,7 @@ XTERM_GREY_62 = ColorIndexed(0x9e9e9e, intcode.XTERM_GREY_62)  # 247
 XTERM_GREY_58 = ColorIndexed(0x949494, intcode.XTERM_GREY_58)  # 246 
 XTERM_GREY_54 = ColorIndexed(0x8a8a8a, intcode.XTERM_GREY_54)  # 245 
 XTERM_GREY_53 = ColorIndexed(0x878787, intcode.XTERM_GREY_53)  # 102 
-XTERM_GREY = ColorIndexed(0x808080, intcode.XTERM_GREY)  # 8 
+XTERM_GREY = ColorIndexed(0x808080, intcode.XTERM_GREY, use_for_approximations=False)  # 8 
 XTERM_GREY_50 = ColorIndexed(0x808080, intcode.XTERM_GREY_50)  # 244 
 XTERM_GREY_46 = ColorIndexed(0x767676, intcode.XTERM_GREY_46)  # 243 
 XTERM_GREY_42 = ColorIndexed(0x6c6c6c, intcode.XTERM_GREY_42)  # 242 
@@ -154,14 +154,14 @@ XTERM_LIGHT_STEEL_BLUE_1 = ColorIndexed(0xd7d7ff, intcode.XTERM_LIGHT_STEEL_BLUE
 XTERM_LIGHT_STEEL_BLUE_2 = ColorIndexed(0xafafff, intcode.XTERM_LIGHT_STEEL_BLUE_2)  # 147 (orig. LightSteelBlue)
 XTERM_LIGHT_STEEL_BLUE_3 = ColorIndexed(0xafafd7, intcode.XTERM_LIGHT_STEEL_BLUE_3)  # 146 
 XTERM_LIGHT_YELLOW_3 = ColorIndexed(0xd7d7af, intcode.XTERM_LIGHT_YELLOW_3)  # 187 
-XTERM_LIME = ColorIndexed(0x00ff00, intcode.XTERM_LIME)  # 10 
+XTERM_LIME = ColorIndexed(0x00ff00, intcode.XTERM_LIME, use_for_approximations=False)  # 10 
 XTERM_MAGENTA_1 = ColorIndexed(0xff00ff, intcode.XTERM_MAGENTA_1)  # 201 
 XTERM_MAGENTA_4 = ColorIndexed(0xd700ff, intcode.XTERM_MAGENTA_4)  # 165 (orig. Magenta2)
 XTERM_MAGENTA_2 = ColorIndexed(0xff00d7, intcode.XTERM_MAGENTA_2)  # 200 
 XTERM_MAGENTA_5 = ColorIndexed(0xd700d7, intcode.XTERM_MAGENTA_5)  # 164 (orig. Magenta3)
 XTERM_MAGENTA_3 = ColorIndexed(0xd700af, intcode.XTERM_MAGENTA_3)  # 163 
 XTERM_MAGENTA_6 = ColorIndexed(0xaf00af, intcode.XTERM_MAGENTA_6)  # 127 (orig. Magenta3)
-XTERM_MAROON = ColorIndexed(0x800000, intcode.XTERM_MAROON)  # 1 
+XTERM_MAROON = ColorIndexed(0x800000, intcode.XTERM_MAROON, use_for_approximations=False)  # 1 
 XTERM_MEDIUM_ORCHID_1 = ColorIndexed(0xff5fff, intcode.XTERM_MEDIUM_ORCHID_1)  # 207 
 XTERM_MEDIUM_ORCHID_2 = ColorIndexed(0xd75fff, intcode.XTERM_MEDIUM_ORCHID_2)  # 171 (orig. MediumOrchid1)
 XTERM_MEDIUM_ORCHID_3 = ColorIndexed(0xaf5fd7, intcode.XTERM_MEDIUM_ORCHID_3)  # 134 (orig. MediumOrchid)
@@ -180,9 +180,9 @@ XTERM_MISTY_ROSE_1 = ColorIndexed(0xffd7d7, intcode.XTERM_MISTY_ROSE_1)  # 224
 XTERM_MISTY_ROSE_3 = ColorIndexed(0xd7afaf, intcode.XTERM_MISTY_ROSE_3)  # 181 
 XTERM_NAVAJO_WHITE_1 = ColorIndexed(0xffd7af, intcode.XTERM_NAVAJO_WHITE_1)  # 223 
 XTERM_NAVAJO_WHITE_3 = ColorIndexed(0xafaf87, intcode.XTERM_NAVAJO_WHITE_3)  # 144 
-XTERM_NAVY = ColorIndexed(0x000080, intcode.XTERM_NAVY)  # 4 
+XTERM_NAVY = ColorIndexed(0x000080, intcode.XTERM_NAVY, use_for_approximations=False)  # 4 
 XTERM_NAVY_BLUE = ColorIndexed(0x00005f, intcode.XTERM_NAVY_BLUE)  # 17 
-XTERM_OLIVE = ColorIndexed(0x808000, intcode.XTERM_OLIVE)  # 3 
+XTERM_OLIVE = ColorIndexed(0x808000, intcode.XTERM_OLIVE, use_for_approximations=False)  # 3 
 XTERM_ORANGE_1 = ColorIndexed(0xffaf00, intcode.XTERM_ORANGE_1)  # 214 
 XTERM_ORANGE_2 = ColorIndexed(0xd78700, intcode.XTERM_ORANGE_2)  # 172 (orig. Orange3)
 XTERM_ORANGE_3 = ColorIndexed(0x875f00, intcode.XTERM_ORANGE_3)  # 94 (orig. Orange4)
@@ -208,9 +208,9 @@ XTERM_PURPLE = ColorIndexed(0xaf00ff, intcode.XTERM_PURPLE)  # 129
 XTERM_PURPLE_2 = ColorIndexed(0x8700ff, intcode.XTERM_PURPLE_2)  # 93 (orig. Purple)
 XTERM_PURPLE_3 = ColorIndexed(0x5f00d7, intcode.XTERM_PURPLE_3)  # 56 
 XTERM_PURPLE_4 = ColorIndexed(0x5f00af, intcode.XTERM_PURPLE_4)  # 55 
-XTERM_PURPLE_5 = ColorIndexed(0x800080, intcode.XTERM_PURPLE_5)  # 5 (orig. Purple)
+XTERM_PURPLE_5 = ColorIndexed(0x800080, intcode.XTERM_PURPLE_5, use_for_approximations=False)  # 5 (orig. Purple)
 XTERM_PURPLE_6 = ColorIndexed(0x5f0087, intcode.XTERM_PURPLE_6)  # 54 (orig. Purple4)
-XTERM_RED = ColorIndexed(0xff0000, intcode.XTERM_RED)  # 9 
+XTERM_RED = ColorIndexed(0xff0000, intcode.XTERM_RED, use_for_approximations=False)  # 9 
 XTERM_RED_1 = ColorIndexed(0xff0000, intcode.XTERM_RED_1)  # 196 
 XTERM_RED_3 = ColorIndexed(0xd70000, intcode.XTERM_RED_3)  # 160 
 XTERM_RED_4 = ColorIndexed(0xaf0000, intcode.XTERM_RED_4)  # 124 (orig. Red3)
@@ -222,7 +222,7 @@ XTERM_SEA_GREEN_1 = ColorIndexed(0x5fffaf, intcode.XTERM_SEA_GREEN_1)  # 85
 XTERM_SEA_GREEN_2 = ColorIndexed(0x5fff87, intcode.XTERM_SEA_GREEN_2)  # 84 (orig. SeaGreen1)
 XTERM_SEA_GREEN_3 = ColorIndexed(0x5fd787, intcode.XTERM_SEA_GREEN_3)  # 78 
 XTERM_SEA_GREEN_4 = ColorIndexed(0x5fff5f, intcode.XTERM_SEA_GREEN_4)  # 83 (orig. SeaGreen2)
-XTERM_SILVER = ColorIndexed(0xc0c0c0, intcode.XTERM_SILVER)  # 7 
+XTERM_SILVER = ColorIndexed(0xc0c0c0, intcode.XTERM_SILVER, use_for_approximations=False)  # 7 
 XTERM_SKY_BLUE_1 = ColorIndexed(0x87d7ff, intcode.XTERM_SKY_BLUE_1)  # 117 
 XTERM_SKY_BLUE_2 = ColorIndexed(0x87afff, intcode.XTERM_SKY_BLUE_2)  # 111 
 XTERM_SKY_BLUE_3 = ColorIndexed(0x5fafd7, intcode.XTERM_SKY_BLUE_3)  # 74 
@@ -240,7 +240,7 @@ XTERM_STEEL_BLUE_2 = ColorIndexed(0x5fafff, intcode.XTERM_STEEL_BLUE_2)  # 75 (o
 XTERM_STEEL_BLUE_3 = ColorIndexed(0x5f87d7, intcode.XTERM_STEEL_BLUE_3)  # 68 
 XTERM_STEEL_BLUE = ColorIndexed(0x5f87af, intcode.XTERM_STEEL_BLUE)  # 67 
 XTERM_TAN = ColorIndexed(0xd7af87, intcode.XTERM_TAN)  # 180 
-XTERM_TEAL = ColorIndexed(0x008080, intcode.XTERM_TEAL)  # 6 
+XTERM_TEAL = ColorIndexed(0x008080, intcode.XTERM_TEAL, use_for_approximations=False)  # 6 
 XTERM_THISTLE_1 = ColorIndexed(0xffd7ff, intcode.XTERM_THISTLE_1)  # 225 
 XTERM_THISTLE_3 = ColorIndexed(0xd7afd7, intcode.XTERM_THISTLE_3)  # 182 
 XTERM_TURQUOISE_2 = ColorIndexed(0x00d7ff, intcode.XTERM_TURQUOISE_2)  # 45 
@@ -248,8 +248,8 @@ XTERM_TURQUOISE_4 = ColorIndexed(0x008787, intcode.XTERM_TURQUOISE_4)  # 30
 XTERM_VIOLET = ColorIndexed(0xd787ff, intcode.XTERM_VIOLET)  # 177 
 XTERM_WHEAT_1 = ColorIndexed(0xffffaf, intcode.XTERM_WHEAT_1)  # 229 
 XTERM_WHEAT_4 = ColorIndexed(0x87875f, intcode.XTERM_WHEAT_4)  # 101 
-XTERM_WHITE = ColorIndexed(0xffffff, intcode.XTERM_WHITE)  # 15 
-XTERM_YELLOW = ColorIndexed(0xffff00, intcode.XTERM_YELLOW)  # 11 
+XTERM_WHITE = ColorIndexed(0xffffff, intcode.XTERM_WHITE, use_for_approximations=False)  # 15 
+XTERM_YELLOW = ColorIndexed(0xffff00, intcode.XTERM_YELLOW, use_for_approximations=False)  # 11 
 XTERM_YELLOW_1 = ColorIndexed(0xffff00, intcode.XTERM_YELLOW_1)  # 226 
 XTERM_YELLOW_2 = ColorIndexed(0xd7ff00, intcode.XTERM_YELLOW_2)  # 190 
 XTERM_YELLOW_3 = ColorIndexed(0xd7d700, intcode.XTERM_YELLOW_3)  # 184 

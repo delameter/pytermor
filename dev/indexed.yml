@@ -1,52 +1,68 @@
 - id: 0
   original_name: Black
   value: 0x000000
+  default_counterpart: black
 - id: 1
   original_name: Maroon
   value: 0x800000
+  default_counterpart: red
 - id: 2
   original_name: Green
   value: 0x008000
+  default_counterpart: green
 - id: 3
   original_name: Olive
   value: 0x808000
+  default_counterpart: yellow
 - id: 4
   original_name: Navy
   value: 0x000080
+  default_counterpart: blue
 - id: 5
   original_name: Purple
   override_name: Purple5
   value: 0x800080
+  default_counterpart: magenta
 - id: 6
   original_name: Teal
   value: 0x008080
+  default_counterpart: cyan
 - id: 7
   original_name: Silver
   value: 0xc0c0c0
+  default_counterpart: white
 - id: 8
   original_name: Grey
   value: 0x808080
+  default_counterpart: gray
 - id: 9
   original_name: Red
   value: 0xff0000
+  default_counterpart: hi_red
 - id: 10
   original_name: Lime
   value: 0x00ff00
+  default_counterpart: hi_green
 - id: 11
   original_name: Yellow
   value: 0xffff00
+  default_counterpart: hi_yellow
 - id: 12
   original_name: Blue
   value: 0x0000ff
+  default_counterpart: hi_blue
 - id: 13
   original_name: Fuchsia
   value: 0xff00ff
+  default_counterpart: hi_magenta
 - id: 14
   original_name: Aqua
   value: 0x00ffff
+  default_counterpart: hi_cyan
 - id: 15
   original_name: White
   value: 0xffffff
+  default_counterpart: hi_white
 - id: 16
   original_name: Grey0
   value: 0x000000
@@ -848,3 +864,28 @@
 - id: 255
   original_name: Grey93
   value: 0xeeeeee
+
+#     ┌───────────────────────────────────────────────────────┐
+#     │                                                       │
+#     │                                                       │
+#     │                                                       │
+#     │                                                       │
+#     │                                                       │
+#     │   ╔═══════════════════════════════════════════════╗   │
+#     │   ║ # FIELD                TYPE  DEFAULT  EXAMPLE ║   │
+#     │   ║ # id                   int               0    ║   │
+#     │   ║ # original_name        str            "Black" ║   │
+#     │   ║ # value                int           0x000000 ║   │
+#     │   ║ # default_counterpart  str?   null     "red"  ║   │
+#     │   ║ # override_name        str?   null    "White" ║   │
+#     │   ╚═══════════════════════════════════════════════╝   │
+#     │                                                       │
+#     │                                                       │
+#     │                                                       │
+#     │                                                       │
+#     │                                                       │
+#     └───────────────────────────────────────────────────────┘
+#                                     ┌───────────────────────┐
+#                                     │    "Схема конфига"    │
+#                                     │  холст, масло, 2022 г │
+#                                     └───────────────────────┘

@@ -12,7 +12,7 @@ High-level abstraction defining text colors and attributes.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field, InitVar
+from dataclasses import dataclass, field
 from typing import Any
 
 from . import color
@@ -53,7 +53,7 @@ class Style:
     Style[fg=008000, no bg, bold]
     >>> Style(bg=0x0000ff)
     Style[no fg, bg=0000ff]
-    >>> Style(fg=color.IDX_DEEP_SKY_BLUE_1, bg=color.IDX_GREY_93)
+    >>> Style(fg=color.XTERM_DEEP_SKY_BLUE_1, bg=color.XTERM_GREY_93)
     Style[fg=00afff, bg=eeeeee]
     """
     _fg: Color = field(default=None, init=False)
@@ -97,7 +97,7 @@ class Style:
         ANSI escape sequences.
         """
         from .renderer import RendererManager
-        return RendererManager.get_default().render(self, text)
+        return RendererManager.get_default().render(text, self)
     
     def autopick_fg(self) -> Color|None:
         """

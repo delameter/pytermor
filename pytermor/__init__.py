@@ -8,3 +8,8 @@ from .span import Span
 from .style import Style
 from .text import Text
 from ._version import __version__
+
+import logging
+from logging import NullHandler
+
+logging.getLogger(__name__).addHandler(NullHandler())

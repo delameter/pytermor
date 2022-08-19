@@ -14,4 +14,5 @@ API reference
    sequence
    span
    style
+   text
    util/index

@@ -72,7 +72,7 @@ test-debug: ## Run pytest with VERY detailed output
 
 doctest: ## Run doctest
 	. venv/bin/activate
-	make -C docs doctest 2>&1 | grep -iEe 'failed example|summary' -A6 | sed -E -e 's/^\*+//' -e '/^\-/ d'
+	sphinx-build docs docs/_build -b doctest -q && echo "Doctest ${GREEN}OK${RESET}"
 
 coverage: ## Run coverage and make a report
 	rm -v coverage-report/*

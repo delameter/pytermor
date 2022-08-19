@@ -30,8 +30,11 @@ class PyModuleColorGenerator:
         print('# ---------------------------------- GENERATED '
               '---------------------------------\n', file=f)
         for cc in cfg_indexed:
-            print(f'{cc["name_idx"]} = ColorIndexed(0x{cc["value"]:06x}, intcode.'
-                  f'{cc["name_idx"]})  # {cc["id"]} {cc["renamed_from"]}', file=f)
+            print(f'{cc["name_idx"]} = ColorIndexed('
+                  f'0x{cc["value"]:06x}, '
+                  f'intcode.{cc["name_idx"]}'
+                  f'{", use_for_approximations=False" if cc["default_counterpart"] else ""}'
+                  f')  # {cc["id"]} {cc["renamed_from"]}', file=f)
         print(f.name)
 
 
@@ -275,6 +278,7 @@ class Main:
             c['first_rename'] = ''
             c['original_name_rst'] = ''
             c['renamed_from'] = ''
+            if not c.get('default_counterpart', None): c['default_counterpart'] = None
             if c['name'] != c['original_name']:
                 c['renamed_from'] = f'(orig. {c["original_name"]})'
                 c['original_name_rst'] = f'**{c["original_name"]}**'

@@ -25,8 +25,7 @@ from __future__ import annotations
 import abc
 import sys
 from abc import abstractmethod
-from queue import Queue
-from typing import Type, Dict, Set, List
+from typing import Type, Dict, Set, List, Any
 
 from . import sequence
 from .color import Color, ColorRGB, ColorIndexed, ColorDefault
@@ -49,10 +48,10 @@ class RendererManager:
             default setting restored (`SGRRenderer`).
 
         >>> RendererManager.set_up(DebugRenderer)
-        >>> Style('red').render('text')
+        >>> Style(fg='red').render('text')
         '|ǝ31|text|ǝ39|'
 
-        >>> NoOpRenderer.render(Style('red'), 'text')
+        >>> NoOpRenderer.render('text',Style(fg='red'))
         'text'
         """
         cls._default = default_renderer or SGRRenderer
@@ -68,7 +67,7 @@ class Renderer(metaclass=abc.ABCMeta):
 
     @classmethod
     @abstractmethod
-    def render(cls, style: Style, text: str) -> str:
+    def render(cls, text: Any, style: Style) -> str:
         """
         Apply colors and attributes described in ``style`` argument to
         ``text`` and return the result. Output format depends on renderer's
@@ -124,7 +123,7 @@ class SGRRenderer(Renderer):
         cls._compatibility_default = compatibility_default
 
     @classmethod
-    def render(cls, style: Style, text: str):
+    def render(cls, text: Any, style: Style):
         """
         Render ``text`` with ``style`` applied as ANSI control sequences.
 
@@ -142,7 +141,7 @@ class SGRRenderer(Renderer):
         2. `ColorIndexed` can be rendered as indexed sequence or default sequence.
         3. `ColorDefault` will be rendered as default-color sequence.
 
-        >>> SGRRenderer.render(Style(fg='red', bold=True), 'text')
+        >>> SGRRenderer.render('text', Style(fg='red', bold=True))
         '\\x1b[1;31mtext\\x1b[22;39m'
 
         :param style: Style to apply.
@@ -158,7 +157,7 @@ class SGRRenderer(Renderer):
         # will be correctly displayed regardless of implementation details of
         # user's pager, multiplexer, terminal emulator etc.
         rendered_text = ''
-        for line in text.splitlines(keepends=True):
+        for line in str(text).splitlines(keepends=True):
             rendered_text += Span(opening_seq).wrap(line)
         return rendered_text
 
@@ -219,19 +218,20 @@ class TmuxRenderer(Renderer):
 
 class NoOpRenderer(Renderer):
     @classmethod
-    def render(cls, style: Style, text: str) -> str:
+    def render(cls, text: Any, style: Style) -> str:
         """
         Special renderer type that does nothing with the input string and just
-        returns it as is.
+        returns it as is. That's true only when it _is_ a `str` beforehand;
+        otherwise argument will be casted to str and then returned.
 
-        >>> NoOpRenderer.render(Style('red', bold=True), 'text')
+        >>> NoOpRenderer.render('text',Style(fg='red', bold=True))
         'text'
 
         :param style: Style to ignore.
         :param text: Input string.
         :return: Input string without changes.
         """
-        return text
+        return str(text)
 
 
 class HtmlRenderer(Renderer):
@@ -239,9 +239,9 @@ class HtmlRenderer(Renderer):
                      'text-decoration', 'border', 'filter', ]
 
     @classmethod
-    def render(cls, style: Style, text: str) -> str:
+    def render(cls, text: Any, style: Style) -> str:
         """
-        >>> HtmlRenderer.render(Style('red', bold=True), 'text')
+        >>> HtmlRenderer.render('text',Style(fg='red', bold=True))
         '<span style="color: #800000; font-weight: 700">text</span>'
         """
 
@@ -274,11 +274,11 @@ class HtmlRenderer(Renderer):
         if style.underlined:
             span_styles['text-decoration'].add('underline')
 
-        span_class_str = '' if style.class_name is None else f'class="{style.class_name}"'
+        span_class_str = f'' if style.class_name is None else f' class="{style.class_name}"'
         span_style_str = '; '.join(f"{k}: {' '.join(v)}"
                                    for k, v in span_styles.items()
                                    if len(v) > 0)
-        return f'<span {span_class_str} style="{span_style_str}">{text}</span>'  # @TODO  # attribues
+        return f'<span{span_class_str} style="{span_style_str}">{text}</span>'  # @TODO  # attribues
 
     @classmethod
     def _get_default_attrs(cls) -> List[str]:
@@ -287,12 +287,12 @@ class HtmlRenderer(Renderer):
 
 class DebugRenderer(Renderer):
     @classmethod
-    def render(cls, style: Style, text: str) -> str:
+    def render(cls, text: Any, style: Style) -> str:
         """
-        >>> DebugRenderer.render(Style('red', bold=True), 'text')
+        >>> DebugRenderer.render('text',Style(fg='red', bold=True))
         '|ǝ1;31|text|ǝ22;39|'
         """
-        return ReplaceSGR(r'|ǝ\3|').apply(SGRRenderer.render(style, text))
+        return ReplaceSGR(r'|ǝ\3|').apply(SGRRenderer.render(str(text), style))
 
 
 RendererManager.set_up()

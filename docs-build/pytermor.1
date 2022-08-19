@@ -27,9 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "PYTERMOR" "1" "Aug 18, 2022" "2.0.0-dev.15" "pytermor"
+.TH "PYTERMOR" "1" "Aug 20, 2022" "2.0.0-dev.17" "pytermor"
 .SH NAME
-pytermor \- pytermor 2.0.0-dev.15
+pytermor \- pytermor 2.0.0-dev.17
 .sp
 \fI(yet another)\fP Python library designed for formatting terminal output using ANSI escape codes. Implements automatic \fI\%\(dqsoft\(dq\fP format termination. Provides a registry of low\-level SGR \fI\%sequences\fP and formatting \fI\%spans\fP (or combined sequences). Also includes a set of formatters for pretty output.
 .sp
@@ -164,6 +164,60 @@ Customizable output formats
 String and number formatters
 .sp
 @TODO
+.SS Abstractions hierarchy
+.TS
+center;
+|l|l|.
+_
+T{
+Entities
+T}	T{
+Purpose
+T}
+_
+T{
+\fI\%render.Text\fP
+T}	T{
+Container consisting of text pieces each with attached \fI\%Style\fP\&. Renders into specified format keeping all the formatting. \fIHIGHEST\fP abstraction level.
+T}
+_
+T{
+\fBrender.Style\fP
+T}	T{
+Reusable abstractions defining colors and text attributes (text color, bg color, \fBbold\fP attribute, \fBunderlined\fP attribute etc).
+T}
+_
+T{
+\fBrender.*Renderer\fP
+T}	T{
+\fI\%SGRRenderer\fP transforms \fI\%Style\fP instances into \fI\%Color\fP, \fI\%Span\fP and \fI\%SequenceSGR\fP instances and assembles it all up. There are several other implementations depenging on required output format: \fI\%HtmlRenderer\fP, \fI\%TmuxRenderer\fP etc.
+T}
+_
+T{
+\fBcolor.Color*\fP
+T}	T{
+Abstractions for color operations in different color modes (default 16\-color, 256\-color, RGB). Tools for color approximation and transformations.
+T}
+_
+T{
+\fBansi.Span\fP
+T}	T{
+Abstraction consisting of \(dqopening\(dq SGR sequence defined by the developer (or taken from preset list) and complementary \(dqclosing\(dq SGR sequence that is built automatically.
+T}
+_
+T{
+\fBansi.SequenceSGR\fP
+T}	T{
+Abstractions for manipulating ANSI control sequences and classes\-factories. \fILOWEST\fP ABSTRACTION LEVEL.
+T}
+_
+T{
+\fI\%intcode\fP
+T}	T{
+Registry of escape control sequence parameters.
+T}
+_
+.TE
 .SS High\-level abstractions
 .SS Colors and Styles
 .SS Output format control
@@ -1434,7 +1488,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_BLACK\fP [3]
+\fBXTERM_BLACK\fP [3]
 T}	T{
 \fB0\fP
 T}	T{
@@ -1450,7 +1504,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MAROON\fP
+\fBXTERM_MAROON\fP
 T}	T{
 \fB1\fP
 T}	T{
@@ -1466,7 +1520,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREEN\fP
+\fBXTERM_GREEN\fP
 T}	T{
 \fB2\fP
 T}	T{
@@ -1482,7 +1536,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_OLIVE\fP
+\fBXTERM_OLIVE\fP
 T}	T{
 \fB3\fP
 T}	T{
@@ -1498,7 +1552,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_NAVY\fP
+\fBXTERM_NAVY\fP
 T}	T{
 \fB4\fP
 T}	T{
@@ -1514,7 +1568,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PURPLE_5\fP
+\fBXTERM_PURPLE_5\fP
 T}	T{
 \fB5\fP
 T}	T{
@@ -1531,7 +1585,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_TEAL\fP
+\fBXTERM_TEAL\fP
 T}	T{
 \fB6\fP
 T}	T{
@@ -1547,7 +1601,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SILVER\fP
+\fBXTERM_SILVER\fP
 T}	T{
 \fB7\fP
 T}	T{
@@ -1563,7 +1617,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY\fP
+\fBXTERM_GREY\fP
 T}	T{
 \fB8\fP
 T}	T{
@@ -1579,7 +1633,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_RED\fP
+\fBXTERM_RED\fP
 T}	T{
 \fB9\fP
 T}	T{
@@ -1595,7 +1649,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIME\fP
+\fBXTERM_LIME\fP
 T}	T{
 \fB10\fP
 T}	T{
@@ -1611,7 +1665,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_YELLOW\fP
+\fBXTERM_YELLOW\fP
 T}	T{
 \fB11\fP
 T}	T{
@@ -1627,7 +1681,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_BLUE\fP
+\fBXTERM_BLUE\fP
 T}	T{
 \fB12\fP
 T}	T{
@@ -1643,7 +1697,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_FUCHSIA\fP
+\fBXTERM_FUCHSIA\fP
 T}	T{
 \fB13\fP
 T}	T{
@@ -1659,7 +1713,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_AQUA\fP
+\fBXTERM_AQUA\fP
 T}	T{
 \fB14\fP
 T}	T{
@@ -1675,7 +1729,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_WHITE\fP
+\fBXTERM_WHITE\fP
 T}	T{
 \fB15\fP
 T}	T{
@@ -1691,7 +1745,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_0\fP
+\fBXTERM_GREY_0\fP
 T}	T{
 \fB16\fP
 T}	T{
@@ -1707,7 +1761,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_NAVY_BLUE\fP
+\fBXTERM_NAVY_BLUE\fP
 T}	T{
 \fB17\fP
 T}	T{
@@ -1723,7 +1777,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_BLUE\fP
+\fBXTERM_DARK_BLUE\fP
 T}	T{
 \fB18\fP
 T}	T{
@@ -1739,7 +1793,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_BLUE_3\fP
+\fBXTERM_BLUE_3\fP
 T}	T{
 \fB19\fP
 T}	T{
@@ -1755,7 +1809,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_BLUE_2\fP
+\fBXTERM_BLUE_2\fP
 T}	T{
 \fB20\fP
 T}	T{
@@ -1772,7 +1826,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_BLUE_1\fP
+\fBXTERM_BLUE_1\fP
 T}	T{
 \fB21\fP
 T}	T{
@@ -1788,7 +1842,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_GREEN\fP
+\fBXTERM_DARK_GREEN\fP
 T}	T{
 \fB22\fP
 T}	T{
@@ -1804,7 +1858,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DEEP_SKY_BLUE_7\fP
+\fBXTERM_DEEP_SKY_BLUE_7\fP
 T}	T{
 \fB23\fP
 T}	T{
@@ -1821,7 +1875,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DEEP_SKY_BLUE_6\fP
+\fBXTERM_DEEP_SKY_BLUE_6\fP
 T}	T{
 \fB24\fP
 T}	T{
@@ -1838,7 +1892,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DEEP_SKY_BLUE_5\fP
+\fBXTERM_DEEP_SKY_BLUE_5\fP
 T}	T{
 \fB25\fP
 T}	T{
@@ -1855,7 +1909,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DODGER_BLUE_3\fP
+\fBXTERM_DODGER_BLUE_3\fP
 T}	T{
 \fB26\fP
 T}	T{
@@ -1871,7 +1925,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DODGER_BLUE_2\fP
+\fBXTERM_DODGER_BLUE_2\fP
 T}	T{
 \fB27\fP
 T}	T{
@@ -1887,7 +1941,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREEN_5\fP
+\fBXTERM_GREEN_5\fP
 T}	T{
 \fB28\fP
 T}	T{
@@ -1904,7 +1958,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SPRING_GREEN_4\fP
+\fBXTERM_SPRING_GREEN_4\fP
 T}	T{
 \fB29\fP
 T}	T{
@@ -1920,7 +1974,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_TURQUOISE_4\fP
+\fBXTERM_TURQUOISE_4\fP
 T}	T{
 \fB30\fP
 T}	T{
@@ -1936,7 +1990,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DEEP_SKY_BLUE_4\fP
+\fBXTERM_DEEP_SKY_BLUE_4\fP
 T}	T{
 \fB31\fP
 T}	T{
@@ -1953,7 +2007,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DEEP_SKY_BLUE_3\fP
+\fBXTERM_DEEP_SKY_BLUE_3\fP
 T}	T{
 \fB32\fP
 T}	T{
@@ -1969,7 +2023,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DODGER_BLUE_1\fP
+\fBXTERM_DODGER_BLUE_1\fP
 T}	T{
 \fB33\fP
 T}	T{
@@ -1985,7 +2039,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREEN_4\fP
+\fBXTERM_GREEN_4\fP
 T}	T{
 \fB34\fP
 T}	T{
@@ -2002,7 +2056,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SPRING_GREEN_3\fP
+\fBXTERM_SPRING_GREEN_5\fP
 T}	T{
 \fB35\fP
 T}	T{
@@ -2013,12 +2067,13 @@ T}	T{
 T}	T{
 \fB#00af5f\fP
 T}	T{
+\fBSpringGreen3\fP
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_CYAN\fP
+\fBXTERM_DARK_CYAN\fP
 T}	T{
 \fB36\fP
 T}	T{
@@ -2034,7 +2089,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_SEA_GREEN\fP
+\fBXTERM_LIGHT_SEA_GREEN\fP
 T}	T{
 \fB37\fP
 T}	T{
@@ -2050,7 +2105,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DEEP_SKY_BLUE_2\fP
+\fBXTERM_DEEP_SKY_BLUE_2\fP
 T}	T{
 \fB38\fP
 T}	T{
@@ -2066,7 +2121,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DEEP_SKY_BLUE_1\fP
+\fBXTERM_DEEP_SKY_BLUE_1\fP
 T}	T{
 \fB39\fP
 T}	T{
@@ -2082,7 +2137,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREEN_3\fP
+\fBXTERM_GREEN_3\fP
 T}	T{
 \fB40\fP
 T}	T{
@@ -2098,7 +2153,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SPRING_GREEN_3\fP
+\fBXTERM_SPRING_GREEN_3\fP
 T}	T{
 \fB41\fP
 T}	T{
@@ -2114,7 +2169,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SPRING_GREEN_2\fP
+\fBXTERM_SPRING_GREEN_6\fP
 T}	T{
 \fB42\fP
 T}	T{
@@ -2125,12 +2180,13 @@ T}	T{
 T}	T{
 \fB#00d787\fP
 T}	T{
+\fBSpringGreen2\fP
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_CYAN_3\fP
+\fBXTERM_CYAN_3\fP
 T}	T{
 \fB43\fP
 T}	T{
@@ -2146,7 +2202,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_TURQUOISE\fP
+\fBXTERM_DARK_TURQUOISE\fP
 T}	T{
 \fB44\fP
 T}	T{
@@ -2162,7 +2218,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_TURQUOISE_2\fP
+\fBXTERM_TURQUOISE_2\fP
 T}	T{
 \fB45\fP
 T}	T{
@@ -2178,7 +2234,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREEN_2\fP
+\fBXTERM_GREEN_2\fP
 T}	T{
 \fB46\fP
 T}	T{
@@ -2195,7 +2251,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SPRING_GREEN_2\fP
+\fBXTERM_SPRING_GREEN_2\fP
 T}	T{
 \fB47\fP
 T}	T{
@@ -2211,7 +2267,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SPRING_GREEN_1\fP
+\fBXTERM_SPRING_GREEN_1\fP
 T}	T{
 \fB48\fP
 T}	T{
@@ -2227,7 +2283,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MEDIUM_SPRING_GREEN\fP
+\fBXTERM_MEDIUM_SPRING_GREEN\fP
 T}	T{
 \fB49\fP
 T}	T{
@@ -2243,7 +2299,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_CYAN_2\fP
+\fBXTERM_CYAN_2\fP
 T}	T{
 \fB50\fP
 T}	T{
@@ -2259,7 +2315,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_CYAN_1\fP
+\fBXTERM_CYAN_1\fP
 T}	T{
 \fB51\fP
 T}	T{
@@ -2275,7 +2331,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_RED_2\fP
+\fBXTERM_DARK_RED_2\fP
 T}	T{
 \fB52\fP
 T}	T{
@@ -2292,7 +2348,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DEEP_PINK_8\fP
+\fBXTERM_DEEP_PINK_8\fP
 T}	T{
 \fB53\fP
 T}	T{
@@ -2309,7 +2365,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PURPLE_6\fP
+\fBXTERM_PURPLE_6\fP
 T}	T{
 \fB54\fP
 T}	T{
@@ -2326,7 +2382,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PURPLE_4\fP
+\fBXTERM_PURPLE_4\fP
 T}	T{
 \fB55\fP
 T}	T{
@@ -2342,7 +2398,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PURPLE_3\fP
+\fBXTERM_PURPLE_3\fP
 T}	T{
 \fB56\fP
 T}	T{
@@ -2358,7 +2414,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_BLUE_VIOLET\fP
+\fBXTERM_BLUE_VIOLET\fP
 T}	T{
 \fB57\fP
 T}	T{
@@ -2374,7 +2430,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_ORANGE_4\fP
+\fBXTERM_ORANGE_4\fP
 T}	T{
 \fB58\fP
 T}	T{
@@ -2390,7 +2446,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_37\fP
+\fBXTERM_GREY_37\fP
 T}	T{
 \fB59\fP
 T}	T{
@@ -2406,7 +2462,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MEDIUM_PURPLE_7\fP
+\fBXTERM_MEDIUM_PURPLE_7\fP
 T}	T{
 \fB60\fP
 T}	T{
@@ -2423,7 +2479,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SLATE_BLUE_3\fP
+\fBXTERM_SLATE_BLUE_3\fP
 T}	T{
 \fB61\fP
 T}	T{
@@ -2439,7 +2495,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SLATE_BLUE_3\fP
+\fBXTERM_SLATE_BLUE_2\fP
 T}	T{
 \fB62\fP
 T}	T{
@@ -2450,12 +2506,13 @@ T}	T{
 T}	T{
 \fB#5f5fd7\fP
 T}	T{
+\fBSlateBlue3\fP
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_ROYAL_BLUE_1\fP
+\fBXTERM_ROYAL_BLUE_1\fP
 T}	T{
 \fB63\fP
 T}	T{
@@ -2471,7 +2528,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_CHARTREUSE_6\fP
+\fBXTERM_CHARTREUSE_6\fP
 T}	T{
 \fB64\fP
 T}	T{
@@ -2488,7 +2545,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_SEA_GREEN_9\fP
+\fBXTERM_DARK_SEA_GREEN_9\fP
 T}	T{
 \fB65\fP
 T}	T{
@@ -2505,7 +2562,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PALE_TURQUOISE_4\fP
+\fBXTERM_PALE_TURQUOISE_4\fP
 T}	T{
 \fB66\fP
 T}	T{
@@ -2521,7 +2578,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_STEEL_BLUE\fP
+\fBXTERM_STEEL_BLUE\fP
 T}	T{
 \fB67\fP
 T}	T{
@@ -2537,7 +2594,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_STEEL_BLUE_3\fP
+\fBXTERM_STEEL_BLUE_3\fP
 T}	T{
 \fB68\fP
 T}	T{
@@ -2553,7 +2610,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_CORNFLOWER_BLUE\fP
+\fBXTERM_CORNFLOWER_BLUE\fP
 T}	T{
 \fB69\fP
 T}	T{
@@ -2569,7 +2626,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_CHARTREUSE_5\fP
+\fBXTERM_CHARTREUSE_5\fP
 T}	T{
 \fB70\fP
 T}	T{
@@ -2586,7 +2643,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_SEA_GREEN_8\fP
+\fBXTERM_DARK_SEA_GREEN_8\fP
 T}	T{
 \fB71\fP
 T}	T{
@@ -2603,7 +2660,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_CADET_BLUE_2\fP
+\fBXTERM_CADET_BLUE_2\fP
 T}	T{
 \fB72\fP
 T}	T{
@@ -2620,7 +2677,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_CADET_BLUE\fP
+\fBXTERM_CADET_BLUE\fP
 T}	T{
 \fB73\fP
 T}	T{
@@ -2636,7 +2693,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SKY_BLUE_3\fP
+\fBXTERM_SKY_BLUE_3\fP
 T}	T{
 \fB74\fP
 T}	T{
@@ -2652,7 +2709,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_STEEL_BLUE_1\fP
+\fBXTERM_STEEL_BLUE_2\fP
 T}	T{
 \fB75\fP
 T}	T{
@@ -2663,12 +2720,13 @@ T}	T{
 T}	T{
 \fB#5fafff\fP
 T}	T{
+\fBSteelBlue1\fP
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_CHARTREUSE_4\fP
+\fBXTERM_CHARTREUSE_4\fP
 T}	T{
 \fB76\fP
 T}	T{
@@ -2685,7 +2743,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PALE_GREEN_4\fP
+\fBXTERM_PALE_GREEN_4\fP
 T}	T{
 \fB77\fP
 T}	T{
@@ -2702,7 +2760,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SEA_GREEN_3\fP
+\fBXTERM_SEA_GREEN_3\fP
 T}	T{
 \fB78\fP
 T}	T{
@@ -2718,7 +2776,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_AQUAMARINE_3\fP
+\fBXTERM_AQUAMARINE_3\fP
 T}	T{
 \fB79\fP
 T}	T{
@@ -2734,7 +2792,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MEDIUM_TURQUOISE\fP
+\fBXTERM_MEDIUM_TURQUOISE\fP
 T}	T{
 \fB80\fP
 T}	T{
@@ -2750,7 +2808,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_STEEL_BLUE_1\fP
+\fBXTERM_STEEL_BLUE_1\fP
 T}	T{
 \fB81\fP
 T}	T{
@@ -2766,7 +2824,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_CHARTREUSE_2\fP
+\fBXTERM_CHARTREUSE_2\fP
 T}	T{
 \fB82\fP
 T}	T{
@@ -2782,7 +2840,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SEA_GREEN_2\fP
+\fBXTERM_SEA_GREEN_4\fP
 T}	T{
 \fB83\fP
 T}	T{
@@ -2793,12 +2851,13 @@ T}	T{
 T}	T{
 \fB#5fff5f\fP
 T}	T{
+\fBSeaGreen2\fP
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_SEA_GREEN_1\fP
+\fBXTERM_SEA_GREEN_2\fP
 T}	T{
 \fB84\fP
 T}	T{
@@ -2809,12 +2868,13 @@ T}	T{
 T}	T{
 \fB#5fff87\fP
 T}	T{
+\fBSeaGreen1\fP
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_SEA_GREEN_1\fP
+\fBXTERM_SEA_GREEN_1\fP
 T}	T{
 \fB85\fP
 T}	T{
@@ -2830,7 +2890,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_AQUAMARINE_2\fP
+\fBXTERM_AQUAMARINE_2\fP
 T}	T{
 \fB86\fP
 T}	T{
@@ -2847,7 +2907,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_SLATE_GRAY_2\fP
+\fBXTERM_DARK_SLATE_GRAY_2\fP
 T}	T{
 \fB87\fP
 T}	T{
@@ -2863,7 +2923,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_RED\fP
+\fBXTERM_DARK_RED\fP
 T}	T{
 \fB88\fP
 T}	T{
@@ -2879,7 +2939,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DEEP_PINK_7\fP
+\fBXTERM_DEEP_PINK_7\fP
 T}	T{
 \fB89\fP
 T}	T{
@@ -2896,7 +2956,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_MAGENTA_2\fP
+\fBXTERM_DARK_MAGENTA_2\fP
 T}	T{
 \fB90\fP
 T}	T{
@@ -2913,7 +2973,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_MAGENTA\fP
+\fBXTERM_DARK_MAGENTA\fP
 T}	T{
 \fB91\fP
 T}	T{
@@ -2929,7 +2989,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_VIOLET_2\fP
+\fBXTERM_DARK_VIOLET_2\fP
 T}	T{
 \fB92\fP
 T}	T{
@@ -2946,7 +3006,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PURPLE_2\fP
+\fBXTERM_PURPLE_2\fP
 T}	T{
 \fB93\fP
 T}	T{
@@ -2963,7 +3023,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_ORANGE_3\fP
+\fBXTERM_ORANGE_3\fP
 T}	T{
 \fB94\fP
 T}	T{
@@ -2980,7 +3040,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_PINK_3\fP
+\fBXTERM_LIGHT_PINK_3\fP
 T}	T{
 \fB95\fP
 T}	T{
@@ -2997,7 +3057,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PLUM_4\fP
+\fBXTERM_PLUM_4\fP
 T}	T{
 \fB96\fP
 T}	T{
@@ -3013,7 +3073,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MEDIUM_PURPLE_6\fP
+\fBXTERM_MEDIUM_PURPLE_6\fP
 T}	T{
 \fB97\fP
 T}	T{
@@ -3030,7 +3090,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MEDIUM_PURPLE_5\fP
+\fBXTERM_MEDIUM_PURPLE_5\fP
 T}	T{
 \fB98\fP
 T}	T{
@@ -3047,7 +3107,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SLATE_BLUE_1\fP
+\fBXTERM_SLATE_BLUE_1\fP
 T}	T{
 \fB99\fP
 T}	T{
@@ -3063,7 +3123,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_YELLOW_4\fP
+\fBXTERM_YELLOW_6\fP
 T}	T{
 \fB100\fP
 T}	T{
@@ -3074,12 +3134,13 @@ T}	T{
 T}	T{
 \fB#878700\fP
 T}	T{
+\fBYellow4\fP
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_WHEAT_4\fP
+\fBXTERM_WHEAT_4\fP
 T}	T{
 \fB101\fP
 T}	T{
@@ -3095,7 +3156,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_53\fP
+\fBXTERM_GREY_53\fP
 T}	T{
 \fB102\fP
 T}	T{
@@ -3111,7 +3172,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_SLATE_GREY\fP
+\fBXTERM_LIGHT_SLATE_GREY\fP
 T}	T{
 \fB103\fP
 T}	T{
@@ -3127,7 +3188,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MEDIUM_PURPLE_4\fP
+\fBXTERM_MEDIUM_PURPLE_4\fP
 T}	T{
 \fB104\fP
 T}	T{
@@ -3144,7 +3205,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_SLATE_BLUE\fP
+\fBXTERM_LIGHT_SLATE_BLUE\fP
 T}	T{
 \fB105\fP
 T}	T{
@@ -3160,7 +3221,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_YELLOW_4\fP
+\fBXTERM_YELLOW_4\fP
 T}	T{
 \fB106\fP
 T}	T{
@@ -3176,7 +3237,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_OLIVE_GREEN_6\fP
+\fBXTERM_DARK_OLIVE_GREEN_6\fP
 T}	T{
 \fB107\fP
 T}	T{
@@ -3193,7 +3254,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_SEA_GREEN_7\fP
+\fBXTERM_DARK_SEA_GREEN_7\fP
 T}	T{
 \fB108\fP
 T}	T{
@@ -3210,7 +3271,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_SKY_BLUE_3\fP
+\fBXTERM_LIGHT_SKY_BLUE_3\fP
 T}	T{
 \fB109\fP
 T}	T{
@@ -3226,7 +3287,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_SKY_BLUE_2\fP
+\fBXTERM_LIGHT_SKY_BLUE_2\fP
 T}	T{
 \fB110\fP
 T}	T{
@@ -3243,7 +3304,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SKY_BLUE_2\fP
+\fBXTERM_SKY_BLUE_2\fP
 T}	T{
 \fB111\fP
 T}	T{
@@ -3259,7 +3320,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_CHARTREUSE_3\fP
+\fBXTERM_CHARTREUSE_3\fP
 T}	T{
 \fB112\fP
 T}	T{
@@ -3276,7 +3337,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_OLIVE_GREEN_4\fP
+\fBXTERM_DARK_OLIVE_GREEN_4\fP
 T}	T{
 \fB113\fP
 T}	T{
@@ -3293,7 +3354,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PALE_GREEN_3\fP
+\fBXTERM_PALE_GREEN_3\fP
 T}	T{
 \fB114\fP
 T}	T{
@@ -3309,7 +3370,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_SEA_GREEN_5\fP
+\fBXTERM_DARK_SEA_GREEN_5\fP
 T}	T{
 \fB115\fP
 T}	T{
@@ -3326,7 +3387,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_SLATE_GRAY_3\fP
+\fBXTERM_DARK_SLATE_GRAY_3\fP
 T}	T{
 \fB116\fP
 T}	T{
@@ -3342,7 +3403,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SKY_BLUE_1\fP
+\fBXTERM_SKY_BLUE_1\fP
 T}	T{
 \fB117\fP
 T}	T{
@@ -3358,7 +3419,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_CHARTREUSE_1\fP
+\fBXTERM_CHARTREUSE_1\fP
 T}	T{
 \fB118\fP
 T}	T{
@@ -3374,7 +3435,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_GREEN_2\fP
+\fBXTERM_LIGHT_GREEN_2\fP
 T}	T{
 \fB119\fP
 T}	T{
@@ -3391,7 +3452,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_GREEN\fP
+\fBXTERM_LIGHT_GREEN\fP
 T}	T{
 \fB120\fP
 T}	T{
@@ -3407,7 +3468,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PALE_GREEN_1\fP
+\fBXTERM_PALE_GREEN_1\fP
 T}	T{
 \fB121\fP
 T}	T{
@@ -3423,7 +3484,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_AQUAMARINE_1\fP
+\fBXTERM_AQUAMARINE_1\fP
 T}	T{
 \fB122\fP
 T}	T{
@@ -3439,7 +3500,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_SLATE_GRAY_1\fP
+\fBXTERM_DARK_SLATE_GRAY_1\fP
 T}	T{
 \fB123\fP
 T}	T{
@@ -3455,7 +3516,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_RED_4\fP
+\fBXTERM_RED_4\fP
 T}	T{
 \fB124\fP
 T}	T{
@@ -3472,7 +3533,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DEEP_PINK_6\fP
+\fBXTERM_DEEP_PINK_6\fP
 T}	T{
 \fB125\fP
 T}	T{
@@ -3489,7 +3550,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MEDIUM_VIOLET_RED\fP
+\fBXTERM_MEDIUM_VIOLET_RED\fP
 T}	T{
 \fB126\fP
 T}	T{
@@ -3505,7 +3566,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MAGENTA_6\fP
+\fBXTERM_MAGENTA_6\fP
 T}	T{
 \fB127\fP
 T}	T{
@@ -3522,7 +3583,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_VIOLET\fP
+\fBXTERM_DARK_VIOLET\fP
 T}	T{
 \fB128\fP
 T}	T{
@@ -3538,7 +3599,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PURPLE\fP
+\fBXTERM_PURPLE\fP
 T}	T{
 \fB129\fP
 T}	T{
@@ -3554,7 +3615,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_ORANGE_3\fP
+\fBXTERM_DARK_ORANGE_3\fP
 T}	T{
 \fB130\fP
 T}	T{
@@ -3570,7 +3631,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_INDIAN_RED_4\fP
+\fBXTERM_INDIAN_RED_4\fP
 T}	T{
 \fB131\fP
 T}	T{
@@ -3587,7 +3648,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_HOT_PINK_5\fP
+\fBXTERM_HOT_PINK_5\fP
 T}	T{
 \fB132\fP
 T}	T{
@@ -3604,7 +3665,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MEDIUM_ORCHID_4\fP
+\fBXTERM_MEDIUM_ORCHID_4\fP
 T}	T{
 \fB133\fP
 T}	T{
@@ -3621,7 +3682,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MEDIUM_ORCHID_3\fP
+\fBXTERM_MEDIUM_ORCHID_3\fP
 T}	T{
 \fB134\fP
 T}	T{
@@ -3638,7 +3699,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MEDIUM_PURPLE_2\fP
+\fBXTERM_MEDIUM_PURPLE_2\fP
 T}	T{
 \fB135\fP
 T}	T{
@@ -3654,7 +3715,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_GOLDENROD\fP
+\fBXTERM_DARK_GOLDENROD\fP
 T}	T{
 \fB136\fP
 T}	T{
@@ -3670,7 +3731,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_SALMON_3\fP
+\fBXTERM_LIGHT_SALMON_3\fP
 T}	T{
 \fB137\fP
 T}	T{
@@ -3686,7 +3747,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_ROSY_BROWN\fP
+\fBXTERM_ROSY_BROWN\fP
 T}	T{
 \fB138\fP
 T}	T{
@@ -3702,7 +3763,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_63\fP
+\fBXTERM_GREY_63\fP
 T}	T{
 \fB139\fP
 T}	T{
@@ -3718,7 +3779,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MEDIUM_PURPLE_3\fP
+\fBXTERM_MEDIUM_PURPLE_3\fP
 T}	T{
 \fB140\fP
 T}	T{
@@ -3735,7 +3796,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MEDIUM_PURPLE_1\fP
+\fBXTERM_MEDIUM_PURPLE_1\fP
 T}	T{
 \fB141\fP
 T}	T{
@@ -3751,7 +3812,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GOLD_3\fP
+\fBXTERM_GOLD_3\fP
 T}	T{
 \fB142\fP
 T}	T{
@@ -3767,7 +3828,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_KHAKI\fP
+\fBXTERM_DARK_KHAKI\fP
 T}	T{
 \fB143\fP
 T}	T{
@@ -3783,7 +3844,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_NAVAJO_WHITE_3\fP
+\fBXTERM_NAVAJO_WHITE_3\fP
 T}	T{
 \fB144\fP
 T}	T{
@@ -3799,7 +3860,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_69\fP
+\fBXTERM_GREY_69\fP
 T}	T{
 \fB145\fP
 T}	T{
@@ -3815,7 +3876,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_STEEL_BLUE_3\fP
+\fBXTERM_LIGHT_STEEL_BLUE_3\fP
 T}	T{
 \fB146\fP
 T}	T{
@@ -3831,7 +3892,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_STEEL_BLUE_2\fP
+\fBXTERM_LIGHT_STEEL_BLUE_2\fP
 T}	T{
 \fB147\fP
 T}	T{
@@ -3848,7 +3909,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_YELLOW_3\fP
+\fBXTERM_YELLOW_5\fP
 T}	T{
 \fB148\fP
 T}	T{
@@ -3859,12 +3920,13 @@ T}	T{
 T}	T{
 \fB#afd700\fP
 T}	T{
+\fBYellow3\fP
 T}
 _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_OLIVE_GREEN_5\fP
+\fBXTERM_DARK_OLIVE_GREEN_5\fP
 T}	T{
 \fB149\fP
 T}	T{
@@ -3881,7 +3943,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_SEA_GREEN_6\fP
+\fBXTERM_DARK_SEA_GREEN_6\fP
 T}	T{
 \fB150\fP
 T}	T{
@@ -3898,7 +3960,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_SEA_GREEN_4\fP
+\fBXTERM_DARK_SEA_GREEN_4\fP
 T}	T{
 \fB151\fP
 T}	T{
@@ -3915,7 +3977,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_CYAN_3\fP
+\fBXTERM_LIGHT_CYAN_3\fP
 T}	T{
 \fB152\fP
 T}	T{
@@ -3931,7 +3993,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_SKY_BLUE_1\fP
+\fBXTERM_LIGHT_SKY_BLUE_1\fP
 T}	T{
 \fB153\fP
 T}	T{
@@ -3947,7 +4009,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREEN_YELLOW\fP
+\fBXTERM_GREEN_YELLOW\fP
 T}	T{
 \fB154\fP
 T}	T{
@@ -3963,7 +4025,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_OLIVE_GREEN_3\fP
+\fBXTERM_DARK_OLIVE_GREEN_3\fP
 T}	T{
 \fB155\fP
 T}	T{
@@ -3980,7 +4042,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PALE_GREEN_2\fP
+\fBXTERM_PALE_GREEN_2\fP
 T}	T{
 \fB156\fP
 T}	T{
@@ -3997,7 +4059,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_SEA_GREEN_3\fP
+\fBXTERM_DARK_SEA_GREEN_3\fP
 T}	T{
 \fB157\fP
 T}	T{
@@ -4014,7 +4076,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_SEA_GREEN_1\fP
+\fBXTERM_DARK_SEA_GREEN_1\fP
 T}	T{
 \fB158\fP
 T}	T{
@@ -4030,7 +4092,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PALE_TURQUOISE_1\fP
+\fBXTERM_PALE_TURQUOISE_1\fP
 T}	T{
 \fB159\fP
 T}	T{
@@ -4046,7 +4108,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_RED_3\fP
+\fBXTERM_RED_3\fP
 T}	T{
 \fB160\fP
 T}	T{
@@ -4062,7 +4124,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DEEP_PINK_5\fP
+\fBXTERM_DEEP_PINK_5\fP
 T}	T{
 \fB161\fP
 T}	T{
@@ -4079,7 +4141,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DEEP_PINK_3\fP
+\fBXTERM_DEEP_PINK_3\fP
 T}	T{
 \fB162\fP
 T}	T{
@@ -4095,7 +4157,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MAGENTA_3\fP
+\fBXTERM_MAGENTA_3\fP
 T}	T{
 \fB163\fP
 T}	T{
@@ -4111,7 +4173,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MAGENTA_5\fP
+\fBXTERM_MAGENTA_5\fP
 T}	T{
 \fB164\fP
 T}	T{
@@ -4128,7 +4190,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MAGENTA_4\fP
+\fBXTERM_MAGENTA_4\fP
 T}	T{
 \fB165\fP
 T}	T{
@@ -4145,7 +4207,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_ORANGE_2\fP
+\fBXTERM_DARK_ORANGE_2\fP
 T}	T{
 \fB166\fP
 T}	T{
@@ -4162,7 +4224,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_INDIAN_RED_3\fP
+\fBXTERM_INDIAN_RED_3\fP
 T}	T{
 \fB167\fP
 T}	T{
@@ -4179,7 +4241,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_HOT_PINK_4\fP
+\fBXTERM_HOT_PINK_4\fP
 T}	T{
 \fB168\fP
 T}	T{
@@ -4196,7 +4258,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_HOT_PINK_3\fP
+\fBXTERM_HOT_PINK_3\fP
 T}	T{
 \fB169\fP
 T}	T{
@@ -4213,7 +4275,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_ORCHID_3\fP
+\fBXTERM_ORCHID_3\fP
 T}	T{
 \fB170\fP
 T}	T{
@@ -4230,7 +4292,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MEDIUM_ORCHID_2\fP
+\fBXTERM_MEDIUM_ORCHID_2\fP
 T}	T{
 \fB171\fP
 T}	T{
@@ -4247,7 +4309,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_ORANGE_2\fP
+\fBXTERM_ORANGE_2\fP
 T}	T{
 \fB172\fP
 T}	T{
@@ -4264,7 +4326,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_SALMON_2\fP
+\fBXTERM_LIGHT_SALMON_2\fP
 T}	T{
 \fB173\fP
 T}	T{
@@ -4281,7 +4343,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_PINK_2\fP
+\fBXTERM_LIGHT_PINK_2\fP
 T}	T{
 \fB174\fP
 T}	T{
@@ -4298,7 +4360,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PINK_3\fP
+\fBXTERM_PINK_3\fP
 T}	T{
 \fB175\fP
 T}	T{
@@ -4314,7 +4376,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PLUM_3\fP
+\fBXTERM_PLUM_3\fP
 T}	T{
 \fB176\fP
 T}	T{
@@ -4330,7 +4392,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_VIOLET\fP
+\fBXTERM_VIOLET\fP
 T}	T{
 \fB177\fP
 T}	T{
@@ -4346,7 +4408,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GOLD_2\fP
+\fBXTERM_GOLD_2\fP
 T}	T{
 \fB178\fP
 T}	T{
@@ -4363,7 +4425,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_GOLDENROD_5\fP
+\fBXTERM_LIGHT_GOLDENROD_5\fP
 T}	T{
 \fB179\fP
 T}	T{
@@ -4380,7 +4442,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_TAN\fP
+\fBXTERM_TAN\fP
 T}	T{
 \fB180\fP
 T}	T{
@@ -4396,7 +4458,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MISTY_ROSE_3\fP
+\fBXTERM_MISTY_ROSE_3\fP
 T}	T{
 \fB181\fP
 T}	T{
@@ -4412,7 +4474,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_THISTLE_3\fP
+\fBXTERM_THISTLE_3\fP
 T}	T{
 \fB182\fP
 T}	T{
@@ -4428,7 +4490,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PLUM_2\fP
+\fBXTERM_PLUM_2\fP
 T}	T{
 \fB183\fP
 T}	T{
@@ -4444,7 +4506,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_YELLOW_3\fP
+\fBXTERM_YELLOW_3\fP
 T}	T{
 \fB184\fP
 T}	T{
@@ -4460,7 +4522,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_KHAKI_3\fP
+\fBXTERM_KHAKI_3\fP
 T}	T{
 \fB185\fP
 T}	T{
@@ -4476,7 +4538,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_GOLDENROD_3\fP
+\fBXTERM_LIGHT_GOLDENROD_3\fP
 T}	T{
 \fB186\fP
 T}	T{
@@ -4493,7 +4555,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_YELLOW_3\fP
+\fBXTERM_LIGHT_YELLOW_3\fP
 T}	T{
 \fB187\fP
 T}	T{
@@ -4509,7 +4571,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_84\fP
+\fBXTERM_GREY_84\fP
 T}	T{
 \fB188\fP
 T}	T{
@@ -4525,7 +4587,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_STEEL_BLUE_1\fP
+\fBXTERM_LIGHT_STEEL_BLUE_1\fP
 T}	T{
 \fB189\fP
 T}	T{
@@ -4541,7 +4603,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_YELLOW_2\fP
+\fBXTERM_YELLOW_2\fP
 T}	T{
 \fB190\fP
 T}	T{
@@ -4557,7 +4619,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_OLIVE_GREEN_2\fP
+\fBXTERM_DARK_OLIVE_GREEN_2\fP
 T}	T{
 \fB191\fP
 T}	T{
@@ -4574,7 +4636,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_OLIVE_GREEN_1\fP
+\fBXTERM_DARK_OLIVE_GREEN_1\fP
 T}	T{
 \fB192\fP
 T}	T{
@@ -4590,7 +4652,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_SEA_GREEN_2\fP
+\fBXTERM_DARK_SEA_GREEN_2\fP
 T}	T{
 \fB193\fP
 T}	T{
@@ -4607,7 +4669,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_HONEYDEW_2\fP
+\fBXTERM_HONEYDEW_2\fP
 T}	T{
 \fB194\fP
 T}	T{
@@ -4623,7 +4685,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_CYAN_1\fP
+\fBXTERM_LIGHT_CYAN_1\fP
 T}	T{
 \fB195\fP
 T}	T{
@@ -4639,7 +4701,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_RED_1\fP
+\fBXTERM_RED_1\fP
 T}	T{
 \fB196\fP
 T}	T{
@@ -4655,7 +4717,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DEEP_PINK_4\fP
+\fBXTERM_DEEP_PINK_4\fP
 T}	T{
 \fB197\fP
 T}	T{
@@ -4672,7 +4734,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DEEP_PINK_2\fP
+\fBXTERM_DEEP_PINK_2\fP
 T}	T{
 \fB198\fP
 T}	T{
@@ -4689,7 +4751,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DEEP_PINK_1\fP
+\fBXTERM_DEEP_PINK_1\fP
 T}	T{
 \fB199\fP
 T}	T{
@@ -4705,7 +4767,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MAGENTA_2\fP
+\fBXTERM_MAGENTA_2\fP
 T}	T{
 \fB200\fP
 T}	T{
@@ -4721,7 +4783,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MAGENTA_1\fP
+\fBXTERM_MAGENTA_1\fP
 T}	T{
 \fB201\fP
 T}	T{
@@ -4737,7 +4799,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_ORANGE_RED_1\fP
+\fBXTERM_ORANGE_RED_1\fP
 T}	T{
 \fB202\fP
 T}	T{
@@ -4753,7 +4815,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_INDIAN_RED_1\fP
+\fBXTERM_INDIAN_RED_1\fP
 T}	T{
 \fB203\fP
 T}	T{
@@ -4769,7 +4831,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_INDIAN_RED_2\fP
+\fBXTERM_INDIAN_RED_2\fP
 T}	T{
 \fB204\fP
 T}	T{
@@ -4786,7 +4848,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_HOT_PINK_2\fP
+\fBXTERM_HOT_PINK_2\fP
 T}	T{
 \fB205\fP
 T}	T{
@@ -4803,7 +4865,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_HOT_PINK\fP
+\fBXTERM_HOT_PINK\fP
 T}	T{
 \fB206\fP
 T}	T{
@@ -4819,7 +4881,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MEDIUM_ORCHID_1\fP
+\fBXTERM_MEDIUM_ORCHID_1\fP
 T}	T{
 \fB207\fP
 T}	T{
@@ -4835,7 +4897,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_DARK_ORANGE\fP
+\fBXTERM_DARK_ORANGE\fP
 T}	T{
 \fB208\fP
 T}	T{
@@ -4851,7 +4913,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SALMON_1\fP
+\fBXTERM_SALMON_1\fP
 T}	T{
 \fB209\fP
 T}	T{
@@ -4867,7 +4929,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_CORAL\fP
+\fBXTERM_LIGHT_CORAL\fP
 T}	T{
 \fB210\fP
 T}	T{
@@ -4883,7 +4945,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PALE_VIOLET_RED_1\fP
+\fBXTERM_PALE_VIOLET_RED_1\fP
 T}	T{
 \fB211\fP
 T}	T{
@@ -4899,7 +4961,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_ORCHID_2\fP
+\fBXTERM_ORCHID_2\fP
 T}	T{
 \fB212\fP
 T}	T{
@@ -4915,7 +4977,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_ORCHID_1\fP
+\fBXTERM_ORCHID_1\fP
 T}	T{
 \fB213\fP
 T}	T{
@@ -4931,7 +4993,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_ORANGE_1\fP
+\fBXTERM_ORANGE_1\fP
 T}	T{
 \fB214\fP
 T}	T{
@@ -4947,7 +5009,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_SANDY_BROWN\fP
+\fBXTERM_SANDY_BROWN\fP
 T}	T{
 \fB215\fP
 T}	T{
@@ -4963,7 +5025,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_SALMON_1\fP
+\fBXTERM_LIGHT_SALMON_1\fP
 T}	T{
 \fB216\fP
 T}	T{
@@ -4979,7 +5041,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_PINK_1\fP
+\fBXTERM_LIGHT_PINK_1\fP
 T}	T{
 \fB217\fP
 T}	T{
@@ -4995,7 +5057,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PINK_1\fP
+\fBXTERM_PINK_1\fP
 T}	T{
 \fB218\fP
 T}	T{
@@ -5011,7 +5073,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_PLUM_1\fP
+\fBXTERM_PLUM_1\fP
 T}	T{
 \fB219\fP
 T}	T{
@@ -5027,7 +5089,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GOLD_1\fP
+\fBXTERM_GOLD_1\fP
 T}	T{
 \fB220\fP
 T}	T{
@@ -5043,7 +5105,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_GOLDENROD_4\fP
+\fBXTERM_LIGHT_GOLDENROD_4\fP
 T}	T{
 \fB221\fP
 T}	T{
@@ -5060,7 +5122,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_GOLDENROD_2\fP
+\fBXTERM_LIGHT_GOLDENROD_2\fP
 T}	T{
 \fB222\fP
 T}	T{
@@ -5076,7 +5138,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_NAVAJO_WHITE_1\fP
+\fBXTERM_NAVAJO_WHITE_1\fP
 T}	T{
 \fB223\fP
 T}	T{
@@ -5092,7 +5154,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_MISTY_ROSE_1\fP
+\fBXTERM_MISTY_ROSE_1\fP
 T}	T{
 \fB224\fP
 T}	T{
@@ -5108,7 +5170,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_THISTLE_1\fP
+\fBXTERM_THISTLE_1\fP
 T}	T{
 \fB225\fP
 T}	T{
@@ -5124,7 +5186,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_YELLOW_1\fP
+\fBXTERM_YELLOW_1\fP
 T}	T{
 \fB226\fP
 T}	T{
@@ -5140,7 +5202,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_LIGHT_GOLDENROD_1\fP
+\fBXTERM_LIGHT_GOLDENROD_1\fP
 T}	T{
 \fB227\fP
 T}	T{
@@ -5156,7 +5218,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_KHAKI_1\fP
+\fBXTERM_KHAKI_1\fP
 T}	T{
 \fB228\fP
 T}	T{
@@ -5172,7 +5234,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_WHEAT_1\fP
+\fBXTERM_WHEAT_1\fP
 T}	T{
 \fB229\fP
 T}	T{
@@ -5188,7 +5250,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_CORNSILK_1\fP
+\fBXTERM_CORNSILK_1\fP
 T}	T{
 \fB230\fP
 T}	T{
@@ -5204,7 +5266,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_100\fP
+\fBXTERM_GREY_100\fP
 T}	T{
 \fB231\fP
 T}	T{
@@ -5220,7 +5282,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_3\fP
+\fBXTERM_GREY_3\fP
 T}	T{
 \fB232\fP
 T}	T{
@@ -5236,7 +5298,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_7\fP
+\fBXTERM_GREY_7\fP
 T}	T{
 \fB233\fP
 T}	T{
@@ -5252,7 +5314,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_11\fP
+\fBXTERM_GREY_11\fP
 T}	T{
 \fB234\fP
 T}	T{
@@ -5268,7 +5330,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_15\fP
+\fBXTERM_GREY_15\fP
 T}	T{
 \fB235\fP
 T}	T{
@@ -5284,7 +5346,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_19\fP
+\fBXTERM_GREY_19\fP
 T}	T{
 \fB236\fP
 T}	T{
@@ -5300,7 +5362,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_23\fP
+\fBXTERM_GREY_23\fP
 T}	T{
 \fB237\fP
 T}	T{
@@ -5316,7 +5378,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_27\fP
+\fBXTERM_GREY_27\fP
 T}	T{
 \fB238\fP
 T}	T{
@@ -5332,7 +5394,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_30\fP
+\fBXTERM_GREY_30\fP
 T}	T{
 \fB239\fP
 T}	T{
@@ -5348,7 +5410,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_35\fP
+\fBXTERM_GREY_35\fP
 T}	T{
 \fB240\fP
 T}	T{
@@ -5364,7 +5426,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_39\fP
+\fBXTERM_GREY_39\fP
 T}	T{
 \fB241\fP
 T}	T{
@@ -5380,7 +5442,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_42\fP
+\fBXTERM_GREY_42\fP
 T}	T{
 \fB242\fP
 T}	T{
@@ -5396,7 +5458,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_46\fP
+\fBXTERM_GREY_46\fP
 T}	T{
 \fB243\fP
 T}	T{
@@ -5412,7 +5474,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_50\fP
+\fBXTERM_GREY_50\fP
 T}	T{
 \fB244\fP
 T}	T{
@@ -5428,7 +5490,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_54\fP
+\fBXTERM_GREY_54\fP
 T}	T{
 \fB245\fP
 T}	T{
@@ -5444,7 +5506,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_58\fP
+\fBXTERM_GREY_58\fP
 T}	T{
 \fB246\fP
 T}	T{
@@ -5460,7 +5522,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_62\fP
+\fBXTERM_GREY_62\fP
 T}	T{
 \fB247\fP
 T}	T{
@@ -5476,7 +5538,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_66\fP
+\fBXTERM_GREY_66\fP
 T}	T{
 \fB248\fP
 T}	T{
@@ -5492,7 +5554,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_70\fP
+\fBXTERM_GREY_70\fP
 T}	T{
 \fB249\fP
 T}	T{
@@ -5508,7 +5570,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_74\fP
+\fBXTERM_GREY_74\fP
 T}	T{
 \fB250\fP
 T}	T{
@@ -5524,7 +5586,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_78\fP
+\fBXTERM_GREY_78\fP
 T}	T{
 \fB251\fP
 T}	T{
@@ -5540,7 +5602,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_82\fP
+\fBXTERM_GREY_82\fP
 T}	T{
 \fB252\fP
 T}	T{
@@ -5556,7 +5618,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_85\fP
+\fBXTERM_GREY_85\fP
 T}	T{
 \fB253\fP
 T}	T{
@@ -5572,7 +5634,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_89\fP
+\fBXTERM_GREY_89\fP
 T}	T{
 \fB254\fP
 T}	T{
@@ -5588,7 +5650,7 @@ _
 T{
 [image]
 T}	T{
-\fBIDX_GREY_93\fP
+\fBXTERM_GREY_93\fP
 T}	T{
 \fB255\fP
 T}	T{
@@ -5727,7 +5789,7 @@ for seconds in seconds_list:
 Abstract superclass for other \fBColors\fP\&.
 .INDENT 7.0
 .TP
-.B __init__(hex_value:  Optional[int]  =  None)
+.B __init__(hex_value:  Optional[int]  =  None, use_for_approximations:  bool  =  True)
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -5879,7 +5941,11 @@ respectively. Values are within [0; 255] range.
 Bases: \fI\%Color\fP
 .INDENT 7.0
 .TP
-.B __init__(hex_value:  int, code:  int)
+.B index:  Dict[int,  \fI\%ColorIndexed\fP]  =  {}
+.UNINDENT
+.INDENT 7.0
+.TP
+.B __init__(hex_value:  int, code:  int, use_for_approximations=True)
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6010,7 +6076,7 @@ True
 .UNINDENT
 .INDENT 7.0
 .TP
-.B __init__(hex_value:  Optional[int]  =  None)
+.B __init__(hex_value:  Optional[int]  =  None, use_for_approximations:  bool  =  True)
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6214,14 +6280,14 @@ default setting restored (\fI\%SGRRenderer\fP).
 .nf
 .ft C
 >>> RendererManager.set_up(DebugRenderer)
->>> Style(\(aqred\(aq).render(\(aqtext\(aq)
+>>> Style(fg=\(aqred\(aq).render(\(aqtext\(aq)
 \(aq|ǝ31|text|ǝ39|\(aq
 .ft P
 .fi
 .sp
 .nf
 .ft C
->>> NoOpRenderer.render(Style(\(aqred\(aq), \(aqtext\(aq)
+>>> NoOpRenderer.render(\(aqtext\(aq,Style(fg=\(aqred\(aq))
 \(aqtext\(aq
 .ft P
 .fi
@@ -6238,7 +6304,7 @@ Get global default renderer type.
 Abstract ancestor of all renderers.
 .INDENT 7.0
 .TP
-.B abstract  classmethod  render(style:  \fI\%Style\fP, text:  str) -> str
+.B abstract  classmethod  render(text:  Any, style:  \fI\%Style\fP) -> str
 Apply colors and attributes described in \fBstyle\fP argument to
 \fBtext\fP and return the result. Output format depends on renderer\(aqs
 class (which defines the implementation).
@@ -6289,7 +6355,7 @@ terminal and switch to different output mode at once.
 .UNINDENT
 .INDENT 7.0
 .TP
-.B classmethod  render(style:  \fI\%Style\fP, text:  str)
+.B classmethod  render(text:  Any, style:  \fI\%Style\fP)
 Render \fBtext\fP with \fBstyle\fP applied as ANSI control sequences.
 .sp
 Respects compatibility preferences (see \fI\%RendererManager.set_up()\fP) and
@@ -6312,7 +6378,7 @@ or default (16\-color) sequence depending on terminal capabilities.
 .sp
 .nf
 .ft C
->>> SGRRenderer.render(Style(fg=\(aqred\(aq, bold=True), \(aqtext\(aq)
+>>> SGRRenderer.render(\(aqtext\(aq, Style(fg=\(aqred\(aq, bold=True))
 \(aq\ex1b[1;31mtext\ex1b[22;39m\(aq
 .ft P
 .fi
@@ -6337,7 +6403,7 @@ Input string enclosed in SGR sequences.
 Bases: \fI\%Renderer\fP
 .INDENT 7.0
 .TP
-.B abstract  classmethod  render(style:  \fI\%Style\fP, text:  str) -> str
+.B abstract  classmethod  render(text:  Any, style:  \fI\%Style\fP) -> str
 Apply colors and attributes described in \fBstyle\fP argument to
 \fBtext\fP and return the result. Output format depends on renderer\(aqs
 class (which defines the implementation).
@@ -6349,13 +6415,14 @@ class (which defines the implementation).
 Bases: \fI\%Renderer\fP
 .INDENT 7.0
 .TP
-.B classmethod  render(style:  \fI\%Style\fP, text:  str) -> str
+.B classmethod  render(text:  Any, style:  \fI\%Style\fP) -> str
 Special renderer type that does nothing with the input string and just
-returns it as is.
+returns it as is. That\(aqs true only when it _is_ a \fBstr\fP beforehand;
+otherwise argument will be casted to str and then returned.
 .sp
 .nf
 .ft C
->>> NoOpRenderer.render(Style(\(aqred\(aq, bold=True), \(aqtext\(aq)
+>>> NoOpRenderer.render(\(aqtext\(aq,Style(fg=\(aqred\(aq, bold=True))
 \(aqtext\(aq
 .ft P
 .fi
@@ -6384,11 +6451,11 @@ Bases: \fI\%Renderer\fP
 .UNINDENT
 .INDENT 7.0
 .TP
-.B classmethod  render(style:  \fI\%Style\fP, text:  str) -> str
+.B classmethod  render(text:  Any, style:  \fI\%Style\fP) -> str
 .sp
 .nf
 .ft C
->>> HtmlRenderer.render(Style(\(aqred\(aq, bold=True), \(aqtext\(aq)
+>>> HtmlRenderer.render(\(aqtext\(aq,Style(fg=\(aqred\(aq, bold=True))
 \(aq<span style=\(dqcolor: #800000; font\-weight: 700\(dq>text</span>\(aq
 .ft P
 .fi
@@ -6400,11 +6467,11 @@ Bases: \fI\%Renderer\fP
 Bases: \fI\%Renderer\fP
 .INDENT 7.0
 .TP
-.B classmethod  render(style:  \fI\%Style\fP, text:  str) -> str
+.B classmethod  render(text:  Any, style:  \fI\%Style\fP) -> str
 .sp
 .nf
 .ft C
->>> DebugRenderer.render(Style(\(aqred\(aq, bold=True), \(aqtext\(aq)
+>>> DebugRenderer.render(\(aqtext\(aq,Style(fg=\(aqred\(aq, bold=True))
 \(aq|ǝ1;31|text|ǝ22;39|\(aq
 .ft P
 .fi
@@ -6851,6 +6918,8 @@ None \-\- the color will be unset.
 \fBoverlined\fP \-\- Overline.
 .IP \(bu 2
 \fBunderlined\fP \-\- Underline.
+.IP \(bu 2
+\fBclass_name\fP \-\- Arbitary string used by some renderers, e.g. by \fBHtmlRenderer\fP\&.
 .UNINDENT
 .UNINDENT
 .sp
@@ -6860,13 +6929,13 @@ None \-\- the color will be unset.
 Style[fg=008000, no bg, bold]
 >>> Style(bg=0x0000ff)
 Style[no fg, bg=0000ff]
->>> Style(fg=color.IDX_DEEP_SKY_BLUE_1, bg=color.IDX_GREY_93)
+>>> Style(fg=color.XTERM_DEEP_SKY_BLUE_1, bg=color.XTERM_GREY_93)
 Style[fg=00afff, bg=eeeeee]
 .ft P
 .fi
 .INDENT 7.0
 .TP
-.B __init__(inherit:  \fI\%Style\fP  =  None, fg:  \fI\%Color\fP  |  int  |  str  =  None, bg:  \fI\%Color\fP  |  int  |  str  =  None, blink:  bool  =  None, bold:  bool  =  None, crosslined:  bool  =  None, dim:  bool  =  None, double_underlined:  bool  =  None, inversed:  bool  =  None, italic:  bool  =  None, overlined:  bool  =  None, underlined:  bool  =  None)
+.B __init__(inherit:  \fI\%Style\fP  =  None, fg:  \fI\%Color\fP  |  int  |  str  =  None, bg:  \fI\%Color\fP  |  int  |  str  =  None, blink:  bool  =  None, bold:  bool  =  None, crosslined:  bool  =  None, dim:  bool  =  None, double_underlined:  bool  =  None, inversed:  bool  =  None, italic:  bool  =  None, overlined:  bool  =  None, underlined:  bool  =  None, class_name:  str  =  None)
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6879,8 +6948,8 @@ ANSI escape sequences.
 .INDENT 7.0
 .TP
 .B autopick_fg() -> \fI\%Color\fP  |  None
-Pick \fBfg_color\fP depending on \fBbg_color\fP brightness. Set pure black
-or pure white as \fBfg_color\fP and return it, if \fBbg_color\fP is defined,
+Pick \fBfg_color\fP depending on \fBbg_color\fP brightness. Set 4% gray
+or 96% gray as \fBfg_color\fP and return it, if \fBbg_color\fP is defined,
 and do nothing and return None otherwise.
 .INDENT 7.0
 .TP
@@ -6905,6 +6974,31 @@ whatwhenhow @FIXME
 .TP
 .B __init__(default:  Optional[\fI\%Style\fP]  =  None)
 .UNINDENT
+.UNINDENT
+.SS text
+.INDENT 0.0
+.TP
+.B class  pytermor.text.Text
+.INDENT 7.0
+.TP
+.B __init__(text:  Any  =  None, style:  \fI\%Style\fP  |  str  =  None)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B render() -> str
+.UNINDENT
+.INDENT 7.0
+.TP
+.B append(text:  str  |  \fI\%Text\fP)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B prepend(text:  str  |  \fI\%Text\fP)
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.text.distribute_padded(values:  List[str  |  \fI\%Text\fP], max_len:  int, pad_before:  bool  =  False, pad_after:  bool  =  False) -> str
 .UNINDENT
 .SS util
 .sp
