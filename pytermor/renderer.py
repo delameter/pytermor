@@ -274,11 +274,11 @@ class HtmlRenderer(Renderer):
         if style.underlined:
             span_styles['text-decoration'].add('underline')
 
-        span_style_str = '; '.join(
-            f"{k}: {' '.join(v)}"
-            for k, v in span_styles.items()
-            if len(v) > 0)
-        return f'<span style="{span_style_str}">{text}</span>'  # @TODO  # attribues
+        span_class_str = '' if style.class_name is None else f'class="{style.class_name}"'
+        span_style_str = '; '.join(f"{k}: {' '.join(v)}"
+                                   for k, v in span_styles.items()
+                                   if len(v) > 0)
+        return f'<span {span_class_str} style="{span_style_str}">{text}</span>'  # @TODO  # attribues
 
     @classmethod
     def _get_default_attrs(cls) -> List[str]:

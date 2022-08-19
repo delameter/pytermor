@@ -47,6 +47,7 @@ class Style:
     :param italic:      Italic.
     :param overlined:   Overline.
     :param underlined:  Underline.
+    :param class_name:  Arbitary string used by some renderers, e.g. by ``HtmlRenderer``.
 
     >>> Style(fg='green', bold=True)
     Style[fg=008000, no bg, bold]
@@ -62,7 +63,8 @@ class Style:
                  bg: Color|int|str = None, blink: bool = None, bold: bool = None,
                  crosslined: bool = None, dim: bool = None,
                  double_underlined: bool = None, inversed: bool = None,
-                 italic: bool = None, overlined: bool = None, underlined: bool = None):
+                 italic: bool = None, overlined: bool = None, underlined: bool = None,
+                 class_name: str = None):
         if fg is not None:
             self._fg = self._resolve_color(fg, True)
         if bg is not None:
@@ -77,6 +79,7 @@ class Style:
         self.italic = italic
         self.overlined = overlined
         self.underlined = underlined
+        self.class_name = class_name
 
         if inherit is not None:
             self._clone_from(inherit)
@@ -98,8 +101,8 @@ class Style:
     
     def autopick_fg(self) -> Color|None:
         """
-        Pick ``fg_color`` depending on ``bg_color`` brightness. Set pure black
-        or pure white as `fg_color` and return it, if ``bg_color`` is defined,
+        Pick ``fg_color`` depending on ``bg_color`` brightness. Set 4% gray
+        or 96% gray as `fg_color` and return it, if ``bg_color`` is defined,
         and do nothing and return None otherwise.
 
         :return: Suitable foreground color or None.
@@ -109,9 +112,9 @@ class Style:
 
         h, s, v = Color.hex_value_to_hsv_channels(self._bg.hex_value)
         if v >= .45:
-            self._fg = color.RGB_BLACK
+            self._fg = color.RGB_GRAY_04
         else:
-            self._fg = color.RGB_WHITE
+            self._fg = color.RGB_GRAY_96
         # @TODO check if there is a better algorithm,
         #       because current thinks text on #000080 should be black
         return self._fg

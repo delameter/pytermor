@@ -103,33 +103,99 @@ class PresetListIndexedGenerator:
 
 
 class HtmlTableGenerator:
+    @classmethod
+    def name_to_abbr(cls, s: str) -> str:
+        return  re.sub('[a-z]', '', s)
+
+    def ascii_indic(self, v: float) -> str:
+        s = '▁▂▃▄▅▆▇█'
+        if v <= 0: return '₀'
+        if v >= 1: return '¹'
+        k = round(max(0.0, min(1.0, v)) * (len(s)-1))
+        return s[k]
+
     def run(self, f, cfg_indexed):
         RendererManager.set_up(HtmlRenderer)
 
         html = '''<html><head><style>
+            html {
+                min-height: 100%;
+            }
             body {
-                background-color: #161616;
-                font-family: \'Iose7ka Editor\', monospace;
+                background: linear-gradient(#404040, #202020);
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                font-family: \'Iose7ka Web\', monospace;
                 font-size: 1rem;
-                line-height: 1.4;
                 display: flex;
                 flex-wrap: wrap;
-                flex-direction: column;
                 box-sizing: border-box;
                 height: 100%;
                 margin: 0;
-                padding: 1em;
-                align-content: space-between;
+                padding: .05rem;
+                
+                //flex-direction: column;
+                //align-content: flex-start;
+                
+                flex-direction: row;
+                justify-content: center;
+                align-content: flex-start;
+                row-gap: .25rem;
+                column-gap: .125rem;
             }
             body > * {
                 box-sizing: border-box;
+            }
+            .container {
+                font-stretch: condensed;
+                padding: .25rem .25rem;
+                border-radius: .5rem;
+                max-width: 16rem;
+                background-color: rgba(16,16,16,25%);
+                display: flex;
+                flex-direction: row;
+                overflow-x: hidden;
+                flex-wrap: nowrap;
+                align-items: center;
+                column-gap: .25rem;
+            }
+            .example {
+                box-shadow: 2px 2px 0px rgba(0, 0, 0, .5);
+                text-shadow: none;
+                border-radius: .25rem;
+                padding-inline: .25rem;
+                margin-inline-end: .25rem;
+            }
+            .id {
+            }
+            .value {
+                font-size: .8rem;
+                border-radius: .25rem;
+                text-shadow: 2px 2px 1px rgba(0, 0, 0, .5);
+                outline-style: inset;
+                outline-width: thin;
+                padding-inline-end: .25rem;
+            }
+            .name {
+                text-shadow: 2px 2px 1px rgba(0, 0, 0, .5);
+                overflow-x: hidden;
+                text-overflow: ellipsis;
+            }
+            .comment {
+                font-size: .8rem;
+                font-stretch: condensed;
+                overflow-x: hidden;
+                text-shadow: 2px 2px 1px rgba(0, 0, 0, .25);
             }
         </style></head>
         <body>'''
 
         key_max_index: Dict[str, int] = dict()
         names: Set[str] = set()
-        max_name_len = max(len(cc['name']) for cc in cfg_indexed)
+        longest_name_len = len(
+            sorted(cfg_indexed, key=lambda c: -len(c['name']))[0]['name'])
+        longest_abbr_len = len(self.name_to_abbr(sorted(cfg_indexed, key=lambda c:
+            -len(self.name_to_abbr(c['original_name'])))[0]['original_name']))
 
         for cc in cfg_indexed:
             is_renamed = len(cc['renamed_from']) > 0
@@ -140,27 +206,29 @@ class HtmlTableGenerator:
                 key_max_index[cc['key']] = 0
             key_max_index[cc['key']] += 1
 
-            id_style = Style(fg='hi_white', bold=True)
-            name_style = Style(fg=cc['value'], blink=is_duplicate)
-            comment_label_style = Style(fg='gray', italic=True)
-            comment_value_style = Style(fg='gray', italic=True, dim=True)
-            value_style = Style(bg=cc['value'], fg=0x0)
-            value_style.autopick_fg()
-            if value_style.fg.hex_value != 0x0:
-                name_style.fg = value_style.fg
+            container_style = Style(class_name='container')
+            id_style = Style(fg='white', class_name='id')
+            name_style = Style(fg='white', blink=is_duplicate, class_name='name')
+            value_style = Style(fg=cc['value'], class_name='value')
+            comment_label_style = Style(fg=color.RGB_GRAY_35, italic=True, class_name='comment')
+            #comment_value_style = Style(fg='gray', italic=True, dim=True)
+            example_style = Style(bg=cc['value'], fg=0x0, class_name='example')
+            example_style.autopick_fg()
 
-            id_str = f'{cc["id"]:_>3d}'
-            value_str = f'_#{cc["value"]:06x}_'
-            name_str = f'{cc["name"]:_<{max_name_len + 1}s}'
+            id_str = f'{cc["id"]:d}'
+            example_str = f'__'
+            value_str = f'{cc["value"]:06x}'
+            # value_str += ' '+ ''.join((self.ascii_indic(f) if i>0 else self.ascii_indic(f/360))
+            #                      for i, f in enumerate(ColorIndexed.hex_value_to_hsv_channels(cc["value"])))
+            name_str = f'{cc["name"]:s}'
             comment_str = ''
 
             if is_renamed:
-                comment_str += (
-                    comment_label_style.render('<br>' + '_'*10 + 'was' + '_'*3) +
-                    comment_label_style.render(f"{cc['original_name']:_<{max_name_len}s}") +
-                    comment_value_style.render('<br>' + '_'*9 + 'sugg' + '_'*3) +
-                    comment_value_style.render(f"{cc['key'] + str(key_max_index.get(cc['key'])):_<{max_name_len}s}")
-                )
+                comment_squashed = self.name_to_abbr(cc['original_name'])
+                comment_str = (
+                    comment_label_style.render(f"{comment_squashed:_<s}"))
+                    #comment_value_style.render('<br>' + '_'*9 + 'sugg' + '_'*3) +
+                    #comment_value_style.render(f"{cc['key'] + str(key_max_index.get(cc['key'])):_<{max_name_len}s}")
 
                 # different approach (output is Text, while in prev. example it is already str)
                 # comment_str += (
@@ -169,12 +237,12 @@ class HtmlTableGenerator:
                 #     f"{Text('<br>' + '_'*9 + 'sugg' + '_'*3, comment_label_style)}"
                 #     f"{Text(cc['key'] + str(key_max_index.get(cc['key'])), comment_value_style)}:_<{max_name_len}s"
                 # )
-
-            html += ('\n<div>' + id_style.render(id_str) +
-                     '_' + value_style.render(value_str) +
-                     '__' + name_style.render(name_str) +
-                     '_' + comment_str +
-                     '</div>')
+            html += ('\n<div>' +
+                container_style.render(''.join([
+                    value_style.render(example_style.render(f'{id_str}') + value_str),
+                    name_style.render(name_str),
+                    comment_str
+                ])) + '</div>')
 
         html += '\n</body></html>'
         html = html.replace('_', '&nbsp;')
@@ -187,6 +255,12 @@ class HtmlTableGenerator:
 # -----------------------------------------------------------------------------
 
 class Main:
+    INDEXED_PRESET_PREFIX = 'xterm'
+
+    def sorter_by_color(self, cfg):
+        h, s, v = ColorIndexed.hex_value_to_hsv_channels(cfg['value'])
+        return s>0,  h//18, -s*10//4, v
+
     def run(self):
         with open(join(dirname(__name__), 'indexed.yml'), 'r') as f:
             cfg_indexed = yaml.load(f, SafeLoader)
@@ -207,12 +281,14 @@ class Main:
                 c['first_rename'] = ' [4]_' if first_rename else ''
                 first_rename = False
             c['name_idx'] = re.sub(r'([a-z]|^)([A-Z0-9])', r'\1_\2',
-                                   'idx' + c['name']).upper()
+                                   self.INDEXED_PRESET_PREFIX + c['name']).upper()
             c['first'] = ' [3]_' if first else ''
             first = False
 
-        cfg_name_sorted = sorted(cfg_indexed, key=lambda v: (
+        cfg_indexed_sort_by_key = sorted(cfg_indexed, key=lambda v: (
             v['key'], -sum(ColorIndexed.hex_value_to_rgb_channels(v['value']))))
+
+        cfg_indexed_sort_by_color = sorted(cfg_indexed, key=lambda v: self.sorter_by_color(v))
 
         generated_dir = join(dirname(__name__), '..', 'docs', '_generated')
         with open(join(generated_dir, 'preset-table', 'output.rst_'), 'wt') as f:
@@ -222,10 +298,10 @@ class Main:
             PyModuleIntGenerator().run(f, cfg_indexed)
 
         with open(join(generated_dir, 'preset-code', 'color.py_'), 'wt') as f:
-            PyModuleColorGenerator().run(f, cfg_name_sorted)
+            PyModuleColorGenerator().run(f, cfg_indexed_sort_by_key)
 
         with open(join('/tmp', 'presets.html'), 'wt') as f:
-            HtmlTableGenerator().run(f, cfg_name_sorted)
+            HtmlTableGenerator().run(f, cfg_indexed_sort_by_color)
 
 
 if __name__ == '__main__':

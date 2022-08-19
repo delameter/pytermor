@@ -113,6 +113,7 @@
   value: 0x00af00
 - id: 35
   original_name: SpringGreen3
+  override_name: SpringGreen5
   value: 0x00af5f
 - id: 36
   original_name: DarkCyan
@@ -134,6 +135,7 @@
   value: 0x00d75f
 - id: 42
   original_name: SpringGreen2
+  override_name: SpringGreen6
   value: 0x00d787
 - id: 43
   original_name: Cyan3
@@ -199,6 +201,7 @@
   value: 0x5f5faf
 - id: 62
   original_name: SlateBlue3
+  override_name: SlateBlue2
   value: 0x5f5fd7
 - id: 63
   original_name: RoyalBlue1
@@ -243,6 +246,7 @@
   value: 0x5fafd7
 - id: 75
   original_name: SteelBlue1
+  override_name: SteelBlue2
   value: 0x5fafff
 - id: 76
   original_name: Chartreuse3
@@ -269,9 +273,11 @@
   value: 0x5fff00
 - id: 83
   original_name: SeaGreen2
+  override_name: SeaGreen4
   value: 0x5fff5f
 - id: 84
   original_name: SeaGreen1
+  override_name: SeaGreen2
   value: 0x5fff87
 - id: 85
   original_name: SeaGreen1
@@ -329,6 +335,7 @@
   value: 0x875fff
 - id: 100
   original_name: Yellow4
+  override_name: Yellow6
   value: 0x878700
 - id: 101
   original_name: Wheat4
@@ -490,6 +497,7 @@
   value: 0xafafff
 - id: 148
   original_name: Yellow3
+  override_name: Yellow5
   value: 0xafd700
 - id: 149
   original_name: DarkOliveGreen3
