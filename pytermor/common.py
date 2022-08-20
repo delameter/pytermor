@@ -17,7 +17,7 @@ def get_terminal_width() -> int:
 
 
 def print_exception(e: Exception, file: TextIO = sys.stderr, with_trace: bool = True):
-    from . import color, Style, Text
+    from .render import Colors, Style, Text
     tb_lines = [line.rstrip('\n') for line in traceback.format_exception(e.__class__, e, e.__traceback__)]
 
     error_style = Style(fg=Colors.RED)
