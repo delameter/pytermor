@@ -11,8 +11,8 @@ from typing import Dict, Set
 import yaml
 from yaml import SafeLoader
 
-from pytermor import Style, ColorIndexed, color, Text, span
-from pytermor.renderer import RendererManager, HtmlRenderer, SGRRenderer
+from pytermor import Style, ColorIndexed, Colors, Text
+from pytermor.render import RendererManager, HtmlRenderer, SGRRenderer
 
 
 class PyModuleIntGenerator:
@@ -32,7 +32,7 @@ class PyModuleColorGenerator:
         for cc in cfg_indexed:
             print(f'{cc["name_idx"]} = ColorIndexed('
                   f'0x{cc["value"]:06x}, '
-                  f'intcode.{cc["name_idx"]}'
+                  f'IntCodes.{cc["name_idx"]}'
                   f'{", use_for_approximations=False" if cc["default_counterpart"] else ""}'
                   f')  # {cc["id"]} {cc["renamed_from"]}', file=f)
         print(f.name)
@@ -213,7 +213,7 @@ class HtmlTableGenerator:
             id_style = Style(fg='white', class_name='id')
             name_style = Style(fg='white', blink=is_duplicate, class_name='name')
             value_style = Style(fg=cc['value'], class_name='value')
-            comment_label_style = Style(fg=color.RGB_GRAY_35, italic=True, class_name='comment')
+            comment_label_style = Style(fg=Colors.RGB_GRAY_35, italic=True, class_name='comment')
             #comment_value_style = Style(fg='gray', italic=True, dim=True)
             example_style = Style(bg=cc['value'], fg=0x0, class_name='example')
             example_style.autopick_fg()

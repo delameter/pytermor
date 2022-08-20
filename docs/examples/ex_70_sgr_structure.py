@@ -1,4 +1,4 @@
-from pytermor.sequence import SequenceSGR
+from pytermor import SequenceSGR
 
 seq = SequenceSGR(4, 7)
 msg = f'({seq})'

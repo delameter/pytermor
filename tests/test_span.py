@@ -4,50 +4,48 @@
 # -----------------------------------------------------------------------------
 import unittest
 
-from pytermor import sequence, intcode
-from pytermor.sequence import SequenceSGR
-from pytermor.span import Span
+from pytermor import SequenceSGR, Span, Seqs, IntCodes
 
 
 class TestEquality(unittest.TestCase):
     def test_same_are_equal(self):
-        f1 = Span(SequenceSGR(intcode.BOLD), SequenceSGR(intcode.RESET))
-        f2 = Span(SequenceSGR(intcode.BOLD), SequenceSGR(intcode.RESET))
+        f1 = Span(SequenceSGR(IntCodes.BOLD), SequenceSGR(IntCodes.RESET))
+        f2 = Span(SequenceSGR(IntCodes.BOLD), SequenceSGR(IntCodes.RESET))
 
         self.assertEqual(f1, f2)
 
     def test_diff_are_not_equal(self):
-        f1 = Span(SequenceSGR(intcode.BG_HI_YELLOW), SequenceSGR(intcode.BG_COLOR_OFF))
-        f2 = Span(SequenceSGR(intcode.BOLD), SequenceSGR(intcode.RESET))
+        f1 = Span(SequenceSGR(IntCodes.BG_HI_YELLOW), SequenceSGR(IntCodes.BG_COLOR_OFF))
+        f2 = Span(SequenceSGR(IntCodes.BOLD), SequenceSGR(IntCodes.RESET))
 
         self.assertNotEqual(f1, f2)
 
     def test_diff_opening_are_not_equal(self):
-        f1 = Span(SequenceSGR(intcode.BOLD), SequenceSGR(intcode.RESET))
-        f2 = Span(SequenceSGR(intcode.ITALIC), SequenceSGR(intcode.RESET))
+        f1 = Span(SequenceSGR(IntCodes.BOLD), SequenceSGR(IntCodes.RESET))
+        f2 = Span(SequenceSGR(IntCodes.ITALIC), SequenceSGR(IntCodes.RESET))
 
         self.assertNotEqual(f1, f2)
 
     def test_diff_closing_are_not_equal(self):
-        f1 = Span(SequenceSGR(intcode.BOLD), SequenceSGR(intcode.RESET))
-        f2 = Span(SequenceSGR(intcode.BOLD), SequenceSGR(intcode.NO_BOLD_DIM))
+        f1 = Span(SequenceSGR(IntCodes.BOLD), SequenceSGR(IntCodes.RESET))
+        f2 = Span(SequenceSGR(IntCodes.BOLD), SequenceSGR(IntCodes.NO_BOLD_DIM))
 
         self.assertNotEqual(f1, f2)
 
     def test_diff_opening_only_are_not_equal(self):
-        f1 = Span(SequenceSGR(intcode.GREEN))
-        f2 = Span(SequenceSGR(intcode.BLUE))
+        f1 = Span(SequenceSGR(IntCodes.GREEN))
+        f2 = Span(SequenceSGR(IntCodes.BLUE))
 
         self.assertNotEqual(f1, f2)
 
     def test_format_is_not_equal_to_sgr(self):
-        f1 = Span(SequenceSGR(intcode.BOLD))
+        f1 = Span(SequenceSGR(IntCodes.BOLD))
 
-        self.assertNotEqual(f1, SequenceSGR(intcode.BOLD))
+        self.assertNotEqual(f1, SequenceSGR(IntCodes.BOLD))
 
     def test_empty_are_equal(self):
         f1 = Span(SequenceSGR())
-        f2 = Span(sequence.NOOP)
+        f2 = Span(Seqs.NOOP)
 
         self.assertEqual(f1, f2)
 
@@ -64,16 +62,16 @@ class TestWrap(unittest.TestCase):
 
 class TestAutoCompletion(unittest.TestCase):
     def test_autocomplete_single_sgr(self):
-        f = Span(sequence.BOLD)
+        f = Span(Seqs.BOLD)
 
-        self.assertEqual(f.opening_seq, SequenceSGR(intcode.BOLD))
-        self.assertEqual(f.closing_seq, SequenceSGR(intcode.NO_BOLD_DIM))
+        self.assertEqual(f.opening_seq, SequenceSGR(IntCodes.BOLD))
+        self.assertEqual(f.closing_seq, SequenceSGR(IntCodes.NO_BOLD_DIM))
 
     def test_autocomplete_multiple_sgr(self):
-        f = Span(sequence.UNDERLINED + sequence.YELLOW + sequence.BG_RED)
+        f = Span(Seqs.UNDERLINED + Seqs.YELLOW + Seqs.BG_RED)
 
-        self.assertEqual(f.opening_seq, SequenceSGR(intcode.UNDERLINED, intcode.YELLOW, intcode.BG_RED))
-        self.assertEqual(f.closing_seq, SequenceSGR(intcode.UNDERLINED_OFF, intcode.COLOR_OFF, intcode.BG_COLOR_OFF))
+        self.assertEqual(f.opening_seq, SequenceSGR(IntCodes.UNDERLINED, IntCodes.YELLOW, IntCodes.BG_RED))
+        self.assertEqual(f.closing_seq, SequenceSGR(IntCodes.UNDERLINED_OFF, IntCodes.COLOR_OFF, IntCodes.BG_COLOR_OFF))
 
     def test_autocomplete_no_args(self):
         f = Span()
@@ -85,10 +83,10 @@ class TestAutoCompletion(unittest.TestCase):
         f = Span(SequenceSGR())
 
         self.assertEqual(f.opening_seq, SequenceSGR())
-        self.assertEqual(f.closing_seq, sequence.NOOP)
+        self.assertEqual(f.closing_seq, Seqs.NOOP)
 
     def test_autocomplete_multiple_with_empty_sgr(self):
-        f = Span(sequence.BOLD, SequenceSGR(), sequence.RED)
+        f = Span(Seqs.BOLD, SequenceSGR(), Seqs.RED)
 
-        self.assertEqual(f.opening_seq, SequenceSGR(intcode.BOLD, intcode.RED))
-        self.assertEqual(f.closing_seq, SequenceSGR(intcode.NO_BOLD_DIM, intcode.COLOR_OFF))
+        self.assertEqual(f.opening_seq, SequenceSGR(IntCodes.BOLD, IntCodes.RED))
+        self.assertEqual(f.closing_seq, SequenceSGR(IntCodes.NO_BOLD_DIM, IntCodes.COLOR_OFF))

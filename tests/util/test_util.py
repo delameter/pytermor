@@ -4,9 +4,8 @@
 # -----------------------------------------------------------------------------
 import unittest
 
-from pytermor import span
 from pytermor.util import center_sgr, ReplaceSGR, format_thousand_sep
-from pytermor.sequence import SequenceSGR
+from pytermor.ansi import SequenceSGR, Spans
 
 
 class TestFormatThousandSep(unittest.TestCase):
@@ -20,7 +19,7 @@ class TestFormatThousandSep(unittest.TestCase):
 class TestStringFilter(unittest.TestCase):  # @TODO
     def test_replace_sgr_filter(self):
         self.assertEqual(
-            ReplaceSGR().apply(span.RED('213')),
+            ReplaceSGR().apply(Spans.RED('213')),
             '213'
         )
     pass
@@ -29,6 +28,6 @@ class TestStringFilter(unittest.TestCase):  # @TODO
 class TestStdlibExtensions(unittest.TestCase):  # @TODO
     def test_center_method(self):
         self.assertRegexpMatches(
-            center_sgr(span.RED('123'), 7),
+            center_sgr(Spans.RED('123'), 7),
             f'  {SequenceSGR.regexp()}123{SequenceSGR.regexp()}  '
         )

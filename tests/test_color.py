@@ -7,9 +7,8 @@ import unittest
 from copy import copy
 from typing import Dict
 
-from pytermor import sequence, color, intcode
-from pytermor.color import Color, ColorDefault, ColorIndexed, ColorRGB
-from pytermor.sequence import SequenceSGR
+from pytermor import Color, ColorDefault, ColorIndexed, ColorRGB, Seqs, SequenceSGR, \
+    IntCodes, Colors
 
 
 class TestStatic(unittest.TestCase):
@@ -31,16 +30,16 @@ class TestStatic(unittest.TestCase):
                 self.assertEquals(expected_output, actual_output)
 
     def test_noop(self):
-        self.assertEquals(sequence.NOOP, color.NOOP.to_sgr(False))
-        self.assertEquals(sequence.NOOP, color.NOOP.to_sgr(True))
+        self.assertEquals(Seqs.NOOP, Colors.NOOP.to_sgr(False))
+        self.assertEquals(Seqs.NOOP, Colors.NOOP.to_sgr(True))
 
     def test_format_value(self):
         self.assertEquals('0xff00ff', ColorRGB(0xff00ff).format_value())
         self.assertEquals('#ff00ff', ColorRGB(0xff00ff).format_value('#'))
 
     def test_format_noop_color_value(self):
-        self.assertEqual('^', color.NOOP.format_value())
-        self.assertEqual('^', color.NOOP.format_value('#'))
+        self.assertEqual('^', Colors.NOOP.format_value())
+        self.assertEqual('^', Colors.NOOP.format_value('#'))
 
 
 class TestColorMap(unittest.TestCase):
@@ -155,7 +154,7 @@ class TestColorMap(unittest.TestCase):
         self.assertEqual(ColorIndexed.find_closest(0xffffff),
                          ColorIndexed.get_default())
 
-        ColorDefault(0xffffff, intcode.WHITE, intcode.BG_WHITE)
+        ColorDefault(0xffffff, IntCodes.WHITE, IntCodes.BG_WHITE)
         ColorDefault._approx._lookup_table.clear()
         ColorDefault._approx._approximation_cache.clear()
         self.assertEqual(ColorDefault.find_closest(0xffffff),
@@ -165,10 +164,10 @@ class TestColorMap(unittest.TestCase):
 class TestColorDefault(unittest.TestCase):
     def test_to_sgr(self):
         self.assertEquals(SequenceSGR(31),
-                          ColorDefault(0x800000, intcode.RED, intcode.BG_RED).to_sgr(
+                          ColorDefault(0x800000, IntCodes.RED, IntCodes.BG_RED).to_sgr(
                               False))
         self.assertEquals(SequenceSGR(41),
-                          ColorDefault(0x800000, intcode.RED, intcode.BG_RED).to_sgr(
+                          ColorDefault(0x800000, IntCodes.RED, IntCodes.BG_RED).to_sgr(
                               True))
 
     def test_equality(self):
@@ -213,5 +212,5 @@ class TestColorRGB(unittest.TestCase):
     def test_not_equality(self):
         self.assertFalse(ColorRGB(0x010203) == ColorRGB(0x030201))
         self.assertFalse(ColorRGB(0x010203) == ColorIndexed(0x010203, 1))
-        self.assertFalse(ColorRGB(0x010203) == ColorDefault(0x556677, intcode.WHITE,
-                                                            intcode.BG_WHITE))
+        self.assertFalse(ColorRGB(0x010203) == ColorDefault(0x556677, IntCodes.WHITE,
+                                                            IntCodes.BG_WHITE))

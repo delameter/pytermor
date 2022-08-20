@@ -1,11 +1,11 @@
-.. _apidoc.sequence:
+.. _apidoc.ansi:
 
 .. default-role:: any
 
 ========================
-sequence
+ansi
 ========================
 
-.. automodule:: pytermor.sequence
+.. automodule:: pytermor.ansi
 
 .. include:: /_include/preset-const-omitted.rst

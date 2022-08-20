@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import sys
 
-from pytermor import ColorIndexed, Span, sequence, ColorRGB
+from pytermor import ColorIndexed, Span, ansi, ColorRGB
 
 
 def _main(target_color_hex: int):
@@ -29,8 +29,8 @@ def _main(target_color_hex: int):
         if sgr_indexed.params[-1] < 16:  # @FIXME костыль
             sgr_indexed = ColorRGB(color_indexed.hex_value).to_sgr(True)
         print(Span(
-            color_target.to_sgr(True) + sequence.BLACK).wrap(f' {color_target} ') +
-              Span(sgr_indexed + sequence.BLACK).wrap(f' {color_indexed} '))
+            color_target.to_sgr(True) + Seqs.BLACK).wrap(f' {color_target} ') +
+              Span(sgr_indexed + Seqs.BLACK).wrap(f' {color_indexed} '))
 
 
 def _die(reason: str|Exception = None):

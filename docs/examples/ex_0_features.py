@@ -1,3 +1,3 @@
-from pytermor import span
+from pytermor import Spans
 
-print(span.RED('Feat') + span.BOLD('ures'))
+print(Spans.RED('Feat') + Spans.BOLD('ures'))

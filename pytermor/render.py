@@ -14,8 +14,8 @@ b. Alternatively, you can use renderer's own class method `Renderer.render()`
 
 .. testsetup:: *
 
-    from pytermor.renderer import *
-    from pytermor.style import Style
+    from pytermor.color import Colors
+    from pytermor.render import *
 
     SGRRenderer.set_up(force_styles = True)
 
@@ -25,15 +25,278 @@ from __future__ import annotations
 import abc
 import sys
 from abc import abstractmethod
-from typing import Type, Dict, Set, List, Any
+from dataclasses import dataclass, field
+from typing import List, Sized, Any
+from typing import Type, Dict, Set
 
-from . import sequence
-from .color import Color, ColorRGB, ColorIndexed, ColorDefault
-from .sequence import SequenceSGR, NOOP as NOOP_SEQ
-from .span import Span
-from .style import Style
-from .util import ReplaceSGR
+from .color import Color, ColorRGB, ColorIndexed, ColorDefault, Colors
+from .ansi import SequenceSGR, Seqs, Span
 
+
+# -----------------------------------------------------------------------------
+# TEXTS
+# -----------------------------------------------------------------------------
+
+class Text:
+    def __init__(self, text: Any = None, style: Style|str = None):
+        self._runs: List[_TextRun] = [_TextRun(text, style)]
+
+    def render(self) -> str:
+        return ''.join(r.render() for r in self._runs)
+
+    def append(self, text: str|Text):
+        if isinstance(text, str):
+            self._runs.append(_TextRun(text))
+        elif isinstance(text, Text):
+            self._runs += text._runs
+        else:
+            raise TypeError('Can add Text to another Text instance or str only')
+
+    def prepend(self, text: str|Text):
+        if isinstance(text, str):
+            self._runs.insert(0, _TextRun(text))
+        elif isinstance(text, Text):
+            self._runs = text._runs + self._runs
+        else:
+            raise TypeError('Can add Text to another Text instance or str only')
+
+    def __str__(self) -> str:
+        return self.render()
+
+    def __len__(self) -> int:
+        return sum(len(r) for r in self._runs)
+
+    def __format__(self, *args, **kwargs) -> str:
+        runs_amount = len(self._runs)
+        if runs_amount == 0:
+            return ''.__format__(*args, **kwargs)
+        if runs_amount > 1:
+            raise RuntimeError(
+                f'Can only __format__ Texts consisting of 0 or 1 TextRuns, '
+                f'got {runs_amount}. Consider applying the styles and creating'
+                f' the Text instance after value formatting.')
+        return self._runs[0].__format__(*args, **kwargs)
+
+    def __add__(self, other: str|Text) -> Text:
+        self.append(other)
+        return self
+
+    def __iadd__(self, other: str|Text) -> Text:
+        self.append(other)
+        return self
+
+    def __radd__(self, other: str|Text) -> Text:
+        self.prepend(other)
+        return self
+
+
+class _TextRun(Sized):
+    def __init__(self, string: Any = None, style: Style|str = None):
+        self._string: str = str(string)
+        if isinstance(style, str):
+            style = Style(fg=style)
+        self._style: Style|None = style
+
+    def render(self) -> str:
+        if not self._style:
+            return self._string
+        return self._style.render(self._string)
+
+    def __len__(self) -> int:
+        return len(self._string)
+
+    def __format__(self, *args, **kwargs) -> str:
+        self._string = self._string.__format__(*args, **kwargs)
+        return self.render()
+
+
+# -----------------------------------------------------------------------------
+# STYLES
+# -----------------------------------------------------------------------------
+
+@dataclass
+class Style:
+    """Create a new ``Style()``.
+
+    Key difference between ``Styles`` and ``Spans`` or ``SGRs`` is that
+    ``Styles`` describe colors in RGB format and therefore support output
+    rendering in several different formats (see :mod:`.renderer`).
+
+    Both ``fg`` and ``bg`` can be specified as:
+
+    1. :class:`.Color` instance or library preset;
+    2. key code -- name of any of aforementioned presets, case-insensitive;
+    3. integer color value in hexademical RGB format.
+    4. None -- the color will be unset.
+
+    :param fg:          Foreground (i.e., text) color.
+    :param bg:          Background color.
+    :param inherit:     Parent instance to copy unset properties from.
+    :param blink:       Blinking effect; *supported by limited amount of Renderers*.
+    :param bold:        Bold or increased intensity.
+    :param crosslined:  Strikethrough.
+    :param dim:         Faint, decreased intensity.
+    :param double_underlined:
+        Faint, decreased intensity.
+    :param inversed:    Swap foreground and background colors.
+    :param italic:      Italic.
+    :param overlined:   Overline.
+    :param underlined:  Underline.
+    :param class_name:  Arbitary string used by some renderers, e.g. by ``HtmlRenderer``.
+
+    >>> Style(fg='green', bold=True)
+    Style[fg=008000, no bg, bold]
+    >>> Style(bg=0x0000ff)
+    Style[no fg, bg=0000ff]
+    >>> Style(fg=Colors.XTERM_DEEP_SKY_BLUE_1, bg=Colors.XTERM_GREY_93)
+    Style[fg=00afff, bg=eeeeee]
+    """
+    _fg: Color = field(default=None, init=False)
+    _bg: Color = field(default=None, init=False)
+
+    def __init__(self, inherit: Style = None, fg: Color|int|str = None,
+                 bg: Color|int|str = None, blink: bool = None, bold: bool = None,
+                 crosslined: bool = None, dim: bool = None,
+                 double_underlined: bool = None, inversed: bool = None,
+                 italic: bool = None, overlined: bool = None, underlined: bool = None,
+                 class_name: str = None):
+        if fg is not None:
+            self._fg = self._resolve_color(fg, True)
+        if bg is not None:
+            self._bg = self._resolve_color(bg, True)
+
+        self.blink = blink
+        self.bold = bold
+        self.crosslined = crosslined
+        self.dim = dim
+        self.double_underlined = double_underlined
+        self.inversed = inversed
+        self.italic = italic
+        self.overlined = overlined
+        self.underlined = underlined
+        self.class_name = class_name
+
+        if inherit is not None:
+            self._clone_from(inherit)
+
+        if self._fg is None:
+            self._fg = Colors.NOOP
+        if self._bg is None:
+            self._bg = Colors.NOOP
+
+    def render(self, text: Any = None) -> str:
+        """
+        Returns ``text`` with all attributes and colors applied.
+
+        By default uses `SequenceSGR` renderer, that means that output will contain
+        ANSI escape sequences.
+        """
+        from .render import RendererManager
+        return RendererManager.get_default().render(text, self)
+
+    def autopick_fg(self) -> Color|None:
+        """
+        Pick ``fg_color`` depending on ``bg_color`` brightness. Set 4% gray
+        or 96% gray as `fg_color` and return it, if ``bg_color`` is defined,
+        and do nothing and return None otherwise.
+
+        :return: Suitable foreground color or None.
+        """
+        if self._bg is None or self._bg.hex_value is None:
+            return
+
+        h, s, v = Color.hex_value_to_hsv_channels(self._bg.hex_value)
+        if v >= .45:
+            self._fg = Colors.RGB_GRAY_04
+        else:
+            self._fg = Colors.RGB_GRAY_96
+        # @TODO check if there is a better algorithm,
+        #       because current thinks text on #000080 should be black
+        return self._fg
+
+    # noinspection PyMethodMayBeStatic
+    def _resolve_color(self, arg: str|int|Color, nullable: bool) -> Color|None:
+        if isinstance(arg, Color):
+            return arg
+
+        if isinstance(arg, int):
+            return ColorRGB(arg)
+
+        if isinstance(arg, str):
+            arg_mapped = arg.upper()
+            resolved_color = getattr(Colors, arg_mapped, None)  # @FIXME add a method
+            if resolved_color is None:
+                raise KeyError(
+                    f'Code "{arg}" -> "{arg_mapped}" is not a name of Color preset')
+            if not isinstance(resolved_color, Color):
+                raise ValueError(f'Attribute is not valid Color: {resolved_color}')
+            return resolved_color
+
+        return None if nullable else Colors.NOOP
+
+    def _clone_from(self, inherit: Style):
+        for attr in list(self.__dict__.keys()) + ['_fg', '_bg']:
+            inherit_val = getattr(inherit, attr)
+            if getattr(self, attr) is None and inherit_val is not None:
+                setattr(self, attr, inherit_val)
+
+    def __repr__(self):
+        if self._fg is None or self._bg is None:
+            return self.__class__.__name__ + '[uninitialized]'
+        props_set = [self.fg.format_value('fg=', 'no fg'),
+                     self.bg.format_value('bg=', 'no bg'), ]
+        for attr_name in dir(self):
+            if not attr_name.startswith('_'):
+                attr = getattr(self, attr_name)
+                if isinstance(attr, bool) and attr is True:
+                    props_set.append(attr_name)
+
+        return self.__class__.__name__ + '[{:s}]'.format(', '.join(props_set))
+
+    @property
+    def fg(self) -> Color:
+        return self._fg
+
+    @property
+    def bg(self) -> Color:
+        return self._bg
+
+    @fg.setter
+    def fg(self, val: str|int|Color):
+        self._fg: Color = self._resolve_color(val, nullable=False)
+
+    @bg.setter
+    def bg(self, val: str|int|Color):
+        self._bg: Color = self._resolve_color(val, nullable=False)
+
+
+NOOP = Style()
+
+
+# ---------------------------------------------------------------------------
+
+
+class Stylesheet:
+    """
+    whatwhenhow @FIXME
+    """
+
+    def __init__(self, default: Style = None):
+        self.default: Style = self._opt_arg(default)
+
+    def _opt_arg(self, arg: Style|None):
+        return arg or NOOP
+
+    def __repr__(self):
+        styles_set = sum(map(lambda a: int(isinstance(a, Style)),
+                             [getattr(self, attr_name) for attr_name in dir(self) if
+                              not attr_name.startswith('_')]))
+        return self.__class__.__name__ + '[{:d} props]'.format(styles_set)
+
+
+# -----------------------------------------------------------------------------
+# RENDERERS
+# -----------------------------------------------------------------------------
 
 class RendererManager:
     _default: Type[Renderer] = None
@@ -163,26 +426,26 @@ class SGRRenderer(Renderer):
 
     @classmethod
     def _render_attributes(cls, style: Style) -> SequenceSGR:
-        result = NOOP_SEQ
+        result = Seqs.NOOP
         if not cls._is_sgr_usage_allowed():
             return result
 
-        if style.blink:             result += sequence.BLINK_DEFAULT
-        if style.bold:              result += sequence.BOLD
-        if style.crosslined:        result += sequence.CROSSLINED
-        if style.dim:               result += sequence.DIM
-        if style.double_underlined: result += sequence.DOUBLE_UNDERLINED
-        if style.inversed:          result += sequence.INVERSED
-        if style.italic:            result += sequence.ITALIC
-        if style.overlined:         result += sequence.OVERLINED
-        if style.underlined:        result += sequence.UNDERLINED
+        if style.blink:             result += Seqs.BLINK_SLOW
+        if style.bold:              result += Seqs.BOLD
+        if style.crosslined:        result += Seqs.CROSSLINED
+        if style.dim:               result += Seqs.DIM
+        if style.double_underlined: result += Seqs.DOUBLE_UNDERLINED
+        if style.inversed:          result += Seqs.INVERSED
+        if style.italic:            result += Seqs.ITALIC
+        if style.overlined:         result += Seqs.OVERLINED
+        if style.underlined:        result += Seqs.UNDERLINED
 
         return result
 
     @classmethod
     def _render_color(cls, color: Color, bg: bool) -> SequenceSGR:
         if not cls._is_sgr_usage_allowed():
-            return NOOP_SEQ
+            return Seqs.NOOP
 
         hex_value = color.hex_value
 
@@ -292,6 +555,7 @@ class DebugRenderer(Renderer):
         >>> DebugRenderer.render('text',Style(fg='red', bold=True))
         '|ǝ1;31|text|ǝ22;39|'
         """
+        from .util import ReplaceSGR
         return ReplaceSGR(r'|ǝ\3|').apply(SGRRenderer.render(str(text), style))
 
 

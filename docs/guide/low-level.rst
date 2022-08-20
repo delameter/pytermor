@@ -28,7 +28,7 @@ doesn't have to restore all previously applied formats after every closing seque
 
 We are given a text span which is initially *bold* and *underlined*. We want to recolor a few words inside of this
 span. By default this will result in losing all the formatting to the right of updated text span (because
-`RESET <sequence.RESET>`, or :kbd:`\e[0m`, clears all text attributes).
+`RESET <Seqs.RESET>`, or :kbd:`\e[0m`, clears all text attributes).
 
 However, there is an option to specify what attributes should be disabled or let the library do that for you:
 
@@ -42,7 +42,7 @@ However, there is an option to specify what attributes should be disabled or let
 
 As you can see, the update went well -- we kept all the previously applied formatting. Of course, this method
 cannot be 100% applicable; for example, imagine that original text was colored blue. After the update "string"
-word won't be blue anymore, as we used ``sequence.COLOR_OFF`` escape sequence to neutralize our own yellow color.
+word won't be blue anymore, as we used ``Seqs.COLOR_OFF`` escape sequence to neutralize our own yellow color.
 But it still can be helpful for a majority of cases (especially when text is generated and formatted by the same
 program and in one go).
 

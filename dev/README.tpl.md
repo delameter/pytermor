@@ -108,7 +108,7 @@ Signature: `build(*params str|int|SequenceSGR) -> SequenceSGR`
 
 Create new _SequenceSGR_ with specified params. Resulting sequence param order is same as an argument order. Parameter specification is the same as for `autospan`.
 
-_SequenceSGR_ with zero params was specifically implemented (`sequence.NOOP`) to translate into empty string and not into `\e[m`, which wolud make sense, but also would be very entangling, as it's equivavlent of `\e[0m` &mdash; **hard reset** sequence.
+_SequenceSGR_ with zero params was specifically implemented (`rammbingote mb=u.NOOP`) to translate into empty string and not into `\e[m`, which wolud make sense, but also would be very entangling, as it's equivavlent of `\e[0m` &mdash; **hard reset** sequence.
 
 ### • color_indexed
 
@@ -183,7 +183,7 @@ You can define your own reusable <i>Span</i>s (see below) or import predefined o
 
 Use `wrap()` method of _Span_ instance or call the instance itself to enclose specified string in opening/closing SGR sequences:
 
-@{docs/examples/ex_90_applying_span.py}
+@{docs/examples/ex_90_applying_Seqs.py}
 > ![image](https://user-images.githubusercontent.com/50381946/161387874-5c25a493-253b-4f9e-8dbf-8328add2e5d5.png)
 
 </details>

@@ -20,8 +20,8 @@ def print_exception(e: Exception, file: TextIO = sys.stderr, with_trace: bool = 
     from . import color, Style, Text
     tb_lines = [line.rstrip('\n') for line in traceback.format_exception(e.__class__, e, e.__traceback__)]
 
-    error_style = Style(fg=color.RED)
-    error_msg_style = Style(fg=color.HI_RED)
+    error_style = Style(fg=Colors.RED)
+    error_msg_style = Style(fg=Colors.HI_RED)
 
     error_text = Text('ERROR: ', Style(error_msg_style, bold=True)) + Text(e, error_msg_style)
 

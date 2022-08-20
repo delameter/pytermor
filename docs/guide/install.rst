@@ -21,31 +21,36 @@ Structure
    :widths: 5 10 15 70
 
    +-----+----------------------+----------------------+---------------------------------------------------------------------------------+
-   | Lvl | Module               | Classes              | Purpose                                                                         |
+   | Lvl | Module               | Class(es)            | Purpose                                                                         |
    +=====+======================+======================+=================================================================================+
-   | Hi  | `render`             | `Text`               | Container consisting of text pieces each with attached `Style`.                 |
+   | Hi  | `render`             | `Text`               | Container consisting of text pieces each with attached ``Style``.               |
    |     |                      |                      | Renders into specified format keeping all the formatting.                       |
    |     |                      +----------------------+---------------------------------------------------------------------------------+
    |     |                      | `Style`              | Reusable abstractions defining colors and text attributes (text                 |
-   |     |                      |                      | color, bg color, `bold` attribute, `underlined` attribute etc).                 |
+   |     |                      |                      | color, bg color, *bold* attribute, *underlined* attribute etc).                 |
    |     |                      +----------------------+---------------------------------------------------------------------------------+
-   |     |                      | `*Renderer`          | `SGRRenderer` transforms `Style` instances into `Color`, `Span`                 |
-   |     |                      |                      | and `SequenceSGR` instances and assembles it all up. There are                  |
-   |     |                      |                      | several other implementations depenging on required output                      |
-   |     |                      |                      | format: `HtmlRenderer`, `TmuxRenderer` etc.                                     |
+   |     |                      | `SGRRenderer`        | ``SGRRenderer`` transforms ``Style`` instances into ``Color``, ``Span``         |
+   |     |                      | `HtmlRenderer`       | and ``SequenceSGR`` instances and assembles it all up. There are                |
+   |     |                      | `TmuxRenderer` etc.  | several other implementations depending on what output                          |
+   |     |                      |                      | format is required.                                                             |
    |     +----------------------+----------------------+---------------------------------------------------------------------------------+
-   |     | `color`              | `Color*`             | Abstractions for color operations in different color modes                      |
-   |     |                      |                      | (default 16-color, 256-color, RGB). Tools for color approximation               |
-   |     |                      |                      | and transformations.                                                            |
+   |     | `color`              | `ColorDefault`       | Abstractions for color operations in different color modes                      |
+   |     |                      | `ColorIndexed`       | (default 16-color, 256-color, RGB). Tools for color approximation               |
+   |     |                      | `ColorRGB`           | and transformations.                                                            |
+   |     |                      +----------------------+---------------------------------------------------------------------------------+
+   |     |                      | `Colors`             | Color presets (see `presets`).                                                  |
    +-----+----------------------+----------------------+---------------------------------------------------------------------------------+
    | Lo  | `ansi`               | `Span`               | Abstraction consisting of "opening" SGR sequence defined by the                 |
    |     |                      |                      | developer (or taken from preset list) and complementary "closing"               |
    |     |                      |                      | SGR sequence that is built automatically.                                       |
    |     |                      +----------------------+---------------------------------------------------------------------------------+
+   |     |                      | `Spans`              | Registry of predefined instances in case the developer doesn't need dynamic     |
+   |     |                      |                      | output formatting and just wants to colorize an error message.                  |
+   |     |                      +----------------------+---------------------------------------------------------------------------------+
    |     |                      | `SequenceSGR`        | Abstractions for manipulating ANSI control sequences and                        |
-   |     |                      |                      | classes-factories.                                                              |
-   |     +----------------------+----------------------+---------------------------------------------------------------------------------+
-   |     | `intcode`            | \*                   | Registry of escape control sequence parameters.                                 |
+   |     |                      | `Seqs`               | classes-factoriesm, plus a registry of preset SGRs.                             |
+   |     |                      +----------------------+---------------------------------------------------------------------------------+
+   |     |                      | `IntCodes`           | Registry of escape control sequence parameters.                                 |
    |     +----------------------+----------------------+---------------------------------------------------------------------------------+
    |     | `util`               | \*                   | Additional formatters and common methods for manipulating strings with          |
    |     |                      |                      | SGRs inside.                                                                    |

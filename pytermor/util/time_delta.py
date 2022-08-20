@@ -21,7 +21,7 @@ from typing import List, Dict
 
 from .stdlib_ext import rjust_sgr
 from .string_filter import StringFilter
-from ..style import Stylesheet, Style
+from ..render import Stylesheet, Style
 
 
 def format_time_delta(seconds: float, max_len: int = None) -> str:

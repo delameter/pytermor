@@ -122,7 +122,7 @@ autodoc_default_options = {
     #'member-order': 'groupwise',
 }
 
-# class pytermor.color.Color(hex_value.. -> class Color(..
+# class pytermor.Colors.Color(hex_value.. -> class Color(..
 #add_module_names = False
 
 # ???

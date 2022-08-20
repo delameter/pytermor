@@ -10,7 +10,7 @@ possible working with filters like with objects rather than with functions/lambd
 
 .. testsetup:: *
 
-    from pytermor import span
+    from pytermor import Spans
     from pytermor.util import apply_filters, ReplaceSGR, VisualuzeWhitespace
 
 """
@@ -21,7 +21,7 @@ from functools import reduce
 from re import Match
 from typing import Generic, AnyStr, Type, Callable
 
-from .. import span
+from .. import Spans
 
 
 def apply_filters(s: AnyStr, *args: StringFilter[AnyStr]|Type[StringFilter[AnyStr]]) -> AnyStr:  # @FIXME StringFilter[AnyStr] -> StringFilter ?
@@ -30,7 +30,7 @@ def apply_filters(s: AnyStr, *args: StringFilter[AnyStr]|Type[StringFilter[AnySt
     Example (will replace all :kbd:`ESC` control characters to :kbd:`E` and
     thus make SGR params visible):
 
-    >>> apply_filters(span.RED('test'), ReplaceSGR(r'E\\2\\3\\5'))
+    >>> apply_filters(Spans.RED('test'), ReplaceSGR(r'E\\2\\3\\5'))
     'E[31mtestE[39m'
 
     Note that type of ``s`` argument must be same as ``StringFilter`` parameterized

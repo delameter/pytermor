@@ -5,7 +5,7 @@ from typing import Tuple
 
 import PIL.ImageFont
 
-from pytermor import color, sequence, ColorRGB, ColorIndexed, ColorDefault
+from pytermor import color, ansi, ColorRGB, ColorIndexed, ColorDefault
 from math import floor
 import profile
 import gc
@@ -103,7 +103,7 @@ def hsv_to_rgb(h, s, v):
     if i == 5: return (v, p, q)
 
 
-reset = sequence.RESET.encode()
+reset = Seqs.RESET.encode()
 
 
 

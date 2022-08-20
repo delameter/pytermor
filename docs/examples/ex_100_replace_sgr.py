@@ -1,7 +1,7 @@
-from pytermor import span
+from pytermor import Spans
 from pytermor.util import ReplaceSGR
 
-formatted = span.RED('this text is red')
+formatted = Spans.RED('this text is red')
 replaced = ReplaceSGR('[LIE]').apply(formatted)
 # replaced = ReplaceSGR('[LIE]')(formatted)
 

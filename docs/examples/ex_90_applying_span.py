@@ -1,6 +1,5 @@
-from pytermor import sequence, span
-from pytermor.span import Span
+from pytermor import Spans, Span, Seqs
 
-span_error = Span(sequence.BG_HI_RED + sequence.UNDERLINED, sequence.BG_COLOR_OFF + sequence.UNDERLINED_OFF)
-msg = span.ITALIC.wrap('italic might ' + span_error('not') + ' work')
+span_error = Span(Seqs.BG_HI_RED + Seqs.UNDERLINED, Seqs.BG_COLOR_OFF + Seqs.UNDERLINED_OFF)
+msg = Spans.ITALIC.wrap('italic might ' + span_error('not') + ' work')
 print(msg)

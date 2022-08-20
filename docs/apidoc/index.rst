@@ -8,11 +8,7 @@ API reference
 
 .. toctree::
 
+   ansi
    color
-   intcode
-   renderer
-   sequence
-   span
-   style
-   text
+   render
    util/index

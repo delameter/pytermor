@@ -2,11 +2,9 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
-from .color import Color, ColorRGB, ColorIndexed, ColorDefault
-from .sequence import build, color_indexed, color_rgb
-from .span import Span
-from .style import Style
-from .text import Text
+from .color import Color, ColorRGB, ColorIndexed, ColorDefault, Colors
+from .ansi import IntCodes, build, color_indexed, color_rgb, SequenceSGR, Seqs, Span, Spans
+from .render import Style, Text
 from ._version import __version__
 
 import logging

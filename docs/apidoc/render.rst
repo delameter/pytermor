@@ -1,9 +1,9 @@
-.. _apidoc.style:
+.. _apidoc.render:
 
 .. default-role:: any
 
 ========================
-style
+render
 ========================
 
-.. automodule:: pytermor.style
+.. automodule:: pytermor.render
