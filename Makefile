@@ -1,6 +1,6 @@
-## pytermor       ## ANSI formatted terminal output toolset
-## (c) 2022       ## A. Shavykin <0.delameter@gmail.com>
-##----------------##-------------------------------------------------------------
+## pytermor             ## ANSI formatted terminal output toolset
+## (c) 2022             ## A. Shavykin <0.delameter@gmail.com>
+##----------------------##-------------------------------------------------------------
 .ONESHELL:
 .PHONY: help test docs
 
@@ -124,9 +124,9 @@ docs-all: docs docs-pdf docs-man
 	@$(call log_success,$$(du -h docs-build/*)) | sed -E '1s/^(..).{7}/\1SUMMARY/'
 
 
-## Dev repository
+## Dev-type builds
 
-build-dev: ## Build module with dev project name
+build-dev: ## Build dev-type module
 build-dev: demolish-build
 	sed -E -i "s/^name.+/name = ${PROJECT_NAME}-delameter/" setup.cfg
 	python3 -m build
@@ -136,20 +136,26 @@ upload-dev: ## Upload module to dev repository
 	python3 -m twine upload --repository testpypi dist/* \
 			-u ${PYPI_USERNAME} -p ${PYPI_PASSWORD_DEV} --verbose
 
-install-dev: ## Install module from dev repository
+install-dev: ## Install dev-type module from dev repository
 	pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME}-delameter==${VERSION}
 
+install-dev-release: ## Install release-type module from dev repository
+	pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME}==${VERSION}
 
-## Primary repository
 
-build: ## Build module
+## Release-type builds
+
+build: ## Build release-type module
 build: demolish-build
 	python3 -m build
 
-upload: ## Upload module
+upload: ## Upload new release to primary repo
 	python3 -m twine upload dist/* -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD} --verbose
 
-install: ## Install module
+install: ## Install latest release from primary repo
 	pip install ${PROJECT_NAME}==${VERSION}
 
-##
+##----------------------##-------------------------------------------------------------
+##Sequence to install #
+##dev version locally #
+##under release name is:#[32m build, upload-dev, install-dev-release           [90mdon't do that##
