@@ -7,8 +7,8 @@ import unittest
 from copy import copy
 from typing import Dict
 
-from pytermor import Color, ColorDefault, ColorIndexed, ColorRGB, Seqs, SequenceSGR, \
-    IntCodes, Colors, NOOP_COLOR, NOOP_SEQ
+from pytermor.ansi import SequenceSGR, IntCodes, NOOP_SEQ
+from pytermor.color import Color, ColorDefault, ColorIndexed, ColorRGB, NOOP_COLOR
 
 
 class TestStatic(unittest.TestCase):

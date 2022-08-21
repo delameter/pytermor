@@ -14,7 +14,7 @@ b. Alternatively, you can use renderer's own class method `Renderer.render()`
 
 .. testsetup:: *
 
-    from pytermor import Colors
+    from pytermor.color import Colors
     from pytermor.render import *
 
     SGRRenderer.set_up(force_styles = True)
@@ -24,17 +24,24 @@ from __future__ import annotations
 
 import abc
 import sys
+import traceback
 from abc import abstractmethod
 from dataclasses import dataclass, field
 from typing import List, Sized, Any
+from typing import TextIO
 from typing import Type, Dict, Set
 
-from .color import Color, ColorRGB, ColorIndexed, ColorDefault, NOOP_COLOR
-from .ansi import SequenceSGR, Span, NOOP_SEQ
-from .registry import Seqs, Colors
+from .ansi import SequenceSGR, Span, NOOP_SEQ, Seqs
+from .color import Color, ColorRGB, ColorIndexed, ColorDefault, NOOP_COLOR, Colors
+from .common import Registry
+from .util.string_filter import ReplaceSGR
 
 
 class Text:
+    """
+    Text
+    """
+
     def __init__(self, text: Any = None, style: Style|str = None):
         self._runs: List[_TextRun] = [_TextRun(text, style)]
 
@@ -282,10 +289,6 @@ class Stylesheet:
                               not attr_name.startswith('_')]))
         return self.__class__.__name__ + '[{:d} props]'.format(styles_set)
 
-
-# -----------------------------------------------------------------------------
-# RENDERERs
-# -----------------------------------------------------------------------------
 
 class RendererManager:
     _default: Type[Renderer] = None
@@ -544,8 +547,68 @@ class DebugRenderer(Renderer):
         >>> DebugRenderer.render('text',Style(fg='red', bold=True))
         '|ǝ1;31|text|ǝ22;39|'
         """
-        from .util import ReplaceSGR
         return ReplaceSGR(r'|ǝ\3|').apply(SGRRenderer.render(str(text), style))
 
 
 RendererManager.set_up()
+
+
+class Styles(Registry[Style]):
+    """
+    Some ready-to-use styles. Can be used as examples.
+
+    This registry has unique keys in comparsion with other ones (`Seqs` / `Spans` /
+    `IntCodes`),
+    Therefore there is no risk of key/value duplication and all presets can be listed
+    in the initial place -- at API docs page directly.
+    """
+
+    ERROR = Style(fg=Colors.RED)
+    ERROR_LABEL = Style(ERROR, bold=True)
+    ERROR_ACCENT = Style(fg=Colors.HI_RED)
+
+
+def print_exception(e: Exception, file: TextIO = sys.stderr, with_trace: bool = True):
+    """
+    print_exception
+
+    :param e:
+    :param file:
+    :param with_trace:
+    :return:
+    """
+    tb_lines = [line.rstrip('\n') for line in
+                traceback.format_exception(e.__class__, e, e.__traceback__)]
+
+    error_text = Text()
+    if with_trace:
+        error_text += Text('\n'.join(tb_lines), Styles.ERROR) + '\n\n'
+
+    error_text += (
+        Text('ERROR:', Styles.ERROR_LABEL) + Text(f' {e}', Styles.ERROR_ACCENT))
+
+    print(error_text.render(), file=file)
+
+
+def distribute_padded(values: List[str|Text], max_len: int, pad_before: bool = False,
+                      pad_after: bool = False, ) -> str:
+    if pad_before:
+        values.insert(0, '')
+    if pad_after:
+        values.append('')
+
+    values_amount = len(values)
+    gapes_amount = values_amount - 1
+    values_len = sum(len(v) for v in values)
+    spaces_amount = max_len - values_len
+    if spaces_amount < gapes_amount:
+        raise ValueError(f'There is not enough space for all values with padding')
+
+    result = ''
+    for value_idx, value in enumerate(values):
+        gape_len = spaces_amount // (gapes_amount or 1)  # for last value
+        result += value + ' ' * gape_len
+        gapes_amount -= 1
+        spaces_amount -= gape_len
+
+    return result

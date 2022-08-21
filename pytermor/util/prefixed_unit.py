@@ -5,7 +5,7 @@
 """
 .. testsetup:: *
 
-    from pytermor.util import format_si_metric, format_si_binary
+    from pytermor.util.prefixed_unit import format_si_metric, format_si_binary
 
 """
 from __future__ import annotations

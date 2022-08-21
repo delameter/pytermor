@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 import unittest
 
-from pytermor import SequenceSGR, Span, Seqs, IntCodes, NOOP_SEQ
+from pytermor.ansi import SequenceSGR, Span, Seqs, IntCodes, NOOP_SEQ
 
 
 class TestEquality(unittest.TestCase):

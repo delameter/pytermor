@@ -10,8 +10,8 @@ possible working with filters like with objects rather than with functions/lambd
 
 .. testsetup:: *
 
-    from pytermor import Spans
-    from pytermor.util import apply_filters, ReplaceSGR, VisualuzeWhitespace
+    from pytermor.ansi import Spans
+    from pytermor.util.string_filter import apply_filters, ReplaceSGR, VisualuzeWhitespace
 
 """
 from __future__ import annotations
@@ -21,7 +21,7 @@ from functools import reduce
 from re import Match
 from typing import Generic, AnyStr, Type, Callable
 
-from .. import Spans
+from ..ansi import Spans
 
 
 def apply_filters(s: AnyStr, *args: StringFilter[AnyStr]|Type[StringFilter[AnyStr]]) -> AnyStr:  # @FIXME StringFilter[AnyStr] -> StringFilter ?

@@ -27,7 +27,7 @@ Structure
    |     |                      |                      | Renders into specified format keeping all the formatting.                       |
    |     |                      +----------------------+---------------------------------------------------------------------------------+
    |     |                      | `Style`              | Reusable abstractions defining colors and text attributes (text                 |
-   |     |                      |                      | color, bg color, *bold* attribute, *underlined* attribute etc).                 |
+   |     |                      | `Styles`             | color, bg color, *bold* attribute, *underlined* attribute etc).                 |
    |     |                      +----------------------+---------------------------------------------------------------------------------+
    |     |                      | `SGRRenderer`        | ``SGRRenderer`` transforms ``Style`` instances into ``Color``, ``Span``         |
    |     |                      | `HtmlRenderer`       | and ``SequenceSGR`` instances and assembles it all up. There are                |

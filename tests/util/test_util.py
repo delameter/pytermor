@@ -4,8 +4,10 @@
 # -----------------------------------------------------------------------------
 import unittest
 
-from pytermor.util import center_sgr, ReplaceSGR, format_thousand_sep
-from pytermor import Spans, SequenceSGR
+from pytermor.util import format_thousand_sep
+from pytermor.util.string_filter import ReplaceSGR
+from pytermor.util.stdlib_ext import center_sgr
+from pytermor.ansi import Spans, SequenceSGR
 
 
 class TestFormatThousandSep(unittest.TestCase):

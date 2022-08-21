@@ -9,19 +9,16 @@ Supports several output lengths and can be customized even more.
 
 .. testsetup:: *
 
-    from pytermor.util import format_time_delta
+    from pytermor.util.time_delta import format_time_delta
 
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 from math import floor, trunc, isclose
-from re import Match
 from typing import List, Dict
 
 from .stdlib_ext import rjust_sgr
-from .string_filter import StringFilter
-from ..render import Stylesheet, Style
 
 
 def format_time_delta(seconds: float, max_len: int = None) -> str:
@@ -78,21 +75,14 @@ class TimeDeltaFormatter:
 
     """
     def __init__(self, units: List[TimeUnit], allow_negative: bool, unit_separator: str = None,
-                 plural_suffix: str = None, stylesheet: TimeDeltaStylesheet = None, overflow_msg: str = 'OVERFLOW'):
+                 plural_suffix: str = None,  overflow_msg: str = 'OVERFLOW'):
         self._units = units
         self._allow_negative = allow_negative
         self._unit_separator = unit_separator
         self._plural_suffix = plural_suffix
-        self._stylesheet = stylesheet or TimeDeltaStylesheet()
         self._overflow_msg = overflow_msg
 
         self._max_len = self._compute_max_len()
-
-    @property
-    def stylesheet(self) -> TimeDeltaStylesheet: return self._stylesheet
-
-    @stylesheet.setter
-    def stylesheet(self, stylesheet): self._stylesheet = stylesheet
 
     @property
     def max_len(self) -> int:
@@ -119,12 +109,12 @@ class TimeDeltaFormatter:
         """
         result = self.format_raw(seconds)
         if result is None:
-            return self._stylesheet.overflow.render(self._overflow_msg[:self.max_len])
+            result = self._overflow_msg[:self.max_len]
 
         if always_max_len:
             result = rjust_sgr(result, self._max_len)
 
-        return self._Styler(self._stylesheet).apply(result)
+        return result
 
     def format_raw(self, seconds: float) -> str|None:
         """
@@ -206,19 +196,6 @@ class TimeDeltaFormatter:
 
         return max_len
 
-    class _Styler(StringFilter[str]):
-        def __init__(self, ss: TimeDeltaStylesheet):
-            self._ss = ss
-            super().__init__(r'(\d+)|(\w+)|(\W+)', self._replace)
-
-        def _replace(self, m: Match):
-            if m.group(1):
-                return self._ss.digit.render(m.group(0))
-            elif m.group(2):
-                return self._ss.unit.render(m.group(0))
-
-            return self._ss.default.render(m.group(0))
-
 
 @dataclass(frozen=True)
 class TimeUnit:
@@ -227,14 +204,6 @@ class TimeUnit:
     custom_short: str = None
     collapsible_after: int = None   # min threshold for double-delta to become regular
     overflow_afer: int = None       # max threshold
-
-
-class TimeDeltaStylesheet(Stylesheet):
-    def __init__(self, default: Style = None, digit: Style = None, unit: Style = None, overflow: Style = None):
-        super().__init__(default)
-        self.digit = self._opt_arg(digit)
-        self.unit = self._opt_arg(unit)
-        self.overflow = self._opt_arg(overflow)
 
 
 class _TimeDeltaFormatterRegistry:

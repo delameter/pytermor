@@ -44,6 +44,12 @@ prepare-pdf:  ## Prepare environment for pdf rendering
 					 texlive-fonts-recommended \
 					 texlive-latex-extra latexmk
 
+demolish-build:  ## Purge build output folders
+	rm -f -v dist/* ${PROJECT_NAME_PUBLIC}.egg-info/* ${PROJECT_NAME_PRIVATE}.egg-info/*
+
+
+## Testing / Pre-build
+
 set-version: ## Set new package version
 	@echo "Current version: ${YELLOW}${VERSION}${RESET}"
 	read -p "New version (press enter to keep current): " VERSION
@@ -53,12 +59,6 @@ set-version: ## Set new package version
 	sed -E -i "s/^version.+/version = $$VERSION/" setup.cfg
 	sed -E -i "s/^__version__.+/__version__ = '$$VERSION'/" ${PROJECT_NAME}/_version.py
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
-
-demolish-build:  ## Purge build output folders
-	rm -f -v dist/* ${PROJECT_NAME_PUBLIC}.egg-info/* ${PROJECT_NAME_PRIVATE}.egg-info/*
-
-
-## Local testing
 
 test: ## Run pytest
 	. venv/bin/activate
@@ -84,10 +84,11 @@ coverage: ## Run coverage and make a report
 	coverage html
 	if [ -n $$DISPLAY ] ; then xdg-open coverage-report/index.html ; fi
 
-diagrams:  ## Show module dependency graph
-	pydeps pytermor -o dev/diagrams/imports.svg
-	pydeps pytermor --no-show --show-cycles -o dev/diagrams/cycles.svg
-	pydeps pytermor --no-show --pylib -o dev/diagrams/imports-ext.svg
+depends:  ## Build and display module dependency graph
+	mkdir -p dev/diagrams
+	pydeps ${PROJECT_NAME} --rmprefix ${PROJECT_NAME}. -o dev/diagrams/imports.svg
+	pydeps ${PROJECT_NAME} --rmprefix ${PROJECT_NAME}. -o dev/diagrams/cycles.svg 	   --show-cycle                       --no-show
+	pydeps ${PROJECT_NAME} --rmprefix ${PROJECT_NAME}. -o dev/diagrams/imports-ext.svg --pylib  --collapse-target-cluster --no-show
 
 #update-readme: # Generate and rewrite README
 #	. venv/bin/activate
@@ -162,7 +163,10 @@ upload: ## Upload last successful build to PRIMARY repo
 install: ## Install latest public build from PRIMARY repo
 	pip install ${PROJECT_NAME_PUBLIC}==${VERSION}
 
-##---------------------##-------------------------------------------------------------
-##Sequence to install  ##
-##private build locally##build, upload-dev, install-dev-public
-##under public name is:##  ##(don't do that)
+
+##-----------------------##-------------------------------------------------------------
+## To install private    ## #
+## build over public one:## #
+# make build upload-dev install-dev-public :##
+##                       ## #                                               (dont do that)
+########################### #

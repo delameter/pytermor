@@ -4,9 +4,7 @@
 # -----------------------------------------------------------------------------
 import unittest
 
-from pytermor.registry.seqs import _SgrPairityRegistry
-from pytermor.ansi import SequenceSGR, NOOP_SEQ
-from pytermor import Seqs, IntCodes
+from pytermor.ansi import SequenceSGR, _SgrPairityRegistry, NOOP_SEQ, Seqs, IntCodes
 
 
 class TestEquality(unittest.TestCase):

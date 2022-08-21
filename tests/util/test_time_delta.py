@@ -6,8 +6,8 @@ import logging
 import unittest
 from datetime import timedelta
 
-from pytermor.util import format_time_delta, TimeDeltaFormatter, TimeUnit
-from pytermor.util.time_delta import _TimeDeltaFormatterRegistry
+from pytermor.util.time_delta import _TimeDeltaFormatterRegistry, format_time_delta, \
+    TimeDeltaFormatter, TimeUnit
 
 
 class TestTimeDeltaFormatter(unittest.TestCase):

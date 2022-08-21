@@ -5,7 +5,7 @@
 """
 .. testsetup:: *
 
-    from pytermor.util import format_auto_float
+    from pytermor.util.auto_float import format_auto_float
 
 """
 from math import trunc, log10, floor

@@ -2,11 +2,8 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
-import sys
-import traceback
 
-from typing import TypeVar, Generic, TextIO
-
+from typing import TypeVar, Generic
 
 T = TypeVar('T')
 """ Any """
@@ -42,28 +39,6 @@ def get_terminal_width() -> int:
     except ImportError:
         return 80
 
-
-def print_exception(e: Exception, file: TextIO = sys.stderr, with_trace: bool = True):
-    """
-    print_exception
-
-    :param e:
-    :param file:
-    :param with_trace:
-    :return:
-    """
-    from .render import Styles, Text
-    tb_lines = [line.rstrip('\n') for line in traceback.format_exception(e.__class__, e, e.__traceback__)]
-
-    error_text = Text()
-    if with_trace:
-        error_text += Text('\n'.join(tb_lines), Styles.ERROR) + '\n\n'
-
-    error_text += (
-        Text('ERROR:', Styles.ERROR_LABEL) +
-        Text(f' {e}', Styles.ERROR_ACCENT))
-
-    print(error_text.render(), file=file)
 
 
 class LogicError(Exception):
