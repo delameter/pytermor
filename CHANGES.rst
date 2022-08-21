@@ -15,7 +15,7 @@ v1.8.0
 - Value rounding transferred from  `format_auto_float` to ``format_prefixed_unit``.
 - Utility classes reorganization.
 - Unit tests output formatting.
-- `sequence.NOOP` SGR sequence and `span.NOOP` format.
+- ``sequence.NOOP`` SGR sequence and ``span.NOOP`` format.
 - Max decimal points for `auto_float` extended from (2) to (max-2).
 
 v1.7.4

@@ -5,7 +5,7 @@
 import unittest
 
 from pytermor.util import center_sgr, ReplaceSGR, format_thousand_sep
-from pytermor.ansi import SequenceSGR, Spans
+from pytermor import Spans, SequenceSGR
 
 
 class TestFormatThousandSep(unittest.TestCase):

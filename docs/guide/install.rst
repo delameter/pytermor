@@ -23,7 +23,7 @@ Structure
    +-----+----------------------+----------------------+---------------------------------------------------------------------------------+
    | Lvl | Module               | Class(es)            | Purpose                                                                         |
    +=====+======================+======================+=================================================================================+
-   | Hi  | `render`             | `Text`               | Container consisting of text pieces each with attached ``Style``.               |
+   | Hi  | :mod:`.render`       | `Text`               | Container consisting of text pieces each with attached ``Style``.               |
    |     |                      |                      | Renders into specified format keeping all the formatting.                       |
    |     |                      +----------------------+---------------------------------------------------------------------------------+
    |     |                      | `Style`              | Reusable abstractions defining colors and text attributes (text                 |
@@ -84,7 +84,7 @@ other (as long as they require different *breaker* sequences to reset).
 
 .. rubric:: Flexible sequence builder
 
-Create your own `SGR sequences <SequenceSGR>` with `build()` method, which accepts color/attribute keys,
+Create your own `SGR sequences <SequenceSGR>` using default constructor, which accepts color/attribute keys,
 integer codes and even existing *SGRs*, in any amount and in any order. Key resolving is case-insensitive.
 
 .. literalinclude:: /examples/ex_30_flexible.py

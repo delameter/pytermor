@@ -103,7 +103,7 @@ def hsv_to_rgb(h, s, v):
     if i == 5: return (v, p, q)
 
 
-reset = Seqs.RESET.encode()
+reset = Seqs.RESET.assemble()
 
 
 

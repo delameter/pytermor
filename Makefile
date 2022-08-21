@@ -5,6 +5,8 @@
 .PHONY: help test docs
 
 PROJECT_NAME = pytermor
+PROJECT_NAME_PUBLIC = ${PROJECT_NAME}
+PROJECT_NAME_PRIVATE = ${PROJECT_NAME}-delameter
 
 include .env.dist
 -include .env
@@ -52,8 +54,8 @@ set-version: ## Set new package version
 	sed -E -i "s/^__version__.+/__version__ = '$$VERSION'/" ${PROJECT_NAME}/_version.py
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
 
-demolish-build:
-	rm -f -v dist/* ${PROJECT_NAME}.egg-info/*
+demolish-build:  ## Purge build output folders
+	rm -f -v dist/* ${PROJECT_NAME_PUBLIC}.egg-info/* ${PROJECT_NAME_PRIVATE}.egg-info/*
 
 
 ## Local testing
@@ -82,6 +84,11 @@ coverage: ## Run coverage and make a report
 	coverage html
 	if [ -n $$DISPLAY ] ; then xdg-open coverage-report/index.html ; fi
 
+diagrams:  ## Show module dependency graph
+	pydeps pytermor -o dev/diagrams/imports.svg
+	pydeps pytermor --no-show --show-cycles -o dev/diagrams/cycles.svg
+	pydeps pytermor --no-show --pylib -o dev/diagrams/imports-ext.svg
+
 #update-readme: # Generate and rewrite README
 #	. venv/bin/activate
 #	PYTHONPATH=`pwd` python3 -s dev/readme/update_readme.py
@@ -94,7 +101,7 @@ reinit-docs: ## Erase and reinit docs with auto table of contents
 	. venv/bin/activate
 	sphinx-apidoc --force --separate --module-first --tocfile index --output-dir docs pytermor
 
-demolish-docs:
+demolish-docs:  ## Purge docs output folder
 	rm -rvf docs/_build
 
 docs: ## Build HTML documentation
@@ -124,38 +131,38 @@ docs-all: docs docs-pdf docs-man
 	@$(call log_success,$$(du -h docs-build/*)) | sed -E '1s/^(..).{7}/\1SUMMARY/'
 
 
-## Dev-type builds
+## Releasing (dev)
 
-build-dev: ## Build dev-type module
+build-dev: ## Create new private build (<pytermor-delameter>)
 build-dev: demolish-build
-	sed -E -i "s/^name.+/name = ${PROJECT_NAME}-delameter/" setup.cfg
+	sed -E -i "s/^name.+/name = ${PROJECT_NAME_PRIVATE}/" setup.cfg
 	python3 -m build
-	sed -E -i "s/^name.+/name = ${PROJECT_NAME}/" setup.cfg
+	sed -E -i "s/^name.+/name = ${PROJECT_NAME_PUBLIC}/" setup.cfg
 
-upload-dev: ## Upload module to dev repository
+upload-dev: ## Upload last successful build to dev repo
 	python3 -m twine upload --repository testpypi dist/* \
 			-u ${PYPI_USERNAME} -p ${PYPI_PASSWORD_DEV} --verbose
 
-install-dev: ## Install dev-type module from dev repository
-	pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME}-delameter==${VERSION}
+install-dev: ## Install latest private build from dev repo
+	pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME_PRIVATE}==${VERSION}
 
-install-dev-release: ## Install release-type module from dev repository
-	pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME}==${VERSION}
+install-dev-public: ## Install latest public build from dev repo
+	pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME_PUBLIC}==${VERSION}
 
 
-## Release-type builds
+## Releasing (PRIMARY)
 
-build: ## Build release-type module
+build: ## Create new public build (<pytermor>)
 build: demolish-build
 	python3 -m build
 
-upload: ## Upload new release to primary repo
+upload: ## Upload last successful build to PRIMARY repo
 	python3 -m twine upload dist/* -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD} --verbose
 
-install: ## Install latest release from primary repo
-	pip install ${PROJECT_NAME}==${VERSION}
+install: ## Install latest public build from PRIMARY repo
+	pip install ${PROJECT_NAME_PUBLIC}==${VERSION}
 
-##----------------------##-------------------------------------------------------------
-##Sequence to install #
-##dev version locally #
-##under release name is:#[32m build, upload-dev, install-dev-release           [90mdon't do that##
+##---------------------##-------------------------------------------------------------
+##Sequence to install  ##
+##private build locally##build, upload-dev, install-dev-public
+##under public name is:##  ##(don't do that)

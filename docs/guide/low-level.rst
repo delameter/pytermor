@@ -63,30 +63,28 @@ Each sequence param can be specified as:
 - existing `SequenceSGR` instance (params will be extracted).
 
 It's also possible to avoid auto-composing mechanism and create `Span` with
-explicitly set parameters using `Span.from_seq()`.
+explicitly set parameters using `Span.init_explicit()`.
 
 
 Creating and applying :mono:`SGRs`
 ==================================
 
-You can use any of predefined sequences from `sequence` or create your own via standard constructor. Valid
+You can use any of predefined sequences from `Seqs` registry or create your own via standard constructor. Valid
 argument values as well as preset constants are described in `presets` page.
+
+.. important::
+  ``SequenceSGR`` with zero params was specifically implemented to translate into an empty string and not
+  into :kbd:`\e[m`, which would make sense, but also could be very entangling, as terminal emulators interpret
+  that sequence as :kbd:`\e[0m`, which is *hard* reset sequence.
 
 There is also a set of methods for dynamic ``SequenceSGR`` creation:
 
-- `build()` for non-specific sequences;
-
-  .. important::
-     ``SequenceSGR`` with zero params was specifically implemented to translate into an empty string and not
-     into :kbd:`\e[m`, which would make sense, but also could be very entangling, as terminal emulators interpret
-     that sequence as :kbd:`\e[0m`, which is *hard* reset sequence.
-
-- `color_indexed()` for complex color selection sequences operating in 256-colors mode (for a complete list
+- `init_color_indexed()` will produce sequence operating in 256-colors mode (for a complete list
   see `presets`);
-- `color_rgb()` for setting the colors in True Color 16M mode (however, some terminal emulators doesn't
+- `init_color_rgb()` will create a sequence capable of setting the colors in True Color 16M mode (however, some terminal emulators doesn't
   support it).
 
-To get the resulting sequence chars use `encode() <SequenceSGR.encode()>` method or cast instance to *str*.
+To get the resulting sequence chars use `assemble() <SequenceSGR.assemble()>` method or cast instance to *str*.
 
 .. literalinclude:: /examples/ex_70_sgr_structure.py
    :linenos:
@@ -133,13 +131,17 @@ Core API
    .. table::
       :class: core-api-refs
 
-      ===================== =================== =================
-      `build()`             `color_indexed()`   `color_rgb()`
-      `SequenceSGR` class   `Span` constructor  `Span.from_seq()`
-      ===================== =================== =================
+      =================================== ======================
+      `SequenceSGR` constructor           `Span` constructor
+      `SequenceSGR.init_color_indexed()`  `Span.init_explicit()`
+      `SequenceSGR.init_color_rgb()`
+      =================================== ======================
 
 .. only :: latex
 
    * @TODO
+   * `SequenceSGR` constructor
+   * `SequenceSGR.init_color_indexed()`
+   * `SequenceSGR.init_color_rgb()`
    * `Span` constructor
-   * `Span.from_seq()`
+   * `Span.init_explicit()`

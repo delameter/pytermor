@@ -134,9 +134,9 @@ autodoc_class_signature = 'separated'
 # static set_up(force_styles: bool | None = False, compatibility_indexed: bool.. ->
 # static set_up(force_styles=False, compatibility_indexed=False, compatibility_default..
 #
-# but "encode() → str" becomes:
-# encode()
-#   Build up actual byte sequence and return as an ASCII-encoded string.
+# but "assemble() → str" becomes:
+# assemble()
+#   Build up actual byte sequence and return as an ASCII-assembled string.
 #     RETURN TYPE:
 #       str
 #autodoc_typehints = 'both'
@@ -146,6 +146,7 @@ autodoc_typehints = 'signature'
 keep_warnings = True
 nitpick_ignore = [('py:class', 'Match'),
                   ('py:class', 'InitVar'),
+                  ('py:class', 'pytermor.common.T'),
                   ('py:class', 'pytermor.color.TypeColor')]
 
 # -- Hide "bases: object" elements --------------------------------------------

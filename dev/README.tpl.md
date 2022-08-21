@@ -412,8 +412,8 @@ Set of methods to make working with SGR sequences a bit easier.
   <tr><td colspan="4"><br><b>breakers</b></td></tr>
   <tr>
     <td align=center>22</td>
-    <td>sequence.<code>NO_BOLD_DIM</code></td>
-    <td><code>"no_bold_dim"<br>"bold_dim_off"</code></td>
+    <td>sequence.<code>BOLD_DIM_OFF</code></td>
+    <td><code>"bold_dim_off"</code></td>
     <td>Disable <code>BOLD</code> and <code>DIM</code> attributes.<br><i>Special aspects... It's impossible to reliably disable them on a separate basis.</i></td>
   </tr>
   <tr>

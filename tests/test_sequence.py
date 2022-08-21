@@ -4,8 +4,9 @@
 # -----------------------------------------------------------------------------
 import unittest
 
-from pytermor.ansi import IntCodes, build, color_indexed, color_rgb, Seqs, \
-    SequenceSGR, sgr_parity_registry
+from pytermor.registry.seqs import _SgrPairityRegistry
+from pytermor.ansi import SequenceSGR, NOOP_SEQ
+from pytermor import Seqs, IntCodes
 
 
 class TestEquality(unittest.TestCase):
@@ -13,7 +14,7 @@ class TestEquality(unittest.TestCase):
         self.assertEqual(SequenceSGR(1, 31, 42), SequenceSGR(1, 31, 42))
 
     def test_empty_is_equal_to_empty(self):
-        self.assertEqual(Seqs.NOOP, SequenceSGR())
+        self.assertEqual(NOOP_SEQ, SequenceSGR())
 
     def test_regular_is_not_equal_to_regular(self):
         self.assertNotEqual(SequenceSGR(2, 31, 42), SequenceSGR(1, 31, 42))
@@ -25,7 +26,7 @@ class TestEquality(unittest.TestCase):
         self.assertNotEqual(SequenceSGR(), SequenceSGR(0))
 
     def test_reset_is_not_equal_to_empty(self):
-        self.assertNotEqual(Seqs.NOOP, SequenceSGR(0))
+        self.assertNotEqual(NOOP_SEQ, SequenceSGR(0))
 
 
 class TestAddition(unittest.TestCase):
@@ -33,13 +34,13 @@ class TestAddition(unittest.TestCase):
         self.assertEqual(SequenceSGR(1) + SequenceSGR(3), SequenceSGR(1, 3))
 
     def test_addition_of_regular_to_empty(self):
-        self.assertEqual(SequenceSGR(41) + Seqs.NOOP, SequenceSGR(41))
+        self.assertEqual(SequenceSGR(41) + NOOP_SEQ, SequenceSGR(41))
 
     def test_addition_of_empty_to_regular(self):
         self.assertEqual(SequenceSGR() + SequenceSGR(44), SequenceSGR(44))
 
     def test_addition_of_empty_to_empty(self):
-        self.assertEqual(SequenceSGR() + Seqs.NOOP, SequenceSGR())
+        self.assertEqual(SequenceSGR() + NOOP_SEQ, SequenceSGR())
 
     def test_addition_of_empty_to_reset(self):
         self.assertEqual(SequenceSGR() + SequenceSGR(0), SequenceSGR(0))
@@ -54,69 +55,68 @@ class TestAddition(unittest.TestCase):
 
 class TestBuild(unittest.TestCase):
     def test_build_code_args(self):
-        s = build(1, 31, 43)
+        s = SequenceSGR(1, 31, 43)
         self.assertEqual(s,
                          SequenceSGR(IntCodes.BOLD, IntCodes.RED, IntCodes.BG_YELLOW))
 
     def test_build_key_args(self):
-        s = build('underlined', 'blue', 'bg_black')
+        s = SequenceSGR('underlined', 'blue', 'bg_black')
         self.assertEqual(s, SequenceSGR(IntCodes.UNDERLINED, IntCodes.BLUE,
                                         IntCodes.BG_BLACK))
 
     def test_build_key_args_invalid(self):
-        self.assertRaises(KeyError, build, 'invalid')
+        self.assertRaises(KeyError, SequenceSGR, 'invalid')
 
     def test_build_sgr_args(self):
-        s = build(Seqs.HI_CYAN, Seqs.ITALIC)
+        s = SequenceSGR(Seqs.HI_CYAN, Seqs.ITALIC)
         self.assertEqual(s, SequenceSGR(IntCodes.HI_CYAN, IntCodes.ITALIC))
 
     def test_build_mixed_args(self):
-        s = build(102, 'bold', Seqs.INVERSED)
+        s = SequenceSGR(102, 'bold', Seqs.INVERSED)
         self.assertEqual(s, SequenceSGR(IntCodes.BG_HI_GREEN, IntCodes.BOLD,
                                         IntCodes.INVERSED))
 
     def test_build_mixed_args_invalid(self):
-        self.assertRaises(KeyError, build, 1, 'red', '')
+        self.assertRaises(KeyError, SequenceSGR, 1, 'red', '')
 
     def test_build_empty_arg(self):
-        s = build(SequenceSGR())
-        self.assertEqual(s, Seqs.NOOP)
+        s = SequenceSGR(SequenceSGR())
+        self.assertEqual(s, NOOP_SEQ)
 
     def test_build_mixed_with_empty_arg(self):
-        s = build(3, SequenceSGR())
+        s = SequenceSGR(3, SequenceSGR())
         self.assertEqual(s, SequenceSGR(IntCodes.ITALIC))
 
     def test_color_indexed_foreground(self):
-        s = color_indexed(141)
+        s = SequenceSGR.init_color_indexed(141)
         self.assertEqual(s, SequenceSGR(IntCodes.COLOR_EXTENDED,
-                                        IntCodes._EXTENDED_MODE_256, 141))
+                                        IntCodes.EXTENDED_MODE_256, 141))
 
     def test_color_indexed_background(self):
-        s = color_indexed(255, bg=True)
+        s = SequenceSGR.init_color_indexed(255, bg=True)
         self.assertEqual(s, SequenceSGR(IntCodes.BG_COLOR_EXTENDED,
-                                        IntCodes._EXTENDED_MODE_256, 255))
+                                        IntCodes.EXTENDED_MODE_256, 255))
 
     def test_color_indexed_invalid(self):
-        self.assertRaises(ValueError, color_indexed, 266, bg=True)
+        self.assertRaises(ValueError, SequenceSGR.init_color_indexed, 266, bg=True)
 
     def test_color_rgb_foreground(self):
-        s = color_rgb(10, 20, 30)
+        s = SequenceSGR.init_color_rgb(10, 20, 30)
         self.assertEqual(s, SequenceSGR(IntCodes.COLOR_EXTENDED,
-                                        IntCodes._EXTENDED_MODE_RGB, 10, 20, 30))
+                                        IntCodes.EXTENDED_MODE_RGB, 10, 20, 30))
 
     def test_color_rgb_background(self):
-        s = color_rgb(50, 70, 90, bg=True)
+        s = SequenceSGR.init_color_rgb(50, 70, 90, bg=True)
         self.assertEqual(s, SequenceSGR(IntCodes.BG_COLOR_EXTENDED,
-                                        IntCodes._EXTENDED_MODE_RGB, 50, 70, 90))
+                                        IntCodes.EXTENDED_MODE_RGB, 50, 70, 90))
 
     def test_color_rgb_invalid(self):
-        self.assertRaises(ValueError, color_rgb, 10, 310, 30)
-        self.assertRaises(ValueError, color_rgb, 310, 10, 130)
-        self.assertRaises(ValueError, color_rgb, 0, 0, 256, bg=True)
-
+        self.assertRaises(ValueError, SequenceSGR.init_color_rgb, 10, 310, 30)
+        self.assertRaises(ValueError, SequenceSGR.init_color_rgb, 310, 10, 130)
+        self.assertRaises(ValueError, SequenceSGR.init_color_rgb, 0, 0, 256, bg=True)
 
 
 class TestRegistry(unittest.TestCase):  # @TODO more
     def test_closing_seq(self):
-        self.assertEqual(sgr_parity_registry.get_closing_seq(Seqs.BOLD + Seqs.RED),
-            Seqs.NO_BOLD_DIM + Seqs.COLOR_OFF)
+        self.assertEqual(_SgrPairityRegistry.get_closing_seq(Seqs.BOLD + Seqs.RED),
+                         Seqs.BOLD_DIM_OFF + Seqs.COLOR_OFF)

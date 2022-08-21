@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import sys
 
-from pytermor import ColorIndexed, Span, ansi, ColorRGB
+from pytermor import ColorIndexed, Span, ansi, ColorRGB, Seqs, Spans
 
 
 def _main(target_color_hex: int):

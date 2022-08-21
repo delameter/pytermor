@@ -14,7 +14,7 @@ b. Alternatively, you can use renderer's own class method `Renderer.render()`
 
 .. testsetup:: *
 
-    from pytermor.color import Colors
+    from pytermor import Colors
     from pytermor.render import *
 
     SGRRenderer.set_up(force_styles = True)
@@ -29,13 +29,10 @@ from dataclasses import dataclass, field
 from typing import List, Sized, Any
 from typing import Type, Dict, Set
 
-from .color import Color, ColorRGB, ColorIndexed, ColorDefault, Colors
-from .ansi import SequenceSGR, Seqs, Span
+from .color import Color, ColorRGB, ColorIndexed, ColorDefault, NOOP_COLOR
+from .ansi import SequenceSGR, Span, NOOP_SEQ
+from .registry import Seqs, Colors
 
-
-# -----------------------------------------------------------------------------
-# TEXTS
-# -----------------------------------------------------------------------------
 
 class Text:
     def __init__(self, text: Any = None, style: Style|str = None):
@@ -110,17 +107,13 @@ class _TextRun(Sized):
         return self.render()
 
 
-# -----------------------------------------------------------------------------
-# STYLES
-# -----------------------------------------------------------------------------
-
 @dataclass
 class Style:
     """Create a new ``Style()``.
 
     Key difference between ``Styles`` and ``Spans`` or ``SGRs`` is that
     ``Styles`` describe colors in RGB format and therefore support output
-    rendering in several different formats (see :mod:`.renderer`).
+    rendering in several different formats (see :mod:`.render`).
 
     Both ``fg`` and ``bg`` can be specified as:
 
@@ -180,9 +173,9 @@ class Style:
             self._clone_from(inherit)
 
         if self._fg is None:
-            self._fg = Colors.NOOP
+            self._fg = NOOP_COLOR
         if self._bg is None:
-            self._bg = Colors.NOOP
+            self._bg = NOOP_COLOR
 
     def render(self, text: Any = None) -> str:
         """
@@ -191,14 +184,14 @@ class Style:
         By default uses `SequenceSGR` renderer, that means that output will contain
         ANSI escape sequences.
         """
-        from .render import RendererManager
         return RendererManager.get_default().render(text, self)
 
     def autopick_fg(self) -> Color|None:
         """
-        Pick ``fg_color`` depending on ``bg_color`` brightness. Set 4% gray
-        or 96% gray as `fg_color` and return it, if ``bg_color`` is defined,
-        and do nothing and return None otherwise.
+        Pick ``fg_color`` depending on ``bg_color``. Set ``fg_color`` to
+        either 4% gray (almost black) if background is bright, or to 96% gray
+        (almost white) if it is dark, and after that return the applied ``fg_color``.
+        If ``bg_color`` is undefined, do nothing and return None.
 
         :return: Suitable foreground color or None.
         """
@@ -223,11 +216,7 @@ class Style:
             return ColorRGB(arg)
 
         if isinstance(arg, str):
-            arg_mapped = arg.upper()
-            resolved_color = getattr(Colors, arg_mapped, None)  # @FIXME add a method
-            if resolved_color is None:
-                raise KeyError(
-                    f'Code "{arg}" -> "{arg_mapped}" is not a name of Color preset')
+            resolved_color = Colors.resolve(arg)
             if not isinstance(resolved_color, Color):
                 raise ValueError(f'Attribute is not valid Color: {resolved_color}')
             return resolved_color
@@ -270,22 +259,22 @@ class Style:
         self._bg: Color = self._resolve_color(val, nullable=False)
 
 
-NOOP = Style()
-
-
-# ---------------------------------------------------------------------------
-
+NOOP_STYLE = Style()
+"""
+Special style which passes the text 
+furthrer without any modifications.
+"""
 
 class Stylesheet:
     """
-    whatwhenhow @FIXME
+    @wat when how выпилить к черту
     """
 
     def __init__(self, default: Style = None):
         self.default: Style = self._opt_arg(default)
 
     def _opt_arg(self, arg: Style|None):
-        return arg or NOOP
+        return arg or NOOP_STYLE
 
     def __repr__(self):
         styles_set = sum(map(lambda a: int(isinstance(a, Style)),
@@ -295,7 +284,7 @@ class Stylesheet:
 
 
 # -----------------------------------------------------------------------------
-# RENDERERS
+# RENDERERs
 # -----------------------------------------------------------------------------
 
 class RendererManager:
@@ -341,7 +330,7 @@ class Renderer(metaclass=abc.ABCMeta):
 
 class SGRRenderer(Renderer):
     """
-    Default renderer that `Style.render() <style.Style.render>` invokes. Transforms
+    Default renderer that `Style.render() <Style.render>` invokes. Transforms
     `Color` instances defined in ``style`` argument into ANSI control sequence
     characters and merges them with input string.
     """
@@ -426,7 +415,7 @@ class SGRRenderer(Renderer):
 
     @classmethod
     def _render_attributes(cls, style: Style) -> SequenceSGR:
-        result = Seqs.NOOP
+        result = NOOP_SEQ
         if not cls._is_sgr_usage_allowed():
             return result
 
@@ -445,7 +434,7 @@ class SGRRenderer(Renderer):
     @classmethod
     def _render_color(cls, color: Color, bg: bool) -> SequenceSGR:
         if not cls._is_sgr_usage_allowed():
-            return Seqs.NOOP
+            return NOOP_SEQ
 
         hex_value = color.hex_value
 
@@ -484,7 +473,7 @@ class NoOpRenderer(Renderer):
     def render(cls, text: Any, style: Style) -> str:
         """
         Special renderer type that does nothing with the input string and just
-        returns it as is. That's true only when it _is_ a `str` beforehand;
+        returns it as is. That's true only when it _is_ a str beforehand;
         otherwise argument will be casted to str and then returned.
 
         >>> NoOpRenderer.render('text',Style(fg='red', bold=True))

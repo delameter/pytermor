@@ -11,4 +11,6 @@ API reference
    ansi
    color
    render
+   registry/index
    util/index
+   common

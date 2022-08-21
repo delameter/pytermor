@@ -3,7 +3,7 @@ from pytermor import Span, Spans, Seqs
 # implicitly:
 span_warn = Span(93, 4)
 # or explicitly:
-span_warn = Span.from_seq(
+span_warn = Span.init_explicit(
     Seqs.HI_YELLOW + Seqs.UNDERLINED,  # sequences can be summed up, remember?
     Seqs.COLOR_OFF + Seqs.UNDERLINED_OFF,  # "counteractive" sequences
     hard_reset_after=False

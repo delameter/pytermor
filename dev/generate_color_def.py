@@ -11,7 +11,7 @@ from typing import Dict, Set
 import yaml
 from yaml import SafeLoader
 
-from pytermor import Style, ColorIndexed, Colors, Text
+from pytermor import Style, ColorIndexed, Text, Colors
 from pytermor.render import RendererManager, HtmlRenderer, SGRRenderer
 
 

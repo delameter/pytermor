@@ -8,7 +8,7 @@ from copy import copy
 from typing import Dict
 
 from pytermor import Color, ColorDefault, ColorIndexed, ColorRGB, Seqs, SequenceSGR, \
-    IntCodes, Colors
+    IntCodes, Colors, NOOP_COLOR, NOOP_SEQ
 
 
 class TestStatic(unittest.TestCase):
@@ -30,16 +30,16 @@ class TestStatic(unittest.TestCase):
                 self.assertEquals(expected_output, actual_output)
 
     def test_noop(self):
-        self.assertEquals(Seqs.NOOP, Colors.NOOP.to_sgr(False))
-        self.assertEquals(Seqs.NOOP, Colors.NOOP.to_sgr(True))
+        self.assertEquals(NOOP_SEQ, NOOP_COLOR.to_sgr(False))
+        self.assertEquals(NOOP_SEQ, NOOP_COLOR.to_sgr(True))
 
     def test_format_value(self):
         self.assertEquals('0xff00ff', ColorRGB(0xff00ff).format_value())
         self.assertEquals('#ff00ff', ColorRGB(0xff00ff).format_value('#'))
 
     def test_format_noop_color_value(self):
-        self.assertEqual('^', Colors.NOOP.format_value())
-        self.assertEqual('^', Colors.NOOP.format_value('#'))
+        self.assertEqual('^', NOOP_COLOR.format_value())
+        self.assertEqual('^', NOOP_COLOR.format_value('#'))
 
 
 class TestColorMap(unittest.TestCase):

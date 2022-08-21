@@ -7,5 +7,3 @@ ansi
 ========================
 
 .. automodule:: pytermor.ansi
-
-.. include:: /_include/preset-const-omitted.rst

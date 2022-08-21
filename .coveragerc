@@ -7,6 +7,7 @@ omit =
     */__init__.py
     pytermor/__main__.py
     pytermor/_version.py
+    pytermor/registry/*
 
 dynamic_context = test_function
 
