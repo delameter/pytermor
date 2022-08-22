@@ -2,7 +2,7 @@ v2.0.0
 ------
 
 - Complete library rewrite.
-- High-level abstractions `Color`, `Renderer <SGRRenderer>` and `Style`.
+- High-level abstractions `Color`, `Renderer <SgrRenderer>` and `Style`.
 - Unit tests for formatters and new modules.
 - ``pytest`` and ``coverage`` integration.
 - ``sphinx`` and ``readthedocs`` integraton.

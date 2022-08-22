@@ -3,8 +3,8 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-Module with output formatters. By default :class:`SGRRenderer` is used. It
-also contains compatibility settings, see `SGRRenderer.set_up()`.
+Module with output formatters. By default :class:`SgrRenderer` is used. It
+also contains compatibility settings, see `SgrRenderer.set_up()`.
 
 Working with non-default renderer can be achieved in two ways:
 
@@ -16,9 +16,9 @@ b. Alternatively, you can use renderer's own class method `IRenderer.render()`
 
 To unconditionally print formatted message to output terminal, do something like this:
 
->>> from pytermor import SGRRenderer, RendererManager, Styles
->>> RendererManager.set_up(SGRRenderer)   # can be omitted as SGR _is_ a default renderer
->>> SGRRenderer.set_up(force_styles=True)
+>>> from pytermor import SgrRenderer, RendererManager, Styles
+>>> RendererManager.set_up(SgrRenderer)   # can be omitted as SGR _is_ a default renderer
+>>> SgrRenderer.set_up(force_styles=True)
 >>> Styles.WARNING.render('Warning: AAA')  # print()
 '\\x1b[33mWarning: AAA\\x1b[39m'
 
@@ -28,26 +28,23 @@ To unconditionally print formatted message to output terminal, do something like
     from pytermor.color import Colors
     from pytermor.render import *
 
-    SGRRenderer.set_up(force_styles=True)
+    SgrRenderer.set_up(force_styles=True)
 """
 from __future__ import annotations
 
-import abc
 import sys
-import traceback
-from abc import abstractmethod
+from abc import abstractmethod, ABCMeta
 from dataclasses import dataclass, field
 from typing import List, Sized, Any
-from typing import TextIO
 from typing import Type, Dict, Set
 
 from .ansi import SequenceSGR, Span, NOOP_SEQ, Seqs
 from .color import Color, ColorRGB, ColorIndexed, ColorDefault, NOOP_COLOR, Colors
-from .common import Registry
+from .common import Registry, Renderable
 from .util.string_filter import ReplaceSGR
 
 
-class Text:
+class Text(Renderable):
     """
     Text
     """
@@ -73,9 +70,6 @@ class Text:
             self._runs = text._runs + self._runs
         else:
             raise TypeError('Can add Text to another Text instance or str only')
-
-    def __str__(self) -> str:
-        return self.render()
 
     def __len__(self) -> int:
         return sum(len(r) for r in self._runs)
@@ -293,7 +287,7 @@ class RendererManager:
 
         :param default_renderer:
             Default renderer to use globally. Passing None will result in library
-            default setting restored (`SGRRenderer`).
+            default setting restored (`SgrRenderer`).
 
         >>> RendererManager.set_up(DebugRenderer)
         >>> Style(fg='red').render('text')
@@ -302,7 +296,7 @@ class RendererManager:
         >>> NoOpRenderer.render('text',Style(fg='red'))
         'text'
         """
-        cls._default = default_renderer or SGRRenderer
+        cls._default = default_renderer or SgrRenderer
 
     @classmethod
     def get_default(cls) -> Type[IRenderer]:
@@ -310,8 +304,8 @@ class RendererManager:
         return cls._default
 
 
-class IRenderer(metaclass=abc.ABCMeta):
-    """ Abstract ancestor of all renderers. """
+class IRenderer(metaclass=ABCMeta):
+    """ Renderer interface. """
 
     @classmethod
     @abstractmethod
@@ -324,7 +318,7 @@ class IRenderer(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-class SGRRenderer(IRenderer):
+class SgrRenderer(IRenderer):
     """
     Default renderer that `Style.render() <Style.render>` invokes. Transforms
     `Color` instances defined in ``style`` into ANSI control sequence
@@ -346,7 +340,7 @@ class SGRRenderer(IRenderer):
        completely if output is not a terminal emulator or if the developer
        explicitly set up the renderer to do so.
 
-    >>> SGRRenderer.render('text', Style(fg='red', bold=True))
+    >>> SgrRenderer.render('text', Style(fg='red', bold=True))
     '\\x1b[1;31mtext\\x1b[22;39m'
     """
     _force_styles: bool|None = False
@@ -468,7 +462,7 @@ class NoOpRenderer(IRenderer):
     returns it as is. That's true only when it _is_ a str beforehand;
     otherwise argument will be casted to str and then returned.
 
-    >>> NoOpRenderer.render('text',Style(fg='red', bold=True))
+    >>> NoOpRenderer.render('text', Style(fg='red', bold=True))
     'text'
     """
 
@@ -540,7 +534,7 @@ class DebugRenderer(IRenderer):
 
     @classmethod
     def render(cls, text: Any, style: Style) -> str:
-        return ReplaceSGR(r'|ǝ\3|').apply(SGRRenderer.render(str(text), style))
+        return ReplaceSGR(r'|ǝ\3|').apply(SgrRenderer.render(str(text), style))
 
 
 RendererManager.set_up()
@@ -567,31 +561,6 @@ class Styles(Registry[Style]):
     CRITICAL = Style(bg=Colors.HI_RED, fg=Colors.XTERM_GREY_100)
     CRITICAL_LABEL = Style(CRITICAL, bold=True)
     CRITICAL_ACCENT = Style(CRITICAL, bold=True, blink=True)
-
-
-def print_exception(e: Exception, file: TextIO = sys.stderr, with_trace: bool = True):
-    """
-    print_exception
-
-    :param e:
-    :param file:
-    :param with_trace:
-    :return:
-    """
-    error_label = 'ERROR: '
-    error_msg = e.__class__.__name__+': '+(str(e)  or "<empty>")
-    error_trace = ''
-
-    if with_trace:
-        tb_lines = [line.rstrip('\n') for line in
-                    traceback.format_exception(e.__class__, e, e.__traceback__)]
-        error_msg = tb_lines.pop(-1)
-        error_trace = '\n'.join(tb_lines) + '\n\n'
-
-    print(Styles.ERROR.render(error_trace) +
-          Styles.ERROR_LABEL.render(error_label) +
-          Styles.ERROR_ACCENT.render(error_msg),
-          file=file)
 
 
 def distribute_padded(values: List[str|Text], max_len: int, pad_before: bool = False,

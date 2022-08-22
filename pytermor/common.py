@@ -2,11 +2,22 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
-
-from typing import TypeVar, Generic
+from abc import ABCMeta, abstractmethod
+from typing import TypeVar, Generic, AnyStr, Sized
 
 T = TypeVar('T')
 """ Any """
+
+Printable = TypeVar('Printable', str, bytes, 'Renderable')
+
+
+class Renderable(Sized, metaclass=ABCMeta):
+    @abstractmethod
+    def render(self) -> str:
+        raise NotImplemented
+
+    def __str__(self) -> str:
+        return self.render()
 
 
 class Registry(Generic[T]):
@@ -38,7 +49,6 @@ def get_terminal_width() -> int:
         return _shutil.get_terminal_size().columns - 2
     except ImportError:
         return 80
-
 
 
 class LogicError(Exception):

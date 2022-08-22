@@ -14,7 +14,7 @@ from yaml import SafeLoader
 
 from pytermor.color import ColorIndexed, Colors
 from pytermor.render import Style, Text
-from pytermor.render import RendererManager, HtmlRenderer, SGRRenderer
+from pytermor.render import RendererManager, HtmlRenderer, SgrRenderer
 
 
 class PyModuleIntGenerator:
@@ -268,7 +268,7 @@ class HtmlTableGenerator:
         html = html.replace('_', '&nbsp;')
         f.write(html)
 
-        RendererManager.set_up(SGRRenderer)
+        RendererManager.set_up(SgrRenderer)
         print(f'Wrote {Text(len(html), Style(bold=True))} bytes to {Text(f.name, "blue")}')
 
 

@@ -340,7 +340,7 @@ class Approximator(Generic[TypeColor]):
     def find_closest(self, hex_value: int) -> TypeColor:
         """
         Search for nearest to ``hex_value`` registered color. Is used by
-        `SGRRenderer` to find supported color alternatives in case user's terminal is
+        `SgrRenderer` to find supported color alternatives in case user's terminal is
         incapable of operating in better mode.
 
         :param hex_value: Color value in RGB format.

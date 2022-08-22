@@ -29,7 +29,7 @@ Structure
    |     |                      | `Style`              | Reusable abstractions defining colors and text attributes (text                 |
    |     |                      | `Styles`             | color, bg color, *bold* attribute, *underlined* attribute etc).                 |
    |     |                      +----------------------+---------------------------------------------------------------------------------+
-   |     |                      | `SGRRenderer`        | ``SGRRenderer`` transforms ``Style`` instances into ``Color``, ``Span``         |
+   |     |                      | `SgrRenderer`        | ``SgrRenderer`` transforms ``Style`` instances into ``Color``, ``Span``         |
    |     |                      | `HtmlRenderer`       | and ``SequenceSGR`` instances and assembles it all up. There are                |
    |     |                      | `TmuxRenderer` etc.  | several other implementations depending on what output                          |
    |     |                      |                      | format is required.                                                             |

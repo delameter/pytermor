@@ -31,15 +31,18 @@ from abc import ABCMeta, abstractmethod
 from copy import copy
 from typing import List, Any, Dict, Tuple
 
-from .common import Registry
+from .common import Registry, Renderable
 
 
-class Sequence(metaclass=ABCMeta):
+class Sequence(Renderable, metaclass=ABCMeta):
     """
     Abstract ancestor of all escape sequences.
     """
     def __init__(self, *params: int):
         self._params: List[int] = [max(0, int(p)) for p in params]
+
+    def render(self) -> str:
+        return self.assemble()
 
     @abstractmethod
     def assemble(self) -> str:
@@ -82,9 +85,6 @@ class SequenceCSI(Sequence, metaclass=ABCMeta):
     def __init__(self, *params: int):
         super(SequenceCSI, self).__init__(*params)
 
-    def __str__(self) -> str:
-        return self.assemble()
-
     @classmethod
     def regexp(cls) -> str:
         return f'\\x1b\\[[0-9;]*{cls._terminator()}'
@@ -94,7 +94,7 @@ class SequenceCSI(Sequence, metaclass=ABCMeta):
     def _terminator(cls) -> str: raise NotImplementedError
 
 
-class SequenceSGR(SequenceCSI, metaclass=ABCMeta):
+class SequenceSGR(SequenceCSI, Renderable, metaclass=ABCMeta):
     """
     Class representing SGR-type escape sequence with varying amount of parameters.
 
@@ -198,6 +198,9 @@ class SequenceSGR(SequenceCSI, metaclass=ABCMeta):
                 self._INTRODUCER +
                 self._SEPARATOR.join([str(param) for param in params]) +
                 self._TERMINATOR)
+
+    def __len__(self) -> int:
+        return 0
 
     def __add__(self, other: SequenceSGR) -> SequenceSGR:
         self._ensure_sequence(other)
