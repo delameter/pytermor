@@ -27,9 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "PYTERMOR" "1" "Aug 21, 2022" "2.1.0-dev.3" "pytermor"
+.TH "PYTERMOR" "1" "Aug 21, 2022" "2.1.0-dev7" "pytermor"
 .SH NAME
-pytermor \- pytermor 2.1.0-dev.3
+pytermor \- pytermor 2.1.0-dev7
 .sp
 \fI(yet another)\fP Python library designed for formatting terminal output using ANSI escape codes. Implements automatic \fI\%\(dqsoft\(dq\fP format termination. Provides a registry of low\-level SGR \fI\%sequences\fP and formatting \fI\%spans\fP (or combined sequences). Also includes a set of formatters for pretty output.
 .sp
@@ -84,6 +84,7 @@ T}
 _
 T{
 \fI\%Style\fP
+\fI\%Styles\fP
 T}	T{
 Reusable abstractions defining colors and text attributes (text
 color, bg color, \fIbold\fP attribute, \fIunderlined\fP attribute etc).
@@ -5791,23 +5792,14 @@ The library contains @TODO
 .sp
 .nf
 .ft C
-from pytermor import Style, color, ColorRGB
-from pytermor import render
 from pytermor.render import RendererManager, SGRRenderer
 from pytermor.util import time_delta
 
 seconds_list = [2, 10, 60, 2700, 32340, 273600, 4752000, 864000000]
 max_len_list = [3, 6, 10]
 
-custom_stylesheet = time_delta.TimeDeltaStylesheet(
-    default=Style(bg=0x202028),
-    digit=Style(0x3333000, \(aqyellow\(aq),
-    unit=Style(fg=\(aqgreen\(aq, bg=0x202028, underlined=True),
-    overflow=Style(fg=Colors.BLACK, bg=\(aqhi_red\(aq, bold=True),
-)
 for max_len in max_len_list:
     formatter = time_delta.registry.find_matching(max_len)
-    formatter.stylesheet = custom_stylesheet
 
 RendererManager.set_up(SGRRenderer)
 for seconds in seconds_list:
@@ -5882,10 +5874,6 @@ of this sequence start with \fBe[\fP\&.
 .INDENT 7.0
 .TP
 .B __init__(*params:  int)
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  regexp() -> str
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6018,10 +6006,6 @@ as an ASCII\-encoded string.
 .B property  params:  List[int]
 Return internal params as array.
 .UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  regexp() -> str
-.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -6144,7 +6128,7 @@ True
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.ansi.NOOP_SEQ  =  SGR[^]
+.B pytermor.ansi.NOOP_SEQ  =  SGR[~]
 Special sequence in case you \fIhave to\fP provide one or another SGR, but do 
 not want any control sequences to be actually included in the output. 
 \fBNOOP_SEQ.assemble()\fP returns empty string, \fBNOOP_SEQ.params\fP 
@@ -6161,7 +6145,7 @@ returns empty list.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.ansi.NOOP_SPAN  =  Span[SGR[^], SGR[^]]
+.B pytermor.ansi.NOOP_SPAN  =  Span[SGR[~], SGR[~]]
 Special \fI\%Span\fP in cases where you \fIhave to\fP select one or 
 another \fI\%Span\fP, but do not want any control sequence to be actually included.
 .INDENT 7.0
@@ -6180,9 +6164,103 @@ another \fI\%Span\fP, but do not want any control sequence to be actually includ
 >>> NOOP_SPAN.opening_str
 \(aq\(aq
 >>> NOOP_SPAN.opening_seq
-SGR[^]
+SGR[~]
 .ft P
 .fi
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.ansi.IntCodes
+Bases: \fI\%Registry\fP[\fBint\fP]
+.sp
+Complete or almost complete list of reliably working SGR param integer codes.
+.sp
+Suitable for \fI\%Span\fP and \fI\%SequenceSGR\fP default constructors.
+.sp
+\fBATTENTION:\fP
+.INDENT 7.0
+.INDENT 3.5
+Registry constants are omitted from API doc pages to improve readability
+and avoid duplication. Summary list of all presets can be found in
+\fI\%Preset list\fP section of the guide.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  resolve(name:  str) -> T
+Case\-insensitive search through registry contents.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBname\fP \-\- name of the value to look up for.
+.TP
+.B Returns
+value or KeyError if nothing found.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.ansi.Seqs
+Bases: \fI\%Registry\fP[\fI\%SequenceSGR\fP]
+.sp
+Registry of sequence presets.
+.sp
+\fBATTENTION:\fP
+.INDENT 7.0
+.INDENT 3.5
+Registry constants are omitted from API doc pages to improve readability
+and avoid duplication. Summary list of all presets can be found in
+\fI\%Preset list\fP section of the guide.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B RESET  =  SGR[0]
+Hard reset sequence.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  resolve(name:  str) -> T
+Case\-insensitive search through registry contents.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBname\fP \-\- name of the value to look up for.
+.TP
+.B Returns
+value or KeyError if nothing found.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.ansi.Spans
+Bases: \fI\%Registry\fP[\fI\%Span\fP]
+.sp
+Registry of span presets.
+.sp
+\fBATTENTION:\fP
+.INDENT 7.0
+.INDENT 3.5
+Registry constants are omitted from API doc pages to improve readability
+and avoid duplication. Summary list of all presets can be found in
+\fI\%Preset list\fP section of the guide.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  resolve(name:  str) -> T
+Case\-insensitive search through registry contents.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBname\fP \-\- name of the value to look up for.
+.TP
+.B Returns
+value or KeyError if nothing found.
+.UNINDENT
+.UNINDENT
 .UNINDENT
 .SS color
 .sp
@@ -6243,18 +6321,6 @@ Wrapper for \fI\%Approximator.find_closest()\fP\&.
 Nearest found color of specified type.
 .UNINDENT
 .UNINDENT
-.INDENT 7.0
-.TP
-.B abstract  to_sgr(bg:  bool  =  False) -> \fI\%SequenceSGR\fP
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  hex_value:  int  |  None
-.UNINDENT
-.INDENT 7.0
-.TP
-.B format_value(prefix:  str  |  None  =  \(aq0x\(aq, noop_str:  str  =  \(aq^\(aq) -> str
-.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -6310,18 +6376,6 @@ Nearest found \fI\%ColorDefault\fP instance.
 ColorDefault[fg=31, bg=41, 0x800000]
 .ft P
 .fi
-.UNINDENT
-.INDENT 7.0
-.TP
-.B to_sgr(bg:  bool  =  False) -> \fI\%SequenceSGR\fP
-.UNINDENT
-.INDENT 7.0
-.TP
-.B format_value(prefix:  str  |  None  =  \(aq0x\(aq, noop_str:  str  =  \(aq^\(aq) -> str
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  hex_value:  int  |  None
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6399,18 +6453,6 @@ ColorIndexed[code=253, 0xdadada]
 .UNINDENT
 .INDENT 7.0
 .TP
-.B to_sgr(bg:  bool  =  False) -> \fI\%SequenceSGR\fP
-.UNINDENT
-.INDENT 7.0
-.TP
-.B format_value(prefix:  str  |  None  =  \(aq0x\(aq, noop_str:  str  =  \(aq^\(aq) -> str
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  hex_value:  int  |  None
-.UNINDENT
-.INDENT 7.0
-.TP
 .B static  hex_value_to_hsv_channels(hex_value:  int) -> Tuple[int,  float,  float]
 Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
 numbers corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values
@@ -6481,19 +6523,7 @@ True
 .UNINDENT
 .INDENT 7.0
 .TP
-.B to_sgr(bg:  bool  =  False) -> \fI\%SequenceSGR\fP
-.UNINDENT
-.INDENT 7.0
-.TP
 .B __init__(hex_value:  Optional[int]  =  None, use_for_approximations:  bool  =  True)
-.UNINDENT
-.INDENT 7.0
-.TP
-.B format_value(prefix:  str  |  None  =  \(aq0x\(aq, noop_str:  str  =  \(aq^\(aq) -> str
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  hex_value:  int  |  None
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6620,15 +6650,40 @@ distance descending (i.e. 0th element is always the
 closest to the input value).
 .UNINDENT
 .UNINDENT
-.INDENT 7.0
-.TP
-.B static  __new__(cls, *args, **kwds)
-.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.color.NOOP_COLOR  =  ColorRGB[^]
+.B pytermor.color.NOOP_COLOR  =  ColorRGB[~]
 Special instance of \fI\%Color\fP class always rendering into empty string.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.color.Colors
+Bases: \fI\%Registry\fP[\fI\%TypeColor\fP]
+.sp
+Registry of colors presets (\fI\%ColorDefault\fP, \fI\%ColorIndexed\fP, \fI\%ColorRGB\fP).
+.sp
+\fBATTENTION:\fP
+.INDENT 7.0
+.INDENT 3.5
+Registry constants are omitted from API doc pages to improve readability
+and avoid duplication. Summary list of all presets can be found in
+\fI\%Preset list\fP section of the guide.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  resolve(name:  str) -> T
+Case\-insensitive search through registry contents.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBname\fP \-\- name of the value to look up for.
+.TP
+.B Returns
+value or KeyError if nothing found.
+.UNINDENT
+.UNINDENT
 .UNINDENT
 .SS render
 .sp
@@ -6640,12 +6695,27 @@ Working with non\-default renderer can be achieved in two ways:
 .IP a. 3
 Method \fI\%RendererManager.set_up()\fP sets the default renderer globally.
 .IP b. 3
-Alternatively, you can use renderer\(aqs own class method \fI\%Renderer.render()\fP
+Alternatively, you can use renderer\(aqs own class method \fI\%IRenderer.render()\fP
 directly and avoid calling \fI\%Style.render()\fP method whatsoever.
 .UNINDENT
+.sp
+TL;DR
+.sp
+To unconditionally print formatted message to output terminal, do something like this:
+.sp
+.nf
+.ft C
+>>> from pytermor import SGRRenderer, RendererManager, Styles
+>>> RendererManager.set_up(SGRRenderer)   # can be omitted as SGR _is_ a default renderer
+>>> SGRRenderer.set_up(force_styles=True)
+>>> Styles.WARNING.render(\(aqWarning: AAA\(aq)  # print()
+\(aq\ex1b[33mWarning: AAA\ex1b[39m\(aq
+.ft P
+.fi
 .INDENT 0.0
 .TP
 .B class  pytermor.render.Text
+Text
 .INDENT 7.0
 .TP
 .B __init__(text:  Any  =  None, style:  \fI\%Style\fP  |  str  =  None)
@@ -6768,19 +6838,10 @@ furthrer without any modifications.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.render.Stylesheet
-@wat when how выпилить к черту
-.INDENT 7.0
-.TP
-.B __init__(default:  Optional[\fI\%Style\fP]  =  None)
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
 .B class  pytermor.render.RendererManager
 .INDENT 7.0
 .TP
-.B classmethod  set_up(default_renderer:  Type[\fI\%Renderer\fP]  |  None  =  None)
+.B classmethod  set_up(default_renderer:  Type[\fI\%IRenderer\fP]  |  None  =  None)
 Set up renderer preferences. Affects all renderer types.
 .INDENT 7.0
 .TP
@@ -6806,13 +6867,13 @@ default setting restored (\fI\%SGRRenderer\fP).
 .UNINDENT
 .INDENT 7.0
 .TP
-.B classmethod  get_default() -> Type[\fI\%Renderer\fP]
+.B classmethod  get_default() -> Type[\fI\%IRenderer\fP]
 Get global default renderer type.
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.render.Renderer
+.B class  pytermor.render.IRenderer
 Abstract ancestor of all renderers.
 .INDENT 7.0
 .TP
@@ -6825,11 +6886,39 @@ class (which defines the implementation).
 .INDENT 0.0
 .TP
 .B class  pytermor.render.SGRRenderer
-Bases: \fI\%Renderer\fP
+Bases: \fI\%IRenderer\fP
 .sp
 Default renderer that \fI\%Style.render()\fP invokes. Transforms
-\fI\%Color\fP instances defined in \fBstyle\fP argument into ANSI control sequence
+\fI\%Color\fP instances defined in \fBstyle\fP into ANSI control sequence
 characters and merges them with input string.
+.sp
+Respects compatibility preferences (see \fI\%RendererManager.set_up()\fP) and
+maps RGB colors to closest \fIindexed\fP colors if terminal doesn\(aqt support
+RGB output. In case terminal doesn\(aqt support even 256 colors, falls back
+to \fIdefault\fP colors, searching for closest counterparts in 16\-color table.
+.sp
+Type of output \fBSequenceSGR\fP depends on type of \fI\%Color\fP variables in
+\fBstyle\fP argument. Keeping all that in mind, let\(aqs summarize:
+.INDENT 7.0
+.IP 1. 3
+\fI\%ColorRGB\fP can be rendered as True Color sequence, indexed sequence
+or default (16\-color) sequence depending on terminal capabilities.
+.IP 2. 3
+\fI\%ColorIndexed\fP can be rendered as indexed sequence or default sequence.
+.IP 3. 3
+\fI\%ColorDefault\fP can be rendered as default\-color sequence.
+.IP 4. 3
+Nothing of the above will happen and all Colors will be discarded
+completely if output is not a terminal emulator or if the developer
+explicitly set up the renderer to do so.
+.UNINDENT
+.sp
+.nf
+.ft C
+>>> SGRRenderer.render(\(aqtext\(aq, Style(fg=\(aqred\(aq, bold=True))
+\(aq\ex1b[1;31mtext\ex1b[22;39m\(aq
+.ft P
+.fi
 .INDENT 7.0
 .TP
 .B classmethod  set_up(force_styles:  bool  |  None  =  False, compatibility_indexed:  bool  =  False, compatibility_default:  bool  =  False)
@@ -6868,51 +6957,17 @@ terminal and switch to different output mode at once.
 .INDENT 7.0
 .TP
 .B classmethod  render(text:  Any, style:  \fI\%Style\fP)
-Render \fBtext\fP with \fBstyle\fP applied as ANSI control sequences.
-.sp
-Respects compatibility preferences (see \fI\%RendererManager.set_up()\fP) and
-maps RGB colors to closest \fIindexed\fP colors if terminal doesn\(aqt support
-RGB output. In case terminal doesn\(aqt support even 256 colors, falls back
-to \fIdefault\fP colors, searching for closest counterparts in 16\-color table.
-.sp
-Type of output \fBSequenceSGR\fP depends on type of \fI\%Color\fP variables in
-\fBstyle\fP argument. Keeping all that
-in mind, let\(aqs summarize:
-.INDENT 7.0
-.IP 1. 3
-\fI\%ColorRGB\fP can be rendered as True Color sequence, indexed sequence
-or default (16\-color) sequence depending on terminal capabilities.
-.IP 2. 3
-\fI\%ColorIndexed\fP can be rendered as indexed sequence or default sequence.
-.IP 3. 3
-\fI\%ColorDefault\fP will be rendered as default\-color sequence.
-.UNINDENT
-.sp
-.nf
-.ft C
->>> SGRRenderer.render(\(aqtext\(aq, Style(fg=\(aqred\(aq, bold=True))
-\(aq\ex1b[1;31mtext\ex1b[22;39m\(aq
-.ft P
-.fi
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBstyle\fP \-\- Style to apply.
-.IP \(bu 2
-\fBtext\fP \-\- Input string.
-.UNINDENT
-.TP
-.B Returns
-Input string enclosed in SGR sequences.
-.UNINDENT
+Apply colors and attributes described in \fBstyle\fP argument to
+\fBtext\fP and return the result. Output format depends on renderer\(aqs
+class (which defines the implementation).
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
 .B class  pytermor.render.TmuxRenderer
-Bases: \fI\%Renderer\fP
+Bases: \fI\%IRenderer\fP
+.sp
+tmux
 .INDENT 7.0
 .TP
 .B abstract  classmethod  render(text:  Any, style:  \fI\%Style\fP) -> str
@@ -6924,10 +6979,8 @@ class (which defines the implementation).
 .INDENT 0.0
 .TP
 .B class  pytermor.render.NoOpRenderer
-Bases: \fI\%Renderer\fP
-.INDENT 7.0
-.TP
-.B classmethod  render(text:  Any, style:  \fI\%Style\fP) -> str
+Bases: \fI\%IRenderer\fP
+.sp
 Special renderer type that does nothing with the input string and just
 returns it as is. That\(aqs true only when it _is_ a str beforehand;
 otherwise argument will be casted to str and then returned.
@@ -6940,30 +6993,18 @@ otherwise argument will be casted to str and then returned.
 .fi
 .INDENT 7.0
 .TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBstyle\fP \-\- Style to ignore.
-.IP \(bu 2
-\fBtext\fP \-\- Input string.
-.UNINDENT
-.TP
-.B Returns
-Input string without changes.
-.UNINDENT
+.B classmethod  render(text:  Any, style:  \fI\%Style\fP) -> str
+Apply colors and attributes described in \fBstyle\fP argument to
+\fBtext\fP and return the result. Output format depends on renderer\(aqs
+class (which defines the implementation).
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
 .B class  pytermor.render.HtmlRenderer
-Bases: \fI\%Renderer\fP
-.INDENT 7.0
-.TP
-.B DEFAULT_ATTRS  =  [\(aqcolor\(aq, \(aqbackground\-color\(aq, \(aqfont\-weight\(aq, \(aqfont\-style\(aq, \(aqtext\-decoration\(aq, \(aqborder\(aq, \(aqfilter\(aq]
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  render(text:  Any, style:  \fI\%Style\fP) -> str
+Bases: \fI\%IRenderer\fP
+.sp
+html
 .sp
 .nf
 .ft C
@@ -6971,15 +7012,24 @@ Bases: \fI\%Renderer\fP
 \(aq<span style=\(dqcolor: #800000; font\-weight: 700\(dq>text</span>\(aq
 .ft P
 .fi
+.INDENT 7.0
+.TP
+.B DEFAULT_ATTRS  =  [\(aqcolor\(aq, \(aqbackground\-color\(aq, \(aqfont\-weight\(aq, \(aqfont\-style\(aq, \(aqtext\-decoration\(aq, \(aqborder\(aq, \(aqfilter\(aq]
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  render(text:  Any, style:  \fI\%Style\fP) -> str
+Apply colors and attributes described in \fBstyle\fP argument to
+\fBtext\fP and return the result. Output format depends on renderer\(aqs
+class (which defines the implementation).
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
 .B class  pytermor.render.DebugRenderer
-Bases: \fI\%Renderer\fP
-.INDENT 7.0
-.TP
-.B classmethod  render(text:  Any, style:  \fI\%Style\fP) -> str
+Bases: \fI\%IRenderer\fP
+.sp
+DebugRenderer
 .sp
 .nf
 .ft C
@@ -6987,142 +7037,45 @@ Bases: \fI\%Renderer\fP
 \(aq|ǝ1;31|text|ǝ22;39|\(aq
 .ft P
 .fi
-.UNINDENT
-.UNINDENT
-.SS registry.*
-.INDENT 0.0
-.TP
-.B class  pytermor.registry.colors.Colors
-Bases: \fI\%Registry\fP[\fI\%TypeColor\fP]
-.sp
-Registry of colors presets (\fIColorDefault\fP, \fIColorIndexed\fP, \fIColorRGB\fP).
-.sp
-\fBATTENTION:\fP
-.INDENT 7.0
-.INDENT 3.5
-Registry constants are omitted from API doc pages to improve readability
-and avoid duplication. Summary list of all presets can be found in
-\fIguide.presets\fP section of the guide.
-.UNINDENT
-.UNINDENT
 .INDENT 7.0
 .TP
-.B classmethod  resolve(name:  str) -> T
-Case\-insensitive search through registry contents.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBname\fP \-\- name of the value to look up for.
-.TP
-.B Returns
-value or KeyError if nothing found.
-.UNINDENT
+.B classmethod  render(text:  Any, style:  \fI\%Style\fP) -> str
+Apply colors and attributes described in \fBstyle\fP argument to
+\fBtext\fP and return the result. Output format depends on renderer\(aqs
+class (which defines the implementation).
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.registry.int_codes.IntCodes
-Bases: \fI\%Registry\fP[\fBint\fP]
-.sp
-Complete or almost complete list of reliably working SGR param integer codes.
-.sp
-Suitable for \fI\%Span\fP and \fI\%SequenceSGR\fP default constructors.
-.sp
-\fBATTENTION:\fP
-.INDENT 7.0
-.INDENT 3.5
-Registry constants are omitted from API doc pages to improve readability
-and avoid duplication. Summary list of all presets can be found in
-\fIguide.presets\fP section of the guide.
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  resolve(name:  str) -> T
-Case\-insensitive search through registry contents.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBname\fP \-\- name of the value to look up for.
-.TP
-.B Returns
-value or KeyError if nothing found.
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B class  pytermor.registry.seqs.Seqs
-Bases: \fI\%Registry\fP[\fI\%SequenceSGR\fP]
-.sp
-Registry of sequence presets.
-.sp
-\fBATTENTION:\fP
-.INDENT 7.0
-.INDENT 3.5
-Registry constants are omitted from API doc pages to improve readability
-and avoid duplication. Summary list of all presets can be found in
-\fIguide.presets\fP section of the guide.
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B RESET  =  SGR[0]
-Hard reset sequence.
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  resolve(name:  str) -> T
-Case\-insensitive search through registry contents.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBname\fP \-\- name of the value to look up for.
-.TP
-.B Returns
-value or KeyError if nothing found.
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B class  pytermor.registry.spans.Spans
-Bases: \fI\%Registry\fP[\fI\%Span\fP]
-.sp
-Registry of span presets.
-.sp
-\fBATTENTION:\fP
-.INDENT 7.0
-.INDENT 3.5
-Registry constants are omitted from API doc pages to improve readability
-and avoid duplication. Summary list of all presets can be found in
-\fIguide.presets\fP section of the guide.
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  resolve(name:  str) -> T
-Case\-insensitive search through registry contents.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBname\fP \-\- name of the value to look up for.
-.TP
-.B Returns
-value or KeyError if nothing found.
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B class  pytermor.registry.styles.Styles
+.B class  pytermor.render.Styles
 Bases: \fI\%Registry\fP[\fI\%Style\fP]
 .sp
 Some ready\-to\-use styles. Can be used as examples.
 .sp
-This registry has unique keys in comparsion with other ones (\fISeqs\fP / \fISpans\fP / \fIIntCodes\fP),
+This registry has unique keys in comparsion with other ones (\fI\%Seqs\fP / \fI\%Spans\fP /
+\fI\%IntCodes\fP),
 Therefore there is no risk of key/value duplication and all presets can be listed
 in the initial place \-\- at API docs page directly.
+.INDENT 7.0
+.TP
+.B WARNING  =  Style[fg=808000, no bg]
+.UNINDENT
+.INDENT 7.0
+.TP
+.B WARNING_LABEL  =  Style[fg=808000, no bg, bold]
+.UNINDENT
+.INDENT 7.0
+.TP
+.B WARNING_ACCENT  =  Style[fg=ffff00, no bg]
+.UNINDENT
+.INDENT 7.0
+.TP
+.B ERROR  =  Style[fg=800000, no bg]
+.UNINDENT
+.INDENT 7.0
+.TP
+.B ERROR_LABEL  =  Style[fg=800000, no bg, bold]
+.UNINDENT
 .INDENT 7.0
 .TP
 .B classmethod  resolve(name:  str) -> T
@@ -7136,6 +7089,45 @@ Case\-insensitive search through registry contents.
 value or KeyError if nothing found.
 .UNINDENT
 .UNINDENT
+.INDENT 7.0
+.TP
+.B ERROR_ACCENT  =  Style[fg=ff0000, no bg]
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CRITICAL  =  Style[fg=ffffff, bg=ff0000]
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CRITICAL_LABEL  =  Style[fg=ffffff, bg=ff0000, bold]
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CRITICAL_ACCENT  =  Style[fg=ffffff, bg=ff0000, blink, bold]
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.render.print_exception(e: Exception, file: ~typing.TextIO = <_io.TextIOWrapper name=\(aq<stderr>\(aq mode=\(aqw\(aq encoding=\(aqutf\-8\(aq>, with_trace: bool = True)
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBe\fP \-\- 
+.IP \(bu 2
+\fBfile\fP \-\- 
+.IP \(bu 2
+\fBwith_trace\fP \-\- 
+.UNINDENT
+.TP
+.B Returns
+
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.render.distribute_padded(values:  List[str  |  \fI\%Text\fP], max_len:  int, pad_before:  bool  =  False, pad_after:  bool  =  False) -> str
 .UNINDENT
 .SS util
 .sp
@@ -7155,10 +7147,6 @@ joined then with \fBseparator\fP string.
 \(aq\-9,123,123,123.55\(aq
 .ft P
 .fi
-.UNINDENT
-.INDENT 0.0
-.TP
-.B pytermor.util.distribute_padded(values:  List[str  |  \fI\%Text\fP], max_len:  int, pad_before:  bool  =  False, pad_after:  bool  =  False) -> str
 .UNINDENT
 .SS auto_float
 .INDENT 0.0
@@ -7431,11 +7419,7 @@ Example output:
 .UNINDENT
 .INDENT 7.0
 .TP
-.B __init__(units:  List[\fI\%TimeUnit\fP], allow_negative:  bool, unit_separator:  Optional[str]  =  None, plural_suffix:  Optional[str]  =  None, stylesheet:  Optional[\fI\%TimeDeltaStylesheet\fP]  =  None, overflow_msg:  str  =  \(aqOVERFLOW\(aq)
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  stylesheet:  \fI\%TimeDeltaStylesheet\fP
+.B __init__(units:  List[\fI\%TimeUnit\fP], allow_negative:  bool, unit_separator:  Optional[str]  =  None, plural_suffix:  Optional[str]  =  None, overflow_msg:  str  =  \(aqOVERFLOW\(aq)
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -7451,9 +7435,7 @@ Maximum possible output string length.
 .INDENT 7.0
 .TP
 .B format(seconds:  float, always_max_len:  bool  =  False) -> str
-Format the requested amount of seconds and apply styles to the result as
-defined in current formatter\(aqs \fIstylesheet\fP\&. Default \fBstylesheet\fP contains
-no\-op spans only and thus no styles will be applied.
+Pretty\-print difference between two moments in time.
 .INDENT 7.0
 .TP
 .B Parameters
@@ -7463,18 +7445,19 @@ no\-op spans only and thus no styles will be applied.
 .IP \(bu 2
 \fBalways_max_len\fP \-\- If result string is less than \fImax_len\fP it will be returned
 as is, unless this flag is set to \fITrue\fP\&. In that case output
-string will be paded with spaces on the left side so that
+string will be padded with spaces on the left side so that
 resulting length would be always equal to maximum length.
 .UNINDENT
 .TP
 .B Returns
-Formatted string with applied styles if they are defined, raw string otherwise.
+Formatted string.
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
 .B format_raw(seconds:  float) -> str  |  None
-Format the requested amount of seconds as raw string without styling.
+Pretty\-print difference between two moments in time, do not replace
+the output with \(dqOVERFLOW\(dq warning message.
 .INDENT 7.0
 .TP
 .B Parameters
@@ -7513,15 +7496,6 @@ TimeUnit(name: \(aqstr\(aq, in_next: \(aqint\(aq = None, custom_short: \(aqstr\(
 .INDENT 7.0
 .TP
 .B __init__(name:  str, in_next:  Optional[int]  =  None, custom_short:  Optional[str]  =  None, collapsible_after:  Optional[int]  =  None, overflow_afer:  Optional[int]  =  None) -> None
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B class  pytermor.util.time_delta.TimeDeltaStylesheet
-Bases: \fI\%Stylesheet\fP
-.INDENT 7.0
-.TP
-.B __init__(default:  Optional[\fI\%Style\fP]  =  None, digit:  Optional[\fI\%Style\fP]  =  None, unit:  Optional[\fI\%Style\fP]  =  None, overflow:  Optional[\fI\%Style\fP]  =  None)
 .UNINDENT
 .UNINDENT
 .SS stdlib_ext
@@ -7780,25 +7754,6 @@ value or KeyError if nothing found.
 .TP
 .B Returns
 terminal_width
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B pytermor.common.print_exception(e: Exception, file: ~typing.TextIO = <_io.TextIOWrapper name=\(aq<stderr>\(aq mode=\(aqw\(aq encoding=\(aqutf\-8\(aq>, with_trace: bool = True)
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBe\fP \-\- 
-.IP \(bu 2
-\fBfile\fP \-\- 
-.IP \(bu 2
-\fBwith_trace\fP \-\- 
-.UNINDENT
-.TP
-.B Returns
-
 .UNINDENT
 .UNINDENT
 .INDENT 0.0

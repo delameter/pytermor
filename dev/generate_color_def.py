@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import re
 from os.path import join, dirname
+from random import random
 from typing import Dict, Set
 
 import yaml
@@ -109,7 +110,10 @@ class PresetListIndexedGenerator:
 class HtmlTableGenerator:
     @classmethod
     def name_to_abbr(cls, s: str) -> str:
-        return  re.sub('[a-z]', '', s)
+        r =  re.sub('[a-z]', '', s)
+        if not r:
+            return re.sub('\b(.).+?\b', '\\1', s)
+        return r
 
     def ascii_indic(self, v: float) -> str:
         s = '▁▂▃▄▅▆▇█'
@@ -141,7 +145,7 @@ class HtmlTableGenerator:
                 //flex-direction: column;
                 //align-content: flex-start;
                 
-                flex-direction: row;
+                flex-direction: column;
                 justify-content: center;
                 align-content: flex-start;
                 row-gap: .25rem;
@@ -202,13 +206,19 @@ class HtmlTableGenerator:
             -len(self.name_to_abbr(c['original_name'])))[0]['original_name']))
 
         for cc in cfg_indexed:
-            is_renamed = len(cc['renamed_from']) > 0
+            is_renamed = len(cc.get('renamed_from', '')) > 0
             is_duplicate = (cc['name'] in names)
 
+            variation_str = ""
+            if "variation" in cc.keys():
+                is_duplicate = False
+                variation_str = cc.get("variation")
+
             names.add(cc['name'])
-            if cc['key'] not in key_max_index.keys():
-                key_max_index[cc['key']] = 0
-            key_max_index[cc['key']] += 1
+            if cc.get('key'):
+                if cc['key'] not in key_max_index.keys():
+                    key_max_index[cc['key']] = 0
+                key_max_index[cc['key']] += 1
 
             container_style = Style(class_name='container')
             id_style = Style(fg='white', class_name='id')
@@ -241,12 +251,18 @@ class HtmlTableGenerator:
                 #     f"{Text('<br>' + '_'*9 + 'sugg' + '_'*3, comment_label_style)}"
                 #     f"{Text(cc['key'] + str(key_max_index.get(cc['key'])), comment_value_style)}:_<{max_name_len}s"
                 # )
+            # def repl():
+            #     return chr(round(random() * 0x1fff))
+            # id_str= re.sub('.', lambda m: repl(), id_str)
+            # value_str= re.sub('.', lambda m: repl(), value_str)
+            # name_str= re.sub('.', lambda m: repl(), name_str)
+            # variation_str= re.sub('.', lambda m: repl(), variation_str)
             html += ('\n<div>' +
                 container_style.render(''.join([
                     value_style.render(example_style.render(f'{id_str}') + value_str),
                     name_style.render(name_str),
-                    comment_str
-                ])) + '</div>')
+                    comment_str, comment_label_style.render(variation_str) ]
+                )) + '</div>')
 
         html += '\n</body></html>'
         html = html.replace('_', '&nbsp;')
@@ -305,8 +321,19 @@ class Main:
         with open(join(generated_dir, 'preset-code', 'color.py_'), 'wt') as f:
             PyModuleColorGenerator().run(f, cfg_indexed_sort_by_key)
 
-        with open(join('/tmp', 'presets.html'), 'wt') as f:
+        with open(join('/tmp', 'indexed-by-color.html'), 'wt') as f:
             HtmlTableGenerator().run(f, cfg_indexed_sort_by_color)
+        with open(join('/tmp', 'indexed-by-name.html'), 'wt') as f:
+            HtmlTableGenerator().run(f, cfg_indexed_sort_by_key)
+
+        with open('named.yml', 'rt') as f:
+            named = yaml.safe_load(f)
+            for idx, n in enumerate(named):
+                n['id'] = idx
+        with open(join('/tmp', 'named-by-color.html'), 'wt') as f:
+            HtmlTableGenerator().run(f, sorted(named, key=lambda v: self.sorter_by_color(v)))
+        with open(join('/tmp', 'named-by-name.html'), 'wt') as f:
+            HtmlTableGenerator().run(f, sorted(named, key=lambda v: v['name']+' '+v.get('variation', '')))
 
 
 if __name__ == '__main__':

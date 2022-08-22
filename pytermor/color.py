@@ -130,9 +130,9 @@ class Color(metaclass=ABCMeta):
     def hex_value(self) -> int | None:
         return self._hex_value
 
-    def format_value(self, prefix: str|None = '0x', noop_str: str = '^') -> str:
+    def format_value(self, prefix: str|None = '0x', noop_label: str = '~') -> str:
         if self._hex_value is None:
-            return noop_str
+            return noop_label
         return f'{prefix or "":s}{self._hex_value:06x}'
 
 

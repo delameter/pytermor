@@ -38,8 +38,8 @@ class TestStatic(unittest.TestCase):
         self.assertEquals('#ff00ff', ColorRGB(0xff00ff).format_value('#'))
 
     def test_format_noop_color_value(self):
-        self.assertEqual('^', NOOP_COLOR.format_value())
-        self.assertEqual('^', NOOP_COLOR.format_value('#'))
+        self.assertEqual('~', NOOP_COLOR.format_value())
+        self.assertEqual('~', NOOP_COLOR.format_value('#'))
 
 
 class TestColorMap(unittest.TestCase):

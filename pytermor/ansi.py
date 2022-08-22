@@ -66,7 +66,7 @@ class Sequence(metaclass=ABCMeta):
     def __repr__(self):
         params = ";".join([str(p) for p in self._params])
         if len(self._params) == 0:
-            params = '^'
+            params = '~'
         return f'{self._short_class_name()}[{params}]'
 
 
@@ -385,7 +385,7 @@ another `Span`, but do not want any control sequence to be actually included.
 >>> NOOP_SPAN.opening_str
 ''
 >>> NOOP_SPAN.opening_seq
-SGR[^]
+SGR[~]
 """
 
 

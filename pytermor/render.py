@@ -9,16 +9,26 @@ also contains compatibility settings, see `SGRRenderer.set_up()`.
 Working with non-default renderer can be achieved in two ways:
 
 a. Method `RendererManager.set_up()` sets the default renderer globally.
-b. Alternatively, you can use renderer's own class method `Renderer.render()`
+b. Alternatively, you can use renderer's own class method `IRenderer.render()`
    directly and avoid calling `Style.render()` method whatsoever.
+
+.. rubric:: TL;DR
+
+To unconditionally print formatted message to output terminal, do something like this:
+
+>>> from pytermor import SGRRenderer, RendererManager, Styles
+>>> RendererManager.set_up(SGRRenderer)   # can be omitted as SGR _is_ a default renderer
+>>> SGRRenderer.set_up(force_styles=True)
+>>> Styles.WARNING.render('Warning: AAA')  # print()
+'\\x1b[33mWarning: AAA\\x1b[39m'
+
 
 .. testsetup:: *
 
     from pytermor.color import Colors
     from pytermor.render import *
 
-    SGRRenderer.set_up(force_styles = True)
-
+    SGRRenderer.set_up(force_styles=True)
 """
 from __future__ import annotations
 
@@ -96,7 +106,7 @@ class Text:
 
 class _TextRun(Sized):
     def __init__(self, string: Any = None, style: Style|str = None):
-        self._string: str = str(string)
+        self._string: str = str(string) if string else ''
         if isinstance(style, str):
             style = Style(fg=style)
         self._style: Style|None = style
@@ -228,7 +238,7 @@ class Style:
                 raise ValueError(f'Attribute is not valid Color: {resolved_color}')
             return resolved_color
 
-        return None if nullable else Colors.NOOP
+        return None if nullable else NOOP_COLOR
 
     def _clone_from(self, inherit: Style):
         for attr in list(self.__dict__.keys()) + ['_fg', '_bg']:
@@ -272,29 +282,12 @@ Special style which passes the text
 furthrer without any modifications.
 """
 
-class Stylesheet:
-    """
-    @wat when how выпилить к черту
-    """
-
-    def __init__(self, default: Style = None):
-        self.default: Style = self._opt_arg(default)
-
-    def _opt_arg(self, arg: Style|None):
-        return arg or NOOP_STYLE
-
-    def __repr__(self):
-        styles_set = sum(map(lambda a: int(isinstance(a, Style)),
-                             [getattr(self, attr_name) for attr_name in dir(self) if
-                              not attr_name.startswith('_')]))
-        return self.__class__.__name__ + '[{:d} props]'.format(styles_set)
-
 
 class RendererManager:
-    _default: Type[Renderer] = None
+    _default: Type[IRenderer] = None
 
     @classmethod
-    def set_up(cls, default_renderer: Type[Renderer]|None = None):
+    def set_up(cls, default_renderer: Type[IRenderer]|None = None):
         """
         Set up renderer preferences. Affects all renderer types.
 
@@ -312,12 +305,12 @@ class RendererManager:
         cls._default = default_renderer or SGRRenderer
 
     @classmethod
-    def get_default(cls) -> Type[Renderer]:
+    def get_default(cls) -> Type[IRenderer]:
         """ Get global default renderer type. """
         return cls._default
 
 
-class Renderer(metaclass=abc.ABCMeta):
+class IRenderer(metaclass=abc.ABCMeta):
     """ Abstract ancestor of all renderers. """
 
     @classmethod
@@ -331,11 +324,30 @@ class Renderer(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-class SGRRenderer(Renderer):
+class SGRRenderer(IRenderer):
     """
     Default renderer that `Style.render() <Style.render>` invokes. Transforms
-    `Color` instances defined in ``style`` argument into ANSI control sequence
+    `Color` instances defined in ``style`` into ANSI control sequence
     characters and merges them with input string.
+
+    Respects compatibility preferences (see `RendererManager.set_up()`) and
+    maps RGB colors to closest *indexed* colors if terminal doesn't support
+    RGB output. In case terminal doesn't support even 256 colors, falls back
+    to *default* colors, searching for closest counterparts in 16-color table.
+
+    Type of output ``SequenceSGR`` depends on type of `Color` variables in
+    ``style`` argument. Keeping all that in mind, let's summarize:
+
+    1. `ColorRGB` can be rendered as True Color sequence, indexed sequence
+       or default (16-color) sequence depending on terminal capabilities.
+    2. `ColorIndexed` can be rendered as indexed sequence or default sequence.
+    3. `ColorDefault` can be rendered as default-color sequence.
+    4. Nothing of the above will happen and all Colors will be discarded
+       completely if output is not a terminal emulator or if the developer
+       explicitly set up the renderer to do so.
+
+    >>> SGRRenderer.render('text', Style(fg='red', bold=True))
+    '\\x1b[1;31mtext\\x1b[22;39m'
     """
     _force_styles: bool|None = False
     _compatibility_indexed: bool = False
@@ -379,30 +391,6 @@ class SGRRenderer(Renderer):
 
     @classmethod
     def render(cls, text: Any, style: Style):
-        """
-        Render ``text`` with ``style`` applied as ANSI control sequences.
-
-        Respects compatibility preferences (see `RendererManager.set_up()`) and
-        maps RGB colors to closest *indexed* colors if terminal doesn't support
-        RGB output. In case terminal doesn't support even 256 colors, falls back
-        to *default* colors, searching for closest counterparts in 16-color table.
-
-        Type of output ``SequenceSGR`` depends on type of `Color` variables in
-        ``style`` argument. Keeping all that
-        in mind, let's summarize:
-
-        1. `ColorRGB` can be rendered as True Color sequence, indexed sequence
-           or default (16-color) sequence depending on terminal capabilities.
-        2. `ColorIndexed` can be rendered as indexed sequence or default sequence.
-        3. `ColorDefault` will be rendered as default-color sequence.
-
-        >>> SGRRenderer.render('text', Style(fg='red', bold=True))
-        '\\x1b[1;31mtext\\x1b[22;39m'
-
-        :param style: Style to apply.
-        :param text: Input string.
-        :return: Input string enclosed in SGR sequences.
-        """
         opening_seq = cls._render_attributes(style) + \
                       cls._render_color(style.fg, False) + \
                       cls._render_color(style.bg, True)
@@ -467,39 +455,41 @@ class SGRRenderer(Renderer):
         return sys.stdout.isatty()
 
 
-class TmuxRenderer(Renderer):
+class TmuxRenderer(IRenderer):
+    """
+    tmux
+    """
     pass
 
 
-class NoOpRenderer(Renderer):
+class NoOpRenderer(IRenderer):
+    """
+    Special renderer type that does nothing with the input string and just
+    returns it as is. That's true only when it _is_ a str beforehand;
+    otherwise argument will be casted to str and then returned.
+
+    >>> NoOpRenderer.render('text',Style(fg='red', bold=True))
+    'text'
+    """
+
     @classmethod
     def render(cls, text: Any, style: Style) -> str:
-        """
-        Special renderer type that does nothing with the input string and just
-        returns it as is. That's true only when it _is_ a str beforehand;
-        otherwise argument will be casted to str and then returned.
-
-        >>> NoOpRenderer.render('text',Style(fg='red', bold=True))
-        'text'
-
-        :param style: Style to ignore.
-        :param text: Input string.
-        :return: Input string without changes.
-        """
         return str(text)
 
 
-class HtmlRenderer(Renderer):
+class HtmlRenderer(IRenderer):
+    """
+    html
+
+    >>> HtmlRenderer.render('text',Style(fg='red', bold=True))
+    '<span style="color: #800000; font-weight: 700">text</span>'
+    """
+
     DEFAULT_ATTRS = ['color', 'background-color', 'font-weight', 'font-style',
                      'text-decoration', 'border', 'filter', ]
 
     @classmethod
     def render(cls, text: Any, style: Style) -> str:
-        """
-        >>> HtmlRenderer.render('text',Style(fg='red', bold=True))
-        '<span style="color: #800000; font-weight: 700">text</span>'
-        """
-
         span_styles: Dict[str, Set[str]] = dict()
         for attr in cls._get_default_attrs():
             span_styles[attr] = set()
@@ -540,13 +530,16 @@ class HtmlRenderer(Renderer):
         return cls.DEFAULT_ATTRS
 
 
-class DebugRenderer(Renderer):
+class DebugRenderer(IRenderer):
+    """
+    DebugRenderer
+
+    >>> DebugRenderer.render('text',Style(fg='red', bold=True))
+    '|ǝ1;31|text|ǝ22;39|'
+    """
+
     @classmethod
     def render(cls, text: Any, style: Style) -> str:
-        """
-        >>> DebugRenderer.render('text',Style(fg='red', bold=True))
-        '|ǝ1;31|text|ǝ22;39|'
-        """
         return ReplaceSGR(r'|ǝ\3|').apply(SGRRenderer.render(str(text), style))
 
 
@@ -563,9 +556,17 @@ class Styles(Registry[Style]):
     in the initial place -- at API docs page directly.
     """
 
+    WARNING = Style(fg=Colors.YELLOW)
+    WARNING_LABEL = Style(WARNING, bold=True)
+    WARNING_ACCENT = Style(fg=Colors.HI_YELLOW)
+
     ERROR = Style(fg=Colors.RED)
     ERROR_LABEL = Style(ERROR, bold=True)
     ERROR_ACCENT = Style(fg=Colors.HI_RED)
+
+    CRITICAL = Style(bg=Colors.HI_RED, fg=Colors.XTERM_GREY_100)
+    CRITICAL_LABEL = Style(CRITICAL, bold=True)
+    CRITICAL_ACCENT = Style(CRITICAL, bold=True, blink=True)
 
 
 def print_exception(e: Exception, file: TextIO = sys.stderr, with_trace: bool = True):
@@ -577,17 +578,20 @@ def print_exception(e: Exception, file: TextIO = sys.stderr, with_trace: bool = 
     :param with_trace:
     :return:
     """
-    tb_lines = [line.rstrip('\n') for line in
-                traceback.format_exception(e.__class__, e, e.__traceback__)]
+    error_label = 'ERROR: '
+    error_msg = e.__class__.__name__+': '+(str(e)  or "<empty>")
+    error_trace = ''
 
-    error_text = Text()
     if with_trace:
-        error_text += Text('\n'.join(tb_lines), Styles.ERROR) + '\n\n'
+        tb_lines = [line.rstrip('\n') for line in
+                    traceback.format_exception(e.__class__, e, e.__traceback__)]
+        error_msg = tb_lines.pop(-1)
+        error_trace = '\n'.join(tb_lines) + '\n\n'
 
-    error_text += (
-        Text('ERROR:', Styles.ERROR_LABEL) + Text(f' {e}', Styles.ERROR_ACCENT))
-
-    print(error_text.render(), file=file)
+    print(Styles.ERROR.render(error_trace) +
+          Styles.ERROR_LABEL.render(error_label) +
+          Styles.ERROR_ACCENT.render(error_msg),
+          file=file)
 
 
 def distribute_padded(values: List[str|Text], max_len: int, pad_before: bool = False,

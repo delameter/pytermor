@@ -1,0 +1,3391 @@
+named_colors:
+  # ---------------------------
+  # https://encycolorpedia.com/named
+  #
+  - name: "\"New Bridge\" color (Shinbashi-iro)"
+    value: 0x006c7f
+  - name: "Absolute Zero"
+    value: 0x0048ba
+  - name: "Acajou"
+    value: 0x4c2f27
+  - name: "Acid green"
+    value: 0xb0bf1a
+  - name: "Aero"
+    value: 0x7cb9e8
+  - name: "Aero blue"
+    value: 0xc9ffe5
+  - name: "African violet"
+    value: 0xb284be
+  - name: "Air Force blue (RAF)"
+    value: 0x5d8aa8
+  - name: "Air Force blue (USAF)"
+    value: 0x00308f
+  - name: "Air superiority blue"
+    value: 0x72a0c1
+  - name: "Alabama crimson"
+    value: 0xaf002a
+  - name: "Alabaster"
+    value: 0xf2f0e6
+  - name: "Alice blue"
+    value: 0xf0f8ff
+  - name: "Alizarin crimson"
+    value: 0xe32636
+  - name: "Alloy orange"
+    value: 0xc46210
+  - name: "Almond"
+    value: 0xefdecd
+  - name: "Aloeswood brown (Tonocha)"
+    value: 0x5a6457
+  - name: "Aloewood-color (Kyara-iro)"
+    value: 0x6a432d
+  - name: "Aluminum"
+    value: 0xd6d6d6
+  - name: "Aluminum foil"
+    value: 0xd2d9db
+  - name: "Amaranth"
+    value: 0xe52b50
+  - name: "Amaranth deep purple"
+    value: 0x9f2b68
+  - name: "Amaranth pink"
+    value: 0xf19cbb
+  - name: "Amaranth purple"
+    value: 0xab274f
+  - name: "Amaranth red"
+    value: 0xd3212d
+  - name: "Amazon"
+    value: 0x3b7a57
+  - name: "Amber"
+    value: 0xffbf00
+  - name: "Amber (Kohaku-iro)"
+    value: 0xca6924
+  - name: "Amber (SAE/ECE)"
+    value: 0xff7e00
+  - name: "American blue"
+    value: 0x3b3b6d
+  - name: "American bronze"
+    value: 0x391802
+  - name: "American brown"
+    value: 0x804040
+  - name: "American gold"
+    value: 0xd3af37
+  - name: "American green"
+    value: 0x34b334
+  - name: "American orange"
+    value: 0xff8b00
+  - name: "American pink"
+    value: 0xff9899
+  - name: "American purple"
+    value: 0x431c53
+  - name: "American red"
+    value: 0xb32134
+  - name: "American rose"
+    value: 0xff033e
+  - name: "American silver"
+    value: 0xcfcfcf
+  - name: "American violet"
+    value: 0x551b8c
+  - name: "American yellow"
+    value: 0xf2b400
+  - name: "Amethyst"
+    value: 0x9966cc
+  - name: "Amur cork tree (Phellodendron amurense) (Kihada)"
+    value: 0xf3c13a
+  - name: "Anti-flash white"
+    value: 0xf2f3f4
+  - name: "Antique brass"
+    value: 0xcd9575
+  - name: "Antique bronze"
+    value: 0x665d1e
+  - name: "Antique fuchsia"
+    value: 0x915c83
+  - name: "Antique ruby"
+    value: 0x841b2d
+  - name: "Antique white"
+    value: 0xfaebd7
+  #- name: "Ao (English)"  # wat
+  #  value: 0x008000
+  - name: "Apple"
+    value: 0x66b447
+  - name: "Apple green"
+    value: 0x8db600
+  - name: "Apricot"
+    value: 0xfbceb1
+  - name: "Aqua"
+    value: 0x00ffff
+  - name: "Aqua Blue color (Mizu-iro)"
+    value: 0x86aba5
+  - name: "Aquamarine"
+    value: 0x7fffd4
+  - name: "Arctic lime"
+    value: 0xd0ff14
+  - name: "Argent"
+    value: 0xc0c0c0
+  - name: "Army green"
+    value: 0x4b5320
+  - name: "Artichoke"
+    value: 0x8f9779
+  - name: "Arylide yellow"
+    value: 0xe9d66b
+  - name: "Asda Green"
+    value: 0x7dc242
+  - name: "Asda Green (1985)"
+    value: 0x00dea4
+  - name: "Asda Green (1994)"
+    value: 0x80c197
+  - name: "Asda Green (1999)"
+    value: 0x66c992
+  - name: "Asda Green (2002)"
+    value: 0x32ad61
+  - name: "Asda Orange"
+    value: 0xc86500
+  - name: "Asda Orange (1968)"
+    value: 0xca7309
+  - name: "Ash gray"
+    value: 0xb2beb5
+  - name: "Asparagus"
+    value: 0x87a96b
+  - name: "Ateneo blue"
+    value: 0x003a6c
+  - name: "Atomic tangerine"
+    value: 0xff9966
+  - name: "Auburn"
+    value: 0xa52a2a
+  - name: "Aureolin"
+    value: 0xfdee00
+  - name: "AuroMetalSaurus"
+    value: 0x6e7f80
+  - name: "Avocado"
+    value: 0x568203
+  - name: "Awesome"
+    value: 0xff2052
+  - name: "Axolotl"
+    value: 0x63775b
+  - name: "Azure"
+    value: 0x007fff
+  - name: "Azure mist"
+    value: 0xf0ffff
+  - name: "Azureish white"
+    value: 0xdbe9f4
+  - name: "B'dazzled blue"
+    value: 0x2e5894
+  - name: "Baby blue"
+    value: 0x89cff0
+  - name: "Baby blue eyes"
+    value: 0xa1caf1
+  - name: "Baby pink"
+    value: 0xf4c2c2
+  - name: "Baby powder"
+    value: 0xfefefa
+  - name: "Baiko brown (Baikōcha)"
+    value: 0x857c55
+  - name: "Baker-Miller pink"
+    value: 0xff91af
+  - name: "Ball blue"
+    value: 0x21abcd
+  - name: "Banana Mania"
+    value: 0xfae7b5
+  - name: "Banana yellow"
+    value: 0xffe135
+  - name: "Bangladesh green"
+    value: 0x006a4e
+  - name: "Barbie Pink"
+    value: 0xe94196
+  - name: "Barbie Pink (1959-1975)"
+    value: 0xe85395
+  - name: "Barbie Pink (1975-1990)"
+    value: 0xd3419d
+  - name: "Barbie Pink (1990-1999)"
+    value: 0xf364a2
+  - name: "Barbie Pink (1999-2004)"
+    value: 0xf7238a
+  - name: "Barbie Pink (2004-2005)"
+    value: 0xff3988
+  - name: "Barbie Pink (2005-2009)"
+    value: 0xfc419a
+  - name: "Barbie Pink (Pantone)"
+    value: 0xe0218a
+  - name: "Barn red"
+    value: 0x7c0a02
+  - name: "Battery charged blue"
+    value: 0x1dacd6
+  - name: "Battleship grey"
+    value: 0x848482
+  - name: "Bayside"
+    value: 0x5fc9bf
+  - name: "Bazaar"
+    value: 0x98777b
+  - name: "Beau blue"
+    value: 0xbcd4e6
+  - name: "Beaver"
+    value: 0x9f8170
+  - name: "Beer"
+    value: 0xf28e1c
+  - name: "Begonia"
+    value: 0xfa6e79
+  - name: "Beige"
+    value: 0xf5f5dc
+  - name: "Bellflower color (Kikyō-iro)"
+    value: 0x5d3f6a
+  - name: "Betel nut dye (Binrōjizome)"
+    value: 0x352925
+  - name: "Big dip o’ruby"
+    value: 0x9c2542
+  - name: "Big Foot Feet"
+    value: 0xe88e5a
+  - name: "Birch brown (Kabacha)"
+    value: 0xb14a30
+  - name: "Bisque"
+    value: 0xffe4c4
+  - name: "Bistre"
+    value: 0x3d2b1f
+  - name: "Bistre brown"
+    value: 0x967117
+  - name: "Bitter lemon"
+    value: 0xcae00d
+  - name: "Bitter lime"
+    value: 0xbfff00
+  - name: "Bittersweet"
+    value: 0xfe6f5e
+  - name: "Bittersweet shimmer"
+    value: 0xbf4f51
+  - name: "Black"
+    value: 0x000000
+  - name: "Black (Kokushoku)"
+    value: 0x171412
+  - name: "Black bean"
+    value: 0x3d0c02
+  - name: "Black chestnut oak (Kurotsurubami)"
+    value: 0x252321
+  - name: "Black chocolate"
+    value: 0x1b1811
+  - name: "Black coffee"
+    value: 0x3b2f2f
+  - name: "Black coral"
+    value: 0x54626f
+  - name: "Black kite (bird species) (Kurotobi)"
+    value: 0x351e1c
+  - name: "Black leather jacket"
+    value: 0x253529
+  - name: "Black olive"
+    value: 0x3b3c36
+  - name: "Black Shadows"
+    value: 0xbfafb2
+  - name: "Blanched almond"
+    value: 0xffebcd
+  - name: "Blast-off bronze"
+    value: 0xa57164
+  - name: "Bleu de France"
+    value: 0x318ce7
+  - name: "Blizzard blue"
+    value: 0xace5ee
+  - name: "Blond"
+    value: 0xfaf0be
+  - name: "Blood"
+    value: 0x8a0303
+  - name: "Blood (Animal)"
+    value: 0xa41313
+  - name: "Blood (organ)"
+    value: 0x630f0f
+  - name: "Blood orange"
+    value: 0xd1001c
+  - name: "Blood red"
+    value: 0x660000
+  - name: "Blood red (Benihi)"
+    value: 0xf35336
+  - name: "Blue"
+    value: 0x0000ff
+  - name: "Blue (Crayola)"
+    value: 0x1f75fe
+  - name: "Blue (Munsell)"
+    value: 0x0093af
+  - name: "Blue (NCS)"
+    value: 0x0087bd
+  - name: "Blue (Pantone)"
+    value: 0x0018a8
+  - name: "Blue (pigment)"
+    value: 0x333399
+  - name: "Blue (RYB)"
+    value: 0x0247fe
+  - name: "Blue bell"
+    value: 0xa2a2d0
+  - name: "Blue Black Crayfish (Aoni)"
+    value: 0x52593b
+  - name: "Blue bolt"
+    value: 0x00b9fb
+  - name: "Blue cola"
+    value: 0x0088dc
+  - name: "Blue jeans"
+    value: 0x5dadec
+  - name: "Blue lagoon"
+    value: 0x4cb7a5
+  - name: "Blue raspberry"
+    value: 0x0cbfe9
+  - name: "Blue sapphire"
+    value: 0x126180
+  - name: "Blue violet (Shikon)"
+    value: 0x2b2028
+  - name: "Blue yonder"
+    value: 0x5072a7
+  - name: "Blue-gray"
+    value: 0x6699cc
+  - name: "Blue-green"
+    value: 0x0d98ba
+  - name: "Blue-green (color wheel)"
+    value: 0x064e40
+  - name: "Blue-green (Seiheki)"
+    value: 0x3a6960
+  - name: "Blue-magenta violet"
+    value: 0x553592
+  - name: "Blue-violet"
+    value: 0x8a2be2
+  - name: "Blue-violet (color wheel)"
+    value: 0x4d1a7f
+  - name: "Blue-violet (Crayola)"
+    value: 0x7366bd
+  - name: "Blueberry"
+    value: 0x4f86f7
+  - name: "Bluebonnet"
+    value: 0x1c1cf0
+  - name: "Blush"
+    value: 0xde5d83
+  - name: "Boiled red bean brown (Momoshiocha)"
+    value: 0x542d24
+  - name: "Bole"
+    value: 0x79443b
+  - name: "Bondi blue"
+    value: 0x0095b6
+  - name: "Bone"
+    value: 0xe3dac9
+  - name: "Bored accent green"
+    value: 0xdde26a
+  - name: "Boy red"
+    value: 0x0e9ca5
+  - name: "Boysenberry"
+    value: 0x873260
+  - name: "Brandeis blue"
+    value: 0x0070ff
+  - name: "Brandy"
+    value: 0x87413f
+  - name: "Brass"
+    value: 0xb5a642
+  - name: "Brave orange"
+    value: 0xff631c
+  - name: "Brewed mustard-brown (Tokigaracha)"
+    value: 0xe68364
+  - name: "Brick red"
+    value: 0xcb4154
+  - name: "Bright gray"
+    value: 0xebecf0
+  - name: "Bright green"
+    value: 0x66ff00
+  - name: "Bright lavender"
+    value: 0xbf94e4
+  - name: "Bright lilac"
+    value: 0xd891ef
+  - name: "Bright maroon"
+    value: 0xc32148
+  - name: "Bright navy blue"
+    value: 0x1974d2
+  - name: "Bright pink"
+    value: 0xff007f
+  - name: "Bright turquoise"
+    value: 0x08e8de
+  - name: "Bright ube"
+    value: 0xd19fe8
+  - name: "Bright yellow (Crayola)"
+    value: 0xffaa1d
+  - name: "Brilliant azure"
+    value: 0x3399ff
+  - name: "Brilliant lavender"
+    value: 0xf4bbff
+  - name: "Brilliant rose"
+    value: 0xff55a3
+  - name: "Brink pink"
+    value: 0xfb607f
+  - name: "British racing green"
+    value: 0x004225
+  - name: "Bronze"
+    value: 0xcd7f32
+  - name: "Bronze"
+    value: 0x88540b
+  - name: "Bronze (metallic)"
+    value: 0xb08d57
+  - name: "Bronze yellow"
+    value: 0x737000
+  - name: "Brown"
+    value: 0x993300
+  - name: "Brown (Crayola)"
+    value: 0xaf593e
+  - name: "Brown (traditional)"
+    value: 0x964b00
+  - name: "Brown Chocolate"
+    value: 0x5f1933
+  - name: "Brown Coffee"
+    value: 0x4a2c2a
+  - name: "Brown rat grey (Dobunezumi)"
+    value: 0x4b3c39
+  - name: "Brown sugar"
+    value: 0xaf6e4d
+  - name: "Brown Yellow"
+    value: 0xcc9966
+  - name: "Brown-nose"
+    value: 0x6b4423
+  - name: "Brunswick green"
+    value: 0x1b4d3e
+  - name: "Brushwood-dyed (Fushizome)"
+    value: 0x8c5939
+  - name: "Bubble gum"
+    value: 0xffc1cc
+  - name: "Bubbles"
+    value: 0xe7feff
+  - name: "Bud green"
+    value: 0x7bb661
+  - name: "Buff"
+    value: 0xf0dc82
+  - name: "Bulgarian rose"
+    value: 0x480607
+  - name: "Burgundy"
+    value: 0x800020
+  - name: "Burlywood"
+    value: 0xdeb887
+  - name: "Burnished brown"
+    value: 0xa17a74
+  - name: "Burnt orange"
+    value: 0xcc5500
+  - name: "Burnt sienna"
+    value: 0xe97451
+  - name: "Burnt umber"
+    value: 0x8a3324
+  - name: "Button blue"
+    value: 0x24a0ed
+  - name: "Byzantine"
+    value: 0xbd33a4
+  - name: "Byzantium"
+    value: 0x702963
+  - name: "Cadet"
+    value: 0x536872
+  - name: "Cadet blue"
+    value: 0x5f9ea0
+  - name: "Cadet blue (Crayola)"
+    value: 0xa9b2c3
+  - name: "Cadet grey"
+    value: 0x91a3b0
+  - name: "Cadmium blue"
+    value: 0x0a1195
+  - name: "Cadmium green"
+    value: 0x006b3c
+  - name: "Cadmium orange"
+    value: 0xed872d
+  - name: "Cadmium purple"
+    value: 0xb60c26
+  - name: "Cadmium red"
+    value: 0xe30022
+  - name: "Cadmium violet"
+    value: 0x7f3e98
+  - name: "Cadmium yellow"
+    value: 0xfff600
+  - name: "Café au lait"
+    value: 0xa67b5b
+  - name: "Café noir"
+    value: 0x4b3621
+  - name: "Cal Poly Pomona green"
+    value: 0x1e4d2b
+  - name: "Calamansi"
+    value: 0xfcffa4
+  - name: "Cambridge blue"
+    value: 0xa3c1ad
+  - name: "Camel"
+    value: 0xc19a6b
+  - name: "Cameo pink"
+    value: 0xefbbcc
+  - name: "Camouflage green"
+    value: 0x78866b
+  - name: "Canary"
+    value: 0xffff99
+  - name: "Canary yellow"
+    value: 0xffef00
+  - name: "Candy apple red"
+    value: 0xff0800
+  - name: "Candy pink"
+    value: 0xe4717a
+  - name: "Cape jasmine or gardenia (Kuchinashi)"
+    value: 0xffb95a
+  - name: "Capri"
+    value: 0x00bfff
+  - name: "Caput mortuum"
+    value: 0x592720
+  - name: "Caramel"
+    value: 0xffd59a
+  - name: "Cardinal"
+    value: 0xc41e3a
+  - name: "Caribbean blue"
+    value: 0x1ac1dd
+  - name: "Caribbean green"
+    value: 0x00cc99
+  - name: "Carmine"
+    value: 0x960018
+  - name: "Carmine (M&P)"
+    value: 0xd70040
+  - name: "Carmine pink"
+    value: 0xeb4c42
+  - name: "Carmine red"
+    value: 0xff0038
+  - name: "Carnation pink"
+    value: 0xffa6c9
+  - name: "Carnelian"
+    value: 0xb31b1b
+  - name: "Carolina blue"
+    value: 0x56a0d3
+  - name: "Carrot orange"
+    value: 0xed9121
+  - name: "Castleton green"
+    value: 0x00563f
+  - name: "Catalina blue"
+    value: 0x062a78
+  - name: "Catawba"
+    value: 0x703642
+  - name: "Cattail color (the plant) (Kaba-iro)"
+    value: 0xb64925
+  - name: "Cedar Chest"
+    value: 0xc95a49
+  - name: "Ceil"
+    value: 0x92a1cf
+  - name: "Celadon"
+    value: 0xace1af
+  - name: "Celadon blue"
+    value: 0x007ba7
+  - name: "Celadon color (Seiji-iro)"
+    value: 0x819c8b
+  - name: "Celadon green"
+    value: 0x2f847c
+  - name: "Celeste"
+    value: 0xb2ffff
+  - name: "Celestial blue"
+    value: 0x4997d0
+  - name: "Celtic blue"
+    value: 0x246bce
+  - name: "Cerise"
+    value: 0xde3163
+  - name: "Cerise pink"
+    value: 0xec3b83
+  - name: "Cerulean blue"
+    value: 0x2a52be
+  - name: "Cerulean frost"
+    value: 0x6d9bc3
+  - name: "Cetacean blue"
+    value: 0x001440
+  - name: "CG blue"
+    value: 0x007aa5
+  - name: "CG red"
+    value: 0xe03c31
+  - name: "Chamoisee"
+    value: 0xa0785a
+  - name: "Champagne"
+    value: 0xf7e7ce
+  - name: "Champagne pink"
+    value: 0xf1ddcf
+  - name: "Charcoal"
+    value: 0x36454f
+  - name: "Charleston green"
+    value: 0x232b2b
+  - name: "Charm"
+    value: 0xd0748b
+  - name: "Charm pink"
+    value: 0xe68fac
+  - name: "Chartreuse (traditional)"
+    value: 0xdfff00
+  - name: "Cheese"
+    value: 0xffa600
+  - name: "Cherry blossom color (Sakura-iro)"
+    value: 0xfcc9b9
+  - name: "Cherry blossom mouse (Sakuranezumi)"
+    value: 0xac8181
+  - name: "Cherry blossom pink"
+    value: 0xffb7c5
+  - name: "Chestnut"
+    value: 0x954535
+  - name: "Chestnut-leather brown (Kurikawacha)"
+    value: 0x60281e
+  - name: "Chickadee"
+    value: 0xffc34d
+  - name: "China pink"
+    value: 0xde6fa1
+  - name: "China rose"
+    value: 0xa8516e
+  - name: "Chinese black"
+    value: 0x141414
+  - name: "Chinese blue"
+    value: 0x365194
+  - name: "Chinese bronze"
+    value: 0xcd8032
+  - name: "Chinese brown"
+    value: 0xab381f
+  - name: "Chinese gold"
+    value: 0xcc9900
+  - name: "Chinese green"
+    value: 0xd0db61
+  - name: "Chinese orange"
+    value: 0xf37042
+  - name: "Chinese pink"
+    value: 0xde70a1
+  - name: "Chinese purple"
+    value: 0x720b98
+  - name: "Chinese red"
+    value: 0xaa381e
+  - name: "Chinese red"
+    value: 0xcd071e
+  - name: "Chinese silver"
+    value: 0xcccccc
+  - name: "Chinese violet"
+    value: 0x856088
+  - name: "Chinese white"
+    value: 0xe2e5de
+  - name: "Chinese yellow"
+    value: 0xffb200
+  - name: "Chinese yellow tea-colored (Kigaracha)"
+    value: 0xb7702d
+  - name: "Chlorophyll green"
+    value: 0x4aff00
+  - name: "Chocolate (traditional)"
+    value: 0x7b3f00
+  - name: "Chocolate brown"
+    value: 0x3f000f
+  - name: "Chocolate cosmos"
+    value: 0x58111a
+  - name: "Chocolate Kisses"
+    value: 0x3c1421
+  - name: "Chrome aluminum"
+    value: 0xa8a9ad
+  - name: "Chrome yellow"
+    value: 0xffa700
+  - name: "Cinereous"
+    value: 0x98817b
+  - name: "Cinnabar"
+    value: 0xe34234
+  - name: "Cinnamon"
+    value: 0xd2691e
+  - name: "Cinnamon Satin"
+    value: 0xcd607e
+  - name: "Citrine"
+    value: 0xe4d00a
+  - name: "Citrine Brown"
+    value: 0x933709
+  - name: "Citron"
+    value: 0x9fa91f
+  - name: "Claret"
+    value: 0x7f1734
+  - name: "Classic rose"
+    value: 0xfbcce7
+  - name: "Clove-brown (Chōjicha)"
+    value: 0x8f583c
+  - name: "Clove-dyed (Chōjizome)"
+    value: 0xa96232
+  - name: "Coarse wool color (Kachi-iro)"
+    value: 0x181b26
+  - name: "Cobalt blue"
+    value: 0x0047ab
+  - name: "Coconut"
+    value: 0x965a3e
+  - name: "Coconut White"
+    value: 0xe9edf6
+  - name: "Codium fragile seaweed color (Miru-iro)"
+    value: 0x524b2a
+  - name: "Coffee"
+    value: 0x6f4e37
+  - name: "Cola"
+    value: 0x3c3024
+  - name: "Columbia Blue"
+    value: 0xc4d8e2
+  - name: "Conditioner"
+    value: 0xffffcc
+  - name: "Congo pink"
+    value: 0xf88379
+  - name: "Contemplation in a tea garden (Rokōcha)"
+    value: 0x665343
+  - name: "Cookies and cream"
+    value: 0xeee0b1
+  - name: "Cool black"
+    value: 0x002e63
+  - name: "Cool grey"
+    value: 0x8c92ac
+  - name: "Copper"
+    value: 0xb87333
+  - name: "Copper (Crayola)"
+    value: 0xda8a67
+  - name: "Copper penny"
+    value: 0xad6f69
+  - name: "Copper red"
+    value: 0xcb6d51
+  - name: "Copper rose"
+    value: 0x996666
+  - name: "Coquelicot"
+    value: 0xff3800
+  - name: "Coral"
+    value: 0xff7f50
+  - name: "Coral color (Sango-iro)"
+    value: 0xf8674f
+  - name: "Coral red"
+    value: 0xff4040
+  - name: "Coral reef"
+    value: 0xfd7c6e
+  - name: "Coral Reef (Valspar Paint Color)"
+    value: 0xf6a494
+  - name: "Cordovan"
+    value: 0x893f45
+  - name: "Corn"
+    value: 0xfbec5d
+  - name: "Corn-colored (Tōmorokoshi-iro)"
+    value: 0xfaa945
+  - name: "Cornflower"
+    value: 0x93ccea
+  - name: "Cornflower blue"
+    value: 0x6495ed
+  - name: "Cornsilk"
+    value: 0xfff8dc
+  - name: "Cosmic cobalt"
+    value: 0x2e2d88
+  - name: "Cosmic latte"
+    value: 0xfff8e7
+  - name: "Cotton candy"
+    value: 0xffbcd9
+  - name: "Coyote brown"
+    value: 0x81613c
+  - name: "Cream"
+    value: 0xfffdd0
+  - name: "Crimson"
+    value: 0xdc143c
+  - name: "Crimson glory"
+    value: 0xbe0032
+  - name: "Crimson red"
+    value: 0x990000
+  - name: "Crystal"
+    value: 0xa7d8de
+  - name: "Crystal blue"
+    value: 0x68a0b0
+  - name: "Cultured"
+    value: 0xf5f5f5
+  - name: "Cyan (process)"
+    value: 0x00b7eb
+  - name: "Cyan azure"
+    value: 0x4e82b4
+  - name: "Cyan cobalt blue"
+    value: 0x28589c
+  - name: "Cyan cornflower blue"
+    value: 0x188bc2
+  - name: "Cyan-blue azure"
+    value: 0x4682bf
+  - name: "Cyber grape"
+    value: 0x58427c
+  - name: "Cyber yellow"
+    value: 0xffd300
+  - name: "Cyclamen"
+    value: 0xf56fa1
+  - name: "Cypress bark color (Hihada-iro)"
+    value: 0x752e23
+  - name: "Cypress bark red (Benihibata)"
+    value: 0x6f3028
+  - name: "Daffodil"
+    value: 0xffff31
+  - name: "Dandelion"
+    value: 0xf0e130
+  - name: "Dandelion (Crayola)"
+    value: 0xfddb6d
+  - name: "Dark blue"
+    value: 0x00008b
+  - name: "Dark blue (Kon)"
+    value: 0x192236
+  - name: "Dark blue lapis lazuli (Rurikon)"
+    value: 0x1b294b
+  - name: "Dark blue-gray"
+    value: 0x666699
+  - name: "Dark bronze"
+    value: 0x804a00
+  - name: "Dark bronze (Coin)"
+    value: 0x514100
+  - name: "Dark brown"
+    value: 0x654321
+  - name: "Dark brown-tangelo"
+    value: 0x88654e
+  - name: "Dark byzantium"
+    value: 0x5d3954
+  - name: "Dark candy apple red"
+    value: 0xa40000
+  - name: "Dark cerulean"
+    value: 0x08457e
+  - name: "Dark charcoal"
+    value: 0x333333
+  - name: "Dark chestnut"
+    value: 0x986960
+  - name: "Dark chocolate"
+    value: 0x490206
+  - name: "Dark chocolate (Hershey's)"
+    value: 0x3c1321
+  - name: "Dark coral"
+    value: 0xcd5b45
+  - name: "Dark cornflower blue"
+    value: 0x26428b
+  - name: "Dark cyan"
+    value: 0x008b8b
+  - name: "Dark electric blue"
+    value: 0x536878
+  - name: "Dark gold"
+    value: 0xaa6c39
+  - name: "Dark goldenrod"
+    value: 0xb8860b
+  - name: "Dark gray (X11)"
+    value: 0xa9a9a9
+  - name: "Dark green"
+    value: 0x013220
+  - name: "Dark green (X11)"
+    value: 0x006400
+  - name: "Dark gunmetal"
+    value: 0x1f262a
+  - name: "Dark imperial blue"
+    value: 0x00147e
+  - name: "Dark imperial blue"
+    value: 0x00416a
+  - name: "Dark indigo (Futaai)"
+    value: 0x614e6e
+  - name: "Dark jungle green"
+    value: 0x1a2421
+  - name: "Dark khaki"
+    value: 0xbdb76b
+  - name: "Dark lava"
+    value: 0x483c32
+  - name: "Dark lavender"
+    value: 0x734f96
+  - name: "Dark lemon lime"
+    value: 0x8bbe1b
+  - name: "Dark liver"
+    value: 0x534b4f
+  - name: "Dark liver (horses)"
+    value: 0x543d37
+  - name: "Dark magenta"
+    value: 0x8b008b
+  - name: "Dark midnight blue"
+    value: 0x003366
+  - name: "Dark moss green"
+    value: 0x4a5d23
+  - name: "Dark Navy"
+    value: 0x02075d
+  - name: "Dark olive green"
+    value: 0x556b2f
+  - name: "Dark orange"
+    value: 0xff8c00
+  - name: "Dark orchid"
+    value: 0x9932cc
+  - name: "Dark pastel blue"
+    value: 0x779ecb
+  - name: "Dark pastel green"
+    value: 0x03c03c
+  - name: "Dark pastel purple"
+    value: 0x966fd6
+  - name: "Dark pastel red"
+    value: 0xc23b22
+  - name: "Dark pink"
+    value: 0xe75480
+  - name: "Dark powder blue"
+    value: 0x003399
+  - name: "Dark puce"
+    value: 0x4f3a3c
+  - name: "Dark purple"
+    value: 0x301934
+  - name: "Dark raspberry"
+    value: 0x872657
+  - name: "Dark red"
+    value: 0x8b0000
+  - name: "Dark red (Kurobeni)"
+    value: 0x23191e
+  - name: "Dark salmon"
+    value: 0xe9967a
+  - name: "Dark scarlet"
+    value: 0x560319
+  - name: "Dark sea green"
+    value: 0x8fbc8f
+  - name: "Dark sienna"
+    value: 0x3c1414
+  - name: "Dark silver"
+    value: 0x71706e
+  - name: "Dark sky blue"
+    value: 0x8cbed6
+  - name: "Dark slate blue"
+    value: 0x483d8b
+  - name: "Dark slate gray"
+    value: 0x2f4f4f
+  - name: "Dark spring green"
+    value: 0x177245
+  - name: "Dark tan"
+    value: 0x918151
+  - name: "Dark tangerine"
+    value: 0xffa812
+  - name: "Dark terra cotta"
+    value: 0xcc4e5c
+  - name: "Dark turquoise"
+    value: 0x00ced1
+  - name: "Dark vanilla"
+    value: 0xd1bea8
+  - name: "Dark violet"
+    value: 0x9400d3
+  - name: "Dark yellow"
+    value: 0x9b870c
+  - name: "Dartmouth green"
+    value: 0x00703c
+  - name: "Davy's grey"
+    value: 0x555555
+  - name: "Dawn-color (Akebono-iro)"
+    value: 0xfa7b62
+  - name: "Daylily-colored (Kanzō-iro)"
+    value: 0xff8936
+  - name: "Debian red"
+    value: 0xd70a53
+  - name: "Decaying leaves color (Kuchiba-iro)"
+    value: 0xd57835
+  - name: "Deep amethyst"
+    value: 0x9c8aa4
+  - name: "Deep aquamarine"
+    value: 0x40826d
+  - name: "Deep carmine"
+    value: 0xa9203e
+  - name: "Deep carmine pink"
+    value: 0xef3038
+  - name: "Deep carrot orange"
+    value: 0xe9692c
+  - name: "Deep cerise"
+    value: 0xda3287
+  - name: "Deep champagne"
+    value: 0xfad6a5
+  - name: "Deep chestnut"
+    value: 0xb94e48
+  - name: "Deep coffee"
+    value: 0x704241
+  - name: "Deep dumpling"
+    value: 0x9b351b
+  - name: "Deep fuchsia"
+    value: 0xc154c1
+  - name: "Deep green"
+    value: 0x056608
+  - name: "Deep green-cyan turquoise"
+    value: 0x0e7c61
+  - name: "Deep jungle green"
+    value: 0x004b49
+  - name: "Deep koamaru"
+    value: 0x333366
+  - name: "Deep lemon"
+    value: 0xf5c71a
+  - name: "Deep lilac"
+    value: 0x9955bb
+  - name: "Deep magenta"
+    value: 0xcc00cc
+  - name: "Deep maroon"
+    value: 0x820000
+  - name: "Deep mauve"
+    value: 0xd473d4
+  - name: "Deep moss green"
+    value: 0x355e3b
+  - name: "Deep peach"
+    value: 0xffcba4
+  - name: "Deep pink"
+    value: 0xff1493
+  - name: "Deep puce"
+    value: 0xa95c68
+  - name: "Deep purple (Kokimurasaki)"
+    value: 0x3a243b
+  - name: "Deep red"
+    value: 0x850101
+  - name: "Deep ruby"
+    value: 0x843f5b
+  - name: "Deep saffron"
+    value: 0xff9933
+  - name: "Deep scarlet (Kokiake)"
+    value: 0x7b3b3a
+  - name: "Deep Space Sparkle"
+    value: 0x4a646c
+  - name: "Deep taupe"
+    value: 0x7e5e60
+  - name: "Deep Tuscan red"
+    value: 0x66424d
+  - name: "Deep violet"
+    value: 0x330066
+  - name: "Deer"
+    value: 0xba8759
+  - name: "Delicate girl blue"
+    value: 0x6ab2ca
+  - name: "Denim"
+    value: 0x1560bd
+  - name: "Denim blue"
+    value: 0x2243b6
+  - name: "Desaturated cyan"
+    value: 0x669999
+  - name: "Desert sand"
+    value: 0xedc9af
+  - name: "Desire"
+    value: 0xea3c53
+  - name: "Diamond"
+    value: 0xb9f2ff
+  - name: "Dim gray"
+    value: 0x696969
+  - name: "Dingy Dungeon"
+    value: 0xc53151
+  - name: "Dirt"
+    value: 0x9b7653
+  - name: "Dirty brown"
+    value: 0xb5651e
+  - name: "Dirty white"
+    value: 0xe8e4c9
+  - name: "Disappearing purple (Metsushi)"
+    value: 0x3f313a
+  - name: "Dodger blue"
+    value: 0x1e90ff
+  - name: "Dodie yellow"
+    value: 0xfef65b
+  - name: "Dogwood rose"
+    value: 0xd71868
+  - name: "Dollar bill"
+    value: 0x85bb65
+  - name: "Dolphin gray"
+    value: 0x828e84
+  - name: "Douban Blue"
+    value: 0x2496cd
+  - name: "Douban Green"
+    value: 0x2e963d
+  - name: "Douban Light Yellow"
+    value: 0xf7c58e
+  - name: "Dove feather grey (Hatobanezumi)"
+    value: 0x755d5b
+  - name: "Duke blue"
+    value: 0x00009c
+  - name: "Dull blue (Aonibi)"
+    value: 0x4f4944
+  - name: "Durian"
+    value: 0xb07939
+  - name: "Durian White"
+    value: 0xe6d0ab
+  - name: "Durian Yellow"
+    value: 0xe1bd27
+  - name: "Dust storm"
+    value: 0xe5ccc9
+  - name: "Dutch white"
+    value: 0xefdfbb
+  - name: "Dyestalk red (lit. the color from dying with the stalk of the beni plant)\
+    \ (Bengara-iro)"
+    value: 0x913225
+  - name: "Earth yellow"
+    value: 0xe1a95f
+  - name: "Earthtone"
+    value: 0x5d3a1a
+  - name: "Ebony"
+    value: 0x555d50
+  - name: "Ecru"
+    value: 0xc2b280
+  - name: "Eerie black"
+    value: 0x1b1b1b
+  - name: "Egg-colored (Tamago-iro)"
+    value: 0xffa631
+  - name: "Eggplant"
+    value: 0x614051
+  - name: "Eggshell"
+    value: 0xf0ead6
+  - name: "Eggshell paper-colored (Torinoko-iro)"
+    value: 0xe2be9f
+  - name: "Egyptian blue"
+    value: 0x1034a6
+  - name: "Elderberry"
+    value: 0x17182b
+  - name: "Electric blue"
+    value: 0x7df9ff
+  - name: "Electric brown"
+    value: 0xb56257
+  - name: "Electric crimson"
+    value: 0xff003f
+  - name: "Electric green"
+    value: 0x00ff00
+  - name: "Electric indigo"
+    value: 0x6f00ff
+  - name: "Electric lime"
+    value: 0xccff00
+  - name: "Electric orange"
+    value: 0xff3503
+  - name: "Electric pink"
+    value: 0xf62681
+  - name: "Electric purple"
+    value: 0xbf00ff
+  - name: "Electric red"
+    value: 0xe60000
+  - name: "Electric ultramarine"
+    value: 0x3f00ff
+  - name: "Electric violet"
+    value: 0x8f00ff
+  - name: "Electric yellow"
+    value: 0xffff33
+  - name: "Emerald"
+    value: 0x50c878
+  - name: "Emerald green"
+    value: 0x046307
+  - name: "Eminence"
+    value: 0x6c3082
+  - name: "English lavender"
+    value: 0xb48395
+  - name: "English red"
+    value: 0xab4b52
+  - name: "English vermillion"
+    value: 0xcc474b
+  - name: "English violet"
+    value: 0x563c5c
+  - name: "Eton blue"
+    value: 0x96c8a2
+  - name: "Eucalyptus"
+    value: 0x44d7a8
+  - name: "Facebook Blue"
+    value: 0x39569c
+  - name: "Faded Sen no Rikyu's tea (Rikyūshiracha)"
+    value: 0xb0927a
+  - name: "Faded spicy red-brown (Sōdenkaracha)"
+    value: 0x9b533f
+  - name: "Fake purple (Nisemurasaki)"
+    value: 0x43242a
+  - name: "Falu red"
+    value: 0x801818
+  - name: "Fandango"
+    value: 0xb53389
+  - name: "Fandango pink"
+    value: 0xde5285
+  - name: "Fashion fuchsia"
+    value: 0xf400a1
+  - name: "Fawn"
+    value: 0xe5aa70
+  - name: "Feldgrau"
+    value: 0x4d5d53
+  - name: "Feldspar"
+    value: 0xfdd5b1
+  - name: "Fern green"
+    value: 0x4f7942
+  - name: "Ferrari red"
+    value: 0xff2800
+  - name: "Field drab"
+    value: 0x6c541e
+  - name: "Fiery rose"
+    value: 0xff5470
+  - name: "Finch-brown (Cardueline finch) (Hiwacha)"
+    value: 0x957b38
+  - name: "Fire engine red"
+    value: 0xce2029
+  - name: "Fire opal"
+    value: 0xe95c4b
+  - name: "Firebrick"
+    value: 0xb22222
+  - name: "Flame"
+    value: 0xe25822
+  - name: "Flamingo pink"
+    value: 0xfc8eac
+  - name: "Flavescent"
+    value: 0xf7e98e
+  - name: "Flax"
+    value: 0xeedc82
+  - name: "Flesh"
+    value: 0xffe9d1
+  - name: "Flickr Blue"
+    value: 0x216bd6
+  - name: "Flickr Pink"
+    value: 0xfb0081
+  - name: "Flirt"
+    value: 0xa2006d
+  - name: "Flirtatious indigo tea (Aikobicha)"
+    value: 0x473f2d
+  - name: "Floral leaf-colored (Hanaba-iro or kayou-iro)"
+    value: 0xffb94e
+  - name: "Floral white"
+    value: 0xfffaf0
+  - name: "Flower girl"
+    value: 0xf498ad
+  - name: "Fluorescent blue"
+    value: 0x15f4ee
+  - name: "Folly"
+    value: 0xff004f
+  - name: "Foreign crimson (Karakurenai)"
+    value: 0xc91f37
+  - name: "Forest Green"
+    value: 0x228b22
+  - name: "Forest green (Crayola)"
+    value: 0x5fa777
+  - name: "Forest green (traditional)"
+    value: 0x014421
+  - name: "Fox-color (Kitsune-iro)"
+    value: 0x985629
+  - name: "French bistre"
+    value: 0x856d4d
+  - name: "French blue"
+    value: 0x0072bb
+  - name: "French fuchsia"
+    value: 0xfd3f92
+  - name: "French lilac"
+    value: 0x86608e
+  - name: "French lime"
+    value: 0x9efd38
+  - name: "French pink"
+    value: 0xfd6c9e
+  - name: "French plum"
+    value: 0x811453
+  - name: "French puce"
+    value: 0x4e1609
+  - name: "French raspberry"
+    value: 0xc72c48
+  - name: "French rose"
+    value: 0xf64a8a
+  - name: "French sky blue"
+    value: 0x77b5fe
+  - name: "French violet"
+    value: 0x8806ce
+  - name: "French wine"
+    value: 0xac1e44
+  - name: "Fresh Air"
+    value: 0xa6e7ff
+  - name: "Fresh onion (Moegi)"
+    value: 0x5b8930
+  - name: "Frostbite"
+    value: 0xe936a7
+  - name: "Fuchsia"
+    value: 0xff00ff
+  - name: "Fuchsia pink"
+    value: 0xff77ff
+  - name: "Fuchsia purple"
+    value: 0xcc397b
+  - name: "Fuchsia rose"
+    value: 0xc74375
+  - name: "Fulvous"
+    value: 0xe48400
+  - name: "Fuzzy Wuzzy"
+    value: 0xcc6666
+  - name: "Gainsboro"
+    value: 0xdcdcdc
+  - name: "Gamboge"
+    value: 0xe49b0f
+  - name: "Gamboge (Tōō)"
+    value: 0xffb61e
+  - name: "Gamboge orange (brown)"
+    value: 0x996600
+  - name: "Gargoyle Gas"
+    value: 0xffdf46
+  - name: "Garnet"
+    value: 0x733635
+  - name: "Generic viridian"
+    value: 0x007f66
+  - name: "Ghost white"
+    value: 0xf8f8ff
+  - name: "Giant's Club"
+    value: 0xb05c52
+  - name: "Giants orange"
+    value: 0xfe5a1d
+  - name: "Gin"
+    value: 0xd8e4bc
+  - name: "Glaucous"
+    value: 0x6082b6
+  - name: "Glazed persimmon (Terigaki)"
+    value: 0xd34e36
+  - name: "Glossy grape"
+    value: 0xab92b3
+  - name: "GO green"
+    value: 0x00ab66
+  - name: "Gold"
+    value: 0xa57c00
+  - name: "Gold (Crayola)"
+    value: 0xe6be8a
+  - name: "Gold (metallic)"
+    value: 0xd4af37
+  - name: "Gold foil"
+    value: 0xbd9b16
+  - name: "Gold Fusion"
+    value: 0x85754e
+  - name: "Gold-brown (Yamabukicha)"
+    value: 0xcb7e1f
+  - name: "Golden"
+    value: 0xffd700
+  - name: "Golden brown"
+    value: 0x996515
+  - name: "Golden brown (Kincha)"
+    value: 0xc66b27
+  - name: "Golden fallen leaves (Kikuchiba)"
+    value: 0xe29c45
+  - name: "Golden oak (Kitsurubami)"
+    value: 0xbb8141
+  - name: "Golden poppy"
+    value: 0xfcc200
+  - name: "Golden yellow"
+    value: 0xffdf00
+  - name: "Golden yellow (and a particular rose varietal) (Yamabuki-iro)"
+    value: 0xffa400
+  - name: "Golden-grey bamboo (dried and weathered) (Kinsusutake)"
+    value: 0x7d4e2d
+  - name: "Goldenrod"
+    value: 0xdaa520
+  - name: "Google Chrome blue"
+    value: 0x4c8bf5
+  - name: "Google Chrome green"
+    value: 0x1aa260
+  - name: "Google Chrome red"
+    value: 0xde5246
+  - name: "Google Chrome yellow"
+    value: 0xffce44
+  - name: "Goryeo storeroom (Kōrainando)"
+    value: 0x203838
+  - name: "Granite gray"
+    value: 0x676767
+  - name: "Granny Smith apple"
+    value: 0xa8e4a0
+  - name: "Grape"
+    value: 0x6f2da8
+  - name: "Grape mouse (Budōnezumi)"
+    value: 0x63424b
+  - name: "Gray (X11 gray)"
+    value: 0xbebebe
+  - name: "Gray-asparagus"
+    value: 0x465945
+  - name: "Green"
+    #value: 0x008001
+    value: 0x008000
+  - name: "Green (Crayola)"
+    value: 0x1cac78
+  - name: "Green (Midori)"
+    value: 0x2a603b
+  - name: "Green (Munsell)"
+    value: 0x00a877
+  - name: "Green (NCS)"
+    value: 0x009f6b
+  - name: "Green (Pantone)"
+    value: 0x00ad43
+  - name: "Green (pigment)"
+    value: 0x00a550
+  - name: "Green (RYB)"
+    value: 0x66b032
+  - name: "Green bamboo color (Aotake-iro)"
+    value: 0x006442
+  - name: "Green Cola"
+    value: 0x4c721d
+  - name: "Green Lizard"
+    value: 0xa7f432
+  - name: "Green Sheen"
+    value: 0x6eaea1
+  - name: "Green slime"
+    value: 0x65ff00
+  - name: "Green tea-colored (Sencha-iro)"
+    value: 0x824b35
+  - name: "Green-blue"
+    value: 0x1164b4
+  - name: "Green-blue (Crayola)"
+    value: 0x2887c8
+  - name: "Green-cyan"
+    value: 0x009966
+  - name: "Green-yellow"
+    value: 0xadff2f
+  - name: "Green-yellow (Crayola)"
+    value: 0xf0e891
+  - name: "Greenfinch color (Hiwa-iro)"
+    value: 0xbda928
+  - name: "Greyed red (lit. silvered red) (Ginshu)"
+    value: 0xbc2d29
+  - name: "Greyish dark green (Rikyūnezumi)"
+    value: 0x656255
+  - name: "Grullo"
+    value: 0xa99a86
+  - name: "Gunmetal"
+    value: 0x2a3439
+  - name: "Guppie green"
+    value: 0x00ff7f
+  - name: "Guyabano"
+    value: 0xf8f8f8
+  - name: "Halayà úbe"
+    value: 0x663854
+  - name: "Half color (Hashita-iro)"
+    value: 0x8d608c
+  - name: "Halloween orange"
+    value: 0xeb6123
+  - name: "Han blue"
+    value: 0x446ccf
+  - name: "Han purple"
+    value: 0x5218fa
+  - name: "Harbor rat (Minatonezumi)"
+    value: 0x757d75
+  - name: "Harlequin"
+    value: 0x3fff00
+  - name: "Harlequin green"
+    value: 0x46cb18
+  - name: "Harmonious rose"
+    value: 0xf29cb7
+  - name: "Harvest gold"
+    value: 0xda9100
+  - name: "Hawaii blue"
+    value: 0x00c3e3
+  - name: "Heart gold"
+    value: 0x808000
+  - name: "Heat Wave"
+    value: 0xff7a00
+  - name: "Heliotrope"
+    value: 0xdf73ff
+  - name: "Heliotrope gray"
+    value: 0xaa98a9
+  - name: "Heliotrope magenta"
+    value: 0xaa00bb
+  - name: "Honeydew"
+    value: 0xf0fff0
+  - name: "Honolulu blue"
+    value: 0x006db0
+  - name: "Hooker's green"
+    value: 0x49796b
+  - name: "Horsetail color (Tokusa-iro)"
+    value: 0x3d5d42
+  - name: "Hot magenta"
+    value: 0xff1dce
+  - name: "Hot pink"
+    value: 0xff69b4
+  - name: "Huawei Red"
+    value: 0xcf0a2c
+  - name: "Huawei Red (1987-2018)"
+    value: 0xed1c24
+  - name: "Ibis wing color (Tokiha-iro)"
+    value: 0xf58f84
+  - name: "Iceberg"
+    value: 0x71a6d2
+  - name: "Iced tea"
+    value: 0x923c01
+  - name: "Icterine"
+    value: 0xfcf75e
+  - name: "Iguana green"
+    value: 0x71bc78
+  - name: "Illuminating emerald"
+    value: 0x319177
+  - name: "Imperial"
+    value: 0x602f6b
+  - name: "Imperial blue"
+    value: 0x002395
+  - name: "Imperial purple"
+    value: 0x66023c
+  - name: "Imperial red"
+    value: 0xed2939
+  - name: "Inchworm"
+    value: 0xb2ec5d
+  - name: "Independence"
+    value: 0x4c516d
+  - name: "India green"
+    value: 0x138808
+  - name: "Indian red"
+    value: 0xcd5c5c
+  - name: "Indian yellow"
+    value: 0xe3a857
+  - name: "Indigo"
+    value: 0x4b0082
+  - name: "Indigo (rainbow)"
+    value: 0x233067
+  - name: "Indigo Codium fragile seaweed brown (Aimirucha)"
+    value: 0x2e372e
+  - name: "Indigo dye"
+    value: 0x091f92
+  - name: "Indigo ink brown (Aisumicha)"
+    value: 0x393432
+  - name: "Indigo white (Aijiro)"
+    value: 0xebf6f7
+  - name: "Infra red"
+    value: 0xff496c
+  - name: "Ink color (Sumi-iro)"
+    value: 0x27221f
+  - name: "Insect screen (Mushiao)"
+    value: 0x2d4436
+  - name: "Inside of a bottle (Kamenozoki)"
+    value: 0xc6c2b6
+  - name: "Interdimensional blue"
+    value: 0x360ccc
+  - name: "International orange (aerospace)"
+    value: 0xff4f00
+  - name: "International orange (engineering)"
+    value: 0xba160c
+  - name: "International orange (Golden Gate Bridge)"
+    value: 0xc0362c
+  - name: "Iris"
+    value: 0x5a4fcf
+  - name: "Iris color (Ayame-iro)"
+    value: 0x763568
+  - name: "Iron"
+    value: 0xa19d94
+  - name: "Iron color (Tetsu-iro)"
+    value: 0x2b3733
+  - name: "Iron head flower color (Noshimehana-iro)"
+    value: 0x344d56
+  - name: "Iron storage (Tetsuonando)"
+    value: 0x2b3736
+  - name: "Irresistible"
+    value: 0xb3446c
+  - name: "Isabelline"
+    value: 0xf4f0ec
+  - name: "Islamic green"
+    value: 0x009000
+  - name: "Italian ice"
+    value: 0xe9f6ef
+  - name: "Italian leather"
+    value: 0x635a52
+  - name: "Italian roast"
+    value: 0x906652
+  - name: "Ivory"
+    value: 0xfffff0
+  - name: "Iwai brown (Iwaicha)"
+    value: 0x5e5545
+  - name: "Jacarta"
+    value: 0x3d325d
+  - name: "Jacko bean"
+    value: 0x413628
+  - name: "Jade"
+    value: 0x00a86b
+  - name: "Japanese carmine"
+    value: 0x9d2933
+  - name: "Japanese indigo"
+    value: 0x264348
+  - name: "Japanese iris and sooty bamboo (Higosusutake)"
+    value: 0x7f5d3b
+  - name: "Japanese laurel"
+    value: 0x2f7532
+  - name: "Japanese triandra grass (Themeda japonica) (Kariyasu)"
+    value: 0xe2b13c
+  - name: "Japanese violet"
+    value: 0x5b3256
+  - name: "Jasmine"
+    value: 0xf8de7e
+  - name: "Jasper"
+    value: 0xd73b3e
+  - name: "Jasper orange"
+    value: 0xde8f4e
+  - name: "Jazzberry jam"
+    value: 0xa50b5e
+  - name: "Jelly bean"
+    value: 0xda614e
+  - name: "Jelly bean blue"
+    value: 0x44798e
+  - name: "Jet"
+    value: 0x343434
+  - name: "Jet stream"
+    value: 0xbbd0c9
+  - name: "Jonquil"
+    value: 0xf4ca16
+  - name: "Jordy blue"
+    value: 0x8ab9f1
+  - name: "June bud"
+    value: 0xbdda57
+  - name: "Jungle green"
+    value: 0x29ab87
+  - name: "Kelly green"
+    value: 0x4cbb17
+  - name: "Kenyan copper"
+    value: 0x7c1c05
+  - name: "Keppel"
+    value: 0x3ab09e
+  - name: "Key lime"
+    value: 0xe8f48c
+  - name: "Kimono storage (Omeshionando)"
+    value: 0x3d4c51
+  - name: "Kiwi"
+    value: 0x8ee53f
+  - name: "Kobe"
+    value: 0x882d17
+  - name: "Kobi"
+    value: 0xe79fc4
+  - name: "Kombu green"
+    value: 0x354230
+  - name: "KSU purple"
+    value: 0x512888
+  - name: "KU crimson"
+    value: 0xe8000d
+  - name: "Kumquat"
+    value: 0xfb9912
+  - name: "Languid lavender"
+    value: 0xd6cadd
+  - name: "Lanzones"
+    value: 0xe0bc5b
+  - name: "Lapis lazuli"
+    value: 0x26619c
+  - name: "Lapis lazuli color (Ruri-iro)"
+    value: 0x1f4788
+  - name: "Laser lemon"
+    value: 0xffff66
+  - name: "Laurel green"
+    value: 0xa9ba9d
+  - name: "Lava"
+    value: 0xcf1020
+  - name: "Lavender (floral)"
+    value: 0xb57edc
+  - name: "Lavender blue"
+    value: 0xccccff
+  - name: "Lavender blush"
+    value: 0xfff0f5
+  - name: "Lavender gray"
+    value: 0xc4c3d0
+  - name: "Lavender indigo"
+    value: 0x9457eb
+  - name: "Lavender magenta"
+    value: 0xee82ee
+  - name: "Lavender mist"
+    value: 0xe6e6fa
+  - name: "Lavender pink"
+    value: 0xfbaed2
+  - name: "Lavender purple"
+    value: 0x967bb6
+  - name: "Lavender rose"
+    value: 0xfba0e3
+  - name: "Lawn green"
+    value: 0x7cfc00
+  - name: "Legal dye (from when color use was regulated by class) (Kenpōzome)"
+    value: 0x2e211b
+  - name: "Lemon"
+    value: 0xfff700
+  - name: "Lemon chiffon"
+    value: 0xfffacd
+  - name: "Lemon curry"
+    value: 0xcca01d
+  - name: "Lemon glacier"
+    value: 0xfdff00
+  - name: "Lemon iced tea"
+    value: 0xbd3000
+  - name: "Lemon lime"
+    value: 0xe3ff00
+  - name: "Lemon lime"
+    value: 0x5cff67
+  - name: "Lemon meringue"
+    value: 0xf6eabe
+  - name: "Lemon yellow"
+    value: 0xfff44f
+  - name: "Lemon yellow (Crayola)"
+    value: 0xffff9f
+  - name: "Lenurple"
+    value: 0xba93d8
+  - name: "Liberty"
+    value: 0x545aa7
+  - name: "Licorice"
+    value: 0x1a1110
+  - name: "Light blue"
+    value: 0xadd8e6
+  - name: "Light blue color (Asagi-iro)"
+    value: 0x48929b
+  - name: "Light blue flower (Hanaasagi)"
+    value: 0x1d697c
+  - name: "Light blue silk (Hanada)"
+    value: 0x044f67
+  - name: "Light brown"
+    value: 0xb5651d
+  - name: "Light carmine pink"
+    value: 0xe66771
+  - name: "Light chocolate cosmos"
+    value: 0x551f2f
+  - name: "Light cobalt blue"
+    value: 0x88ace0
+  - name: "Light coral"
+    value: 0xf08080
+  - name: "Light crimson"
+    value: 0xf56991
+  - name: "Light cyan"
+    value: 0xe0ffff
+  - name: "Light deep pink"
+    value: 0xff5ccd
+  - name: "Light French beige"
+    value: 0xc8ad7f
+  - name: "Light fuchsia pink"
+    value: 0xf984ef
+  - name: "Light gold"
+    value: 0xb29700
+  - name: "Light goldenrod yellow"
+    value: 0xfafad2
+  - name: "Light gray"
+    value: 0xd3d3d3
+  - name: "Light grayish magenta"
+    value: 0xcc99cc
+  - name: "Light green"
+    value: 0x90ee90
+  - name: "Light hot pink"
+    value: 0xffb3de
+  - name: "Light khaki"
+    value: 0xf0e68c
+  - name: "Light magenta"
+    value: 0xff80ff
+  - name: "Light medium orchid"
+    value: 0xd39bcb
+  - name: "Light moss green"
+    value: 0xaddfad
+  - name: "Light orange"
+    value: 0xfed8b1
+  - name: "Light orchid"
+    value: 0xe6a8d7
+  - name: "Light pastel purple"
+    value: 0xb19cd9
+  - name: "Light periwinkle"
+    value: 0xc5cbe1
+  - name: "Light pink"
+    value: 0xffb6c1
+  - name: "Light red"
+    value: 0xffcccb
+  - name: "Light salmon"
+    value: 0xffa07a
+  - name: "Light salmon pink"
+    value: 0xff9999
+  - name: "Light sea green"
+    value: 0x20b2aa
+  - name: "Light silver"
+    value: 0xd8d8d8
+  - name: "Light sky blue"
+    value: 0x87cefa
+  - name: "Light slate gray"
+    value: 0x778899
+  - name: "Light steel blue"
+    value: 0xb0c4de
+  - name: "Light taupe"
+    value: 0xb38b6d
+  - name: "Light yellow"
+    value: 0xffffe0
+  - name: "Light yellow (Asagi)"
+    value: 0xf7bb7d
+  - name: "Lilac"
+    value: 0xc8a2c8
+  - name: "Lilac Luster"
+    value: 0xae98aa
+  - name: "Lime green"
+    value: 0x32cd32
+  - name: "Lime pulp"
+    value: 0xd1e189
+  - name: "Limerick"
+    value: 0x9dc209
+  - name: "Lincoln green"
+    value: 0x195905
+  - name: "Linen"
+    value: 0xfaf0e6
+  - name: "Linkedin Blue"
+    value: 0x0072b1
+  - name: "Little boy blue"
+    value: 0x6ca0dc
+  - name: "Little girl pink"
+    value: 0xf8b9d4
+  - name: "Liver"
+    value: 0x674c47
+  - name: "Liver (dogs)"
+    value: 0xb86d29
+  - name: "Liver (organ)"
+    value: 0x6c2e1f
+  - name: "Liver chestnut"
+    value: 0x987456
+  - name: "Long spring (season) color (Chōshun-iro)"
+    value: 0xb95754
+  - name: "Loquat (tree) brown (Biwacha)"
+    value: 0xab6134
+  - name: "Lotion"
+    value: 0xfefdfa
+  - name: "Lotion blue"
+    value: 0x15f2fd
+  - name: "Lotion pink"
+    value: 0xeccfcf
+  - name: "Lumber"
+    value: 0xffe4cd
+  - name: "Lust"
+    value: 0xe62020
+  - name: "Lychee"
+    value: 0xdc5349
+  - name: "Lye-colored (Aku-iro)"
+    value: 0x7f6b5d
+  - name: "Macaroni and Cheese"
+    value: 0xffbd88
+  - name: "Madder Lake"
+    value: 0xcc3336
+  - name: "Magenta (dye)"
+    value: 0xca1f7b
+  - name: "Magenta (Pantone)"
+    value: 0xd0417e
+  - name: "Magenta (process)"
+    value: 0xff0090
+  - name: "Magenta haze"
+    value: 0x9f4576
+  - name: "Magenta-pink"
+    value: 0xcc338b
+  - name: "Magic mint"
+    value: 0xaaf0d1
+  - name: "Magic Potion"
+    value: 0xff4466
+  - name: "Magnolia"
+    value: 0xf8f4ff
+  - name: "Mahogany"
+    value: 0xc04000
+  - name: "Maize (Crayola)"
+    value: 0xf2c649
+  - name: "Majorelle blue"
+    value: 0x6050dc
+  - name: "Malachite"
+    value: 0x0bda51
+  - name: "Manatee"
+    value: 0x979aaa
+  - name: "Mandarin"
+    value: 0xf37a48
+  - name: "Mango"
+    value: 0xfdbe02
+  - name: "Mango green"
+    value: 0x96ff00
+  - name: "Mango Tango"
+    value: 0xff8243
+  - name: "Manila"
+    value: 0xe7c9a9
+  - name: "Mantis"
+    value: 0x74c365
+  - name: "Maple syrup"
+    value: 0xbb9351
+  - name: "Mardi Gras"
+    value: 0x880085
+  - name: "Margarine"
+    value: 0xf2d930
+  - name: "Margarita"
+    value: 0xb0c24a
+  - name: "Marigold"
+    value: 0xeaa221
+  - name: "Maroon (Shrimp brown) (Ebicha)"
+    value: 0x5e2824
+  - name: "Maroon (X11)"
+    value: 0xb03060
+  - name: "Mauve"
+    value: 0xe0b0ff
+  - name: "Mauve taupe"
+    value: 0x915f6d
+  - name: "Mauvelous"
+    value: 0xef98aa
+  - name: "Maximum blue"
+    value: 0x47abcc
+  - name: "Maximum blue green"
+    value: 0x30bfbf
+  - name: "Maximum blue purple"
+    value: 0xacace6
+  - name: "Maximum green"
+    value: 0x5e8c31
+  - name: "Maximum green yellow"
+    value: 0xd9e650
+  - name: "Maximum orange"
+    value: 0xff5b00
+  - name: "Maximum purple"
+    value: 0x733380
+  - name: "Maximum red"
+    value: 0xd92121
+  - name: "Maximum red purple"
+    value: 0xa63a79
+  - name: "Maximum yellow"
+    value: 0xfafa37
+  - name: "Maximum yellow red"
+    value: 0xf2ba49
+  - name: "May green"
+    value: 0x4c9141
+  - name: "Maya blue"
+    value: 0x73c2fb
+  - name: "Meat brown"
+    value: 0xe5b73b
+  - name: "Meat-color (Shishi-iro)"
+    value: 0xf9906f
+  - name: "Medium aquamarine"
+    value: 0x66ddaa
+  - name: "Medium blue"
+    value: 0x0000cd
+  - name: "Medium candy apple red"
+    value: 0xe2062c
+  - name: "Medium carmine"
+    value: 0xaf4035
+  - name: "Medium champagne"
+    value: 0xf3e5ab
+  - name: "Medium crimson (dye) (Nakabeni)"
+    value: 0xc93756
+  - name: "Medium electric blue"
+    value: 0x035096
+  - name: "Medium jungle green"
+    value: 0x1c352d
+  - name: "Medium lavender magenta"
+    value: 0xdda0dd
+  - name: "Medium orchid"
+    value: 0xba55d3
+  - name: "Medium Persian blue"
+    value: 0x0067a5
+  - name: "Medium purple"
+    value: 0x9370db
+  - name: "Medium red-violet"
+    value: 0xbb3385
+  - name: "Medium ruby"
+    value: 0xaa4069
+  - name: "Medium sea green"
+    value: 0x3cb371
+  - name: "Medium sky blue"
+    value: 0x80daeb
+  - name: "Medium slate blue"
+    value: 0x7b68ee
+  - name: "Medium spring bud"
+    value: 0xc9dc87
+  - name: "Medium spring green"
+    value: 0x00fa9a
+  - name: "Medium turquoise"
+    value: 0x48d1cc
+  - name: "Medium vermilion"
+    value: 0xd9603b
+  - name: "Medium violet-red"
+    value: 0xc71585
+  - name: "Melancholy"
+    value: 0xfdbcb4
+  - name: "Mellow apricot"
+    value: 0xf8b878
+  - name: "Melon"
+    value: 0xfebaad
+  - name: "Menthol"
+    value: 0xc1f9a2
+  - name: "Metallic blue"
+    value: 0x32527b
+  - name: "Metallic bronze"
+    value: 0xa97142
+  - name: "Metallic brown"
+    value: 0xac4313
+  - name: "Metallic green"
+    value: 0x296e01
+  - name: "Metallic orange"
+    value: 0xda680f
+  - name: "Metallic pink"
+    value: 0xeda6c4
+  - name: "Metallic red"
+    value: 0xa62c2b
+  - name: "Metallic Seaweed"
+    value: 0x0a7e8c
+  - name: "Metallic Sunburst"
+    value: 0x9c7c38
+  - name: "Metallic violet"
+    value: 0x5b0a91
+  - name: "Metallic yellow"
+    value: 0xfdcc0d
+  - name: "Mexican pink"
+    value: 0xe4007c
+  - name: "Microsoft blue"
+    value: 0x00a2ed
+  - name: "Microsoft Edge blue"
+    value: 0x0078d7
+  - name: "Microsoft green"
+    value: 0x7db700
+  - name: "Microsoft red"
+    value: 0xf04e1f
+  - name: "Microsoft yellow"
+    value: 0xfdb900
+  - name: "Middle blue"
+    value: 0x7ed4e6
+  - name: "Middle blue green"
+    value: 0x8dd9cc
+  - name: "Middle blue purple"
+    value: 0x8b72be
+  - name: "Middle green"
+    value: 0x4d8c57
+  - name: "Middle green yellow"
+    value: 0xacbf60
+  - name: "Middle grey"
+    value: 0x8b8680
+  - name: "Middle purple"
+    value: 0xd982b5
+  - name: "Middle red"
+    value: 0xe58e73
+  - name: "Middle red purple"
+    value: 0xa55353
+  - name: "Middle yellow"
+    value: 0xffeb00
+  - name: "Middle yellow red"
+    value: 0xecb176
+  - name: "Midnight"
+    value: 0x702670
+  - name: "Midnight blue"
+    value: 0x191970
+  - name: "Midnight blue"
+    value: 0x00468c
+  - name: "Midnight green (eagle green)"
+    value: 0x004953
+  - name: "Mikado yellow"
+    value: 0xffc40c
+  - name: "Milk"
+    value: 0xfdfff5
+  - name: "Milk chocolate"
+    value: 0x84563c
+  - name: "Mimi pink"
+    value: 0xffdae9
+  - name: "Mindaro"
+    value: 0xe3f988
+  - name: "Ming"
+    value: 0x36747d
+  - name: "Minion yellow"
+    value: 0xf5e050
+  - name: "Mint"
+    value: 0x3eb489
+  - name: "Mint cream"
+    value: 0xf5fffa
+  - name: "Mint green"
+    value: 0x98ff98
+  - name: "Misty moss"
+    value: 0xbbb477
+  - name: "Misty rose"
+    value: 0xffe4e1
+  - name: "Mocha"
+    value: 0xbea493
+  - name: "Moonstone"
+    value: 0x3aa8c1
+  - name: "Moonstone blue"
+    value: 0x73a9c2
+  - name: "Mordant red 19"
+    value: 0xae0c00
+  - name: "Morning blue"
+    value: 0x8da399
+  - name: "Moss color (Koke-iro)"
+    value: 0x8b7d3a
+  - name: "Moss green"
+    value: 0x8a9a5b
+  - name: "Mountain Meadow"
+    value: 0x30ba8f
+  - name: "Mountbatten pink"
+    value: 0x997a8d
+  - name: "Mousy indigo (Ainezumi)"
+    value: 0x5c544e
+  - name: "Mousy wisteria (Fujinezumi)"
+    value: 0x766980
+  - name: "MSU green"
+    value: 0x18453b
+  - name: "Mud"
+    value: 0x70543e
+  - name: "Muddy brown (lit. the brown of a distant river) (Enshūcha)"
+    value: 0xcb6649
+  - name: "Mughal green"
+    value: 0x306030
+  - name: "Mulberry"
+    value: 0xc54b8c
+  - name: "Mulberry (Crayola)"
+    value: 0xc8509b
+  - name: "Mulberry dye (Kuwazome)"
+    value: 0x59292c
+  - name: "Mulberry-dyed (Kuwazome)"
+    value: 0xc57f2e
+  - name: "Mustard"
+    value: 0xffdb58
+  - name: "Mustard brown"
+    value: 0xcd7a00
+  - name: "Mustard green"
+    value: 0x6e6e30
+  - name: "Mustard yellow"
+    value: 0xe1ad01
+  - name: "Myrtle green"
+    value: 0x317873
+  - name: "Mystic"
+    value: 0xd65282
+  - name: "Mystic maroon"
+    value: 0xad4379
+  - name: "Mystic red"
+    value: 0xff5500
+  - name: "Nadeshiko pink"
+    value: 0xf6adc6
+  - name: "Napier green"
+    value: 0x2a8000
+  - name: "Naples yellow"
+    value: 0xfada5e
+  - name: "Navajo white"
+    value: 0xffdead
+  - name: "Navy blue"
+    value: 0x000080
+  - name: "Navy blue bellflower (Konkikyō)"
+    value: 0x191f45
+  - name: "Neon blue"
+    value: 0x1b03a3
+  - name: "Neon Carrot"
+    value: 0xffa343
+  - name: "Neon Fuchsia"
+    value: 0xfe4164
+  - name: "Neon green"
+    value: 0x39ff14
+  - name: "New Car"
+    value: 0x214fc6
+  - name: "New York pink"
+    value: 0xd7837f
+  - name: "Nickel"
+    value: 0x727472
+  - name: "Nightingale-brown (greenish brown) (Uguisucha)"
+    value: 0x5c4827
+  - name: "Nintendo red"
+    value: 0xe4000f
+  - name: "Non-photo blue"
+    value: 0xa4dded
+  - name: "North Texas Green"
+    value: 0x059033
+  - name: "Nyanza"
+    value: 0xe9ffdb
+  - name: "Ocean Blue"
+    value: 0x4f42b5
+  - name: "Ocean boat blue"
+    value: 0x0077be
+  - name: "Ocean green"
+    value: 0x48bf91
+  - name: "Ochre"
+    value: 0xcc7722
+  - name: "Ochre (earthen yellow-red-brown) (Ōtan)"
+    value: 0xff4e20
+  - name: "Ochre (lit. earthen yellow) (Ōdo-iro)"
+    value: 0xbe7f51
+  - name: "Ogre Odor"
+    value: 0xfd5240
+  - name: "Old bamboo color (Oitake-iro)"
+    value: 0x5e644f
+  - name: "Old burgundy"
+    value: 0x43302e
+  - name: "Old gold"
+    value: 0xcfb53b
+  - name: "Old lace"
+    value: 0xfdf5e6
+  - name: "Old lavender"
+    value: 0x796878
+  - name: "Old mauve"
+    value: 0x673147
+  - name: "Old moss green"
+    value: 0x867e36
+  - name: "Old rose"
+    value: 0xc08081
+  - name: "Olive Drab \t#3"
+    value: 0x6b8e23
+  - name: "Olive Drab \t#7"
+    value: 0x3c341f
+  - name: "Olive green"
+    value: 0xb5b35c
+  - name: "Olivine"
+    value: 0x9ab973
+  - name: "Onando color (Onando-iro)"
+    value: 0x364141
+  - name: "One kin (0.6 kg) dye (Ikkonzome)"
+    value: 0xf08f90
+  - name: "Onyx"
+    value: 0x353839
+  - name: "Opal"
+    value: 0xa8c3bc
+  - name: "Opera mauve"
+    value: 0xb784a7
+  - name: "Opera Red"
+    value: 0xff1b2d
+  - name: "Opposite flower color (Masuhana-iro)"
+    value: 0x4d646c
+  - name: "Orange"
+    value: 0xff6600
+  - name: "Orange (color wheel)"
+    value: 0xff7f00
+  - name: "Orange (Crayola)"
+    value: 0xff7538
+  - name: "Orange (Pantone)"
+    value: 0xff5800
+  - name: "Orange (RYB)"
+    value: 0xfb9902
+  - name: "Orange peel"
+    value: 0xff9f00
+  - name: "Orange soda"
+    value: 0xfa5b3d
+  - name: "Orange soda"
+    value: 0xeb593d
+  - name: "Orange-red"
+    value: 0xff681f
+  - name: "Orange-red (Crayola)"
+    value: 0xff5349
+  - name: "Orange-yellow"
+    value: 0xf5bd1f
+  - name: "Orange-yellow (Crayola)"
+    value: 0xf8d568
+  - name: "Orchid"
+    value: 0xda70d6
+  - name: "Orchid (Crayola)"
+    value: 0xe29cd2
+  - name: "Orchid pink"
+    value: 0xf2bdcd
+  - name: "Orioles orange"
+    value: 0xfb4f14
+  - name: "OU Crimson red"
+    value: 0x841617
+  - name: "Outer space"
+    value: 0x414a4c
+  - name: "Outer space (Crayola)"
+    value: 0x2d383a
+  - name: "Outrageous Orange"
+    value: 0xff6e4a
+  - name: "Overdyed/refreshed red-brown (Sohi)"
+    value: 0xe35c38
+  - name: "Oxford blue"
+    value: 0x002147
+  - name: "Oxley"
+    value: 0x6d9a79
+  - name: "Pacific blue"
+    value: 0x1ca9c9
+  - name: "Painite"
+    value: 0x6b4947
+  - name: "Pakistan green"
+    value: 0x006600
+  - name: "Palatinate blue"
+    value: 0x273be2
+  - name: "Palatinate purple"
+    value: 0x682860
+  - name: "Pale blue (Usuao)"
+    value: 0x8c9c76
+  - name: "Pale Blue / Pale Turquoise"
+    value: 0xafeeee
+  - name: "Pale Brown"
+    value: 0x987654
+  - name: "Pale cerulean"
+    value: 0x9bc4e2
+  - name: "Pale Chestnut"
+    value: 0xddadaf
+  - name: "Pale Cornflower Blue"
+    value: 0xabcdef
+  - name: "Pale Cyan"
+    value: 0x87d3f8
+  - name: "Pale fallen leaves (Aokuchiba)"
+    value: 0xaa8736
+  - name: "Pale goldenrod"
+    value: 0xeee8aa
+  - name: "Pale Green"
+    value: 0x98fb98
+  - name: "Pale green onion (Mizuasagi)"
+    value: 0x749f8d
+  - name: "Pale incense (Usukō)"
+    value: 0xffa565
+  - name: "Pale lavender"
+    value: 0xdcd0ff
+  - name: "Pale Magenta"
+    value: 0xf984e5
+  - name: "Pale Magenta-Pink"
+    value: 0xff99cc
+  - name: "Pale oak (Aoshirotsurubami)"
+    value: 0xbba46d
+  - name: "Pale persimmon (Usugaki)"
+    value: 0xfca474
+  - name: "Pale pink"
+    value: 0xfadadd
+  - name: "Pale purple (Pantone)"
+    value: 0xfae6fa
+  - name: "Pale red-violet"
+    value: 0xdb7093
+  - name: "Pale robin egg blue"
+    value: 0x96ded1
+  - name: "Pale silver"
+    value: 0xc9c0bb
+  - name: "Pale spring bud"
+    value: 0xecebbd
+  - name: "Pale taupe"
+    value: 0xbc987e
+  - name: "Pale Violet"
+    value: 0xcc99ff
+  - name: "Pale young green onion (Usumoegi)"
+    value: 0x8db255
+  - name: "Palm Leaf"
+    value: 0x6f9940
+  - name: "Panasonic blue"
+    value: 0x0040be
+  - name: "Pansy purple"
+    value: 0x78184a
+  - name: "Paolo Veronese green"
+    value: 0x009b7d
+  - name: "Papaya whip"
+    value: 0xffefd5
+  - name: "Paradise pink"
+    value: 0xe63e62
+  - name: "Parakeet Blue"
+    value: 0x7eb6ff
+  - name: "Parrot Pink"
+    value: 0xd998a0
+  - name: "Pastel blue"
+    value: 0xaec6cf
+  - name: "Pastel brown"
+    value: 0x836953
+  - name: "Pastel gray"
+    value: 0xcfcfc4
+  - name: "Pastel green"
+    value: 0x77dd77
+  - name: "Pastel magenta"
+    value: 0xf49ac2
+  - name: "Pastel orange"
+    value: 0xffb347
+  - name: "Pastel pink"
+    value: 0xdea5a4
+  - name: "Pastel purple"
+    value: 0xb39eb5
+  - name: "Pastel red"
+    value: 0xff6961
+  - name: "Pastel violet"
+    value: 0xcb99c9
+  - name: "Pastel yellow"
+    value: 0xfdfd96
+  - name: "Patina (Rokushō)"
+    value: 0x407a52
+  - name: "Patriarch"
+    value: 0x800080
+  - name: "Patrinia flowers (Patrinia scabiosaefolia) (Ominaeshi)"
+    value: 0xd9b611
+  - name: "Peach"
+    value: 0xffe5b4
+  - name: "Peach Burst"
+    value: 0xf39998
+  - name: "Peach puff"
+    value: 0xffdab9
+  - name: "Peach-colored (Momo-iro)"
+    value: 0xf47983
+  - name: "Peach-orange"
+    value: 0xffcc99
+  - name: "Peach-yellow"
+    value: 0xfadfad
+  - name: "Pear"
+    value: 0xd1e231
+  - name: "Pearl"
+    value: 0xeae0c8
+  - name: "Pearl Aqua"
+    value: 0x88d8c0
+  - name: "Pearly purple"
+    value: 0xb768a2
+  - name: "Penguin White"
+    value: 0xf5f3ef
+  - name: "Peridot"
+    value: 0xe6e200
+  - name: "Periwinkle (Crayola)"
+    value: 0xc3cde6
+  - name: "Permanent Geranium Lake"
+    value: 0xe12c2c
+  - name: "Persian blue"
+    value: 0x1c39bb
+  - name: "Persian green"
+    value: 0x00a693
+  - name: "Persian indigo"
+    value: 0x32127a
+  - name: "Persian orange"
+    value: 0xd99058
+  - name: "Persian pink"
+    value: 0xf77fbe
+  - name: "Persian plum"
+    value: 0x701c1c
+  - name: "Persian red"
+    value: 0xcc3333
+  - name: "Persian rose"
+    value: 0xfe28a2
+  - name: "Persimmon"
+    value: 0xec5800
+  - name: "Persimmon-juice color (Kakishibu-iro)"
+    value: 0x934337
+  - name: "Peru"
+    value: 0xcd853f
+  - name: "Pewter Blue"
+    value: 0x8ba8b7
+  - name: "Philippine blue"
+    value: 0x0038a7
+  - name: "Philippine bronze"
+    value: 0x6e3a07
+  - name: "Philippine brown"
+    value: 0x5d1916
+  - name: "Philippine gold"
+    value: 0xb17304
+  - name: "Philippine gray"
+    value: 0x8c8c8c
+  - name: "Philippine green"
+    value: 0x008543
+  - name: "Philippine orange"
+    value: 0xff7300
+  - name: "Philippine pink"
+    value: 0xfa1a8e
+  - name: "Philippine red"
+    value: 0xce1127
+  - name: "Philippine silver"
+    value: 0xb3b3b3
+  - name: "Philippine violet"
+    value: 0x81007f
+  - name: "Philippine yellow"
+    value: 0xfecb00
+  - name: "Phlox"
+    value: 0xdf00ff
+  - name: "Phthalo blue"
+    value: 0x000f89
+  - name: "Phthalo green"
+    value: 0x123524
+  - name: "Picton blue"
+    value: 0x45b1e8
+  - name: "Pictorial carmine"
+    value: 0xc30b4e
+  - name: "Piggy pink"
+    value: 0xfddde6
+  - name: "Pine green"
+    value: 0x01796f
+  - name: "Pine needle color (Matsuba-iro)"
+    value: 0x454d32
+  - name: "Pine tree"
+    value: 0x2a2f23
+  - name: "Pineapple"
+    value: 0x563c0d
+  - name: "Pink"
+    value: 0xffc0cb
+  - name: "Pink (Pantone)"
+    value: 0xd74894
+  - name: "Pink flamingo"
+    value: 0xfc74fd
+  - name: "Pink lace"
+    value: 0xffddf4
+  - name: "Pink lavender"
+    value: 0xd8b2d1
+  - name: "Pink pearl"
+    value: 0xe7accf
+  - name: "Pink raspberry"
+    value: 0x980036
+  - name: "Pink Sherbet"
+    value: 0xf78fa7
+  - name: "Pistachio"
+    value: 0x93c572
+  - name: "Pixie Powder"
+    value: 0x391285
+  - name: "Plain mouse (Sunezumi)"
+    value: 0x6e5f57
+  - name: "Platinum"
+    value: 0xe5e4e2
+  - name: "Plum"
+    value: 0x8e4585
+  - name: "Plum purple (Umemurasaki)"
+    value: 0x8f4155
+  - name: "Plum-blossom mouse (Umenezumi)"
+    value: 0x97645a
+  - name: "Plum-dyed (Umezome)"
+    value: 0xfa9258
+  - name: "Plump Purple"
+    value: 0x5946b2
+  - name: "Poker Green"
+    value: 0x35654d
+  - name: "Polished brown (Tonocha)"
+    value: 0x985538
+  - name: "Polished Pine"
+    value: 0x5da493
+  - name: "Pomegranate"
+    value: 0x660c21
+  - name: "Pomelo"
+    value: 0x96a53c
+  - name: "Pomelo Olive"
+    value: 0xbfbd70
+  - name: "Pomelo White"
+    value: 0xf9ffe3
+  - name: "Poppy Petal"
+    value: 0xf6a08c
+  - name: "Popstar"
+    value: 0xbe4f62
+  - name: "Porcupine"
+    value: 0x936900
+  - name: "Portland Orange"
+    value: 0xff5a36
+  - name: "Powder blue"
+    value: 0xb0e0e6
+  - name: "Princess Perfume"
+    value: 0xff85cf
+  - name: "Princeton orange"
+    value: 0xf58025
+  - name: "Prussian blue"
+    value: 0x003153
+  - name: "Prussian blue color (Konjō-iro)"
+    value: 0x003171
+  - name: "Puce"
+    value: 0xcc8899
+  - name: "Puce red"
+    value: 0x722f37
+  - name: "Pullman Brown (UPS Brown)"
+    value: 0x644117
+  - name: "Pullman Green"
+    value: 0x3b331c
+  - name: "Pumpkin"
+    value: 0xff7518
+  - name: "Pure crimson (dye) (Akabeni)"
+    value: 0xc3272b
+  - name: "Purple"
+    value: 0x6a0dad
+  - name: "Purple (Munsell)"
+    value: 0x9f00c5
+  - name: "Purple (Murasaki)"
+    value: 0x4f284b
+  - name: "Purple (X11)"
+    value: 0xa020f0
+  - name: "Purple Heart"
+    value: 0x69359c
+  - name: "Purple kite (Murasakitobi)"
+    value: 0x512c31
+  - name: "Purple mountain majesty"
+    value: 0x9678b6
+  - name: "Purple navy"
+    value: 0x4e5180
+  - name: "Purple pizzazz"
+    value: 0xfe4eda
+  - name: "Purple Plum"
+    value: 0x9c51b6
+  - name: "Purple taupe"
+    value: 0x50404d
+  - name: "Purpureus"
+    value: 0x9a4eae
+  - name: "Quartz"
+    value: 0x51484f
+  - name: "Queen blue"
+    value: 0x436b95
+  - name: "Queen pink"
+    value: 0xe8ccd7
+  - name: "Quick Silver"
+    value: 0xa6a6a6
+  - name: "Quinacridone magenta"
+    value: 0x8e3a59
+  - name: "Quincy"
+    value: 0x6a5445
+  - name: "Rabbit-ear iris (Kakitsubata)"
+    value: 0x491e3c
+  - name: "Radical Red"
+    value: 0xff355e
+  - name: "Raisin black"
+    value: 0x242124
+  - name: "Rajah"
+    value: 0xfbab60
+  - name: "Rambutan"
+    value: 0xc71232
+  - name: "Rambutan Red"
+    value: 0xa72127
+  - name: "Rape-blossom brown (Nanohanacha)"
+    value: 0xe3b130
+  - name: "Rapeseed oil-colored (Nataneyu-iro)"
+    value: 0xa17917
+  - name: "Raspberry"
+    value: 0xe30b5d
+  - name: "Raspberry pink"
+    value: 0xe25098
+  - name: "Raw Sienna"
+    value: 0xd68a59
+  - name: "Raw umber"
+    value: 0x826644
+  - name: "Razzle dazzle rose"
+    value: 0xff33cc
+  - name: "Razzmatazz"
+    value: 0xe3256b
+  - name: "Razzmic Berry"
+    value: 0x8d4e85
+  - name: "Rebecca Purple"
+    value: 0x663399
+  - name: "Red"
+    value: 0xff0000
+  - name: "Red (Crayola)"
+    value: 0xee204d
+  - name: "Red (Munsell)"
+    value: 0xf2003c
+  - name: "Red (NCS)"
+    value: 0xc40233
+  - name: "Red (RYB)"
+    value: 0xfe2712
+  - name: "Red bean color (Azuki-iro)"
+    value: 0x672422
+  - name: "Red birch (Benikaba)"
+    value: 0x9d2b22
+  - name: "Red cola"
+    value: 0xb62020
+  - name: "Red devil"
+    value: 0x860111
+  - name: "Red incense-colored (Akakō-iro)"
+    value: 0xf07f5e
+  - name: "Red kite (bird species) (Benitobi)"
+    value: 0x913228
+  - name: "Red ochre color (Taisha-iro)"
+    value: 0x9f5233
+  - name: "Red plum colored (Kōbai-iro)"
+    value: 0xdb5a6b
+  - name: "Red Salsa"
+    value: 0xfd3a4a
+  - name: "Red wisteria (Benifuji)"
+    value: 0xbb7796
+  - name: "Red-bronze (lit. red dye and turmeric) (Beniukon)"
+    value: 0xfb8136
+  - name: "Red-brown (Edo brown) (Edocha)"
+    value: 0xa13d2d
+  - name: "Red-brown (lit. chestnut-plum) (Kiriume)"
+    value: 0x8b352d
+  - name: "Red-orange (Color wheel)"
+    value: 0xff4500
+  - name: "Red-orange (lit. orangutan-colored) (Shōjōhi)"
+    value: 0xdc3023
+  - name: "Red-purple"
+    value: 0xe40078
+  - name: "Red-violet (Color wheel)"
+    value: 0x922b3e
+  - name: "Red-violet (Crayola)"
+    value: 0xc0448f
+  - name: "Redwood"
+    value: 0xa45a52
+  - name: "Regalia"
+    value: 0x522d80
+  - name: "Resolution blue"
+    value: 0x002387
+  - name: "Rhythm"
+    value: 0x777696
+  - name: "Rich black"
+    value: 0x004040
+  - name: "Rich black (FOGRA29)"
+    value: 0x010b13
+  - name: "Rich black (FOGRA39)"
+    value: 0x010203
+  - name: "Rich brilliant lavender"
+    value: 0xf1a7fe
+  - name: "Rich electric blue"
+    value: 0x0892d0
+  - name: "Rich gardenia (Kokikuchinashi)"
+    value: 0xf57f4f
+  - name: "Rich lavender"
+    value: 0xa76bcf
+  - name: "Rich lilac"
+    value: 0xb666d2
+  - name: "Rifle green"
+    value: 0x444c38
+  - name: "Rikan brown (Rikancha)"
+    value: 0x534a32
+  - name: "Rinsed-out red (Araishu)"
+    value: 0xff7952
+  - name: "Ripe mango"
+    value: 0xffc324
+  - name: "Robin egg blue"
+    value: 0x00cccc
+  - name: "Rocket metallic"
+    value: 0x8a7f80
+  - name: "Roman silver"
+    value: 0x838996
+  - name: "Root beer"
+    value: 0x290e05
+  - name: "Rose bonbon"
+    value: 0xf9429e
+  - name: "Rose Dust"
+    value: 0x9e5e6f
+  - name: "Rose ebony"
+    value: 0x674846
+  - name: "Rose garnet"
+    value: 0x960145
+  - name: "Rose gold"
+    value: 0xb76e79
+  - name: "Rose pink"
+    value: 0xff66cc
+  - name: "Rose quartz pink"
+    value: 0xbd559c
+  - name: "Rose red"
+    value: 0xc21e56
+  - name: "Rose taupe"
+    value: 0x905d5d
+  - name: "Rose vale"
+    value: 0xab4e52
+  - name: "Rosewood"
+    value: 0x65000b
+  - name: "Rosso corsa"
+    value: 0xd40000
+  - name: "Rosy brown"
+    value: 0xbc8f8f
+  - name: "Royal azure"
+    value: 0x0038a8
+  - name: "Royal blue (dark)"
+    value: 0x002366
+  - name: "Royal blue (light)"
+    value: 0x4169e1
+  - name: "Royal brown"
+    value: 0x523b35
+  - name: "Royal fuchsia"
+    value: 0xca2c92
+  - name: "Royal green"
+    value: 0x136207
+  - name: "Royal orange"
+    value: 0xf99245
+  - name: "Royal pink"
+    value: 0xe73895
+  - name: "Royal purple"
+    value: 0x7851a9
+  - name: "Royal red"
+    value: 0xd00060
+  - name: "Royal red"
+    value: 0x9b1c31
+  - name: "Ruber"
+    value: 0xce4676
+  - name: "Rubine red"
+    value: 0xd10056
+  - name: "Ruby"
+    value: 0xe0115f
+  - name: "Ruby red"
+    value: 0x9b111e
+  - name: "Ruddy"
+    value: 0xff0028
+  - name: "Ruddy brown"
+    value: 0xbb6528
+  - name: "Ruddy pink"
+    value: 0xe18e96
+  - name: "Rufous"
+    value: 0xa81c07
+  - name: "Rum"
+    value: 0x716675
+  - name: "Russet"
+    value: 0x80461b
+  - name: "Russian green"
+    value: 0x679267
+  - name: "Russian violet"
+    value: 0x32174d
+  - name: "Rust"
+    value: 0xb7410e
+  - name: "Rusted light-blue (Sabiasagi)"
+    value: 0x6a7f7a
+  - name: "Rusty celadon (Sabiseiji)"
+    value: 0x898a74
+  - name: "Rusty red"
+    value: 0xda2c43
+  - name: "Rusty storage (Sabionando)"
+    value: 0x455859
+  - name: "Rusty storeroom (Sabitetsuonando)"
+    value: 0x3a403b
+  - name: "Sacramento State green"
+    value: 0x043927
+  - name: "Saddle brown"
+    value: 0x8b4513
+  - name: "Safety orange"
+    value: 0xff7800
+  - name: "Safety orange (blaze orange)"
+    value: 0xff6700
+  - name: "Safety yellow"
+    value: 0xeed202
+  - name: "Safflower color (Benikakehana-iro)"
+    value: 0x5a4f74
+  - name: "Saffron"
+    value: 0xf4c430
+  - name: "Sage"
+    value: 0xbcb88a
+  - name: "Salmon"
+    value: 0xfa8072
+  - name: "Salmon pink"
+    value: 0xff91a4
+  - name: "Salmon Rose"
+    value: 0xe7968b
+  - name: "Samsung blue"
+    value: 0x12279e
+  - name: "Sandstorm"
+    value: 0xecd540
+  - name: "Sandy brown"
+    value: 0xf4a460
+  - name: "Sandy Tan"
+    value: 0xfdd9b5
+  - name: "Sangria"
+    value: 0x92000a
+  - name: "Sap green"
+    value: 0x507d2a
+  - name: "Sappanwood (Suō)"
+    value: 0x7e2639
+  - name: "Sappanwood incense (Suōkō)"
+    value: 0xa24f46
+  - name: "Sapphire"
+    value: 0x0f52ba
+  - name: "Sasquatch Socks"
+    value: 0xff4681
+  - name: "Satin sheen gold"
+    value: 0xcba135
+  - name: "Sawtooth oak (Akashirotsurubami)"
+    value: 0xec956c
+  - name: "Scarlet"
+    value: 0xff2400
+  - name: "Scarlet (blood) (Ake)"
+    value: 0xcf3a24
+  - name: "School bus yellow"
+    value: 0xffd800
+  - name: "Scorched brown (Kogecha)"
+    value: 0x351f19
+  - name: "Screamin' Green"
+    value: 0x66ff66
+  - name: "Sea blue"
+    value: 0x006994
+  - name: "Sea Foam Green"
+    value: 0x9fe2bf
+  - name: "Sea green"
+    value: 0x2e8b57
+  - name: "Sea green (Crayola)"
+    value: 0x00ffcd
+  - name: "Sea Serpent"
+    value: 0x4bc7cf
+  - name: "Seal brown"
+    value: 0x59260b
+  - name: "Seashell"
+    value: 0xfff5ee
+  - name: "Selective yellow"
+    value: 0xffba00
+  - name: "Sen no Rikyu's tea (Rikyūcha)"
+    value: 0x826b58
+  - name: "Sepia"
+    value: 0x704214
+  - name: "Sesame Street Green"
+    value: 0x00a870
+  - name: "Shadow"
+    value: 0x8a795d
+  - name: "Shadow blue"
+    value: 0x778ba5
+  - name: "Shampoo"
+    value: 0xffcff1
+  - name: "Shamrock green"
+    value: 0x009e60
+  - name: "Shandy"
+    value: 0xffe670
+  - name: "Sheen green"
+    value: 0x8fd400
+  - name: "Shimmering Blush"
+    value: 0xd98695
+  - name: "Shiny Shamrock"
+    value: 0x5fa778
+  - name: "Shocking pink"
+    value: 0xfc0fc0
+  - name: "Shocking pink (Crayola)"
+    value: 0xff6fff
+  - name: "Silk crepe brown (Omeshicha)"
+    value: 0x354e4b
+  - name: "Silver (Metallic)"
+    value: 0xaaa9ad
+  - name: "Silver chalice"
+    value: 0xacacac
+  - name: "Silver foil"
+    value: 0xafb1ae
+  - name: "Silver Lake blue"
+    value: 0x5d89ba
+  - name: "Silver pink"
+    value: 0xc4aead
+  - name: "Silver sand"
+    value: 0xbfc1c2
+  - name: "Silver-grey (Ginnezumi)"
+    value: 0x97867c
+  - name: "Simmered seaweed (Mirucha)"
+    value: 0x4c3d30
+  - name: "Sinopia"
+    value: 0xcb410b
+  - name: "Siskin sprout yellow (Hiwamoegi)"
+    value: 0x7a942e
+  - name: "Sizzling Red"
+    value: 0xff3855
+  - name: "Sizzling Sunrise"
+    value: 0xffdb00
+  - name: "Skobeloff"
+    value: 0x007474
+  - name: "Sky blue"
+    value: 0x87ceeb
+  - name: "Sky blue (Crayola)"
+    value: 0x76d7ea
+  - name: "Sky Blue color (Sora-iro)"
+    value: 0x4d8fac
+  - name: "Sky magenta"
+    value: 0xcf71af
+  - name: "Slate blue"
+    value: 0x6a5acd
+  - name: "Slate gray"
+    value: 0x708090
+  - name: "Slimy green"
+    value: 0x299617
+  - name: "Smashed Pumpkin"
+    value: 0xff6d3a
+  - name: "Smitten"
+    value: 0xc84186
+  - name: "Smoke"
+    value: 0x738276
+  - name: "Smokey Topaz"
+    value: 0x832a0d
+  - name: "Smoky black"
+    value: 0x100c08
+  - name: "Smoky Topaz"
+    value: 0x933d41
+  - name: "Snow"
+    value: 0xfffafa
+  - name: "Soap"
+    value: 0xcec8ef
+  - name: "Soldier Green"
+    value: 0x545a2c
+  - name: "Solid pink"
+    value: 0x893843
+  - name: "Sonic silver"
+    value: 0x757575
+  - name: "Sooty willow bamboo (Yanagisusutake)"
+    value: 0x4d4b3a
+  - name: "Space cadet"
+    value: 0x1d2951
+  - name: "Spanish bistre"
+    value: 0x807532
+  - name: "Spanish blue"
+    value: 0x0070b8
+  - name: "Spanish carmine"
+    value: 0xd10047
+  - name: "Spanish crimson"
+    value: 0xe51a4c
+  - name: "Spanish gray"
+    value: 0x989898
+  - name: "Spanish green"
+    value: 0x009150
+  - name: "Spanish orange"
+    value: 0xe86100
+  - name: "Spanish pink"
+    value: 0xf7bfbe
+  - name: "Spanish purple"
+    value: 0x66033c
+  - name: "Spanish red"
+    value: 0xe60026
+  - name: "Spanish violet"
+    value: 0x4c2882
+  - name: "Spanish viridian"
+    value: 0x007f5c
+  - name: "Spanish yellow"
+    value: 0xf6b511
+  - name: "Sparrow-brown (Suzumecha)"
+    value: 0x8c4736
+  - name: "Spartan Crimson"
+    value: 0x9e1316
+  - name: "Spicy mix"
+    value: 0x8b5f4d
+  - name: "Spicy red-brown (Chinese tea brown) (Karacha)"
+    value: 0xb35c44
+  - name: "Spiro Disco Ball"
+    value: 0x0fc0fc
+  - name: "Sponge"
+    value: 0xfdfe03
+  - name: "Spring bud"
+    value: 0xa7fc00
+  - name: "Spring Frost"
+    value: 0x87ff2a
+  - name: "Sprint Red"
+    value: 0xec2131
+  - name: "Sprint Yellow"
+    value: 0xffdd05
+  - name: "St. Patrick's blue"
+    value: 0x23297a
+  - name: "Stained red (Benimidori)"
+    value: 0x78779b
+  - name: "Star command blue"
+    value: 0x007bb8
+  - name: "Steamed chestnut color (Mushikuri-iro)"
+    value: 0xd3b17d
+  - name: "Steel blue"
+    value: 0x4682b4
+  - name: "Steel pink"
+    value: 0xcc33cc
+  - name: "Steel Teal"
+    value: 0x5f8a8b
+  - name: "Stone Terrace"
+    value: 0xa09484
+  - name: "Stop red"
+    value: 0xcf142b
+  - name: "Storeroom brown (Onandocha)"
+    value: 0x3d4035
+  - name: "Stormcloud"
+    value: 0x4f666a
+  - name: "Straw"
+    value: 0xe4d96f
+  - name: "Strawberry"
+    value: 0xfc5a8d
+  - name: "Strawberry Daiquiri"
+    value: 0xd9463e
+  - name: "Strawberry Jam"
+    value: 0x8b171a
+  - name: "Strawberry red"
+    value: 0xc83f49
+  - name: "Strong boy pink"
+    value: 0xe9399e
+  - name: "Stylish persimmon (Sharegaki)"
+    value: 0xffa26b
+  - name: "Sugar Plum"
+    value: 0x914e75
+  - name: "Sumac-dyed (Hajizome)"
+    value: 0xe08a1e
+  - name: "Sumac-dyed (Kōrozen)"
+    value: 0x592b1f
+  - name: "Sunburnt Cyclops"
+    value: 0xff404c
+  - name: "Sunglow"
+    value: 0xffcc33
+  - name: "Sunny"
+    value: 0xf2f27a
+  - name: "Sunray"
+    value: 0xe3ab57
+  - name: "Sunset Orange"
+    value: 0xfd5e53
+  - name: "Sunset Yellow"
+    value: 0xffc922
+  - name: "Super pink"
+    value: 0xcf6ba9
+  - name: "Sweet Brown"
+    value: 0xa83731
+  - name: "Sweet Sixteen"
+    value: 0xf29eab
+  - name: "Tan"
+    value: 0xd2b48c
+  - name: "Tan (Crayola)"
+    value: 0xd99a6c
+  - name: "Tangelo"
+    value: 0xf94d00
+  - name: "Tangerine"
+    value: 0xf28500
+  - name: "Tangerine yellow"
+    value: 0xffcc00
+  - name: "Taobao Orange"
+    value: 0xff4200
+  - name: "Tardis blue"
+    value: 0x003b6f
+  - name: "Tart Orange"
+    value: 0xfb4d46
+  - name: "Tatarian aster color (Shion-iro)"
+    value: 0x976e9a
+  - name: "Taupe gray"
+    value: 0x8b8589
+  - name: "Tea green"
+    value: 0xd0f0c0
+  - name: "Teal"
+    value: 0x008080
+  - name: "Teal blue"
+    value: 0x367588
+  - name: "Teal deer"
+    value: 0x99e6b3
+  - name: "Teal green"
+    value: 0x00827f
+  - name: "Telemagenta"
+    value: 0xcf3476
+  - name: "Temptress"
+    value: 0x3c2126
+  - name: "Tenné (tawny)"
+    value: 0xcd5700
+  - name: "Terra cotta"
+    value: 0xe2725b
+  - name: "The color of an undried wall (Namakabe-iro)"
+    value: 0x785e49
+  - name: "Thin color (Usu-iro)"
+    value: 0xa87ca0
+  - name: "Thistle"
+    value: 0xd8bfd8
+  - name: "Thistle (Crayola)"
+    value: 0xebb0d7
+  - name: "Thousand herb color (Chigusa-iro)"
+    value: 0x317589
+  - name: "Thousand year old brown (Sensaicha)"
+    value: 0x3b3429
+  - name: "Thousand year old green (Sensaimidori)"
+    value: 0x374231
+  - name: "Thrice-dyed crimson (Jinzamomi)"
+    value: 0xf7665a
+  - name: "Tickle Me Pink"
+    value: 0xfc89ac
+  - name: "Tiffany Blue"
+    value: 0x0abab5
+  - name: "Tiger's Eye"
+    value: 0xe08d3c
+  - name: "Timberwolf"
+    value: 0xdbd7d2
+  - name: "Titanium"
+    value: 0x878681
+  - name: "Titanium yellow"
+    value: 0xeee600
+  - name: "Tomato"
+    value: 0xff6347
+  - name: "Tomato sauce"
+    value: 0xb21807
+  - name: "Toolbox"
+    value: 0x746cc0
+  - name: "Topaz"
+    value: 0xffc87c
+  - name: "Tractor red"
+    value: 0xfd0e35
+  - name: "Tree peony (Bōtan)"
+    value: 0xa4345d
+  - name: "Trolley grey"
+    value: 0x808080
+  - name: "Tropical rain forest"
+    value: 0x00755e
+  - name: "Tropical violet"
+    value: 0xcda4de
+  - name: "True Blue"
+    value: 0x0073cf
+  - name: "True Blue"
+    value: 0x2d68c4
+  - name: "True red (Shinshu)"
+    value: 0x8f1d21
+  - name: "Tufts blue"
+    value: 0x3e8ede
+  - name: "Tulip"
+    value: 0xff878d
+  - name: "Tumbleweed"
+    value: 0xdeaa88
+  - name: "Turkish rose"
+    value: 0xb57281
+  - name: "Turmeric-colored (Ukon-iro)"
+    value: 0xe69b3a
+  - name: "Turquoise"
+    value: 0x40e0d0
+  - name: "Turquoise blue"
+    value: 0x00ffef
+  - name: "Turquoise green"
+    value: 0xa0d6b4
+  - name: "Turquoise Surf"
+    value: 0x00c5cd
+  - name: "Tuscan red"
+    value: 0x7c4848
+  - name: "Tuscany"
+    value: 0xc09999
+  - name: "Twilight lavender"
+    value: 0x8a496b
+  - name: "Twitter blue"
+    value: 0x26a7de
+  - name: "UA blue"
+    value: 0x0033aa
+  - name: "UA red"
+    value: 0xd9004c
+  - name: "Ube"
+    value: 0x8878c3
+  - name: "Ucla Blue"
+    value: 0x536895
+  - name: "Ucla Gold"
+    value: 0xffb300
+  - name: "UE red"
+    value: 0xba0001
+  - name: "UFO Green"
+    value: 0x3cd070
+  - name: "Ultra red"
+    value: 0xfc6c85
+  - name: "Ultramarine blue"
+    value: 0x4166f5
+  - name: "Ultramarine color (Gunjō-iro)"
+    value: 0x5d8cae
+  - name: "Umber"
+    value: 0x635147
+  - name: "Unbleached silk"
+    value: 0xffddca
+  - name: "Underside of willow leaves (Urahayanagi)"
+    value: 0xbcb58c
+  - name: "United Nations blue"
+    value: 0x5b92e5
+  - name: "University Of California Gold"
+    value: 0xb78727
+  - name: "University Of Tennessee Orange"
+    value: 0xf77f00
+  - name: "UP maroon"
+    value: 0x7b1113
+  - name: "Upsdell red"
+    value: 0xae2029
+  - name: "Urobilin"
+    value: 0xe1ad21
+  - name: "USAFA blue"
+    value: 0x004f98
+  - name: "Utah Crimson"
+    value: 0xd3003f
+  - name: "Vampire black"
+    value: 0x080808
+  - name: "Van Dyke brown"
+    value: 0x664228
+  - name: "Vanilla ice"
+    value: 0xf38fa9
+  - name: "Vegas gold"
+    value: 0xc5b358
+  - name: "Velvet (Birōdo)"
+    value: 0x224634
+  - name: "Venetian red"
+    value: 0xc80815
+  - name: "Verdigris"
+    value: 0x43b3ae
+  - name: "Verizon Red"
+    value: 0xcd040b
+  - name: "Verizon Red (2000-2015)"
+    value: 0xec1c24
+  - name: "Vermilion"
+    value: 0xd9381e
+  - name: "Verse green"
+    value: 0x18880d
+  - name: "Very light azure"
+    value: 0x74bbfb
+  - name: "Very light blue"
+    value: 0x6666ff
+  - name: "Very light malachite green"
+    value: 0x64e986
+  - name: "Very light tangelo"
+    value: 0xffb077
+  - name: "Very pale orange"
+    value: 0xffdfbf
+  - name: "Very pale yellow"
+    value: 0xffffbf
+  - name: "Vine grape (Ebizome)"
+    value: 0x6d2b50
+  - name: "Vine Green"
+    value: 0x38a32a
+  - name: "Violet (color wheel)"
+    value: 0x7f00ff
+  - name: "Violet (crayola)"
+    value: 0x963d7f
+  - name: "Violet (RYB)"
+    value: 0x8601af
+  - name: "Violet-blue"
+    value: 0x324ab2
+  - name: "Violet-blue (Crayola)"
+    value: 0x766ec8
+  - name: "Violet-red"
+    value: 0xf75394
+  - name: "Violet-red"
+    value: 0x891446
+  - name: "Violets Are Blue"
+    value: 0x8366f4
+  - name: "Violin Brown"
+    value: 0x674403
+  - name: "Viridian green"
+    value: 0x009698
+  - name: "Vista blue"
+    value: 0x7c9ed9
+  - name: "Vivaldi Red"
+    value: 0xef3939
+  - name: "Vivid auburn"
+    value: 0x922724
+  - name: "Vivid burgundy"
+    value: 0x9f1d35
+  - name: "Vivid cerise"
+    value: 0xda1d81
+  - name: "Vivid cerulean"
+    value: 0x00aaee
+  - name: "Vivid crimson"
+    value: 0xcc0033
+  - name: "Vivid gamboge"
+    value: 0xff9900
+  - name: "Vivid lime green"
+    value: 0xa6d608
+  - name: "Vivid malachite"
+    value: 0x00cc33
+  - name: "Vivid mulberry"
+    value: 0xb80ce3
+  - name: "Vivid orange"
+    value: 0xff5f00
+  - name: "Vivid orange peel"
+    value: 0xffa000
+  - name: "Vivid orchid"
+    value: 0xcc00ff
+  - name: "Vivid raspberry"
+    value: 0xff006c
+  - name: "Vivid red"
+    value: 0xf70d1a
+  - name: "Vivid red-tangelo"
+    value: 0xdf6124
+  - name: "Vivid sky blue"
+    value: 0x00ccff
+  - name: "Vivid tangelo"
+    value: 0xf07427
+  - name: "Vivid tangerine"
+    value: 0xffa089
+  - name: "Vivid vermilion"
+    value: 0xe56024
+  - name: "Vivid violet"
+    value: 0x9f00ff
+  - name: "Vivid yellow"
+    value: 0xffe302
+  - name: "Vodka"
+    value: 0xbfc0ee
+  - name: "Volt"
+    value: 0xceff00
+  - name: "Wageningen Green"
+    value: 0x34b233
+  - name: "Walnut-dyed (Kurumizome)"
+    value: 0x9f7462
+  - name: "Warm black"
+    value: 0x004242
+  - name: "Washed-out crimson (dye) (Arazome)"
+    value: 0xffb3a7
+  - name: "Washed-out persimmon (Araigaki)"
+    value: 0xec8254
+  - name: "Water"
+    value: 0xd4f1f9
+  - name: "Water persimmon (Mizugaki)"
+    value: 0xb56c60
+  - name: "Watermelon Yellow"
+    value: 0xeeff1b
+  - name: "Waterspout"
+    value: 0xa4f4f9
+  - name: "Weathered bamboo (lit. \"sooty\") (Susutake-iro)"
+    value: 0x593a27
+  - name: "Weebly Blue"
+    value: 0x1f8eed
+  - name: "Weebly Orange"
+    value: 0xff9a00
+  - name: "Weldon Blue"
+    value: 0x7c98ab
+  - name: "Wenge"
+    value: 0x645452
+  - name: "Wheat"
+    value: 0xf5deb3
+  - name: "White"
+    value: 0xffffff
+  - name: "White chocolate"
+    value: 0xede6d6
+  - name: "White coffee"
+    value: 0xe6e0d4
+  - name: "White mouse (Shironezumi)"
+    value: 0xb9a193
+  - name: "White oak (Shirotsurubami)"
+    value: 0xce9f6f
+  - name: "White tea-colored (Shiracha)"
+    value: 0xc48e69
+  - name: "Whitish green (Byakuroku)"
+    value: 0xa5ba93
+  - name: "Wild blue yonder"
+    value: 0xa2add0
+  - name: "Wild orchid"
+    value: 0xd470a2
+  - name: "Wild Strawberry"
+    value: 0xff43a4
+  - name: "Willow dye (Yanagizome)"
+    value: 0x8c9e5e
+  - name: "Willow grey (Yanaginezumi)"
+    value: 0x817b69
+  - name: "Willow tea (Yanagicha)"
+    value: 0x9c8a4d
+  - name: "Willpower orange"
+    value: 0xfd5800
+  - name: "Wilted brown (lit. wilted lawn-clippings) (Shikancha)"
+    value: 0xab4c3d
+  - name: "Windsor tan"
+    value: 0xa75502
+  - name: "Wine red"
+    value: 0xb11226
+  - name: "Winter Sky"
+    value: 0xff007c
+  - name: "Winter Wizard"
+    value: 0xa0e6ff
+  - name: "Wintergreen Dream"
+    value: 0x56887d
+  - name: "Wisteria"
+    value: 0xc9a0dc
+  - name: "Wisteria and burnt-bamboo (Fujisusutake)"
+    value: 0x4d3b3c
+  - name: "Wisteria color (Fuji-iro)"
+    value: 0x89729e
+  - name: "Wisteria purple (Fujimurasaki)"
+    value: 0x875f9a
+  - name: "Xanadu"
+    value: 0x738678
+  - name: "Xbox Green"
+    value: 0x0e7a0d
+  - name: "Xiaomi Orange"
+    value: 0xfd4900
+  - name: "Yale Blue"
+    value: 0x0f4d92
+  - name: "Yankees blue"
+    value: 0x1c2841
+  - name: "Yellow"
+    value: 0xffff00
+  - name: "Yellow (Crayola)"
+    value: 0xfce883
+  - name: "Yellow (Munsell)"
+    value: 0xefcc00
+  - name: "Yellow (Pantone)"
+    value: 0xfedf00
+  - name: "Yellow (RYB)"
+    value: 0xfefe33
+  - name: "Yellow Orange"
+    value: 0xffae42
+  - name: "Yellow Orange (Color Wheel)"
+    value: 0xff9505
+  - name: "Yellow rose"
+    value: 0xfff000
+  - name: "Yellow Sea pine-brown (Kimirucha)"
+    value: 0x896c39
+  - name: "Yellow-green"
+    value: 0x9acd32
+  - name: "Yellow-green (Color Wheel)"
+    value: 0x30b21a
+  - name: "Yellow-green (Crayola)"
+    value: 0xc5e384
+  - name: "YInMn Blue"
+    value: 0x2e5090
+  - name: "Young bamboo color (Wakatake-iro)"
+    value: 0x6b9362
+  - name: "Youtube red"
+    value: 0xb2071d
+  - name: "Zaffre"
+    value: 0x0014a8
+  - name: "Zinnwaldite"
+    value: 0xebc2af
+  - name: "Zinnwaldite brown"
+    value: 0x2c1608
+  - name: "Zomp"
+    value: 0x39a78e
+  # ---------------------------
+  # es7s
+  #
+  - name: "Superuser"
+    value: 0xf8b889

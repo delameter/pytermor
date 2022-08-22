@@ -96,16 +96,15 @@ class TimeDeltaFormatter:
 
     def format(self, seconds: float, always_max_len: bool = False) -> str:
         """
-        Format the requested amount of seconds and apply styles to the result as
-        defined in current formatter's `stylesheet`. Default ``stylesheet`` contains
-        no-op spans only and thus no styles will be applied.
+        Pretty-print difference between two moments in time.
 
         :param seconds: Input value.
-        :param always_max_len: If result string is less than `max_len` it will be returned
-                               as is, unless this flag is set to *True*. In that case output
-                               string will be paded with spaces on the left side so that
-                               resulting length would be always equal to maximum length.
-        :return: Formatted string with applied styles if they are defined, raw string otherwise.
+        :param always_max_len:
+                         If result string is less than `max_len` it will be returned
+                         as is, unless this flag is set to *True*. In that case output
+                         string will be padded with spaces on the left side so that
+                         resulting length would be always equal to maximum length.
+        :return:  Formatted string.
         """
         result = self.format_raw(seconds)
         if result is None:
@@ -118,7 +117,8 @@ class TimeDeltaFormatter:
 
     def format_raw(self, seconds: float) -> str|None:
         """
-        Format the requested amount of seconds as raw string without styling.
+        Pretty-print difference between two moments in time, do not replace
+        the output with "OVERFLOW" warning message.
 
         :param seconds: Input value.
         :return:        Formatted string or *None* on overflow (if input
@@ -211,7 +211,6 @@ class _TimeDeltaFormatterRegistry:
     Simple registry for storing formatters and selecting
     the suitable one by max output length.
     """
-
     def __init__(self):
         self._formatters: Dict[int, TimeDeltaFormatter] = dict()
 
