@@ -3,10 +3,6 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-@TODO
-
-@TODO black/white text selection depending on bg
-
 .. testsetup:: *
 
     from pytermor.color import Color, ColorDefault, ColorIndexed, ColorRGB
@@ -190,7 +186,8 @@ class ColorDefault(Color):
 
 
 class ColorIndexed(Color):
-    _index: Dict[int, ColorIndexed] = dict()  # @TODO get color by int code. replace 0-15 ColorIndexed with ColorDefault? or keep them separated
+    """ .. todo :: get color by int code """
+    _index: Dict[int, ColorIndexed] = dict()
 
     def __init__(self, hex_value: int, code: int, use_for_approximations=True):
         self._code = code
@@ -380,6 +377,8 @@ class Approximator(Generic[TypeColor]):
             instead, if you really want to be sure that at least some color will
             be returned. Another option is to use special "color" named `NOOP_COLOR`.
 
+        .. todo :: rewrite using HSV distance?
+
         :param hex_value:   Color RGB value.
         :param max_results: Maximum amount of values to return.
         :return:            Closest `Color` instances found, sorted by color
@@ -390,7 +389,7 @@ class Approximator(Generic[TypeColor]):
         result: Dict[int, float] = dict()
 
         for cached_hex, cached_color in self._lookup_table.items():
-            # sRGB euclidean distance @TODO rewrite using HSV distance?
+            # sRGB euclidean distance
             # https://en.wikipedia.org/wiki/Color_difference#sRGB
             # https://stackoverflow.com/a/35114586/5834973
             map_r, map_g, map_b = Color.hex_value_to_rgb_channels(cached_hex)

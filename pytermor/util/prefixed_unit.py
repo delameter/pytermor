@@ -76,7 +76,7 @@ class PrefixedUnitFormatter:
     methods :meth:`format_si_metric()` and :meth:`format_si_binary()`,
     which will invoke predefined formatters and doesn't require setting up.
 
-    @TODO params desc
+    .. todo :: params
 
     :param prefix_zero_idx:
             Index of prefix which will be used as default, i.e. without multiplying coefficients.

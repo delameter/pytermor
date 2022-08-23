@@ -8,19 +8,20 @@ also contains compatibility settings, see `SgrRenderer.set_up()`.
 
 Working with non-default renderer can be achieved in two ways:
 
-a. Method `RendererManager.set_up()` sets the default renderer globally.
+a. Method `RendererManager.set_up()` sets the default renderer globally. After that
+   calling ``str(<Renderable>)`` will automatically invoke said renderer and all
+   formatting will be applied.
 b. Alternatively, you can use renderer's own class method `IRenderer.render()`
-   directly and avoid calling `Style.render()` method whatsoever.
+   directly and avoid messing up with the manager: ``HtmlRenderer.render(<Renderable>)``
 
 .. rubric:: TL;DR
 
 To unconditionally print formatted message to output terminal, do something like this:
 
->>> from pytermor import SgrRenderer, RendererManager, Styles
->>> RendererManager.set_up(SgrRenderer)   # can be omitted as SGR _is_ a default renderer
+>>> from pytermor import SgrRenderer, Styles, Text
 >>> SgrRenderer.set_up(force_styles=True)
->>> Styles.WARNING.render('Warning: AAA')  # print()
-'\\x1b[33mWarning: AAA\\x1b[39m'
+>>> print(Text('Warning: AAAA', Styles.WARNING))
+\x1b[33mWarning: AAAA\x1b[39m
 
 
 .. testsetup:: *
@@ -29,6 +30,23 @@ To unconditionally print formatted message to output terminal, do something like
     from pytermor.render import *
 
     SgrRenderer.set_up(force_styles=True)
+
+-----
+
+.. todo ::
+
+    Scheme can be simplified, too many unnecessary abstractions for now.
+
+    Renderable
+          (implemented by Text) should include algorithms for creating intermediate
+          styles for text pieces that lie in beetween first opening sequence (or tag)
+          and second, for example -- this happens when one Text instance is included
+          into another.
+    Style's
+          responsibility is to preserve the state of text piece and thats it.
+    Renderer
+          should transform style into corresponding output format and thats it.
+
 """
 from __future__ import annotations
 
@@ -40,8 +58,29 @@ from typing import Type, Dict, Set
 
 from .ansi import SequenceSGR, Span, NOOP_SEQ, Seqs
 from .color import Color, ColorRGB, ColorIndexed, ColorDefault, NOOP_COLOR, Colors
-from .common import Registry, Renderable
+from .common import Registry
 from .util.string_filter import ReplaceSGR
+
+
+class Renderable(Sized, metaclass=ABCMeta):
+    """
+    Renderable abstract class. Can be inherited if the default style
+    overlaps resolution mechanism implemented in `Text` is not good enough
+    and you want to implement your own.
+    """
+    def render(self) -> str:
+        return self._render_using(RendererManager.get_default())
+
+    @abstractmethod
+    def _render_using(self, renderer: Type[IRenderer]) -> str:
+        raise NotImplemented
+
+    def __str__(self) -> str:
+        return self.render()
+
+    @abstractmethod
+    def __len__(self) -> int:
+        raise NotImplemented
 
 
 class Text(Renderable):
@@ -50,14 +89,14 @@ class Text(Renderable):
     """
 
     def __init__(self, text: Any = None, style: Style|str = None):
-        self._runs: List[_TextRun] = [_TextRun(text, style)]
+        self._runs = [self._TextRun(text, style)]
 
-    def render(self) -> str:
-        return ''.join(r.render() for r in self._runs)
+    def _render_using(self, renderer: Type[IRenderer]) -> str:
+        return ''.join(run._render_using(renderer) for run in self._runs)
 
     def append(self, text: str|Text):
         if isinstance(text, str):
-            self._runs.append(_TextRun(text))
+            self._runs.append(self._TextRun(text))
         elif isinstance(text, Text):
             self._runs += text._runs
         else:
@@ -65,7 +104,7 @@ class Text(Renderable):
 
     def prepend(self, text: str|Text):
         if isinstance(text, str):
-            self._runs.insert(0, _TextRun(text))
+            self._runs.insert(0, self._TextRun(text))
         elif isinstance(text, Text):
             self._runs = text._runs + self._runs
         else:
@@ -97,25 +136,24 @@ class Text(Renderable):
         self.prepend(other)
         return self
 
+    class _TextRun(Renderable):
+        def __init__(self, string: Any = None, style: Style|str = None):
+            self._string: str = str(string) if string else ''
+            if isinstance(style, str):
+                style = Style(fg=style)
+            self._style: Style|None = style
 
-class _TextRun(Sized):
-    def __init__(self, string: Any = None, style: Style|str = None):
-        self._string: str = str(string) if string else ''
-        if isinstance(style, str):
-            style = Style(fg=style)
-        self._style: Style|None = style
+        def _render_using(self, renderer: Type[IRenderer]) -> str:
+            if not self._style:
+                return self._string
+            return renderer.render(self._string, self._style)
 
-    def render(self) -> str:
-        if not self._style:
-            return self._string
-        return self._style.render(self._string)
+        def __len__(self) -> int:
+            return len(self._string)
 
-    def __len__(self) -> int:
-        return len(self._string)
-
-    def __format__(self, *args, **kwargs) -> str:
-        self._string = self._string.__format__(*args, **kwargs)
-        return self.render()
+        def __format__(self, *args, **kwargs) -> str:
+            self._string = self._string.__format__(*args, **kwargs)
+            return self.render()
 
 
 @dataclass
@@ -124,7 +162,7 @@ class Style:
 
     Key difference between ``Styles`` and ``Spans`` or ``SGRs`` is that
     ``Styles`` describe colors in RGB format and therefore support output
-    rendering in several different formats (see :mod:`.render`).
+    rendering in several different formats (see :mod:`._render`).
 
     Both ``fg`` and ``bg`` can be specified as:
 
@@ -188,14 +226,8 @@ class Style:
         if self._bg is None:
             self._bg = NOOP_COLOR
 
-    def render(self, text: Any = None) -> str:
-        """
-        Returns ``text`` with all attributes and colors applied.
-
-        By default uses `SequenceSGR` renderer, that means that output will contain
-        ANSI escape sequences.
-        """
-        return RendererManager.get_default().render(text, self)
+    def text(self, text: Any) -> Text:
+        return Text(text, self)
 
     def autopick_fg(self) -> Color|None:
         """
@@ -203,6 +235,11 @@ class Style:
         either 4% gray (almost black) if background is bright, or to 96% gray
         (almost white) if it is dark, and after that return the applied ``fg_color``.
         If ``bg_color`` is undefined, do nothing and return None.
+
+        .. todo ::
+
+            check if there is a better algorithm,
+            because current thinks text on #000080 should be black
 
         :return: Suitable foreground color or None.
         """
@@ -214,8 +251,6 @@ class Style:
             self._fg = Colors.RGB_GRAY_04
         else:
             self._fg = Colors.RGB_GRAY_96
-        # @TODO check if there is a better algorithm,
-        #       because current thinks text on #000080 should be black
         return self._fg
 
     # noinspection PyMethodMayBeStatic
@@ -290,7 +325,7 @@ class RendererManager:
             default setting restored (`SgrRenderer`).
 
         >>> RendererManager.set_up(DebugRenderer)
-        >>> Style(fg='red').render('text')
+        >>> Text('text', Style(fg='red')).render()
         '|ǝ31|text|ǝ39|'
 
         >>> NoOpRenderer.render('text',Style(fg='red'))
@@ -309,7 +344,7 @@ class IRenderer(metaclass=ABCMeta):
 
     @classmethod
     @abstractmethod
-    def render(cls, text: Any, style: Style) -> str:
+    def render(cls, text: Any, style: Style = NOOP_STYLE) -> str:
         """
         Apply colors and attributes described in ``style`` argument to
         ``text`` and return the result. Output format depends on renderer's
@@ -320,7 +355,7 @@ class IRenderer(metaclass=ABCMeta):
 
 class SgrRenderer(IRenderer):
     """
-    Default renderer that `Style.render() <Style.render>` invokes. Transforms
+    Default renderer that `Text._render()` invokes. Transforms
     `Color` instances defined in ``style`` into ANSI control sequence
     characters and merges them with input string.
 
@@ -384,7 +419,7 @@ class SgrRenderer(IRenderer):
         cls._compatibility_default = compatibility_default
 
     @classmethod
-    def render(cls, text: Any, style: Style):
+    def render(cls, text: Any, style: Style = NOOP_STYLE):
         opening_seq = cls._render_attributes(style) + \
                       cls._render_color(style.fg, False) + \
                       cls._render_color(style.bg, True)
@@ -467,7 +502,7 @@ class NoOpRenderer(IRenderer):
     """
 
     @classmethod
-    def render(cls, text: Any, style: Style) -> str:
+    def render(cls, text: Any, style: Style = NOOP_STYLE) -> str:
         return str(text)
 
 
@@ -483,7 +518,7 @@ class HtmlRenderer(IRenderer):
                      'text-decoration', 'border', 'filter', ]
 
     @classmethod
-    def render(cls, text: Any, style: Style) -> str:
+    def render(cls, text: Any, style: Style = NOOP_STYLE) -> str:
         span_styles: Dict[str, Set[str]] = dict()
         for attr in cls._get_default_attrs():
             span_styles[attr] = set()
@@ -513,11 +548,11 @@ class HtmlRenderer(IRenderer):
         if style.underlined:
             span_styles['text-decoration'].add('underline')
 
-        span_class_str = f'' if style.class_name is None else f' class="{style.class_name}"'
+        span_class_str = '' if style.class_name is None else f' class="{style.class_name}"'
         span_style_str = '; '.join(f"{k}: {' '.join(v)}"
                                    for k, v in span_styles.items()
                                    if len(v) > 0)
-        return f'<span{span_class_str} style="{span_style_str}">{text}</span>'  # @TODO  # attribues
+        return f'<span{span_class_str} style="{span_style_str}">'+str(text)+'</span>'  # @TODO  # attribues
 
     @classmethod
     def _get_default_attrs(cls) -> List[str]:
@@ -533,7 +568,7 @@ class DebugRenderer(IRenderer):
     """
 
     @classmethod
-    def render(cls, text: Any, style: Style) -> str:
+    def render(cls, text: Any, style: Style = NOOP_STYLE) -> str:
         return ReplaceSGR(r'|ǝ\3|').apply(SgrRenderer.render(str(text), style))
 
 
@@ -563,7 +598,7 @@ class Styles(Registry[Style]):
     CRITICAL_ACCENT = Style(CRITICAL, bold=True, blink=True)
 
 
-def distribute_padded(values: List[str|Text], max_len: int, pad_before: bool = False,
+def distribute_padded(values: List, max_len: int, pad_before: bool = False,
                       pad_after: bool = False, ) -> str:
     if pad_before:
         values.insert(0, '')

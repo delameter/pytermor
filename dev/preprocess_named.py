@@ -29,7 +29,7 @@ for cfg in named:
         possible_id = tuple(parts[:idx+1])
         if possible_id in ids:
             if idx == len(parts) - 1:
-                print(Styles.WARNING.render(f'Unresolvable conflict: {parts}, skipping'))
+                print(Styles.WARNING._render(f'Unresolvable conflict: {parts}, skipping'))
             continue
         else:
             ids.add(possible_id)
@@ -60,8 +60,8 @@ for idx, c in enumerate(list(sorted(colors, key=lambda v: v["value"]))):
     style = Style(bg=ColorRGB(c['value']))
     style.autopick_fg()
     style2 = Style(fg=ColorRGB(c['value']))
-    print(' ' + style.render(f" {idx:>4d} ") +
-          '  0x' + style2.render(f"{c['value']:06x}"),
-          '  ', ljust_sgr(c["name"]+" "+var_style.render(c.get("variation", "")), max_name_len) +orig_style.render(f'{c["orig_name"]:<{orig_name_len}s}')
+    print(' ' + style._render(f" {idx:>4d} ") +
+          '  0x' + style2._render(f"{c['value']:06x}"),
+          '  ', ljust_sgr(c["name"] +" " + var_style._render(c.get("variation", "")), max_name_len) + orig_style._render(f'{c["orig_name"]:<{orig_name_len}s}')
           )
 

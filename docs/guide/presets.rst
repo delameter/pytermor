@@ -10,7 +10,9 @@ Preset lists are omitted from API docs to avoid unnesessary duplication;
 summary list of all presets defined in the library (not including
 `util.* <util>`) is displayed here.
 
-``@TODO`` USAGE - list all memthods that accept string keys of those prsets.
+.. todo ::
+
+   USAGE - list all memthods that accept string keys of those prsets.
 
 There are two types of color palettes used in modern terminals -- first one
 containing 16 colors (library references that palette as *default*, see

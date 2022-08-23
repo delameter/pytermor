@@ -11,10 +11,9 @@ the result color of `ColorDefault` is not guaranteed to exactly match the
 corresponding color listed below. What's more, note that *default* palette
 is actually a part of *indexed* one (first 16 colors of 256-color table).
 
-.. important::
+.. todo::
 
-   ``@TODO``
-   The approximation algomanrithm was explicitly made to ignore these colors because
+   **(Verify)** The approximation algomanrithm was explicitly made to ignore these colors because
    otherwise the results of transforming *RGB* values into *indexed* ones would be
    unpredictable, in addition to different results for different users, depending
    on their terminal emulator setup.
@@ -25,8 +24,10 @@ it's easier to specify estimation of desired color. I.e. setting color to ``'red
 is usually more than enough for displaying an error message -- we don't really care
 of precise hue or brightness values for it.
 
-Approximation algorithm is as simple as iterating through all colors in the *lookup
-table* (which contains all possible ... ``@TODO`` finish
+.. todo ::
+
+   Approximation algorithm is as simple as iterating through all colors in the
+   *lookup table* (which contains all possible ...
 
 -----
 

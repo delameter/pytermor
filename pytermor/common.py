@@ -2,22 +2,10 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
-from abc import ABCMeta, abstractmethod
-from typing import TypeVar, Generic, AnyStr, Sized
+from typing import TypeVar, Generic
 
 T = TypeVar('T')
 """ Any """
-
-Printable = TypeVar('Printable', str, bytes, 'Renderable')
-
-
-class Renderable(Sized, metaclass=ABCMeta):
-    @abstractmethod
-    def render(self) -> str:
-        raise NotImplemented
-
-    def __str__(self) -> str:
-        return self.render()
 
 
 class Registry(Generic[T]):

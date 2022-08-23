@@ -139,9 +139,10 @@ Core API
 
 .. only :: latex
 
-   * @TODO
-   * `SequenceSGR` constructor
-   * `SequenceSGR.init_color_indexed()`
-   * `SequenceSGR.init_color_rgb()`
-   * `Span` constructor
-   * `Span.init_explicit()`
+   .. todo ::
+
+      * `SequenceSGR` constructor
+      * `SequenceSGR.init_color_indexed()`
+      * `SequenceSGR.init_color_rgb()`
+      * `Span` constructor
+      * `Span.init_explicit()`

@@ -6,7 +6,9 @@
 Formatters and Filters
 =======================================
 
-The library contains @TODO
+.. todo ::
+
+   The library contains @TODO
 
 
 Auto-float formatter
@@ -36,4 +38,6 @@ String filters
 Standard Library extensions
 ===========================
 
-@TODO
+.. todo ::
+
+   @TODO

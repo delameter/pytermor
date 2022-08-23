@@ -58,7 +58,9 @@ No dependencies besides Python Standard Library are required *(there are some fo
          *all functions, classes, terms*
 
 
-``@TODO`` This is how you **should** format examples:
+.. todo ::
+
+   This is how you **should** format examples:
 
 .. figure:: /_static/ex_ex.png
 

@@ -123,9 +123,9 @@ class HtmlTableGenerator:
         return s[k]
 
     def run(self, f, cfg_indexed):
-        RendererManager.set_up(HtmlRenderer)
+        RendererManager.set_up(SgrRenderer)
 
-        html = '''<html><head><style>
+        html = Text('''<html><head><style>
             html {
                 min-height: 100%;
             }
@@ -196,7 +196,7 @@ class HtmlTableGenerator:
                 text-shadow: 2px 2px 1px rgba(0, 0, 0, .25);
             }
         </style></head>
-        <body>'''
+        <body>''')
 
         key_max_index: Dict[str, int] = dict()
         names: Set[str] = set()
@@ -240,9 +240,9 @@ class HtmlTableGenerator:
             if is_renamed:
                 comment_squashed = self.name_to_abbr(cc['original_name'])
                 comment_str = (
-                    comment_label_style.render(f"{comment_squashed:_<s}"))
-                    #comment_value_style.render('<br>' + '_'*9 + 'sugg' + '_'*3) +
-                    #comment_value_style.render(f"{cc['key'] + str(key_max_index.get(cc['key'])):_<{max_name_len}s}")
+                    comment_label_style.text(f"{comment_squashed:_<s}"))
+                    #comment_value_style._render('<br>' + '_'*9 + 'sugg' + '_'*3) +
+                    #comment_value_style._render(f"{cc['key'] + str(key_max_index.get(cc['key'])):_<{max_name_len}s}")
 
                 # different approach (output is Text, while in prev. example it is already str)
                 # comment_str += (
@@ -258,16 +258,17 @@ class HtmlTableGenerator:
             # name_str= re.sub('.', lambda m: repl(), name_str)
             # variation_str= re.sub('.', lambda m: repl(), variation_str)
             html += ('\n<div>' +
-                container_style.render(''.join([
-                    value_style.render(example_style.render(f'{id_str}') + value_str),
-                    name_style.render(name_str),
-                    comment_str, comment_label_style.render(variation_str) ]
-                )) + '</div>')
+                container_style.text(
+                    value_style.text(example_style.text(f'{id_str}') + value_str) +
+                    name_style.text(name_str) +
+                    comment_str +
+                    comment_label_style.text(variation_str)
+                    + '</div>'))
 
         html += '\n</body></html>'
-        html = html.replace('_', '&nbsp;')
-        f.write(html)
-
+        html = str(html).replace('_', ' ')
+        #f.write(html)
+        print(html)
         RendererManager.set_up(SgrRenderer)
         print(f'Wrote {Text(len(html), Style(bold=True))} bytes to {Text(f.name, "blue")}')
 

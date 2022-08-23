@@ -21,7 +21,7 @@ Structure
    :widths: 5 10 15 70
 
    +-----+----------------------+----------------------+---------------------------------------------------------------------------------+
-   | Lvl | Module               | Class(es)            | Purpose                                                                         |
+   | A L | Module               | Class(es)            | Purpose                                                                         |
    +=====+======================+======================+=================================================================================+
    | Hi  | :mod:`.render`       | `Text`               | Container consisting of text pieces each with attached ``Style``.               |
    |     |                      |                      | Renders into specified format keeping all the formatting.                       |
@@ -109,9 +109,14 @@ The library supports extended color modes:
 
 .. rubric:: Customizable output formats
 
-@TODO
+
+.. todo ::
+
+   @TODOTODO
 
 
 .. rubric:: String and number formatters
 
-@TODO
+.. todo ::
+
+   @TODOTODO

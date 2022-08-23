@@ -149,6 +149,12 @@ nitpick_ignore = [('py:class', 'Match'),
                   ('py:class', 'pytermor.common.T'),
                   ('py:class', 'pytermor.color.TypeColor')]
 
+# -- Misc ---------------------------------------------------------------------
+
+todo_include_todos = True
+# todo_emit_warnings = True
+# .. todolist:: ## todo_link_only = True/FALSE
+
 # -- Hide "bases: object" elements --------------------------------------------
 
 # ClassDocumenter.add_directive_header uses ClassDocumenter.add_line to
