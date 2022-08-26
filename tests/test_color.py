@@ -79,32 +79,28 @@ class TestColorMap(unittest.TestCase):
         ColorRGB._approx._lookup_table = cls._color_rgb_lookup_table
 
     def test_lookup_table_inits_on_real_color_creation(self):
-        expected = ColorRGB(0x000000)
+        expected = ColorIndexed(0x000000, 0, use_for_approximations=True)
 
-        self.assertEquals(1, len(ColorRGB._approx._lookup_table))
-        self.assertDictEqual({0x000000: expected}, ColorRGB._approx._lookup_table)
-
-    def test_lookup_table_stays_empty_on_noop_color_creation(self):
-        ColorRGB()
-        self.assertEquals(0, len(ColorRGB._approx._lookup_table))
+        self.assertEquals(1, len(ColorIndexed._approx._lookup_table))
+        self.assertDictEqual({0x000000: expected}, ColorIndexed._approx._lookup_table)
 
     def test_lookup_table_ignores_duplicates(self):
-        expected = ColorIndexed(0x010203, 1)
-        ColorIndexed(0x010203, 2)
+        expected = ColorIndexed(0x010203, 1, use_for_approximations=True)
+        ColorIndexed(0x010203, 2, use_for_approximations=True)
 
         self.assertEquals(1, len(ColorIndexed._approx._lookup_table))
         self.assertDictEqual({0x010203: expected},
                              ColorIndexed._approx._lookup_table)
 
     def test_find_closest_works(self):
-        expected = ColorIndexed(0x400000, 1)
-        ColorIndexed(0x000000, 2)
-        ColorIndexed(0x00d0d0, 3)
+        expected = ColorIndexed(0x400000, 1, use_for_approximations=True)
+        ColorIndexed(0x000000, 2, use_for_approximations=True)
+        ColorIndexed(0x00d0d0, 3, use_for_approximations=True)
 
         self.assertEquals(expected, ColorIndexed.find_closest(0x500000))
 
     def test_cache_works(self):
-        expected = ColorIndexed(0x400000, 1)
+        expected = ColorIndexed(0x400000, 1, use_for_approximations=True)
         self.assertEquals(0, len(ColorIndexed._approx._approximation_cache))
 
         ColorIndexed.find_closest(0x500000)
@@ -122,16 +118,16 @@ class TestColorMap(unittest.TestCase):
             ColorIndexed._approx._approximation_cache)
 
     def test_cache_resets_on_new_color_creation(self):
-        ColorIndexed(0x400000, 1)
+        ColorIndexed(0x400000, 1, use_for_approximations=True)
         ColorIndexed.find_closest(0x500000)
-        ColorIndexed(0x600000, 2)
+        ColorIndexed(0x600000, 2, use_for_approximations=True)
 
         self.assertEquals(0, len(ColorIndexed._approx._approximation_cache))
 
     def test_cache_doesnt_change_on_repeated_search(self):
-        ColorIndexed(0x400000, 1)
+        ColorIndexed(0x400000, 1, use_for_approximations=True)
         ColorIndexed.find_closest(0x500000)
-        ColorIndexed(0x600000, 2)
+        ColorIndexed(0x600000, 2, use_for_approximations=True)
 
         self.assertEquals(0, len(ColorIndexed._approx._approximation_cache))
 

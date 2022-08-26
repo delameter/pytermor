@@ -27,9 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "TODO" "1" "Aug 23, 2022" "2.1.0-dev8" "pytermor"
+.TH "TODO" "1" "Aug 26, 2022" "2.1.0-dev9" "pytermor"
 .SH NAME
-Todo \- pytermor 2.1.0-dev8
+Todo \- pytermor 2.1.0-dev9
 .sp
 \fI(yet another)\fP Python library designed for formatting terminal output using ANSI escape codes. Implements automatic \fI\%\(dqsoft\(dq\fP format termination. Provides a registry of low\-level SGR \fI\%sequences\fP and formatting \fI\%spans\fP (or combined sequences). Also includes a set of formatters for pretty output.
 .sp
@@ -6304,7 +6304,7 @@ value or KeyError if nothing found.
 Abstract superclass for other \fBColors\fP\&.
 .INDENT 7.0
 .TP
-.B __init__(hex_value:  Optional[int]  =  None, use_for_approximations:  bool  =  True)
+.B __init__(hex_value:  Optional[int]  =  None, use_for_approximations:  bool  =  False)
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6446,7 +6446,7 @@ get color by int code
 .UNINDENT
 .INDENT 7.0
 .TP
-.B __init__(hex_value:  int, code:  int, use_for_approximations=True)
+.B __init__(hex_value:  int, code:  int, use_for_approximations:  bool  =  False)
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6561,7 +6561,7 @@ True
 .UNINDENT
 .INDENT 7.0
 .TP
-.B __init__(hex_value:  Optional[int]  =  None, use_for_approximations:  bool  =  True)
+.B __init__(hex_value:  Optional[int]  =  None, use_for_approximations:  bool  =  False)
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -6895,10 +6895,14 @@ Style[fg=00afff, bg=eeeeee]
 .UNINDENT
 .INDENT 7.0
 .TP
+.B render(text:  Any) -> str
+.UNINDENT
+.INDENT 7.0
+.TP
 .B autopick_fg() -> \fI\%Color\fP  |  None
 Pick \fBfg_color\fP depending on \fBbg_color\fP\&. Set \fBfg_color\fP to
-either 4% gray (almost black) if background is bright, or to 96% gray
-(almost white) if it is dark, and after that return the applied \fBfg_color\fP\&.
+either 4% gray (almost black) if background is bright, or to 80% gray
+(bright gray) if it is dark, and after that return the applied \fBfg_color\fP\&.
 If \fBbg_color\fP is undefined, do nothing and return None.
 .INDENT 7.0
 .INDENT 3.5
@@ -7120,7 +7124,7 @@ class (which defines the implementation).
 .INDENT 0.0
 .TP
 .B class  pytermor.render.DebugRenderer
-Bases: \fI\%IRenderer\fP
+Bases: \fI\%SgrRenderer\fP
 .sp
 DebugRenderer
 .sp
@@ -7136,6 +7140,41 @@ DebugRenderer
 Apply colors and attributes described in \fBstyle\fP argument to
 \fBtext\fP and return the result. Output format depends on renderer\(aqs
 class (which defines the implementation).
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  set_up(force_styles:  bool  |  None  =  False, compatibility_indexed:  bool  =  False, compatibility_default:  bool  =  False)
+Set up renderer preferences. Affects all renderer types.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBforce_styles\fP \-\- .INDENT 2.0
+.IP \(bu 2
+If set to \fINone\fP, all renderers will pass input text through themselves
+without any changes (i.e. no colors and attributes will be applied).
+.IP \(bu 2
+If set to \fITrue\fP, renderers will always apply the formatting regardless
+of other internal rules and algorithms.
+.IP \(bu 2
+If set to \fIFalse\fP [default], the final decision will be made
+by every renderer independently, based on their own algorithms.
+.UNINDENT
+
+.IP \(bu 2
+\fBcompatibility_indexed\fP \-\- Disable \fIRGB\fP (or True Color) output mode. 256\-color (\fIindexed\fP) sequences
+will be printed out instead of disabled ones. Useful when combined with
+\fBcurses\fP \-\- that way you can check the terminal capabilities from the
+inside of that terminal and switch to different output mode at once.
+.IP \(bu 2
+\fBcompatibility_default\fP \-\- Disable \fIindexed\fP output mode and use \fIdefault\fP 16\-color sequences instead.
+If this setting is set to \fITrue\fP, the value of \fBcompatibility_indexed\fP
+will be ignored completely. Useful when combined with \fBcurses\fP \-\- that
+way you can check the terminal capabilities from the inside of that
+terminal and switch to different output mode at once.
+.UNINDENT
+.UNINDENT
 .UNINDENT
 .UNINDENT
 .INDENT 0.0

@@ -500,9 +500,6 @@
 - name: blue sapphire
   original_name: Blue sapphire
   value: 0x126180
-- name: blue violet
-  original_name: Blue violet (Shikon)
-  value: 0x2b2028
 - name: blue yonder
   original_name: Blue yonder
   value: 0x5072a7
@@ -524,6 +521,9 @@
   original_name: Blue-magenta violet
   value: 0x553592
 - name: blue violet
+  original_name: Blue-violet
+  value: 0x8a2be2
+- name: blue violet
   original_name: Blue-violet (color wheel)
   value: 0x4d1a7f
   variation: color-wheel
@@ -531,6 +531,10 @@
   original_name: Blue-violet (Crayola)
   value: 0x7366bd
   variation: crayola
+- name: blue violet
+  original_name: Blue-violet (Shikon)
+  value: 0x2b2028
+  variation: shikon
 - name: blueberry
   original_name: Blueberry
   value: 0x4f86f7
@@ -627,6 +631,10 @@
 - name: bronze
   original_name: Bronze
   value: 0xcd7f32
+- name: bronze
+  original_name: Bronze (2)
+  value: 0x88540b
+  variation: '2'
 - name: bronze
   original_name: Bronze (metallic)
   value: 0xb08d57
@@ -969,6 +977,10 @@
 - name: chinese red
   original_name: Chinese red
   value: 0xaa381e
+- name: chinese red
+  original_name: Chinese red (2)
+  value: 0xcd071e
+  variation: '2'
 - name: chinese silver
   original_name: Chinese silver
   value: 0xcccccc
@@ -1290,6 +1302,10 @@
 - name: dark imperial blue
   original_name: Dark imperial blue
   value: 0x00147e
+- name: dark imperial blue
+  original_name: Dark imperial blue (2)
+  value: 0x00416a
+  variation: '2'
 - name: dark indigo
   original_name: Dark indigo (Futaai)
   value: 0x614e6e
@@ -2128,8 +2144,8 @@
 - name: guyabano
   original_name: Guyabano
   value: 0xf8f8f8
-- name: halayà úbe
-  original_name: Halayà úbe
+- name: halaya ube
+  original_name: Halaya ube
   value: 0x663854
 - name: half
   original_name: Half color (Hashita-iro)
@@ -2510,6 +2526,10 @@
 - name: lemon lime
   original_name: Lemon lime
   value: 0xe3ff00
+- name: lemon lime
+  original_name: Lemon lime (2)
+  value: 0x5cff67
+  variation: '2'
 - name: lemon meringue
   original_name: Lemon meringue
   value: 0xf6eabe
@@ -3031,6 +3051,10 @@
 - name: midnight blue
   original_name: Midnight blue
   value: 0x191970
+- name: midnight blue
+  original_name: Midnight blue (2)
+  value: 0x00468c
+  variation: '2'
 - name: midnight green
   original_name: Midnight green (eagle green)
   value: 0x004953
@@ -3312,6 +3336,10 @@
 - name: orange soda
   original_name: Orange soda
   value: 0xfa5b3d
+- name: orange soda
+  original_name: Orange soda (2)
+  value: 0xeb593d
+  variation: '2'
 - name: orange red
   original_name: Orange-red
   value: 0xff681f
@@ -4097,6 +4125,10 @@
 - name: royal red
   original_name: Royal red
   value: 0xd00060
+- name: royal red
+  original_name: Royal red (2)
+  value: 0x9b1c31
+  variation: '2'
 - name: ruber
   original_name: Ruber
   value: 0xce4676
@@ -4697,6 +4729,10 @@
 - name: true blue
   original_name: True Blue
   value: 0x0073cf
+- name: true blue
+  original_name: True Blue (2)
+  value: 0x2d68c4
+  variation: '2'
 - name: true red
   original_name: True red (Shinshu)
   value: 0x8f1d21
@@ -4881,6 +4917,10 @@
 - name: violet red
   original_name: Violet-red
   value: 0xf75394
+- name: violet red
+  original_name: Violet-red (2)
+  value: 0x891446
+  variation: '2'
 - name: violets are blue
   original_name: Violets Are Blue
   value: 0x8366f4
@@ -5165,3 +5205,36 @@
 - name: superuser
   original_name: Superuser
   value: 0xf8b889
+- name: olympic bronze
+  original_name: Olympic Bronze
+  value: 0x4e3e37
+- name: sunrise coral
+  original_name: Sunrise Coral
+  value: 0xc27863
+- name: grecian bronze
+  original_name: Grecian Bronze
+  value: 0x923916
+- name: brookmere green
+  original_name: Brookmere Green
+  value: 0x3d504b
+- name: aspen green
+  original_name: Aspen Green
+  value: 0x687652
+- name: sequoia beige
+  original_name: Sequoia Beige
+  value: 0xb1b7af
+- name: dawn gray
+  original_name: Dawn Gray
+  value: 0x616359
+- name: bamboo cream
+  original_name: Bamboo Cream
+  value: 0xf2e096
+- name: victorian white
+  original_name: Victorian White
+  value: 0xf4e9ce
+- name: ispahan blue
+  original_name: Ispahan Blue
+  value: 0x303940
+- name: banff blue
+  original_name: Banff Blue
+  value: 0x83a9c1

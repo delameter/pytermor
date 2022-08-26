@@ -229,11 +229,14 @@ class Style:
     def text(self, text: Any) -> Text:
         return Text(text, self)
 
+    def render(self, text: Any) -> str:
+        return self.text(text).render()
+
     def autopick_fg(self) -> Color|None:
         """
         Pick ``fg_color`` depending on ``bg_color``. Set ``fg_color`` to
-        either 4% gray (almost black) if background is bright, or to 96% gray
-        (almost white) if it is dark, and after that return the applied ``fg_color``.
+        either 4% gray (almost black) if background is bright, or to 80% gray
+        (bright gray) if it is dark, and after that return the applied ``fg_color``.
         If ``bg_color`` is undefined, do nothing and return None.
 
         .. todo ::
@@ -250,7 +253,7 @@ class Style:
         if v >= .45:
             self._fg = Colors.RGB_GRAY_04
         else:
-            self._fg = Colors.RGB_GRAY_96
+            self._fg = Colors.RGB_GRAY_80
         return self._fg
 
     # noinspection PyMethodMayBeStatic
@@ -559,7 +562,7 @@ class HtmlRenderer(IRenderer):
         return cls.DEFAULT_ATTRS
 
 
-class DebugRenderer(IRenderer):
+class DebugRenderer(SgrRenderer):
     """
     DebugRenderer
 
@@ -569,7 +572,11 @@ class DebugRenderer(IRenderer):
 
     @classmethod
     def render(cls, text: Any, style: Style = NOOP_STYLE) -> str:
-        return ReplaceSGR(r'|ǝ\3|').apply(SgrRenderer.render(str(text), style))
+        return ReplaceSGR(r'|ǝ\3|').apply(super().render(str(text), style))
+
+    @classmethod
+    def _is_sgr_usage_allowed(cls) -> bool:
+        return True
 
 
 RendererManager.set_up()

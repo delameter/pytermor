@@ -2,14 +2,18 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
+from os.path import abspath, join, dirname
 import re
 
 import yaml
 
-from pytermor import Styles, ColorRGB, Style, Colors
+from pytermor import Styles, ColorRGB, Style, Colors, Text
 from pytermor.util import ljust_sgr
 
-with open('named_sources.yml', 'rt') as f:
+project_root = abspath(join(dirname(__file__), '..'))
+configs_path = join(project_root, 'config')
+
+with open(join(configs_path, 'named_sources.yml'), 'rt') as f:
     named = yaml.safe_load(f)['named_colors']
 
 ids = set()  # tuple(name, lvl1var, lvl2var...)
@@ -29,7 +33,7 @@ for cfg in named:
         possible_id = tuple(parts[:idx+1])
         if possible_id in ids:
             if idx == len(parts) - 1:
-                print(Styles.WARNING._render(f'Unresolvable conflict: {parts}, skipping'))
+                print(Text(f'Unresolvable conflict: {parts}, skipping', Styles.WARNING))
             continue
         else:
             ids.add(possible_id)
@@ -49,19 +53,20 @@ def hexint_presenter(dumper, data):
     return dumper.represent_int(f'0x{data:06x}')
 yaml.add_representer(int, hexint_presenter)
 
-with open('named.yml', 'wt') as f:
+with open(join(configs_path, 'named.yml'), 'wt') as f:
     yaml.dump(colors, f, allow_unicode=True, indent=2, encoding='utf8')
 
 max_name_len = max(len(c["name"]+' '+(c.get("variation", '') or "")) for c in colors)
-orig_name_len = max(len(c["orig_name"]) for c in colors)
+orig_name_len = max(len(c.get("orig_name", "")) for c in colors)
 var_style = Style(fg=Colors.RGB_GRAY_40)
 orig_style = Style(fg=Colors.RGB_GRAY_30)
 for idx, c in enumerate(list(sorted(colors, key=lambda v: v["value"]))):
     style = Style(bg=ColorRGB(c['value']))
     style.autopick_fg()
     style2 = Style(fg=ColorRGB(c['value']))
-    print(' ' + style._render(f" {idx:>4d} ") +
-          '  0x' + style2._render(f"{c['value']:06x}"),
-          '  ', ljust_sgr(c["name"] +" " + var_style._render(c.get("variation", "")), max_name_len) + orig_style._render(f'{c["orig_name"]:<{orig_name_len}s}')
+    print(' ' + style.text(f" {idx:>4d} ") +
+          ' ' + style2.text(f"0x{c['value']:06x}"),
+          '  ', ljust_sgr(c["name"] +" " + var_style.render(c.get("variation", "")), max_name_len)
+          + orig_style.text(f'{c.get("orig_name", ""):<{orig_name_len}s}')
           )
 

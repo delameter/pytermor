@@ -1,7 +1,7 @@
 named_colors:
   # ---------------------------
   # https://encycolorpedia.com/named
-  #
+  # ---------------------------
   - name: "\"New Bridge\" color (Shinbashi-iro)"
     value: 0x006c7f
   - name: "Absolute Zero"
@@ -322,8 +322,6 @@ named_colors:
     value: 0x0cbfe9
   - name: "Blue sapphire"
     value: 0x126180
-  - name: "Blue violet (Shikon)"
-    value: 0x2b2028
   - name: "Blue yonder"
     value: 0x5072a7
   - name: "Blue-gray"
@@ -342,6 +340,8 @@ named_colors:
     value: 0x4d1a7f
   - name: "Blue-violet (Crayola)"
     value: 0x7366bd
+  - name: "Blue-violet (Shikon)"
+    value: 0x2b2028
   - name: "Blueberry"
     value: 0x4f86f7
   - name: "Bluebonnet"
@@ -406,7 +406,7 @@ named_colors:
     value: 0x004225
   - name: "Bronze"
     value: 0xcd7f32
-  - name: "Bronze"
+  - name: "Bronze (2)"
     value: 0x88540b
   - name: "Bronze (metallic)"
     value: 0xb08d57
@@ -632,7 +632,7 @@ named_colors:
     value: 0x720b98
   - name: "Chinese red"
     value: 0xaa381e
-  - name: "Chinese red"
+  - name: "Chinese red (2)"
     value: 0xcd071e
   - name: "Chinese silver"
     value: 0xcccccc
@@ -842,7 +842,7 @@ named_colors:
     value: 0x1f262a
   - name: "Dark imperial blue"
     value: 0x00147e
-  - name: "Dark imperial blue"
+  - name: "Dark imperial blue (2)"
     value: 0x00416a
   - name: "Dark indigo (Futaai)"
     value: 0x614e6e
@@ -1392,7 +1392,8 @@ named_colors:
     value: 0x00ff7f
   - name: "Guyabano"
     value: 0xf8f8f8
-  - name: "Halayà úbe"
+  - name: "Halaya ube"
+  # name: "Halayà úbe"
     value: 0x663854
   - name: "Half color (Hashita-iro)"
     value: 0x8d608c
@@ -1642,7 +1643,7 @@ named_colors:
     value: 0xbd3000
   - name: "Lemon lime"
     value: 0xe3ff00
-  - name: "Lemon lime"
+  - name: "Lemon lime (2)"
     value: 0x5cff67
   - name: "Lemon meringue"
     value: 0xf6eabe
@@ -1986,7 +1987,7 @@ named_colors:
     value: 0x702670
   - name: "Midnight blue"
     value: 0x191970
-  - name: "Midnight blue"
+  - name: "Midnight blue (2)"
     value: 0x00468c
   - name: "Midnight green (eagle green)"
     value: 0x004953
@@ -2170,7 +2171,7 @@ named_colors:
     value: 0xff9f00
   - name: "Orange soda"
     value: 0xfa5b3d
-  - name: "Orange soda"
+  - name: "Orange soda (2)"
     value: 0xeb593d
   - name: "Orange-red"
     value: 0xff681f
@@ -2682,7 +2683,7 @@ named_colors:
     value: 0x7851a9
   - name: "Royal red"
     value: 0xd00060
-  - name: "Royal red"
+  - name: "Royal red (2)"
     value: 0x9b1c31
   - name: "Ruber"
     value: 0xce4676
@@ -3078,7 +3079,7 @@ named_colors:
     value: 0xcda4de
   - name: "True Blue"
     value: 0x0073cf
-  - name: "True Blue"
+  - name: "True Blue (2)"
     value: 0x2d68c4
   - name: "True red (Shinshu)"
     value: 0x8f1d21
@@ -3200,7 +3201,7 @@ named_colors:
     value: 0x766ec8
   - name: "Violet-red"
     value: 0xf75394
-  - name: "Violet-red"
+  - name: "Violet-red (2)"
     value: 0x891446
   - name: "Violets Are Blue"
     value: 0x8366f4
@@ -3384,8 +3385,35 @@ named_colors:
     value: 0x2c1608
   - name: "Zomp"
     value: 0x39a78e
+
   # ---------------------------
   # es7s
-  #
+  # ---------------------------
   - name: "Superuser"
     value: 0xf8b889
+
+  # ---------------------------
+  # GM
+  # ---------------------------
+  - name: "Olympic Bronze"
+    value: 0x4e3e37
+  - name: "Sunrise Coral"
+    value: 0xc27863
+  - name: "Grecian Bronze"
+    value: 0x923916
+  - name: "Brookmere Green"
+    value: 0x3d504b
+  - name: "Aspen Green"
+    value: 0x687652
+  - name: "Sequoia Beige"
+    value: 0xb1b7af
+  - name: "Dawn Gray"
+    value: 0x616359
+  - name: "Bamboo Cream"
+    value: 0xf2e096
+  - name: "Victorian White"
+    value: 0xf4e9ce
+  - name: "Ispahan Blue"
+    value: 0x303940
+  - name: "Banff Blue"
+    value: 0x83a9c1

@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 import re
-from os.path import join, dirname
+from os.path import join, dirname, abspath
 from random import random
 from typing import Dict, Set
 
@@ -35,7 +35,7 @@ class PyModuleColorGenerator:
             print(f'{cc["name_idx"]} = ColorIndexed('
                   f'0x{cc["value"]:06x}, '
                   f'IntCodes.{cc["name_idx"]}'
-                  f'{", use_for_approximations=False" if cc["default_counterpart"] else ""}'
+                  f'{"" if cc["default_counterpart"] else ", use_for_approximations=True"}'
                   f')  # {cc["id"]} {cc["renamed_from"]}', file=f)
         print(f.name)
 
@@ -123,7 +123,7 @@ class HtmlTableGenerator:
         return s[k]
 
     def run(self, f, cfg_indexed):
-        RendererManager.set_up(SgrRenderer)
+        RendererManager.set_up(HtmlRenderer)
 
         html = Text('''<html><head><style>
             html {
@@ -267,8 +267,8 @@ class HtmlTableGenerator:
 
         html += '\n</body></html>'
         html = str(html).replace('_', ' ')
-        #f.write(html)
-        print(html)
+        f.write(html)
+        #print(html)
         RendererManager.set_up(SgrRenderer)
         print(f'Wrote {Text(len(html), Style(bold=True))} bytes to {Text(f.name, "blue")}')
 
@@ -283,7 +283,10 @@ class Main:
         return s>0,  h//18, -s*10//4, v
 
     def run(self):
-        with open(join(dirname(__name__), 'indexed.yml'), 'r') as f:
+        project_root = abspath(join(dirname(__file__), '..'))
+        configs_path = join(project_root, 'config')
+
+        with open(join(configs_path, 'indexed.yml'), 'r') as f:
             cfg_indexed = yaml.load(f, SafeLoader)
 
         d = dict()
@@ -312,14 +315,15 @@ class Main:
 
         cfg_indexed_sort_by_color = sorted(cfg_indexed, key=lambda v: self.sorter_by_color(v))
 
-        generated_dir = join(dirname(__name__), '..', 'docs', '_generated')
-        with open(join(generated_dir, 'preset-table', 'output.rst_'), 'wt') as f:
+        generated_docs_dir = join(project_root, 'docs', '_generated')
+        with open(join(generated_docs_dir, 'preset-table', 'output.rst_'), 'wt') as f:
             PresetListIndexedGenerator().run(f, cfg_indexed)
 
-        with open(join(generated_dir, 'preset-code', 'intcode.py_'), 'wt') as f:
+        generated_code_dir = join(project_root, 'scripts', 'generated')
+        with open(join(generated_code_dir, 'intcode.py_'), 'wt') as f:
             PyModuleIntGenerator().run(f, cfg_indexed)
 
-        with open(join(generated_dir, 'preset-code', 'color.py_'), 'wt') as f:
+        with open(join(generated_code_dir, 'color.py_'), 'wt') as f:
             PyModuleColorGenerator().run(f, cfg_indexed_sort_by_key)
 
         with open(join('/tmp', 'indexed-by-color.html'), 'wt') as f:
@@ -327,7 +331,7 @@ class Main:
         with open(join('/tmp', 'indexed-by-name.html'), 'wt') as f:
             HtmlTableGenerator().run(f, cfg_indexed_sort_by_key)
 
-        with open('named.yml', 'rt') as f:
+        with open(join(configs_path, 'named.yml'), 'rt') as f:
             named = yaml.safe_load(f)
             for idx, n in enumerate(named):
                 n['id'] = idx
