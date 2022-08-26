@@ -94,6 +94,9 @@ class Text(Renderable):
     def _render_using(self, renderer: Type[IRenderer]) -> str:
         return ''.join(run._render_using(renderer) for run in self._runs)
 
+    def raw(self) -> str:
+        return ''.join(run.raw() for run in self._runs)
+
     def append(self, text: str|Text):
         if isinstance(text, str):
             self._runs.append(self._TextRun(text))
@@ -147,6 +150,9 @@ class Text(Renderable):
             if not self._style:
                 return self._string
             return renderer.render(self._string, self._style)
+
+        def raw(self) -> str:
+            return self._string
 
         def __len__(self) -> int:
             return len(self._string)
