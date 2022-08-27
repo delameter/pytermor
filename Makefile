@@ -34,9 +34,9 @@ all:   ## Prepare, run tests, generate docs and reports, build module
 all: prepare prepare-pdf test doctest coverage docs-all build
 
 prepare:  ## Prepare environment for module building
-	python3 -m pip install --upgrade build twine
 	python3 -m venv venv
 	. venv/bin/activate
+	pip3 install --upgrade build twine
 	pip3 install -r requirements-dev.txt
 
 prepare-pdf:  ## Prepare environment for pdf rendering
@@ -86,6 +86,7 @@ coverage: ## Run coverage and make a report
 
 depends:  ## Build and display module dependency graph
 	mkdir -p dev/diagrams
+	. venv/bin/activate
 	pydeps ${PROJECT_NAME} --rmprefix ${PROJECT_NAME}. -o scripts/diagrams/imports.svg
 	pydeps ${PROJECT_NAME} --rmprefix ${PROJECT_NAME}. -o scripts/diagrams/cycles.svg 	   --show-cycle                       --no-show
 	pydeps ${PROJECT_NAME} --rmprefix ${PROJECT_NAME}. -o scripts/diagrams/imports-ext.svg --pylib  --collapse-target-cluster --no-show
@@ -137,10 +138,12 @@ docs-all: docs docs-pdf docs-man
 build-dev: ## Create new private build (<pytermor-delameter>)
 build-dev: demolish-build
 	sed -E -i "s/^name.+/name = ${PROJECT_NAME_PRIVATE}/" setup.cfg
+	. venv/bin/activate
 	python3 -m build
 	sed -E -i "s/^name.+/name = ${PROJECT_NAME_PUBLIC}/" setup.cfg
 
 upload-dev: ## Upload last successful build to dev repo
+	. venv/bin/activate
 	python3 -m twine upload --repository testpypi dist/* \
 			-u ${PYPI_USERNAME} -p ${PYPI_PASSWORD_DEV} --verbose
 
@@ -155,9 +158,11 @@ install-dev-public: ## Install latest public build from dev repo
 
 build: ## Create new public build (<pytermor>)
 build: demolish-build
+	. venv/bin/activate
 	python3 -m build
 
 upload: ## Upload last successful build to PRIMARY repo
+	. venv/bin/activate
 	python3 -m twine upload dist/* -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD} --verbose
 
 install: ## Install latest public build from PRIMARY repo
