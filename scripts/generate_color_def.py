@@ -12,32 +12,38 @@ from typing import Dict, Set
 import yaml
 from yaml import SafeLoader
 
-from pytermor.color import ColorIndexed, Colors
+from pytermor import ColorIndexed256, ColorIndexed16, NOOP_STYLE
+from pytermor.color import Colors, Color
 from pytermor.render import Style, Text
 from pytermor.render import RendererManager, HtmlRenderer, SgrRenderer
 
 
-class PyModuleIntGenerator:
-    def run(self, f, cfg_indexed):
-        print('# ---------------------------------- GENERATED '
-              '---------------------------------\n', file=f)
-        for cc in cfg_indexed:
-            print(f'{cc["name_idx"]} = {cc["id"]}', file=f)
-
-        print(f.name)
-
-
 class PyModuleColorGenerator:
-    def run(self, f, cfg_indexed):
+    def run(self, f, cfg_color):
         print('# ---------------------------------- GENERATED '
               '---------------------------------\n', file=f)
-        for cc in cfg_indexed:
-            print(f'{cc["name_idx"]} = ColorIndexed('
-                  f'0x{cc["value"]:06x}, '
-                  f'IntCodes.{cc["name_idx"]}'
-                  f'{"" if cc["default_counterpart"] else ", use_for_approximations=True"}'
-                  f')  # {cc["id"]} {cc["renamed_from"]}', file=f)
+        [self.process_indexed_16(cc, f) for cc in cfg_color.get('indexed_16')]
+        print(file=f)
+        [self.process_indexed_256(cc, f) for cc in cfg_color.get('indexed_256')]
+        print(file=f)
+        [self.process_indexed_rgb(cc, f) for cc in cfg_color.get('rgb')]
         print(f.name)
+
+    @staticmethod
+    def process_indexed_16(cc, f):
+        cc['aliases'] = cc.get('aliases', [])
+        print('{const_name} = ColorIndexed16(0x{hex_value:06x}, '
+              'IntCodes.{code_fg}, IntCodes.{code_bg}, {index_256}, {aliases})'.format(**cc), file=f)
+
+    @staticmethod
+    def process_indexed_256(cc, f):
+        cc['aliases'] = cc.get('aliases')
+        print('{const_name} = ColorIndexed256(0x{hex_value:06x}, {code}, {aliases})'.format(**cc), file=f)
+
+    @staticmethod
+    def process_indexed_rgb(cc, f):
+        cc['aliases'] = cc.get('aliases')
+        print('{const_name} = ColorRGB(0x{hex_value:06x}, {aliases})'.format(**cc), file=f)
 
 
 class PresetListIndexedGenerator:
@@ -124,6 +130,7 @@ class HtmlTableGenerator:
 
     def run(self, f, cfg_indexed):
         RendererManager.set_up(HtmlRenderer)
+        #RendererManager.set_up(SgrRenderer)
 
         html = Text('''<html><head><style>
             html {
@@ -224,7 +231,7 @@ class HtmlTableGenerator:
             id_style = Style(fg='white', class_name='id')
             name_style = Style(fg='white', blink=is_duplicate, class_name='name')
             value_style = Style(fg=cc['value'], class_name='value')
-            comment_label_style = Style(fg=Colors.RGB_GRAY_35, italic=True, class_name='comment')
+            comment_label_style = Style(fg=Colors.RGB_GREY_35, italic=True, class_name='comment')
             #comment_value_style = Style(fg='gray', italic=True, dim=True)
             example_style = Style(bg=cc['value'], fg=0x0, class_name='example')
             example_style.autopick_fg()
@@ -257,10 +264,18 @@ class HtmlTableGenerator:
             # value_str= re.sub('.', lambda m: repl(), value_str)
             # name_str= re.sub('.', lambda m: repl(), name_str)
             # variation_str= re.sub('.', lambda m: repl(), variation_str)
-            html += ('\n<div>' +
-                container_style.text(
-                    value_style.text(example_style.text(f'{id_str}') + value_str) +
-                    name_style.text(name_str) +
+
+            if value_style.fg.hex_value is not None:
+                value2_style = Style(value_style, bg=ColorIndexed256.find_closest(value_style.fg.hex_value))
+                value3_style = Style(value_style, bg=ColorIndexed16.find_closest(value_style.fg.hex_value))
+            else:
+                value2_style = NOOP_STYLE
+                value3_style = NOOP_STYLE
+            html += ('\n<div>' + id_str +
+                    value_style.flip().autopick_fg().text((f'{value_str}')) +
+                    value2_style.autopick_fg().text((f'{value2_style.bg.format_value("")}')) +
+                    value3_style.autopick_fg().text((f'{value3_style.bg.format_value("")}')  ) +
+                  container_style.text(  name_style.text(name_str) +
                     comment_str +
                     comment_label_style.text(variation_str)
                     + '</div>'))
@@ -276,61 +291,51 @@ class HtmlTableGenerator:
 # -----------------------------------------------------------------------------
 
 class Main:
-    INDEXED_PRESET_PREFIX = 'xterm'
+    INDEXED_PRESET_PREFIX = ''
 
     def sorter_by_color(self, cfg):
-        h, s, v = ColorIndexed.hex_value_to_hsv_channels(cfg['value'])
+        h, s, v = Color.hex_value_to_hsv_channels(cfg['value'])
         return s>0,  h//18, -s*10//4, v
 
     def run(self):
         project_root = abspath(join(dirname(__file__), '..'))
         configs_path = join(project_root, 'config')
 
-        with open(join(configs_path, 'indexed.yml'), 'r') as f:
-            cfg_indexed = yaml.load(f, SafeLoader)
+        with open(join(configs_path, 'color.yml'), 'r') as f:
+            cfg_color = yaml.load(f, SafeLoader)
 
         d = dict()
-        d.update()
         first = True
         first_rename = True
-        for c in cfg_indexed:
-            c['name'] = c.get('override_name', c['original_name'])
-            c['key'] = re.sub(r'\d|_', '', c['name'])
-            c['first_rename'] = ''
-            c['original_name_rst'] = ''
-            c['renamed_from'] = ''
-            if not c.get('default_counterpart', None): c['default_counterpart'] = None
-            if c['name'] != c['original_name']:
-                c['renamed_from'] = f'(orig. {c["original_name"]})'
-                c['original_name_rst'] = f'**{c["original_name"]}**'
-                c['first_rename'] = ' [4]_' if first_rename else ''
-                first_rename = False
-            c['name_idx'] = re.sub(r'([a-z]|^)([A-Z0-9])', r'\1_\2',
-                                   self.INDEXED_PRESET_PREFIX + c['name']).upper()
-            c['first'] = ' [3]_' if first else ''
-            first = False
+        for ctype in cfg_color:
+            for c in cfg_color[ctype]:
+                c['primary_name'] = c.get('override_name', c.get('original_name'))
+                c['first_rename'] = ''
+                if c['primary_name'] != c['original_name'] and first_rename:
+                    c['first_rename'] = ' [4]_'
+                    first_rename = False
+                c['const_name'] = re.sub(r'([a-z])([A-Z0-9])', r'\1_\2', self.INDEXED_PRESET_PREFIX + c['primary_name']).upper()
+                c['first'] = ' [3]_' if first else ''
+                first = False
 
-        cfg_indexed_sort_by_key = sorted(cfg_indexed, key=lambda v: (
-            v['key'], -sum(ColorIndexed.hex_value_to_rgb_channels(v['value']))))
+        #cfg_indexed_sort_by_key = sorted(cfg_color, key=lambda v: (
+        #    v['const_name'], -sum(Color.hex_value_to_rgb_channels(v['hex_value']))))
 
-        cfg_indexed_sort_by_color = sorted(cfg_indexed, key=lambda v: self.sorter_by_color(v))
+        # cfg_indexed_sort_by_color = sorted(cfg_color, key=lambda v: self.sorter_by_color(v))
 
-        generated_docs_dir = join(project_root, 'docs', '_generated')
-        with open(join(generated_docs_dir, 'preset-table', 'output.rst_'), 'wt') as f:
-            PresetListIndexedGenerator().run(f, cfg_indexed)
+        # generated_docs_dir = join(project_root, 'docs', '_generated')
+        # with open(join(generated_docs_dir, 'preset-table', 'output.rst_'), 'wt') as f:
+        #     PresetListIndexedGenerator().run(f, cfg_color)
 
         generated_code_dir = join(project_root, 'scripts', 'generated')
-        with open(join(generated_code_dir, 'intcode.py_'), 'wt') as f:
-            PyModuleIntGenerator().run(f, cfg_indexed)
-
         with open(join(generated_code_dir, 'color.py_'), 'wt') as f:
-            PyModuleColorGenerator().run(f, cfg_indexed_sort_by_key)
+            PyModuleColorGenerator().run(f, cfg_color)
 
-        with open(join('/tmp', 'indexed-by-color.html'), 'wt') as f:
-            HtmlTableGenerator().run(f, cfg_indexed_sort_by_color)
-        with open(join('/tmp', 'indexed-by-name.html'), 'wt') as f:
-            HtmlTableGenerator().run(f, cfg_indexed_sort_by_key)
-
+        # with open(join('/tmp', 'indexed-by-color.html'), 'wt') as f:
+        #     HtmlTableGenerator().run(f, cfg_indexed_sort_by_color)
+        # with open(join('/tmp', 'indexed-by-name.html'), 'wt') as f:
+        #     HtmlTableGenerator().run(f, cfg_indexed_sort_by_key)
+        #
         with open(join(configs_path, 'named.yml'), 'rt') as f:
             named = yaml.safe_load(f)
             for idx, n in enumerate(named):

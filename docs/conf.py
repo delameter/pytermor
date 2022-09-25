@@ -113,7 +113,7 @@ latex_logo = '_static/logo-96.png'
 #autodoc_typehints_format = 'short'
 autodoc_default_options = {
     'members': True,
-    'undoc-members': True,  # @TODO remove
+    'undoc-members': True,  # @TODO remove after active development is finished
     'inherited-members': True,
     #'private-members': True,
     'show-inheritance': True,
@@ -157,12 +157,10 @@ todo_include_todos = True
 
 # -- Hide "bases: object" elements --------------------------------------------
 
-# ClassDocumenter.add_directive_header uses ClassDocumenter.add_line to
-#   write the class documentation.
-# We'll monkeypatch the add_line method and intercept lines that begin
-#   with "Bases:".
-# In order to minimize the risk of accidentally intercepting a wrong line,
-#   we'll apply this patch inside of the add_directive_header method.
+# ClassDocumenter.add_directive_header uses ClassDocumenter.add_line to write the class documentation.
+# We'll monkeypatch the add_line method and intercept lines that begin with "Bases:".
+# In order to minimize the risk of accidentally intercepting a wrong line, we'll apply this patch inside of the
+# add_directive_header method.
 # https://stackoverflow.com/a/46284013/5834973
 
 from sphinx.ext.autodoc import ClassDocumenter, _

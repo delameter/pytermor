@@ -57,7 +57,7 @@ from typing import List, Sized, Any
 from typing import Type, Dict, Set
 
 from .ansi import SequenceSGR, Span, NOOP_SEQ, Seqs
-from .color import Color, ColorRGB, ColorIndexed, ColorDefault, NOOP_COLOR, Colors
+from .color import Color, ColorRGB, ColorIndexed16, ColorIndexed256, NOOP_COLOR, Colors
 from .common import Registry
 from .util.string_filter import ReplaceSGR
 
@@ -238,29 +238,36 @@ class Style:
     def render(self, text: Any) -> str:
         return self.text(text).render()
 
-    def autopick_fg(self) -> Color|None:
+    def autopick_fg(self) -> Style:
         """
         Pick ``fg_color`` depending on ``bg_color``. Set ``fg_color`` to
         either 4% gray (almost black) if background is bright, or to 80% gray
-        (bright gray) if it is dark, and after that return the applied ``fg_color``.
-        If ``bg_color`` is undefined, do nothing and return None.
+        (bright gray) if it is dark. If background is None, do nothing.
 
         .. todo ::
 
             check if there is a better algorithm,
             because current thinks text on #000080 should be black
 
-        :return: Suitable foreground color or None.
+        :return: self
         """
         if self._bg is None or self._bg.hex_value is None:
-            return
+            return self
 
         h, s, v = Color.hex_value_to_hsv_channels(self._bg.hex_value)
         if v >= .45:
-            self._fg = Colors.RGB_GRAY_04
+            self._fg = Colors.RGB_GREY_4
         else:
-            self._fg = Colors.RGB_GRAY_80
-        return self._fg
+            self._fg = Colors.RGB_GREY_80
+        return self
+
+    def flip(self) -> Style:
+        """
+        Swap foreground color and background color.
+        :return: self
+        """
+        self._fg, self._bg = self._bg, self._fg
+        return self
 
     # noinspection PyMethodMayBeStatic
     def _resolve_color(self, arg: str|int|Color, nullable: bool) -> Color|None:
@@ -364,37 +371,38 @@ class IRenderer(metaclass=ABCMeta):
 
 class SgrRenderer(IRenderer):
     """
-    Default renderer that `Text._render()` invokes. Transforms
-    `Color` instances defined in ``style`` into ANSI control sequence
-    characters and merges them with input string.
+    Default renderer invoked by `Text._render()`. Transforms `Color` instances
+    defined in ``style`` into ANSI control sequence bytes and merges them with
+    input string.
 
     Respects compatibility preferences (see `RendererManager.set_up()`) and
     maps RGB colors to closest *indexed* colors if terminal doesn't support
     RGB output. In case terminal doesn't support even 256 colors, falls back
-    to *default* colors, searching for closest counterparts in 16-color table.
+    to 16-color pallete and picks closest counterparts again the same way.
 
     Type of output ``SequenceSGR`` depends on type of `Color` variables in
     ``style`` argument. Keeping all that in mind, let's summarize:
 
-    1. `ColorRGB` can be rendered as True Color sequence, indexed sequence
-       or default (16-color) sequence depending on terminal capabilities.
-    2. `ColorIndexed` can be rendered as indexed sequence or default sequence.
-    3. `ColorDefault` can be rendered as default-color sequence.
+    1. `ColorRGB` can be rendered as True Color sequence, 256-color sequence
+       or 16-color sequence depending on compatibility settings.
+    2. `ColorIndexed256` can be rendered as 256-color sequence or 16-color
+       sequence.
+    3. `ColorIndexed16` can be rendered as 16-color sequence.
     4. Nothing of the above will happen and all Colors will be discarded
        completely if output is not a terminal emulator or if the developer
-       explicitly set up the renderer to do so.
+       explicitly set up the renderer to do so (**force_styles** = False).
 
     >>> SgrRenderer.render('text', Style(fg='red', bold=True))
     '\\x1b[1;31mtext\\x1b[22;39m'
     """
     _force_styles: bool|None = False
-    _compatibility_indexed: bool = False
-    _compatibility_default: bool = False
+    _compatibility_256_colors: bool = False
+    _compatibility_16_colors: bool = False
 
     @classmethod
     def set_up(cls, force_styles: bool|None = False,
-               compatibility_indexed: bool = False,
-               compatibility_default: bool = False):
+               compatibility_256_colors: bool = False,
+               compatibility_16_colors: bool = False):
         """
         Set up renderer preferences. Affects all renderer types.
 
@@ -407,25 +415,23 @@ class SgrRenderer(IRenderer):
             * If set to *False* [default], the final decision will be made
               by every renderer independently, based on their own algorithms.
 
-        :param compatibility_indexed:
+        :param compatibility_256_colors:
 
-            Disable *RGB* (or True Color) output mode. 256-color (*indexed*) sequences
-            will be printed out instead of disabled ones. Useful when combined with
+            Disable *RGB* (or True Color) output mode. *256-color* sequences will
+            be printed out instead of disabled ones. Useful when combined with
             ``curses`` -- that way you can check the terminal capabilities from the
             inside of that terminal and switch to different output mode at once.
 
-        :param compatibility_default:
+        :param compatibility_16_colors:
 
-            Disable *indexed* output mode and use *default* 16-color sequences instead.
-            If this setting is set to *True*, the value of ``compatibility_indexed``
-            will be ignored completely. Useful when combined with ``curses`` -- that
-            way you can check the terminal capabilities from the inside of that
-            terminal and switch to different output mode at once.
+            Disable *256-color* output mode and default *16-color* sequences instead.
+            If this setting is set to *True*, the value of ``compatibility_256_colors``
+            will be ignored completely.
 
         """
         cls._force_styles = force_styles
-        cls._compatibility_indexed = compatibility_indexed
-        cls._compatibility_default = compatibility_default
+        cls._compatibility_256_colors = compatibility_256_colors
+        cls._compatibility_16_colors = compatibility_16_colors
 
     @classmethod
     def render(cls, text: Any, style: Style = NOOP_STYLE):
@@ -462,24 +468,24 @@ class SgrRenderer(IRenderer):
 
     @classmethod
     def _render_color(cls, color: Color, bg: bool) -> SequenceSGR:
-        if not cls._is_sgr_usage_allowed():
-            return NOOP_SEQ
-
         hex_value = color.hex_value
 
+        if not cls._is_sgr_usage_allowed() or hex_value is None:
+            return NOOP_SEQ
+
         if isinstance(color, ColorRGB):
-            if cls._compatibility_default:
-                return ColorDefault.find_closest(hex_value).to_sgr(bg=bg)
-            if cls._compatibility_indexed:
-                return ColorIndexed.find_closest(hex_value).to_sgr(bg=bg)
+            if cls._compatibility_16_colors:
+                return ColorIndexed16.find_closest(hex_value).to_sgr(bg=bg)
+            if cls._compatibility_256_colors:
+                return ColorIndexed256.find_closest(hex_value).to_sgr(bg=bg)
             return color.to_sgr(bg=bg)
 
-        elif isinstance(color, ColorIndexed):
-            if cls._compatibility_default:
-                return ColorDefault.find_closest(hex_value).to_sgr(bg=bg)
+        elif isinstance(color, ColorIndexed256):
+            if cls._compatibility_16_colors:
+                return ColorIndexed16.find_closest(hex_value).to_sgr(bg=bg)
             return color.to_sgr(bg=bg)
 
-        elif isinstance(color, ColorDefault):
+        elif isinstance(color, ColorIndexed16):
             return color.to_sgr(bg=bg)
 
         raise NotImplementedError(f'Unknown Color inhertior {color!s}')
@@ -606,7 +612,7 @@ class Styles(Registry[Style]):
     ERROR_LABEL = Style(ERROR, bold=True)
     ERROR_ACCENT = Style(fg=Colors.HI_RED)
 
-    CRITICAL = Style(bg=Colors.HI_RED, fg=Colors.XTERM_GREY_100)
+    CRITICAL = Style(bg=Colors.HI_RED, fg=Colors.HI_WHITE)
     CRITICAL_LABEL = Style(CRITICAL, bold=True)
     CRITICAL_ACCENT = Style(CRITICAL, bold=True, blink=True)
 

@@ -8,7 +8,7 @@ from copy import copy
 from typing import Dict
 
 from pytermor.ansi import SequenceSGR, IntCodes, NOOP_SEQ
-from pytermor.color import Color, ColorDefault, ColorIndexed, ColorRGB, NOOP_COLOR
+from pytermor.color import Color, ColorDefault, _ColorIndexed, ColorRGB, NOOP_COLOR
 
 
 class TestStatic(unittest.TestCase):
@@ -44,24 +44,24 @@ class TestStatic(unittest.TestCase):
 
 class TestColorMap(unittest.TestCase):
     _color_default_lookup_table: Dict[int, ColorDefault]
-    _color_indexed_lookup_table: Dict[int, ColorIndexed]
+    _color_indexed_lookup_table: Dict[int, _ColorIndexed]
     _color_rgb_lookup_table: Dict[int, ColorRGB]
 
     @classmethod
     def setUpClass(cls) -> None:
-        ColorDefault.get_default()  # initialize color maps
-        ColorIndexed.get_default()
-        ColorRGB.get_default()
+        #ColorDefault.get_default()  # initialize color maps
+        #ColorIndexed.get_default()
+        #ColorRGB.get_default()
 
         # and copy lookup table origins:
         cls._color_default_lookup_table = copy(ColorDefault._approx._lookup_table)
-        cls._color_indexed_lookup_table = copy(ColorIndexed._approx._lookup_table)
+        cls._color_indexed_lookup_table = copy(_ColorIndexed._approx._lookup_table)
         cls._color_rgb_lookup_table = copy(ColorRGB._approx._lookup_table)
 
     def tearDown(self) -> None:
-        if ColorIndexed._approx_initialized:
-            ColorIndexed._approx._lookup_table.clear()
-            ColorIndexed._approx._approximation_cache.clear()
+        if _ColorIndexed._approx_initialized:
+            _ColorIndexed._approx._lookup_table.clear()
+            _ColorIndexed._approx._approximation_cache.clear()
 
         if ColorRGB._approx_initialized:
             ColorRGB._approx._lookup_table.clear()
@@ -75,61 +75,61 @@ class TestColorMap(unittest.TestCase):
         # if they have the same name, they are not same objects anymore.
 
         ColorDefault._approx._lookup_table = cls._color_default_lookup_table
-        ColorIndexed._approx._lookup_table = cls._color_indexed_lookup_table
+        _ColorIndexed._approx._lookup_table = cls._color_indexed_lookup_table
         ColorRGB._approx._lookup_table = cls._color_rgb_lookup_table
 
     def test_lookup_table_inits_on_real_color_creation(self):
-        expected = ColorIndexed(0x000000, 0, use_for_approximations=True)
+        expected = _ColorIndexed(0x000000, 0, use_for_approximations=True)
 
-        self.assertEquals(1, len(ColorIndexed._approx._lookup_table))
-        self.assertDictEqual({0x000000: expected}, ColorIndexed._approx._lookup_table)
+        self.assertEquals(1, len(_ColorIndexed._approx._lookup_table))
+        self.assertDictEqual({0x000000: expected}, _ColorIndexed._approx._lookup_table)
 
     def test_lookup_table_ignores_duplicates(self):
-        expected = ColorIndexed(0x010203, 1, use_for_approximations=True)
-        ColorIndexed(0x010203, 2, use_for_approximations=True)
+        expected = _ColorIndexed(0x010203, 1, use_for_approximations=True)
+        _ColorIndexed(0x010203, 2, use_for_approximations=True)
 
-        self.assertEquals(1, len(ColorIndexed._approx._lookup_table))
+        self.assertEquals(1, len(_ColorIndexed._approx._lookup_table))
         self.assertDictEqual({0x010203: expected},
-                             ColorIndexed._approx._lookup_table)
+                             _ColorIndexed._approx._lookup_table)
 
     def test_find_closest_works(self):
-        expected = ColorIndexed(0x400000, 1, use_for_approximations=True)
-        ColorIndexed(0x000000, 2, use_for_approximations=True)
-        ColorIndexed(0x00d0d0, 3, use_for_approximations=True)
+        expected = _ColorIndexed(0x400000, 1, use_for_approximations=True)
+        _ColorIndexed(0x000000, 2, use_for_approximations=True)
+        _ColorIndexed(0x00d0d0, 3, use_for_approximations=True)
 
-        self.assertEquals(expected, ColorIndexed.find_closest(0x500000))
+        self.assertEquals(expected, _ColorIndexed.find_closest(0x500000))
 
     def test_cache_works(self):
-        expected = ColorIndexed(0x400000, 1, use_for_approximations=True)
-        self.assertEquals(0, len(ColorIndexed._approx._approximation_cache))
+        expected = _ColorIndexed(0x400000, 1, use_for_approximations=True)
+        self.assertEquals(0, len(_ColorIndexed._approx._approximation_cache))
 
-        ColorIndexed.find_closest(0x500000)
+        _ColorIndexed.find_closest(0x500000)
         self.assertDictEqual({0x400000: expected, 0x500000: expected},
-                             ColorIndexed._approx._approximation_cache)
+                             _ColorIndexed._approx._approximation_cache)
 
-        ColorIndexed.find_closest(0x300000)
+        _ColorIndexed.find_closest(0x300000)
         self.assertDictEqual(
             {0x400000: expected, 0x500000: expected, 0x300000: expected},
-            ColorIndexed._approx._approximation_cache)
+            _ColorIndexed._approx._approximation_cache)
 
-        ColorIndexed.find_closest(0x500000)
+        _ColorIndexed.find_closest(0x500000)
         self.assertDictEqual(
             {0x400000: expected, 0x500000: expected, 0x300000: expected},
-            ColorIndexed._approx._approximation_cache)
+            _ColorIndexed._approx._approximation_cache)
 
     def test_cache_resets_on_new_color_creation(self):
-        ColorIndexed(0x400000, 1, use_for_approximations=True)
-        ColorIndexed.find_closest(0x500000)
-        ColorIndexed(0x600000, 2, use_for_approximations=True)
+        _ColorIndexed(0x400000, 1, use_for_approximations=True)
+        _ColorIndexed.find_closest(0x500000)
+        _ColorIndexed(0x600000, 2, use_for_approximations=True)
 
-        self.assertEquals(0, len(ColorIndexed._approx._approximation_cache))
+        self.assertEquals(0, len(_ColorIndexed._approx._approximation_cache))
 
     def test_cache_doesnt_change_on_repeated_search(self):
-        ColorIndexed(0x400000, 1, use_for_approximations=True)
-        ColorIndexed.find_closest(0x500000)
-        ColorIndexed(0x600000, 2, use_for_approximations=True)
+        _ColorIndexed(0x400000, 1, use_for_approximations=True)
+        _ColorIndexed.find_closest(0x500000)
+        _ColorIndexed(0x600000, 2, use_for_approximations=True)
 
-        self.assertEquals(0, len(ColorIndexed._approx._approximation_cache))
+        self.assertEquals(0, len(_ColorIndexed._approx._approximation_cache))
 
     def test_cache_is_not_invoked_for_rgb_color_search(self):
         ColorRGB(0x400000)
@@ -141,14 +141,14 @@ class TestColorMap(unittest.TestCase):
         ColorRGB(0xffffff)
         ColorRGB._approx._lookup_table.clear()
         ColorRGB._approx._approximation_cache.clear()
-        self.assertEqual(ColorIndexed.find_closest(0xffffff),
-                         ColorIndexed.get_default())
+        self.assertEqual(_ColorIndexed.find_closest(0xffffff),
+                         _ColorIndexed.get_default())
 
-        ColorIndexed(0xffffff, 1)
-        ColorIndexed._approx._lookup_table.clear()
-        ColorIndexed._approx._approximation_cache.clear()
-        self.assertEqual(ColorIndexed.find_closest(0xffffff),
-                         ColorIndexed.get_default())
+        _ColorIndexed(0xffffff, 1)
+        _ColorIndexed._approx._lookup_table.clear()
+        _ColorIndexed._approx._approximation_cache.clear()
+        self.assertEqual(_ColorIndexed.find_closest(0xffffff),
+                         _ColorIndexed.get_default())
 
         ColorDefault(0xffffff, IntCodes.WHITE, IntCodes.BG_WHITE)
         ColorDefault._approx._lookup_table.clear()
@@ -175,24 +175,24 @@ class TestColorDefault(unittest.TestCase):
             ColorDefault(0x010203, 11, 12) == ColorDefault(0xffeedd, 11, 12))
         self.assertFalse(
             ColorDefault(0x010203, 11, 12) == ColorDefault(0x010203, 12, 11))
-        self.assertFalse(ColorDefault(0x010203, 11, 12) == ColorIndexed(0x010203, 12))
+        self.assertFalse(ColorDefault(0x010203, 11, 12) == _ColorIndexed(0x010203, 12))
         self.assertFalse(ColorDefault(0x010203, 11, 12) == ColorRGB(0x010203))
 
 
 class TestColorIndexed(unittest.TestCase):
     def test_to_sgr(self):
-        self.assertEquals(SequenceSGR(38, 5, 1), ColorIndexed(0xffcc01, 1).to_sgr(False))
-        self.assertEquals(SequenceSGR(48, 5, 1), ColorIndexed(0xffcc01, 1).to_sgr(True))
+        self.assertEquals(SequenceSGR(38, 5, 1), _ColorIndexed(0xffcc01, 1).to_sgr(False))
+        self.assertEquals(SequenceSGR(48, 5, 1), _ColorIndexed(0xffcc01, 1).to_sgr(True))
 
     def test_equality(self):
-        self.assertTrue(ColorIndexed(0x010203, 11) == ColorIndexed(0x010203, 11))
+        self.assertTrue(_ColorIndexed(0x010203, 11) == _ColorIndexed(0x010203, 11))
 
     def test_not_equality(self):
-        self.assertFalse(ColorIndexed(0x010203, 11) == ColorIndexed(0x010203, 12))
-        self.assertFalse(ColorIndexed(0x010203, 11) == ColorIndexed(0x030201, 11))
-        self.assertFalse(ColorIndexed(0x010203, 11) == ColorIndexed(0xffee14, 88))
-        self.assertFalse(ColorIndexed(0x010203, 11) == ColorDefault(0x010203, 11, 11))
-        self.assertFalse(ColorIndexed(0x010203, 11) == ColorRGB(0x010203))
+        self.assertFalse(_ColorIndexed(0x010203, 11) == _ColorIndexed(0x010203, 12))
+        self.assertFalse(_ColorIndexed(0x010203, 11) == _ColorIndexed(0x030201, 11))
+        self.assertFalse(_ColorIndexed(0x010203, 11) == _ColorIndexed(0xffee14, 88))
+        self.assertFalse(_ColorIndexed(0x010203, 11) == ColorDefault(0x010203, 11, 11))
+        self.assertFalse(_ColorIndexed(0x010203, 11) == ColorRGB(0x010203))
 
 
 class TestColorRGB(unittest.TestCase):
@@ -207,6 +207,6 @@ class TestColorRGB(unittest.TestCase):
 
     def test_not_equality(self):
         self.assertFalse(ColorRGB(0x010203) == ColorRGB(0x030201))
-        self.assertFalse(ColorRGB(0x010203) == ColorIndexed(0x010203, 1))
+        self.assertFalse(ColorRGB(0x010203) == _ColorIndexed(0x010203, 1))
         self.assertFalse(ColorRGB(0x010203) == ColorDefault(0x556677, IntCodes.WHITE,
                                                             IntCodes.BG_WHITE))

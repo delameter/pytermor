@@ -14,9 +14,9 @@ export
 VERSION ?= 0.0.0
 
 BOLD   := $(shell tput -Txterm bold)
+UNDERL := $(shell tput -Txterm smul)
 GREEN  := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)
-INV    := $(shell tput -Txterm rev)
 RESET  := $(shell tput -Txterm sgr0)
 SEPU   := $(shell printf "┌%48s┐" "" | sed 's/ /─/g')
 SEPD   := $(shell printf "└%48s┘" "" | sed 's/ /─/g')
@@ -28,7 +28,7 @@ log_success = (echo ${SEPU}; printf "%-6s%-36sOK\n" $1 | tr '\t' ' ' | sed -Ee "
 ## Common commands
 
 help:   ## Show this help
-	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s*([^#]+)#*\s*(.*)/\1${YELLOW}\2${RESET}#\3/' -e 's/(.+):(#|\s)+(.+)/##   ${GREEN}\1${RESET}#\3/' | column -t -s '#'
+	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s*([^#]+)#*\s*(.*)/\1${YELLOW}\2${RESET}#\3/; s/(.+):(#|\s)+(.+)/##   ${GREEN}\1${RESET}#\3/; s/\*(\w+)\*/${UNDERL}\1${RESET}/g' | column -t -s '#'
 
 all:   ## Prepare, run tests, generate docs and reports, build module
 all: prepare prepare-pdf test doctest coverage docs-all build
@@ -85,7 +85,7 @@ coverage: ## Run coverage and make a report
 	if [ -n $$DISPLAY ] ; then xdg-open coverage-report/index.html ; fi
 
 depends:  ## Build and display module dependency graph
-	mkdir -p dev/diagrams
+	mkdir -p scripts/diagrams
 	. venv/bin/activate
 	pydeps ${PROJECT_NAME} --rmprefix ${PROJECT_NAME}. -o scripts/diagrams/imports.svg
 	pydeps ${PROJECT_NAME} --rmprefix ${PROJECT_NAME}. -o scripts/diagrams/cycles.svg 	   --show-cycle                       --no-show
@@ -101,7 +101,7 @@ depends:  ## Build and display module dependency graph
 reinit-docs: ## Erase and reinit docs with auto table of contents
 	rm -v docs/*.rst
 	. venv/bin/activate
-	sphinx-apidoc --force --separate --module-first --tocfile index --output-dir docs pytermor
+	sphinx-apidoc --force --separate --module-first --tocfile index --output-dir docs ${PROJECT_NAME}
 
 demolish-docs:  ## Purge docs output folder
 	rm -rvf docs/_build
@@ -110,22 +110,23 @@ docs: ## Build HTML documentation
 docs: demolish-docs
 	. venv/bin/activate
 	sphinx-build -aEn docs docs/_build -b html
-	find docs/_build -type f -name '*.html' | sort | xargs -n1 grep -HnT ^ | sed s@^docs/_build/@@ > docs-build/pytermor.html.dump
+	find docs/_build -type f -name '*.html' | sort | xargs -n1 grep -HnT ^ | sed s@^docs/_build/@@ > docs-build/${PROJECT_NAME}.html.dump
 	@if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/index.html ; fi
 
 docs-pdf: ## Build PDF documentation
+	mkdir -p docs-build
 	. venv/bin/activate
 	yes "" | make -C docs latexpdf  # twice for building pdf toc
 	yes "" | make -C docs latexpdf  # @FIXME broken unicode
-	mv docs/_build/latex/pytermor.pdf docs-build/pytermor.pdf
-	@if [ -n "${DISPLAY}" ] ; then xdg-open docs-build/pytermor.pdf ; fi
+	mv docs/_build/latex/${PROJECT_NAME}.pdf docs-build/${PROJECT_NAME}.pdf
+	@if [ -n "${DISPLAY}" ] ; then xdg-open docs-build/${PROJECT_NAME}.pdf ; fi
 
 docs-man: ## Build man pages
 	. venv/bin/activate
 	sed -i.bak -Ee 's/^.+<<<MAKE_DOCS_MAN<<</#&/' docs/conf.py
 	make -C docs man || echo 'Generation failed'
 	mv docs/conf.py.bak docs/conf.py
-	mv docs/_build/man/pytermor.1 docs-build/pytermor.1
+	mv docs/_build/man/${PROJECT_NAME}.1 docs-build/${PROJECT_NAME}.1
 
 docs-all: ## Build documentation in all formats
 docs-all: docs docs-pdf docs-man
@@ -135,43 +136,46 @@ docs-all: docs docs-pdf docs-man
 
 ## Releasing (dev)
 
-build-dev: ## Create new private build (<pytermor-delameter>)
+build-dev: ## Create new private build ("pytermor-delameter")
 build-dev: demolish-build
 	sed -E -i "s/^name.+/name = ${PROJECT_NAME_PRIVATE}/" setup.cfg
 	. venv/bin/activate
-	python3 -m build
+	python3 -m build --outdir dist-dev
 	sed -E -i "s/^name.+/name = ${PROJECT_NAME_PUBLIC}/" setup.cfg
 
-upload-dev: ## Upload last successful build to dev repo
+upload-dev: ## Upload latest private build to dev repo
 	. venv/bin/activate
-	python3 -m twine upload --repository testpypi dist/* \
+	python3 -m twine upload --repository testpypi dist-dev/* \
 			-u ${PYPI_USERNAME} -p ${PYPI_PASSWORD_DEV} --verbose
 
 install-dev: ## Install latest private build from dev repo
+	. "${ES7S_VENV}/bin/activate"
 	pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME_PRIVATE}==${VERSION}
 
-install-dev-public: ## Install latest public build from dev repo
+install-dev-public: ## Install latest *public* build from dev repo
+	. "${ES7S_VENV}/bin/activate"
 	pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME_PUBLIC}==${VERSION}
 
 
-## Releasing (PRIMARY)
+## Releasing (MASTER)
 
-build: ## Create new public build (<pytermor>)
+build: ## Create new *public* build ("pytermor")
 build: demolish-build
 	. venv/bin/activate
 	python3 -m build
 
-upload: ## Upload last successful build to PRIMARY repo
+upload: ## Upload latest *public* build to MASTER repo
 	. venv/bin/activate
 	python3 -m twine upload dist/* -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD} --verbose
 
-install: ## Install latest public build from PRIMARY repo
+install: ## Install latest *public* build from MASTER repo
+	. "${ES7S_VENV}/bin/activate"
 	pip install ${PROJECT_NAME_PUBLIC}==${VERSION}
 
 
 ##-----------------------##-------------------------------------------------------------
 ## To install private    ## #
-## build over public one:## #
+## build as public one:## #
 # make build upload-dev install-dev-public :##
 ##                       ## #                                               (dont do that)
 ########################### #

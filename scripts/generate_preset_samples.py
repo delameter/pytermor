@@ -12,7 +12,7 @@ import yaml
 from yaml import SafeLoader
 
 SIZE = 64
-
+# @todo update
 with open(join(dirname(__name__), 'indexed.yml'), 'r') as f:
     cfg_indexed = yaml.load(f, SafeLoader)
 
