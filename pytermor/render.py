@@ -406,6 +406,10 @@ class SgrRenderer(IRenderer):
         """
         Set up renderer preferences. Affects all renderer types.
 
+        .. todo ::
+            Rewrite this part. Default should be *256* OR *RGB* if COLORTERM is either
+            ``truecolor`` or ``24bit``. `setup()` overrides this, of course.
+
         :param force_styles:
 
             * If set to *None*, all renderers will pass input text through themselves
@@ -451,7 +455,7 @@ class SgrRenderer(IRenderer):
     @classmethod
     def _render_attributes(cls, style: Style) -> SequenceSGR:
         result = NOOP_SEQ
-        if not cls._is_sgr_usage_allowed():
+        if not cls.is_sgr_usage_allowed():
             return result
 
         if style.blink:             result += Seqs.BLINK_SLOW
@@ -470,7 +474,7 @@ class SgrRenderer(IRenderer):
     def _render_color(cls, color: Color, bg: bool) -> SequenceSGR:
         hex_value = color.hex_value
 
-        if not cls._is_sgr_usage_allowed() or hex_value is None:
+        if not cls.is_sgr_usage_allowed() or hex_value is None:
             return NOOP_SEQ
 
         if isinstance(color, ColorRGB):
@@ -491,7 +495,7 @@ class SgrRenderer(IRenderer):
         raise NotImplementedError(f'Unknown Color inhertior {color!s}')
 
     @classmethod
-    def _is_sgr_usage_allowed(cls) -> bool:
+    def is_sgr_usage_allowed(cls) -> bool:
         if cls._force_styles is True:
             return True
         if cls._force_styles is None:
@@ -587,7 +591,7 @@ class DebugRenderer(SgrRenderer):
         return ReplaceSGR(r'|ǝ\3|').apply(super().render(str(text), style))
 
     @classmethod
-    def _is_sgr_usage_allowed(cls) -> bool:
+    def is_sgr_usage_allowed(cls) -> bool:
         return True
 
 
