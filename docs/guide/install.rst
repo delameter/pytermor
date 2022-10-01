@@ -34,8 +34,8 @@ Structure
    |     |                      | `TmuxRenderer` etc.  | several other implementations depending on what output                          |
    |     |                      |                      | format is required.                                                             |
    |     +----------------------+----------------------+---------------------------------------------------------------------------------+
-   |     | `color`              | `ColorDefault`       | Abstractions for color operations in different color modes                      |
-   |     |                      | `ColorIndexed`       | (default 16-color, 256-color, RGB). Tools for color approximation               |
+   |     | `color`              | `ColorIndexed16`     | Abstractions for color operations in different color modes                      |
+   |     |                      | `ColorIndexed256`    | (default 16-color, 256-color, RGB). Tools for color approximation               |
    |     |                      | `ColorRGB`           | and transformations.                                                            |
    |     |                      +----------------------+---------------------------------------------------------------------------------+
    |     |                      | `Colors`             | Color presets (see `presets`).                                                  |

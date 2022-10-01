@@ -196,7 +196,7 @@ class Style:
     Style[fg=008000, no bg, bold]
     >>> Style(bg=0x0000ff)
     Style[no fg, bg=0000ff]
-    >>> Style(fg=Colors.XTERM_DEEP_SKY_BLUE_1, bg=Colors.XTERM_GREY_93)
+    >>> Style(fg=Colors.DEEP_SKY_BLUE_1, bg=Colors.GREY_93)
     Style[fg=00afff, bg=eeeeee]
     """
     _fg: Color = field(default=None, init=False)

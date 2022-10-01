@@ -5,16 +5,16 @@
 """
 .. testsetup:: *
 
-    from pytermor.color import Color, ColorDefault, ColorIndexed, ColorRGB
+    from pytermor.color import _ColorIndexed, Color, ColorIndexed16, ColorIndexed256, ColorRGB
 """
 from __future__ import annotations
 
 import logging
 from abc import abstractmethod, ABCMeta
-from typing import Dict, Tuple, Generic, TypeVar, List, Optional, overload
+from typing import Dict, Tuple, TypeVar, List
 
-from .common import LogicError, Registry
 from .ansi import SequenceSGR, NOOP_SEQ, IntCodes
+from .common import LogicError, Registry
 
 
 class Color(metaclass=ABCMeta):
@@ -120,10 +120,10 @@ class _ColorIndexed(Color, metaclass=ABCMeta):
         Wrapper for `Approximator.find_closest()`.
 
         :param hex_value: Integer color value in ``0xffffff`` format.
-        :return:          Nearest found `ColorIndexed` instance.
+        :return:          Nearest found `_ColorIndexed` instance.
 
         >>> _ColorIndexed.find_closest(0xd9dbdb)
-        ColorIndexed[code=253, 0xdadada]
+        _ColorIndexed[code=253, 0xdadada]
         """
         return cls._approximator.find_closest(hex_value)
 
@@ -202,7 +202,7 @@ class ColorRGB(Color):
 
 class Approximator:
     """
-    Internal class containing a dictionary of registred `colors <ColorIndexed>` indexed
+    Internal class containing a dictionary of registred `colors <_ColorIndexed>` indexed
     by hex code along with cached nearest color search results to avoid unnecessary
     instance copies and search repeats.
     """
@@ -218,7 +218,7 @@ class Approximator:
 
     def add_to_map(self, color: _ColorIndexed):
         """
-        Called from `ColorIndexed` constructors. Add a new element in color
+        Called from `_ColorIndexed` constructors. Add a new element in color
         lookup table if it wasn't there, and then drop cached search results
         as they are most probably useless after registering a new color (i.e.
         now there will be better result for at least one cached value).
@@ -239,7 +239,7 @@ class Approximator:
         incapable of operating in better mode.
 
         :param hex_value: Color value in RGB format.
-        :return:          Nearest to ``hex_value`` registered ``ColorIndexed``.
+        :return:          Nearest to ``hex_value`` registered ``_ColorIndexed``.
                           If no colors of required type were created (table and cache
                           are empty), ``NOOP_COLOR`` is returned.
         """
@@ -277,7 +277,7 @@ class Approximator:
 
         :param hex_value:   Color RGB value.
         :param max_results: Maximum amount of values to return.
-        :return:            Closest `ColorIndexed` instances found, sorted by color
+        :return:            Closest `_ColorIndexed` instances found, sorted by color
                             distance descending (i.e. 0th element is always the
                             closest to the input value).
         """
@@ -299,7 +299,7 @@ class Approximator:
             # normally it's impossible to get here; this exception almost
             # certainly means that there is a bug somewhere in this class.
             raise LogicError(f'There are '  # pragma: no cover
-                             f'no registred ColorIndexed instances')
+                             f'no registred _ColorIndexed instances')
 
         sorted_result = sorted(result, key=lambda r: r[1])
         return [c for c, _ in sorted_result[:max_results]]
@@ -312,7 +312,7 @@ class Approximator:
 
 NOOP_COLOR_INDEXED = ColorIndexed16()
 """
-Special instance of `ColorIndexed` class always rendering into empty string.
+Special instance of `ColorIndexed16` class always rendering into empty string.
 """
 
 NOOP_COLOR = ColorRGB()
@@ -323,7 +323,7 @@ Special instance of `ColorRGB` class always rendering into empty string.
 
 class Colors(Registry[TypeColor]):
     """
-    Registry of colors presets (`ColorDefault`, `ColorIndexed`, `ColorRGB`).
+    Registry of colors presets (`ColorIndexed16`, `ColorIndexed256`, `ColorRGB`).
 
     .. attention::
        Registry constants are omitted from API doc pages to improve readability

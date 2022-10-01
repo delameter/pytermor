@@ -58,8 +58,8 @@ with open(join(configs_path, 'named.yml'), 'wt') as f:
 
 max_name_len = max(len(c["name"]+' '+(c.get("variation", '') or "")) for c in colors)
 orig_name_len = max(len(c.get("orig_name", "")) for c in colors)
-var_style = Style(fg=Colors.RGB_GRAY_40)
-orig_style = Style(fg=Colors.RGB_GRAY_30)
+var_style = Style(fg=Colors.RGB_GREY_40)
+orig_style = Style(fg=Colors.RGB_GREY_30)
 for idx, c in enumerate(list(sorted(colors, key=lambda v: v["value"]))):
     style = Style(bg=ColorRGB(c['value']))
     style.autopick_fg()

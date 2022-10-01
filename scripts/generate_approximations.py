@@ -5,7 +5,7 @@ from typing import Tuple
 
 import PIL.ImageFont
 
-from pytermor import color, ansi, ColorRGB, ColorIndexed, ColorDefault
+from pytermor import color, Seqs, ColorRGB, ColorIndexed256, ColorIndexed16
 from math import floor
 import profile
 import gc
@@ -121,8 +121,8 @@ def render_image(params_to_rgb_fn, title):
             r, g, b = params_to_rgb_fn(h, v)
             hex = (floor(r) << 16) + (floor(g) << 8) + floor(b)
             im.putpixel((x, y), hex)
-            im.putpixel((360 + x, y), ColorIndexed.find_closest(hex).hex_value)
-            im.putpixel((720 + x, y), ColorDefault.find_closest(hex).hex_value)
+            im.putpixel((360 + x, y), ColorIndexed256.find_closest(hex).hex_value)
+            im.putpixel((720 + x, y), ColorIndexed16.find_closest(hex).hex_value)
 
     global image_id
     im.save(f'approx/im{image_id:d}.png')
@@ -166,8 +166,8 @@ if __name__ == '__main__':
     inp = Image.open('_generated/approx/input-bgwhite.png', 'r')
     samples = [
         (None, '(16M colors)'),
-        (ColorIndexed, '(256 colors)'),
-        (ColorDefault, '(16 colors)'),
+        (ColorIndexed256, '(256 colors)'),
+        (ColorIndexed16, '(16 colors)'),
     ]
     font_header = PIL.ImageFont.truetype('../docs/_static/fonts/mononoki-Bold.ttf', size=16)
     font_default = PIL.ImageFont.truetype('../docs/_static/fonts/mononoki-Regular.ttf', size=12)

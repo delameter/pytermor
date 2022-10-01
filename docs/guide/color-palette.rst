@@ -7,7 +7,7 @@ Color palette
 ============================
 
 Actual colors of *default* palette depend on user's terminal settings, i.e.
-the result color of `ColorDefault` is not guaranteed to exactly match the
+the result color of `ColorIndexed16` is not guaranteed to exactly match the
 corresponding color listed below. What's more, note that *default* palette
 is actually a part of *indexed* one (first 16 colors of 256-color table).
 
@@ -18,7 +18,7 @@ is actually a part of *indexed* one (first 16 colors of 256-color table).
    unpredictable, in addition to different results for different users, depending
    on their terminal emulator setup.
 
-However, it doesn't mean that `ColorDefault` is useless. Just the opposite -- it's
+However, it doesn't mean that `ColorIndexed16` is useless. Just the opposite -- it's
 ideal for situtations when you don't actually **have to** set exact values and
 it's easier to specify estimation of desired color. I.e. setting color to ``'red'``
 is usually more than enough for displaying an error message -- we don't really care

@@ -240,7 +240,7 @@ class HtmlTableGenerator:
             example_str = f'__'
             value_str = f'{cc["value"]:06x}'
             # value_str += ' '+ ''.join((self.ascii_indic(f) if i>0 else self.ascii_indic(f/360))
-            #                      for i, f in enumerate(ColorIndexed.hex_value_to_hsv_channels(cc["value"])))
+            #                      for i, f in enumerate(ColorIndexed256.hex_value_to_hsv_channels(cc["value"])))
             name_str = f'{cc["name"]:s}'
             comment_str = ''
 

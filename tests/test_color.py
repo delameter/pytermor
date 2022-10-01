@@ -50,7 +50,7 @@ class TestColorMap(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         #ColorIndexed16.get_default()  # initialize color maps
-        #ColorIndexed.get_default()
+        #ColorIndexed256.get_default()
         #ColorRGB.get_default()
 
         # and copy lookup table origins:
