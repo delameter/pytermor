@@ -18,10 +18,13 @@ from __future__ import annotations
 
 import re
 from functools import reduce
-from re import Match
+from re import Match, Pattern
 from typing import Generic, AnyStr, Type, Callable
 
 from ..ansi import Spans
+
+
+SGR_REGEXP = re.compile(r'(\x1b)(\[)(([0-9;])*)(m)')
 
 
 def apply_filters(s: AnyStr, *args: StringFilter[AnyStr]|Type[StringFilter[AnyStr]]) -> AnyStr:  # @FIXME StringFilter[AnyStr] -> StringFilter ?
@@ -49,8 +52,15 @@ class StringFilter(Generic[AnyStr]):
     """
     Common string modifier interface.
     """
-    def __init__(self, pattern: AnyStr, repl: AnyStr|Callable[[AnyStr|Match], AnyStr]):
-        self._regex = re.compile(pattern)
+    def __init__(
+        self,
+        pattern: AnyStr|Pattern[AnyStr],
+        repl: AnyStr|Callable[[AnyStr|Match], AnyStr]
+    ):
+        if isinstance(pattern, (str, bytes)):
+            self._regex = re.compile(pattern)
+        else:
+            self._regex = pattern
         self._repl = repl
 
     def __call__(self, s: AnyStr) -> AnyStr:
@@ -85,7 +95,7 @@ class ReplaceSGR(StringFilter[str]):
         Replacement, can contain regexp groups (see :meth:`apply_filters()`).
     """
     def __init__(self, repl: AnyStr = ''):
-        super().__init__(r'(\x1b)(\[)(([0-9;])*)(m)', repl)
+        super().__init__(SGR_REGEXP, repl)
 
 
 class ReplaceCSI(StringFilter[str]):
