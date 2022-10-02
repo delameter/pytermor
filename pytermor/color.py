@@ -68,6 +68,18 @@ class Color(metaclass=ABCMeta):
         return h, s, v
 
     @staticmethod
+    def rgb_channels_to_hex_value(r: int, g: int, b: int) -> int:
+        """
+        .. todo ::
+
+        :param r:
+        :param g:
+        :param b:
+        :return:
+        """
+        return (r << 16) + (g << 8) + b
+
+    @staticmethod
     def hex_value_to_rgb_channels(hex_value: int) -> Tuple[int, int, int]:
         """
         Transforms ``hex_value`` in ``0xffffff`` format into tuple of three

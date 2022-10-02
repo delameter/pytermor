@@ -7,6 +7,7 @@
 PROJECT_NAME = pytermor
 PROJECT_NAME_PUBLIC = ${PROJECT_NAME}
 PROJECT_NAME_PRIVATE = ${PROJECT_NAME}-delameter
+DEPENDS_PATH = scripts/diagrams
 
 include .env.dist
 -include .env
@@ -85,11 +86,9 @@ coverage: ## Run coverage and make a report
 	if [ -n $$DISPLAY ] ; then xdg-open coverage-report/index.html ; fi
 
 depends:  ## Build and display module dependency graph
-	mkdir -p scripts/diagrams
-	. venv/bin/activate
-	pydeps ${PROJECT_NAME} --rmprefix ${PROJECT_NAME}. -o scripts/diagrams/imports.svg
-	pydeps ${PROJECT_NAME} --rmprefix ${PROJECT_NAME}. -o scripts/diagrams/cycles.svg 	   --show-cycle                       --no-show
-	pydeps ${PROJECT_NAME} --rmprefix ${PROJECT_NAME}. -o scripts/diagrams/imports-ext.svg --pylib  --collapse-target-cluster --no-show
+	rm -vrf ${DEPENDS_PATH}
+	mkdir -p ${DEPENDS_PATH}
+	./pydeps.sh ${PROJECT_NAME} ${DEPENDS_PATH}
 
 #update-readme: # Generate and rewrite README
 #	. venv/bin/activate

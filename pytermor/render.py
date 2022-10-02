@@ -53,10 +53,13 @@ from __future__ import annotations
 import sys
 from abc import abstractmethod, ABCMeta
 from dataclasses import dataclass, field
+from functools import reduce
 from typing import List, Sized, Any
 from typing import Type, Dict, Set
 
-from .ansi import SequenceSGR, Span, NOOP_SEQ, Seqs
+from pytermor.common import LogicError
+
+from .ansi import SequenceSGR, Span, NOOP_SEQ, Seqs, IntCodes
 from .color import Color, ColorRGB, ColorIndexed16, ColorIndexed256, NOOP_COLOR, Colors
 from .common import Registry
 from .util.string_filter import ReplaceSGR
@@ -439,7 +442,7 @@ class SgrRenderer(IRenderer):
 
     @classmethod
     def render(cls, text: Any, style: Style = NOOP_STYLE):
-        opening_seq = cls._render_attributes(style) + \
+        opening_seq = cls._render_attributes(style, squash=True) + \
                       cls._render_color(style.fg, False) + \
                       cls._render_color(style.bg, True)
 
@@ -453,21 +456,23 @@ class SgrRenderer(IRenderer):
         return rendered_text
 
     @classmethod
-    def _render_attributes(cls, style: Style) -> SequenceSGR:
-        result = NOOP_SEQ
+    def _render_attributes(cls, style: Style, squash: bool) -> List[SequenceSGR]|SequenceSGR:
         if not cls.is_sgr_usage_allowed():
-            return result
+            return NOOP_SEQ if squash else [NOOP_SEQ]
 
-        if style.blink:             result += Seqs.BLINK_SLOW
-        if style.bold:              result += Seqs.BOLD
-        if style.crosslined:        result += Seqs.CROSSLINED
-        if style.dim:               result += Seqs.DIM
-        if style.double_underlined: result += Seqs.DOUBLE_UNDERLINED
-        if style.inversed:          result += Seqs.INVERSED
-        if style.italic:            result += Seqs.ITALIC
-        if style.overlined:         result += Seqs.OVERLINED
-        if style.underlined:        result += Seqs.UNDERLINED
+        result = []
+        if style.blink:             result += [Seqs.BLINK_SLOW]
+        if style.bold:              result += [Seqs.BOLD]
+        if style.crosslined:        result += [Seqs.CROSSLINED]
+        if style.dim:               result += [Seqs.DIM]
+        if style.double_underlined: result += [Seqs.DOUBLE_UNDERLINED]
+        if style.inversed:          result += [Seqs.INVERSED]
+        if style.italic:            result += [Seqs.ITALIC]
+        if style.overlined:         result += [Seqs.OVERLINED]
+        if style.underlined:        result += [Seqs.UNDERLINED]
 
+        if squash:
+            return reduce(lambda p, c: p + c, result, NOOP_SEQ)
         return result
 
     @classmethod
@@ -503,11 +508,111 @@ class SgrRenderer(IRenderer):
         return sys.stdout.isatty()
 
 
-class TmuxRenderer(IRenderer):
+class TmuxRenderer(SgrRenderer):
     """
     tmux
     """
-    pass
+
+    SGR_TO_TMUX_MAP = {
+        NOOP_SEQ:           '',
+        Seqs.RESET:         'default',
+
+        Seqs.BOLD:          'bold',
+        Seqs.DIM:           'dim',
+        Seqs.ITALIC:        'italics',
+        Seqs.UNDERLINED:    'underscore',
+        Seqs.BLINK_SLOW:    'blink',
+        Seqs.BLINK_FAST:    'blink',
+        Seqs.BLINK_DEFAULT: 'blink',
+        Seqs.INVERSED:      'reverse',
+        Seqs.HIDDEN:        'hidden',
+        Seqs.CROSSLINED:    'strikethrough',
+        Seqs.DOUBLE_UNDERLINED: 'double-underscore',
+        Seqs.OVERLINED:     'overline',
+
+        Seqs.BOLD_DIM_OFF:   'nobold nodim',
+        Seqs.ITALIC_OFF:     'noitalics',
+        Seqs.UNDERLINED_OFF: 'nounderscore',
+        Seqs.BLINK_OFF:      'noblink',
+        Seqs.INVERSED_OFF:   'noreverse',
+        Seqs.HIDDEN_OFF:     'nohidden',
+        Seqs.CROSSLINED_OFF: 'nostrikethrough',
+        Seqs.OVERLINED_OFF:  'nooverline',
+
+        Seqs.BLACK:     'fg=black',
+        Seqs.RED:       'fg=red',
+        Seqs.GREEN:     'fg=green',
+        Seqs.YELLOW:    'fg=yellow',
+        Seqs.BLUE:      'fg=blue',
+        Seqs.MAGENTA:   'fg=magenta',
+        Seqs.CYAN:      'fg=cyan',
+        Seqs.WHITE:     'fg=white',
+        Seqs.COLOR_OFF: 'fg=default',
+
+        Seqs.BG_BLACK:     'bg=black',
+        Seqs.BG_RED:       'bg=red',
+        Seqs.BG_GREEN:     'bg=green',
+        Seqs.BG_YELLOW:    'bg=yellow',
+        Seqs.BG_BLUE:      'bg=blue',
+        Seqs.BG_MAGENTA:   'bg=magenta',
+        Seqs.BG_CYAN:      'bg=cyan',
+        Seqs.BG_WHITE:     'bg=white',
+        Seqs.BG_COLOR_OFF: 'bg=default',
+
+        Seqs.GRAY:       'fg=brightblack',
+        Seqs.HI_RED:     'fg=brightred',
+        Seqs.HI_GREEN:   'fg=brightgreen',
+        Seqs.HI_YELLOW:  'fg=brightyellow',
+        Seqs.HI_BLUE:    'fg=brightblue',
+        Seqs.HI_MAGENTA: 'fg=brightmagenta',
+        Seqs.HI_CYAN:    'fg=brightcyan',
+        Seqs.HI_WHITE:   'fg=brightwhite',
+
+        Seqs.BG_GRAY:       'bg=brightblack',
+        Seqs.BG_HI_RED:     'bg=brightred',
+        Seqs.BG_HI_GREEN:   'bg=brightgreen',
+        Seqs.BG_HI_YELLOW:  'bg=brightyellow',
+        Seqs.BG_HI_BLUE:    'bg=brightblue',
+        Seqs.BG_HI_MAGENTA: 'bg=brightmagenta',
+        Seqs.BG_HI_CYAN:    'bg=brightcyan',
+        Seqs.BG_HI_WHITE:   'bg=brightwhite',
+    }
+
+    @classmethod
+    def render(cls, text: Any, style: Style = NOOP_STYLE):
+        opening_sgrs = [
+            *cls._render_attributes(style, False),
+            cls._render_color(style.fg, False),
+            cls._render_color(style.bg, True),
+        ]
+        opening_tmux_style = cls._sgr_to_tmux_style(*opening_sgrs)
+        closing_tmux_style = ''.join(
+            cls._sgr_to_tmux_style(Span(sgr).closing_seq) for sgr in opening_sgrs
+        )
+
+        rendered_text = ''
+        for line in str(text).splitlines(keepends=True):
+            rendered_text += opening_tmux_style + line + closing_tmux_style
+        return rendered_text
+
+    @classmethod
+    def _sgr_to_tmux_style(cls, *sgrs: SequenceSGR) -> str:
+        result = ''
+        for sgr in sgrs:
+            if sgr.is_color_extended:
+                target = 'fg' if sgr.params[0] == IntCodes.COLOR_EXTENDED else 'bg'
+                color = '#{:06x}'.format(ColorRGB.rgb_channels_to_hex_value(*sgr.params[2:])) \
+                        if sgr.params[1] == IntCodes.EXTENDED_MODE_RGB \
+                        else 'color{}'.format(sgr.params[2])
+                result += f'#[{target}={color}]'
+                continue
+
+            tmux_style_decl = cls.SGR_TO_TMUX_MAP.get(sgr)
+            if tmux_style_decl is None:
+                raise LogicError(f'No tmux definiton is present for {sgr!r}')
+            if len(tmux_style_decl) > 0:
+                result += f'#[{tmux_style_decl}]'
+        return result
 
 
 class NoOpRenderer(IRenderer):

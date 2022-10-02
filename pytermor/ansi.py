@@ -202,6 +202,9 @@ class SequenceSGR(SequenceCSI, metaclass=ABCMeta):
                 self._SEPARATOR.join([str(param) for param in params]) +
                 self._TERMINATOR)
 
+    def __hash__(self) -> int:
+        return int.from_bytes(self.assemble().encode(), byteorder='big')
+
     def __add__(self, other: SequenceSGR) -> SequenceSGR:
         self._ensure_sequence(other)
         return SequenceSGR(*self._params, *other._params)
@@ -216,6 +219,12 @@ class SequenceSGR(SequenceCSI, metaclass=ABCMeta):
         if type(self) != type(other):
             return False
         return self._params == other._params
+
+    @property
+    def is_color_extended(self) -> bool:
+        return len(self.params) >= 3 and \
+               (self.params[0] == IntCodes.COLOR_EXTENDED or
+                self.params[0] == IntCodes.BG_COLOR_EXTENDED)
 
     @staticmethod
     def _ensure_sequence(subject: Any):
