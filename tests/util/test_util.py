@@ -29,7 +29,7 @@ class TestStringFilter(unittest.TestCase):  # @TODO
 
 class TestStdlibExtensions(unittest.TestCase):  # @TODO
     def test_center_method(self):
-        self.assertRegexpMatches(
+        self.assertRegex(
             center_sgr(Spans.RED('123'), 7),
             f'  {SequenceSGR.regexp()}123{SequenceSGR.regexp()}  '
         )

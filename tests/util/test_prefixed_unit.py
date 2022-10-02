@@ -38,7 +38,7 @@ class TestPrefixedUnit(unittest.TestCase):
             ['1.424 Pb', 1.602989e15], ['1.424 Eb', 1.641669584e18],
             ['1.586 Zb', 1.8719334e21], ['1.589 Yb', 1.921267334e24],
             ['191.5 Yb', 2.31487598e26], ['20.54 ?b', 2.543258343e28],
-        ]], [format_si_metric, [
+        ]], [lambda val: format_si_metric(val, unit='').rstrip(), [
             ['12.3 ?', 1.23456789e28],
             ['12.3 Y', 1.23456789e25], ['12.3 Z', 1.23456789e22], ['12.3 E', 1.23456789e19],
             ['1.23 E', 1.23456789e18], ['123 P', 1.23456789e17], ['12.3 P', 1.23456789e16],
@@ -73,7 +73,7 @@ class TestPrefixedUnit(unittest.TestCase):
     """ ----------------------------------------------------------------------------------------------------------- """
 
     req_len_dataset = [
-        [6, format_si_metric],
+        [6, lambda val: format_si_metric(val, unit='')],
         [8, format_si_binary],
         [6, PrefixedUnitFormatter(
             max_value_len=4, truncate_frac=False, mcoef=1000.0,

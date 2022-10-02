@@ -114,7 +114,7 @@ class PrefixedUnitFormatter:
         unit_idx = self._prefix_zero_idx
 
         while 0 <= unit_idx < len(self._prefixes):
-            if 0.0 < abs(value) <= 1:
+            if 0.0 < abs(value) <= 1 / self._mcoef:
                 value *= self._mcoef
                 unit_idx -= 1
                 if abs(value) <= 1:

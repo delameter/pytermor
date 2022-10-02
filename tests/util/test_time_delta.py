@@ -137,4 +137,4 @@ class TestTimeDeltaFormatterRegistry(unittest.TestCase):
         self._registry.register(formatter)
 
         self.assertIn(formatter.max_len, self._registry._formatters)
-        self.assertEquals(formatter, self._registry.get_by_max_len(formatter.max_len))
+        self.assertEqual(formatter, self._registry.get_by_max_len(formatter.max_len))
