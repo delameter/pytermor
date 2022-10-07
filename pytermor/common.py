@@ -2,7 +2,11 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
-from typing import TypeVar, Generic
+from __future__ import annotations
+
+import os
+import sys
+from typing import TypeVar, Generic, AnyStr
 
 T = TypeVar('T')
 """ Any """
@@ -39,6 +43,31 @@ def get_terminal_width() -> int:
         return 80
 
 
+def wait_key() -> AnyStr|None:
+    """
+    Wait for a key press on the console and return it.
+    """
+    if os.name == 'nt':
+        import msvcrt
+        return msvcrt.getch()
+
+    import termios
+    fd = sys.stdin.fileno()
+
+    oldterm = termios.tcgetattr(fd)
+    newattr = termios.tcgetattr(fd)
+    newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
+    termios.tcsetattr(fd, termios.TCSANOW, newattr)
+
+    result = None
+    try:
+        result = sys.stdin.read(1)
+    except IOError:
+        pass
+    finally:
+        termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
+    return result
+
+
 class LogicError(Exception):
     pass
-
