@@ -47,6 +47,25 @@ To unconditionally print formatted message to output terminal, do something like
     Renderer
           should transform style into corresponding output format and thats it.
 
+    API 2:
+        Text(string, style, leave_open = True)  # no style means all open styles will
+        be closed at the end
+        Text().append(string, style, leave_open = True)
+        Text().prepend(string, style, leave_open = False)
+        Text().raw
+        Text().apply(style)
+        Text().render(with=IRenderer())
+        Text() + Text() = Text().append(Text().raw, Text().style)
+        Text() + str = Text().append(str)
+        str + Text() = Text().prepend(str)
+
+        Style(style, fg, bg...)
+        # no Style().render()!
+        IRenderer().setup()
+        IRenderer().render(text)
+        SgrRenderer().is_sgr_usage_allowed()
+
+    renderers should have instance methods only!
 """
 from __future__ import annotations
 
@@ -58,7 +77,6 @@ from typing import List, Sized, Any
 from typing import Type, Dict, Set
 
 from pytermor.common import LogicError
-
 from .ansi import SequenceSGR, Span, NOOP_SEQ, Seqs, IntCodes
 from .color import Color, ColorRGB, ColorIndexed16, ColorIndexed256, NOOP_COLOR, Colors
 from .common import Registry
@@ -600,10 +618,19 @@ class TmuxRenderer(SgrRenderer):
         result = ''
         for sgr in sgrs:
             if sgr.is_color_extended:
-                target = 'fg' if sgr.params[0] == IntCodes.COLOR_EXTENDED else 'bg'
-                color = '#{:06x}'.format(ColorRGB.rgb_channels_to_hex_value(*sgr.params[2:])) \
-                        if sgr.params[1] == IntCodes.EXTENDED_MODE_RGB \
-                        else 'color{}'.format(sgr.params[2])
+                target = 'fg'
+                if sgr.params[0] == IntCodes.BG_COLOR_EXTENDED:
+                    target = 'bg'
+
+                if sgr.params[1] == IntCodes.EXTENDED_MODE_256:
+                    color = 'color{}'.format(sgr.params[2])
+                elif sgr.params[1] == IntCodes.EXTENDED_MODE_RGB:
+                    color = '#{:06x}'.format(
+                        ColorRGB.rgb_channels_to_hex_value(*sgr.params[2:])
+                    )
+                else:
+                    raise ValueError(f"Unknown SGR param #2 (idx 1): {sgr!r}")
+
                 result += f'#[{target}={color}]'
                 continue
 
