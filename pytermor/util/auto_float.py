@@ -79,7 +79,7 @@ def format_auto_float(value: float, req_len: int, allow_exponent_notation: bool 
     exp_threshold_right = req_len - 1
 
     # exponential mode threshold depends
-    # on mareqx length on the right, and is
+    # on req length on the right, and is
     # fixed to -2 on the left:
 
     #   req |    3     4     5     6 |

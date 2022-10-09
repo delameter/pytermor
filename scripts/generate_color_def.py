@@ -129,8 +129,8 @@ class HtmlTableGenerator:
         return s[k]
 
     def run(self, f, cfg_indexed):
-        RendererManager.set_up(HtmlRenderer)
-        #RendererManager.set_up(SgrRenderer)
+        RendererManager.set_default(HtmlRenderer)
+        #RendererManager.set_default(SgrRenderer)
 
         html = Text('''<html><head><style>
             html {
@@ -284,7 +284,7 @@ class HtmlTableGenerator:
         html = str(html).replace('_', ' ')
         f.write(html)
         #print(html)
-        RendererManager.set_up(SgrRenderer)
+        RendererManager.set_forced_sgr_as_default()
         print(f'Wrote {Text(len(html), Style(bold=True))} bytes to {Text(f.name, "blue")}')
 
 

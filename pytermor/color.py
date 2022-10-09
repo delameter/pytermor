@@ -279,7 +279,7 @@ class Approximator:
         color of the palette. Sort the results and return the first
         ``<max_results>`` of them.
 
-        .. note::
+        .. note ::
             It's not guaranteed that this method will **always** succeed in
             searching (the result list can be empty). Consider using `find_closest`
             instead, if you really want to be sure that at least some color will

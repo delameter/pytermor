@@ -4,24 +4,26 @@
 # -----------------------------------------------------------------------------
 """
 Module with output formatters. By default :class:`SgrRenderer` is used. It
-also contains compatibility settings, see `SgrRenderer.set_up()`.
+also contains compatibility settings, see `SgrRenderer.setup()`.
 
 Working with non-default renderer can be achieved in two ways:
 
-a. Method `RendererManager.set_up()` sets the default renderer globally. After that
-   calling ``str(<Renderable>)`` will automatically invoke said renderer and all
-   formatting will be applied.
-b. Alternatively, you can use renderer's own class method `IRenderer.render()`
-   directly and avoid messing up with the manager: ``HtmlRenderer.render(<Renderable>)``
+    a. Method `RendererManager.set_default()` sets the default renderer globally.
+       After that calling ``Renderable.render()`` will automatically invoke said renderer
+       and all formatting will be applied.
+    b. Alternatively, you can use renderer's own instance method `IRenderer.render()`
+       directly and avoid messing up with the manager:
+       ``HtmlRenderer().render(<Renderable>)``
 
 .. rubric:: TL;DR
 
-To unconditionally print formatted message to output terminal, do something like this:
+To unconditionally print formatted message to output terminal, do something like
+this:
 
 >>> from pytermor import SgrRenderer, Styles, Text
->>> SgrRenderer.set_up(force_styles=True)
->>> print(Text('Warning: AAAA', Styles.WARNING))
-\x1b[33mWarning: AAAA\x1b[39m
+>>> renderer = RendererManager.set_forced_sgr_as_default()
+>>> Text('Warning: AAAA', Styles.WARNING).render()
+'\\x1b[33mWarning: AAAA\\x1b[39m'
 
 
 .. testsetup:: *
@@ -29,7 +31,7 @@ To unconditionally print formatted message to output terminal, do something like
     from pytermor.color import Colors
     from pytermor.render import *
 
-    SgrRenderer.set_up(force_styles=True)
+    RendererManager.set_forced_sgr_as_default()
 
 -----
 
@@ -69,118 +71,20 @@ To unconditionally print formatted message to output terminal, do something like
 """
 from __future__ import annotations
 
+import re
 import sys
 from abc import abstractmethod, ABCMeta
 from dataclasses import dataclass, field
 from functools import reduce
-from typing import List, Sized, Any
+from typing import List, Sized, Any, FrozenSet, Tuple
 from typing import Type, Dict, Set
 
 from pytermor.common import LogicError
 from .ansi import SequenceSGR, Span, NOOP_SEQ, Seqs, IntCodes
 from .color import Color, ColorRGB, ColorIndexed16, ColorIndexed256, NOOP_COLOR, Colors
 from .common import Registry
+from .util import ljust_sgr, rjust_sgr, center_sgr
 from .util.string_filter import ReplaceSGR
-
-
-class Renderable(Sized, metaclass=ABCMeta):
-    """
-    Renderable abstract class. Can be inherited if the default style
-    overlaps resolution mechanism implemented in `Text` is not good enough
-    and you want to implement your own.
-    """
-    def render(self) -> str:
-        return self._render_using(RendererManager.get_default())
-
-    @abstractmethod
-    def _render_using(self, renderer: Type[IRenderer]) -> str:
-        raise NotImplemented
-
-    def __str__(self) -> str:
-        return self.render()
-
-    @abstractmethod
-    def __len__(self) -> int:
-        raise NotImplemented
-
-
-class Text(Renderable):
-    """
-    Text
-    """
-
-    def __init__(self, text: Any = None, style: Style|str = None):
-        self._runs = [self._TextRun(text, style)]
-
-    def _render_using(self, renderer: Type[IRenderer]) -> str:
-        return ''.join(run._render_using(renderer) for run in self._runs)
-
-    def raw(self) -> str:
-        return ''.join(run.raw() for run in self._runs)
-
-    def append(self, text: str|Text):
-        if isinstance(text, str):
-            self._runs.append(self._TextRun(text))
-        elif isinstance(text, Text):
-            self._runs += text._runs
-        else:
-            raise TypeError('Can add Text to another Text instance or str only')
-
-    def prepend(self, text: str|Text):
-        if isinstance(text, str):
-            self._runs.insert(0, self._TextRun(text))
-        elif isinstance(text, Text):
-            self._runs = text._runs + self._runs
-        else:
-            raise TypeError('Can add Text to another Text instance or str only')
-
-    def __len__(self) -> int:
-        return sum(len(r) for r in self._runs)
-
-    def __format__(self, *args, **kwargs) -> str:
-        runs_amount = len(self._runs)
-        if runs_amount == 0:
-            return ''.__format__(*args, **kwargs)
-        if runs_amount > 1:
-            raise RuntimeError(
-                f'Can only __format__ Texts consisting of 0 or 1 TextRuns, '
-                f'got {runs_amount}. Consider applying the styles and creating'
-                f' the Text instance after value formatting.')
-        return self._runs[0].__format__(*args, **kwargs)
-
-    def __add__(self, other: str|Text) -> Text:
-        self.append(other)
-        return self
-
-    def __iadd__(self, other: str|Text) -> Text:
-        self.append(other)
-        return self
-
-    def __radd__(self, other: str|Text) -> Text:
-        self.prepend(other)
-        return self
-
-    class _TextRun(Renderable):
-        def __init__(self, string: Any = None, style: Style|str = None):
-            self._string: str = str(string) if string else ''
-            if isinstance(style, str):
-                style = Style(fg=style)
-            self._style: Style|None = style
-
-        def _render_using(self, renderer: Type[IRenderer]) -> str:
-            if not self._style:
-                return self._string
-            return renderer.render(self._string, self._style)
-
-        def raw(self) -> str:
-            return self._string
-
-        def __len__(self) -> int:
-            return len(self._string)
-
-        def __format__(self, *args, **kwargs) -> str:
-            self._string = self._string.__format__(*args, **kwargs)
-            return self.render()
 
 
 @dataclass
@@ -198,20 +102,34 @@ class Style:
     3. integer color value in hexademical RGB format.
     4. None -- the color will be unset.
 
+    Inheritance ``parent`` -> ``child`` works this way:
+
+    1. If an argument in child's constructor is empty (=None), take value from
+       ``parent``'s corresponding attribute.
+    2. If an argument in child's constructor is *not* empty (=True|False|Color etc.),
+       use it as child's attribute.
+
+    .. note ::
+        There will be no empty (=None) attributes of type `Color` after initialization
+        -- they are replaced with special constant `NOOP_COLOR`, that works as if
+        there was no color defined and allows to avoid writing of boilerplate code
+        to check if a color is None here and there.
+
+    :param parent:      Style to copy attributes without value from.
     :param fg:          Foreground (i.e., text) color.
     :param bg:          Background color.
-    :param inherit:     Parent instance to copy unset properties from.
     :param blink:       Blinking effect; *supported by limited amount of Renderers*.
     :param bold:        Bold or increased intensity.
     :param crosslined:  Strikethrough.
     :param dim:         Faint, decreased intensity.
     :param double_underlined:
-        Faint, decreased intensity.
+                        Faint, decreased intensity.
     :param inversed:    Swap foreground and background colors.
     :param italic:      Italic.
     :param overlined:   Overline.
     :param underlined:  Underline.
-    :param class_name:  Arbitary string used by some renderers, e.g. by ``HtmlRenderer``.
+    :param class_name:  Arbitary string used by some renderers, e.g. by
+                        ``HtmlRenderer``.
 
     >>> Style(fg='green', bold=True)
     Style[fg=008000, no bg, bold]
@@ -223,7 +141,21 @@ class Style:
     _fg: Color = field(default=None, init=False)
     _bg: Color = field(default=None, init=False)
 
-    def __init__(self, inherit: Style = None, fg: Color|int|str = None,
+    renderable_attributes = frozenset([
+        'fg',
+        'bg',
+        'blink',
+        'bold',
+        'crosslined',
+        'dim',
+        'double_underlined',
+        'inversed',
+        'italic',
+        'overlined',
+        'underlined',
+    ])
+
+    def __init__(self, parent: Style = None, fg: Color|int|str = None,
                  bg: Color|int|str = None, blink: bool = None, bold: bool = None,
                  crosslined: bool = None, dim: bool = None,
                  double_underlined: bool = None, inversed: bool = None,
@@ -245,19 +177,13 @@ class Style:
         self.underlined = underlined
         self.class_name = class_name
 
-        if inherit is not None:
-            self._clone_from(inherit)
+        if parent is not None:
+            self._clone_from(parent)
 
         if self._fg is None:
             self._fg = NOOP_COLOR
         if self._bg is None:
             self._bg = NOOP_COLOR
-
-    def text(self, text: Any) -> Text:
-        return Text(text, self)
-
-    def render(self, text: Any) -> str:
-        return self.text(text).render()
 
     def autopick_fg(self) -> Style:
         """
@@ -306,22 +232,30 @@ class Style:
 
         return None if nullable else NOOP_COLOR
 
-    def _clone_from(self, inherit: Style):
-        for attr in list(self.__dict__.keys()) + ['_fg', '_bg']:
-            inherit_val = getattr(inherit, attr)
-            if getattr(self, attr) is None and inherit_val is not None:
-                setattr(self, attr, inherit_val)
+    @property
+    def attributes(self) -> FrozenSet:
+        return frozenset(list(self.__dict__.keys()) + ['fg', 'bg'])
+
+    @property
+    def _attributes(self) -> FrozenSet:
+        return frozenset(list(self.__dict__.keys()) + ['_fg', '_bg'])
+
+    def _clone_from(self, parent: Style):
+        for attr in self.renderable_attributes:
+            self_val = getattr(self, attr)
+            parent_val = getattr(parent, attr)
+            if self_val is None and parent_val is not None:
+                setattr(self, attr, parent_val)
 
     def __repr__(self):
         if self._fg is None or self._bg is None:
             return self.__class__.__name__ + '[uninitialized]'
         props_set = [self.fg.format_value('fg=', 'no fg'),
                      self.bg.format_value('bg=', 'no bg'), ]
-        for attr_name in dir(self):
-            if not attr_name.startswith('_'):
-                attr = getattr(self, attr_name)
-                if isinstance(attr, bool) and attr is True:
-                    props_set.append(attr_name)
+        for attr_name in self.renderable_attributes:
+            attr = getattr(self, attr_name)
+            if isinstance(attr, bool) and attr is True:
+                props_set.append(attr_name)
 
         return self.__class__.__name__ + '[{:s}]'.format(', '.join(props_set))
 
@@ -349,39 +283,225 @@ furthrer without any modifications.
 """
 
 
-class RendererManager:
-    _default: Type[IRenderer] = None
+class Renderable(Sized, metaclass=ABCMeta):
+    """
+    Renderable abstract class. Can be inherited if the default style
+    overlaps resolution mechanism implemented in `Text` is not good enough
+    and you want to implement your own.
+    """
+
+    def render(self, renderer: IRenderer|Type[IRenderer] = None) -> str:
+        if isinstance(renderer, type):
+            renderer = renderer()
+        return self._render_using(renderer or RendererManager.get_default())
+
+    @abstractmethod
+    def _render_using(self, renderer: IRenderer) -> str:
+        raise NotImplemented
+
+    @abstractmethod
+    def raw(self) -> str:
+        raise NotImplemented
+
+    @abstractmethod
+    def __len__(self) -> int:
+        raise NotImplemented
+
+
+class Text(Renderable):
+    WIDTH_MAX_LEN_REGEX = re.compile(r'[\d.]+$')
+    ALIGN_LEFT = '<'
+    ALIGN_RIGHT = '>'
+    ALIGN_CENTER = '^'
+    ALIGN_FUNC_MAP = {
+        None: ljust_sgr,
+        ALIGN_LEFT: ljust_sgr,
+        ALIGN_RIGHT: rjust_sgr,
+        ALIGN_CENTER: center_sgr,
+    }
+
+    def __init__(self, string: str = '', style: Style = NOOP_STYLE):
+        self._fragments = []
+        self.append(string, style)
+
+    def _render_using(self, renderer: IRenderer) -> str:
+        return ''.join(renderer.render(frag.string, frag.style)
+                       for frag in self._fragments)
+
+    def raw(self) -> str:
+        return ''.join(frag.string for frag in self._fragments)
+
+    def append(self, string: str|Text, style: Style = NOOP_STYLE):
+        if isinstance(string, str):
+            self._fragments.append(self._TextFragment(string, style))
+        elif isinstance(string, Text):
+            if style:
+                raise ValueError('Style is already defined in first argument')
+            self._fragments += string._fragments
+        else:
+            raise TypeError('Only str or another Text can be added to Text instance')
+
+    def prepend(self, string: str|Text, style: Style = NOOP_STYLE):
+        if isinstance(string, str):
+            self._fragments.insert(0, self._TextFragment(string, style))
+        elif isinstance(string, Text):
+            if style:
+                raise ValueError('Style is already defined in first argument')
+            self._fragments = string._fragments + self._fragments
+        else:
+            raise TypeError('Only str or another Text can be added to Text instance')
+
+    def __len__(self) -> int:
+        return sum(len(frag) for frag in self._fragments)
+
+    def __add__(self, other: str|Text) -> Text:
+        self.append(other)
+        return self
+
+    def __iadd__(self, other: str|Text) -> Text:
+        self.append(other)
+        return self
+
+    def __radd__(self, other: str|Text) -> Text:
+        self.prepend(other)
+        return self
+
+    def __format__(self, format_spec: str) -> str:
+        width, max_len, align, fill = self._parse_format_spec(format_spec)
+
+        renderer = RendererManager.get_default()
+        if max_len is None:
+            result = self._render_using(renderer)
+            cur_len = len(self)
+        else:
+            result = ''
+            cur_len = 0
+            cur_frag_idx = 0
+            while cur_len < max_len and cur_frag_idx < len(self._fragments):
+                allowed_len = max_len - cur_len
+                cur_frag = self._fragments[cur_frag_idx]
+                cur_frag_string = cur_frag.string[:allowed_len]
+                result += renderer.render(cur_frag_string, cur_frag.style)
+
+                cur_len += len(cur_frag_string)
+                cur_frag_idx += 1
+
+        if width is not None and width > cur_len:
+            align_func_args = (result, width, (fill or ' '), cur_len)
+            align_func = self.ALIGN_FUNC_MAP.get(align)
+            return align_func(*align_func_args)
+        return result
 
     @classmethod
-    def set_up(cls, default_renderer: Type[IRenderer]|None = None):
+    def _parse_format_spec(cls, format_spec_orig: str
+                           ) -> Tuple[int|None, int|None, str|None, str|None]:
+        format_spec = format_spec_orig
+        if len(format_spec) == 0 or format_spec[-1] == 's':
+            format_spec = format_spec[:-1]
+        elif format_spec[-1] in '1234567890':
+            pass
+        else:
+            "".__format__(format_spec_orig)
+            raise LogicError(f"Unrecognized format spec: '{format_spec_orig}'")
+
+        width = None
+        max_len = None
+        if width_and_max_len_match := cls.WIDTH_MAX_LEN_REGEX.search(format_spec):
+            width_max_len = width_and_max_len_match.group(0)
+            if '.' in width_max_len:
+                if width_max_len.startswith('.'):
+                    max_len = int(width_max_len.replace('.', ''))
+                else:
+                    width, max_len = ((int(val) if val else None)
+                                      for val in width_max_len.split('.'))
+            else:
+                width = int(width_max_len)
+            format_spec = cls.WIDTH_MAX_LEN_REGEX.sub('', format_spec)
+
+        align = None
+        if format_spec.endswith((cls.ALIGN_LEFT, cls.ALIGN_RIGHT, cls.ALIGN_CENTER)):
+            align = format_spec[-1]
+            format_spec = format_spec[:-1]
+
+        fill = None
+        if len(format_spec) > 0:
+            fill = format_spec[-1]
+            format_spec = format_spec[:-1]
+
+        if len(format_spec) > 0:
+            "".__format__(format_spec_orig)
+            raise LogicError(f"Unrecognized format spec: '{format_spec_orig}'")
+
+        return width, max_len, align, fill
+
+    # def _get_style_delta(self, left: Style, right: Style):
+    #     delta = Style(left)
+    #     for attr in right.renderable_attributes:
+    #         left_val = getattr(left, attr)
+    #         right_val = getattr(right, attr)
+    #         if left_val != right_val:
+    #             setattr(delta, attr, right_val)
+    #     return delta
+
+    @dataclass
+    class _TextFragment(Sized):
+        _string: str = ''
+        _style: Style = NOOP_STYLE
+
+        def __len__(self) -> int:
+            return len(self._string)
+
+        @property
+        def string(self) -> str:
+            return self._string
+
+        @property
+        def style(self) -> Style:
+            return self._style
+
+
+class RendererManager:
+    _default: IRenderer = None
+
+    @classmethod
+    def set_default(cls, renderer: IRenderer|Type[IRenderer] = None) -> IRenderer:
         """
         Set up renderer preferences. Affects all renderer types.
 
-        :param default_renderer:
+        :param renderer:
             Default renderer to use globally. Passing None will result in library
             default setting restored (`SgrRenderer`).
 
-        >>> RendererManager.set_up(DebugRenderer)
-        >>> Text('text', Style(fg='red')).render()
+        :return: `IRenderer` instance set as default.
+
+        >>> DebugRenderer().render('text', Style(fg='red'))
         '|ǝ31|text|ǝ39|'
 
-        >>> NoOpRenderer.render('text',Style(fg='red'))
+        >>> NoOpRenderer().render('text', Style(fg='red'))
         'text'
         """
-        cls._default = default_renderer or SgrRenderer
+        if isinstance(renderer, type):
+            renderer = renderer()
+        cls._default = (renderer or SgrRenderer())
+        return cls._default
 
     @classmethod
-    def get_default(cls) -> Type[IRenderer]:
-        """ Get global default renderer type. """
+    def get_default(cls) -> IRenderer:
+        """
+        Get global default renderer (`SgrRenderer`, or the one provided to `setup`).
+        """
         return cls._default
+
+    @classmethod
+    def set_forced_sgr_as_default(cls) -> IRenderer:
+        return cls.set_default(SgrRenderer().setup(force_styles=True))
 
 
 class IRenderer(metaclass=ABCMeta):
     """ Renderer interface. """
 
-    @classmethod
     @abstractmethod
-    def render(cls, text: Any, style: Style = NOOP_STYLE) -> str:
+    def render(self, text: Any, style: Style = NOOP_STYLE) -> str:
         """
         Apply colors and attributes described in ``style`` argument to
         ``text`` and return the result. Output format depends on renderer's
@@ -390,42 +510,18 @@ class IRenderer(metaclass=ABCMeta):
         raise NotImplementedError
 
 
-class SgrRenderer(IRenderer):
-    """
-    Default renderer invoked by `Text._render()`. Transforms `Color` instances
-    defined in ``style`` into ANSI control sequence bytes and merges them with
-    input string.
-
-    Respects compatibility preferences (see `RendererManager.set_up()`) and
-    maps RGB colors to closest *indexed* colors if terminal doesn't support
-    RGB output. In case terminal doesn't support even 256 colors, falls back
-    to 16-color pallete and picks closest counterparts again the same way.
-
-    Type of output ``SequenceSGR`` depends on type of `Color` variables in
-    ``style`` argument. Keeping all that in mind, let's summarize:
-
-    1. `ColorRGB` can be rendered as True Color sequence, 256-color sequence
-       or 16-color sequence depending on compatibility settings.
-    2. `ColorIndexed256` can be rendered as 256-color sequence or 16-color
-       sequence.
-    3. `ColorIndexed16` can be rendered as 16-color sequence.
-    4. Nothing of the above will happen and all Colors will be discarded
-       completely if output is not a terminal emulator or if the developer
-       explicitly set up the renderer to do so (**force_styles** = False).
-
-    >>> SgrRenderer.render('text', Style(fg='red', bold=True))
-    '\\x1b[1;31mtext\\x1b[22;39m'
-    """
+class IConfigurableRenderer:
     _force_styles: bool|None = False
     _compatibility_256_colors: bool = False
     _compatibility_16_colors: bool = False
 
-    @classmethod
-    def set_up(cls, force_styles: bool|None = False,
-               compatibility_256_colors: bool = False,
-               compatibility_16_colors: bool = False):
+    def setup(self,
+              force_styles: bool|None = False,
+              compatibility_256_colors: bool = False,
+              compatibility_16_colors: bool = False,
+              ) -> IConfigurableRenderer:
         """
-        Set up renderer preferences. Affects all renderer types.
+        Set up renderer preferences.
 
         .. todo ::
             Rewrite this part. Default should be *256* OR *RGB* if COLORTERM is either
@@ -433,9 +529,9 @@ class SgrRenderer(IRenderer):
 
         :param force_styles:
 
-            * If set to *None*, all renderers will pass input text through themselves
+            * If set to *None*, renderer will pass input text through itself
               without any changes (i.e. no colors and attributes will be applied).
-            * If set to *True*, renderers will always apply the formatting regardless
+            * If set to *True*, renderer will always apply the formatting regardless
               of other internal rules and algorithms.
             * If set to *False* [default], the final decision will be made
               by every renderer independently, based on their own algorithms.
@@ -453,16 +549,45 @@ class SgrRenderer(IRenderer):
             If this setting is set to *True*, the value of ``compatibility_256_colors``
             will be ignored completely.
 
+        :return: self
         """
-        cls._force_styles = force_styles
-        cls._compatibility_256_colors = compatibility_256_colors
-        cls._compatibility_16_colors = compatibility_16_colors
+        self._force_styles = force_styles
+        self._compatibility_256_colors = compatibility_256_colors
+        self._compatibility_16_colors = compatibility_16_colors
+        return self
 
-    @classmethod
-    def render(cls, text: Any, style: Style = NOOP_STYLE):
-        opening_seq = cls._render_attributes(style, squash=True) + \
-                      cls._render_color(style.fg, False) + \
-                      cls._render_color(style.bg, True)
+
+class SgrRenderer(IRenderer, IConfigurableRenderer):
+    """
+    Default renderer invoked by `Text._render()`. Transforms `Color` instances
+    defined in ``style`` into ANSI control sequence bytes and merges them with
+    input string.
+
+    Respects compatibility preferences (see `IConfigurableRenderer.setup()`) and
+    maps RGB colors to closest *indexed* colors if terminal doesn't support
+    RGB output. In case terminal doesn't support even 256 colors, falls back
+    to 16-color pallete and picks closest counterparts again the same way.
+
+    Type of output ``SequenceSGR`` depends on type of `Color` variables in
+    ``style`` argument. Keeping all that in mind, let's summarize:
+
+    1. `ColorRGB` can be rendered as True Color sequence, 256-color sequence
+       or 16-color sequence depending on compatibility settings.
+    2. `ColorIndexed256` can be rendered as 256-color sequence or 16-color
+       sequence.
+    3. `ColorIndexed16` can be rendered as 16-color sequence.
+    4. Nothing of the above will happen and all Colors will be discarded
+       completely if output is not a terminal emulator or if the developer
+       explicitly set up the renderer to do so (**force_styles** = False).
+
+    >>> SgrRenderer().setup(True).render('text', Style(fg='red', bold=True))
+    '\\x1b[1;31mtext\\x1b[22;39m'
+    """
+
+    def render(self, text: Any, style: Style = NOOP_STYLE):
+        opening_seq = self._render_attributes(style, squash=True) + \
+                      self._render_color(style.fg, False) + \
+                      self._render_color(style.bg, True)
 
         # in case there are line breaks -- split text to lines and apply
         # SGRs for each line separately. it increases the chances that style
@@ -473,9 +598,8 @@ class SgrRenderer(IRenderer):
             rendered_text += Span(opening_seq).wrap(line)
         return rendered_text
 
-    @classmethod
-    def _render_attributes(cls, style: Style, squash: bool) -> List[SequenceSGR]|SequenceSGR:
-        if not cls.is_sgr_usage_allowed():
+    def _render_attributes(self, style: Style, squash: bool) -> List[SequenceSGR]|SequenceSGR:
+        if not self.is_sgr_usage_allowed():
             return NOOP_SEQ if squash else [NOOP_SEQ]
 
         result = []
@@ -493,22 +617,21 @@ class SgrRenderer(IRenderer):
             return reduce(lambda p, c: p + c, result, NOOP_SEQ)
         return result
 
-    @classmethod
-    def _render_color(cls, color: Color, bg: bool) -> SequenceSGR:
+    def _render_color(self, color: Color, bg: bool) -> SequenceSGR:
         hex_value = color.hex_value
 
-        if not cls.is_sgr_usage_allowed() or hex_value is None:
+        if not self.is_sgr_usage_allowed() or hex_value is None:
             return NOOP_SEQ
 
         if isinstance(color, ColorRGB):
-            if cls._compatibility_16_colors:
+            if self._compatibility_16_colors:
                 return ColorIndexed16.find_closest(hex_value).to_sgr(bg=bg)
-            if cls._compatibility_256_colors:
+            if self._compatibility_256_colors:
                 return ColorIndexed256.find_closest(hex_value).to_sgr(bg=bg)
             return color.to_sgr(bg=bg)
 
         elif isinstance(color, ColorIndexed256):
-            if cls._compatibility_16_colors:
+            if self._compatibility_16_colors:
                 return ColorIndexed16.find_closest(hex_value).to_sgr(bg=bg)
             return color.to_sgr(bg=bg)
 
@@ -517,11 +640,10 @@ class SgrRenderer(IRenderer):
 
         raise NotImplementedError(f'Unknown Color inhertior {color!s}')
 
-    @classmethod
-    def is_sgr_usage_allowed(cls) -> bool:
-        if cls._force_styles is True:
+    def is_sgr_usage_allowed(self) -> bool:
+        if self._force_styles is True:
             return True
-        if cls._force_styles is None:
+        if self._force_styles is None:
             return False
         return sys.stdout.isatty()
 
@@ -596,16 +718,15 @@ class TmuxRenderer(SgrRenderer):
         Seqs.BG_HI_WHITE:   'bg=brightwhite',
     }
 
-    @classmethod
-    def render(cls, text: Any, style: Style = NOOP_STYLE):
+    def render(self, text: Any, style: Style = NOOP_STYLE):
         opening_sgrs = [
-            *cls._render_attributes(style, False),
-            cls._render_color(style.fg, False),
-            cls._render_color(style.bg, True),
+            *self._render_attributes(style, False),
+            self._render_color(style.fg, False),
+            self._render_color(style.bg, True),
         ]
-        opening_tmux_style = cls._sgr_to_tmux_style(*opening_sgrs)
+        opening_tmux_style = self._sgr_to_tmux_style(*opening_sgrs)
         closing_tmux_style = ''.join(
-            cls._sgr_to_tmux_style(Span(sgr).closing_seq) for sgr in opening_sgrs
+            self._sgr_to_tmux_style(Span(sgr).closing_seq) for sgr in opening_sgrs
         )
 
         rendered_text = ''
@@ -613,8 +734,7 @@ class TmuxRenderer(SgrRenderer):
             rendered_text += opening_tmux_style + line + closing_tmux_style
         return rendered_text
 
-    @classmethod
-    def _sgr_to_tmux_style(cls, *sgrs: SequenceSGR) -> str:
+    def _sgr_to_tmux_style(self, *sgrs: SequenceSGR) -> str:
         result = ''
         for sgr in sgrs:
             if sgr.is_color_extended:
@@ -634,7 +754,7 @@ class TmuxRenderer(SgrRenderer):
                 result += f'#[{target}={color}]'
                 continue
 
-            tmux_style_decl = cls.SGR_TO_TMUX_MAP.get(sgr)
+            tmux_style_decl = self.SGR_TO_TMUX_MAP.get(sgr)
             if tmux_style_decl is None:
                 raise LogicError(f'No tmux definiton is present for {sgr!r}')
             if len(tmux_style_decl) > 0:
@@ -648,12 +768,11 @@ class NoOpRenderer(IRenderer):
     returns it as is. That's true only when it _is_ a str beforehand;
     otherwise argument will be casted to str and then returned.
 
-    >>> NoOpRenderer.render('text', Style(fg='red', bold=True))
+    >>> NoOpRenderer().render('text', Style(fg='red', bold=True))
     'text'
     """
 
-    @classmethod
-    def render(cls, text: Any, style: Style = NOOP_STYLE) -> str:
+    def render(self, text: Any, style: Style = NOOP_STYLE) -> str:
         return str(text)
 
 
@@ -661,17 +780,16 @@ class HtmlRenderer(IRenderer):
     """
     html
 
-    >>> HtmlRenderer.render('text',Style(fg='red', bold=True))
+    >>> HtmlRenderer().render('text',Style(fg='red', bold=True))
     '<span style="color: #800000; font-weight: 700">text</span>'
     """
 
     DEFAULT_ATTRS = ['color', 'background-color', 'font-weight', 'font-style',
                      'text-decoration', 'border', 'filter', ]
 
-    @classmethod
-    def render(cls, text: Any, style: Style = NOOP_STYLE) -> str:
+    def render(self, text: Any, style: Style = NOOP_STYLE) -> str:
         span_styles: Dict[str, Set[str]] = dict()
-        for attr in cls._get_default_attrs():
+        for attr in self._get_default_attrs():
             span_styles[attr] = set()
 
         if style.fg.hex_value is not None:
@@ -699,35 +817,32 @@ class HtmlRenderer(IRenderer):
         if style.underlined:
             span_styles['text-decoration'].add('underline')
 
-        span_class_str = '' if style.class_name is None else f' class="{style.class_name}"'
+        span_class_str = '' \
+            if style.class_name is None \
+            else f' class="{style.class_name}"'
         span_style_str = '; '.join(f"{k}: {' '.join(v)}"
                                    for k, v in span_styles.items()
                                    if len(v) > 0)
-        return f'<span{span_class_str} style="{span_style_str}">'+str(text)+'</span>'  # @TODO  # attribues
+        return f'<span{span_class_str} style="{span_style_str}">' + str(
+            text) + '</span>'  # @TODO  # attribues
 
-    @classmethod
-    def _get_default_attrs(cls) -> List[str]:
-        return cls.DEFAULT_ATTRS
+    def _get_default_attrs(self) -> List[str]:
+        return self.DEFAULT_ATTRS
 
 
 class DebugRenderer(SgrRenderer):
     """
     DebugRenderer
 
-    >>> DebugRenderer.render('text',Style(fg='red', bold=True))
+    >>> DebugRenderer().setup(True).render('text',Style(fg='red', bold=True))
     '|ǝ1;31|text|ǝ22;39|'
     """
 
-    @classmethod
-    def render(cls, text: Any, style: Style = NOOP_STYLE) -> str:
+    def render(self, text: Any, style: Style = NOOP_STYLE) -> str:
         return ReplaceSGR(r'|ǝ\3|').apply(super().render(str(text), style))
 
-    @classmethod
-    def is_sgr_usage_allowed(cls) -> bool:
+    def is_sgr_usage_allowed(self) -> bool:
         return True
-
-
-RendererManager.set_up()
 
 
 class Styles(Registry[Style]):
@@ -753,8 +868,11 @@ class Styles(Registry[Style]):
     CRITICAL_ACCENT = Style(CRITICAL, bold=True, blink=True)
 
 
-def distribute_padded(values: List, max_len: int, pad_before: bool = False,
-                      pad_after: bool = False, ) -> str:
+def distribute_padded(values: List[str|Text],
+                      max_len: int,
+                      pad_before: bool = False,
+                      pad_after: bool = False,
+                      ) -> str:
     if pad_before:
         values.insert(0, '')
     if pad_after:
@@ -767,7 +885,11 @@ def distribute_padded(values: List, max_len: int, pad_before: bool = False,
     if spaces_amount < gapes_amount:
         raise ValueError(f'There is not enough space for all values with padding')
 
-    result = ''
+    if all(isinstance(val, str) for val in values):
+        result = ''
+    else:
+        result = Text()
+
     for value_idx, value in enumerate(values):
         gape_len = spaces_amount // (gapes_amount or 1)  # for last value
         result += value + ' ' * gape_len
@@ -775,3 +897,6 @@ def distribute_padded(values: List, max_len: int, pad_before: bool = False,
         spaces_amount -= gape_len
 
     return result
+
+
+RendererManager.set_default()

@@ -10,7 +10,7 @@
 """
 from __future__ import annotations
 
-from math import trunc
+from math import trunc, log, floor, ceil
 from typing import List
 
 from .auto_float import format_auto_float
@@ -18,18 +18,18 @@ from .auto_float import format_auto_float
 
 def format_si_metric(value: float, unit: str = 'm') -> str:
     """
-    Format ``value`` as meters with SI-prefixes, max
-    result length is *6* chars. Base is *1000*. Unit can be
-    customized.
+    Format ``value`` as meters with SI-prefixes, max result length is
+    *7* chars: 4 for value plus 3 for default unit, prefix and
+    separator. Base is *1000*. Unit can be customized.
 
-    >>> format_si_metric(123.456)
-    '123 m'
-    >>> format_si_metric(0.331, 'g')
-    '331 mg'
-    >>> format_si_metric(45200, 'V')
-    '45.2 kV'
-    >>> format_si_metric(1.26e-9, 'm²')
-    '1.26 nm²'
+    >>> format_si_metric(1010, 'm²')
+    '1.01 km²'
+    >>> format_si_metric(0.0319, 'g')
+    '31.9 mg'
+    >>> format_si_metric(1213531546, 'W')  # great scott
+    '1.21 GW'
+    >>> format_si_metric(1.26e-9, 'eV')
+    '1.26 neV'
 
     :param value: Input value (unitless).
     :param unit:  Value unit, printed right after the prefix.
@@ -43,11 +43,11 @@ def format_si_metric(value: float, unit: str = 'm') -> str:
 def format_si_binary(value: float, unit: str = 'b') -> str:
     """
     Format ``value`` as binary size (bytes, kbytes, Mbytes), max
-    result length is *8* chars. Base is *1024*. Unit can be
-    customized.
+    result length is *8* chars: 5 for value plus 3 for default unit,
+    prefix and separator. Base is *1024*. Unit can be customized.
 
-    >>> format_si_binary(631)
-    '631 b'
+    >>> format_si_binary(1010)  # 1010 b < 1 kb
+    '1010 b'
     >>> format_si_binary(1080)
     '1.055 kb'
     >>> format_si_binary(45200)
@@ -83,14 +83,22 @@ class PrefixedUnitFormatter:
 
     .. versionadded:: 1.7
     """
-    def __init__(self, max_value_len: int, truncate_frac: bool = False, unit: str = None, unit_separator: str = None,
-                 mcoef: float = 1000.0, prefixes: List[str | None] = None, prefix_zero_idx: int = None):
+
+    def __init__(self,
+                 max_value_len: int,
+                 truncate_frac: bool = False,
+                 unit: str = None,
+                 unit_separator: str = None,
+                 mcoef: float = 1000.0,
+                 prefixes: List[str|None] = None,
+                 prefix_zero_idx: int = None,
+                 ):
         self._max_value_len: int = max_value_len
         self._truncate_frac: bool = truncate_frac
         self._unit: str = unit or ''
         self._unit_separator: str = unit_separator or ''
         self._mcoef: float = mcoef
-        self._prefixes: List[str | None] = prefixes or []
+        self._prefixes: List[str|None] = prefixes or []
         self._prefix_zero_idx: int = prefix_zero_idx or 0
 
     @property
@@ -111,37 +119,38 @@ class PrefixedUnitFormatter:
         :param unit:   Unit override
         :return:       Formatted value
         """
-        unit_idx = self._prefix_zero_idx
+        if self._truncate_frac:
+            value = trunc(value)
 
-        while 0 <= unit_idx < len(self._prefixes):
-            if 0.0 < abs(value) <= 1 / self._mcoef:
-                value *= self._mcoef
-                unit_idx -= 1
-                if abs(value) <= 1:
-                    continue
-            elif abs(value) >= self._mcoef:
-                value /= self._mcoef
-                unit_idx += 1
-                continue
-
-            unit_full = (self._prefixes[unit_idx] or '') + \
-                        (unit or self._unit)
-
-            if self._truncate_frac and unit_idx == self._prefix_zero_idx:
-                num_str = f'{trunc(value)!s:.{self._max_value_len}s}'
+        abs_value = abs(value)
+        power_base = self._mcoef**(1/3)  # =10 for metric, ~10.079 for binary
+        if abs_value == 0.0:
+            prefix_shift = 0
+        else:
+            exponent = floor(log(abs_value, power_base))
+            if exponent > 0:
+                prefix_shift = floor(exponent/3)
             else:
-                num_str = format_auto_float(value,
-                                            self._max_value_len,
-                                            allow_exponent_notation=False)
+                prefix_shift = round(exponent/3)
 
-            return f'{num_str.strip()}{self._unit_separator}{unit_full.strip()}'
+        value /= power_base**(prefix_shift*3)
+        unit_idx = self._prefix_zero_idx + prefix_shift
+        if 0 <= unit_idx < len(self._prefixes):
+            unit_full = (self._prefixes[unit_idx] or '') + (unit or self._unit)
+        else:
+            unit_full = ('?' * max([len(p) for p in self._prefixes if p])) + self._unit
 
-        # no more prefixes left
-        num_str = format_auto_float(value,
-                                    self._max_value_len,
-                                    allow_exponent_notation=False)
-        unit_full = ('?' * max([len(p) for p in self._prefixes if p])) + self._unit
-        return f'{num_str.strip()}{self._unit_separator}{unit_full.strip()}'
+        unit_separator = self._unit_separator
+        if not unit_full or unit_full.isspace():
+            unit_separator = ''
+
+        if self._truncate_frac and unit_idx == self._prefix_zero_idx:
+            num_str = f'{trunc(value)!s:.{self._max_value_len}s}'
+        else:
+            num_str = format_auto_float(value, self._max_value_len, allow_exponent_notation=False)
+
+        result = f'{num_str.strip()}{unit_separator}{unit_full.strip()}'
+        return result
 
 
 # ---------------------------------------------------------------------------

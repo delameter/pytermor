@@ -7,7 +7,7 @@ max_len_list = [3, 6, 10]
 for max_len in max_len_list:
     formatter = time_delta.registry.find_matching(max_len)
 
-RendererManager.set_up(SgrRenderer)
+RendererManager.set_default(SgrRenderer)
 for seconds in seconds_list:
     for max_len in max_len_list:
         formatter = time_delta.registry.get_by_max_len(max_len)
