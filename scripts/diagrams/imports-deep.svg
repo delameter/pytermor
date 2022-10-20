@@ -17,7 +17,7 @@
 <!-- pytermor -->
 <g id="node1" class="node">
 <title>pytermor</title><style>.edge>path:hover{stroke-width:8}</style>
-<ellipse fill="#a83838" stroke="black" cx="275" cy="-34" rx="32.25" ry="18"/>
+<ellipse fill="#9d4343" stroke="black" cx="275" cy="-34" rx="32.25" ry="18"/>
 <text text-anchor="middle" x="275" y="-31.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor</text>
 </g>
 <!-- pytermor__version -->
@@ -36,14 +36,14 @@
 <!-- pytermor_ansi -->
 <g id="node3" class="node">
 <title>pytermor_ansi</title><style>.edge>path:hover{stroke-width:8}</style>
-<ellipse fill="#e61919" stroke="black" cx="240" cy="-610.37" rx="44.3" ry="18"/>
-<text text-anchor="middle" x="240" y="-607.87" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.ansi</text>
+<ellipse fill="#e61919" stroke="black" cx="230" cy="-610.37" rx="44.3" ry="18"/>
+<text text-anchor="middle" x="230" y="-607.87" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.ansi</text>
 </g>
 <!-- pytermor_ansi&#45;&gt;pytermor -->
 <g id="edge2" class="edge">
 <title>pytermor_ansi&#45;&gt;pytermor</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M203.71,-600.01C145.32,-582.5 37,-538.91 37,-456.38 37,-456.38 37,-456.38 37,-360.4 37,-271.37 31.74,-236.23 87,-166.43 119.52,-125.35 131.99,-117.91 175,-88 196.03,-73.38 221.57,-59.9 241.58,-50.2"/>
-<polygon fill="#000000" stroke="black" points="243.11,-53.35 250.62,-45.89 240.09,-47.03 243.11,-53.35"/>
+<path fill="none" stroke="black" d="M210.19,-594.26C147.68,-544.64 -37.52,-381.67 27,-238.43 70.02,-142.91 183.73,-77.93 241.01,-50.18"/>
+<polygon fill="#000000" stroke="black" points="242.83,-53.19 250.36,-45.74 239.82,-46.87 242.83,-53.19"/>
 </g>
 <!-- pytermor_color -->
 <g id="node4" class="node">
@@ -54,176 +54,176 @@
 <!-- pytermor_ansi&#45;&gt;pytermor_color -->
 <g id="edge3" class="edge">
 <title>pytermor_ansi&#45;&gt;pytermor_color</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M263.88,-595.21C281.44,-584.79 305.52,-570.51 324.93,-558.99"/>
-<polygon fill="#000000" stroke="black" points="326.94,-561.87 333.75,-553.76 323.37,-555.85 326.94,-561.87"/>
+<path fill="none" stroke="black" d="M255.29,-595.54C274.8,-584.88 301.99,-570.01 323.5,-558.24"/>
+<polygon fill="#000000" stroke="black" points="325.23,-561.28 332.33,-553.42 321.87,-555.14 325.23,-561.28"/>
 </g>
 <!-- pytermor_render -->
 <g id="node6" class="node">
 <title>pytermor_render</title><style>.edge>path:hover{stroke-width:8}</style>
-<ellipse fill="#993333" stroke="black" cx="224" cy="-109.21" rx="40.11" ry="21.43"/>
-<text text-anchor="middle" x="224" y="-112.21" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.</text>
-<text text-anchor="middle" x="224" y="-101.21" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">render</text>
+<ellipse fill="#a83838" stroke="black" cx="246" cy="-109.21" rx="40.11" ry="21.43"/>
+<text text-anchor="middle" x="246" y="-112.21" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.</text>
+<text text-anchor="middle" x="246" y="-101.21" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">render</text>
 </g>
 <!-- pytermor_ansi&#45;&gt;pytermor_render -->
 <g id="edge4" class="edge">
 <title>pytermor_ansi&#45;&gt;pytermor_render</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M252.87,-593.07C292.74,-540.5 408.21,-371.13 353,-238.43 333.82,-192.32 289.11,-154.26 257.74,-131.89"/>
-<polygon fill="#000000" stroke="black" points="259.48,-128.84 249.27,-126 255.48,-134.58 259.48,-128.84"/>
+<path fill="none" stroke="black" d="M240.94,-592.49C261.19,-561.12 302.84,-495.95 307,-484.37 344.15,-380.92 365.28,-343.5 333,-238.43 320.86,-198.92 291.96,-160.66 270.79,-136.37"/>
+<polygon fill="#000000" stroke="black" points="273.2,-133.82 263.94,-128.69 267.98,-138.48 273.2,-133.82"/>
 </g>
 <!-- pytermor_util_string_filter -->
 <g id="node11" class="node">
 <title>pytermor_util_string_filter</title><style>.edge>path:hover{stroke-width:8}</style>
-<ellipse fill="#d92626" stroke="black" cx="172" cy="-455.38" rx="45.92" ry="28.98"/>
-<text text-anchor="middle" x="172" y="-463.88" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.</text>
-<text text-anchor="middle" x="172" y="-452.88" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">util.</text>
-<text text-anchor="middle" x="172" y="-441.88" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">string_filter</text>
+<ellipse fill="#cc3333" stroke="black" cx="252" cy="-455.38" rx="45.92" ry="28.98"/>
+<text text-anchor="middle" x="252" y="-463.88" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.</text>
+<text text-anchor="middle" x="252" y="-452.88" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">util.</text>
+<text text-anchor="middle" x="252" y="-441.88" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">string_filter</text>
 </g>
 <!-- pytermor_ansi&#45;&gt;pytermor_util_string_filter -->
 <g id="edge5" class="edge">
 <title>pytermor_ansi&#45;&gt;pytermor_util_string_filter</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M232.46,-592.42C221.84,-568.52 202.2,-524.32 188.18,-492.79"/>
-<polygon fill="#000000" stroke="black" points="191.29,-491.16 184.03,-483.45 184.89,-494.01 191.29,-491.16"/>
+<path fill="none" stroke="black" d="M232.48,-592.12C235.86,-568.6 242.01,-525.83 246.51,-494.56"/>
+<polygon fill="#000000" stroke="black" points="250.01,-494.84 247.96,-484.45 243.08,-493.85 250.01,-494.84"/>
 </g>
 <!-- pytermor_color&#45;&gt;pytermor -->
 <g id="edge6" class="edge">
 <title>pytermor_color&#45;&gt;pytermor</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M365.43,-520.36C378.21,-489.51 403,-422 403,-362.4 403,-362.4 403,-362.4 403,-266.42 403,-220.91 408.32,-202.82 381,-166.43 360.94,-139.71 337.39,-155.23 315,-130.43 297.39,-110.92 286.85,-82.55 281.04,-61.81"/>
-<polygon fill="#000000" stroke="black" points="284.4,-60.83 278.49,-52.03 277.63,-62.59 284.4,-60.83"/>
+<path fill="none" stroke="black" d="M365.43,-520.36C378.21,-489.51 403,-422 403,-362.4 403,-362.4 403,-362.4 403,-266.42 403,-220.91 408.32,-202.82 381,-166.43 360.94,-139.71 337.39,-155.23 315,-130.43 310.09,-124.99 295.19,-87.72 285.03,-61.4"/>
+<polygon fill="#000000" stroke="black" points="288.25,-60.02 281.4,-51.94 281.72,-62.53 288.25,-60.02"/>
 </g>
 <!-- pytermor_color&#45;&gt;pytermor_render -->
 <g id="edge7" class="edge">
 <title>pytermor_color&#45;&gt;pytermor_render</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M362.13,-520.11C369.23,-488.85 383,-420.7 383,-362.4 383,-362.4 383,-362.4 383,-266.42 383,-221.48 396.04,-201.54 368,-166.43 355.2,-150.4 306.36,-133.47 269.07,-122.43"/>
-<polygon fill="#000000" stroke="black" points="269.96,-119.05 259.38,-119.62 268.01,-125.77 269.96,-119.05"/>
+<path fill="none" stroke="black" d="M362.13,-520.11C369.23,-488.85 383,-420.7 383,-362.4 383,-362.4 383,-362.4 383,-266.42 383,-221.48 394.98,-202.36 368,-166.43 362.65,-159.3 320.17,-140.63 286.82,-126.75"/>
+<polygon fill="#000000" stroke="black" points="287.83,-123.38 277.25,-122.8 285.16,-129.85 287.83,-123.38"/>
 </g>
 <!-- pytermor_common -->
 <g id="node5" class="node">
 <title>pytermor_common</title><style>.edge>path:hover{stroke-width:8}</style>
-<ellipse fill="#db2f2f" stroke="black" cx="240" cy="-685.59" rx="40.11" ry="21.43"/>
-<text text-anchor="middle" x="240" y="-688.59" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.</text>
-<text text-anchor="middle" x="240" y="-677.59" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">common</text>
+<ellipse fill="#e72222" stroke="black" cx="261" cy="-685.59" rx="40.11" ry="21.43"/>
+<text text-anchor="middle" x="261" y="-688.59" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.</text>
+<text text-anchor="middle" x="261" y="-677.59" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">common</text>
 </g>
 <!-- pytermor_common&#45;&gt;pytermor_ansi -->
 <g id="edge8" class="edge">
 <title>pytermor_common&#45;&gt;pytermor_ansi</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M240,-664.19C240,-656.34 240,-647.24 240,-638.83"/>
-<polygon fill="#000000" stroke="black" points="243.5,-638.68 240,-628.68 236.5,-638.68 243.5,-638.68"/>
+<path fill="none" stroke="black" d="M252.53,-664.58C249.04,-656.34 244.94,-646.67 241.21,-637.85"/>
+<polygon fill="#000000" stroke="black" points="244.32,-636.22 237.2,-628.38 237.88,-638.95 244.32,-636.22"/>
 </g>
 <!-- pytermor_common&#45;&gt;pytermor_color -->
 <g id="edge9" class="edge">
 <title>pytermor_common&#45;&gt;pytermor_color</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M258.27,-666.38C268.78,-655.63 282.03,-641.58 293,-628.37 310.34,-607.51 328.41,-582.45 341.09,-564.25"/>
-<polygon fill="#000000" stroke="black" points="344.04,-566.13 346.85,-555.91 338.28,-562.15 344.04,-566.13"/>
+<path fill="none" stroke="black" d="M273.88,-665.3C291.18,-639.41 321.95,-593.34 341.1,-564.68"/>
+<polygon fill="#000000" stroke="black" points="344.23,-566.29 346.87,-556.03 338.41,-562.41 344.23,-566.29"/>
 </g>
 <!-- pytermor_common&#45;&gt;pytermor_render -->
 <g id="edge10" class="edge">
 <title>pytermor_common&#45;&gt;pytermor_render</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M202.17,-677.9C138.55,-664.23 17,-626.69 17,-539.37 17,-539.37 17,-539.37 17,-360.4 17,-268.75 18.82,-227.67 87,-166.43 112.49,-143.53 148.58,-129.24 177.31,-120.79"/>
-<polygon fill="#000000" stroke="black" points="178.45,-124.11 187.14,-118.05 176.57,-117.37 178.45,-124.11"/>
-</g>
-<!-- pytermor_render&#45;&gt;pytermor -->
-<g id="edge11" class="edge">
-<title>pytermor_render&#45;&gt;pytermor</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M237.4,-88.98C243.64,-80.02 251.13,-69.27 257.78,-59.72"/>
-<polygon fill="#000000" stroke="black" points="260.75,-61.59 263.59,-51.38 255,-57.58 260.75,-61.59"/>
+<path fill="none" stroke="black" d="M269.78,-664.87C274.24,-654.23 279.46,-640.77 283,-628.37 296.4,-581.43 286.98,-566.49 303,-520.37 308.94,-503.28 315.24,-501.16 322,-484.37 338.23,-444.06 342.94,-433.43 349,-390.39 358.42,-323.48 360.16,-304.04 344,-238.43 335.58,-204.25 332.13,-194.58 311,-166.43 301.7,-154.04 289.26,-142.46 277.75,-133.06"/>
+<polygon fill="#000000" stroke="black" points="279.61,-130.07 269.59,-126.62 275.27,-135.57 279.61,-130.07"/>
 </g>
 <!-- pytermor_util -->
 <g id="node7" class="node">
 <title>pytermor_util</title><style>.edge>path:hover{stroke-width:8}</style>
-<ellipse fill="#a13535" stroke="black" cx="203" cy="-184.43" rx="41.41" ry="18"/>
-<text text-anchor="middle" x="203" y="-181.93" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.util</text>
+<ellipse fill="#993333" stroke="black" cx="197" cy="-184.43" rx="41.41" ry="18"/>
+<text text-anchor="middle" x="197" y="-181.93" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.util</text>
+</g>
+<!-- pytermor_common&#45;&gt;pytermor_util -->
+<g id="edge11" class="edge">
+<title>pytermor_common&#45;&gt;pytermor_util</title><style>.edge>path:hover{stroke-width:8}</style>
+<path fill="none" stroke="black" d="M229.07,-672.38C210.24,-663.33 187.99,-648.96 177,-628.37 169.08,-613.55 114.35,-858.56 186,-238.43 186.99,-229.89 188.67,-220.7 190.43,-212.4"/>
+<polygon fill="#000000" stroke="black" points="193.88,-213.01 192.65,-202.49 187.05,-211.48 193.88,-213.01"/>
+</g>
+<!-- pytermor_render&#45;&gt;pytermor -->
+<g id="edge12" class="edge">
+<title>pytermor_render&#45;&gt;pytermor</title><style>.edge>path:hover{stroke-width:8}</style>
+<path fill="none" stroke="black" d="M253.92,-88.21C257.19,-79.96 261.02,-70.29 264.51,-61.48"/>
+<polygon fill="#000000" stroke="black" points="267.84,-62.59 268.26,-52 261.33,-60.01 267.84,-62.59"/>
 </g>
 <!-- pytermor_util&#45;&gt;pytermor_render -->
-<g id="edge12" class="edge">
+<g id="edge13" class="edge">
 <title>pytermor_util&#45;&gt;pytermor_render</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M207.87,-166.45C210.12,-158.59 212.87,-149.02 215.45,-140.02"/>
-<polygon fill="#000000" stroke="black" points="218.87,-140.8 218.26,-130.22 212.14,-138.87 218.87,-140.8"/>
+<path fill="none" stroke="black" d="M208.12,-166.81C213.83,-158.29 220.93,-147.67 227.44,-137.94"/>
+<polygon fill="#000000" stroke="black" points="230.54,-139.6 233.19,-129.35 224.72,-135.71 230.54,-139.6"/>
 </g>
 <!-- pytermor_util_auto_float -->
 <g id="node8" class="node">
 <title>pytermor_util_auto_float</title><style>.edge>path:hover{stroke-width:8}</style>
-<ellipse fill="#ce3b3b" stroke="black" cx="279" cy="-361.4" rx="41.94" ry="28.98"/>
-<text text-anchor="middle" x="279" y="-369.9" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.</text>
-<text text-anchor="middle" x="279" y="-358.9" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">util.</text>
-<text text-anchor="middle" x="279" y="-347.9" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">auto_float</text>
+<ellipse fill="#ce3b3b" stroke="black" cx="99" cy="-361.4" rx="41.94" ry="28.98"/>
+<text text-anchor="middle" x="99" y="-369.9" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.</text>
+<text text-anchor="middle" x="99" y="-358.9" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">util.</text>
+<text text-anchor="middle" x="99" y="-347.9" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">auto_float</text>
 </g>
 <!-- pytermor_util_auto_float&#45;&gt;pytermor_util -->
-<g id="edge13" class="edge">
+<g id="edge14" class="edge">
 <title>pytermor_util_auto_float&#45;&gt;pytermor_util</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M258.42,-336.18C249.55,-324.73 239.69,-310.5 233,-296.41 220.13,-269.33 212.04,-235.82 207.54,-212.75"/>
-<polygon fill="#000000" stroke="black" points="210.93,-211.83 205.67,-202.64 204.05,-213.11 210.93,-211.83"/>
+<path fill="none" stroke="black" d="M119.59,-335.82C128.67,-324.29 139.06,-310.11 147,-296.41 161.07,-272.13 160.46,-264.01 172,-238.43 175.95,-229.67 180.39,-220.16 184.42,-211.64"/>
+<polygon fill="#000000" stroke="black" points="187.61,-213.08 188.75,-202.54 181.29,-210.07 187.61,-213.08"/>
 </g>
 <!-- pytermor_util_prefixed_unit -->
 <g id="node9" class="node">
 <title>pytermor_util_prefixed_unit</title><style>.edge>path:hover{stroke-width:8}</style>
-<ellipse fill="#c04040" stroke="black" cx="293" cy="-267.42" rx="50.82" ry="28.98"/>
-<text text-anchor="middle" x="293" y="-275.92" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.</text>
-<text text-anchor="middle" x="293" y="-264.92" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">util.</text>
-<text text-anchor="middle" x="293" y="-253.92" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">prefixed_unit</text>
+<ellipse fill="#c04040" stroke="black" cx="87" cy="-267.42" rx="50.82" ry="28.98"/>
+<text text-anchor="middle" x="87" y="-275.92" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.</text>
+<text text-anchor="middle" x="87" y="-264.92" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">util.</text>
+<text text-anchor="middle" x="87" y="-253.92" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">prefixed_unit</text>
 </g>
 <!-- pytermor_util_auto_float&#45;&gt;pytermor_util_prefixed_unit -->
-<g id="edge14" class="edge">
+<g id="edge15" class="edge">
 <title>pytermor_util_auto_float&#45;&gt;pytermor_util_prefixed_unit</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M283.28,-332.3C284.52,-324.1 285.91,-315 287.23,-306.3"/>
-<polygon fill="#000000" stroke="black" points="290.71,-306.76 288.75,-296.34 283.78,-305.7 290.71,-306.76"/>
+<path fill="none" stroke="black" d="M95.33,-332.3C94.26,-324.1 93.08,-315 91.94,-306.3"/>
+<polygon fill="#000000" stroke="black" points="95.41,-305.81 90.64,-296.34 88.47,-306.71 95.41,-305.81"/>
 </g>
 <!-- pytermor_util_prefixed_unit&#45;&gt;pytermor_util -->
-<g id="edge15" class="edge">
+<g id="edge16" class="edge">
 <title>pytermor_util_prefixed_unit&#45;&gt;pytermor_util</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M266.48,-242.56C254.23,-231.53 239.77,-218.52 227.75,-207.7"/>
-<polygon fill="#000000" stroke="black" points="230.02,-205.03 220.25,-200.95 225.34,-210.24 230.02,-205.03"/>
+<path fill="none" stroke="black" d="M117.35,-244.07C133.34,-232.3 152.83,-217.95 168.53,-206.39"/>
+<polygon fill="#000000" stroke="black" points="170.84,-209.03 176.82,-200.29 166.69,-203.4 170.84,-209.03"/>
 </g>
 <!-- pytermor_util_stdlib_ext -->
 <g id="node10" class="node">
 <title>pytermor_util_stdlib_ext</title><style>.edge>path:hover{stroke-width:8}</style>
-<ellipse fill="#cc3333" stroke="black" cx="142" cy="-361.4" rx="41.94" ry="28.98"/>
-<text text-anchor="middle" x="142" y="-369.9" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.</text>
-<text text-anchor="middle" x="142" y="-358.9" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">util.</text>
-<text text-anchor="middle" x="142" y="-347.9" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">stdlib_ext</text>
+<ellipse fill="#cc3333" stroke="black" cx="258" cy="-361.4" rx="41.94" ry="28.98"/>
+<text text-anchor="middle" x="258" y="-369.9" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.</text>
+<text text-anchor="middle" x="258" y="-358.9" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">util.</text>
+<text text-anchor="middle" x="258" y="-347.9" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">stdlib_ext</text>
 </g>
 <!-- pytermor_util_stdlib_ext&#45;&gt;pytermor_util -->
-<g id="edge16" class="edge">
+<g id="edge17" class="edge">
 <title>pytermor_util_stdlib_ext&#45;&gt;pytermor_util</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M156.11,-334.11C161.86,-322.73 168.25,-309.13 173,-296.41 183.43,-268.49 191.9,-235.37 197.15,-212.62"/>
-<polygon fill="#000000" stroke="black" points="200.61,-213.18 199.4,-202.66 193.78,-211.65 200.61,-213.18"/>
+<path fill="none" stroke="black" d="M243.89,-334.11C238.14,-322.73 231.75,-309.13 227,-296.41 216.57,-268.49 208.1,-235.37 202.85,-212.62"/>
+<polygon fill="#000000" stroke="black" points="206.22,-211.65 200.6,-202.66 199.39,-213.18 206.22,-211.65"/>
 </g>
 <!-- pytermor_util_time_delta -->
 <g id="node12" class="node">
 <title>pytermor_util_time_delta</title><style>.edge>path:hover{stroke-width:8}</style>
-<ellipse fill="#c04040" stroke="black" cx="120" cy="-267.42" rx="43.68" ry="28.98"/>
-<text text-anchor="middle" x="120" y="-275.92" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.</text>
-<text text-anchor="middle" x="120" y="-264.92" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">util.</text>
-<text text-anchor="middle" x="120" y="-253.92" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">time_delta</text>
+<ellipse fill="#c04040" stroke="black" cx="280" cy="-267.42" rx="43.68" ry="28.98"/>
+<text text-anchor="middle" x="280" y="-275.92" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">pytermor.</text>
+<text text-anchor="middle" x="280" y="-264.92" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">util.</text>
+<text text-anchor="middle" x="280" y="-253.92" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#ffffff">time_delta</text>
 </g>
 <!-- pytermor_util_stdlib_ext&#45;&gt;pytermor_util_time_delta -->
-<g id="edge17" class="edge">
-<title>pytermor_util_stdlib_ext&#45;&gt;pytermor_util_time_delta</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M135.28,-332.3C133.32,-324.1 131.14,-315 129.06,-306.3"/>
-<polygon fill="#000000" stroke="black" points="132.41,-305.25 126.68,-296.34 125.6,-306.88 132.41,-305.25"/>
-</g>
-<!-- pytermor_util_string_filter&#45;&gt;pytermor_render -->
 <g id="edge18" class="edge">
-<title>pytermor_util_string_filter&#45;&gt;pytermor_render</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M138.44,-435.21C121.86,-424.12 102.91,-408.73 91,-390.39 53.75,-333.05 38.07,-300.38 67,-238.43 91.02,-186.99 147.12,-149.46 185.32,-128.74"/>
-<polygon fill="#000000" stroke="black" points="187.41,-131.6 194.62,-123.84 184.14,-125.41 187.41,-131.6"/>
+<title>pytermor_util_stdlib_ext&#45;&gt;pytermor_util_time_delta</title><style>.edge>path:hover{stroke-width:8}</style>
+<path fill="none" stroke="black" d="M264.72,-332.3C266.68,-324.1 268.86,-315 270.94,-306.3"/>
+<polygon fill="#000000" stroke="black" points="274.4,-306.88 273.32,-296.34 267.59,-305.25 274.4,-306.88"/>
 </g>
 <!-- pytermor_util_string_filter&#45;&gt;pytermor_util -->
 <g id="edge19" class="edge">
 <title>pytermor_util_string_filter&#45;&gt;pytermor_util</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M182.75,-427.09C186.68,-415.89 190.72,-402.69 193,-390.39 204.61,-327.63 204.87,-252.33 203.98,-212.78"/>
-<polygon fill="#000000" stroke="black" points="207.47,-212.51 203.7,-202.61 200.47,-212.7 207.47,-212.51"/>
+<path fill="none" stroke="black" d="M229.76,-429.77C221.01,-418.57 211.9,-404.65 207,-390.39 186.12,-329.59 189.71,-252.66 193.64,-212.55"/>
+<polygon fill="#000000" stroke="black" points="197.14,-212.81 194.72,-202.49 190.18,-212.06 197.14,-212.81"/>
 </g>
 <!-- pytermor_util_string_filter&#45;&gt;pytermor_util_stdlib_ext -->
 <g id="edge20" class="edge">
 <title>pytermor_util_string_filter&#45;&gt;pytermor_util_stdlib_ext</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M163,-426.79C160.21,-418.24 157.09,-408.67 154.13,-399.58"/>
-<polygon fill="#000000" stroke="black" points="157.42,-398.4 150.99,-389.98 150.77,-400.57 157.42,-398.4"/>
+<path fill="none" stroke="black" d="M253.83,-426.29C254.36,-418.25 254.94,-409.35 255.5,-400.8"/>
+<polygon fill="#000000" stroke="black" points="259,-400.85 256.16,-390.64 252.01,-400.39 259,-400.85"/>
 </g>
 <!-- pytermor_util_time_delta&#45;&gt;pytermor_util -->
 <g id="edge21" class="edge">
 <title>pytermor_util_time_delta&#45;&gt;pytermor_util</title><style>.edge>path:hover{stroke-width:8}</style>
-<path fill="none" stroke="black" d="M144.01,-242.99C155.21,-232.06 168.5,-219.1 179.62,-208.24"/>
-<polygon fill="#000000" stroke="black" points="182.21,-210.6 186.92,-201.11 177.32,-205.59 182.21,-210.6"/>
+<path fill="none" stroke="black" d="M255.99,-242.99C244.79,-232.06 231.5,-219.1 220.38,-208.24"/>
+<polygon fill="#000000" stroke="black" points="222.68,-205.59 213.08,-201.11 217.79,-210.6 222.68,-205.59"/>
 </g>
 </g>
 </svg>

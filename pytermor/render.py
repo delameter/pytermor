@@ -11,7 +11,7 @@ Working with non-default renderer can be achieved in two ways:
     a. Method `RendererManager.set_default()` sets the default renderer globally.
        After that calling ``Renderable.render()`` will automatically invoke said renderer
        and all formatting will be applied.
-    b. Alternatively, you can use renderer's own instance method `IRenderer.render()`
+    b. Alternatively, you can use renderer's own instance method `AbstractRenderer.render()`
        directly and avoid messing up with the manager:
        ``HtmlRenderer().render(<Renderable>)``
 
@@ -56,15 +56,15 @@ this:
         Text().prepend(string, style, leave_open = False)
         Text().raw
         Text().apply(style)
-        Text().render(with=IRenderer())
+        Text().render(with=AbstractRenderer())
         Text() + Text() = Text().append(Text().raw, Text().style)
         Text() + str = Text().append(str)
         str + Text() = Text().prepend(str)
 
         Style(style, fg, bg...)
         # no Style().render()!
-        IRenderer().setup()
-        IRenderer().render(text)
+        AbstractRenderer().setup()
+        AbstractRenderer().render(text)
         SgrRenderer().is_sgr_usage_allowed()
 
     renderers should have instance methods only!
@@ -79,12 +79,10 @@ from functools import reduce
 from typing import List, Sized, Any, FrozenSet, Tuple
 from typing import Type, Dict, Set
 
-from pytermor.common import LogicError
 from .ansi import SequenceSGR, Span, NOOP_SEQ, Seqs, IntCodes
 from .color import Color, ColorRGB, ColorIndexed16, ColorIndexed256, NOOP_COLOR, Colors
-from .common import Registry
-from .util import ljust_sgr, rjust_sgr, center_sgr
-from .util.string_filter import ReplaceSGR
+from .common import LogicError, Registry, Renderable
+from .util import ljust_sgr, rjust_sgr, center_sgr, ReplaceSGR
 
 
 @dataclass
@@ -283,33 +281,8 @@ furthrer without any modifications.
 """
 
 
-class Renderable(Sized, metaclass=ABCMeta):
-    """
-    Renderable abstract class. Can be inherited if the default style
-    overlaps resolution mechanism implemented in `Text` is not good enough
-    and you want to implement your own.
-    """
-
-    def render(self, renderer: IRenderer|Type[IRenderer] = None) -> str:
-        if isinstance(renderer, type):
-            renderer = renderer()
-        return self._render_using(renderer or RendererManager.get_default())
-
-    @abstractmethod
-    def _render_using(self, renderer: IRenderer) -> str:
-        raise NotImplemented
-
-    @abstractmethod
-    def raw(self) -> str:
-        raise NotImplemented
-
-    @abstractmethod
-    def __len__(self) -> int:
-        raise NotImplemented
-
-
 class Text(Renderable):
-    WIDTH_MAX_LEN_REGEX = re.compile(r'[\d.]+$')
+    WIDTH_MAX_LEN_REGEXP = re.compile(r'[\d.]+$')
     ALIGN_LEFT = '<'
     ALIGN_RIGHT = '>'
     ALIGN_CENTER = '^'
@@ -324,7 +297,12 @@ class Text(Renderable):
         self._fragments = []
         self.append(string, style)
 
-    def _render_using(self, renderer: IRenderer) -> str:
+    def render(self, renderer: AbstractRenderer|Type[AbstractRenderer] = None) -> str:
+        if isinstance(renderer, type):
+            renderer = renderer()
+        return self._render_using(renderer or RendererManager.get_default())
+
+    def _render_using(self, renderer: AbstractRenderer) -> str:
         return ''.join(renderer.render(frag.string, frag.style)
                        for frag in self._fragments)
 
@@ -335,7 +313,7 @@ class Text(Renderable):
         if isinstance(string, str):
             self._fragments.append(self._TextFragment(string, style))
         elif isinstance(string, Text):
-            if style:
+            if style != NOOP_STYLE:
                 raise ValueError('Style is already defined in first argument')
             self._fragments += string._fragments
         else:
@@ -345,7 +323,7 @@ class Text(Renderable):
         if isinstance(string, str):
             self._fragments.insert(0, self._TextFragment(string, style))
         elif isinstance(string, Text):
-            if style:
+            if style != NOOP_STYLE:
                 raise ValueError('Style is already defined in first argument')
             self._fragments = string._fragments + self._fragments
         else:
@@ -406,7 +384,7 @@ class Text(Renderable):
 
         width = None
         max_len = None
-        if width_and_max_len_match := cls.WIDTH_MAX_LEN_REGEX.search(format_spec):
+        if width_and_max_len_match := cls.WIDTH_MAX_LEN_REGEXP.search(format_spec):
             width_max_len = width_and_max_len_match.group(0)
             if '.' in width_max_len:
                 if width_max_len.startswith('.'):
@@ -416,7 +394,7 @@ class Text(Renderable):
                                       for val in width_max_len.split('.'))
             else:
                 width = int(width_max_len)
-            format_spec = cls.WIDTH_MAX_LEN_REGEX.sub('', format_spec)
+            format_spec = cls.WIDTH_MAX_LEN_REGEXP.sub('', format_spec)
 
         align = None
         if format_spec.endswith((cls.ALIGN_LEFT, cls.ALIGN_RIGHT, cls.ALIGN_CENTER)):
@@ -461,10 +439,10 @@ class Text(Renderable):
 
 
 class RendererManager:
-    _default: IRenderer = None
+    _default: AbstractRenderer = None
 
     @classmethod
-    def set_default(cls, renderer: IRenderer|Type[IRenderer] = None) -> IRenderer:
+    def set_default(cls, renderer: AbstractRenderer|Type[AbstractRenderer] = None) -> AbstractRenderer:
         """
         Set up renderer preferences. Affects all renderer types.
 
@@ -472,7 +450,7 @@ class RendererManager:
             Default renderer to use globally. Passing None will result in library
             default setting restored (`SgrRenderer`).
 
-        :return: `IRenderer` instance set as default.
+        :return: `AbstractRenderer` instance set as default.
 
         >>> DebugRenderer().render('text', Style(fg='red'))
         '|ǝ31|text|ǝ39|'
@@ -486,18 +464,18 @@ class RendererManager:
         return cls._default
 
     @classmethod
-    def get_default(cls) -> IRenderer:
+    def get_default(cls) -> AbstractRenderer:
         """
         Get global default renderer (`SgrRenderer`, or the one provided to `setup`).
         """
         return cls._default
 
     @classmethod
-    def set_forced_sgr_as_default(cls) -> IRenderer:
+    def set_forced_sgr_as_default(cls) -> AbstractRenderer:
         return cls.set_default(SgrRenderer().setup(force_styles=True))
 
 
-class IRenderer(metaclass=ABCMeta):
+class AbstractRenderer(metaclass=ABCMeta):
     """ Renderer interface. """
 
     @abstractmethod
@@ -510,7 +488,7 @@ class IRenderer(metaclass=ABCMeta):
         raise NotImplementedError
 
 
-class IConfigurableRenderer:
+class Configurable:
     _force_styles: bool|None = False
     _compatibility_256_colors: bool = False
     _compatibility_16_colors: bool = False
@@ -519,7 +497,7 @@ class IConfigurableRenderer:
               force_styles: bool|None = False,
               compatibility_256_colors: bool = False,
               compatibility_16_colors: bool = False,
-              ) -> IConfigurableRenderer:
+              ) -> Configurable:
         """
         Set up renderer preferences.
 
@@ -557,13 +535,13 @@ class IConfigurableRenderer:
         return self
 
 
-class SgrRenderer(IRenderer, IConfigurableRenderer):
+class SgrRenderer(AbstractRenderer, Configurable):
     """
     Default renderer invoked by `Text._render()`. Transforms `Color` instances
     defined in ``style`` into ANSI control sequence bytes and merges them with
     input string.
 
-    Respects compatibility preferences (see `IConfigurableRenderer.setup()`) and
+    Respects compatibility preferences (see `Configurable.setup()`) and
     maps RGB colors to closest *indexed* colors if terminal doesn't support
     RGB output. In case terminal doesn't support even 256 colors, falls back
     to 16-color pallete and picks closest counterparts again the same way.
@@ -762,7 +740,7 @@ class TmuxRenderer(SgrRenderer):
         return result
 
 
-class NoOpRenderer(IRenderer):
+class NoOpRenderer(AbstractRenderer):
     """
     Special renderer type that does nothing with the input string and just
     returns it as is. That's true only when it _is_ a str beforehand;
@@ -773,10 +751,12 @@ class NoOpRenderer(IRenderer):
     """
 
     def render(self, text: Any, style: Style = NOOP_STYLE) -> str:
+        if isinstance(text, Renderable):
+            return text.render(self)
         return str(text)
 
 
-class HtmlRenderer(IRenderer):
+class HtmlRenderer(AbstractRenderer):
     """
     html
 
@@ -850,9 +830,8 @@ class Styles(Registry[Style]):
     Some ready-to-use styles. Can be used as examples.
 
     This registry has unique keys in comparsion with other ones (`Seqs` / `Spans` /
-    `IntCodes`),
-    Therefore there is no risk of key/value duplication and all presets can be listed
-    in the initial place -- at API docs page directly.
+    `IntCodes`). Therefore there is no risk of key/value duplication and all
+    presets can be listed in the initial place -- at API docs page directly.
     """
 
     WARNING = Style(fg=Colors.YELLOW)
@@ -866,37 +845,6 @@ class Styles(Registry[Style]):
     CRITICAL = Style(bg=Colors.HI_RED, fg=Colors.HI_WHITE)
     CRITICAL_LABEL = Style(CRITICAL, bold=True)
     CRITICAL_ACCENT = Style(CRITICAL, bold=True, blink=True)
-
-
-def distribute_padded(values: List[str|Text],
-                      max_len: int,
-                      pad_before: bool = False,
-                      pad_after: bool = False,
-                      ) -> str:
-    if pad_before:
-        values.insert(0, '')
-    if pad_after:
-        values.append('')
-
-    values_amount = len(values)
-    gapes_amount = values_amount - 1
-    values_len = sum(len(v) for v in values)
-    spaces_amount = max_len - values_len
-    if spaces_amount < gapes_amount:
-        raise ValueError(f'There is not enough space for all values with padding')
-
-    if all(isinstance(val, str) for val in values):
-        result = ''
-    else:
-        result = Text()
-
-    for value_idx, value in enumerate(values):
-        gape_len = spaces_amount // (gapes_amount or 1)  # for last value
-        result += value + ' ' * gape_len
-        gapes_amount -= 1
-        spaces_amount -= gape_len
-
-    return result
 
 
 RendererManager.set_default()

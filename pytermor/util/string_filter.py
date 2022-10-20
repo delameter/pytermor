@@ -19,15 +19,16 @@ from __future__ import annotations
 import re
 from functools import reduce
 from re import Match, Pattern
-from typing import Generic, AnyStr, Type, Callable
+from typing import Generic, Type, Callable, TypeVar
 
 from ..ansi import Spans
 
-
 SGR_REGEXP = re.compile(r'(\x1b)(\[)(([0-9;])*)(m)')
 
+ST = TypeVar('ST', str, bytes)
 
-def apply_filters(s: AnyStr, *args: StringFilter[AnyStr]|Type[StringFilter[AnyStr]]) -> AnyStr:  # @FIXME StringFilter[AnyStr] -> StringFilter ?
+
+def apply_filters(s: ST, *args: StringFilter|Type[StringFilter]) -> ST:
     """
     Method for applying dynamic filter list to a target string/bytes.
     Example (will replace all :kbd:`ESC` control characters to :kbd:`E` and
@@ -48,28 +49,29 @@ def apply_filters(s: AnyStr, *args: StringFilter[AnyStr]|Type[StringFilter[AnySt
     return reduce(lambda s_, f: f.apply(s_), filters, s)
 
 
-class StringFilter(Generic[AnyStr]):
+class StringFilter(Generic[ST]):
     """
     Common string modifier interface.
     """
+
     def __init__(
         self,
-        pattern: AnyStr|Pattern[AnyStr],
-        repl: AnyStr|Callable[[AnyStr|Match], AnyStr]
+        pattern: ST|Pattern[ST],
+        repl: ST|Callable[[ST|Match], ST]
     ):
         if isinstance(pattern, (str, bytes)):
-            self._regex = re.compile(pattern)
+            self._regexp = re.compile(pattern)
         else:
-            self._regex = pattern
+            self._regexp = pattern
         self._repl = repl
 
-    def __call__(self, s: AnyStr) -> AnyStr:
+    def __call__(self, s: ST) -> ST:
         """ Can be used instead of `apply()` """
         return self.apply(s)
 
-    def apply(self, s: AnyStr) -> AnyStr:
+    def apply(self, s: ST) -> ST:
         """ Apply filter to ``s`` string (or bytes). """
-        return self._regex.sub(self._repl, s)
+        return self._regexp.sub(self._repl, s)
 
 
 class VisualuzeWhitespace(StringFilter[str]):
@@ -82,7 +84,8 @@ class VisualuzeWhitespace(StringFilter[str]):
     >>> apply_filters('1. D\\n2. L ', VisualuzeWhitespace)
     '1.·D·\\n2.·L·'
     """
-    def __init__(self, repl: AnyStr = '·'):
+
+    def __init__(self, repl: str = '·'):
         super().__init__(r'(\n)|\s', repl + '\\1')
 
 
@@ -94,28 +97,31 @@ class ReplaceSGR(StringFilter[str]):
     :param repl:
         Replacement, can contain regexp groups (see :meth:`apply_filters()`).
     """
-    def __init__(self, repl: AnyStr = ''):
+
+    def __init__(self, repl: str = ''):
         super().__init__(SGR_REGEXP, repl)
 
 
 class ReplaceCSI(StringFilter[str]):
     """
-    Find all CSI seqs (i.e. :kbd:`ESC[*`) and replace with given string. Less
-    specific version of :class:`ReplaceSGR`, as CSI consists of SGR and many other
-    sequence subtypes.
+    Find all CSI seqs (i.e. starting with :kbd:`ESC[`) and replace with given
+    string. Less specific version of :class:`ReplaceSGR`, as CSI consists of SGR
+    and many other sequence subtypes.
 
     :param repl:
         Replacement, can contain regexp groups (see :meth:`apply_filters()`).
     """
-    def __init__(self, repl: AnyStr = ''):
+
+    def __init__(self, repl: str = ''):
         super().__init__(r'(\x1b)(\[)(([0-9;:<=>?])*)([@A-Za-z])', repl)
 
 
 class ReplaceNonAsciiBytes(StringFilter[bytes]):
     """
-    Keep 7-bit ASCII bytes [:kbd:`0x00` - :kbd:`0x7f`], replace other to :kbd:`?`.
+    Keep 7-bit ASCII bytes [``0x00`` - ``0x7f``], replace other to :kbd:`?`.
 
     :param repl: Replacement byte-string.
     """
-    def __init__(self, repl: AnyStr = b'?'):
+
+    def __init__(self, repl: bytes = b'?'):
         super().__init__(b'[\x80-\xff]', repl)

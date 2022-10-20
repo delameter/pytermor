@@ -4,6 +4,8 @@
 # -----------------------------------------------------------------------------
 """
 Module contains definitions for low-level ANSI escape sequences handling.
+Documentation for *xterm* control sequences can be found here:
+https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
 
 The key difference beetween ``Spans`` and ``Sequences`` is that sequence can
 *open* text style and also *close*, or terminate it. As for ``Spans`` -- they
@@ -38,8 +40,10 @@ class Sequence(Sized, metaclass=ABCMeta):
     """
     Abstract ancestor of all escape sequences.
     """
-    def __init__(self, *params: int):
-        self._params: List[int] = [max(0, int(p)) for p in params]
+    _CONTROL_CHARACTER = '\x1b'
+
+    def __init__(self, *params: int|str):
+        self._params: List[int|str] = [*params]
 
     @abstractmethod
     def assemble(self) -> str:
@@ -50,7 +54,7 @@ class Sequence(Sized, metaclass=ABCMeta):
         raise NotImplementedError
 
     @property
-    def params(self) -> List[int]:
+    def params(self) -> List[int|str]:
         """ Return internal params as array. """
         return self._params
 
@@ -76,35 +80,111 @@ class Sequence(Sized, metaclass=ABCMeta):
         return f'{self._short_class_name()}[{params}]'
 
 
-class SequenceCSI(Sequence, metaclass=ABCMeta):
+class SequenceFe(Sequence, metaclass=ABCMeta):
     """
-    Abstract class representing CSI-type ANSI escape sequence. All subtypes
-    of this sequence start with :kbd:`\\e[`.
+    Wide range of sequence types that includes CSI, OSC and more.
+
+    All subtypes of this sequence start with :kbd:`ESC` plus ASCII byte
+    from ``0x40`` to ``0x5F`` (:kbd:`@`:kbd:`[`:kbd:`\\\\`:kbd:`]`:kbd:`^`:kbd:`_`,
+    and capital letters :kbd:`A`-:kbd:`Z`).
     """
-    _CONTROL_CHARACTER = '\x1b'
+
+
+class SequenceST(SequenceFe):
+    """
+    String Terminator sequence (ST). Terminates strings in other control
+    sequences. Encoded as :kbd:`ESC\\\\` (``0x1B`` ``0x5C``).
+    """
+    _INTRODUCER = '\\'
+
+    def assemble(self) -> str:
+        return self._CONTROL_CHARACTER + self._INTRODUCER
+
+    @classmethod
+    def _short_class_name(cls) -> str:
+        return 'ST'
+
+
+class SequenceOSC(SequenceFe):
+    """
+    Operating System Command sequence. Starts a control string for the operating
+    system to use. Encoded as :kbd:`ESC]` plus params separated by :kbd:`;`,
+    and terminated with `SequenceST`.
+    """
+    _INTRODUCER = ']'
+    _SEPARATOR = ';'
+    _TERMINATOR = SequenceST().assemble()
+
+    @classmethod
+    def init_hyperlink(cls, url: str) -> SequenceOSC:
+        return SequenceOSC(IntCodes.HYPERLINK, '', url)
+
+    def assemble(self) -> str:
+        return self._CONTROL_CHARACTER + \
+               self._INTRODUCER + \
+               self._SEPARATOR.join([str(param) for param in self.params]) + \
+               self._TERMINATOR
+
+    @classmethod
+    def _short_class_name(cls):
+        return 'OSC'
+
+
+class SequenceCSI(SequenceFe):
+    """
+    Class representing CSI-type ANSI escape sequence. All subtypes
+    of this sequence start with :kbd:`ESC[`.
+
+    Sequences of this type can be used to control text formatting,
+    change cursor position, erase screen and more.
+    """
     _INTRODUCER = '['
     _SEPARATOR = ';'
 
-    def __init__(self, *params: int):
-        super(SequenceCSI, self).__init__(*params)
+    def __init__(self, terminator: str, *params: int|str):
+        self._terminator = terminator
+        super().__init__(*params)
 
     @classmethod
-    def regexp(cls) -> str:
-        return f'\\x1b\\[[0-9;]*{cls._terminator()}'
+    def init_cursor_horizontal_absolute(cls, column: int = 1) -> SequenceCSI:
+        """
+        Set cursor x-coordinate to `column`.
+        """
+        return SequenceCSI('G', column)
 
     @classmethod
-    @abstractmethod
-    def _terminator(cls) -> str: raise NotImplementedError
+    def init_erase_in_line(cls, mode: int = 0) -> SequenceCSI:
+        """
+        Erase part of the line. If `mode` is 0, clear from cursor to the end
+        of the line. If `mode` is 1, clear from cursor to beginning of the line.
+        If `mode` is 2, clear entire line. Cursor position does not change.
+        """
+        if not (0 <= mode <= 2):
+            raise ValueError(f"Invalid mode: {mode}, expected [0;2]")
+        return SequenceCSI('K', mode)
+
+    def regexp(self) -> str:
+        return f'\\x1b\\[[0-9;]*{self._terminator}'
+
+    def assemble(self) -> str:
+        return self._CONTROL_CHARACTER + \
+               self._INTRODUCER + \
+               self._SEPARATOR.join([str(param) for param in self.params]) + \
+               self._terminator
+
+    @classmethod
+    def _short_class_name(cls):
+        return 'CSI'
 
 
-class SequenceSGR(SequenceCSI, metaclass=ABCMeta):
+class SequenceSGR(SequenceCSI):
     """
     Class representing SGR-type escape sequence with varying amount of parameters.
 
     `SequenceSGR` with zero params was specifically implemented to
-    translate into empty string and not into :kbd:`\\e[m`, which would have
+    translate into empty string and not into :kbd:`ESC[m`, which would have
     made sense, but also would be very entangling, as this sequence is
-    equivalent of :kbd:`\\e[0m` -- hard reset sequence. The empty-string-sequence
+    equivalent of :kbd:`ESC[0m` -- hard reset sequence. The empty-string-sequence
     is predefined as `NOOP_SEQ`.
 
     It's possible to add of one SGR sequence to another:
@@ -148,7 +228,8 @@ class SequenceSGR(SequenceCSI, metaclass=ABCMeta):
             else:
                 raise TypeError(f'Invalid argument type: {arg!r})')
 
-        super().__init__(*result)
+        result = [max(0, int(p)) for p in result]
+        super().__init__(self._TERMINATOR, *result)
 
     @classmethod
     def init_color_indexed(cls, idx: int, bg: bool = False) -> SequenceSGR:
@@ -238,10 +319,6 @@ class SequenceSGR(SequenceCSI, metaclass=ABCMeta):
                 f'Invalid color value: expected range [0-255], got: {value}')
 
     @classmethod
-    def _terminator(cls) -> str:
-        return cls._TERMINATOR
-
-    @classmethod
     def _short_class_name(cls) -> str:
         return 'SGR'
 
@@ -249,7 +326,7 @@ class SequenceSGR(SequenceCSI, metaclass=ABCMeta):
 # noinspection PyMethodMayBeStatic
 class Span:
     """
-    Class consisting of two `SequenceSGR` instances -- the first one, "opener",
+    Class consisting of two `Sequence` instances -- the first one, "opener",
     tells the terminal that's it should format subsequent characters as specified,
     and the second one, which reverses the effects of the  first one.
     """
@@ -258,6 +335,7 @@ class Span:
         Create a `Span` with specified control sequence(s) as an opening sequence
         and **automatically compose** second (closing) sequence that will terminate
         attributes defined in the first one while keeping the others (*soft* reset).
+        Default constructor accepts SGR sequences (most frequently used sequence type).
 
         Resulting sequence param order is same as an argument order.
 
@@ -286,8 +364,9 @@ class Span:
         self._closing_seq = _SgrPairityRegistry.get_closing_seq(self._opening_seq)
 
     @classmethod
-    def init_explicit(cls, opening_seq: SequenceSGR = None,
-                      closing_seq: SequenceSGR = None,
+    def init_explicit(cls,
+                      opening_seq: Sequence = None,
+                      closing_seq: Sequence = None,
                       hard_reset_after: bool = False) -> Span:
         """
         Create new `Span` with explicitly specified opening and closing sequences.
@@ -296,8 +375,9 @@ class Span:
             `closing_seq` gets overwritten with `Seqs.RESET` if ``hard_reset_after`` is *True*.
 
         :param opening_seq:      Starter sequence, in general determening how `Span` will actually look like.
-        :param closing_seq:      Finisher SGR sequence.
-        :param hard_reset_after: Terminate *all* formatting after this span.
+        :param closing_seq:      Finisher sequence (usually both are SGR sequences, but it's possible
+                                 to provide any type).
+        :param hard_reset_after: Terminate *all* formatting after this span (uses SGR 0).
         """
         instance = Span()
         instance._opening_seq = cls._opt_arg(opening_seq)
@@ -307,6 +387,19 @@ class Span:
             instance._closing_seq = Seqs.RESET
 
         return instance
+
+    @classmethod
+    def init_hyperlink(cls, url: str) -> Span:
+        """
+        .. todo ::
+            s
+        :param url:
+        :return:
+        """
+        return Span.init_explicit(
+            SequenceOSC.init_hyperlink(url),
+            SequenceOSC.init_hyperlink(''),
+        )
 
     def wrap(self, text: Any = None) -> str:
         """
@@ -328,27 +421,27 @@ class Span:
 
     @property
     def opening_str(self) -> str:
-        """ Return opening SGR sequence assembled. """
+        """ Return opening sequence assembled. """
         return self._opening_seq.assemble()
 
     @property
-    def opening_seq(self) -> 'SequenceSGR':
-        """ Return opening SGR sequence instance. """
+    def opening_seq(self) -> Sequence:
+        """ Return opening sequence instance. """
         return self._opening_seq
 
     @property
     def closing_str(self) -> str:
-        """ Return closing SGR sequence assembled. """
+        """ Return closing sequence assembled. """
         return self._closing_seq.assemble()
 
     @property
-    def closing_seq(self) -> 'SequenceSGR':
-        """ Return closing SGR sequence instance. """
+    def closing_seq(self) -> Sequence:
+        """ Return closing sequence instance. """
         return self._closing_seq
 
     @classmethod
-    def _opt_arg(self, arg: SequenceSGR | None) -> SequenceSGR:
-        if not arg:
+    def _opt_arg(cls, arg: Sequence | None) -> Sequence:
+        if arg is None:
             return NOOP_SEQ
         return arg
 
@@ -501,8 +594,12 @@ class IntCodes(Registry[int]):
     EXTENDED_MODE_256 = 5
     EXTENDED_MODE_RGB = 2
 
+    # -- Other sequence classes  --------------------------------------------------
 
-class Seqs(Registry[SequenceSGR]):
+    HYPERLINK = 8
+
+
+class Seqs(Registry[Sequence]):
     """
     Registry of sequence presets.
 
@@ -511,6 +608,8 @@ class Seqs(Registry[SequenceSGR]):
        and avoid duplication. Summary list of all presets can be found in
        `guide.presets` section of the guide.
     """
+
+    # == SGR ==================================================================
 
     RESET = SequenceSGR(IntCodes.RESET)
     """
@@ -583,6 +682,10 @@ class Seqs(Registry[SequenceSGR]):
     BG_HI_MAGENTA = SequenceSGR(IntCodes.BG_HI_MAGENTA)
     BG_HI_CYAN = SequenceSGR(IntCodes.BG_HI_CYAN)
     BG_HI_WHITE = SequenceSGR(IntCodes.BG_HI_WHITE)
+
+    # == OSC ==================================================================
+
+    HYPERLINK = SequenceOSC(IntCodes.HYPERLINK)
 
 
 class _SgrPairityRegistry:

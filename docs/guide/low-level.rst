@@ -14,7 +14,7 @@ Format soft reset
 
 There are two ways to manage color and attribute termination:
 
-- hard reset (SGR-0 or :kbd:`\e[0m`)
+- hard reset (SGR-0 or :kbd:`ESC[0m`)
 - soft reset (SGR-22, 23, 24 etc.)
 
 The main difference between them is that *hard* reset disables all formatting after itself, while *soft*
@@ -28,7 +28,7 @@ doesn't have to restore all previously applied formats after every closing seque
 
 We are given a text span which is initially *bold* and *underlined*. We want to recolor a few words inside of this
 span. By default this will result in losing all the formatting to the right of updated text span (because
-`RESET <Seqs.RESET>`, or :kbd:`\e[0m`, clears all text attributes).
+`RESET <Seqs.RESET>`, or :kbd:`ESC[0m`, clears all text attributes).
 
 However, there is an option to specify what attributes should be disabled or let the library do that for you:
 
@@ -74,8 +74,8 @@ argument values as well as preset constants are described in `presets` page.
 
 .. important::
   ``SequenceSGR`` with zero params was specifically implemented to translate into an empty string and not
-  into :kbd:`\e[m`, which would make sense, but also could be very entangling, as terminal emulators interpret
-  that sequence as :kbd:`\e[0m`, which is *hard* reset sequence.
+  into :kbd:`ESC[m`, which would make sense, but also could be very entangling, as terminal emulators interpret
+  that sequence as :kbd:`ESC[0m`, which is *hard* reset sequence.
 
 There is also a set of methods for dynamic ``SequenceSGR`` creation:
 
@@ -102,7 +102,8 @@ To get the resulting sequence chars use `assemble() <SequenceSGR.assemble()>` me
 :mono:`SGR` sequence structure
 ================================
 
-1. :kbd:`\\x1b` is ESC *control character*, which opens a control sequence.
+1. :kbd:`ESC` is escape *control character*, which opens a control sequence (can also be
+   written as :kbd:`\\e` or :kbd:`\\x1b`).
 
 2. :kbd:`[` is sequence *introducer*; it determines the type of control sequence (in this case
    it's :abbr:`CSI (Control Sequence Introducer)`).

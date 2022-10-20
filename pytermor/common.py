@@ -6,7 +6,8 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import TypeVar, Generic, AnyStr
+from abc import ABCMeta, abstractmethod
+from typing import TypeVar, Generic, AnyStr, Sized
 
 T = TypeVar('T')
 """ Any """
@@ -71,3 +72,23 @@ def wait_key() -> AnyStr|None:
 
 class LogicError(Exception):
     pass
+
+
+class Renderable(Sized, metaclass=ABCMeta):
+    """
+    Renderable abstract class. Can be inherited if the default style
+    overlaps resolution mechanism implemented in `Text` is not good enough
+    and you want to implement your own.
+    """
+
+    @abstractmethod
+    def render(self, renderer=None) -> str:
+        raise NotImplemented
+
+    @abstractmethod
+    def raw(self) -> str:
+        raise NotImplemented
+
+    @abstractmethod
+    def __len__(self) -> int:
+        raise NotImplemented

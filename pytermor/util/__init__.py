@@ -10,12 +10,16 @@
 """
 from __future__ import annotations
 
-from .auto_float import format_auto_float
-from .prefixed_unit import format_si_metric, format_si_binary, PrefixedUnitFormatter, PREFIXES_SI, PREFIX_ZERO_SI
-from .time_delta import format_time_delta, TimeUnit, TimeDeltaFormatter
+from typing import List
 
-from .string_filter import apply_filters, StringFilter, ReplaceSGR, ReplaceCSI, ReplaceNonAsciiBytes, VisualuzeWhitespace
+from .auto_float import format_auto_float
+from .prefixed_unit import format_si_metric, format_si_binary, PrefixedUnitFormatter, \
+    PREFIXES_SI, PREFIX_ZERO_SI
 from .stdlib_ext import ljust_sgr, rjust_sgr, center_sgr
+from .string_filter import apply_filters, StringFilter, ReplaceSGR, ReplaceCSI, \
+    ReplaceNonAsciiBytes, VisualuzeWhitespace
+from .time_delta import format_time_delta, TimeUnit, TimeDeltaFormatter
+from ..common import Renderable
 
 
 def format_thousand_sep(value: int|float, separator=' '):
@@ -31,3 +35,46 @@ def format_thousand_sep(value: int|float, separator=' '):
     """
     return f'{value:_}'.replace('_', separator)
 
+
+def distribute_padded(values: List[str|Renderable],
+                      max_len: int,
+                      pad_before: bool = False,
+                      pad_after: bool = False,
+                      ) -> str:
+    """
+    .. todo ::
+        todo
+
+    :param values:
+    :param max_len:
+    :param pad_before:
+    :param pad_after:
+    :return:
+    """
+    if pad_before:
+        values.insert(0, '')
+    if pad_after:
+        values.append('')
+
+    values_amount = len(values)
+    gapes_amount = values_amount - 1
+    values_len = sum(len(v) for v in values)
+    spaces_amount = max_len - values_len
+    if spaces_amount < gapes_amount:
+        raise ValueError(f'There is not enough space for all values with padding')
+
+    # if all(isinstance(val, str) for val in values):
+    #     result = ''
+    # else:
+    #     result = Text()
+    result = ''
+
+    for value_idx, value in enumerate(values):
+        gape_len = spaces_amount // (gapes_amount or 1)  # for last value
+        result += value + ' ' * gape_len
+        gapes_amount -= 1
+        spaces_amount -= gape_len
+
+    if isinstance(result, Renderable):
+        return result.render()
+    return result
