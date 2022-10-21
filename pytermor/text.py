@@ -309,7 +309,7 @@ class Text(Renderable):
     def raw(self) -> str:
         return ''.join(frag.string for frag in self._fragments)
 
-    def append(self, string: str|Text, style: Style = NOOP_STYLE):
+    def append(self, string: str|Text, style: Style = NOOP_STYLE) -> Text:
         if isinstance(string, str):
             self._fragments.append(self._TextFragment(string, style))
         elif isinstance(string, Text):
@@ -318,8 +318,9 @@ class Text(Renderable):
             self._fragments += string._fragments
         else:
             raise TypeError('Only str or another Text can be added to Text instance')
+        return self
 
-    def prepend(self, string: str|Text, style: Style = NOOP_STYLE):
+    def prepend(self, string: str|Text, style: Style = NOOP_STYLE) -> Text:
         if isinstance(string, str):
             self._fragments.insert(0, self._TextFragment(string, style))
         elif isinstance(string, Text):
@@ -328,6 +329,7 @@ class Text(Renderable):
             self._fragments = string._fragments + self._fragments
         else:
             raise TypeError('Only str or another Text can be added to Text instance')
+        return self
 
     def __len__(self) -> int:
         return sum(len(frag) for frag in self._fragments)
@@ -488,7 +490,7 @@ class AbstractRenderer(metaclass=ABCMeta):
         raise NotImplementedError
 
 
-class Configurable:
+class ConfigurableRenderer:
     _force_styles: bool|None = False
     _compatibility_256_colors: bool = False
     _compatibility_16_colors: bool = False
@@ -497,7 +499,7 @@ class Configurable:
               force_styles: bool|None = False,
               compatibility_256_colors: bool = False,
               compatibility_16_colors: bool = False,
-              ) -> Configurable:
+              ) -> ConfigurableRenderer:
         """
         Set up renderer preferences.
 
@@ -535,13 +537,13 @@ class Configurable:
         return self
 
 
-class SgrRenderer(AbstractRenderer, Configurable):
+class SgrRenderer(AbstractRenderer, ConfigurableRenderer):
     """
     Default renderer invoked by `Text._render()`. Transforms `Color` instances
     defined in ``style`` into ANSI control sequence bytes and merges them with
     input string.
 
-    Respects compatibility preferences (see `Configurable.setup()`) and
+    Respects compatibility preferences (see `ConfigurableRenderer.setup()`) and
     maps RGB colors to closest *indexed* colors if terminal doesn't support
     RGB output. In case terminal doesn't support even 256 colors, falls back
     to 16-color pallete and picks closest counterparts again the same way.
@@ -848,3 +850,7 @@ class Styles(Registry[Style]):
 
 
 RendererManager.set_default()
+
+
+def render(text: Any, style: Style = NOOP_STYLE, renderer: AbstractRenderer = None):
+    return Text(text, style).render(renderer)

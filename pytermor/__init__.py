@@ -4,10 +4,8 @@
 # -----------------------------------------------------------------------------
 from .ansi import IntCodes, Seqs, Spans, SequenceSGR, SequenceOSC, Span, NOOP_SEQ, NOOP_SPAN
 from .color import Colors, Color, ColorIndexed16, ColorIndexed256, ColorRGB, NOOP_COLOR
-from .render import Styles, Style, Text, SgrRenderer, RendererManager, NOOP_STYLE
+from .text import render, Styles, Style, Text, SgrRenderer, RendererManager, NOOP_STYLE
 from ._version import __version__
 
 import logging
-from logging import NullHandler
-
-logging.getLogger(__name__).addHandler(NullHandler())
+logging.getLogger(__name__).addHandler(logging.NullHandler())

@@ -6,7 +6,7 @@ import unittest
 
 from pytermor import Style, SequenceSGR, Text, RendererManager
 from pytermor.common import LogicError
-from pytermor.render import TmuxRenderer
+from pytermor.text import TmuxRenderer
 from pytermor.util import ReplaceSGR
 
 

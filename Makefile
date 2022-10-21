@@ -170,11 +170,3 @@ upload: ## Upload latest *public* build to MASTER repo
 install: ## Install latest *public* build from MASTER repo
 	. "${ES7S_VENV}/bin/activate"
 	pip install ${PROJECT_NAME_PUBLIC}==${VERSION}
-
-
-##-----------------------##-------------------------------------------------------------
-## To install private    ## #
-## build as public one:## #
-# make build upload-dev install-dev-public :##
-##                       ## #                                               (dont do that)
-########################### #

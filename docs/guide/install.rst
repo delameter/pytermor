@@ -23,7 +23,7 @@ Structure
    +-----+----------------------+----------------------+---------------------------------------------------------------------------------+
    | A L | Module               | Class(es)            | Purpose                                                                         |
    +=====+======================+======================+=================================================================================+
-   | Hi  | :mod:`.render`       | `Text`               | Container consisting of text pieces each with attached ``Style``.               |
+   | Hi  | :mod:`.text`         | `Text`               | Container consisting of text pieces each with attached ``Style``.               |
    |     |                      |                      | Renders into specified format keeping all the formatting.                       |
    |     |                      +----------------------+---------------------------------------------------------------------------------+
    |     |                      | `Style`              | Reusable abstractions defining colors and text attributes (text                 |

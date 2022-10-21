@@ -14,8 +14,8 @@ from yaml import SafeLoader
 
 from pytermor import ColorIndexed256, ColorIndexed16, NOOP_STYLE
 from pytermor.color import Colors, Color
-from pytermor.render import Style, Text
-from pytermor.render import RendererManager, HtmlRenderer, SgrRenderer
+from pytermor.text import Style, Text
+from pytermor.text import RendererManager, HtmlRenderer, SgrRenderer
 
 
 class PyModuleColorGenerator:

@@ -10,6 +10,6 @@ API reference
 
    ansi
    color
-   render
+   text
    util/index
    common

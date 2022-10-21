@@ -1,11 +1,11 @@
-.. _apidoc.render:
+.. _apidoc.text:
 
 .. default-role:: any
 
 ========================
-render
+text
 ========================
 
-.. automodule:: pytermor.render
+.. automodule:: pytermor.text
    :exclude-members: __new__,
 
