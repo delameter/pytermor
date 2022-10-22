@@ -23,7 +23,7 @@ from typing import Generic, Type, Callable, TypeVar
 
 from ..ansi import Spans
 
-SGR_REGEXP = re.compile(r'(\x1b)(\[)(([0-9;])*)(m)')
+SGR_REGEXP = re.compile(r'(\x1b)(\[)([0-9;]*)(m)')
 
 ST = TypeVar('ST', str, bytes)
 
