@@ -32,16 +32,16 @@ class Registry(Generic[T]):
                        f'in {cls.__name__} registry')
 
 
-def get_terminal_width() -> int:
+def get_terminal_width(default: int = 80, padding: int = 2) -> int:
     """
     get_terminal_width
     :return:  terminal_width
     """
     try:
         import shutil as _shutil
-        return _shutil.get_terminal_size().columns - 2
+        return _shutil.get_terminal_size().columns - padding
     except ImportError:
-        return 80
+        return int(os.environ.get("COLUMNS", default))
 
 
 def wait_key() -> AnyStr|None:

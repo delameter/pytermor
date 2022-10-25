@@ -27,9 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "TODO" "1" "Oct 21, 2022" "2.3.0-dev1" "pytermor"
+.TH "TODO" "1" "Oct 25, 2022" "2.4.0-dev1" "pytermor"
 .SH NAME
-Todo \- pytermor 2.3.0-dev1
+Todo \- pytermor 2.4.0-dev1
 .sp
 \fI(yet another)\fP Python library designed for formatting terminal output using ANSI escape codes. Implements automatic \fI\%\(dqsoft\(dq\fP format termination. Provides a registry of low\-level SGR \fI\%sequences\fP and formatting \fI\%spans\fP (or combined sequences). Also includes a set of formatters for pretty output.
 .sp
@@ -7105,11 +7105,11 @@ Bases: \fI\%Renderable\fP
 .UNINDENT
 .INDENT 7.0
 .TP
-.B __init__(string: str = \(aq\(aq, style: ~pytermor.text.Style = Style[no fg, no bg])
+.B __init__(string: str = \(aq\(aq, style: ~pytermor.text.Style = Style[no fg, no bg], close_this: bool = True, close_prev: bool = False)
 .UNINDENT
 .INDENT 7.0
 .TP
-.B render(renderer:  \fI\%AbstractRenderer\fP  |  Type[\fI\%AbstractRenderer\fP]  =  None) -> str
+.B render(renderer:  \fI\%AbstractRenderer\fP  |  t.Type[\fI\%AbstractRenderer\fP]  =  None) -> str
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -7117,11 +7117,43 @@ Bases: \fI\%Renderable\fP
 .UNINDENT
 .INDENT 7.0
 .TP
-.B append(string: str | Text, style: Style = Style[no fg, no bg]) -> \fI\%Text\fP
+.B append(string: str | Text, style: Style = Style[no fg, no bg], close_this: bool = True, close_prev: bool = False) -> \fI\%Text\fP
 .UNINDENT
 .INDENT 7.0
 .TP
-.B prepend(string: str | Text, style: Style = Style[no fg, no bg]) -> \fI\%Text\fP
+.B prepend(string: str | Text, style: Style = Style[no fg, no bg], close_this: bool = True, close_prev: bool = False) -> \fI\%Text\fP
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.text.TemplateTag
+.INDENT 7.0
+.TP
+.B __init__(set:  str  |  None, add:  str  |  None, comment:  str  |  None, split:  str  |  None, close:  str  |  None, style:  str  |  None)
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.text.TemplateEngine
+.INDENT 7.0
+.TP
+.B TAG_REGEXP  =  re.compile(\(aq\en        (?:\en          (?P<set>@[\e\ew]+)?\en          (?P<add>:)\en          |\en          (?P<comment>_)\en        )\en        (?![^\e\e\e\e]\e\e\e\e) (?# ignore [ escaped with single backslash, but not double), re.VERBOSE)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B ESCAPE_REGEXP  =  re.compile(\(aq([^\e\e\e\e])\e\e\e\e\e\e[\(aq)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SPLIT_REGEXP  =  re.compile(\(aq([^\e\es,]+)?([\e\es,]*)\(aq)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B __init__(custom_styles:  Optional[Dict[str,  \fI\%Style\fP]]  =  None)
+.UNINDENT
+.INDENT 7.0
+.TP
+.B parse(tpl:  str) -> \fI\%Text\fP
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
@@ -7129,7 +7161,7 @@ Bases: \fI\%Renderable\fP
 .B class  pytermor.text.RendererManager
 .INDENT 7.0
 .TP
-.B classmethod  set_default(renderer:  \fI\%AbstractRenderer\fP  |  Type[\fI\%AbstractRenderer\fP]  =  None) -> \fI\%AbstractRenderer\fP
+.B classmethod  set_default(renderer:  \fI\%AbstractRenderer\fP  |  t.Type[\fI\%AbstractRenderer\fP]  =  None) -> \fI\%AbstractRenderer\fP
 Set up renderer preferences. Affects all renderer types.
 .INDENT 7.0
 .TP
@@ -8223,7 +8255,7 @@ value or KeyError if nothing found.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.common.get_terminal_width() -> int
+.B pytermor.common.get_terminal_width(default:  int  =  80, padding:  int  =  2) -> int
 .INDENT 7.0
 .TP
 .B Returns

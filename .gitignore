@@ -8,3 +8,4 @@ dist-dev
 venv
 .coverage
 docs/_build
+temp

@@ -73,11 +73,11 @@ from __future__ import annotations
 
 import re
 import sys
+import typing as t
 from abc import abstractmethod, ABCMeta
+from collections import deque
 from dataclasses import dataclass, field
 from functools import reduce
-from typing import List, Sized, Any, FrozenSet, Tuple
-from typing import Type, Dict, Set
 
 from .ansi import SequenceSGR, Span, NOOP_SEQ, Seqs, IntCodes
 from .color import Color, ColorRGB, ColorIndexed16, ColorIndexed256, NOOP_COLOR, Colors
@@ -153,12 +153,21 @@ class Style:
         'underlined',
     ])
 
-    def __init__(self, parent: Style = None, fg: Color|int|str = None,
-                 bg: Color|int|str = None, blink: bool = None, bold: bool = None,
-                 crosslined: bool = None, dim: bool = None,
-                 double_underlined: bool = None, inversed: bool = None,
-                 italic: bool = None, overlined: bool = None, underlined: bool = None,
-                 class_name: str = None):
+    def __init__(self,
+                 parent: Style = None,
+                 fg: Color|int|str = None,
+                 bg: Color|int|str = None,
+                 blink: bool = None,
+                 bold: bool = None,
+                 crosslined: bool = None,
+                 dim: bool = None,
+                 double_underlined: bool = None,
+                 inversed: bool = None,
+                 italic: bool = None,
+                 overlined: bool = None,
+                 underlined: bool = None,
+                 class_name: str = None,
+                 ):
         if fg is not None:
             self._fg = self._resolve_color(fg, True)
         if bg is not None:
@@ -231,11 +240,11 @@ class Style:
         return None if nullable else NOOP_COLOR
 
     @property
-    def attributes(self) -> FrozenSet:
+    def attributes(self) -> t.FrozenSet:
         return frozenset(list(self.__dict__.keys()) + ['fg', 'bg'])
 
     @property
-    def _attributes(self) -> FrozenSet:
+    def _attributes(self) -> t.FrozenSet:
         return frozenset(list(self.__dict__.keys()) + ['_fg', '_bg'])
 
     def _clone_from(self, parent: Style):
@@ -244,6 +253,10 @@ class Style:
             parent_val = getattr(parent, attr)
             if self_val is None and parent_val is not None:
                 setattr(self, attr, parent_val)
+
+    def __eq__(self, other: Style):
+        return all(getattr(self, attr) == getattr(other, attr)
+                   for attr in self._attributes)
 
     def __repr__(self):
         if self._fg is None or self._bg is None:
@@ -293,40 +306,83 @@ class Text(Renderable):
         ALIGN_CENTER: center_sgr,
     }
 
-    def __init__(self, string: str = '', style: Style = NOOP_STYLE):
-        self._fragments = []
-        self.append(string, style)
+    def __init__(self, string: str = '',
+                 style: Style = NOOP_STYLE,
+                 close_this: bool = True,
+                 close_prev: bool = False,
+                 ):
+        self._fragments: t.Deque[_TextFragment] = deque()
+        self.append(string, style, close_this, close_prev)
 
-    def render(self, renderer: AbstractRenderer|Type[AbstractRenderer] = None) -> str:
+    def render(self, renderer: AbstractRenderer|t.Type[AbstractRenderer] = None) -> str:
         if isinstance(renderer, type):
             renderer = renderer()
         return self._render_using(renderer or RendererManager.get_default())
 
     def _render_using(self, renderer: AbstractRenderer) -> str:
-        return ''.join(renderer.render(frag.string, frag.style)
-                       for frag in self._fragments)
+        result = ''
+        attrs_stack: t.Dict[str, t.List[bool|Color|None]] = {
+            attr: [None] for attr in Style.renderable_attributes
+        }
+        for frag in self._fragments:
+            for attr in Style.renderable_attributes:
+                frag_attr = getattr(frag.style, attr)
+                if frag_attr is not None and frag_attr is not NOOP_COLOR:
+                    attrs_stack[attr].append(frag_attr)
+
+            result += renderer.render(frag.string, Style(
+                **{k: v[-1] for k, v in attrs_stack.items()}
+            ))
+            if not frag.close_prev and not frag.close_this:
+                continue
+
+            for attr in Style.renderable_attributes:
+                frag_attr = getattr(frag.style, attr)
+                if frag_attr is not None and frag_attr is not NOOP_COLOR:
+                    attrs_stack[attr].pop()  # close this
+                    if frag.close_prev:
+                        attrs_stack[attr].pop()
+                    if len(attrs_stack[attr]) == 0:
+                        raise LogicError(
+                            'There are more closing styles than opening ones, '
+                            f'cannot proceed (attribute "{attr}" in {frag})'
+                        )
+
+        return result
 
     def raw(self) -> str:
         return ''.join(frag.string for frag in self._fragments)
 
-    def append(self, string: str|Text, style: Style = NOOP_STYLE) -> Text:
+    def append(self,
+               string: str|Text,
+               style: Style = NOOP_STYLE,
+               close_this: bool = True,
+               close_prev: bool = False,
+               ) -> Text:
         if isinstance(string, str):
-            self._fragments.append(self._TextFragment(string, style))
+            self._fragments.append(_TextFragment(string, style, close_this, close_prev))
         elif isinstance(string, Text):
             if style != NOOP_STYLE:
-                raise ValueError('Style is already defined in first argument')
-            self._fragments += string._fragments
+                self._fragments.append(_TextFragment('', style, close_this, close_prev))
+            self._fragments.extend(string._fragments)
         else:
             raise TypeError('Only str or another Text can be added to Text instance')
         return self
 
-    def prepend(self, string: str|Text, style: Style = NOOP_STYLE) -> Text:
+    def prepend(self,
+                string: str|Text,
+                style: Style = NOOP_STYLE,
+                close_this: bool = True,
+                close_prev: bool = False,
+                ) -> Text:
         if isinstance(string, str):
-            self._fragments.insert(0, self._TextFragment(string, style))
+            self._fragments.appendleft(
+                _TextFragment(string, style, close_this, close_prev))
         elif isinstance(string, Text):
             if style != NOOP_STYLE:
-                raise ValueError('Style is already defined in first argument')
-            self._fragments = string._fragments + self._fragments
+                self._fragments.appendleft(
+                    _TextFragment('', style, close_this, close_prev))
+            self._fragments.extendleft(string._fragments)
         else:
             raise TypeError('Only str or another Text can be added to Text instance')
         return self
@@ -347,6 +403,16 @@ class Text(Renderable):
         return self
 
     def __format__(self, format_spec: str) -> str:
+        """
+        ``:s`` mode is required.
+        Supported features:
+          - length;
+          - max length;
+          - alignment;
+          - filling.
+
+        Example: ``{:A^12.5s}``
+        """
         width, max_len, align, fill = self._parse_format_spec(format_spec)
 
         renderer = RendererManager.get_default()
@@ -373,8 +439,9 @@ class Text(Renderable):
         return result
 
     @classmethod
-    def _parse_format_spec(cls, format_spec_orig: str
-                           ) -> Tuple[int|None, int|None, str|None, str|None]:
+    def _parse_format_spec(cls,
+                           format_spec_orig: str,
+                           ) -> t.Tuple[int|None, int|None, str|None, str|None]:
         format_spec = format_spec_orig
         if len(format_spec) == 0 or format_spec[-1] == 's':
             format_spec = format_spec[:-1]
@@ -414,37 +481,138 @@ class Text(Renderable):
 
         return width, max_len, align, fill
 
-    # def _get_style_delta(self, left: Style, right: Style):
-    #     delta = Style(left)
-    #     for attr in right.renderable_attributes:
-    #         left_val = getattr(left, attr)
-    #         right_val = getattr(right, attr)
-    #         if left_val != right_val:
-    #             setattr(delta, attr, right_val)
-    #     return delta
 
-    @dataclass
-    class _TextFragment(Sized):
-        _string: str = ''
-        _style: Style = NOOP_STYLE
+@dataclass
+class _TextFragment(t.Sized):
+    string: str = ''
+    style: Style = NOOP_STYLE
+    close_this: bool = True
+    close_prev: bool = False
 
-        def __len__(self) -> int:
-            return len(self._string)
+    def __post_init__(self):
+        if self.close_prev:
+            self.close_this = True
 
-        @property
-        def string(self) -> str:
-            return self._string
+    def __len__(self) -> int:
+        return len(self.string)
 
-        @property
-        def style(self) -> Style:
-            return self._style
+    def __repr__(self):
+        props_set = [
+            f'"{self.string}"',
+            f'{self.style!r}',
+        ]
+        if self.close_this:
+            props_set.append('close_this')
+        if self.close_prev:
+            props_set.append('close_prev')
+
+        return self.__class__.__name__ + '[' + ', '.join(props_set) + ']'
+
+
+class TemplateTag:
+    def __init__(self,
+                 set: str|None,
+                 add: str|None,
+                 comment: str|None,
+                 split: str|None,
+                 close: str|None,
+                 style: str|None,
+                 ):
+        self.set: str|None = set.replace('@', '') if set else None
+        self.add: bool = bool(add)
+        self.comment: bool = bool(comment)
+        self.split: bool = bool(split)
+        self.close: bool = bool(close)
+        self.style: str|None = style
+
+
+class TemplateEngine:
+    TAG_REGEXP = re.compile(r'''
+        (?:
+          (?P<set>@[\w]+)?
+          (?P<add>:)
+          |
+          (?P<comment>_)
+        )
+        (?![^\\]\\) (?# ignore [ escaped with single backslash, but not double)
+        \[
+          (?P<split>\|)?
+          (?P<close>-)?
+          (?P<style>[\w =]+)
+        \]
+        ''', re.VERBOSE)
+
+    ESCAPE_REGEXP = re.compile(r'([^\\])\\\[')
+    SPLIT_REGEXP = re.compile(r'([^\s,]+)?([\s,]*)')
+
+    def __init__(self, custom_styles: t.Dict[str, Style] = None):
+        self._custom_styles: t.Dict[str, Style] = custom_styles or {}
+
+    def parse(self, tpl: str) -> Text:
+        result = Text()
+        tpl_cursor = 0
+        style_buffer = NOOP_STYLE
+        split_style = False
+
+        for tag_match in self.TAG_REGEXP.finditer(tpl):
+            span = tag_match.span()
+            tpl_part = self.ESCAPE_REGEXP.sub(r'\1[', tpl[tpl_cursor:span[0]])
+            if len(tpl_part) > 0 or style_buffer != NOOP_STYLE:
+                if split_style:
+                    for tpl_chunk, sep in self.SPLIT_REGEXP.findall(tpl_part):
+                        if len(tpl_chunk) > 0:
+                            result.append(tpl_chunk, style_buffer, close_this=True)
+                        result.append(sep)
+                    # add open style for engine to properly handle the :[-closing] tag:
+                    tpl_part = ''
+                result.append(tpl_part, style_buffer, close_this=False)
+
+            tpl_cursor = span[1]
+            style_buffer = NOOP_STYLE
+            split_style = False
+
+            tag = TemplateTag(**tag_match.groupdict())
+            style = self._tag_to_style(tag)
+            if tag.set:
+                self._custom_styles[tag.set] = style
+            elif tag.add:
+                if tag.close:
+                    result.append('', style, close_prev=True)
+                else:
+                    style_buffer = style
+                    split_style = tag.split
+            elif tag.comment:
+                pass
+            else:
+                raise LogicError(f'Unknown tag operand: {TemplateTag}')
+
+        result.append(tpl[tpl_cursor:])
+        return result
+
+    def _tag_to_style(self, tag: TemplateTag) -> Style|None:
+        if tag.comment:
+            return None
+        if tag.style in self._custom_styles.keys():
+            return self._custom_styles[tag.style]
+
+        style_attrs = {}
+        for style_attr in tag.style.split(' '):
+            if style_attr.startswith('fg=') or style_attr.startswith('bg='):
+                style_attrs.update({k: v for k, v in (style_attr.split('='),)})
+            else:
+                if style_attr not in Style.renderable_attributes:
+                    raise ValueError(f'Unknown style name or attribute: "{style_attr}"')
+                style_attrs.update({style_attr: True})
+        return Style(**style_attrs)
 
 
 class RendererManager:
     _default: AbstractRenderer = None
 
     @classmethod
-    def set_default(cls, renderer: AbstractRenderer|Type[AbstractRenderer] = None) -> AbstractRenderer:
+    def set_default(cls,
+                    renderer: AbstractRenderer|t.Type[AbstractRenderer] = None,
+                    ) -> AbstractRenderer:
         """
         Set up renderer preferences. Affects all renderer types.
 
@@ -481,7 +649,7 @@ class AbstractRenderer(metaclass=ABCMeta):
     """ Renderer interface. """
 
     @abstractmethod
-    def render(self, text: Any, style: Style = NOOP_STYLE) -> str:
+    def render(self, text: t.Any, style: Style = NOOP_STYLE) -> str:
         """
         Apply colors and attributes described in ``style`` argument to
         ``text`` and return the result. Output format depends on renderer's
@@ -564,10 +732,10 @@ class SgrRenderer(AbstractRenderer, ConfigurableRenderer):
     '\\x1b[1;31mtext\\x1b[22;39m'
     """
 
-    def render(self, text: Any, style: Style = NOOP_STYLE):
-        opening_seq = self._render_attributes(style, squash=True) + \
-                      self._render_color(style.fg, False) + \
-                      self._render_color(style.bg, True)
+    def render(self, text: t.Any, style: Style = NOOP_STYLE):
+        opening_seq = (self._render_attributes(style, squash=True) +
+                       self._render_color(style.fg, False) +
+                       self._render_color(style.bg, True))
 
         # in case there are line breaks -- split text to lines and apply
         # SGRs for each line separately. it increases the chances that style
@@ -578,7 +746,10 @@ class SgrRenderer(AbstractRenderer, ConfigurableRenderer):
             rendered_text += Span(opening_seq).wrap(line)
         return rendered_text
 
-    def _render_attributes(self, style: Style, squash: bool) -> List[SequenceSGR]|SequenceSGR:
+    def _render_attributes(self,
+                           style: Style,
+                           squash: bool,
+                           ) -> t.List[SequenceSGR]|SequenceSGR:
         if not self.is_sgr_usage_allowed():
             return NOOP_SEQ if squash else [NOOP_SEQ]
 
@@ -698,7 +869,7 @@ class TmuxRenderer(SgrRenderer):
         Seqs.BG_HI_WHITE:   'bg=brightwhite',
     }
 
-    def render(self, text: Any, style: Style = NOOP_STYLE):
+    def render(self, text: t.Any, style: Style = NOOP_STYLE):
         opening_sgrs = [
             *self._render_attributes(style, False),
             self._render_color(style.fg, False),
@@ -752,7 +923,7 @@ class NoOpRenderer(AbstractRenderer):
     'text'
     """
 
-    def render(self, text: Any, style: Style = NOOP_STYLE) -> str:
+    def render(self, text: t.Any, style: Style = NOOP_STYLE) -> str:
         if isinstance(text, Renderable):
             return text.render(self)
         return str(text)
@@ -769,8 +940,8 @@ class HtmlRenderer(AbstractRenderer):
     DEFAULT_ATTRS = ['color', 'background-color', 'font-weight', 'font-style',
                      'text-decoration', 'border', 'filter', ]
 
-    def render(self, text: Any, style: Style = NOOP_STYLE) -> str:
-        span_styles: Dict[str, Set[str]] = dict()
+    def render(self, text: t.Any, style: Style = NOOP_STYLE) -> str:
+        span_styles: t.Dict[str, t.Set[str]] = dict()
         for attr in self._get_default_attrs():
             span_styles[attr] = set()
 
@@ -808,7 +979,7 @@ class HtmlRenderer(AbstractRenderer):
         return f'<span{span_class_str} style="{span_style_str}">' + str(
             text) + '</span>'  # @TODO  # attribues
 
-    def _get_default_attrs(self) -> List[str]:
+    def _get_default_attrs(self) -> t.List[str]:
         return self.DEFAULT_ATTRS
 
 
@@ -820,7 +991,7 @@ class DebugRenderer(SgrRenderer):
     '|ǝ1;31|text|ǝ22;39|'
     """
 
-    def render(self, text: Any, style: Style = NOOP_STYLE) -> str:
+    def render(self, text: t.Any, style: Style = NOOP_STYLE) -> str:
         return ReplaceSGR(r'|ǝ\3|').apply(super().render(str(text), style))
 
     def is_sgr_usage_allowed(self) -> bool:
@@ -852,5 +1023,5 @@ class Styles(Registry[Style]):
 RendererManager.set_default()
 
 
-def render(text: Any, style: Style = NOOP_STYLE, renderer: AbstractRenderer = None):
+def render(text: t.Any, style: Style = NOOP_STYLE, renderer: AbstractRenderer = None):
     return Text(text, style).render(renderer)
