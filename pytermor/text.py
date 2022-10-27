@@ -659,14 +659,14 @@ class AbstractRenderer(metaclass=ABCMeta):
 
 
 class ConfigurableRenderer:
-    _force_styles: bool|None = False
-    _compatibility_256_colors: bool = False
-    _compatibility_16_colors: bool = False
+    _force_styles: bool|None = None
+    _compatibility_256_colors: bool|None = None
+    _compatibility_16_colors: bool|None = None
 
     def setup(self,
-              force_styles: bool|None = False,
-              compatibility_256_colors: bool = False,
-              compatibility_16_colors: bool = False,
+              force_styles: bool|None = None,
+              compatibility_256_colors: bool = None,
+              compatibility_16_colors: bool = None,
               ) -> ConfigurableRenderer:
         """
         Set up renderer preferences.
@@ -677,12 +677,12 @@ class ConfigurableRenderer:
 
         :param force_styles:
 
-            * If set to *None*, renderer will pass input text through itself
-              without any changes (i.e. no colors and attributes will be applied).
+            * If set to *None* [default], the final decision will be made
+              by every renderer independently, based on their own algorithms.
             * If set to *True*, renderer will always apply the formatting regardless
               of other internal rules and algorithms.
-            * If set to *False* [default], the final decision will be made
-              by every renderer independently, based on their own algorithms.
+            * If set to *False*, renderer will pass input text through itself
+              without any changes (i.e. no colors and attributes will be applied).
 
         :param compatibility_256_colors:
 
@@ -693,7 +693,7 @@ class ConfigurableRenderer:
 
         :param compatibility_16_colors:
 
-            Disable *256-color* output mode and default *16-color* sequences instead.
+            Disable *256-color* output mode and use default *16-color* sequences instead.
             If this setting is set to *True*, the value of ``compatibility_256_colors``
             will be ignored completely.
 
@@ -792,11 +792,9 @@ class SgrRenderer(AbstractRenderer, ConfigurableRenderer):
         raise NotImplementedError(f'Unknown Color inhertior {color!s}')
 
     def is_sgr_usage_allowed(self) -> bool:
-        if self._force_styles is True:
-            return True
         if self._force_styles is None:
-            return False
-        return sys.stdout.isatty()
+            return sys.stdout.isatty()
+        return self._force_styles
 
 
 class TmuxRenderer(SgrRenderer):

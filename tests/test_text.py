@@ -2,9 +2,11 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
+import io
+import sys
 import unittest
 
-from pytermor import Style, SequenceSGR, Text, RendererManager, NOOP_STYLE
+from pytermor import Style, SequenceSGR, Text, RendererManager, NOOP_STYLE, SgrRenderer
 from pytermor.common import LogicError
 from pytermor.text import TmuxRenderer
 from pytermor.util import ReplaceSGR
@@ -125,9 +127,33 @@ class TestTextFormatting(unittest.TestCase):
             self.assertRaises(ValueError, lambda text=self.text: f"{text:{fmt}}")
 
 
-class TestTmux(unittest.TestCase):
+class TestRendererConfiguration(unittest.TestCase):
+    def test_force_color_enabling(self):
+        self.renderer = SgrRenderer().setup(force_styles=True)
+        sys.stdout = io.StringIO()
+
+        result = self.renderer.render('12345', Style(fg='red'))
+        self.assertEqual('\x1b[31m12345\x1b[39m', result)
+
+    def test_force_color_disabling(self):
+        self.renderer = SgrRenderer().setup(force_styles=False)
+
+        result = self.renderer.render('12345', Style(fg='red'))
+        self.assertEqual('12345', result)
+
+    def test_force_color_default(self):
+        self.renderer = SgrRenderer().setup(force_styles=False)
+
+        result = self.renderer.render('12345', Style(fg='red'))
+        if sys.stdout.isatty():
+            self.assertEqual('\x1b[31m12345\x1b[39m', result)
+        else:
+            self.assertEqual('12345', result)
+
+
+class TestTmuxRenderer(unittest.TestCase):
     def setUp(self) -> None:
-        self.renderer = TmuxRenderer().setup(True)
+        self.renderer = TmuxRenderer().setup(force_styles=True)
 
     def test_basic_render_works(self):
         result = self.renderer.render('12345', Style(fg='red', bg='black', bold=True))
