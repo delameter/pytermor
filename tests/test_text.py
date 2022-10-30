@@ -178,7 +178,7 @@ class TestTmuxRenderer(unittest.TestCase):
         )
 
     def test_color256_render_works(self):
-        result = self.renderer.render('12345', Style(fg='navy_blue', bg='dark_red'))
+        result = self.renderer.render('12345', Style(fg='NavyBlue', bg='DarkRed'))
 
         self.assertEqual('#[fg=color17]#[bg=color88]'
                          '12345'

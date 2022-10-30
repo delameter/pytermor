@@ -7,12 +7,6 @@ String filtering module.
 
 Main idea is to provide a common interface for string filtering, that can make
 possible working with filters like with objects rather than with functions/lambdas.
-
-.. testsetup:: *
-
-    from pytermor.ansi import Spans
-    from pytermor.util.string_filter import apply_filters, ReplaceSGR, VisualuzeWhitespace
-
 """
 from __future__ import annotations
 
@@ -20,8 +14,6 @@ import re
 from functools import reduce
 from re import Match, Pattern
 from typing import Generic, Type, Callable, TypeVar
-
-from ..ansi import Spans
 
 SGR_REGEXP = re.compile(r'(\x1b)(\[)([0-9;]*)(m)')
 
@@ -34,7 +26,8 @@ def apply_filters(s: ST, *args: StringFilter|Type[StringFilter]) -> ST:
     Example (will replace all :kbd:`ESC` control characters to :kbd:`E` and
     thus make SGR params visible):
 
-    >>> apply_filters(Spans.RED('test'), ReplaceSGR(r'E\\2\\3\\5'))
+    >>> import pytermor as pt
+    >>> pt.apply_filters(f'{pt.Seqs.RED}test{pt.Seqs.COLOR_OFF}', pt.ReplaceSGR(r'E\\2\\3\\4'))
     'E[31mtestE[39m'
 
     Note that type of ``s`` argument must be same as ``StringFilter`` parameterized
@@ -77,11 +70,12 @@ class StringFilter(Generic[ST]):
 class VisualuzeWhitespace(StringFilter[str]):
     """
     Replace every invisible character with ``repl`` (default is :kbd:`·`),
-    except newlines. Newlines are kept and get prepneded with same string.
+    except newlines. Newlines are kept and get_by_code prepneded with same string.
 
-    >>> VisualuzeWhitespace().apply('A  B  C')
+    >>> import pytermor as pt
+    >>> pt.util.VisualuzeWhitespace().apply('A  B  C')
     'A··B··C'
-    >>> apply_filters('1. D\\n2. L ', VisualuzeWhitespace)
+    >>> pt.apply_filters('1. D\\n2. L ', pt.util.VisualuzeWhitespace)
     '1.·D·\\n2.·L·'
     """
 

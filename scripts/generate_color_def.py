@@ -22,27 +22,27 @@ class PyModuleColorGenerator:
     def run(self, f, cfg_color):
         print('# ---------------------------------- GENERATED '
               '---------------------------------\n', file=f)
-        [self.process_indexed_16(cc, f) for cc in cfg_color.get('indexed_16')]
+        [self.process_indexed_16(cc, f) for cc in cfg_color.get_by_code('indexed_16')]
         print(file=f)
-        [self.process_indexed_256(cc, f) for cc in cfg_color.get('indexed_256')]
+        [self.process_indexed_256(cc, f) for cc in cfg_color.get_by_code('indexed_256')]
         print(file=f)
-        [self.process_indexed_rgb(cc, f) for cc in cfg_color.get('rgb')]
+        [self.process_indexed_rgb(cc, f) for cc in cfg_color.get_by_code('rgb')]
         print(f.name)
 
     @staticmethod
     def process_indexed_16(cc, f):
-        cc['aliases'] = cc.get('aliases', [])
+        cc['aliases'] = cc.get_by_code('aliases', [])
         print('{const_name} = ColorIndexed16(0x{hex_value:06x}, '
               'IntCodes.{code_fg}, IntCodes.{code_bg}, {index_256}, {aliases})'.format(**cc), file=f)
 
     @staticmethod
     def process_indexed_256(cc, f):
-        cc['aliases'] = cc.get('aliases')
+        cc['aliases'] = cc.get_by_code('aliases')
         print('{const_name} = ColorIndexed256(0x{hex_value:06x}, {code}, {aliases})'.format(**cc), file=f)
 
     @staticmethod
     def process_indexed_rgb(cc, f):
-        cc['aliases'] = cc.get('aliases')
+        cc['aliases'] = cc.get_by_code('aliases')
         print('{const_name} = ColorRGB(0x{hex_value:06x}, {aliases})'.format(**cc), file=f)
 
 
@@ -213,16 +213,16 @@ class HtmlTableGenerator:
             -len(self.name_to_abbr(c['original_name'])))[0]['original_name']))
 
         for cc in cfg_indexed:
-            is_renamed = len(cc.get('renamed_from', '')) > 0
+            is_renamed = len(cc.get_by_code('renamed_from', '')) > 0
             is_duplicate = (cc['name'] in names)
 
             variation_str = ""
             if "variation" in cc.keys():
                 is_duplicate = False
-                variation_str = cc.get("variation")
+                variation_str = cc.get_by_code("variation")
 
             names.add(cc['name'])
-            if cc.get('key'):
+            if cc.get_by_code('key'):
                 if cc['key'] not in key_max_index.keys():
                     key_max_index[cc['key']] = 0
                 key_max_index[cc['key']] += 1
@@ -249,14 +249,14 @@ class HtmlTableGenerator:
                 comment_str = (
                     comment_label_style.text(f"{comment_squashed:_<s}"))
                     #comment_value_style._render('<br>' + '_'*9 + 'sugg' + '_'*3) +
-                    #comment_value_style._render(f"{cc['key'] + str(key_max_index.get(cc['key'])):_<{max_name_len}s}")
+                    #comment_value_style._render(f"{cc['key'] + str(key_max_index.get_by_code(cc['key'])):_<{max_name_len}s}")
 
                 # different approach (output is Text, while in prev. example it is already str)
                 # comment_str += (
                 #     f"{Text('<br>' + '_'*10 + 'was' + '_'*3, comment_label_style)}"
                 #     f"{Text(cc['original_name'], comment_value_style):_<{max_name_len}s}"
                 #     f"{Text('<br>' + '_'*9 + 'sugg' + '_'*3, comment_label_style)}"
-                #     f"{Text(cc['key'] + str(key_max_index.get(cc['key'])), comment_value_style)}:_<{max_name_len}s"
+                #     f"{Text(cc['key'] + str(key_max_index.get_by_code(cc['key'])), comment_value_style)}:_<{max_name_len}s"
                 # )
             # def repl():
             #     return chr(round(random() * 0x1fff))
@@ -309,7 +309,7 @@ class Main:
         first_rename = True
         for ctype in cfg_color:
             for c in cfg_color[ctype]:
-                c['primary_name'] = c.get('override_name', c.get('original_name'))
+                c['primary_name'] = c.get_by_code('override_name', c.get_by_code('original_name'))
                 c['first_rename'] = ''
                 if c['primary_name'] != c['original_name'] and first_rename:
                     c['first_rename'] = ' [4]_'
@@ -343,7 +343,7 @@ class Main:
         with open(join('/tmp', 'named-by-color.html'), 'wt') as f:
             HtmlTableGenerator().run(f, sorted(named, key=lambda v: self.sorter_by_color(v)))
         with open(join('/tmp', 'named-by-name.html'), 'wt') as f:
-            HtmlTableGenerator().run(f, sorted(named, key=lambda v: v['name']+' '+v.get('variation', '')))
+            HtmlTableGenerator().run(f, sorted(named, key=lambda v: v['name']+' '+v.get_by_code('variation', '')))
 
 
 if __name__ == '__main__':

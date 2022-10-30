@@ -15,35 +15,23 @@ and closing one.
 Each variable in `Seqs` and `Spans` below is a valid argument
 for :class:`.Span` and :class:`.SequenceSGR` default constructors; furthermore,
 it can be passed in a string form (case-insensitive):
-
-.. testsetup:: *
-
-    from pytermor.ansi import SequenceSGR, Spans, Span, Seqs, IntCodes, NOOP_SPAN, NOOP_SEQ
-
->>> Span('BG_GREEN')
-Span[SGR[42], SGR[49]]
-
->>> Span(Seqs.BG_GREEN, Seqs.UNDERLINED)
-Span[SGR[42;4], SGR[49;24]]
-
 """
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from copy import copy
-from typing import List, Any, Dict, Tuple, Sized
+import enum
+import typing as t
 
-from .common import Registry
 
-
-class Sequence(Sized, metaclass=ABCMeta):
+class Sequence(t.Sized, metaclass=ABCMeta):
     """
     Abstract ancestor of all escape sequences.
     """
     _CONTROL_CHARACTER = '\x1b'
 
     def __init__(self, *params: int|str):
-        self._params: List[int|str] = [*params]
+        self._params: t.List[int|str] = [*params]
 
     @abstractmethod
     def assemble(self) -> str:
@@ -54,7 +42,7 @@ class Sequence(Sized, metaclass=ABCMeta):
         raise NotImplementedError
 
     @property
-    def params(self) -> List[int|str]:
+    def params(self) -> t.List[int|str]:
         """ Return internal params as array. """
         return self._params
 
@@ -117,7 +105,7 @@ class SequenceOSC(SequenceFe):
 
     @classmethod
     def init_hyperlink(cls, url: str) -> SequenceOSC:
-        return SequenceOSC(IntCodes.HYPERLINK, '', url)
+        return SequenceOSC(IntCode.HYPERLINK, '', url)
 
     def assemble(self) -> str:
         return self._CONTROL_CHARACTER + \
@@ -189,35 +177,34 @@ class SequenceSGR(SequenceCSI):
 
     It's possible to add of one SGR sequence to another:
 
-    >>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
+    >>> pt.SequenceSGR(31) + pt.SequenceSGR(1) == pt.SequenceSGR(31, 1)
     True
 
     """
     _TERMINATOR = 'm'
 
-    def __init__(self, *args: str|int|SequenceSGR):
+    def __init__(self, *args: int|SequenceSGR):
         """
         Create new `SequenceSGR` with specified ``args`` as params.
 
         Resulting sequence param order is same as an argument order.
 
         Each sequence param can be specified as:
-          - string key (name of any constant defined in `IntCodes`, case-insensitive)
           - integer param value (``IntCodes`` values)
           - existing ``SequenceSGR`` instance (params will be extracted).
 
-        >>> SequenceSGR('yellow', 'bold')
-        SGR[33;1]
-        >>> SequenceSGR(91, 7)
+        >>> pt.SequenceSGR(91, 7)
         SGR[91;7]
-        >>> SequenceSGR(IntCodes.HI_CYAN, IntCodes.UNDERLINED)
+        >>> pt.SequenceSGR(pt.IntCode.HI_CYAN, pt.IntCode.UNDERLINED)
         SGR[96;4]
+        >>> pt.SequenceSGR(1, pt.SequenceSGR(33))
+        SGR[1;33]
         """
-        result: List[int] = []
+        result: t.List[int] = []
 
         for arg in args:
             if isinstance(arg, str):
-                resolved_param = IntCodes.resolve(arg)
+                resolved_param = IntCode[arg]
                 if not isinstance(resolved_param, int):
                     raise ValueError(f'Attribute is not valid SGR param: {resolved_param}')
                 result.append(resolved_param)
@@ -232,20 +219,20 @@ class SequenceSGR(SequenceCSI):
         super().__init__(self._TERMINATOR, *result)
 
     @classmethod
-    def init_color_indexed(cls, idx: int, bg: bool = False) -> SequenceSGR:
+    def init_color_index256(cls, idx: int, bg: bool = False) -> SequenceSGR:
         """
         Wrapper for creation of `SequenceSGR` that sets foreground
-        (or background) to one of 256-color pallete value.
+        (or background) to one of 256-color palette value.
 
-        :param idx:  Index of the color in the pallete, 0 -- 255.
+        :param idx:  Index of the color in the palette, 0 -- 255.
         :param bg:    Set to *True* to change the background color
                       (default is foreground).
         :return:      `SequenceSGR` with required params.
         """
 
         cls._validate_extended_color(idx)
-        key_code = IntCodes.BG_COLOR_EXTENDED if bg else IntCodes.COLOR_EXTENDED
-        return SequenceSGR(key_code, IntCodes.EXTENDED_MODE_256, idx)
+        key_code = IntCode.BG_COLOR_EXTENDED if bg else IntCode.COLOR_EXTENDED
+        return SequenceSGR(key_code, IntCode.EXTENDED_MODE_256, idx)
 
     @classmethod
     def init_color_rgb(cls, r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
@@ -267,8 +254,8 @@ class SequenceSGR(SequenceCSI):
         """
 
         [cls._validate_extended_color(color) for color in [r, g, b]]
-        key_code = IntCodes.BG_COLOR_EXTENDED if bg else IntCodes.COLOR_EXTENDED
-        return SequenceSGR(key_code, IntCodes.EXTENDED_MODE_RGB, r, g, b)
+        key_code = IntCode.BG_COLOR_EXTENDED if bg else IntCode.COLOR_EXTENDED
+        return SequenceSGR(key_code, IntCode.EXTENDED_MODE_RGB, r, g, b)
 
     def assemble(self) -> str:
         if len(self._params) == 0:  # NOOP
@@ -302,13 +289,25 @@ class SequenceSGR(SequenceCSI):
         return self._params == other._params
 
     @property
-    def is_color_extended(self) -> bool:
+    def is_color_index256(self) -> bool:
+        """
+        .. note ::
+            Returns False for manually composed SGRs with more than one
+            elementary add_to_code_map of params, even though there *is* an indexed
+            color setter sequence in there, e.g.:
+
+            >>>SequenceSGR(4,1,38,5,231,7).is_color_index256
+            False
+
+        :return: True if sequence is a basic text/background color setter
+                 sequence (256 colors pallette), False otherwise.
+        """
         return len(self.params) >= 3 and \
-               (self.params[0] == IntCodes.COLOR_EXTENDED or
-                self.params[0] == IntCodes.BG_COLOR_EXTENDED)
+               (self.params[0] == IntCode.COLOR_EXTENDED or
+                self.params[0] == IntCode.BG_COLOR_EXTENDED)
 
     @staticmethod
-    def _ensure_sequence(subject: Any):
+    def _ensure_sequence(subject: t.Any):
         if not isinstance(subject, SequenceSGR):
             raise TypeError(f'Expected SequenceSGR, got {type(subject)}')
 
@@ -323,146 +322,6 @@ class SequenceSGR(SequenceCSI):
         return 'SGR'
 
 
-# noinspection PyMethodMayBeStatic
-class Span:
-    """
-    Class consisting of two `Sequence` instances -- the first one, "opener",
-    tells the terminal that's it should format subsequent characters as specified,
-    and the second one, which reverses the effects of the  first one.
-    """
-    def __init__(self, *opening_params: str|int|SequenceSGR):
-        """
-        Create a `Span` with specified control sequence(s) as an opening sequence
-        and **automatically compose** second (closing) sequence that will terminate
-        attributes defined in the first one while keeping the others (*soft* reset).
-        Default constructor accepts SGR sequences (most frequently used sequence type).
-
-        Resulting sequence param order is same as an argument order.
-
-        Each argument can be specified as:
-          - string key (name of any constant defined in `IntCodes`, case-insensitive)
-          - integer param value (``IntCodes`` values)
-          - existing `SequenceSGR` instance (params will be extracted).
-
-        >>> Span('red', 'bold')
-        Span[SGR[31;1], SGR[39;22]]
-        >>> Span(IntCodes.GREEN)
-        Span[SGR[32], SGR[39]]
-        >>> Span(93, 4)
-        Span[SGR[93;4], SGR[39;24]]
-        >>> Span(Seqs.BG_BLACK + Seqs.RED)
-        Span[SGR[40;31], SGR[49;39]]
-
-        :param opening_params: string keys, integer codes or existing ``SequenceSGR``
-                               instances to build ``Span`` from.
-        """
-        self._opening_seq = SequenceSGR(*opening_params)
-        if len(opening_params) == 0:
-            self._closing_seq = SequenceSGR()
-            return
-
-        self._closing_seq = _SgrPairityRegistry.get_closing_seq(self._opening_seq)
-
-    @classmethod
-    def init_explicit(cls,
-                      opening_seq: Sequence = None,
-                      closing_seq: Sequence = None,
-                      hard_reset_after: bool = False) -> Span:
-        """
-        Create new `Span` with explicitly specified opening and closing sequences.
-
-        .. note ::
-            `closing_seq` gets overwritten with `Seqs.RESET` if ``hard_reset_after`` is *True*.
-
-        :param opening_seq:      Starter sequence, in general determening how `Span` will actually look like.
-        :param closing_seq:      Finisher sequence (usually both are SGR sequences, but it's possible
-                                 to provide any type).
-        :param hard_reset_after: Terminate *all* formatting after this span (uses SGR 0).
-        """
-        instance = Span()
-        instance._opening_seq = cls._opt_arg(opening_seq)
-        instance._closing_seq = cls._opt_arg(closing_seq)
-
-        if hard_reset_after:
-            instance._closing_seq = Seqs.RESET
-
-        return instance
-
-    @classmethod
-    def init_hyperlink(cls, url: str) -> Span:
-        """
-        .. todo ::
-            s
-        :param url:
-        :return:
-        """
-        return Span.init_explicit(
-            SequenceOSC.init_hyperlink(url),
-            SequenceOSC.init_hyperlink(''),
-        )
-
-    def wrap(self, text: Any = None) -> str:
-        """
-        Wrap given ``text`` string with ``SGRs`` defined on initialization -- `opening_seq`
-        on the left, `closing_seq` on the right. ``str(text)`` will
-        be invoked for all argument types with the exception of *None*,
-        which will be replaced with an empty string.
-
-        :param text:  String to wrap.
-        :return:      ``text`` enclosed in instance's ``SGRs``, if any.
-        """
-        result = self._opening_seq.assemble()
-
-        if text is not None:
-            result += str(text)
-
-        result += self._closing_seq.assemble()
-        return result
-
-    @property
-    def opening_str(self) -> str:
-        """ Return opening sequence assembled. """
-        return self._opening_seq.assemble()
-
-    @property
-    def opening_seq(self) -> Sequence:
-        """ Return opening sequence instance. """
-        return self._opening_seq
-
-    @property
-    def closing_str(self) -> str:
-        """ Return closing sequence assembled. """
-        return self._closing_seq.assemble()
-
-    @property
-    def closing_seq(self) -> Sequence:
-        """ Return closing sequence instance. """
-        return self._closing_seq
-
-    @classmethod
-    def _opt_arg(cls, arg: Sequence | None) -> Sequence:
-        if arg is None:
-            return NOOP_SEQ
-        return arg
-
-    def __call__(self, text: Any = None) -> str:
-        """
-        Can be used instead of `wrap()` method.
-
-        >>> Spans.RED('text') == Spans.RED.wrap('text')
-        True
-        """
-        return self.wrap(text)
-
-    def __eq__(self, other: Span) -> bool:
-        if not isinstance(other, Span):
-            return False
-        return self._opening_seq == other._opening_seq and self._closing_seq == other._closing_seq
-
-    def __repr__(self):
-        return self.__class__.__name__ + '[{!r}, {!r}]'.format(self._opening_seq, self._closing_seq)
-
-
 NOOP_SEQ = SequenceSGR()
 """
 Special sequence in case you *have to* provide one or another SGR, but do 
@@ -470,42 +329,20 @@ not want any control sequences to be actually included in the output.
 ``NOOP_SEQ.assemble()`` returns empty string, ``NOOP_SEQ.params`` 
 returns empty list.
 
->>> NOOP_SEQ.assemble()
+>>> pt.NOOP_SEQ.assemble()
 ''
->>> NOOP_SEQ.params
+>>> pt.NOOP_SEQ.params
 []
 """
 
-NOOP_SPAN = Span()
-"""
-Special `Span` in cases where you *have to* select one or 
-another `Span`, but do not want any control sequence to be actually included. 
 
-- ``NOOP_SPAN(string)`` or ``NOOP_SPAN.wrap(string)`` returns ``string`` without any modifications;
-- ``NOOP_SPAN.opening_str`` and ``NOOP_SPAN.closing_str`` are empty strings;
-- ``NOOP_SPAN.opening_seq`` and ``NOOP_SPAN.closing_seq`` both returns `NOOP_SEQ`.
-
->>> NOOP_SPAN('text')
-'text'
->>> NOOP_SPAN.opening_str
-''
->>> NOOP_SPAN.opening_seq
-SGR[~]
-"""
-
-
-class IntCodes(Registry[int]):
+class IntCode(int, enum.Enum):
     """
     Complete or almost complete list of reliably working SGR param integer codes.
 
     Suitable for :class:`.Span` and :class:`.SequenceSGR` default constructors.
-
-    .. attention::
-       Registry constants are omitted from API doc pages to improve readability
-       and avoid duplication. Summary list of all presets can be found in
-       `guide.presets` section of the guide.
     """
-    # -- Default attributes and colors --------------------------------------------
+    # -- SGR: default attributes and colors -----------------------------------
 
     RESET = 0  # hard reset code
     BOLD = 1
@@ -538,7 +375,7 @@ class IntCodes(Registry[int]):
     MAGENTA = 35
     CYAN = 36
     WHITE = 37
-    COLOR_EXTENDED = 38  # use init_color_indexed() and init_color_rgb() instead
+    COLOR_EXTENDED = 38  # use init_color_index256() and init_color_rgb() instead
 
     BG_BLACK = 40
     BG_RED = 41
@@ -548,7 +385,7 @@ class IntCodes(Registry[int]):
     BG_MAGENTA = 45
     BG_CYAN = 46
     BG_WHITE = 47
-    BG_COLOR_EXTENDED = 48  # use color_indexed() and color_rgb() instead
+    BG_COLOR_EXTENDED = 48  # use init_color_index256() and init_color_rgb() instead
 
     GRAY = 90
     HI_RED = 91
@@ -579,258 +416,186 @@ class IntCodes(Registry[int]):
     # 60-65: ideogram attributes
     # 73-75: superscript and subscript
 
-    # -- Default colors lists -----------------------------------------------------
-
-    LIST_COLORS = list(range(30, 39))
-    LIST_BG_COLORS = list(range(40, 49))
-    LIST_HI_COLORS = list(range(90, 98))
-    LIST_BG_HI_COLORS = list(range(100, 108))
-
-    LIST_ALL_COLORS = LIST_COLORS + LIST_BG_COLORS + \
-                      LIST_HI_COLORS + LIST_BG_HI_COLORS
-
-    # -- EXTENDED modifiers -------------------------------------------------------
+    # -- SGR: extended modifiers ----------------------------------------------
 
     EXTENDED_MODE_256 = 5
     EXTENDED_MODE_RGB = 2
 
-    # -- Other sequence classes  --------------------------------------------------
+    # -- Other sequence classes -----------------------------------------------
 
     HYPERLINK = 8
 
 
-class Seqs(Registry[Sequence]):
+class Seqs:
     """
     Registry of sequence presets.
-
-    .. attention::
-       Registry constants are omitted from API doc pages to improve readability
-       and avoid duplication. Summary list of all presets can be found in
-       `guide.presets` section of the guide.
     """
 
     # == SGR ==================================================================
 
-    RESET = SequenceSGR(IntCodes.RESET)
+    RESET = SequenceSGR(IntCode.RESET)
     """
     Hard reset sequence.
     """
 
     # attributes
-    BOLD = SequenceSGR(IntCodes.BOLD)
-    DIM = SequenceSGR(IntCodes.DIM)
-    ITALIC = SequenceSGR(IntCodes.ITALIC)
-    UNDERLINED = SequenceSGR(IntCodes.UNDERLINED)
-    BLINK_SLOW = SequenceSGR(IntCodes.BLINK_SLOW)
-    BLINK_FAST = SequenceSGR(IntCodes.BLINK_FAST)
+    BOLD = SequenceSGR(IntCode.BOLD)
+    DIM = SequenceSGR(IntCode.DIM)
+    ITALIC = SequenceSGR(IntCode.ITALIC)
+    UNDERLINED = SequenceSGR(IntCode.UNDERLINED)
+    BLINK_SLOW = SequenceSGR(IntCode.BLINK_SLOW)
+    BLINK_FAST = SequenceSGR(IntCode.BLINK_FAST)
     BLINK_DEFAULT = BLINK_SLOW
-    INVERSED = SequenceSGR(IntCodes.INVERSED)
-    HIDDEN = SequenceSGR(IntCodes.HIDDEN)
-    CROSSLINED = SequenceSGR(IntCodes.CROSSLINED)
-    DOUBLE_UNDERLINED = SequenceSGR(IntCodes.DOUBLE_UNDERLINED)
-    OVERLINED = SequenceSGR(IntCodes.OVERLINED)
+    INVERSED = SequenceSGR(IntCode.INVERSED)
+    HIDDEN = SequenceSGR(IntCode.HIDDEN)
+    CROSSLINED = SequenceSGR(IntCode.CROSSLINED)
+    DOUBLE_UNDERLINED = SequenceSGR(IntCode.DOUBLE_UNDERLINED)
+    OVERLINED = SequenceSGR(IntCode.OVERLINED)
 
-    BOLD_DIM_OFF = SequenceSGR(IntCodes.BOLD_DIM_OFF)       # there is no separate sequence for
-    ITALIC_OFF = SequenceSGR(IntCodes.ITALIC_OFF)           # disabling either of BOLD or DIM
-    UNDERLINED_OFF = SequenceSGR(IntCodes.UNDERLINED_OFF)   # while keeping the other
-    BLINK_OFF = SequenceSGR(IntCodes.BLINK_OFF)
-    INVERSED_OFF = SequenceSGR(IntCodes.INVERSED_OFF)
-    HIDDEN_OFF = SequenceSGR(IntCodes.HIDDEN_OFF)
-    CROSSLINED_OFF = SequenceSGR(IntCodes.CROSSLINED_OFF)
-    OVERLINED_OFF = SequenceSGR(IntCodes.OVERLINED_OFF)
+    BOLD_DIM_OFF = SequenceSGR(IntCode.BOLD_DIM_OFF)       # there is no separate sequence for
+    ITALIC_OFF = SequenceSGR(IntCode.ITALIC_OFF)           # disabling either of BOLD or DIM
+    UNDERLINED_OFF = SequenceSGR(IntCode.UNDERLINED_OFF)   # while keeping the other
+    BLINK_OFF = SequenceSGR(IntCode.BLINK_OFF)
+    INVERSED_OFF = SequenceSGR(IntCode.INVERSED_OFF)
+    HIDDEN_OFF = SequenceSGR(IntCode.HIDDEN_OFF)
+    CROSSLINED_OFF = SequenceSGR(IntCode.CROSSLINED_OFF)
+    OVERLINED_OFF = SequenceSGR(IntCode.OVERLINED_OFF)
 
     # text colors
-    BLACK = SequenceSGR(IntCodes.BLACK)
-    RED = SequenceSGR(IntCodes.RED)
-    GREEN = SequenceSGR(IntCodes.GREEN)
-    YELLOW = SequenceSGR(IntCodes.YELLOW)
-    BLUE = SequenceSGR(IntCodes.BLUE)
-    MAGENTA = SequenceSGR(IntCodes.MAGENTA)
-    CYAN = SequenceSGR(IntCodes.CYAN)
-    WHITE = SequenceSGR(IntCodes.WHITE)
+    BLACK = SequenceSGR(IntCode.BLACK)
+    RED = SequenceSGR(IntCode.RED)
+    GREEN = SequenceSGR(IntCode.GREEN)
+    YELLOW = SequenceSGR(IntCode.YELLOW)
+    BLUE = SequenceSGR(IntCode.BLUE)
+    MAGENTA = SequenceSGR(IntCode.MAGENTA)
+    CYAN = SequenceSGR(IntCode.CYAN)
+    WHITE = SequenceSGR(IntCode.WHITE)
     # code.COLOR_EXTENDED is handled by color_indexed()
-    COLOR_OFF = SequenceSGR(IntCodes.COLOR_OFF)
+    COLOR_OFF = SequenceSGR(IntCode.COLOR_OFF)
 
     # background colors
-    BG_BLACK = SequenceSGR(IntCodes.BG_BLACK)
-    BG_RED = SequenceSGR(IntCodes.BG_RED)
-    BG_GREEN = SequenceSGR(IntCodes.BG_GREEN)
-    BG_YELLOW = SequenceSGR(IntCodes.BG_YELLOW)
-    BG_BLUE = SequenceSGR(IntCodes.BG_BLUE)
-    BG_MAGENTA = SequenceSGR(IntCodes.BG_MAGENTA)
-    BG_CYAN = SequenceSGR(IntCodes.BG_CYAN)
-    BG_WHITE = SequenceSGR(IntCodes.BG_WHITE)
+    BG_BLACK = SequenceSGR(IntCode.BG_BLACK)
+    BG_RED = SequenceSGR(IntCode.BG_RED)
+    BG_GREEN = SequenceSGR(IntCode.BG_GREEN)
+    BG_YELLOW = SequenceSGR(IntCode.BG_YELLOW)
+    BG_BLUE = SequenceSGR(IntCode.BG_BLUE)
+    BG_MAGENTA = SequenceSGR(IntCode.BG_MAGENTA)
+    BG_CYAN = SequenceSGR(IntCode.BG_CYAN)
+    BG_WHITE = SequenceSGR(IntCode.BG_WHITE)
     # code.BG_COLOR_EXTENDED is handled by color_indexed()
-    BG_COLOR_OFF = SequenceSGR(IntCodes.BG_COLOR_OFF)
+    BG_COLOR_OFF = SequenceSGR(IntCode.BG_COLOR_OFF)
 
     # high intensity text colors
-    GRAY = SequenceSGR(IntCodes.GRAY)
-    HI_RED = SequenceSGR(IntCodes.HI_RED)
-    HI_GREEN = SequenceSGR(IntCodes.HI_GREEN)
-    HI_YELLOW = SequenceSGR(IntCodes.HI_YELLOW)
-    HI_BLUE = SequenceSGR(IntCodes.HI_BLUE)
-    HI_MAGENTA = SequenceSGR(IntCodes.HI_MAGENTA)
-    HI_CYAN = SequenceSGR(IntCodes.HI_CYAN)
-    HI_WHITE = SequenceSGR(IntCodes.HI_WHITE)
+    GRAY = SequenceSGR(IntCode.GRAY)
+    HI_RED = SequenceSGR(IntCode.HI_RED)
+    HI_GREEN = SequenceSGR(IntCode.HI_GREEN)
+    HI_YELLOW = SequenceSGR(IntCode.HI_YELLOW)
+    HI_BLUE = SequenceSGR(IntCode.HI_BLUE)
+    HI_MAGENTA = SequenceSGR(IntCode.HI_MAGENTA)
+    HI_CYAN = SequenceSGR(IntCode.HI_CYAN)
+    HI_WHITE = SequenceSGR(IntCode.HI_WHITE)
 
     # high intensity background colors
-    BG_GRAY = SequenceSGR(IntCodes.BG_GRAY)
-    BG_HI_RED = SequenceSGR(IntCodes.BG_HI_RED)
-    BG_HI_GREEN = SequenceSGR(IntCodes.BG_HI_GREEN)
-    BG_HI_YELLOW = SequenceSGR(IntCodes.BG_HI_YELLOW)
-    BG_HI_BLUE = SequenceSGR(IntCodes.BG_HI_BLUE)
-    BG_HI_MAGENTA = SequenceSGR(IntCodes.BG_HI_MAGENTA)
-    BG_HI_CYAN = SequenceSGR(IntCodes.BG_HI_CYAN)
-    BG_HI_WHITE = SequenceSGR(IntCodes.BG_HI_WHITE)
+    BG_GRAY = SequenceSGR(IntCode.BG_GRAY)
+    BG_HI_RED = SequenceSGR(IntCode.BG_HI_RED)
+    BG_HI_GREEN = SequenceSGR(IntCode.BG_HI_GREEN)
+    BG_HI_YELLOW = SequenceSGR(IntCode.BG_HI_YELLOW)
+    BG_HI_BLUE = SequenceSGR(IntCode.BG_HI_BLUE)
+    BG_HI_MAGENTA = SequenceSGR(IntCode.BG_HI_MAGENTA)
+    BG_HI_CYAN = SequenceSGR(IntCode.BG_HI_CYAN)
+    BG_HI_WHITE = SequenceSGR(IntCode.BG_HI_WHITE)
 
     # == OSC ==================================================================
 
-    HYPERLINK = SequenceOSC(IntCodes.HYPERLINK)
+    HYPERLINK = SequenceOSC(IntCode.HYPERLINK)
 
 
 class _SgrPairityRegistry:
     """
     Internal class responsible for correct SGRs termination.
     """
-    _code_to_breaker_map: Dict[int|Tuple[int, ...], SequenceSGR] = dict()
-    _complex_code_def: Dict[int|Tuple[int, ...], int] = dict()
+    _code_to_breaker_map: t.Dict[int|t.Tuple[int, ...], SequenceSGR] = dict()
+    _complex_code_def: t.Dict[int|t.Tuple[int, ...], int] = dict()
     _complex_code_max_len: int = 0
 
-    @classmethod
-    def __new__(cls, *args, **kwargs):
+    _COLORS = list(range(30, 39))
+    _BG_COLORS = list(range(40, 49))
+    _HI_COLORS = list(range(90, 98))
+    _BG_HI_COLORS = list(range(100, 108))
+    _ALL_COLORS = _COLORS + _BG_COLORS + _HI_COLORS + _BG_HI_COLORS
 
-        _regulars = [(IntCodes.BOLD, IntCodes.BOLD_DIM_OFF),
-                     (IntCodes.DIM, IntCodes.BOLD_DIM_OFF),
-                     (IntCodes.ITALIC, IntCodes.ITALIC_OFF),
-                     (IntCodes.UNDERLINED, IntCodes.UNDERLINED_OFF),
-                     (IntCodes.DOUBLE_UNDERLINED, IntCodes.UNDERLINED_OFF),
-                     (IntCodes.BLINK_SLOW, IntCodes.BLINK_OFF),
-                     (IntCodes.BLINK_FAST, IntCodes.BLINK_OFF),
-                     (IntCodes.INVERSED, IntCodes.INVERSED_OFF),
-                     (IntCodes.HIDDEN, IntCodes.HIDDEN_OFF),
-                     (IntCodes.CROSSLINED, IntCodes.CROSSLINED_OFF),
-                     (IntCodes.OVERLINED, IntCodes.OVERLINED_OFF), ]
+    def __init__(self, *args, **kwargs):
+        _regulars = [(IntCode.BOLD, IntCode.BOLD_DIM_OFF),
+                     (IntCode.DIM, IntCode.BOLD_DIM_OFF),
+                     (IntCode.ITALIC, IntCode.ITALIC_OFF),
+                     (IntCode.UNDERLINED, IntCode.UNDERLINED_OFF),
+                     (IntCode.DOUBLE_UNDERLINED, IntCode.UNDERLINED_OFF),
+                     (IntCode.BLINK_SLOW, IntCode.BLINK_OFF),
+                     (IntCode.BLINK_FAST, IntCode.BLINK_OFF),
+                     (IntCode.INVERSED, IntCode.INVERSED_OFF),
+                     (IntCode.HIDDEN, IntCode.HIDDEN_OFF),
+                     (IntCode.CROSSLINED, IntCode.CROSSLINED_OFF),
+                     (IntCode.OVERLINED, IntCode.OVERLINED_OFF), ]
 
         for c in _regulars:
-            cls.bind_regular(*c)
+            self._bind_regular(*c)
 
-        for c in [*IntCodes.LIST_COLORS, *IntCodes.LIST_HI_COLORS]:
-            cls.bind_regular(c, IntCodes.COLOR_OFF)
+        for c in [*self._COLORS, *self._HI_COLORS]:
+            self._bind_regular(c, IntCode.COLOR_OFF)
 
-        for c in [*IntCodes.LIST_BG_COLORS, *IntCodes.LIST_BG_HI_COLORS]:
-            cls.bind_regular(c, IntCodes.BG_COLOR_OFF)
+        for c in [*self._BG_COLORS, *self._BG_HI_COLORS]:
+            self._bind_regular(c, IntCode.BG_COLOR_OFF)
 
-        cls.bind_complex((IntCodes.COLOR_EXTENDED, 5), 1, IntCodes.COLOR_OFF)
-        cls.bind_complex((IntCodes.COLOR_EXTENDED, 2), 3, IntCodes.COLOR_OFF)
-        cls.bind_complex((IntCodes.BG_COLOR_EXTENDED, 5), 1, IntCodes.BG_COLOR_OFF)
-        cls.bind_complex((IntCodes.BG_COLOR_EXTENDED, 2), 3, IntCodes.BG_COLOR_OFF)
+        self._bind_complex((IntCode.COLOR_EXTENDED, 5), 1, IntCode.COLOR_OFF)
+        self._bind_complex((IntCode.COLOR_EXTENDED, 2), 3, IntCode.COLOR_OFF)
+        self._bind_complex((IntCode.BG_COLOR_EXTENDED, 5), 1, IntCode.BG_COLOR_OFF)
+        self._bind_complex((IntCode.BG_COLOR_EXTENDED, 2), 3, IntCode.BG_COLOR_OFF)
 
-    @classmethod
-    def bind_regular(cls, starter_code: int|Tuple[int, ...], breaker_code: int):
-        if starter_code in cls._code_to_breaker_map:
+    def _bind_regular(self, starter_code: int|t.Tuple[int, ...], breaker_code: int):
+        if starter_code in self._code_to_breaker_map:
             raise RuntimeError(f'Conflict: SGR code {starter_code} already '
                                f'has a registered breaker')
 
-        cls._code_to_breaker_map[starter_code] = SequenceSGR(breaker_code)
+        self._code_to_breaker_map[starter_code] = SequenceSGR(breaker_code)
 
-    @classmethod
-    def bind_complex(cls, starter_codes: Tuple[int, ...], param_len: int,
-                     breaker_code: int):
-        cls.bind_regular(starter_codes, breaker_code)
+    def _bind_complex(self, starter_codes: t.Tuple[int, ...], param_len: int,
+                      breaker_code: int):
+        self._bind_regular(starter_codes, breaker_code)
 
-        if starter_codes in cls._complex_code_def:
+        if starter_codes in self._complex_code_def:
             raise RuntimeError(f'Conflict: SGR complex {starter_codes} already '
                                f'has a registered breaker')
 
-        cls._complex_code_def[starter_codes] = param_len
-        cls._complex_code_max_len = max(cls._complex_code_max_len,
+        self._complex_code_def[starter_codes] = param_len
+        self._complex_code_max_len = max(self._complex_code_max_len,
                                          len(starter_codes) + param_len)
 
-    @classmethod
-    def get_closing_seq(cls, opening_seq: SequenceSGR) -> SequenceSGR:
-        closing_seq_params: List[int] = []
+    def get_closing_seq(self, opening_seq: SequenceSGR) -> SequenceSGR:
+        closing_seq_params: t.List[int] = []
         opening_params = copy(opening_seq.params)
 
         while len(opening_params):
-            key_params: int|Tuple[int, ...]|None = None
+            key_params: int|t.Tuple[int, ...]|None = None
 
             for complex_len in range(1, min(len(opening_params),
-                                            cls._complex_code_max_len + 1)):
+                                            self._complex_code_max_len + 1)):
                 opening_complex_suggestion = tuple(opening_params[:complex_len])
 
-                if opening_complex_suggestion in cls._complex_code_def:
+                if opening_complex_suggestion in self._complex_code_def:
                     key_params = opening_complex_suggestion
                     complex_total_len = (
-                        complex_len + cls._complex_code_def[opening_complex_suggestion])
+                        complex_len + self._complex_code_def[opening_complex_suggestion])
                     opening_params = opening_params[complex_total_len:]
                     break
 
             if key_params is None:
                 key_params = opening_params.pop(0)
-            if key_params not in cls._code_to_breaker_map:
+            if key_params not in self._code_to_breaker_map:
                 continue
 
-            closing_seq_params.extend(cls._code_to_breaker_map[key_params].params)
+            closing_seq_params.extend(self._code_to_breaker_map[key_params].params)
 
         return SequenceSGR(*closing_seq_params)
 
-_SgrPairityRegistry()
 
-
-class Spans(Registry[Span]):
-    """
-    Registry of span presets.
-
-    .. attention::
-       Registry constants are omitted from API doc pages to improve readability
-       and avoid duplication. Summary list of all presets can be found in
-       `guide.presets` section of the guide.
-    """
-
-    BOLD = Span(IntCodes.BOLD)
-    DIM = Span(IntCodes.DIM)
-    ITALIC = Span(IntCodes.ITALIC)
-    UNDERLINED = Span(IntCodes.UNDERLINED)
-    BLINK_SLOW = Span(IntCodes.BLINK_SLOW)
-    BLINK_FAST = Span(IntCodes.BLINK_FAST)
-    INVERSED = Span(IntCodes.INVERSED)
-    HIDDEN = Span(IntCodes.HIDDEN)
-    CROSSLINED = Span(IntCodes.CROSSLINED)
-    DOUBLE_UNDERLINED = Span(IntCodes.DOUBLE_UNDERLINED)
-    OVERLINED = Span(IntCodes.OVERLINED)
-
-    BLACK = Span(IntCodes.BLACK)
-    RED = Span(IntCodes.RED)
-    GREEN = Span(IntCodes.GREEN)
-    YELLOW = Span(IntCodes.YELLOW)
-    BLUE = Span(IntCodes.BLUE)
-    MAGENTA = Span(IntCodes.MAGENTA)
-    CYAN = Span(IntCodes.CYAN)
-    WHITE = Span(IntCodes.WHITE)
-
-    GRAY = Span(IntCodes.GRAY)
-    HI_RED = Span(IntCodes.HI_RED)
-    HI_GREEN = Span(IntCodes.HI_GREEN)
-    HI_YELLOW = Span(IntCodes.HI_YELLOW)
-    HI_BLUE = Span(IntCodes.HI_BLUE)
-    HI_MAGENTA = Span(IntCodes.HI_MAGENTA)
-    HI_CYAN = Span(IntCodes.HI_CYAN)
-    HI_WHITE = Span(IntCodes.HI_WHITE)
-
-    BG_BLACK = Span(IntCodes.BG_BLACK)
-    BG_RED = Span(IntCodes.BG_RED)
-    BG_GREEN = Span(IntCodes.BG_GREEN)
-    BG_YELLOW = Span(IntCodes.BG_YELLOW)
-    BG_BLUE = Span(IntCodes.BG_BLUE)
-    BG_MAGENTA = Span(IntCodes.BG_MAGENTA)
-    BG_CYAN = Span(IntCodes.BG_CYAN)
-    BG_WHITE = Span(IntCodes.BG_WHITE)
-
-    BG_GRAY = Span(IntCodes.BG_GRAY)
-    BG_HI_RED = Span(IntCodes.BG_HI_RED)
-    BG_HI_GREEN = Span(IntCodes.BG_HI_GREEN)
-    BG_HI_YELLOW = Span(IntCodes.BG_HI_YELLOW)
-    BG_HI_BLUE = Span(IntCodes.BG_HI_BLUE)
-    BG_HI_MAGENTA = Span(IntCodes.BG_HI_MAGENTA)
-    BG_HI_CYAN = Span(IntCodes.BG_HI_CYAN)
-    BG_HI_WHITE = Span(IntCodes.BG_HI_WHITE)
+sgr_pairity_registry = _SgrPairityRegistry()

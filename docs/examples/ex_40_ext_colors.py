@@ -2,7 +2,7 @@ from pytermor import SequenceSGR, Seqs
 
 start_color = 41
 for idx, c in enumerate(range(start_color, start_color+(36*6), 36)):
-    print(f'{SequenceSGR.init_color_indexed(c)}███{Seqs.COLOR_OFF}', end='')
+    print(f'{SequenceSGR.init_color_index256(c)}███{Seqs.COLOR_OFF}', end='')
 
 print('\n')
 for idx, c in enumerate(range(0, 256, 256//17)):

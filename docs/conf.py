@@ -113,7 +113,7 @@ latex_logo = '_static/logo-96.png'
 #autodoc_typehints_format = 'short'
 autodoc_default_options = {
     'members': True,
-    'undoc-members': True,  # @TODO remove after active development is finished
+    'undoc-members': True,
     'inherited-members': True,
     #'private-members': True,
     'show-inheritance': True,
@@ -148,6 +148,14 @@ nitpick_ignore = [('py:class', 'Match'),
                   ('py:class', 'InitVar'),
                   ('py:class', 'pytermor.common.T'),
                   ('py:class', 'pytermor.color.TypeColor')]
+
+# -- doctest ------------------------------------------------------------------
+
+doctest_global_setup = '''
+import pytermor as pt                         
+import pytermor.color as col                  
+pt.RendererManager.set_forced_sgr_as_default()
+'''
 
 # -- Misc ---------------------------------------------------------------------
 

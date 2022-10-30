@@ -7,29 +7,15 @@ from __future__ import annotations
 import os
 import sys
 from abc import ABCMeta, abstractmethod
-from typing import TypeVar, Generic, AnyStr, Sized
+import typing as t
+import logging
 
-T = TypeVar('T')
+logger = logging.getLogger('pytermor')
+logger.addHandler(logging.NullHandler())
+
+
+T = t.TypeVar('T')
 """ Any """
-
-
-class Registry(Generic[T]):
-    """
-    Registry of elements of specified type.
-    """
-    @classmethod
-    def resolve(cls, name: str) -> T:
-        """
-        Case-insensitive search through registry contents.
-
-        :param name: name of the value to look up for.
-        :return:     value or KeyError if nothing found.
-        """
-        name_norm = name.upper()
-        if (value := getattr(cls, name_norm, None)) is not None:
-            return value
-        raise KeyError(f'No item named "{name_norm}" (<- "{name}") is found '
-                       f'in {cls.__name__} registry')
 
 
 def get_terminal_width(default: int = 80, padding: int = 2) -> int:
@@ -44,7 +30,7 @@ def get_terminal_width(default: int = 80, padding: int = 2) -> int:
         return int(os.environ.get("COLUMNS", default))
 
 
-def wait_key() -> AnyStr|None:
+def wait_key() -> t.AnyStr|None:
     """
     Wait for a key press on the console and return it.
     """
@@ -74,7 +60,7 @@ class LogicError(Exception):
     pass
 
 
-class Renderable(Sized, metaclass=ABCMeta):
+class Renderable(t.Sized, metaclass=ABCMeta):
     """
     Renderable abstract class. Can be inherited if the default style
     overlaps resolution mechanism implemented in `Text` is not good enough

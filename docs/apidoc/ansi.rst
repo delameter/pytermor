@@ -7,5 +7,4 @@ ansi
 ========================
 
 .. automodule:: pytermor.ansi
-   :no-undoc-members:
    :exclude-members: __new__,
