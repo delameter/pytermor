@@ -163,7 +163,7 @@ def run_image():
 if __name__ == '__main__':
     LABEL_HEIGHT = 50
 
-    inp = Image.open('_generated/approx/input-bgwhite.png', 'r')
+    inp = Image.open('../../docs/_generated/approx/input-bgwhite.png', 'r')
     samples = [
         (None, '(16M colors)'),
         (ColorIndexed256, '(256 colors)'),

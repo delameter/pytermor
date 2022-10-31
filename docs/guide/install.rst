@@ -34,11 +34,11 @@ Structure
    |     |                      | `TmuxRenderer` etc.  | several other implementations depending on what output                          |
    |     |                      |                      | format is required.                                                             |
    |     +----------------------+----------------------+---------------------------------------------------------------------------------+
-   |     | `color`              | `ColorIndexed16`     | Abstractions for color operations in different color modes                      |
-   |     |                      | `ColorIndexed256`    | (default 16-color, 256-color, RGB). Tools for color approximation               |
+   |     | `color`              | `Color16`            | Abstractions for color operations in different color modes                      |
+   |     |                      | `Color256`           | (default 16-color, 256-color, RGB). Tools for color approximation               |
    |     |                      | `ColorRGB`           | and transformations.                                                            |
    |     |                      +----------------------+---------------------------------------------------------------------------------+
-   |     |                      | `Colors`             | Color presets (see `presets`).                                                  |
+   |     |                      | `ColorIndex`             | Color presets (see `presets`).                                                  |
    +-----+----------------------+----------------------+---------------------------------------------------------------------------------+
    | Lo  | `ansi`               | `Span`               | Abstraction consisting of "opening" SGR sequence defined by the                 |
    |     |                      |                      | developer (or taken from preset list) and complementary "closing"               |
@@ -48,7 +48,7 @@ Structure
    |     |                      |                      | output formatting and just wants to colorize an error message.                  |
    |     |                      +----------------------+---------------------------------------------------------------------------------+
    |     |                      | `SequenceSGR`        | Abstractions for manipulating ANSI control sequences and                        |
-   |     |                      | `Seqs`               | classes-factoriesm, plus a registry of preset SGRs.                             |
+   |     |                      | `SeqIndex`           | classes-factories, plus a registry of preset SGRs.                              |
    |     |                      +----------------------+---------------------------------------------------------------------------------+
    |     |                      | `IntCodes`           | Registry of escape control sequence parameters.                                 |
    |     +----------------------+----------------------+---------------------------------------------------------------------------------+

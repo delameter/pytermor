@@ -49,6 +49,13 @@ demolish-build:  ## Purge build output folders
 	rm -f -v dist/* ${PROJECT_NAME_PUBLIC}.egg-info/* ${PROJECT_NAME_PRIVATE}.egg-info/*
 
 
+## Automation
+
+preprocess-rgb:  ## A
+	PYTHONPATH=. venv/bin/python scripts/preprocess_rgb.py
+	PYTHONPATH=. venv/bin/python scripts/print_rgb.py
+
+
 ## Testing / Pre-build
 
 set-version: ## Set new package version
@@ -62,16 +69,13 @@ set-version: ## Set new package version
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
 
 test: ## Run pytest
-	. venv/bin/activate
-	PYTHONPATH=`pwd` python3 -m pytest tests
+	venv/bin/python -m pytest tests
 
 test-verbose: ## Run pytest with detailed output
-	. venv/bin/activate
-	PYTHONPATH=`pwd` python3 -m pytest tests -v
+	venv/bin/python -m pytest tests -v
 
 test-debug: ## Run pytest with VERY detailed output
-	. venv/bin/activate
-	PYTHONPATH=`pwd` python3 -m pytest tests -v --log-cli-level=DEBUG
+	venv/bin/python -m pytest tests -v --log-cli-level=DEBUG
 
 doctest: ## Run doctest
 	. venv/bin/activate
@@ -170,3 +174,5 @@ upload: ## Upload latest *public* build to MASTER repo
 install: ## Install latest *public* build from MASTER repo
 	. "${ES7S_VENV}/bin/activate"
 	pip install ${PROJECT_NAME_PUBLIC}==${VERSION}
+
+

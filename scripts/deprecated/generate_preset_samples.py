@@ -18,7 +18,7 @@ with open(join(dirname(__name__), 'indexed.yml'), 'r') as f:
 
 for c in cfg_indexed:
     im = Image.new('RGB', (SIZE, SIZE), f'#{c["value"]:06x}')
-    p = join(dirname(__name__), '..', 'docs', '_generated', 'preset-samples', f'color{c["id"]}.png')
+    p = join(dirname(__name__), '../..', 'docs', '_generated', 'preset-samples', f'color{c["id"]}.png')
     print(p)
     im.save(p)
 

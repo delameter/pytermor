@@ -27,7 +27,7 @@ def apply_filters(s: ST, *args: StringFilter|Type[StringFilter]) -> ST:
     thus make SGR params visible):
 
     >>> import pytermor as pt
-    >>> pt.apply_filters(f'{pt.Seqs.RED}test{pt.Seqs.COLOR_OFF}', pt.ReplaceSGR(r'E\\2\\3\\4'))
+    >>> pt.apply_filters(f'{pt.SeqIndex.RED}test{pt.SeqIndex.COLOR_OFF}', pt.ReplaceSGR(r'E\\2\\3\\4'))
     'E[31mtestE[39m'
 
     Note that type of ``s`` argument must be same as ``StringFilter`` parameterized

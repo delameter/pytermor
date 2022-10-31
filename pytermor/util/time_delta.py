@@ -87,7 +87,7 @@ class TimeDeltaFormatter:
     @property
     def max_len(self) -> int:
         """
-        This property cannot be add_to_code_map manually, it is
+        This property cannot be set manually, it is
         computed on initialization automatically.
 
         :return: Maximum possible output string length.
@@ -101,7 +101,7 @@ class TimeDeltaFormatter:
         :param seconds: Input value.
         :param always_max_len:
                          If result string is less than `max_len` it will be returned
-                         as is, unless this flag is add_to_code_map to *True*. In that case output
+                         as is, unless this flag is set to *True*. In that case output
                          string will be padded with spaces on the left side so that
                          resulting length would be always equal to maximum length.
         :return:  Formatted string.

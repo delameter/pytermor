@@ -15,8 +15,8 @@ summary list of all presets defined in the library (not including
    USAGE - list all memthods that accept string keys of those prsets.
 
 There are two types of color palettes used in modern terminals -- first one
-containing 16 colors (`ColorIndexed16`), and second one consisting of 256 colors
-(`ColorIndexed256`). There is also True Color mode (referenced as *RGB* mode),
+containing 16 colors (`Color16`), and second one consisting of 256 colors
+(`Color256`). There is also True Color mode (referenced as *RGB* mode),
 but it is not palette-based.
 
 .. |int| replace:: :abbr:`int (intcode module -- 1st or 3rd SGR param value)`

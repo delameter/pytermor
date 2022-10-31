@@ -5,7 +5,7 @@
 import unittest
 
 import pytermor as pt
-from pytermor.ansi import Seqs
+from pytermor.ansi import SeqIndex
 from pytermor.util import format_thousand_sep
 from pytermor.util.stdlib_ext import center_sgr
 from pytermor.util.string_filter import ReplaceSGR
@@ -22,7 +22,7 @@ class TestFormatThousandSep(unittest.TestCase):
 class TestStringFilter(unittest.TestCase):  # @TODO
     def test_replace_sgr_filter(self):
         self.assertEqual(
-            ReplaceSGR().apply(f'{Seqs.RED}213{Seqs.RESET}'),
+            ReplaceSGR().apply(f'{SeqIndex.RED}213{SeqIndex.RESET}'),
             '213'
         )
 
@@ -32,7 +32,7 @@ class TestStringFilter(unittest.TestCase):  # @TODO
 class TestStdlibExtensions(unittest.TestCase):  # @TODO
     def test_center_method_works(self):
         self.assertEqual(
-            center_sgr(f'{Seqs.RED}123{Seqs.COLOR_OFF}', 7, '.'),
+            center_sgr(f'{SeqIndex.RED}123{SeqIndex.COLOR_OFF}', 7, '.'),
             '..\x1b[31m123\x1b[39m..',
         )
 
@@ -42,7 +42,7 @@ class TestStdlibExtensions(unittest.TestCase):  # @TODO
                 if len <= 0:
                     continue
                 raw_string = '123_456_789_0abc_def_'[:len]
-                sgr_string = raw_string.replace('123', f'1{Seqs.RED}2{Seqs.COLOR_OFF}3')
+                sgr_string = raw_string.replace('123', f'1{SeqIndex.RED}2{SeqIndex.COLOR_OFF}3')
                 self.assertEqual(
                     raw_string.center(width, '.'),
                     ReplaceSGR().apply(center_sgr(sgr_string, width, '.')),

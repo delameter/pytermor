@@ -1,0 +1,1195 @@
+class: Color256
+colors:
+  - code: 0
+    name: "Black"
+    value: 0x000000
+    index16_equiv: BLACK
+
+  - code: 1
+    name: "Maroon"
+    value: 0x800000
+    index16_equiv: RED
+
+  - code: 2
+    name: "Green"
+    value: 0x008000
+    index16_equiv: GREEN
+
+  - code: 3
+    name: "Olive"
+    value: 0x808000
+    index16_equiv: YELLOW
+
+  - code: 4
+    name: "Navy"
+    value: 0x000080
+    index16_equiv: BLUE
+
+  - code: 5
+    name: "Purple5"
+    original_name: "Purple"
+    value: 0x800080
+    index16_equiv: MAGENTA
+
+  - code: 6
+    name: "Teal"
+    value: 0x008080
+    index16_equiv: CYAN
+
+  - code: 7
+    name: "Silver"
+    value: 0xc0c0c0
+    index16_equiv: WHITE
+
+  - code: 8
+    name: "Gray"
+    aliases:
+      - "grey"
+    value: 0x808080
+    index16_equiv: GRAY
+
+  - code: 9
+    name: "Red"
+    value: 0xff0000
+    index16_equiv: HI_RED
+
+  - code: 10
+    name: "Lime"
+    value: 0x00ff00
+    index16_equiv: HI_GREEN
+
+  - code: 11
+    name: "Yellow"
+    value: 0xffff00
+    index16_equiv: HI_YELLOW
+
+  - code: 12
+    name: "Blue"
+    value: 0x0000ff
+    index16_equiv: HI_BLUE
+
+  - code: 13
+    name: "Fuchsia"
+    value: 0xff00ff
+    index16_equiv: HI_MAGENTA
+
+  - code: 14
+    name: "Aqua"
+    value: 0x00ffff
+    index16_equiv: HI_CYAN
+
+  - code: 15
+    name: "White"
+    value: 0xffffff
+    index16_equiv: HI_WHITE
+
+  - code: 16
+    name: "Gray0"
+    aliases:
+      - "grey0"
+    value: 0x000000
+
+  - code: 17
+    name: "NavyBlue"
+    value: 0x00005f
+
+  - code: 18
+    name: "DarkBlue"
+    value: 0x000087
+
+  - code: 19
+    name: "Blue3"
+    value: 0x0000af
+
+  - code: 20
+    name: "Blue2"
+    original_name: "Blue3"
+    value: 0x0000d7
+
+  - code: 21
+    name: "Blue1"
+    value: 0x0000ff
+
+  - code: 22
+    name: "DarkGreen"
+    value: 0x005f00
+
+  - code: 23
+    name: "DeepSkyBlue7"
+    original_name: "DeepSkyBlue4"
+    value: 0x005f5f
+
+  - code: 24
+    name: "DeepSkyBlue6"
+    original_name: "DeepSkyBlue4"
+    value: 0x005f87
+
+  - code: 25
+    name: "DeepSkyBlue5"
+    original_name: "DeepSkyBlue4"
+    value: 0x005faf
+
+  - code: 26
+    name: "DodgerBlue3"
+    value: 0x005fd7
+
+  - code: 27
+    name: "DodgerBlue2"
+    value: 0x005fff
+
+  - code: 28
+    name: "Green5"
+    original_name: "Green4"
+    value: 0x008700
+
+  - code: 29
+    name: "SpringGreen4"
+    value: 0x00875f
+
+  - code: 30
+    name: "Turquoise4"
+    value: 0x008787
+
+  - code: 31
+    name: "DeepSkyBlue4"
+    original_name: "DeepSkyBlue3"
+    value: 0x0087af
+
+  - code: 32
+    name: "DeepSkyBlue3"
+    value: 0x0087d7
+
+  - code: 33
+    name: "DodgerBlue1"
+    value: 0x0087ff
+
+  - code: 34
+    name: "Green4"
+    original_name: "Green3"
+    value: 0x00af00
+
+  - code: 35
+    name: "SpringGreen5"
+    original_name: "SpringGreen3"
+    value: 0x00af5f
+
+  - code: 36
+    name: "DarkCyan"
+    value: 0x00af87
+
+  - code: 37
+    name: "LightSeaGreen"
+    value: 0x00afaf
+
+  - code: 38
+    name: "DeepSkyBlue2"
+    value: 0x00afd7
+
+  - code: 39
+    name: "DeepSkyBlue1"
+    value: 0x00afff
+
+  - code: 40
+    name: "Green3"
+    value: 0x00d700
+
+  - code: 41
+    name: "SpringGreen3"
+    value: 0x00d75f
+
+  - code: 42
+    name: "SpringGreen6"
+    original_name: "SpringGreen2"
+    value: 0x00d787
+
+  - code: 43
+    name: "Cyan3"
+    value: 0x00d7af
+
+  - code: 44
+    name: "DarkTurquoise"
+    value: 0x00d7d7
+
+  - code: 45
+    name: "Turquoise2"
+    value: 0x00d7ff
+
+  - code: 46
+    name: "Green2"
+    original_name: "Green1"
+    value: 0x00ff00
+
+  - code: 47
+    name: "SpringGreen2"
+    value: 0x00ff5f
+
+  - code: 48
+    name: "SpringGreen1"
+    value: 0x00ff87
+
+  - code: 49
+    name: "MediumSpringGreen"
+    value: 0x00ffaf
+
+  - code: 50
+    name: "Cyan2"
+    value: 0x00ffd7
+
+  - code: 51
+    name: "Cyan1"
+    value: 0x00ffff
+
+  - code: 52
+    name: "DarkRed2"
+    original_name: "DarkRed"
+    value: 0x5f0000
+
+  - code: 53
+    name: "DeepPink8"
+    original_name: "DeepPink4"
+    value: 0x5f005f
+
+  - code: 54
+    name: "Purple6"
+    original_name: "Purple4"
+    value: 0x5f0087
+
+  - code: 55
+    name: "Purple4"
+    value: 0x5f00af
+
+  - code: 56
+    name: "Purple3"
+    value: 0x5f00d7
+
+  - code: 57
+    name: "BlueViolet"
+    value: 0x5f00ff
+
+  - code: 58
+    name: "Orange4"
+    value: 0x5f5f00
+
+  - code: 59
+    name: "Gray37"
+    aliases:
+      - "grey37"
+    value: 0x5f5f5f
+
+  - code: 60
+    name: "MediumPurple7"
+    original_name: "MediumPurple4"
+    value: 0x5f5f87
+
+  - code: 61
+    name: "SlateBlue3"
+    value: 0x5f5faf
+
+  - code: 62
+    name: "SlateBlue2"
+    original_name: "SlateBlue3"
+    value: 0x5f5fd7
+
+  - code: 63
+    name: "RoyalBlue1"
+    value: 0x5f5fff
+
+  - code: 64
+    name: "Chartreuse6"
+    original_name: "Chartreuse4"
+    value: 0x5f8700
+
+  - code: 65
+    name: "DarkSeaGreen9"
+    original_name: "DarkSeaGreen4"
+    value: 0x5f875f
+
+  - code: 66
+    name: "PaleTurquoise4"
+    value: 0x5f8787
+
+  - code: 67
+    name: "SteelBlue"
+    value: 0x5f87af
+
+  - code: 68
+    name: "SteelBlue3"
+    value: 0x5f87d7
+
+  - code: 69
+    name: "CornflowerBlue"
+    value: 0x5f87ff
+
+  - code: 70
+    name: "Chartreuse5"
+    original_name: "Chartreuse3"
+    value: 0x5faf00
+
+  - code: 71
+    name: "DarkSeaGreen8"
+    original_name: "DarkSeaGreen4"
+    value: 0x5faf5f
+
+  - code: 72
+    name: "CadetBlue2"
+    original_name: "CadetBlue"
+    value: 0x5faf87
+
+  - code: 73
+    name: "CadetBlue"
+    value: 0x5fafaf
+
+  - code: 74
+    name: "SkyBlue3"
+    value: 0x5fafd7
+
+  - code: 75
+    name: "SteelBlue2"
+    original_name: "SteelBlue1"
+    value: 0x5fafff
+
+  - code: 76
+    name: "Chartreuse4"
+    original_name: "Chartreuse3"
+    value: 0x5fd700
+
+  - code: 77
+    name: "PaleGreen4"
+    original_name: "PaleGreen3"
+    value: 0x5fd75f
+
+  - code: 78
+    name: "SeaGreen3"
+    value: 0x5fd787
+
+  - code: 79
+    name: "Aquamarine3"
+    value: 0x5fd7af
+
+  - code: 80
+    name: "MediumTurquoise"
+    value: 0x5fd7d7
+
+  - code: 81
+    name: "SteelBlue1"
+    value: 0x5fd7ff
+
+  - code: 82
+    name: "Chartreuse2"
+    value: 0x5fff00
+
+  - code: 83
+    name: "SeaGreen4"
+    original_name: "SeaGreen2"
+    value: 0x5fff5f
+
+  - code: 84
+    name: "SeaGreen2"
+    original_name: "SeaGreen1"
+    value: 0x5fff87
+
+  - code: 85
+    name: "SeaGreen1"
+    value: 0x5fffaf
+
+  - code: 86
+    name: "Aquamarine2"
+    original_name: "Aquamarine1"
+    value: 0x5fffd7
+
+  - code: 87
+    name: "DarkSlateGray2"
+    aliases:
+      - "darkslategrey2"
+    value: 0x5fffff
+
+  - code: 88
+    name: "DarkRed"
+    value: 0x870000
+
+  - code: 89
+    name: "DeepPink7"
+    original_name: "DeepPink4"
+    value: 0x87005f
+
+  - code: 90
+    name: "DarkMagenta2"
+    original_name: "DarkMagenta"
+    value: 0x870087
+
+  - code: 91
+    name: "DarkMagenta"
+    value: 0x8700af
+
+  - code: 92
+    name: "DarkViolet2"
+    original_name: "DarkViolet"
+    value: 0x8700d7
+
+  - code: 93
+    name: "Purple2"
+    original_name: "Purple"
+    value: 0x8700ff
+
+  - code: 94
+    name: "Orange3"
+    original_name: "Orange4"
+    value: 0x875f00
+
+  - code: 95
+    name: "LightPink3"
+    original_name: "LightPink4"
+    value: 0x875f5f
+
+  - code: 96
+    name: "Plum4"
+    value: 0x875f87
+
+  - code: 97
+    name: "MediumPurple6"
+    original_name: "MediumPurple3"
+    value: 0x875faf
+
+  - code: 98
+    name: "MediumPurple5"
+    original_name: "MediumPurple3"
+    value: 0x875fd7
+
+  - code: 99
+    name: "SlateBlue1"
+    value: 0x875fff
+
+  - code: 100
+    name: "Yellow6"
+    original_name: "Yellow4"
+    value: 0x878700
+
+  - code: 101
+    name: "Wheat4"
+    value: 0x87875f
+
+  - code: 102
+    name: "Gray53"
+    aliases:
+      - "grey53"
+    value: 0x878787
+
+  - code: 103
+    name: "LightSlateGray"
+    aliases:
+      - "lightslategrey"
+    value: 0x8787af
+
+  - code: 104
+    name: "MediumPurple4"
+    original_name: "MediumPurple"
+    value: 0x8787d7
+
+  - code: 105
+    name: "LightSlateBlue"
+    value: 0x8787ff
+
+  - code: 106
+    name: "Yellow4"
+    value: 0x87af00
+
+  - code: 107
+    name: "DarkOliveGreen6"
+    original_name: "DarkOliveGreen3"
+    value: 0x87af5f
+
+  - code: 108
+    name: "DarkSeaGreen7"
+    original_name: "DarkSeaGreen"
+    value: 0x87af87
+
+  - code: 109
+    name: "LightSkyBlue3"
+    value: 0x87afaf
+
+  - code: 110
+    name: "LightSkyBlue2"
+    original_name: "LightSkyBlue3"
+    value: 0x87afd7
+
+  - code: 111
+    name: "SkyBlue2"
+    value: 0x87afff
+
+  - code: 112
+    name: "Chartreuse3"
+    original_name: "Chartreuse2"
+    value: 0x87d700
+
+  - code: 113
+    name: "DarkOliveGreen4"
+    original_name: "DarkOliveGreen3"
+    value: 0x87d75f
+
+  - code: 114
+    name: "PaleGreen3"
+    value: 0x87d787
+
+  - code: 115
+    name: "DarkSeaGreen5"
+    original_name: "DarkSeaGreen3"
+    value: 0x87d7af
+
+  - code: 116
+    name: "DarkSlateGray3"
+    aliases:
+      - "darkslategrey3"
+    value: 0x87d7d7
+
+  - code: 117
+    name: "SkyBlue1"
+    value: 0x87d7ff
+
+  - code: 118
+    name: "Chartreuse1"
+    value: 0x87ff00
+
+  - code: 119
+    name: "LightGreen2"
+    original_name: "LightGreen"
+    value: 0x87ff5f
+
+  - code: 120
+    name: "LightGreen"
+    value: 0x87ff87
+
+  - code: 121
+    name: "PaleGreen1"
+    value: 0x87ffaf
+
+  - code: 122
+    name: "Aquamarine1"
+    value: 0x87ffd7
+
+  - code: 123
+    name: "DarkSlateGray1"
+    aliases:
+      - "darkslategrey1"
+    value: 0x87ffff
+
+  - code: 124
+    name: "Red4"
+    original_name: "Red3"
+    value: 0xaf0000
+
+  - code: 125
+    name: "DeepPink6"
+    original_name: "DeepPink4"
+    value: 0xaf005f
+
+  - code: 126
+    name: "MediumVioletRed"
+    value: 0xaf0087
+
+  - code: 127
+    name: "Magenta6"
+    original_name: "Magenta3"
+    value: 0xaf00af
+
+  - code: 128
+    name: "DarkViolet"
+    value: 0xaf00d7
+
+  - code: 129
+    name: "Purple"
+    value: 0xaf00ff
+
+  - code: 130
+    name: "DarkOrange3"
+    value: 0xaf5f00
+
+  - code: 131
+    name: "IndianRed4"
+    original_name: "IndianRed"
+    value: 0xaf5f5f
+
+  - code: 132
+    name: "HotPink5"
+    original_name: "HotPink3"
+    value: 0xaf5f87
+
+  - code: 133
+    name: "MediumOrchid4"
+    original_name: "MediumOrchid3"
+    value: 0xaf5faf
+
+  - code: 134
+    name: "MediumOrchid3"
+    original_name: "MediumOrchid"
+    value: 0xaf5fd7
+
+  - code: 135
+    name: "MediumPurple2"
+    value: 0xaf5fff
+
+  - code: 136
+    name: "DarkGoldenrod"
+    value: 0xaf8700
+
+  - code: 137
+    name: "LightSalmon3"
+    value: 0xaf875f
+
+  - code: 138
+    name: "RosyBrown"
+    value: 0xaf8787
+
+  - code: 139
+    name: "Gray63"
+    aliases:
+      - "grey63"
+    value: 0xaf87af
+
+  - code: 140
+    name: "MediumPurple3"
+    original_name: "MediumPurple2"
+    value: 0xaf87d7
+
+  - code: 141
+    name: "MediumPurple1"
+    value: 0xaf87ff
+
+  - code: 142
+    name: "Gold3"
+    value: 0xafaf00
+
+  - code: 143
+    name: "DarkKhaki"
+    value: 0xafaf5f
+
+  - code: 144
+    name: "NavajoWhite3"
+    value: 0xafaf87
+
+  - code: 145
+    name: "Gray69"
+    aliases:
+      - "grey69"
+    value: 0xafafaf
+
+  - code: 146
+    name: "LightSteelBlue3"
+    value: 0xafafd7
+
+  - code: 147
+    name: "LightSteelBlue2"
+    original_name: "LightSteelBlue"
+    value: 0xafafff
+
+  - code: 148
+    name: "Yellow5"
+    original_name: "Yellow3"
+    value: 0xafd700
+
+  - code: 149
+    name: "DarkOliveGreen5"
+    original_name: "DarkOliveGreen3"
+    value: 0xafd75f
+
+  - code: 150
+    name: "DarkSeaGreen6"
+    original_name: "DarkSeaGreen3"
+    value: 0xafd787
+
+  - code: 151
+    name: "DarkSeaGreen4"
+    original_name: "DarkSeaGreen2"
+    value: 0xafd7af
+
+  - code: 152
+    name: "LightCyan3"
+    value: 0xafd7d7
+
+  - code: 153
+    name: "LightSkyBlue1"
+    value: 0xafd7ff
+
+  - code: 154
+    name: "GreenYellow"
+    value: 0xafff00
+
+  - code: 155
+    name: "DarkOliveGreen3"
+    original_name: "DarkOliveGreen2"
+    value: 0xafff5f
+
+  - code: 156
+    name: "PaleGreen2"
+    original_name: "PaleGreen1"
+    value: 0xafff87
+
+  - code: 157
+    name: "DarkSeaGreen3"
+    original_name: "DarkSeaGreen2"
+    value: 0xafffaf
+
+  - code: 158
+    name: "DarkSeaGreen1"
+    value: 0xafffd7
+
+  - code: 159
+    name: "PaleTurquoise1"
+    value: 0xafffff
+
+  - code: 160
+    name: "Red3"
+    value: 0xd70000
+
+  - code: 161
+    name: "DeepPink5"
+    original_name: "DeepPink3"
+    value: 0xd7005f
+
+  - code: 162
+    name: "DeepPink3"
+    value: 0xd70087
+
+  - code: 163
+    name: "Magenta3"
+    value: 0xd700af
+
+  - code: 164
+    name: "Magenta5"
+    original_name: "Magenta3"
+    value: 0xd700d7
+
+  - code: 165
+    name: "Magenta4"
+    original_name: "Magenta2"
+    value: 0xd700ff
+
+  - code: 166
+    name: "DarkOrange2"
+    original_name: "DarkOrange3"
+    value: 0xd75f00
+
+  - code: 167
+    name: "IndianRed3"
+    original_name: "IndianRed"
+    value: 0xd75f5f
+
+  - code: 168
+    name: "HotPink4"
+    original_name: "HotPink3"
+    value: 0xd75f87
+
+  - code: 169
+    name: "HotPink3"
+    original_name: "HotPink2"
+    value: 0xd75faf
+
+  - code: 170
+    name: "Orchid3"
+    original_name: "Orchid"
+    value: 0xd75fd7
+
+  - code: 171
+    name: "MediumOrchid2"
+    original_name: "MediumOrchid1"
+    value: 0xd75fff
+
+  - code: 172
+    name: "Orange2"
+    original_name: "Orange3"
+    value: 0xd78700
+
+  - code: 173
+    name: "LightSalmon2"
+    original_name: "LightSalmon3"
+    value: 0xd7875f
+
+  - code: 174
+    name: "LightPink2"
+    original_name: "LightPink3"
+    value: 0xd78787
+
+  - code: 175
+    name: "Pink3"
+    value: 0xd787af
+
+  - code: 176
+    name: "Plum3"
+    value: 0xd787d7
+
+  - code: 177
+    name: "Violet"
+    value: 0xd787ff
+
+  - code: 178
+    name: "Gold2"
+    original_name: "Gold3"
+    value: 0xd7af00
+
+  - code: 179
+    name: "LightGoldenrod5"
+    original_name: "LightGoldenrod3"
+    value: 0xd7af5f
+
+  - code: 180
+    name: "Tan"
+    value: 0xd7af87
+
+  - code: 181
+    name: "MistyRose3"
+    value: 0xd7afaf
+
+  - code: 182
+    name: "Thistle3"
+    value: 0xd7afd7
+
+  - code: 183
+    name: "Plum2"
+    value: 0xd7afff
+
+  - code: 184
+    name: "Yellow3"
+    value: 0xd7d700
+
+  - code: 185
+    name: "Khaki3"
+    value: 0xd7d75f
+
+  - code: 186
+    name: "LightGoldenrod3"
+    original_name: "LightGoldenrod2"
+    value: 0xd7d787
+
+  - code: 187
+    name: "LightYellow3"
+    value: 0xd7d7af
+
+  - code: 188
+    name: "Gray84"
+    aliases:
+      - "grey84"
+    value: 0xd7d7d7
+
+  - code: 189
+    name: "LightSteelBlue1"
+    value: 0xd7d7ff
+
+  - code: 190
+    name: "Yellow2"
+    value: 0xd7ff00
+
+  - code: 191
+    name: "DarkOliveGreen2"
+    original_name: "DarkOliveGreen1"
+    value: 0xd7ff5f
+
+  - code: 192
+    name: "DarkOliveGreen1"
+    value: 0xd7ff87
+
+  - code: 193
+    name: "DarkSeaGreen2"
+    original_name: "DarkSeaGreen1"
+    value: 0xd7ffaf
+
+  - code: 194
+    name: "Honeydew2"
+    value: 0xd7ffd7
+
+  - code: 195
+    name: "LightCyan1"
+    value: 0xd7ffff
+
+  - code: 196
+    name: "Red1"
+    value: 0xff0000
+
+  - code: 197
+    name: "DeepPink4"
+    original_name: "DeepPink2"
+    value: 0xff005f
+
+  - code: 198
+    name: "DeepPink2"
+    original_name: "DeepPink1"
+    value: 0xff0087
+
+  - code: 199
+    name: "DeepPink1"
+    value: 0xff00af
+
+  - code: 200
+    name: "Magenta2"
+    value: 0xff00d7
+
+  - code: 201
+    name: "Magenta1"
+    value: 0xff00ff
+
+  - code: 202
+    name: "OrangeRed1"
+    value: 0xff5f00
+
+  - code: 203
+    name: "IndianRed1"
+    value: 0xff5f5f
+
+  - code: 204
+    name: "IndianRed2"
+    original_name: "IndianRed1"
+    value: 0xff5f87
+
+  - code: 205
+    name: "HotPink2"
+    original_name: "HotPink"
+    value: 0xff5faf
+
+  - code: 206
+    name: "HotPink"
+    value: 0xff5fd7
+
+  - code: 207
+    name: "MediumOrchid1"
+    value: 0xff5fff
+
+  - code: 208
+    name: "DarkOrange"
+    value: 0xff8700
+
+  - code: 209
+    name: "Salmon1"
+    value: 0xff875f
+
+  - code: 210
+    name: "LightCoral"
+    value: 0xff8787
+
+  - code: 211
+    name: "PaleVioletRed1"
+    value: 0xff87af
+
+  - code: 212
+    name: "Orchid2"
+    value: 0xff87d7
+
+  - code: 213
+    name: "Orchid1"
+    value: 0xff87ff
+
+  - code: 214
+    name: "Orange1"
+    value: 0xffaf00
+
+  - code: 215
+    name: "SandyBrown"
+    value: 0xffaf5f
+
+  - code: 216
+    name: "LightSalmon1"
+    value: 0xffaf87
+
+  - code: 217
+    name: "LightPink1"
+    value: 0xffafaf
+
+  - code: 218
+    name: "Pink1"
+    value: 0xffafd7
+
+  - code: 219
+    name: "Plum1"
+    value: 0xffafff
+
+  - code: 220
+    name: "Gold1"
+    value: 0xffd700
+
+  - code: 221
+    name: "LightGoldenrod4"
+    original_name: "LightGoldenrod2"
+    value: 0xffd75f
+
+  - code: 222
+    name: "LightGoldenrod2"
+    value: 0xffd787
+
+  - code: 223
+    name: "NavajoWhite1"
+    value: 0xffd7af
+
+  - code: 224
+    name: "MistyRose1"
+    value: 0xffd7d7
+
+  - code: 225
+    name: "Thistle1"
+    value: 0xffd7ff
+
+  - code: 226
+    name: "Yellow1"
+    value: 0xffff00
+
+  - code: 227
+    name: "LightGoldenrod1"
+    value: 0xffff5f
+
+  - code: 228
+    name: "Khaki1"
+    value: 0xffff87
+
+  - code: 229
+    name: "Wheat1"
+    value: 0xffffaf
+
+  - code: 230
+    name: "Cornsilk1"
+    value: 0xffffd7
+
+  - code: 231
+    name: "Gray100"
+    aliases:
+      - "grey100"
+    value: 0xffffff
+
+  - code: 232
+    name: "Gray3"
+    aliases:
+      - "grey3"
+    value: 0x080808
+
+  - code: 233
+    name: "Gray7"
+    aliases:
+      - "grey7"
+    value: 0x121212
+
+  - code: 234
+    name: "Gray11"
+    aliases:
+      - "grey11"
+    value: 0x1c1c1c
+
+  - code: 235
+    name: "Gray15"
+    aliases:
+      - "grey15"
+    value: 0x262626
+
+  - code: 236
+    name: "Gray19"
+    aliases:
+      - "grey19"
+    value: 0x303030
+
+  - code: 237
+    name: "Gray23"
+    aliases:
+      - "grey23"
+    value: 0x3a3a3a
+
+  - code: 238
+    name: "Gray27"
+    aliases:
+      - "grey27"
+    value: 0x444444
+
+  - code: 239
+    name: "Gray30"
+    aliases:
+      - "grey30"
+    value: 0x4e4e4e
+
+  - code: 240
+    name: "Gray35"
+    aliases:
+      - "grey35"
+    value: 0x585858
+
+  - code: 241
+    name: "Gray39"
+    aliases:
+      - "grey39"
+    value: 0x626262
+
+  - code: 242
+    name: "Gray42"
+    aliases:
+      - "grey42"
+    value: 0x6c6c6c
+
+  - code: 243
+    name: "Gray46"
+    aliases:
+      - "grey46"
+    value: 0x767676
+
+  - code: 244
+    name: "Gray50"
+    aliases:
+      - "grey50"
+    value: 0x808080
+
+  - code: 245
+    name: "Gray54"
+    aliases:
+      - "grey54"
+    value: 0x8a8a8a
+
+  - code: 246
+    name: "Gray58"
+    aliases:
+      - "grey58"
+    value: 0x949494
+
+  - code: 247
+    name: "Gray62"
+    aliases:
+      - "grey62"
+    value: 0x9e9e9e
+
+  - code: 248
+    name: "Gray66"
+    aliases:
+      - "grey66"
+    value: 0xa8a8a8
+
+  - code: 249
+    name: "Gray70"
+    aliases:
+      - "grey70"
+    value: 0xb2b2b2
+
+  - code: 250
+    name: "Gray74"
+    aliases:
+      - "grey74"
+    value: 0xbcbcbc
+
+  - code: 251
+    name: "Gray78"
+    aliases:
+      - "grey78"
+    value: 0xc6c6c6
+
+  - code: 252
+    name: "Gray82"
+    aliases:
+      - "grey82"
+    value: 0xd0d0d0
+
+  - code: 253
+    name: "Gray85"
+    aliases:
+      - "grey85"
+    value: 0xdadada
+
+  - code: 254
+    name: "Gray89"
+    aliases:
+      - "grey89"
+    value: 0xe4e4e4
+
+  - code: 255
+    name: "Gray93"
+    aliases:
+      - "grey93"
+    value: 0xeeeeee

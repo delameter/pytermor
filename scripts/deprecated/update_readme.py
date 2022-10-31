@@ -10,7 +10,7 @@ from os.path import dirname, abspath, join
 from pytermor import Spans, Seqs
 from pytermor.util import format_thousand_sep
 
-project_dir = abspath(join(dirname(__file__), '..'))
+project_dir = abspath(join(dirname(__file__), '../..'))
 README_TPL_PATH = join(project_dir, 'dev', 'README.tpl.md')
 README_PATH = join(project_dir, 'README.md')
 

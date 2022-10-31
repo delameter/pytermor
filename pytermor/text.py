@@ -9,277 +9,60 @@ also contains compatibility settings, see `SgrRenderer.setup()`.
 Working with non-default renderer can be achieved in two ways:
 
     a. Method `RendererManager.set_default()` sets the default renderer globally.
-       After that calling ``Renderable.render()`` will automatically invoke said renderer
+       After that calling `render()` will automatically invoke said renderer
        and all formatting will be applied.
-    b. Alternatively, you can use renderer's own instance method `AbstractRenderer.render()`
+    b. Alternatively, you can use renderer's own instance method ``render()``
        directly and avoid messing up with the manager:
-       ``HtmlRenderer().render(<Renderable>)``
+       ``HtmlRenderer().render(<Text>)``
 
 .. rubric:: TL;DR
 
 To unconditionally print formatted message to output terminal, do something like
 this:
 
->>> import pytermor as pt
->>> pt.RendererManager.set_forced_sgr_as_default()
->>> pt.render('Warning: AAAA', pt.Styles.WARNING)
+>>> RendererManager.set_default_to_force_formatting()
+>>> render('Warning: AAAA', Styles.WARNING)
 '\\x1b[33mWarning: AAAA\\x1b[39m'
-
------
-
-.. todo ::
-
-    Scheme can be simplified, too many unnecessary abstractions for now.
-
-    Renderable
-          (implemented by Text) should include algorithms for creating intermediate
-          styles for text pieces that lie in beetween first opening sequence (or tag)
-          and second, for example -- this happens when one Text instance is included
-          into another.
-    Style's
-          responsibility is to preserve the state of text piece and thats it.
-    Renderer
-          should transform style into corresponding output format and thats it.
-
-    API 2:
-        Text(string, style, leave_open = True)  # no style means all open styles will
-        be closed at the end
-        Text().append(string, style, leave_open = True)
-        Text().prepend(string, style, leave_open = False)
-        Text().raw
-        Text().apply(style)
-        Text().render(with=AbstractRenderer())
-        Text() + Text() = Text().append(Text().raw, Text().style)
-        Text() + str = Text().append(str)
-        str + Text() = Text().prepend(str)
-
-        Style(style, fg, bg...)
-        # no Style().render()!
-        AbstractRenderer().setup()
-        AbstractRenderer().render(text)
-        SgrRenderer().is_sgr_usage_allowed()
-
-    renderers should have instance methods only!
 """
 from __future__ import annotations
 
 import re
 import sys
 import typing as t
-from abc import abstractmethod, ABCMeta
-from collections import deque
-from dataclasses import dataclass, field
-from functools import reduce
+import collections
+import dataclasses
 
-from .ansi import SequenceSGR, sgr_pairity_registry, NOOP_SEQ, Seqs, IntCode, Sequence
-from .color import Color, ColorRGB, NOOP_COLOR, index, rgb_channels_to_hex_value
 from .common import LogicError, Renderable
-from .util import ljust_sgr, rjust_sgr, center_sgr, ReplaceSGR
-from . import color as c
+from .color import Color, NOOP_COLOR
+from .util import ljust_sgr, rjust_sgr, center_sgr
+from .style import Style, NOOP_STYLE, Styles
+from .renderer import AbstractRenderer, RendererManager
+
+""" Special style passing the text through without any modifications. """
 
 
-@dataclass
-class Style:
-    """Create a new ``Style()``.
+@dataclasses.dataclass
+class _TextFragment(t.Sized):
+    string: str = ""
+    style: Style = NOOP_STYLE
+    close_this: bool = True
+    close_prev: bool = False
 
-    Key difference between ``Styles`` and ``Spans`` or ``SGRs`` is that
-    ``Styles`` describe colors in RGB format and therefore support output
-    rendering in several different formats (see :mod:`._render`).
+    def __post_init__(self):
+        if self.close_prev:
+            self.close_this = True
 
-    Both ``fg`` and ``bg`` can be specified as:
-
-    1. :class:`.Color` instance or library preset;
-    2. name of any of these presets, case-insensitive;
-    3. integer color value in hexademical RGB format.
-    4. None -- the color will be unset.
-
-    Inheritance ``parent`` -> ``child`` works this way:
-
-    1. If an argument in child's constructor is empty (=None), take value from
-       ``parent``'s corresponding attribute.
-    2. If an argument in child's constructor is *not* empty (=True|False|Color etc.),
-       use it as child's attribute.
-
-    .. note ::
-        There will be no empty (=None) attributes of type `Color` after initialization
-        -- they are replaced with special constant `NOOP_COLOR`, that works as if
-        there was no color defined and allows to avoid writing of boilerplate code
-        to check if a color is None here and there.
-
-    :param parent:      Style to copy attributes without value from.
-    :param fg:          Foreground (i.e., text) color.
-    :param bg:          Background color.
-    :param blink:       Blinking effect; *supported by limited amount of Renderers*.
-    :param bold:        Bold or increased intensity.
-    :param crosslined:  Strikethrough.
-    :param dim:         Faint, decreased intensity.
-    :param double_underlined:
-                        Faint, decreased intensity.
-    :param inversed:    Swap foreground and background colors.
-    :param italic:      Italic.
-    :param overlined:   Overline.
-    :param underlined:  Underline.
-    :param class_name:  Arbitary string used by some renderers, e.g. by
-                        ``HtmlRenderer``.
-
-    >>> pt.Style(fg='green', bold=True)
-    Style[fg=008000, ~, bold]
-    >>> pt.Style(bg=0x0000ff)
-    Style[~, bg=0000ff]
-    >>> pt.Style(fg='DeepSkyBlue1', bg='gray3')
-    Style[fg=00afff, bg=080808]
-    """
-
-    _fg: Color = field(default=None, init=False)
-    _bg: Color = field(default=None, init=False)
-
-    renderable_attributes = frozenset(
-        [
-            "fg",
-            "bg",
-            "blink",
-            "bold",
-            "crosslined",
-            "dim",
-            "double_underlined",
-            "inversed",
-            "italic",
-            "overlined",
-            "underlined",
-        ]
-    )
-
-    def __init__(
-        self,
-        parent: Style = None,
-        fg: Color | int | str = None,
-        bg: Color | int | str = None,
-        blink: bool = None,
-        bold: bool = None,
-        crosslined: bool = None,
-        dim: bool = None,
-        double_underlined: bool = None,
-        inversed: bool = None,
-        italic: bool = None,
-        overlined: bool = None,
-        underlined: bool = None,
-        class_name: str = None,
-    ):
-        if fg is not None:
-            self._fg = self._resolve_color(fg, True)
-        if bg is not None:
-            self._bg = self._resolve_color(bg, True)
-
-        self.blink = blink
-        self.bold = bold
-        self.crosslined = crosslined
-        self.dim = dim
-        self.double_underlined = double_underlined
-        self.inversed = inversed
-        self.italic = italic
-        self.overlined = overlined
-        self.underlined = underlined
-        self.class_name = class_name
-
-        if parent is not None:
-            self._clone_from(parent)
-
-        if self._fg is None:
-            self._fg = NOOP_COLOR
-        if self._bg is None:
-            self._bg = NOOP_COLOR
-
-    def autopick_fg(self) -> Style:
-        """
-        Pick ``fg_color`` depending on ``bg_color``. Set ``fg_color`` to
-        either 3% gray (almost black) if background is bright, or to 80% gray
-        (bright gray) if it is dark. If background is None, do nothing.
-
-        .. todo ::
-
-            check if there is a better algorithm,
-            because current thinks text on #000080 should be black
-
-        :return: self
-        """
-        if self._bg is None or self._bg.hex_value is None:
-            return self
-
-        h, s, v = self._bg.to_hsv_channels()
-        if v >= 0.45:
-            self._fg = c.GRAY_3
-        else:
-            self._fg = c.GRAY_82
-        return self
-
-    def flip(self) -> Style:
-        """
-        Swap foreground color and background color.
-        :return: self
-        """
-        self._fg, self._bg = self._bg, self._fg
-        return self
-
-    # noinspection PyMethodMayBeStatic
-    def _resolve_color(self, arg: str | int | Color, nullable: bool) -> Color | None:
-        if isinstance(arg, Color):
-            return arg
-        if isinstance(arg, int):
-            return ColorRGB(arg)
-        if isinstance(arg, str):
-            return index.resolve(arg)
-        return None if nullable else NOOP_COLOR
-
-    @property
-    def attributes(self) -> t.FrozenSet:
-        return frozenset(list(self.__dict__.keys()) + ["fg", "bg"])
-
-    @property
-    def _attributes(self) -> t.FrozenSet:
-        return frozenset(list(self.__dict__.keys()) + ["_fg", "_bg"])
-
-    def _clone_from(self, parent: Style):
-        for attr in self.renderable_attributes:
-            self_val = getattr(self, attr)
-            parent_val = getattr(parent, attr)
-            if self_val is None and parent_val is not None:
-                setattr(self, attr, parent_val)
-
-    def __eq__(self, other: Style):
-        return all(
-            getattr(self, attr) == getattr(other, attr) for attr in self._attributes
-        )
+    def __len__(self) -> int:
+        return len(self.string)
 
     def __repr__(self):
-        if self._fg is None or self._bg is None:
-            return self.__class__.__name__ + "[uninitialized]"
-        props_set = [self.fg.format_value("fg="), self.bg.format_value("bg=")]
-        for attr_name in self.renderable_attributes:
-            attr = getattr(self, attr_name)
-            if isinstance(attr, bool) and attr is True:
-                props_set.append(attr_name)
+        props_set = [f'"{self.string}"', f"{self.style!r}"]
+        if self.close_this:
+            props_set.append("close_this")
+        if self.close_prev:
+            props_set.append("close_prev")
 
-        return self.__class__.__name__ + "[{:s}]".format(", ".join(props_set))
-
-    @property
-    def fg(self) -> Color:
-        return self._fg
-
-    @property
-    def bg(self) -> Color:
-        return self._bg
-
-    @fg.setter
-    def fg(self, val: str | int | Color):
-        self._fg: Color = self._resolve_color(val, nullable=False)
-
-    @bg.setter
-    def bg(self, val: str | int | Color):
-        self._bg: Color = self._resolve_color(val, nullable=False)
-
-
-NOOP_STYLE = Style()
-""" Special style passing the text through without any modifications. """
+        return self.__class__.__name__ + "[" + ", ".join(props_set) + "]"
 
 
 class Text(Renderable):
@@ -301,17 +84,17 @@ class Text(Renderable):
         close_this: bool = True,
         close_prev: bool = False,
     ):
-        self._fragments: t.Deque[_TextFragment] = deque()
+        self._fragments: t.Deque[_TextFragment] = collections.deque()
         self.append(string, style, close_this, close_prev)
 
     def render(
-        self, renderer: _AbstractRenderer|t.Type[_AbstractRenderer] = None
+        self, renderer: AbstractRenderer|t.Type[AbstractRenderer] = None
     ) -> str:
         if isinstance(renderer, type):
             renderer = renderer()
         return self._render_using(renderer or RendererManager.get_default())
 
-    def _render_using(self, renderer: _AbstractRenderer) -> str:
+    def _render_using(self, renderer: AbstractRenderer) -> str:
         result = ""
         attrs_stack: t.Dict[str, t.List[bool | Color | None]] = {
             attr: [None] for attr in Style.renderable_attributes
@@ -319,7 +102,7 @@ class Text(Renderable):
         for frag in self._fragments:
             for attr in Style.renderable_attributes:
                 frag_attr = getattr(frag.style, attr)
-                if frag_attr is not None and frag_attr is not NOOP_COLOR:
+                if frag_attr is not None and frag_attr != NOOP_COLOR:
                     attrs_stack[attr].append(frag_attr)
 
             result += renderer.render(
@@ -330,7 +113,7 @@ class Text(Renderable):
 
             for attr in Style.renderable_attributes:
                 frag_attr = getattr(frag.style, attr)
-                if frag_attr is not None and frag_attr is not NOOP_COLOR:
+                if frag_attr is not None and frag_attr != NOOP_COLOR:
                     attrs_stack[attr].pop()  # close this
                     if frag.close_prev:
                         attrs_stack[attr].pop()
@@ -479,31 +262,7 @@ class Text(Renderable):
         return width, max_len, align, fill
 
 
-@dataclass
-class _TextFragment(t.Sized):
-    string: str = ""
-    style: Style = NOOP_STYLE
-    close_this: bool = True
-    close_prev: bool = False
-
-    def __post_init__(self):
-        if self.close_prev:
-            self.close_this = True
-
-    def __len__(self) -> int:
-        return len(self.string)
-
-    def __repr__(self):
-        props_set = [f'"{self.string}"', f"{self.style!r}"]
-        if self.close_this:
-            props_set.append("close_this")
-        if self.close_prev:
-            props_set.append("close_prev")
-
-        return self.__class__.__name__ + "[" + ", ".join(props_set) + "]"
-
-
-class TemplateTag:
+class _TemplateTag:
     def __init__(
         self,
         set: str | None,
@@ -525,7 +284,7 @@ class TemplateEngine:
     TAG_REGEXP = re.compile(
         r"""
         (?:
-          (?P<add_to_code_map>@[\w]+)?
+          (?P<set>@[\w]+)?
           (?P<add>:)
           |
           (?P<comment>_)
@@ -569,7 +328,7 @@ class TemplateEngine:
             style_buffer = NOOP_STYLE
             split_style = False
 
-            tag = TemplateTag(**tag_match.groupdict())
+            tag = _TemplateTag(**tag_match.groupdict())
             style = self._tag_to_style(tag)
             if tag.set:
                 self._custom_styles[tag.set] = style
@@ -582,12 +341,12 @@ class TemplateEngine:
             elif tag.comment:
                 pass
             else:
-                raise LogicError(f"Unknown tag operand: {TemplateTag}")
+                raise LogicError(f"Unknown tag operand: {_TemplateTag}")
 
         result.append(tpl[tpl_cursor:])
         return result
 
-    def _tag_to_style(self, tag: TemplateTag) -> Style | None:
+    def _tag_to_style(self, tag: _TemplateTag) -> Style | None:
         if tag.comment:
             return None
         if tag.style in self._custom_styles.keys():
@@ -604,431 +363,20 @@ class TemplateEngine:
         return Style(**style_attrs)
 
 
-class RendererManager:
-    _default: _AbstractRenderer = None
-
-    @classmethod
-    def set_default(
-        cls, renderer: _AbstractRenderer|t.Type[_AbstractRenderer] = None
-    ) -> _AbstractRenderer:
-        """
-        Set up renderer preferences. Affects all renderer types.
-
-        :param renderer:
-            Default renderer to use globally. Passing None will result in library
-            default setting restored (`SgrRenderer`).
-
-        :return: `AbstractRenderer` instance add_to_code_map as default.
-
-        >>> pt.render('text', pt.Style(fg='red'), pt.text.DebugRenderer)
-        '|ǝ31|text|ǝ39|'
-
-        >>> pt.render('text', pt.Style(fg='red'), pt.text.NoOpRenderer)
-        'text'
-        """
-        if isinstance(renderer, type):
-            renderer = renderer()
-        cls._default = renderer or SgrRenderer()
-        return cls._default
-
-    @classmethod
-    def get_default(cls) -> _AbstractRenderer:
-        """
-        Get global default renderer (`SgrRenderer`, or the one provided to `setup`).
-        """
-        return cls._default
-
-    @classmethod
-    def set_forced_sgr_as_default(cls):
-        cls.set_default(SgrRenderer().setup(force_styles=True))
-
-
-class _AbstractRenderer(metaclass=ABCMeta):
-    """Renderer interface."""
-
-    @abstractmethod
-    def render(self, text: t.Any, style: Style = NOOP_STYLE) -> str:
-        """
-        Apply colors and attributes described in ``style`` argument to
-        ``text`` and return the result. Output format depends on renderer's
-        class (which defines the implementation).
-        """
-        raise NotImplementedError
-
-
-class ConfigurableRenderer:
-    _force_styles: bool | None = None
-    _compatibility_256_colors: bool | None = None
-    _compatibility_16_colors: bool | None = None
-
-    def setup(
-        self,
-        force_styles: bool | None = None,
-        compatibility_256_colors: bool = None,
-        compatibility_16_colors: bool = None,
-    ) -> ConfigurableRenderer:
-        """
-        Set up renderer preferences.
-
-        .. todo ::
-            Rewrite this part. Default should be *256* OR *RGB* if COLORTERM is either
-            ``truecolor`` or ``24bit``. `setup()` overrides this, of course.
-
-        .. todo ::
-            names should be: allow_index256, allow_rgb
-
-        :param force_styles:
-
-            * If add_to_code_map to *None* [default], the final decision will be made
-              by every renderer independently, based on their own algorithms.
-            * If add_to_code_map to *True*, renderer will always apply the formatting regardless
-              of other internal rules and algorithms.
-            * If add_to_code_map to *False*, renderer will pass input text through itself
-              without any changes (i.e. no colors and attributes will be applied).
-
-        :param compatibility_256_colors:
-
-            Disable *RGB* (or True Color) output mode. *256-color* sequences will
-            be printed out instead of disabled ones. Useful when combined with
-            ``curses`` -- that way you can check the terminal capabilities from the
-            inside of that terminal and switch to different output mode at once.
-
-        :param compatibility_16_colors:
-
-            Disable *256-color* output mode and use default *16-color* sequences instead.
-            If this setting is add_to_code_map to *True*, the value of ``compatibility_256_colors``
-            will be ignored completely.
-
-        :return: self
-        """
-        self._force_styles = force_styles
-        self._compatibility_256_colors = compatibility_256_colors
-        self._compatibility_16_colors = compatibility_16_colors
-        return self
-
-
-class SgrRenderer(_AbstractRenderer, ConfigurableRenderer):
-    """
-    .. todo ::
-        make render() protected (?)
-
-    Default renderer invoked by `Text._render()`. Transforms `Color` instances
-    defined in ``style`` into ANSI control sequence bytes and merges them with
-    input string.
-
-    Respects compatibility preferences (see `ConfigurableRenderer.setup()`) and
-    maps RGB colors to closest *indexed* colors if terminal doesn't support
-    RGB output. In case terminal doesn't support even 256 colors, falls back
-    to 16-color palette and picks closest counterparts again the same way.
-
-    Type of output ``SequenceSGR`` depends on type of `Color` variables in
-    ``style`` argument. Keeping all that in mind, let's summarize:
-
-    1. `ColorRGB` can be rendered as True Color sequence, 256-color sequence
-       or 16-color sequence depending on compatibility settings.
-    2. `ColorIndexed256` can be rendered as 256-color sequence or 16-color
-       sequence.
-    3. `ColorIndexed16` can be rendered as 16-color sequence.
-    4. Nothing of the above will happen and all Colors will be discarded
-       completely if output is not a terminal emulator or if the developer
-       explicitly add_to_code_map up the renderer to do so (**force_styles** = False).
-
-    >>> renderer = pt.SgrRenderer().setup(True)
-    >>> pt.render('text', pt.Style(fg='yellow', bold=True), renderer)
-    '\\x1b[1;33mtext\\x1b[22;39m'
-    """
-
-    def render(self, text: t.Any, style: Style = NOOP_STYLE):
-        opening_seq = (
-            self._render_attributes(style, squash=True)
-            + self._render_color(style.fg, False)
-            + self._render_color(style.bg, True)
-        )
-
-        # in case there are line breaks -- split text to lines and apply
-        # SGRs for each line separately. it increases the chances that style
-        # will be correctly displayed regardless of implementation details of
-        # user's pager, multiplexer, terminal emulator etc.
-        rendered_text = ""
-        for line in str(text).splitlines(keepends=True):
-            rendered_text += (opening_seq.assemble() + line + sgr_pairity_registry.get_closing_seq(opening_seq).assemble())
-        return rendered_text
-
-    def _render_attributes(
-        self, style: Style, squash: bool
-    ) -> t.List[SequenceSGR] | SequenceSGR:
-        if not self.is_sgr_usage_allowed():
-            return NOOP_SEQ if squash else [NOOP_SEQ]
-
-        result = []
-        if style.blink:
-            result += [Seqs.BLINK_SLOW]
-        if style.bold:
-            result += [Seqs.BOLD]
-        if style.crosslined:
-            result += [Seqs.CROSSLINED]
-        if style.dim:
-            result += [Seqs.DIM]
-        if style.double_underlined:
-            result += [Seqs.DOUBLE_UNDERLINED]
-        if style.inversed:
-            result += [Seqs.INVERSED]
-        if style.italic:
-            result += [Seqs.ITALIC]
-        if style.overlined:
-            result += [Seqs.OVERLINED]
-        if style.underlined:
-            result += [Seqs.UNDERLINED]
-
-        if squash:
-            return reduce(lambda p, c: p + c, result, NOOP_SEQ)
-        return result
-
-    def _render_color(self, color: Color, bg: bool) -> SequenceSGR:
-        if not self.is_sgr_usage_allowed():
-            return NOOP_SEQ
-
-        return color.to_sgr(
-            bg=bg,
-            allow_index256=not self._compatibility_16_colors,
-            allow_rgb=not self._compatibility_256_colors,
-        )
-
-    def is_sgr_usage_allowed(self) -> bool:
-        if self._force_styles is None:
-            return sys.stdout.isatty()
-        return self._force_styles
-
-
-class TmuxRenderer(SgrRenderer):
-    """
-    tmux
-
-    >>> renderer = pt.text.TmuxRenderer().setup(True)
-    >>> pt.render('text', pt.Style(fg='blue', bold=True), renderer)
-    '#[bold]#[fg=blue]text#[nobold nodim]#[fg=default]'
-    """
-
-    SGR_TO_TMUX_MAP = {
-        NOOP_SEQ: "",
-        Seqs.RESET: "default",
-        Seqs.BOLD: "bold",
-        Seqs.DIM: "dim",
-        Seqs.ITALIC: "italics",
-        Seqs.UNDERLINED: "underscore",
-        Seqs.BLINK_SLOW: "blink",
-        Seqs.BLINK_FAST: "blink",
-        Seqs.BLINK_DEFAULT: "blink",
-        Seqs.INVERSED: "reverse",
-        Seqs.HIDDEN: "hidden",
-        Seqs.CROSSLINED: "strikethrough",
-        Seqs.DOUBLE_UNDERLINED: "double-underscore",
-        Seqs.OVERLINED: "overline",
-        Seqs.BOLD_DIM_OFF: "nobold nodim",
-        Seqs.ITALIC_OFF: "noitalics",
-        Seqs.UNDERLINED_OFF: "nounderscore",
-        Seqs.BLINK_OFF: "noblink",
-        Seqs.INVERSED_OFF: "noreverse",
-        Seqs.HIDDEN_OFF: "nohidden",
-        Seqs.CROSSLINED_OFF: "nostrikethrough",
-        Seqs.OVERLINED_OFF: "nooverline",
-        Seqs.BLACK: "fg=black",
-        Seqs.RED: "fg=red",
-        Seqs.GREEN: "fg=green",
-        Seqs.YELLOW: "fg=yellow",
-        Seqs.BLUE: "fg=blue",
-        Seqs.MAGENTA: "fg=magenta",
-        Seqs.CYAN: "fg=cyan",
-        Seqs.WHITE: "fg=white",
-        Seqs.COLOR_OFF: "fg=default",
-        Seqs.BG_BLACK: "bg=black",
-        Seqs.BG_RED: "bg=red",
-        Seqs.BG_GREEN: "bg=green",
-        Seqs.BG_YELLOW: "bg=yellow",
-        Seqs.BG_BLUE: "bg=blue",
-        Seqs.BG_MAGENTA: "bg=magenta",
-        Seqs.BG_CYAN: "bg=cyan",
-        Seqs.BG_WHITE: "bg=white",
-        Seqs.BG_COLOR_OFF: "bg=default",
-        Seqs.GRAY: "fg=brightblack",
-        Seqs.HI_RED: "fg=brightred",
-        Seqs.HI_GREEN: "fg=brightgreen",
-        Seqs.HI_YELLOW: "fg=brightyellow",
-        Seqs.HI_BLUE: "fg=brightblue",
-        Seqs.HI_MAGENTA: "fg=brightmagenta",
-        Seqs.HI_CYAN: "fg=brightcyan",
-        Seqs.HI_WHITE: "fg=brightwhite",
-        Seqs.BG_GRAY: "bg=brightblack",
-        Seqs.BG_HI_RED: "bg=brightred",
-        Seqs.BG_HI_GREEN: "bg=brightgreen",
-        Seqs.BG_HI_YELLOW: "bg=brightyellow",
-        Seqs.BG_HI_BLUE: "bg=brightblue",
-        Seqs.BG_HI_MAGENTA: "bg=brightmagenta",
-        Seqs.BG_HI_CYAN: "bg=brightcyan",
-        Seqs.BG_HI_WHITE: "bg=brightwhite",
-    }
-
-    def render(self, text: t.Any, style: Style = NOOP_STYLE):
-        opening_sgrs = [
-            *self._render_attributes(style, False),
-            self._render_color(style.fg, False),
-            self._render_color(style.bg, True),
-        ]
-        opening_tmux_style = self._sgr_to_tmux_style(*opening_sgrs)
-        closing_tmux_style = "".join(
-            self._sgr_to_tmux_style(sgr_pairity_registry.get_closing_seq(sgr)) for sgr in opening_sgrs
-        )
-
-        rendered_text = ""
-        for line in str(text).splitlines(keepends=True):
-            rendered_text += opening_tmux_style + line + closing_tmux_style
-        return rendered_text
-
-    def _sgr_to_tmux_style(self, *seqs: Sequence) -> str:
-        result = ""
-        for seq in seqs:
-            if not isinstance(seq, SequenceSGR):
-                continue
-
-            if seq.is_color_index256:
-                target = "fg"
-                if seq.params[0] == IntCode.BG_COLOR_EXTENDED:
-                    target = "bg"
-
-                if seq.params[1] == IntCode.EXTENDED_MODE_256:
-                    color = "color{}".format(seq.params[2])
-                elif seq.params[1] == IntCode.EXTENDED_MODE_RGB:
-                    color = "#{:06x}".format(rgb_channels_to_hex_value(*seq.params[2:]))
-                else:
-                    raise ValueError(f"Unknown SGR param #2 (idx 1): {seq!r}")
-
-                result += f"#[{target}={color}]"
-                continue
-
-            tmux_style_decl = self.SGR_TO_TMUX_MAP.get(seq)
-            if tmux_style_decl is None:
-                raise LogicError(f"No tmux definiton is present for {seq!r}")
-            if len(tmux_style_decl) > 0:
-                result += f"#[{tmux_style_decl}]"
-        return result
-
-
-class NoOpRenderer(_AbstractRenderer):
-    """
-    Special renderer type that does nothing with the input string and just
-    returns it as is. That's true only when it _is_ a str beforehand;
-    otherwise argument will be casted to str and then returned.
-
-    >>> pt.render('text', pt.Style(fg='green', bold=True), pt.text.NoOpRenderer)
-    'text'
-    """
-
-    def render(self, text: t.Any, style: Style = NOOP_STYLE) -> str:
-        if isinstance(text, Renderable):
-            return text.render(self)
-        return str(text)
-
-
-class HtmlRenderer(_AbstractRenderer):
-    """
-    html
-
-    >>> pt.render('text', pt.Style(fg='red', bold=True), pt.text.HtmlRenderer)
-    '<span style="color: #800000; font-weight: 700">text</span>'
-    """
-
-    DEFAULT_ATTRS = [
-        "color",
-        "background-color",
-        "font-weight",
-        "font-style",
-        "text-decoration",
-        "border",
-        "filter",
-    ]
-
-    def render(self, text: t.Any, style: Style = NOOP_STYLE) -> str:
-        span_styles: t.Dict[str, t.Set[str]] = dict()
-        for attr in self._get_default_attrs():
-            span_styles[attr] = set()
-
-        if style.fg is not NOOP_COLOR:
-            span_styles["color"].add(style.fg.format_value("#"))
-        if style.bg is not NOOP_COLOR:
-            span_styles["background-color"].add(style.bg.format_value("#"))
-
-        if style.blink:  # modern browsers doesn't support it without shit piled up
-            span_styles["border"].update(("1px", "dotted"))
-        if style.bold:
-            span_styles["font-weight"].add("700")
-        if style.crosslined:
-            span_styles["text-decoration"].add("line-through")
-        if style.dim:
-            span_styles["filter"].update(("saturate(0.5)", "brightness(0.75)"))
-        if style.double_underlined:
-            span_styles["text-decoration"].update(("underline", "double"))
-        if style.inversed:
-            span_styles["color"], span_styles["background-color"] = (
-                span_styles["background-color"],
-                span_styles["color"],
-            )
-        if style.italic:
-            span_styles["font-style"].add("italic")
-        if style.overlined:
-            span_styles["text-decoration"].add("overline")
-        if style.underlined:
-            span_styles["text-decoration"].add("underline")
-
-        span_class_str = (
-            "" if style.class_name is None else f' class="{style.class_name}"'
-        )
-        span_style_str = "; ".join(
-            f"{k}: {' '.join(v)}" for k, v in span_styles.items() if len(v) > 0
-        )
-        return (
-            f'<span{span_class_str} style="{span_style_str}">' + str(text) + "</span>"
-        )  # @TODO  # attribues
-
-    def _get_default_attrs(self) -> t.List[str]:
-        return self.DEFAULT_ATTRS
-
-
-class DebugRenderer(SgrRenderer):
-    """
-    DebugRenderer
-
-    >>> renderer = pt.text.DebugRenderer().setup(True)
-    >>> pt.render('text', pt.Style(fg='red', bold=True), renderer)
-    '|ǝ1;31|text|ǝ22;39|'
-    """
-
-    def render(self, text: t.Any, style: Style = NOOP_STYLE) -> str:
-        return ReplaceSGR(r"|ǝ\3|").apply(super().render(str(text), style))
-
-    def is_sgr_usage_allowed(self) -> bool:
-        return True
-
-
-class Styles:
-    """
-    Some ready-to-use styles. Can be used as examples.
-    """
-
-    WARNING = Style(fg=c.YELLOW)
-    WARNING_LABEL = Style(WARNING, bold=True)
-    WARNING_ACCENT = Style(fg=c.HI_YELLOW)
-
-    ERROR = Style(fg=c.RED)
-    ERROR_LABEL = Style(ERROR, bold=True)
-    ERROR_ACCENT = Style(fg=c.HI_RED)
-
-    CRITICAL = Style(bg=c.HI_RED, fg=c.HI_WHITE)
-    CRITICAL_LABEL = Style(CRITICAL, bold=True)
-    CRITICAL_ACCENT = Style(CRITICAL, bold=True, blink=True)
-
-
-RendererManager.set_default()
-
-
-def render(text: t.Any, style: Style = NOOP_STYLE, renderer: _AbstractRenderer = None):
-    return Text(text, style).render(renderer)
+def render(string: t.Any, style: Style = NOOP_STYLE, renderer: AbstractRenderer = None):
+    if isinstance(string, Text) and style == NOOP_STYLE:
+        return string.render(renderer)
+    return Text(string, style).render(renderer)
+
+
+def echo(
+    string: t.Any,
+    style: Style = NOOP_STYLE,
+    renderer: AbstractRenderer = None,
+    nl: bool = True,
+    file: t.IO = sys.stdout,
+    flush: bool = True,
+):
+    print(
+        render(string, style, renderer), end="\n" if nl else "", file=file, flush=flush
+    )

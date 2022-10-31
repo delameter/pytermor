@@ -1,4 +1,4 @@
-from pytermor.text import RendererManager, SgrRenderer
+from pytermor import RendererManager, SgrRenderer
 from pytermor.util import time_delta
 
 seconds_list = [2, 10, 60, 2700, 32340, 273600, 4752000, 864000000]

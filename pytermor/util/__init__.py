@@ -13,16 +13,27 @@ from __future__ import annotations
 from typing import List
 
 from .auto_float import format_auto_float
-from .prefixed_unit import format_si_metric, format_si_binary, PrefixedUnitFormatter, \
-    PREFIXES_SI, PREFIX_ZERO_SI
+from .prefixed_unit import (
+    format_si_metric,
+    format_si_binary,
+    PrefixedUnitFormatter,
+    PREFIXES_SI,
+    PREFIX_ZERO_SI,
+)
 from .stdlib_ext import ljust_sgr, rjust_sgr, center_sgr
-from .string_filter import apply_filters, StringFilter, ReplaceSGR, ReplaceCSI, \
-    ReplaceNonAsciiBytes, VisualuzeWhitespace
+from .string_filter import (
+    apply_filters,
+    StringFilter,
+    ReplaceSGR,
+    ReplaceCSI,
+    ReplaceNonAsciiBytes,
+    VisualuzeWhitespace,
+)
 from .time_delta import format_time_delta, TimeUnit, TimeDeltaFormatter
 from ..common import Renderable
 
 
-def format_thousand_sep(value: int|float, separator=' '):
+def format_thousand_sep(value: int | float, separator=" "):
     """
     Returns input ``value`` with integer part splitted into groups of three digits,
     joined then with ``separator`` string.
@@ -33,14 +44,15 @@ def format_thousand_sep(value: int|float, separator=' '):
     '-9,123,123,123.55'
 
     """
-    return f'{value:_}'.replace('_', separator)
+    return f"{value:_}".replace("_", separator)
 
 
-def distribute_padded(values: List[str|Renderable],
-                      max_len: int,
-                      pad_before: bool = False,
-                      pad_after: bool = False,
-                      ) -> str:
+def distribute_padded(
+    values: List[str | Renderable],
+    max_len: int,
+    pad_before: bool = False,
+    pad_after: bool = False,
+) -> str:
     """
     .. todo ::
         todo
@@ -52,26 +64,22 @@ def distribute_padded(values: List[str|Renderable],
     :return:
     """
     if pad_before:
-        values.insert(0, '')
+        values.insert(0, "")
     if pad_after:
-        values.append('')
+        values.append("")
 
     values_amount = len(values)
     gapes_amount = values_amount - 1
     values_len = sum(len(v) for v in values)
     spaces_amount = max_len - values_len
     if spaces_amount < gapes_amount:
-        raise ValueError(f'There is not enough space for all values with padding')
+        raise ValueError(f"There is not enough space for all values with padding")
 
-    # if all(isinstance(val, str) for val in values):
-    #     result = ''
-    # else:
-    #     result = Text()
-    result = ''
+    result = ""
 
     for value_idx, value in enumerate(values):
         gape_len = spaces_amount // (gapes_amount or 1)  # for last value
-        result += value + ' ' * gape_len
+        result += value + " " * gape_len
         gapes_amount -= 1
         spaces_amount -= gape_len
 

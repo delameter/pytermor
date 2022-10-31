@@ -8,13 +8,22 @@ import os
 import sys
 from abc import ABCMeta, abstractmethod
 import typing as t
+
 import logging
 
-logger = logging.getLogger('pytermor')
+logger = logging.getLogger(__package__)
 logger.addHandler(logging.NullHandler())
 
+### catching library logs "from the outside":
+# logger = logging.getLogger('pytermor')
+# handler = logging.StreamHandler(sys.stderr)
+# logging.Formatter('[%(levelname)5.5s][%(name)s][%(module)s] %(message)s')
+# handler.setFormatter(formatter)
+# logger.addHandler(handler)
+# logger.setLevel('DEBUG')
+########
 
-T = t.TypeVar('T')
+T = t.TypeVar("T")
 """ Any """
 
 
@@ -34,11 +43,13 @@ def wait_key() -> t.AnyStr|None:
     """
     Wait for a key press on the console and return it.
     """
-    if os.name == 'nt':
+    if os.name == "nt":
         import msvcrt
+
         return msvcrt.getch()
 
     import termios
+
     fd = sys.stdin.fileno()
 
     oldterm = termios.tcgetattr(fd)
@@ -60,21 +71,24 @@ class LogicError(Exception):
     pass
 
 
+class ConflictError(Exception):
+    pass
+
+
 class Renderable(t.Sized, metaclass=ABCMeta):
     """
-    Renderable abstract class. Can be inherited if the default style
-    overlaps resolution mechanism implemented in `Text` is not good enough
-    and you want to implement your own.
+    Renderable abstract class. Can be inherited when the default style
+    overlaps resolution mechanism implemented in `Text` is not good enough.
     """
 
     @abstractmethod
     def render(self, renderer=None) -> str:
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def raw(self) -> str:
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def __len__(self) -> int:
-        raise NotImplemented
+        raise NotImplementedError

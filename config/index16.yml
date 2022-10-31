@@ -1,0 +1,110 @@
+class: Color16
+colors:
+  - code: BLACK
+    code_bg: BG_BLACK
+    name: "Black"
+    value: 0x000000
+
+  - code: RED
+    code_bg: BG_RED
+    name: "Red"
+    original_name: "Maroon"
+    value: 0x800000
+
+  - code: GREEN
+    code_bg: BG_GREEN
+    name: "Green"
+    value: 0x008000
+
+  - code: YELLOW
+    code_bg: BG_YELLOW
+    name: "Yellow"
+    original_name: "Olive"
+    value: 0x808000
+
+  - code: BLUE
+    code_bg: BG_BLUE
+    name: "Blue"
+    original_name: "Navy"
+    value: 0x000080
+
+  - code: MAGENTA
+    code_bg: BG_MAGENTA
+    name: "Magenta"
+    original_name: "Purple"
+    value: 0x800080
+
+  - code: CYAN
+    code_bg: BG_CYAN
+    name: "Cyan"
+    original_name: "Teal"
+    value: 0x008080
+
+  - code: WHITE
+    code_bg: BG_WHITE
+    name: "White"
+    original_name: "Silver"
+    value: 0xc0c0c0
+
+  - code: GRAY
+    code_bg: BG_GRAY
+    name: "Gray"
+    aliases:
+      - "grey"
+    value: 0x808080
+
+  - code: HI_RED
+    code_bg: BG_HI_RED
+    name: "HiRed"
+    original_name: "Red"
+    aliases:
+      - "brightred"
+    value: 0xff0000
+
+  - code: HI_GREEN
+    code_bg: BG_HI_GREEN
+    name: "HiGreen"
+    original_name: "Lime"
+    aliases:
+      - "brightgreen"
+    value: 0x00ff00
+
+  - code: HI_YELLOW
+    code_bg: BG_HI_YELLOW
+    name: "HiYellow"
+    original_name: "Yellow"
+    aliases:
+      - "brightyellow"
+    value: 0xffff00
+
+  - code: HI_BLUE
+    code_bg: BG_HI_BLUE
+    name: "HiBlue"
+    original_name: "Blue"
+    aliases:
+      - "brightblue"
+    value: 0x0000ff
+
+  - code: HI_MAGENTA
+    code_bg: BG_HI_MAGENTA
+    name: "HiMagenta"
+    original_name: "Fuchsia"
+    aliases:
+      - "brightmagenta"
+    value: 0xff00ff
+
+  - code: HI_CYAN
+    code_bg: BG_HI_CYAN
+    name: "HiCyan"
+    original_name: "Aqua"
+    aliases:
+      - "brightcyan"
+    value: 0x00ffff
+
+  - code: HI_WHITE
+    code_bg: BG_HI_WHITE
+    name: "HiWhite"
+    original_name: "White"
+    aliases:
+      - "brightwhite"
+    value: 0xffffff

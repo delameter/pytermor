@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 import unittest
 
-from pytermor.ansi import SequenceSGR, NOOP_SEQ, Seqs, IntCode, sgr_pairity_registry
+from pytermor.ansi import SequenceSGR, NOOP_SEQ, SeqIndex, IntCode, _sgr_pairity_registry
 
 
 class TestEquality(unittest.TestCase):
@@ -60,11 +60,11 @@ class TestBuild(unittest.TestCase):
         self.assertRaises(KeyError, SequenceSGR, "invalid")
 
     def test_build_sgr_args(self):
-        s = SequenceSGR(Seqs.HI_CYAN, Seqs.ITALIC)
+        s = SequenceSGR(SeqIndex.HI_CYAN, SeqIndex.ITALIC)
         self.assertEqual(s, SequenceSGR(IntCode.HI_CYAN, IntCode.ITALIC))
 
     def test_build_mixed_args(self):
-        s = SequenceSGR(102, SequenceSGR(Seqs.BOLD), Seqs.INVERSED)
+        s = SequenceSGR(102, SequenceSGR(SeqIndex.BOLD), SeqIndex.INVERSED)
         self.assertEqual(
             s, SequenceSGR(IntCode.BG_HI_GREEN, IntCode.BOLD, IntCode.INVERSED)
         )
@@ -81,19 +81,19 @@ class TestBuild(unittest.TestCase):
         self.assertEqual(s, SequenceSGR(IntCode.ITALIC))
 
     def test_color_indexed_foreground(self):
-        s = SequenceSGR.init_color_index256(141)
+        s = SequenceSGR.init_color_256(141)
         self.assertEqual(
             s, SequenceSGR(IntCode.COLOR_EXTENDED, IntCode.EXTENDED_MODE_256, 141)
         )
 
     def test_color_indexed_background(self):
-        s = SequenceSGR.init_color_index256(255, bg=True)
+        s = SequenceSGR.init_color_256(255, bg=True)
         self.assertEqual(
             s, SequenceSGR(IntCode.BG_COLOR_EXTENDED, IntCode.EXTENDED_MODE_256, 255)
         )
 
     def test_color_indexed_invalid(self):
-        self.assertRaises(ValueError, SequenceSGR.init_color_index256, 266, bg=True)
+        self.assertRaises(ValueError, SequenceSGR.init_color_256, 266, bg=True)
 
     def test_color_rgb_foreground(self):
         s = SequenceSGR.init_color_rgb(10, 20, 30)
@@ -120,6 +120,6 @@ class TestBuild(unittest.TestCase):
 class TestRegistry(unittest.TestCase):  # @TODO more
     def test_closing_seq(self):
         self.assertEqual(
-            sgr_pairity_registry.get_closing_seq(Seqs.BOLD + Seqs.RED),
-            Seqs.BOLD_DIM_OFF + Seqs.COLOR_OFF,
+            _sgr_pairity_registry.get_closing_seq(SeqIndex.BOLD + SeqIndex.RED),
+            SeqIndex.BOLD_DIM_OFF + SeqIndex.COLOR_OFF,
         )

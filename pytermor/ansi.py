@@ -3,52 +3,73 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-Module contains definitions for low-level ANSI escape sequences handling.
-Documentation for *xterm* control sequences can be found here:
+Module contains definitions for low-level ANSI escape sequences building.
+Can be used for creating a variety of sequences including:
+
+  - SGR sequences (text coloring, background coloring, text styling);
+  - CSI sequences (cursor contol, selective screen cleraing);
+  - OSC sequences (varoius operating system commands).
+
+The module doesn't distinguish "single-instruction" sequences from several
+ones merged together, e.g. Style(fg='red', bold=True) produces only one
+SequenceSGR instance:
+>>> from pytermor import Style, index_256, render, RendererManager
+>>> RendererManager.set_default_to_force_formatting()
+>>> render('A', Style(fg=index.RED, bold=True))
+'\\x1b[1;31mA\\x1b[22;39m'
+
+...although generally speaking it is two of them (:kbd:`ESC[1m` and
+:kbd:`ESC[31m`). However, the module can automatically match terminating
+sequences for any form of input SGRs and translate it to specified format.
+
+XTerm Control Sequences
 https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
 
-The key difference beetween ``Spans`` and ``Sequences`` is that sequence can
-*open* text style and also *close*, or terminate it. As for ``Spans`` -- they
-always do both; typical use-case of `Span` is to wrap some text in opening SGR
-and closing one.
-
-Each variable in `Seqs` and `Spans` below is a valid argument
-for :class:`.Span` and :class:`.SequenceSGR` default constructors; furthermore,
-it can be passed in a string form (case-insensitive):
+ECMA-48 specification
+https://www.ecma-international.org/publications-and-standards/standards/ecma-48/
 """
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod, ABC
 from copy import copy
 import enum
 import typing as t
 
+from .common import ConflictError
 
-class Sequence(t.Sized, metaclass=ABCMeta):
+
+class Sequence(t.Sized, ABC):
     """
     Abstract ancestor of all escape sequences.
     """
-    _CONTROL_CHARACTER = '\x1b'
 
-    def __init__(self, *params: int|str):
-        self._params: t.List[int|str] = [*params]
+    _ESC_CHARACTER: str = "\x1b"
+    _SEPARATOR: str = ";"
+    _INTRODUCER: str
+    _TERMINATOR: str
 
-    @abstractmethod
+    def __init__(self, *params: int | str):
+        self._params: t.List[int | str] = [*params]
+
     def assemble(self) -> str:
         """
         Build up actual byte sequence and return
         as an ASCII-encoded string.
         """
-        raise NotImplementedError
+        return self._ESC_CHARACTER + \
+               self._INTRODUCER + \
+               self._SEPARATOR.join([str(param) for param in self.params]) + \
+               self._TERMINATOR
 
     @property
-    def params(self) -> t.List[int|str]:
-        """ Return internal params as array. """
+    def params(self) -> t.List[int | str]:
+        """Return internal params as array."""
         return self._params
 
     @classmethod
     @abstractmethod
-    def _short_class_name(cls): raise NotImplementedError
+    def _short_class_name(cls):
+        raise NotImplementedError
 
     def __str__(self) -> str:
         return self.assemble()
@@ -64,11 +85,11 @@ class Sequence(t.Sized, metaclass=ABCMeta):
     def __repr__(self):
         params = ";".join([str(p) for p in self._params])
         if len(self._params) == 0:
-            params = '~'
-        return f'{self._short_class_name()}[{params}]'
+            params = "~"
+        return f"{self._short_class_name()}[{params}]"
 
 
-class SequenceFe(Sequence, metaclass=ABCMeta):
+class SequenceFe(Sequence, ABC):
     """
     Wide range of sequence types that includes CSI, OSC and more.
 
@@ -86,36 +107,29 @@ class SequenceST(SequenceFe):
     _INTRODUCER = '\\'
 
     def assemble(self) -> str:
-        return self._CONTROL_CHARACTER + self._INTRODUCER
+        return self._ESC_CHARACTER + self._INTRODUCER
 
     @classmethod
     def _short_class_name(cls) -> str:
-        return 'ST'
+        return "ST"
 
 
 class SequenceOSC(SequenceFe):
     """
-    Operating System Command sequence. Starts a control string for the operating
-    system to use. Encoded as :kbd:`ESC]` plus params separated by :kbd:`;`,
-    and terminated with `SequenceST`.
+    Operating System Command sequence (OSC). Starts a control string for the
+    operating system to use. Encoded as :kbd:`ESC]` plus params separated by
+    :kbd:`;`, and terminated with `SequenceST`.
     """
     _INTRODUCER = ']'
-    _SEPARATOR = ';'
     _TERMINATOR = SequenceST().assemble()
 
     @classmethod
     def init_hyperlink(cls, url: str) -> SequenceOSC:
-        return SequenceOSC(IntCode.HYPERLINK, '', url)
-
-    def assemble(self) -> str:
-        return self._CONTROL_CHARACTER + \
-               self._INTRODUCER + \
-               self._SEPARATOR.join([str(param) for param in self.params]) + \
-               self._TERMINATOR
+        return SequenceOSC(IntCode.HYPERLINK, "", url)
 
     @classmethod
     def _short_class_name(cls):
-        return 'OSC'
+        return "OSC"
 
 
 class SequenceCSI(SequenceFe):
@@ -123,13 +137,12 @@ class SequenceCSI(SequenceFe):
     Class representing CSI-type ANSI escape sequence. All subtypes
     of this sequence start with :kbd:`ESC[`.
 
-    Sequences of this type can be used to control text formatting,
+    Sequences of this type are used to control text formatting,
     change cursor position, erase screen and more.
     """
     _INTRODUCER = '['
-    _SEPARATOR = ';'
 
-    def __init__(self, terminator: str, *params: int|str):
+    def __init__(self, terminator: str, *params: int):
         self._terminator = terminator
         super().__init__(*params)
 
@@ -138,88 +151,88 @@ class SequenceCSI(SequenceFe):
         """
         Set cursor x-coordinate to `column`.
         """
-        return SequenceCSI('G', column)
+        return SequenceCSI("G", column)
 
     @classmethod
     def init_erase_in_line(cls, mode: int = 0) -> SequenceCSI:
         """
         Erase part of the line. If `mode` is 0, clear from cursor to the end
         of the line. If `mode` is 1, clear from cursor to beginning of the line.
-        If `mode` is 2, clear entire line. Cursor position does not change.
+        If `mode` is 2, clear the entire line. Cursor position does not change.
         """
         if not (0 <= mode <= 2):
             raise ValueError(f"Invalid mode: {mode}, expected [0;2]")
-        return SequenceCSI('K', mode)
+        return SequenceCSI("K", mode)
 
     def regexp(self) -> str:
-        return f'\\x1b\\[[0-9;]*{self._terminator}'
+        return f"\\x1b\\[[0-9;]*{self._terminator}"
 
     def assemble(self) -> str:
-        return self._CONTROL_CHARACTER + \
-               self._INTRODUCER + \
-               self._SEPARATOR.join([str(param) for param in self.params]) + \
-               self._terminator
+        return (
+            self._ESC_CHARACTER
+            + self._INTRODUCER
+            + self._SEPARATOR.join([str(param) for param in self.params])
+            + self._terminator
+        )
 
     @classmethod
     def _short_class_name(cls):
-        return 'CSI'
+        return "CSI"
 
 
 class SequenceSGR(SequenceCSI):
     """
     Class representing SGR-type escape sequence with varying amount of parameters.
+    SGR sequences allow to change the color of text or/and terminal background
+    (in 3 different color spaces) as well as set decorate text with italic style,
+    underlining, overlining, cross-lining, making it bold or blinking etc.
 
     `SequenceSGR` with zero params was specifically implemented to
     translate into empty string and not into :kbd:`ESC[m`, which would have
-    made sense, but also would be very entangling, as this sequence is
-    equivalent of :kbd:`ESC[0m` -- hard reset sequence. The empty-string-sequence
-    is predefined as `NOOP_SEQ`.
+    made sense, but also would be entangling, as this sequence is the equivalent
+    of :kbd:`ESC[0m` -- hard reset sequence. The empty-string-sequence is
+    predefined at module level as `NOOP_SEQ`.
 
     It's possible to add of one SGR sequence to another:
-
-    >>> pt.SequenceSGR(31) + pt.SequenceSGR(1) == pt.SequenceSGR(31, 1)
+    >>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
     True
-
     """
-    _TERMINATOR = 'm'
+    _TERMINATOR = "m"
 
-    def __init__(self, *args: int|SequenceSGR):
+    def __init__(self, *args: str | int | SequenceSGR):
         """
         Create new `SequenceSGR` with specified ``args`` as params.
-
         Resulting sequence param order is same as an argument order.
 
         Each sequence param can be specified as:
-          - integer param value (``IntCodes`` values)
+          - string key (any of `IntCode` names, case-insensitive)
+          - integer param value (`IntCode` values)
           - existing ``SequenceSGR`` instance (params will be extracted).
 
-        >>> pt.SequenceSGR(91, 7)
+        >>> SequenceSGR(91, 7)
         SGR[91;7]
-        >>> pt.SequenceSGR(pt.IntCode.HI_CYAN, pt.IntCode.UNDERLINED)
+        >>> SequenceSGR(IntCode.HI_CYAN, IntCode.UNDERLINED)
         SGR[96;4]
-        >>> pt.SequenceSGR(1, pt.SequenceSGR(33))
+        >>> SequenceSGR(1, SequenceSGR(33))
         SGR[1;33]
         """
         result: t.List[int] = []
 
         for arg in args:
             if isinstance(arg, str):
-                resolved_param = IntCode[arg]
-                if not isinstance(resolved_param, int):
-                    raise ValueError(f'Attribute is not valid SGR param: {resolved_param}')
-                result.append(resolved_param)
+                result.append(IntCode.resolve(arg))
             elif isinstance(arg, int):
                 result.append(arg)
             elif isinstance(arg, SequenceSGR):
                 result.extend(arg.params)
             else:
-                raise TypeError(f'Invalid argument type: {arg!r})')
+                raise TypeError(f"Invalid argument type: {arg!r})")
 
         result = [max(0, int(p)) for p in result]
         super().__init__(self._TERMINATOR, *result)
 
     @classmethod
-    def init_color_index256(cls, idx: int, bg: bool = False) -> SequenceSGR:
+    def init_color_256(cls, idx: int, bg: bool = False) -> SequenceSGR:
         """
         Wrapper for creation of `SequenceSGR` that sets foreground
         (or background) to one of 256-color palette value.
@@ -259,19 +272,25 @@ class SequenceSGR(SequenceCSI):
 
     def assemble(self) -> str:
         if len(self._params) == 0:  # NOOP
-            return ''
+            return ""
 
         params = self._params
         if params == [0]:  # \x1b[0m <=> \x1b[m, saving 1 byte
             params = []
 
-        return (self._CONTROL_CHARACTER +
-                self._INTRODUCER +
-                self._SEPARATOR.join([str(param) for param in params]) +
-                self._TERMINATOR)
+        return (
+            self._ESC_CHARACTER
+            + self._INTRODUCER
+            + self._SEPARATOR.join([str(param) for param in params])
+            + self._TERMINATOR
+        )
+
+    @property
+    def params(self) -> t.List[int]:
+        return super().params
 
     def __hash__(self) -> int:
-        return int.from_bytes(self.assemble().encode(), byteorder='big')
+        return int.from_bytes(self.assemble().encode(), byteorder="big")
 
     def __add__(self, other: SequenceSGR) -> SequenceSGR:
         self._ensure_sequence(other)
@@ -288,38 +307,21 @@ class SequenceSGR(SequenceCSI):
             return False
         return self._params == other._params
 
-    @property
-    def is_color_index256(self) -> bool:
-        """
-        .. note ::
-            Returns False for manually composed SGRs with more than one
-            elementary add_to_code_map of params, even though there *is* an indexed
-            color setter sequence in there, e.g.:
-
-            >>>SequenceSGR(4,1,38,5,231,7).is_color_index256
-            False
-
-        :return: True if sequence is a basic text/background color setter
-                 sequence (256 colors pallette), False otherwise.
-        """
-        return len(self.params) >= 3 and \
-               (self.params[0] == IntCode.COLOR_EXTENDED or
-                self.params[0] == IntCode.BG_COLOR_EXTENDED)
-
     @staticmethod
     def _ensure_sequence(subject: t.Any):
         if not isinstance(subject, SequenceSGR):
-            raise TypeError(f'Expected SequenceSGR, got {type(subject)}')
+            raise TypeError(f"Expected SequenceSGR, got {type(subject)}")
 
     @staticmethod
     def _validate_extended_color(value: int):
         if value < 0 or value > 255:
             raise ValueError(
-                f'Invalid color value: expected range [0-255], got: {value}')
+                f"Invalid color value: expected range [0-255], got: {value}"
+            )
 
     @classmethod
     def _short_class_name(cls) -> str:
-        return 'SGR'
+        return "SGR"
 
 
 NOOP_SEQ = SequenceSGR()
@@ -340,8 +342,22 @@ class IntCode(int, enum.Enum):
     """
     Complete or almost complete list of reliably working SGR param integer codes.
 
-    Suitable for :class:`.Span` and :class:`.SequenceSGR` default constructors.
+    Suitable for :class:`.SequenceSGR` default constructor.
     """
+
+    @classmethod
+    def resolve(cls, name: str) -> IntCode:
+        name_norm = name.upper()
+        try:
+            instance = cls[name_norm]
+        except KeyError as e:
+            e.args = (f"Int code '{name_norm}' (<- '{name}') does not exist",)
+            raise e
+        return instance
+
+    def __repr__(self) -> str:
+        return f"{self.value}|{self.name}"
+
     # -- SGR: default attributes and colors -----------------------------------
 
     RESET = 0  # hard reset code
@@ -357,7 +373,7 @@ class IntCode(int, enum.Enum):
     DOUBLE_UNDERLINED = 21
     OVERLINED = 53
     BOLD_DIM_OFF = 22  # there is no separate sequence for disabling either
-    ITALIC_OFF = 23               # of BOLD or DIM while keeping the other
+    ITALIC_OFF = 23  # of BOLD or DIM while keeping the other
     UNDERLINED_OFF = 24
     BLINK_OFF = 25
     INVERSED_OFF = 27
@@ -375,7 +391,7 @@ class IntCode(int, enum.Enum):
     MAGENTA = 35
     CYAN = 36
     WHITE = 37
-    COLOR_EXTENDED = 38  # use init_color_index256() and init_color_rgb() instead
+    COLOR_EXTENDED = 38  # use init_color_256() and init_color_rgb() instead
 
     BG_BLACK = 40
     BG_RED = 41
@@ -385,7 +401,7 @@ class IntCode(int, enum.Enum):
     BG_MAGENTA = 45
     BG_CYAN = 46
     BG_WHITE = 47
-    BG_COLOR_EXTENDED = 48  # use init_color_index256() and init_color_rgb() instead
+    BG_COLOR_EXTENDED = 48  # use init_color_256() and init_color_rgb() instead
 
     GRAY = 90
     HI_RED = 91
@@ -426,7 +442,7 @@ class IntCode(int, enum.Enum):
     HYPERLINK = 8
 
 
-class Seqs:
+class SeqIndex:
     """
     Registry of sequence presets.
     """
@@ -452,9 +468,9 @@ class Seqs:
     DOUBLE_UNDERLINED = SequenceSGR(IntCode.DOUBLE_UNDERLINED)
     OVERLINED = SequenceSGR(IntCode.OVERLINED)
 
-    BOLD_DIM_OFF = SequenceSGR(IntCode.BOLD_DIM_OFF)       # there is no separate sequence for
-    ITALIC_OFF = SequenceSGR(IntCode.ITALIC_OFF)           # disabling either of BOLD or DIM
-    UNDERLINED_OFF = SequenceSGR(IntCode.UNDERLINED_OFF)   # while keeping the other
+    BOLD_DIM_OFF = SequenceSGR(IntCode.BOLD_DIM_OFF)  # there is no separate sequence for
+    ITALIC_OFF = SequenceSGR(IntCode.ITALIC_OFF)  # disabling either of BOLD or DIM
+    UNDERLINED_OFF = SequenceSGR(IntCode.UNDERLINED_OFF)  # while keeping the other
     BLINK_OFF = SequenceSGR(IntCode.BLINK_OFF)
     INVERSED_OFF = SequenceSGR(IntCode.INVERSED_OFF)
     HIDDEN_OFF = SequenceSGR(IntCode.HIDDEN_OFF)
@@ -510,40 +526,44 @@ class Seqs:
     HYPERLINK = SequenceOSC(IntCode.HYPERLINK)
 
 
+COLORS = list(range(30, 39))
+BG_COLORS = list(range(40, 49))
+HI_COLORS = list(range(90, 98))
+BG_HI_COLORS = list(range(100, 108))
+ALL_COLORS = COLORS + BG_COLORS + HI_COLORS + BG_HI_COLORS
+
+
 class _SgrPairityRegistry:
     """
     Internal class responsible for correct SGRs termination.
     """
-    _code_to_breaker_map: t.Dict[int|t.Tuple[int, ...], SequenceSGR] = dict()
-    _complex_code_def: t.Dict[int|t.Tuple[int, ...], int] = dict()
+
+    _code_to_breaker_map: t.Dict[int | t.Tuple[int, ...], SequenceSGR] = dict()
+    _complex_code_def: t.Dict[int | t.Tuple[int, ...], int] = dict()
     _complex_code_max_len: int = 0
 
-    _COLORS = list(range(30, 39))
-    _BG_COLORS = list(range(40, 49))
-    _HI_COLORS = list(range(90, 98))
-    _BG_HI_COLORS = list(range(100, 108))
-    _ALL_COLORS = _COLORS + _BG_COLORS + _HI_COLORS + _BG_HI_COLORS
-
-    def __init__(self, *args, **kwargs):
-        _regulars = [(IntCode.BOLD, IntCode.BOLD_DIM_OFF),
-                     (IntCode.DIM, IntCode.BOLD_DIM_OFF),
-                     (IntCode.ITALIC, IntCode.ITALIC_OFF),
-                     (IntCode.UNDERLINED, IntCode.UNDERLINED_OFF),
-                     (IntCode.DOUBLE_UNDERLINED, IntCode.UNDERLINED_OFF),
-                     (IntCode.BLINK_SLOW, IntCode.BLINK_OFF),
-                     (IntCode.BLINK_FAST, IntCode.BLINK_OFF),
-                     (IntCode.INVERSED, IntCode.INVERSED_OFF),
-                     (IntCode.HIDDEN, IntCode.HIDDEN_OFF),
-                     (IntCode.CROSSLINED, IntCode.CROSSLINED_OFF),
-                     (IntCode.OVERLINED, IntCode.OVERLINED_OFF), ]
+    def __init__(self):
+        _regulars = [
+            (IntCode.BOLD, IntCode.BOLD_DIM_OFF),
+            (IntCode.DIM, IntCode.BOLD_DIM_OFF),
+            (IntCode.ITALIC, IntCode.ITALIC_OFF),
+            (IntCode.UNDERLINED, IntCode.UNDERLINED_OFF),
+            (IntCode.DOUBLE_UNDERLINED, IntCode.UNDERLINED_OFF),
+            (IntCode.BLINK_SLOW, IntCode.BLINK_OFF),
+            (IntCode.BLINK_FAST, IntCode.BLINK_OFF),
+            (IntCode.INVERSED, IntCode.INVERSED_OFF),
+            (IntCode.HIDDEN, IntCode.HIDDEN_OFF),
+            (IntCode.CROSSLINED, IntCode.CROSSLINED_OFF),
+            (IntCode.OVERLINED, IntCode.OVERLINED_OFF),
+        ]
 
         for c in _regulars:
             self._bind_regular(*c)
 
-        for c in [*self._COLORS, *self._HI_COLORS]:
+        for c in [*COLORS, *HI_COLORS]:
             self._bind_regular(c, IntCode.COLOR_OFF)
 
-        for c in [*self._BG_COLORS, *self._BG_HI_COLORS]:
+        for c in [*BG_COLORS, *BG_HI_COLORS]:
             self._bind_regular(c, IntCode.BG_COLOR_OFF)
 
         self._bind_complex((IntCode.COLOR_EXTENDED, 5), 1, IntCode.COLOR_OFF)
@@ -551,40 +571,46 @@ class _SgrPairityRegistry:
         self._bind_complex((IntCode.BG_COLOR_EXTENDED, 5), 1, IntCode.BG_COLOR_OFF)
         self._bind_complex((IntCode.BG_COLOR_EXTENDED, 2), 3, IntCode.BG_COLOR_OFF)
 
-    def _bind_regular(self, starter_code: int|t.Tuple[int, ...], breaker_code: int):
+    def _bind_regular(self, starter_code: int | t.Tuple[int, ...], breaker_code: int):
         if starter_code in self._code_to_breaker_map:
-            raise RuntimeError(f'Conflict: SGR code {starter_code} already '
-                               f'has a registered breaker')
+            raise ConflictError(
+                f"SGR code {starter_code} already has a registered breaker"
+            )
 
         self._code_to_breaker_map[starter_code] = SequenceSGR(breaker_code)
 
-    def _bind_complex(self, starter_codes: t.Tuple[int, ...], param_len: int,
-                      breaker_code: int):
+    def _bind_complex(
+        self, starter_codes: t.Tuple[int, ...], param_len: int, breaker_code: int
+    ):
         self._bind_regular(starter_codes, breaker_code)
 
         if starter_codes in self._complex_code_def:
-            raise RuntimeError(f'Conflict: SGR complex {starter_codes} already '
-                               f'has a registered breaker')
+            raise ConflictError(
+                f"SGR complex {starter_codes} already has a registered breaker"
+            )
 
         self._complex_code_def[starter_codes] = param_len
-        self._complex_code_max_len = max(self._complex_code_max_len,
-                                         len(starter_codes) + param_len)
+        self._complex_code_max_len = max(
+            self._complex_code_max_len, len(starter_codes) + param_len
+        )
 
     def get_closing_seq(self, opening_seq: SequenceSGR) -> SequenceSGR:
         closing_seq_params: t.List[int] = []
         opening_params = copy(opening_seq.params)
 
         while len(opening_params):
-            key_params: int|t.Tuple[int, ...]|None = None
+            key_params: int | t.Tuple[int, ...] | None = None
 
-            for complex_len in range(1, min(len(opening_params),
-                                            self._complex_code_max_len + 1)):
+            for complex_len in range(
+                1, min(len(opening_params), self._complex_code_max_len + 1)
+            ):
                 opening_complex_suggestion = tuple(opening_params[:complex_len])
 
                 if opening_complex_suggestion in self._complex_code_def:
                     key_params = opening_complex_suggestion
                     complex_total_len = (
-                        complex_len + self._complex_code_def[opening_complex_suggestion])
+                        complex_len + self._complex_code_def[opening_complex_suggestion]
+                    )
                     opening_params = opening_params[complex_total_len:]
                     break
 
@@ -598,4 +624,8 @@ class _SgrPairityRegistry:
         return SequenceSGR(*closing_seq_params)
 
 
-sgr_pairity_registry = _SgrPairityRegistry()
+_sgr_pairity_registry = _SgrPairityRegistry()
+
+
+def get_closing_seq(opening_seq: SequenceSGR) -> SequenceSGR:
+    return _sgr_pairity_registry.get_closing_seq(opening_seq)

@@ -93,7 +93,7 @@ class PresetListIndexedGenerator:
                        '``{name_idx}``{first}', '``{id}``', '', '', '**V**', '',
                        '``#{value:06x}``', '{original_name_rst}{first_rename}'],
                       ['    :height: 60px'], ['    :class: no-scaled-link']]
-        with open(join(dirname(__name__), '..', 'docs', '_generated', 'preset-table',
+        with open(join(dirname(__name__), '../..', 'docs', '_generated', 'preset-table',
                        'input.rst_'), 'rt') as ff:
             footnotes = [fl.strip() for fl in ff.readlines()]
 
@@ -298,7 +298,7 @@ class Main:
         return s>0,  h//18, -s*10//4, v
 
     def run(self):
-        project_root = abspath(join(dirname(__file__), '..'))
+        project_root = abspath(join(dirname(__file__), '../..'))
         configs_path = join(project_root, 'config')
 
         with open(join(configs_path, 'color.yml'), 'r') as f:
@@ -327,7 +327,7 @@ class Main:
         # with open(join(generated_docs_dir, 'preset-table', 'output.rst_'), 'wt') as f:
         #     PresetListIndexedGenerator().run(f, cfg_color)
 
-        generated_code_dir = join(project_root, 'scripts', 'generated')
+        generated_code_dir = join(project_root, 'scripts', '../generated')
         with open(join(generated_code_dir, 'color.py_'), 'wt') as f:
             PyModuleColorGenerator().run(f, cfg_color)
 
