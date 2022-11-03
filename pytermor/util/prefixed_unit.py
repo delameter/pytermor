@@ -19,8 +19,8 @@ from .auto_float import format_auto_float
 def format_si_metric(value: float, unit: str = 'm') -> str:
     """
     Format ``value`` as meters with SI-prefixes, max result length is
-    *7* chars: 4 for value plus 3 for default unit, prefix and
-    separator. Base is *1000*. Unit can be customized.
+    7 chars: 4 for value plus 3 for default unit, prefix and
+    separator. Base is 1000. Unit can be customized.
 
     >>> format_si_metric(1010, 'm²')
     '1.01 km²'
@@ -43,8 +43,8 @@ def format_si_metric(value: float, unit: str = 'm') -> str:
 def format_si_binary(value: float, unit: str = 'b') -> str:
     """
     Format ``value`` as binary size (bytes, kbytes, Mbytes), max
-    result length is *8* chars: 5 for value plus 3 for default unit,
-    prefix and separator. Base is *1024*. Unit can be customized.
+    result length is 8 chars: 5 for value plus 3 for default unit,
+    prefix and separator. Base is 1024. Unit can be customized.
 
     >>> format_si_binary(1010)  # 1010 b < 1 kb
     '1010 b'
@@ -179,15 +179,15 @@ _formatter_si_metric = PrefixedUnitFormatter(
 )
 """
 Suitable for formatting any SI unit with values
-from approximately ``10^-27`` to ``10^27``.
+from approximately 10^-27 to 10^27.
 
-``max_value_len`` must be at least **4**, because it's a
-minimum requirement for formatting values from ``999`` to ``-999``.
-Next number to 999 is ``1000``, which will be formatted as "1k".
+``max_value_len`` must be at least 4, because it's a
+minimum requirement for formatting values from 999 to -999.
+Next number to 999 is 1000, which will be formatted as "1k".
 
-Total maximum length is ``max_value_len + 3``, which is **7** 
+Total maximum length is ``max_value_len + 3``, which is 7
 (+3 is from separator, unit and prefix, assuming all of them
-have 1-char width). Without unit (default) it's **6**.
+have 1-char width). Without unit (default) it's 6.
 """
 
 _formatter_si_binary = PrefixedUnitFormatter(
@@ -201,17 +201,17 @@ _formatter_si_binary = PrefixedUnitFormatter(
 )
 """
 Similar to `_formatter_si_metric`, but this formatter differs in 
-one aspect.  Given a variable with default value = ``995``,
+one aspect.  Given a variable with default value = 995,
 formatting it's value results in "995 b". After increasing it 
-by ``20`` we'll have ``1015``, but it's still not enough to become 
+by 20 we'll have 1015, but it's still not enough to become 
 a kilobyte -- so returned value will be "1015 b". Only after one 
-more increase (at ``1024`` and more) the value will be in a form
+more increase (at 1024 and more) the value will be in a form
 of "1.00 kb".  
 
-So, in this case ``max_value_len`` must be at least **5** (not 4),
-because it's a minimum requirement for formatting values from ``1023`` 
-to ``-1023``.
+So, in this case ``max_value_len`` must be at least 5 (not 4),
+because it's a minimum requirement for formatting values from 1023
+to -1023.
 
-Total maximum length is ``max_value_len + 3`` = **8** (+3 is from separator,
+Total maximum length is ``max_value_len + 3`` = 8 (+3 is from separator,
 unit and prefix, assuming all of them have 1-char width).
 """
