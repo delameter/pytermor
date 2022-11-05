@@ -5,17 +5,38 @@
 
 body {
     --api-header-border: 3px solid;
-    --color-pt-class: #e0edff;
-    --color-pt-class-b: #80b5ff;
-    --color-pt-exception: #ffe7e7;
-    --color-pt-exception-b: #cc6666;
-    --color-pt-module-method: #e7ffe7;
-    --color-pt-module-method-b: #66cc8f;
-    --color-pt-data: #f0f2f5;
-    --color-pt-data-b: #bbbcbf;
-    --color-pt-method: #f5f4f0;
-    --color-pt-method-b: #bfbebb;
+
+    --color-pt-class: hsla(215, 100%, 95%, 0.5);
+    --color-pt-class-b: hsl(208, 100%, 75%);
+    --color-pt-exception: hsla(0, 100%, 95%, 0.5);
+    --color-pt-exception-b: hsl(0, 50%, 60%);
+    --color-pt-module-method: hsla(144, 100%, 95%, 0.5);
+    --color-pt-module-method-b: hsl(144, 50%, 60%);
+    --color-pt-data: hsla(220, 20%, 95%, 0.5);
+    --color-pt-data-b: hsl(220, 3%, 74%);
+    --color-pt-method: hsla(45, 20%, 95%, 0.5);
+    --color-pt-method-b: hsl(45, 3%, 74%);
 }
+body[data-theme="dark"] {
+    --color-api-overall: var(--color-foreground-secondary);
+    --color-api-name: var(--color-foreground-primary);
+    --color-api-pre-name: var(--color-foreground-primary);
+    --color-api-paren: var(--color-foreground-secondary);
+    --color-api-keyword: var(--color-foreground-primary);
+
+    --color-pt-class: hsla(215, 70%, 25%, 0.25);
+    --color-pt-class-b: hsla(208, 100%, 35%, 0.5);
+    --color-pt-exception: hsla(0, 70%, 25%, 0.25);
+    --color-pt-exception-b: hsla(0, 100%, 35%, 0.5);
+    --color-pt-module-method: hsla(120, 70%, 25%, 0.25);
+    --color-pt-module-method-b: hsla(143, 100%, 35%, 0.5);
+    --color-pt-data: hsla(220, 10%, 35%, 0.25);
+    --color-pt-data-b: hsla(220, 20%, 65%, 0.5);
+    --color-pt-method: hsla(45, 10%, 35%, 0.25);
+    --color-pt-method-b: hsla(45, 20%, 65%, 0.5);
+    --color-highlight-on-target: hsla(50, 100%, 50%, 0.125);
+}
+
 /** Font **/
 
 h1, abbr, .sidebar-brand-text, .brand {
@@ -130,71 +151,11 @@ figcaption {
 }
 
 
-/** Core API table **/
-
-table.core-api-refs p {
-    font-size: 1.33em;
-}
-table.core-api-refs td {
-    padding: 1rem;
-}
-
-
-/** Presets table **/
-
-table.presets {
-    margin-inline: 0.125rem;
-    line-height: 1.25;
-}
-table.presets img {
-    height: 24px !important;
-    border: 1px solid var(--color-background-item);
-    vertical-align: middle;
-}
-table.presets td, table.presets th {
-    padding: 0 0 0.05rem;
-    vertical-align: middle;
-}
-table.presets th {
-    padding-block: 0.75rem;
-}
-table.presets td {
-    border: none;
-}
-table.presets td:first-child, table.presets th:first-child {
-    padding: 0;
-}
-table.presets p.rubric {
-    margin-block: 0.5rem;
-}
-table.presets td:nth-child(n+3):nth-child(-n+7), table.preset-colors td:nth-child(8) {
-    text-align: center;
-}
-table.preset-colors {
-    /*line-height: 1;*/
-}
-table.preset-attributes td:nth-child(8) {
-    font-size: 0.9rem;
-}
-table.presets aside.footnote {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    margin: 0.5rem;
-}
-
-
 /** API reference **/
 
 dl.class > dt.sig {
     margin-bottom: 1rem;
 }
-dl.method, dl.method > dt,
-dl.property, dl.property > dt,
-dl.attribute, dl.attribute > dt {
-}
-
-/** API reference **/
 
 dl.class > dt,
 dl.class > dt:hover  {
@@ -342,8 +303,61 @@ td.xterm-palette-light {
 td.xterm-palette-dark {
     color: #000000;
 }
-
 .xterm-palette-options {
     text-align: left;
     margin-left: 0.5rem;
+}
+
+
+/** Core API table **/
+
+table.core-api-refs p {
+    font-size: 1.33em;
+}
+table.core-api-refs td {
+    padding: 1rem;
+}
+
+
+/** Presets table **/
+
+table.presets {
+    margin-inline: 0.125rem;
+    line-height: 1.25;
+}
+table.presets img {
+    height: 24px !important;
+    border: 1px solid var(--color-background-item);
+    vertical-align: middle;
+}
+table.presets td, table.presets th {
+    padding: 0 0 0.05rem;
+    vertical-align: middle;
+}
+table.presets th {
+    padding-block: 0.75rem;
+}
+table.presets td {
+    border: none;
+}
+table.presets td:first-child, table.presets th:first-child {
+    padding: 0;
+}
+table.presets p.rubric {
+    margin-block: 0.5rem;
+}
+table.presets td:nth-child(n+3):nth-child(-n+7), table.preset-colors td:nth-child(8) {
+    text-align: center;
+}
+table.preset-colors {
+    /*line-height: 1;*/
+}
+table.preset-attributes td:nth-child(8) {
+    font-size: 0.9rem;
+}
+table.presets aside.footnote {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    margin: 0.5rem;
 }
