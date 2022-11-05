@@ -5,8 +5,7 @@
 import logging
 import unittest
 
-from pytermor.util.prefixed_unit import PrefixedUnitFormatter, PREFIXES_SI, \
-    PREFIX_ZERO_SI, format_si_binary, format_si_metric
+from pytermor.utilnum import format_si_metric, format_si_binary, PrefixedUnitFormatter, PREFIXES_SI, PREFIX_ZERO_SI
 
 
 class TestPrefixedUnit(unittest.TestCase):

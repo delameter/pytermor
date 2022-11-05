@@ -5,6 +5,7 @@
 import unittest
 
 import pytermor as pt
+import pytermor.utilstr
 from pytermor.style import Style
 
 
@@ -85,7 +86,7 @@ class TestTextFormatting(unittest.TestCase):
         self.text.append("789")
 
     def _test_format(self, expected: str, template: str):
-        expected_no_sgr = pt.ReplaceSGR().apply(expected)
+        expected_no_sgr = pytermor.utilstr.ReplaceSGR().apply(expected)
         self.assertEqual(expected, template.format(self.text))
         self.assertEqual(expected_no_sgr, template.format(self.text.raw()))
 

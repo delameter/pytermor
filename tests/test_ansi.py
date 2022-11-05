@@ -81,29 +81,29 @@ class TestBuild(unittest.TestCase):
         self.assertEqual(s, SequenceSGR(IntCode.ITALIC))
 
     def test_color_indexed_foreground(self):
-        s = SequenceSGR.init_color_256(141)
+        s = SequenceSGR.new_color_256(141)
         self.assertEqual(
             s, SequenceSGR(IntCode.COLOR_EXTENDED, IntCode.EXTENDED_MODE_256, 141)
         )
 
     def test_color_indexed_background(self):
-        s = SequenceSGR.init_color_256(255, bg=True)
+        s = SequenceSGR.new_color_256(255, bg=True)
         self.assertEqual(
             s, SequenceSGR(IntCode.BG_COLOR_EXTENDED, IntCode.EXTENDED_MODE_256, 255)
         )
 
     def test_color_indexed_invalid(self):
-        self.assertRaises(ValueError, SequenceSGR.init_color_256, 266, bg=True)
+        self.assertRaises(ValueError, SequenceSGR.new_color_256, 266, bg=True)
 
     def test_color_rgb_foreground(self):
-        s = SequenceSGR.init_color_rgb(10, 20, 30)
+        s = SequenceSGR.new_color_rgb(10, 20, 30)
         self.assertEqual(
             s,
             SequenceSGR(IntCode.COLOR_EXTENDED, IntCode.EXTENDED_MODE_RGB, 10, 20, 30),
         )
 
     def test_color_rgb_background(self):
-        s = SequenceSGR.init_color_rgb(50, 70, 90, bg=True)
+        s = SequenceSGR.new_color_rgb(50, 70, 90, bg=True)
         self.assertEqual(
             s,
             SequenceSGR(
@@ -112,9 +112,9 @@ class TestBuild(unittest.TestCase):
         )
 
     def test_color_rgb_invalid(self):
-        self.assertRaises(ValueError, SequenceSGR.init_color_rgb, 10, 310, 30)
-        self.assertRaises(ValueError, SequenceSGR.init_color_rgb, 310, 10, 130)
-        self.assertRaises(ValueError, SequenceSGR.init_color_rgb, 0, 0, 256, bg=True)
+        self.assertRaises(ValueError, SequenceSGR.new_color_rgb, 10, 310, 30)
+        self.assertRaises(ValueError, SequenceSGR.new_color_rgb, 310, 10, 130)
+        self.assertRaises(ValueError, SequenceSGR.new_color_rgb, 0, 0, 256, bg=True)
 
 
 class TestRegistry(unittest.TestCase):  # @TODO more

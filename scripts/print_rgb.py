@@ -8,12 +8,14 @@ from __future__ import annotations
 import os.path
 import shutil
 import typing as t
-from math import sqrt
 from os.path import abspath, join, dirname
 
 import yaml
 
 import pytermor as pt
+import pytermor.index_256
+import pytermor.utilstr
+import pytermor.utilsys
 
 
 def sort_by_name(cdef: dict) -> str:
@@ -34,8 +36,8 @@ class RgbListPrinter:
     def print(self, colors: t.List[t.Dict]):
         for idx, c in enumerate(sorted(colors, key=sort_by_hue)):
             pad = "".ljust(2)
-            vari_style = pt.Style(fg=pt.index.GRAY_42)
-            orig_style = pt.Style(fg=pt.index.GRAY_30)
+            vari_style = pt.Style(fg=pt.index_256.GRAY_42)
+            orig_style = pt.Style(fg=pt.index_256.GRAY_30)
 
             style = pt.Style(bg=pt.ColorRGB(c["value"])).autopick_fg()
             style2 = pt.Style(fg=style.bg)
@@ -62,7 +64,7 @@ class RgbTablePrinter:
     def __init__(self, cell_size: int = None, cell_height: int = None):
         self._cell_padding_x = 2
         self._cell_padding_y = 2
-        self._term_width = pt.common.get_terminal_width()
+        self._term_width = pytermor.utilsys.get_terminal_width()
         self._term_height = shutil.get_terminal_size().lines
 
         if not cell_size:
@@ -138,7 +140,7 @@ class RgbTablePrinter:
 
             for pid, part in enumerate(parts):
                 part = (
-                    pt.render(pt.util.center_sgr(part, self._cell_width), style)
+                    pt.render(pytermor.utilstr.center_sgr(part, self._cell_width), style)
                     + self._cell_margin_x
                 )
                 lines[pid] += part
@@ -156,7 +158,7 @@ if __name__ == "__main__":
     CONFIG_PATH = join(PROJECT_ROOT, "config")
     INPUT_CONFIG_FILENAME = "rgb.yml"
     with open(os.path.join(CONFIG_PATH, INPUT_CONFIG_FILENAME), "rt") as f:
-        colors = yaml.safe_load(f)
+        colors = yaml.safe_load(f).get('colors')
 
     #pt.RendererManager.set_default_to_force_formatting()
 
@@ -167,3 +169,7 @@ if __name__ == "__main__":
         int(os.environ.get("CELL_SIZE", 0)), int(os.environ.get("CELL_HEIGHT", 0))
     ).print(colors)
     print()
+
+    from pytermor.utilstr import distribute_padded
+    print((distribute_padded([
+        pt.Text('111', pt.Styles.WARNING), '22'], 10)))

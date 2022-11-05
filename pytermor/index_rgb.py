@@ -10,5 +10,5 @@ TRUE_WHITE = ColorRGB(0xFFFFFF, 'truewhite')
 TRUE_BLACK = ColorRGB(0x000000, 'trueblack')
 
 # fmt: off
-ColorRGB._index.register_virtual(0xeb0c0c, 'eb0c0c')
+ColorRGB(0xeb0c0c, 'eb0c0c')
 # fmt: on

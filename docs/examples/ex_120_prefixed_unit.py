@@ -1,4 +1,4 @@
-from pytermor.util import PrefixedUnitFormatter
+from pytermor.utilnum import PrefixedUnitFormatter
 
 PrefixedUnitFormatter(
     max_value_len=5, truncate_frac=True,

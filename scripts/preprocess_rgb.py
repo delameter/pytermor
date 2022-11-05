@@ -8,6 +8,8 @@ import timeit
 from os.path import abspath, join, dirname
 import re
 import typing as t
+from typing import Any, Mapping
+
 import yaml
 
 import pytermor as pt
@@ -18,9 +20,11 @@ import pytermor as pt
 # handler.setFormatter(formatter)
 # logger.addHandler(handler)
 # logger.setLevel('DEBUG')
+import pytermor.text
+import pytermor.utilnum
 
 
-def error(string: str | pt.Renderable):
+def error(string: str|pytermor.text.Renderable):
     print(pt.render("[ERROR] ", pt.Styles.ERROR_LABEL) + string)
     exit(1)
 
@@ -42,7 +46,7 @@ class RgbPreprocessor:
     def run(self) -> t.List[t.Dict]:
         with open(join(self.CONFIG_PATH, self.INPUT_CONFIG_FILENAME), "rt") as f:
             color_defs = yaml.safe_load(f)
-            filesize = pt.util.format_si_binary(f.tell())
+            filesize = pytermor.utilnum.format_si_binary(f.tell())
             print(f"Read  {filesize:8s} <-- '{self.INPUT_CONFIG_FILENAME}'")
 
         ids = set()  # tuple(name, lvl1var, lvl2var...)
@@ -96,9 +100,17 @@ class RgbPreprocessor:
             "colors": list(sorted(colors, key=lambda c: c["value"])),
         }
 
-        yaml.add_representer(
-            int, lambda dumper, data: dumper.represent_int(f"0x{data:06x}")
-        )
+        class IndentedDumper(yaml.Dumper):
+            def __init__(self, *args, **kwargs) -> None:
+                super().__init__(*args, **kwargs)
+
+                self.add_representer(
+                    int, lambda dumper, data: dumper.represent_int(f"0x{data:06x}")
+                )
+
+            def increase_indent(self, flow=False, indentless=False):
+                return super(IndentedDumper, self).increase_indent(flow, False)
+
         with open(join(self.CONFIG_PATH, self.OUTPUT_CONFIG_FILENAME), "wt") as f:
             yaml.dump(
                 config,
@@ -106,8 +118,9 @@ class RgbPreprocessor:
                 allow_unicode=True,
                 indent=2,
                 encoding="utf8",
+                Dumper=IndentedDumper,
             )
-            filesize = pt.util.format_si_binary(f.tell())
+            filesize = pytermor.utilnum.format_si_binary(f.tell())
             print(f"Wrote {filesize:8s} --> '{self.OUTPUT_CONFIG_FILENAME}'")
 
         return colors
@@ -121,6 +134,6 @@ def __main():
 if __name__ == "__main__":
     elapsed = timeit.Timer(__main).timeit(1)
     if elapsed > 10:
-        print(f" in {pt.util.format_time_delta(elapsed)}")
+        print(f" in {pytermor.utilnum.format_time_delta(elapsed)}")
     else:
-        print(f" in {pt.util.format_si_metric(elapsed, 's')}")
+        print(f" in {pytermor.utilnum.format_si_metric(elapsed, 's')}")

@@ -14,7 +14,7 @@ include .env.dist
 export
 VERSION ?= 0.0.0
 
-NOW    := $(shell date '+%Y-%b-%0e.%H%M%S.%3N')
+NOW    := $(shell LC_TIME=en_US.UTF-8 date '+%H:%M:%S %-e-%b-%y')
 BOLD   := $(shell tput -Txterm bold)
 GREEN  := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)
@@ -123,7 +123,8 @@ docs-html: ## Build HTML documentation  <caching allowed>
 	mkdir -p docs-build
 	venv/bin/sphinx-build docs docs/_build -b html -n
 	#find docs/_build -type f -name '*.html' | sort | xargs -n1 grep -HnT ^ | sed s@^docs/_build/@@ > docs-build/${PROJECT_NAME}.html.dump
-	if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/index.html ; fi
+	#if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/index.html ; fi
+	if command -v notify-send ; then notify-send -i ${PWD}/docs/_static_src/logo-white-bg.svg pytermor 'HTML docs updated ${NOW}' ; fi
 
 docs-pdf: ## Build PDF documentation  <caching allowed>
 	mkdir -p docs-build

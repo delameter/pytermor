@@ -81,7 +81,7 @@ There is also a set of methods for dynamic ``SequenceSGR`` creation:
 
 - `init_color_indexed()` will produce sequence operating in 256-colors mode (for a complete list
   see `presets`);
-- `init_color_rgb()` will create a sequence capable of setting the colors in True Color 16M mode (however, some terminal emulators doesn't
+- `new_color_rgb()` will create a sequence capable of setting the colors in True Color 16M mode (however, some terminal emulators doesn't
   support it).
 
 To get the resulting sequence chars use `assemble() <SequenceSGR.assemble()>` method or cast instance to *str*.
@@ -135,7 +135,7 @@ Core API
       =================================== ======================
       `SequenceSGR` constructor           `Span` constructor
       `SequenceSGR.init_color_indexed()`  `Span.init_explicit()`
-      `SequenceSGR.init_color_rgb()`
+      `SequenceSGR.new_color_rgb()`
       =================================== ======================
 
 .. only :: latex
@@ -144,6 +144,6 @@ Core API
 
       * `SequenceSGR` constructor
       * `SequenceSGR.init_color_indexed()`
-      * `SequenceSGR.init_color_rgb()`
+      * `SequenceSGR.new_color_rgb()`
       * `Span` constructor
       * `Span.init_explicit()`

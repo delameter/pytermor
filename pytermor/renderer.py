@@ -3,9 +3,39 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
+Module with output formatters. Default global renderer type is `SgrRenderer`.
+
+Customizing of rendering mode can be accomplished in two ways:
+
+    a. Method `RendererManager.set_default()` sets the default renderer globally.
+       After that calling `text.render()` will automatically invoke a said renderer
+       and all formatting will be applied.
+    b. Alternatively, you can use renderer's own instance method ``render()``
+       directly and avoid messing up with the manager:
+       `HtmlRenderer.render()`.
+
+Generally speaking, if you need to invoke a custom renderer just once, it's
+convenient to use the second method for this case and use the global one
+in all the others.
+
+On the contrary, if there is a necessity to use more than one renderer
+alternatingly, it's better to avoid using the global one at all, and just
+instantiate and invoke two renderers independently.
+
+.. rubric :: TL;DR
+
+To unconditionally print formatted message to standard output, do something like
+this:
+
+    >>> from pytermor import render, RendererManager, Styles
+    >>> RendererManager.set_default_to_force_formatting()
+    >>> render('Warning: AAAA', Styles.WARNING)
+    '\\x1b[33mWarning: AAAA\\x1b[39m'
+
 .. testsetup:: *
 
     from pytermor.renderer import *
+
 """
 from __future__ import annotations
 
@@ -16,63 +46,66 @@ import typing as t
 from abc import ABCMeta, abstractmethod
 from functools import reduce
 
-from .common import Renderable, logger
 from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, get_closing_seq
-from .util import ReplaceSGR
 from .color import Color, Color16, Color256, ColorRGB, NOOP_COLOR
+from .common import logger
 from .style import Style, NOOP_STYLE, Styles
+from .utilstr import ReplaceSGR
 
 
 class RendererManager:
     _default: AbstractRenderer = None
 
     @classmethod
-    def set_default(
-        cls, renderer: AbstractRenderer|t.Type[AbstractRenderer] = None
-    ) -> AbstractRenderer:
+    def set_default(cls, renderer: AbstractRenderer | t.Type[AbstractRenderer] = None):
         """
-        Set up renderer preferences.
+        Select a global renderer.
+
+            >>> RendererManager.set_default(DebugRenderer)
+            >>> render('text', Style(fg='red'))
+            '|ǝ31|text|ǝ39|'
 
         :param renderer:
-            Default renderer to use globally. Passing None will result in library
-            default setting restored (`SgrRenderer`). Default renderer is used
-            when no other is specified, e.g. in `render()` package method.
+            Default renderer to use globally. Calling this method without arguments
+            will result in library default renderer `SgrRenderer` being set as default.
 
-        :return: Renderer instance set as default.
+            All the methods with the ``renderer`` argument (e.g., `text.render()`)
+            will use the global default one if said argument is omitted or set to *None*.
 
-        >>> renderer('text', Style(fg='red'), DebugRenderer)
-        '|ǝ31|text|ǝ39|'
-        >>> renderer('text', Style(fg='red'), NoOpRenderer)
-        'text'
+            You can specify either the renderer class, in which case manager will
+            instantiate it with the default parameters, or provide already instantiated
+            and set up renderer, which will be registred as global.
         """
         if isinstance(renderer, type):
             renderer = renderer()
         cls._default = renderer or SgrRenderer()
-        return cls._default
 
     @classmethod
     def get_default(cls) -> AbstractRenderer:
         """
-        Get global default renderer instance (`SgrRenderer`, or the one
-        provided with `setup`).
+        Get global renderer instance (`SgrRenderer`, or the one provided with
+        `set_default()`).
         """
         return cls._default
-
-    @classmethod
-    def set_default_to_disable_formatting(cls):
-        """
-        Shortcut for forcing all control sequences to be omitted when using
-        a default renderer (i.e., doesn't specifying it).
-        """
-        cls.set_default(SgrRenderer(OutputMode.NO_ANSI))
 
     @classmethod
     def set_default_to_force_formatting(cls):
         """
         Shortcut for forcing all control sequences to be present in the
-        output when using a default renderer (i.e., doesn't specifying it).
+        output of a global renderer.
+
+        Note that it applies only to the renderer that is set up as default at
+        the moment of calling this method, i.e., all previously created instances,
+        as well as the ones that will be created afterwards, are unaffected.
         """
         cls.set_default(SgrRenderer(OutputMode.TRUE_COLOR))
+
+    @classmethod
+    def set_default_to_disable_formatting(cls):
+        """
+        Shortcut for disabling all output formatting of a global renderer.
+        """
+        cls.set_default(SgrRenderer(OutputMode.NO_ANSI))
 
 
 class AbstractRenderer(metaclass=ABCMeta):
@@ -83,27 +116,48 @@ class AbstractRenderer(metaclass=ABCMeta):
         """
         Apply colors and attributes described in ``style`` argument to
         ``string`` and return the result. Output format depends on renderer's
-        class (which defines the implementation).
+        class, which defines the implementation.
+
+        :param string: String to format.
+        :param style:  Style to apply.
+        :return: String with formatting applied, or without it, depending on
+                 renderer settings.
         """
-        raise NotImplementedError
+
+    def __repr__(self):
+        return self.__class__.__qualname__ + '[]'
 
 
 class OutputMode(enum.IntEnum):
     """
     Determines what types of SGR sequences are allowed to use in the output.
-    See `SgrRenderer` documentation for exact color mappings.
     """
 
     NO_ANSI = enum.auto()
-    """Disable all formatting"""
+    """
+    The renderer discards all color and format information completely.
+    """
     XTERM_16 = enum.auto()
-    """16-colors mode"""
+    """
+    16-colors mode. Enforces the renderer to approximate all color types
+    to `Color16` and render them as basic mode selection SGR sequences
+    (``ESC[31m``, ``ESC[42m`` etc). See `Color.approximate()` for approximation
+    algorithm details.
+    """
     XTERM_256 = enum.auto()
-    """256-colors mode"""
+    """
+    256-colors mode. Allows the renderer to use either `Color16` or `Color256` 
+    (but RGB will be approximated to 256-color pallette).
+    """
     TRUE_COLOR = enum.auto()
-    """RGB mode"""
+    """
+    RGB color mode. Does not apply restrictions to color rendering.
+    """
     AUTO = enum.auto()
-    """The renderer decide"""
+    """
+    Lets the renderer select the most suitable mode by itself.
+    See `SgrRenderer` constructor documentation for the details. 
+    """
 
 
 class SgrRenderer(AbstractRenderer):
@@ -111,38 +165,45 @@ class SgrRenderer(AbstractRenderer):
     .. todo ::
         make render() protected (?)
 
-    Default renderer invoked by `Text._render()`. Transforms `Color` instances
+    Default renderer invoked by `Text.render()`. Transforms `Color` instances
     defined in ``style`` into ANSI control sequence bytes and merges them with
-    input string. Type of output ``SequenceSGR`` depends on type of `Color`
+    input string. Type of resulting `SequenceSGR` depends on type of `Color`
     instances in ``style`` argument and current output mode of the renderer.
 
     1. `ColorRGB` can be rendered as True Color sequence, 256-color sequence
-       or 16-color sequence depending on compatibility settings (see below).
+       or 16-color sequence depending on specified `OutputMode`.
     2. `Color256` can be rendered as 256-color sequence or 16-color
        sequence.
     3. `Color16` will be rendered as 16-color sequence.
-    4. Nothing of the above will happen and all Colors will be discarded
-       completely if output is not a terminal emulator or if the developer
-       explicitly set up the renderer to do so (`force_styles` = False).
+    4. Nothing of the above will happen and all formatting will be discarded
+       completely if output device is not a terminal emulator or if the developer
+       explicitly set up the renderer to do so (`OutputMode.NO_ANSI`).
 
-    Compatibility preferences (see `SgrRenderer.setup()`) determine
-    exact type of output SGRs. Renderer approximates RGB colors to closest
-    *indexed* colors if terminal doesn't support RGB output. In case terminal
-    doesn't support even 256 colors, falls back to 16-color palette and picks
-    closest samples again the same way. Color mode to color type mapping:
+    Renderer approximates RGB colors to closest **indexed** colors if terminal doesn't
+    support RGB output. In case terminal doesn't support even 256 colors, it
+    falls back to 16-color palette and picks closest samples again the same way.
+    See `OutputMode` documentation for exact mappings.
 
-        1. `OutputMode.TRUE_COLOR` does not apply restrictions to color rendering.
-        2. `OutputMode.XTERM_256` allows the renderer to use either `Color16`
-           or `Color256` (but RGB will be approximated to 256-color pallette).
-        3. `OutputMode.XTERM_16` enforces the renderer to approximate all color types
-           to `Color16` and render them as basic mode selection SGR sequences
-           (e.g., ``ESC[31m``, ``ESC[42m`` etc).
-        4. `OutputMode.NO_ANSI` discards all color information completely.
-
-    >>> render('text', Styles.WARNING_LABEL, SgrRenderer(OutputMode.XTERM_256))
+    >>> SgrRenderer(OutputMode.XTERM_256).render('text', Styles.WARNING_LABEL)
     '\\x1b[1;33mtext\\x1b[22;39m'
-    >>> render('text', Styles.WARNING_LABEL, SgrRenderer(OutputMode.NO_ANSI))
+    >>> SgrRenderer(OutputMode.NO_ANSI).render('text', Styles.WARNING_LABEL)
     'text'
+
+    :param output_mode:
+        SGR output mode to use. Valid values are listed in `OutputMode` enum.
+
+        With `OutputMode.AUTO` the renderer will first check if the output
+        device is a terminal emulator, and use `OutputMode.NO_ANSI` when it
+        is not. Otherwise, the renderer will read ``TERM`` environment
+        variable and follow these rules:
+
+            - `OutputMode.NO_ANSI` if ``TERM`` is set to ``xterm``.
+            - `OutputMode.XTERM_16` if ``TERM`` is set to ``xterm-color``.
+            - `OutputMode.XTERM_256` in all other cases.
+
+        Special case is when ``TERM`` equals to ``xterm-256color`` **and**
+        ``COLORTERM`` is either ``truecolor`` or  ``24bit``, then
+        `OutputMode.TRUE_COLOR` will be used.
     """
 
     _COLOR_UPPER_BOUNDS: t.Dict[OutputMode, t.Type[Color]] = {
@@ -155,27 +216,6 @@ class SgrRenderer(AbstractRenderer):
     _output_mode: OutputMode = OutputMode.AUTO
 
     def __init__(self, output_mode: OutputMode = OutputMode.AUTO):
-        """
-        Set up renderer preferences.
-
-        :param output_mode:
-            SGR output mode to use. Valid values are listed in `OutputMode` enum.
-
-            With `OutputMode.AUTO` the renderer will first check if the output
-            device is a terminal emulator, and use `OutputMode.NO_ANSI` when it
-            is not. Otherwise, the renderer will read ``TERM`` environment
-            variable and follow these rules:
-
-                - `OutputMode.NO_ANSI` if ``TERM`` is set to ``xterm``.
-                - `OutputMode.XTERM_16` if ``TERM`` is set to ``xterm-color``.
-                - `OutputMode.XTERM_256` in all other cases.
-
-            Special case is when ``TERM`` equals to ``xterm-256color`` **and**
-            ``COLORTERM`` is either ``truecolor`` or  ``24bit``, then
-            `OutputMode.TRUE_COLOR` will be used.
-
-        :returns: self
-        """
         self._output_mode = self._determine_output_mode(output_mode)
         self._color_upper_bound = self._COLOR_UPPER_BOUNDS.get(
             self._output_mode, type(None)
@@ -184,7 +224,7 @@ class SgrRenderer(AbstractRenderer):
         logger.debug(f"Output mode: {output_mode.name} -> {self._output_mode.name}")
         logger.debug(f"Color upper bound: {self._color_upper_bound}")
 
-    def render(self, string: t.Any, style: Style = NOOP_STYLE):
+    def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
         opening_seq = (
             self._render_attributes(style, squash=True)
             + self._render_color(style.fg, False)
@@ -260,8 +300,8 @@ class TmuxRenderer(AbstractRenderer):
     """
     tmux
 
-    >>> render('text', Style(fg='blue', bold=True), TmuxRenderer(OutputMode.XTERM_16))
-    '#[bold]#[fg=blue]text#[nobold nodim]#[fg=default]'
+    >>> TmuxRenderer().render('text',  Style(fg='blue', bold=True))
+    '#[fg=blue bold]text#[fg=default nobold]'
     """
 
     STYLE_ATTR_TO_TMUX_MAP = {
@@ -278,7 +318,7 @@ class TmuxRenderer(AbstractRenderer):
         "underlined": "underscore",
     }
 
-    def render(self, string: t.Any, style: Style = NOOP_STYLE):
+    def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
         command_open, command_close = self._render_attributes(style)
         rendered_text = ""
         for line in str(string).splitlines(keepends=True):
@@ -311,7 +351,7 @@ class TmuxRenderer(AbstractRenderer):
 
     def _encode_tmux_command(self, kv: t.List[t.Tuple[str, str]]) -> str:
         if len(kv) == 0:
-            return ''
+            return ""
         return "#[" + (" ".join(f"{k}{v}" for k, v in kv)) + "]"
 
 
@@ -321,13 +361,11 @@ class NoOpRenderer(AbstractRenderer):
     returns it as is. That's true only when it _is_ a str beforehand;
     otherwise argument will be casted to str and then returned.
 
-    >>> render('text', Style(fg='green', bold=True), NoOpRenderer)
+    >>> NoOpRenderer().render('text', Style(fg='green', bold=True))
     'text'
     """
 
     def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
-        if isinstance(string, Renderable):
-            return string.render(self)
         return str(string)
 
 
@@ -335,7 +373,7 @@ class HtmlRenderer(AbstractRenderer):
     """
     html
 
-    >>> render('text', Style(fg='red',bold=True), HtmlRenderer)
+    >>> HtmlRenderer().render('text', Style(fg='red', bold=True))
     '<span style="color: #800000; font-weight: 700">text</span>'
     """
 
@@ -399,7 +437,7 @@ class DebugRenderer(SgrRenderer):
     """
     DebugRenderer
 
-    >>> render('text', style.Style(fg='red', bold=True), DebugRenderer)
+    >>> DebugRenderer().render('text', Style(fg='red', bold=True))
     '|ǝ1;31|text|ǝ22;39|'
     """
 

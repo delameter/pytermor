@@ -95,8 +95,57 @@ html_theme_options = {
             "class": "",
         },
     ],
+    "light_css_variables": {
+        # "color-brand-primary": "#7C4DFF",
+        # "color-brand-content": "#7C4DFF",
+
+        "color-pt-doctest-background": "#f8f8f8",
+        "color-pt-doctest-border": "#f0f0f0",
+
+        "color-pt-class-background": "hsla(215, 100%, 95%, 0.5)",
+        "color-pt-class-border": "hsl(208, 100%, 75%)",
+        "color-pt-exception-background": "hsla(0, 100%, 95%, 0.5)",
+        "color-pt-exception-border": "hsl(0, 50%, 60%)",
+        "color-pt-module-method-background": "hsla(144, 100%, 95%, 0.5)",
+        "color-pt-module-method-border": "hsl(144, 50%, 60%)",
+        "color-pt-data-background": "hsla(220, 20%, 95%, 0.5)",
+        "color-pt-data-border": "hsl(220, 3%, 74%)",
+        "color-pt-method-background": "hsla(45, 20%, 95%, 0.5)",
+        "color-pt-method-border": "hsl(45, 3%, 74%)",
+
+        "color-pt-highlight-target-border": "hsl(50, 75%, 60%)",
+        "color-pt-highlight-target-foreground": "var(--color-api-keyword)",
+    },
+    "dark_css_variables": {
+        "color-pt-doctest-background": "#202020",
+        "color-pt-doctest-border": "#282828",
+
+        "color-api-overall": "var(--color-foreground-secondary)",
+        "color-api-name": "var(--color-foreground-primary)",
+        "color-api-pre-name": "var(--color-foreground-primary)",
+        "color-api-paren": "var(--color-foreground-secondary)",
+        "color-api-keyword": "var(--color-foreground-primary)",
+
+        "color-pt-class-background": "hsla(215, 70%, 25%, 0.25)",
+        "color-pt-class-border": "hsla(208, 100%, 35%, 0.5)",
+        "color-pt-exception-background": "hsla(0, 70%, 25%, 0.25)",
+        "color-pt-exception-border": "hsla(0, 100%, 35%, 0.5)",
+        "color-pt-module-method-background": "hsla(120, 70%, 25%, 0.25)",
+        "color-pt-module-method-border": "hsla(143, 100%, 35%, 0.5)",
+        "color-pt-data-background": "hsla(220, 10%, 35%, 0.25)",
+        "color-pt-data-border": "hsla(220, 20%, 65%, 0.5)",
+        "color-pt-method-background": "hsla(45, 10%, 35%, 0.25)",
+        "color-pt-method-border": "hsla(45, 20%, 65%, 0.5)",
+
+        "color-pt-highlight-target-border": "hsl(50, 75%, 60%)",
+        "color-pt-highlight-target-foreground": "hsla(50, 100%, 50%, 75%)",
+    }
 }
 
+pygments_style = "tango"
+pygments_dark_style = "github-dark"
+
+copybutton_prompt_text = ">>> "
 
 # -- LaTeX / PDF --------------------------------------------------------------
 
@@ -128,10 +177,13 @@ autodoc_default_options = {
 # class pytermor.Colors.Color(hex_value.. -> class Color(..
 #add_module_names = False
 
-# ???
-modindex_common_prefix = ['pytermor']
 #autosummary_generate = True
-autodoc_class_signature = 'separated'
+
+# include signature in the class desc or document __init__ separately
+autodoc_class_signature = "mixed"  # 'separated'
+
+autoclass_content = "both"
+
 #doctest_test_doctest_blocks = 'True'
 
 # static set_up(force_styles: bool | None = False, compatibility_indexed: bool.. ->
@@ -145,6 +197,7 @@ autodoc_class_signature = 'separated'
 #autodoc_typehints = 'both'
 #autodoc_typehints = 'signature'
 autodoc_typehints = 'description'
+autodoc_typehints_description_target = 'documented_params'
 
 keep_warnings = True
 # nitpick_ignore = [('py:class', 'Match'),
@@ -161,6 +214,8 @@ pt.RendererManager.set_default_to_force_formatting()
 '''
 
 # -- Misc ---------------------------------------------------------------------
+
+#modindex_common_prefix = ['pytermor']
 
 todo_include_todos = True
 # todo_emit_warnings = True

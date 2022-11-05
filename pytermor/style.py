@@ -2,7 +2,11 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
+"""
+.. testsetup:: *
 
+   from pytermor.style import *
+"""
 from __future__ import annotations
 
 import typing as t
@@ -12,56 +16,9 @@ from . import index_256, color
 from .color import Color, NOOP_COLOR, ColorRGB, Index
 
 
-@dataclass
+@dataclass()
 class Style:
-    """Create a new ``Style()``.
-
-    Key difference between ``Styles`` and ``Spans`` or ``SGRs`` is that
-    ``Styles`` describe colors in RGB format and therefore support output
-    rendering in several different formats (see :mod:`._render`).
-
-    Both ``fg`` and ``bg`` can be specified as:
-
-    1. :class:`.Color` instance or library preset;
-    2. name of any of these presets, case-insensitive;
-    3. integer color value in hexademical RGB format.
-    4. None -- the color will be unset.
-
-    Inheritance ``parent`` -> ``child`` works this way:
-
-    1. If an argument in child's constructor is empty (=None), take value from
-       ``parent``'s corresponding attribute.
-    2. If an argument in child's constructor is *not* empty (=True|False|Color etc.),
-       use it as child's attribute.
-
-    .. note ::
-        There will be no empty (=None) attributes of type `Color` after initialization
-        -- they are replaced with special constant `NOOP_COLOR`, that works as if
-        there was no color defined and allows to avoid writing of boilerplate code
-        to check if a color is None here and there.
-
-    :param parent:      Style to copy attributes without value from.
-    :param fg:          Foreground (i.e., text) color.
-    :param bg:          Background color.
-    :param blink:       Blinking effect; *supported by limited amount of Renderers*.
-    :param bold:        Bold or increased intensity.
-    :param crosslined:  Strikethrough.
-    :param dim:         Faint, decreased intensity.
-    :param double_underlined:
-                        Faint, decreased intensity.
-    :param inversed:    Swap foreground and background colors.
-    :param italic:      Italic.
-    :param overlined:   Overline.
-    :param underlined:  Underline.
-    :param class_name:  Arbitary string used by some renderers, e.g. by
-                        ``HtmlRenderer``.
-
-    >>> Style(fg='green', bold=True)
-    Style[fg=008000, ~, bold]
-    >>> Style(bg=0x0000ff)
-    Style[~, bg=0000ff]
-    >>> Style(fg='DeepSkyBlue1', bg='gray3')
-    Style[fg=00afff, bg=080808]
+    """
     """
 
     _fg: Color = field(default=None, init=False)
@@ -83,6 +40,10 @@ class Style:
         ]
     )
 
+    @property
+    def _attributes(self) -> t.FrozenSet:
+        return frozenset(list(self.__dict__.keys()) + ["_fg", "_bg"])
+
     def __init__(
         self,
         parent: Style = None,
@@ -99,6 +60,49 @@ class Style:
         underlined: bool = None,
         class_name: str = None,
     ):
+        """Create a new ``Style()``. Both ``fg`` and ``bg`` can be specified as:
+
+            1. :class:`.Color` instance or library preset;
+            2. `*str*` -- name of any of these presets, case-insensitive;
+            3. `*int*` -- color value in hexademical RGB format;
+            4. *None* -- the color will be unset.
+
+        Inheritance ``parent`` -> ``child`` works this way:
+
+            - If an argument in child's constructor is empty (*None*), take value from
+              ``parent``'s corresponding attribute.
+            - If an argument in child's constructor is *not* empty (``True``,
+              ``False``, `Color` etc.), use it as child's attribute.
+
+        .. note ::
+            Both empty (i.e., *None*) attributes of type `Color` after initialization
+            will be replaced with special constant `NOOP_COLOR`, which behaves like
+            there was no color defined, and at the same time makes it safer to work
+            with nullable color-type variables.
+
+        >>> Style(fg='green', bold=True)
+        Style[fg=008000, bg=NOP, bold]
+        >>> Style(bg=0x0000ff)
+        Style[fg=NOP, bg=0000ff]
+        >>> Style(fg='DeepSkyBlue1', bg='gray3')
+        Style[fg=00afff, bg=080808]
+
+        :param parent:      Style to copy attributes without value from.
+        :param fg:          Foreground (i.e., text) color.
+        :param bg:          Background color.
+        :param blink:       Blinking effect; *supported by limited amount of Renderers*.
+        :param bold:        Bold or increased intensity.
+        :param crosslined:  Strikethrough.
+        :param dim:         Faint, decreased intensity.
+        :param double_underlined:
+                            Faint, decreased intensity.
+        :param inversed:    Swap foreground and background colors.
+        :param italic:      Italic.
+        :param overlined:   Overline.
+        :param underlined:  Underline.
+        :param class_name:  Arbitary string used by some renderers, e.g. by
+                            ``HtmlRenderer``.
+        """
         if fg is not None:
             self._fg = self._resolve_color(fg, True)
         if bg is not None:
@@ -154,24 +158,6 @@ class Style:
         self._fg, self._bg = self._bg, self._fg
         return self
 
-    # noinspection PyMethodMayBeStatic
-    def _resolve_color(self, arg: str | int | Color, nullable: bool) -> Color | None:
-        if isinstance(arg, Color):
-            return arg
-        if isinstance(arg, int):
-            return ColorRGB(arg)
-        if isinstance(arg, str):
-            return Index.resolve(arg)
-        return None if nullable else NOOP_COLOR
-
-    @property
-    def attributes(self) -> t.FrozenSet:
-        return frozenset(list(self.__dict__.keys()) + ["fg", "bg"])
-
-    @property
-    def _attributes(self) -> t.FrozenSet:
-        return frozenset(list(self.__dict__.keys()) + ["_fg", "_bg"])
-
     def clone(self) -> Style:
         return Style(self)
 
@@ -182,12 +168,24 @@ class Style:
             if self_val is None and parent_val is not None:
                 setattr(self, attr, parent_val)
 
+    # noinspection PyMethodMayBeStatic
+    def _resolve_color(self, arg: str | int | Color, nullable: bool) -> Color | None:
+        if isinstance(arg, Color):
+            return arg
+        if isinstance(arg, int):
+            return ColorRGB(arg)
+        if isinstance(arg, str):
+            return Index.resolve(arg)
+        return None if nullable else NOOP_COLOR
+
     def __eq__(self, other: Style):
         return all(
             getattr(self, attr) == getattr(other, attr) for attr in self._attributes
         )
 
     def __repr__(self):
+        if self == NOOP_STYLE:
+            return  self.__class__.__name__ + "[NOP]"
         if self._fg is None or self._bg is None:
             return self.__class__.__name__ + "[uninitialized]"
         props_set = [self.fg.format_value("fg="), self.bg.format_value("bg=")]
@@ -216,6 +214,7 @@ class Style:
 
 
 NOOP_STYLE = Style()
+""" Special style passing the text through without any modifications. """
 
 
 class Styles:

@@ -63,7 +63,7 @@ v1.5.0
 v1.4.0
 ------
 
-- `Span.wrap()` now accepts any type of argument, not only ``str``.
+- `Span.wrap()` now accepts any type of argument, not only *str*.
 - Rebuilt ``Sequence`` inheritance tree.
 - Added equality methods for `SequenceSGR` and `Span` classes/subclasses.
 - Added some tests for ``fmt.*`` and ``seq.*`` classes.

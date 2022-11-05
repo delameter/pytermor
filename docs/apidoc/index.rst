@@ -13,8 +13,7 @@ API reference
    renderer
    style
    text
-   util/index
    common
-
-.. automodule:: pytermor.dev
-   :exclude-members: __new__,
+   utilnum
+   utilstr
+   utilsys

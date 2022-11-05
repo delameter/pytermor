@@ -4,11 +4,7 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
-import os
-import sys
-from abc import ABCMeta, abstractmethod
 import typing as t
-
 import logging
 
 logger = logging.getLogger(__package__)
@@ -24,47 +20,18 @@ logger.addHandler(logging.NullHandler())
 ########
 
 T = t.TypeVar("T")
-""" Any """
+""" `t.Any` """
 
+StrType = t.TypeVar("StrType", bound=t.Union[str, "Renderable"])
+""" 
+`StrType` in a method signature usually means that regular strings as well as 
+`Renderable` implementations are supported, can be intermixed, and:
 
-def get_terminal_width(default: int = 80, padding: int = 2) -> int:
-    """
-    get_terminal_width
-    :return:  terminal_width
-    """
-    try:
-        import shutil as _shutil
-        return _shutil.get_terminal_size().columns - padding
-    except ImportError:
-        return int(os.environ.get("COLUMNS", default))
+    - return type will be *str* if and only if type of all arguments is *str*;
+    - otherwise return type will be `Renderable` -- *str* arguments, if any, will
+      be transformed into `Renderable` and concatenated.
 
-
-def wait_key() -> t.AnyStr|None:
-    """
-    Wait for a key press on the console and return it.
-    """
-    if os.name == "nt":
-        import msvcrt
-
-        return msvcrt.getch()
-
-    import termios
-
-    fd = sys.stdin.fileno()
-
-    oldterm = termios.tcgetattr(fd)
-    newattr = termios.tcgetattr(fd)
-    newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
-    termios.tcsetattr(fd, termios.TCSANOW, newattr)
-
-    result = None
-    try:
-        result = sys.stdin.read(1)
-    except IOError:
-        pass
-    finally:
-        termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
-    return result
+"""
 
 
 class LogicError(Exception):
@@ -75,20 +42,14 @@ class ConflictError(Exception):
     pass
 
 
-class Renderable(t.Sized, metaclass=ABCMeta):
-    """
-    Renderable abstract class. Can be inherited when the default style
-    overlaps resolution mechanism implemented in `Text` is not good enough.
-    """
-
-    @abstractmethod
-    def render(self, renderer=None) -> str:
-        raise NotImplementedError
-
-    @abstractmethod
-    def raw(self) -> str:
-        raise NotImplementedError
-
-    @abstractmethod
-    def __len__(self) -> int:
-        raise NotImplementedError
+class EmptyColorMapError(RuntimeError):
+    def __init__(self, is_rgb: bool) -> None:
+        msg = "Class color map is empty, cannot proceed."
+        if is_rgb:
+            msg += (
+                "\nIf you want to approximate color in RGB mode, first you need to "
+                "manually load colors to the map; the library does this for you "
+                "only for Color16 and Color256 classes in order to minify memory "
+                "consumption and speed up imports. See: pytermor.index_rgb.load()"
+            )
+        super().__init__(msg)

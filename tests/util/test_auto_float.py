@@ -6,7 +6,7 @@ import logging
 import unittest
 from typing import List
 
-from pytermor.util.auto_float import format_auto_float
+from pytermor.utilnum import format_auto_float
 
 
 class TestAutoFloat(unittest.TestCase):

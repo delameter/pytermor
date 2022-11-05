@@ -5,37 +5,32 @@
 
 body {
     --api-header-border: 3px solid;
-
-    --color-pt-class: hsla(215, 100%, 95%, 0.5);
-    --color-pt-class-b: hsl(208, 100%, 75%);
-    --color-pt-exception: hsla(0, 100%, 95%, 0.5);
-    --color-pt-exception-b: hsl(0, 50%, 60%);
-    --color-pt-module-method: hsla(144, 100%, 95%, 0.5);
-    --color-pt-module-method-b: hsl(144, 50%, 60%);
-    --color-pt-data: hsla(220, 20%, 95%, 0.5);
-    --color-pt-data-b: hsl(220, 3%, 74%);
-    --color-pt-method: hsla(45, 20%, 95%, 0.5);
-    --color-pt-method-b: hsl(45, 3%, 74%);
 }
-body[data-theme="dark"] {
-    --color-api-overall: var(--color-foreground-secondary);
-    --color-api-name: var(--color-foreground-primary);
-    --color-api-pre-name: var(--color-foreground-primary);
-    --color-api-paren: var(--color-foreground-secondary);
-    --color-api-keyword: var(--color-foreground-primary);
 
-    --color-pt-class: hsla(215, 70%, 25%, 0.25);
-    --color-pt-class-b: hsla(208, 100%, 35%, 0.5);
-    --color-pt-exception: hsla(0, 70%, 25%, 0.25);
-    --color-pt-exception-b: hsla(0, 100%, 35%, 0.5);
-    --color-pt-module-method: hsla(120, 70%, 25%, 0.25);
-    --color-pt-module-method-b: hsla(143, 100%, 35%, 0.5);
-    --color-pt-data: hsla(220, 10%, 35%, 0.25);
-    --color-pt-data-b: hsla(220, 20%, 65%, 0.5);
-    --color-pt-method: hsla(45, 10%, 35%, 0.25);
-    --color-pt-method-b: hsla(45, 20%, 65%, 0.5);
-    --color-highlight-on-target: hsla(50, 100%, 50%, 0.125);
+/** Scrollbar **/
+
+/* Works on Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-foreground-secondary) var(--color-background-secondary);
 }
+
+/* Works on Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 12px;
+}
+*::-webkit-scrollbar-track {
+  background: var(--color-background-secondary);
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-background-item);
+  border: 1px solid var(--color-background-border);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-background-border);
+}
+
 
 /** Font **/
 
@@ -57,6 +52,7 @@ pre, .pre, kbd,
 }
 pre, .pre, kbd,
 .xterm-palette,
+article,
 article[role=main] .highlight pre {
     line-height: 1.3;
 }
@@ -91,6 +87,16 @@ blockquote {
     visibility: hidden;
 }
 
+/** Code **/
+
+.highlight {
+    background: var(--color-pt-doctest-background);
+    border: 1px solid var(--color-pt-doctest-border)
+}
+
+button.copybtn {
+   background: var(--color-pt-doctest-background);
+}
 
 /** Hyperlinks **/
 
@@ -111,6 +117,11 @@ a.reference.internal:hover code,
     background: transparent;
     border: none;
     padding: 0;
+}
+
+a.reference.internal:hover code,
+.py a.reference.internal:hover {
+    text-decoration-style: solid;
 }
 .toc-tree li.scroll-current > .reference {
     color: var(--color-toc-item-text);
@@ -150,71 +161,99 @@ figcaption {
     font-size: 0.8rem;
 }
 
+/** Abomination **/
+
+.admonition {
+    border-bottom: var(--color-table-border) 1px solid;
+}
+
 
 /** API reference **/
 
-dl.class > dt.sig {
-    margin-bottom: 1rem;
+article[role=main] dl.py {
+    margin-top: 1.5rem;
+}
+article[role=main] dt.sig {
+    border-radius: 0;
+    margin-bottom: 0.5rem;
+}
+
+dl.class p.rubric {
+    font-weight: normal;
+    font-size: var(--font-size--small--2) !important;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
 }
 
 dl.class > dt,
 dl.class > dt:hover  {
-    background: var(--color-pt-class);
-    border-top: var(--api-header-border) var(--color-pt-class-b);
+    background: var(--color-pt-class-background);
+    border-top: var(--api-header-border) var(--color-pt-class-border);
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
 dl.class > * > dl.class > dt,
 dl.class > * > dl.class > dt:hover  {
     width: fit-content;
-    border-left: var(--api-header-border) var(--color-pt-class-b);
+    border-left: var(--api-header-border) var(--color-pt-class-border);
     border-top: none;
 }
 dl.function > dt,
 dl.function > dt:hover  {
-    background: var(--color-pt-module-method);
-    border-top: var(--api-header-border) var(--color-pt-module-method-b);
+    background: var(--color-pt-module-method-background);
+    border-top: var(--api-header-border) var(--color-pt-module-method-border);
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
 dl.exception > dt,
 dl.exception > dt:hover {
-    background: var(--color-pt-exception);
-    border-top: var(--api-header-border) var(--color-pt-exception-b);
+    background: var(--color-pt-exception-background);
+    border-top: var(--api-header-border) var(--color-pt-exception-border);
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
 dl.class > * > dl.exception > dt,
 dl.class > * > dl.exception > dt:hover {
     width: fit-content;
-    border-left: var(--api-header-border) var(--color-pt-exception-b);
+    border-left: var(--api-header-border) var(--color-pt-exception-border);
     border-top: none;
 }
 dl.data > dt,
 dl.data > dt:hover {
-    background: var(--color-pt-data);
-    border-top: var(--api-header-border) var(--color-pt-data-b);
+    background: var(--color-pt-data-background);
+    border-top: var(--api-header-border) var(--color-pt-data-border);
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
 dl.attribute > dt,
 dl.attribute > dt:hover {
     width: fit-content;
-    background: var(--color-pt-data);
-    border-left: var(--api-header-border) var(--color-pt-data-b);
+    background: var(--color-pt-data-background);
+    border-left: var(--api-header-border) var(--color-pt-data-border);
 }
 dl.property > dt,
 dl.property > dt:hover {
     width: fit-content;
-    background: var(--color-pt-data);
-    border-left: var(--api-header-border) var(--color-pt-data-b);
+    background: var(--color-pt-data-background);
+    border-left: var(--api-header-border) var(--color-pt-data-border);
 }
 dl.method > dt,
 dl.method > dt:hover {
     width: fit-content;
-    background: var(--color-pt-method);
-    border-left: var(--api-header-border) var(--color-pt-method-b);
+    background: var(--color-pt-method-background);
+    border-left: var(--api-header-border) var(--color-pt-method-border);
 }
+
+dl.class > dt.sig:target,
+dl.function > dt.sig:target,
+dl.exception > dt.sig:target,
+dl.data > dt.sig:target,
+dl.attribute > dt.sig:target,
+dl.property > dt.sig:target,
+dl.method > dt.sig:target {
+    border-color: var(--color-pt-highlight-target-border) !important;
+}
+
 
 /** API reference -- signature body **/
 
@@ -235,6 +274,9 @@ dl.method > dt:hover {
 .sig-name { /** AbstractRenderer **/
     font-weight: bold;
     color: var(--color-api-keyword);
+}
+:target .sig-name {
+    color: var(--color-pt-highlight-target-foreground);
 }
 .sig-param .n { /** output_mode **/
     color: var(--color-api-keyword);
@@ -267,15 +309,19 @@ dl dt > .headerlink {
 }
 
 
-/** API reference -- arguments **/
+/** API reference -- field list **/
 
-dl[class] .field-list {
+dl[class].field-list {
     display: grid;
     grid-template-columns: max-content auto;
 }
-dl[class] .field-list > dt {
+dl[class].field-list > dt {
     font-size: var(--font-size--small--2) !important;
     text-transform: uppercase;
+}
+dl[class].field-list em {
+    font-size: var(--font-size--small);
+    font-weight: normal;
 }
 
 

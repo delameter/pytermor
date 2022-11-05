@@ -6,9 +6,11 @@
 Module contains definitions for low-level ANSI escape sequences building.
 Can be used for creating a variety of sequences including:
 
-    - SGR sequences (text coloring, background coloring, text styling);
-    - CSI sequences (cursor contol, selective screen cleraing);
-    - OSC sequences (varoius operating system commands).
+    - :abbr:`SGR (Select Graphic Rendition)` sequences (text coloring, background
+      coloring, text styling);
+    - :abbr:`CSI (Control Sequence Introducer)` sequences (cursor management,
+      selective screen cleraing);
+    - :abbr:`OSC (Operating System Command)` sequences (varoius system commands).
 
 The module doesn't distinguish "single-instruction" sequences from several
 ones merged together, e.g. ``Style(fg='red', bold=True)`` produces only one
@@ -21,14 +23,15 @@ opening SequenceSGR instance:
 :kbd:`ESC[31m`). However, the module can automatically match terminating
 sequences for any form of input SGRs and translate it to specified format.
 
-XTerm Control Sequences:
+**XTerm Control Sequences**
     https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
 
-ECMA-48 specification:
+**ECMA-48 specification**
     https://www.ecma-international.org/publications-and-standards/standards/ecma-48/
 
 .. testsetup:: *
 
+    import typing as t
     from pytermor.ansi import *
 
 """
@@ -67,7 +70,9 @@ class Sequence(t.Sized, ABC):
 
     @property
     def params(self) -> t.List[int | str]:
-        """Return internal params as array."""
+        """
+        Return internal params as array.
+        """
         return self._params
 
     @classmethod
@@ -89,7 +94,7 @@ class Sequence(t.Sized, ABC):
     def __repr__(self):
         params = ";".join([str(p) for p in self._params])
         if len(self._params) == 0:
-            params = "~"
+            params = "NOP"
         return f"{self._short_class_name()}[{params}]"
 
 
@@ -147,22 +152,29 @@ class SequenceCSI(SequenceFe):
     _INTRODUCER = '['
 
     def __init__(self, terminator: str, *params: int):
+        """
+
+        :param terminator:
+        :param params:
+        """
         self._terminator = terminator
         super().__init__(*params)
 
     @classmethod
     def init_cursor_horizontal_absolute(cls, column: int = 1) -> SequenceCSI:
         """
-        Set cursor x-coordinate to `column`.
+        Set cursor x-coordinate to ``column``.
+
+        :param column:
         """
         return SequenceCSI("G", column)
 
     @classmethod
     def init_erase_in_line(cls, mode: int = 0) -> SequenceCSI:
         """
-        Erase part of the line. If `mode` is 0, clear from cursor to the end
-        of the line. If `mode` is 1, clear from cursor to beginning of the line.
-        If `mode` is 2, clear the entire line. Cursor position does not change.
+        Erase part of the line. If ``mode`` is 0, clear from cursor to the end
+        of the line. If ``mode`` is 1, clear from cursor to beginning of the line.
+        If ``mode`` is 2, clear the entire line. Cursor position does not change.
         """
         if not (0 <= mode <= 2):
             raise ValueError(f"Invalid mode: {mode}, expected [0;2]")
@@ -191,36 +203,36 @@ class SequenceSGR(SequenceCSI):
     (in 3 different color spaces) as well as set decorate text with italic style,
     underlining, overlining, cross-lining, making it bold or blinking etc.
 
-    `SequenceSGR` with zero params was specifically implemented to
-    translate into empty string and not into :kbd:`ESC[m`, which would have
-    made sense, but also would be entangling, as this sequence is the equivalent
-    of :kbd:`ESC[0m` -- hard reset sequence. The empty-string-sequence is
-    predefined at module level as `NOOP_SEQ`.
+    .. note ::
+        `SequenceSGR` with zero params was specifically implemented to
+        translate into empty string and not into :kbd:`ESC[m`, which would have
+        made sense, but also would be entangling, as this sequence is the equivalent
+        of :kbd:`ESC[0m` -- hard reset sequence. The empty-string-sequence is
+        predefined at module level as `NOOP_SEQ`.
 
-    It's possible to add of one SGR sequence to another:
+    When cast to *str*, as all other sequences, invokes `assemble()` method
+    and transforms into encoded control sequence string. It's possible to add
+    of one SGR sequence to another, resulting in a new one with merged params
+    (see examples).
 
-    >>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
-    True
+        >>> SequenceSGR(91, SequenceSGR(7))
+        SGR[91;7]
+        >>> SequenceSGR(IntCode.HI_CYAN, 'underlined')
+        SGR[96;4]
+        >>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
+        True
+
+    :param args:  Sequence params. Resulting param order is the same as an
+                  argument order. Each argument can be specified as:
+
+                     - *str* -- any of `IntCode` names, case-insensitive
+                     - *int* -- `IntCode` instance or plain integer
+                     - `SequenceSGR` instance (params will be extracted)
     """
+
     _TERMINATOR = "m"
 
     def __init__(self, *args: str | int | SequenceSGR):
-        """
-        Create new `SequenceSGR` with specified ``args`` as params.
-        Resulting sequence param order is same as an argument order.
-
-        Each sequence param can be specified as:
-          - string key (any of `IntCode` names, case-insensitive)
-          - integer param value (`IntCode` values)
-          - existing ``SequenceSGR`` instance (params will be extracted).
-
-        >>> SequenceSGR(91, 7)
-        SGR[91;7]
-        >>> SequenceSGR(IntCode.HI_CYAN, IntCode.UNDERLINED)
-        SGR[96;4]
-        >>> SequenceSGR(1, SequenceSGR(33))
-        SGR[1;33]
-        """
         result: t.List[int] = []
 
         for arg in args:
@@ -237,23 +249,23 @@ class SequenceSGR(SequenceCSI):
         super().__init__(self._TERMINATOR, *result)
 
     @classmethod
-    def init_color_256(cls, idx: int, bg: bool = False) -> SequenceSGR:
+    def new_color_256(cls, code: int, bg: bool = False) -> SequenceSGR:
         """
         Wrapper for creation of `SequenceSGR` that sets foreground
         (or background) to one of 256-color palette value.
 
-        :param idx:  Index of the color in the palette, 0 -- 255.
+        :param code:  Index of the color in the palette, 0 -- 255.
         :param bg:    Set to *True* to change the background color
                       (default is foreground).
-        :return:      `SequenceSGR` with required params.
+        :returns:     `SequenceSGR` with required params.
         """
 
-        cls._validate_extended_color(idx)
+        cls._validate_extended_color(code)
         key_code = IntCode.BG_COLOR_EXTENDED if bg else IntCode.COLOR_EXTENDED
-        return SequenceSGR(key_code, IntCode.EXTENDED_MODE_256, idx)
+        return SequenceSGR(key_code, IntCode.EXTENDED_MODE_256, code)
 
     @classmethod
-    def init_color_rgb(cls, r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
+    def new_color_rgb(cls, r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
         """
         Wrapper for creation of `SequenceSGR` operating in True Color mode (16M).
         Valid values for *r*, *g* and *b* are in range [0; 255]. This range
@@ -261,7 +273,7 @@ class SequenceSGR(SequenceCSI):
         value is composed as ``#RRGGBB``. For example, sequence with color of
         ``#FF3300`` can be created with::
 
-            SequenceSGR.init_color_rgb(255, 51, 0)
+            SequenceSGR.new_color_rgb(255, 51, 0)
 
         :param r:  Red channel value, 0 -- 255.
         :param g:  Blue channel value, 0 -- 255.
@@ -292,6 +304,9 @@ class SequenceSGR(SequenceCSI):
 
     @property
     def params(self) -> t.List[int]:
+        """
+        :return: Sequence params as integers or `IntCode` instances.
+        """
         return super().params
 
     def __hash__(self) -> int:
@@ -343,11 +358,11 @@ returns empty list.
 """
 
 
-class IntCode(int, enum.Enum):
+class IntCode(enum.IntEnum):
     """
     Complete or almost complete list of reliably working SGR param integer codes.
-
-    Suitable for :class:`.SequenceSGR` default constructor.
+    Fully interchangeable with plain *int*\-s. Suitable for `SequenceSGR`
+    default constructor.
     """
 
     @classmethod
@@ -396,7 +411,7 @@ class IntCode(int, enum.Enum):
     MAGENTA = 35
     CYAN = 36
     WHITE = 37
-    COLOR_EXTENDED = 38  # use init_color_256() and init_color_rgb() instead
+    COLOR_EXTENDED = 38  # use new_color_256() and new_color_rgb() instead
 
     BG_BLACK = 40
     BG_RED = 41
@@ -406,7 +421,7 @@ class IntCode(int, enum.Enum):
     BG_MAGENTA = 45
     BG_CYAN = 46
     BG_WHITE = 47
-    BG_COLOR_EXTENDED = 48  # use init_color_256() and init_color_rgb() instead
+    BG_COLOR_EXTENDED = 48  # use new_color_256() and new_color_rgb() instead
 
     GRAY = 90
     HI_RED = 91

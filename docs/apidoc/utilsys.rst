@@ -1,11 +1,11 @@
-.. _apidoc.ansi:
+.. _apidoc.utilsys:
 
 .. default-role:: any
 
 ========================
-ansi
+utilsys
 ========================
 
-.. automodule:: pytermor.ansi
+.. automodule:: pytermor.utilsys
    :exclude-members: __new__,
-   :no-undoc-members:
+

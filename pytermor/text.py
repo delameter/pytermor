@@ -3,27 +3,6 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-Module with output formatters. By default :class:`SgrRenderer` is used. It
-also contains compatibility settings, see `SgrRenderer.setup()`.
-
-Working with non-default renderer can be achieved in two ways:
-
-    a. Method `RendererManager.set_default()` sets the default renderer globally.
-       After that calling `render()` will automatically invoke said renderer
-       and all formatting will be applied.
-    b. Alternatively, you can use renderer's own instance method ``render()``
-       directly and avoid messing up with the manager:
-       ``HtmlRenderer().render(<Text>)``
-
-.. rubric:: TL;DR
-
-To unconditionally print formatted message to output terminal, do something like
-this:
-
->>> RendererManager.set_default_to_force_formatting()
->>> render('Warning: AAAA', Styles.WARNING)
-'\\x1b[33mWarning: AAAA\\x1b[39m'
-
 
 .. testsetup:: *
 
@@ -37,14 +16,31 @@ import sys
 import typing as t
 import collections
 import dataclasses
+from abc import ABCMeta, abstractmethod
 
-from .common import LogicError, Renderable
+from .common import LogicError
 from .color import Color, NOOP_COLOR
-from .util import ljust_sgr, rjust_sgr, center_sgr
-from .style import Style, NOOP_STYLE, Styles
+from .utilstr import ljust_sgr, rjust_sgr, center_sgr
+from .style import Style, NOOP_STYLE
 from .renderer import AbstractRenderer, RendererManager
 
-""" Special style passing the text through without any modifications. """
+
+class Renderable(t.Sized, metaclass=ABCMeta):
+    """
+    Renderable abstract class. Can be inherited when the default style
+    overlaps resolution mechanism implemented in `Text` is not good enough.
+    """
+    @abstractmethod
+    def render(self, renderer=None) -> str:
+        raise NotImplementedError
+
+    @abstractmethod
+    def raw(self) -> str:
+        raise NotImplementedError
+
+    @abstractmethod
+    def __len__(self) -> int:
+        raise NotImplementedError
 
 
 @dataclasses.dataclass
@@ -72,15 +68,15 @@ class _TextFragment(t.Sized):
 
 
 class Text(Renderable):
-    WIDTH_MAX_LEN_REGEXP = re.compile(r"[\d.]+$")
-    ALIGN_LEFT = "<"
-    ALIGN_RIGHT = ">"
-    ALIGN_CENTER = "^"
-    ALIGN_FUNC_MAP = {
+    _WIDTH_MAX_LEN_REGEXP = re.compile(r"[\d.]+$")
+    _ALIGN_LEFT = "<"
+    _ALIGN_RIGHT = ">"
+    _ALIGN_CENTER = "^"
+    _ALIGN_FUNC_MAP = {
         None: ljust_sgr,
-        ALIGN_LEFT: ljust_sgr,
-        ALIGN_RIGHT: rjust_sgr,
-        ALIGN_CENTER: center_sgr,
+        _ALIGN_LEFT: ljust_sgr,
+        _ALIGN_RIGHT: rjust_sgr,
+        _ALIGN_CENTER: center_sgr,
     }
 
     def __init__(
@@ -187,6 +183,9 @@ class Text(Renderable):
         self.prepend(other)
         return self
 
+    def __str__(self) -> str:
+        return self.render()
+
     def __format__(self, format_spec: str) -> str:
         """
         ``:s`` mode is required.
@@ -219,7 +218,7 @@ class Text(Renderable):
 
         if width is not None and width > cur_len:
             align_func_args = (result, width, (fill or " "), cur_len)
-            align_func = self.ALIGN_FUNC_MAP.get(align)
+            align_func = self._ALIGN_FUNC_MAP.get(align)
             return align_func(*align_func_args)
         return result
 
@@ -238,7 +237,7 @@ class Text(Renderable):
 
         width = None
         max_len = None
-        if width_and_max_len_match := cls.WIDTH_MAX_LEN_REGEXP.search(format_spec):
+        if width_and_max_len_match := cls._WIDTH_MAX_LEN_REGEXP.search(format_spec):
             width_max_len = width_and_max_len_match.group(0)
             if "." in width_max_len:
                 if width_max_len.startswith("."):
@@ -249,10 +248,10 @@ class Text(Renderable):
                     )
             else:
                 width = int(width_max_len)
-            format_spec = cls.WIDTH_MAX_LEN_REGEXP.sub("", format_spec)
+            format_spec = cls._WIDTH_MAX_LEN_REGEXP.sub("", format_spec)
 
         align = None
-        if format_spec.endswith((cls.ALIGN_LEFT, cls.ALIGN_RIGHT, cls.ALIGN_CENTER)):
+        if format_spec.endswith((cls._ALIGN_LEFT, cls._ALIGN_RIGHT, cls._ALIGN_CENTER)):
             align = format_spec[-1]
             format_spec = format_spec[:-1]
 
@@ -287,7 +286,7 @@ class _TemplateTag:
 
 
 class TemplateEngine:
-    TAG_REGEXP = re.compile(
+    _TAG_REGEXP = re.compile(
         r"""
         (?:
           (?P<set>@[\w]+)?
@@ -305,8 +304,8 @@ class TemplateEngine:
         re.VERBOSE,
     )
 
-    ESCAPE_REGEXP = re.compile(r"([^\\])\\\[")
-    SPLIT_REGEXP = re.compile(r"([^\s,]+)?([\s,]*)")
+    _ESCAPE_REGEXP = re.compile(r"([^\\])\\\[")
+    _SPLIT_REGEXP = re.compile(r"([^\s,]+)?([\s,]*)")
 
     def __init__(self, custom_styles: t.Dict[str, Style] = None):
         self._custom_styles: t.Dict[str, Style] = custom_styles or {}
@@ -317,12 +316,12 @@ class TemplateEngine:
         style_buffer = NOOP_STYLE
         split_style = False
 
-        for tag_match in self.TAG_REGEXP.finditer(tpl):
+        for tag_match in self._TAG_REGEXP.finditer(tpl):
             span = tag_match.span()
-            tpl_part = self.ESCAPE_REGEXP.sub(r"\1[", tpl[tpl_cursor : span[0]])
+            tpl_part = self._ESCAPE_REGEXP.sub(r"\1[", tpl[tpl_cursor: span[0]])
             if len(tpl_part) > 0 or style_buffer != NOOP_STYLE:
                 if split_style:
-                    for tpl_chunk, sep in self.SPLIT_REGEXP.findall(tpl_part):
+                    for tpl_chunk, sep in self._SPLIT_REGEXP.findall(tpl_part):
                         if len(tpl_chunk) > 0:
                             result.append(tpl_chunk, style_buffer, close_this=True)
                         result.append(sep)
@@ -389,6 +388,5 @@ def echo(
     file: t.IO = sys.stdout,
     flush: bool = True,
 ):
-    print(
-        render(string, style, renderer), end="\n" if nl else "", file=file, flush=flush
-    )
+    end = "\n" if nl else ""
+    print(render(string, style, renderer), end=end, file=file, flush=flush)

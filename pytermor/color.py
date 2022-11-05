@@ -5,6 +5,13 @@
 """
 Yare-yare daze
 
+Iterate the registered colors table and compute the euclidean distance
+from argument to each color of the palette. Sort the results and return them.
+
+**sRGB euclidean distance**
+    https://en.wikipedia.org/wiki/Color_difference#sRGB
+    https://stackoverflow.com/a/35114586/5834973
+
 .. testsetup:: *
 
     from pytermor.color import *
@@ -12,14 +19,16 @@ Yare-yare daze
 """
 from __future__ import annotations
 
+import dataclasses
 import typing as t
 from abc import ABCMeta, abstractmethod
+from typing import Union
 
 from .ansi import SequenceSGR, NOOP_SEQ, HI_COLORS, BG_HI_COLORS, IntCode
-from .common import ConflictError, logger
+from .common import ConflictError, logger, EmptyColorMapError
 
-
-CT = t.TypeVar("CT", "Color16", "Color256", "ColorRGB")
+ColorType = t.TypeVar("ColorType", bound=Union["Color16", "Color256", "ColorRGB"])
+""" :meta public: """
 
 
 class Index:
@@ -27,6 +36,12 @@ class Index:
 
     @classmethod
     def register(cls, color: Color, aliases: t.List[str] = None):
+        """
+
+        :param color:
+        :param aliases:
+        :return:
+        """
         for name in [color.name, *(aliases or [])]:
             if not name:
                 continue
@@ -65,14 +80,28 @@ class Index:
         return ColorRGB(color)
 
 
+class _ColorMapItem(t.Generic[ColorType]):
+    def __init__(self, color: ColorType):
+        self.color: ColorType = color
+        self.r, self.g, self.b = self.color.to_rgb()
+
+
+@dataclasses.dataclass(frozen=True)
+class ApproximationResult(t.Generic[ColorType]):
+    """
+    AP
+    """
+    color: ColorType
+    distance: float
+
+
 class Color(metaclass=ABCMeta):
     """
     Abstract superclass for other ``Colors``.
     """
 
-    _index: Index = Index()
-    _map: t.Dict[int, t.Tuple[CT, int, int, int]]  # {code: (Color, r, g, b)}
-    _approx_query_cache: t.Dict[int, CT]
+    _map: t.Dict[int, _ColorMapItem[ColorType]]
+    _approx_query_cache: t.Dict[int, ColorType]
 
     @classmethod
     def __new__(cls, *args, **kwargs):
@@ -90,14 +119,6 @@ class Color(metaclass=ABCMeta):
         if not isinstance(other, self.__class__):
             return False
         return self._hex_value == other._hex_value
-
-    @abstractmethod
-    def to_sgr(self, bg: bool, bound: t.Type[Color] = None) -> SequenceSGR:
-        raise NotImplementedError
-
-    @abstractmethod
-    def to_tmux(self, bg: bool) -> str:
-        raise NotImplementedError
 
     def to_hsv(self) -> t.Tuple[float, float, float]:
         return self.hex_to_hsv(self._hex_value)
@@ -119,92 +140,138 @@ class Color(metaclass=ABCMeta):
         """ """
         return self._name
 
-    @classmethod
-    def find_closest(cls: t.Type[CT], hex_value: int) -> CT:
-        """
-        Search for color nearest to ``hex_value`` and return it. Is used to find
-        applicable color alternatives if user's terminal is incapable of operating
-        in more advanced mode.
+    @abstractmethod
+    def to_sgr(self, bg: bool, bound: t.Type[Color] = None) -> SequenceSGR:
+        raise NotImplementedError
 
-        :param hex_value: Color RGB value.
-        :return: Nearest to ``hex_value`` instance of ``Color`` or found. Type depends
-                 on class of the method.
+    @abstractmethod
+    def to_tmux(self, bg: bool) -> str:
+        raise NotImplementedError
+
+    @classmethod
+    def find_closest(cls: t.Type[ColorType], hex_value: int) -> ColorType:
         """
+        Search and return the nearset color to ``hex_value``. Depending on
+        the desired result type and current color mode you might use either of:
+
+            - ``Color16.find_closest(..)`` -> `Color16`
+            - ``Color256.find_closest(..)`` -> `Color256`
+            - ``ColorRGB.find_closest(..)`` -> `ColorRGB`
+
+        .. note ::
+            Invoking the method of `Color` itself will result in a `RuntimeError`,
+            as it is an abstract class and therefore the color map for this
+            type will always be empty.
+
+        Method is useful for finding applicable color alternatives if user's
+        terminal is incapable of operating in more advanced mode.
+
+        This method caches the results, i.e., the same search query will from then
+        onward result in the same return value without the necessity of iterating
+        through the color index. If that's not applicable, use similar method
+        `approximate()`, which is unaware of caching mechanism altogether.
+
+        :param hex_value: Target color RGB value.
+        :return: Nearest to ``hex_value`` instance of ``Color`` found. Type will
+                 be the same as the class of called method.
+        """
+        cls._ensure_class_is_concrete()
         if hex_value in cls._approx_query_cache.keys():
             return cls._approx_query_cache.get(hex_value)
 
-        closest = cls._get_map_sorted_by_dist(hex_value)[0][0]
+        closest = cls._get_map_sorted_by_dist(hex_value)[0].color
         cls._approx_query_cache[hex_value] = closest
         return closest
 
     @classmethod
-    def approximate(cls: t.Type[CT], hex_value: int, max_results: int = 1) -> t.List[CT]:
+    def approximate(
+        cls: t.Type[ColorType], hex_value: int, max_results: int = 1
+    ) -> t.List[ApproximationResult[ColorType]]:
         """
-        Search for colors nearest to ``hex_value`` and return the first
-        ``<max_results>`` of them.
+        Search for nearest colors to ``hex_value`` and return the first
+        ``max_results`` of them. This method is similar to the `find_closest()`,
+        although they differ in some aspects:
 
-        :param hex_value:      Color RGB value.
-        :param max_results:    Maximum amount of values to return.
-        :return: Closest `Color` instance(s) found, sorted by color distance
-                 descending, i.e., 0-th element is the closest to the input value.
+            - `approximate()` can return more than one result;
+            - `approximate()` returns not just `Color` instances, but also a
+              number equal to the distance to the target color for each of them;
+            - `find_closest()` caches the results, while `approximate()` ignores
+              the cache completely.
+
+        Invoking the method is the same as for its sibling -- do not use
+        abstract class method `Color.approximate()`, choose one of the concrete
+        class methods instead. The type of `Color` instances in the result will
+        be the same as the `Color` class the called method is originating from:
+
+            - ``Color16.approximate(..)`` -> [ApproximationResult[`Color16`], ...]
+            - ``Color256.approximate(..)`` -> [ApproximationResult[`Color256`], ...]
+            - ``ColorRGB.approximate(..)`` -> [ApproximationResult[`ColorRGB`], ...]
+
+        :param hex_value:      Target color RGB value.
+        :param max_results:    Return no more than ``max_results`` items.
+        :return: Pairs of closest `Color` instance(s) found with their distances
+                 to the target color, sorted by distance descending, i.e., element
+                 at index 0 is the closest color found, paired with its distance
+                 to the target; element with index 1 is second-closest color
+                 (if any) and corresponding distance value, etc.
         """
-        sorted_result = cls._get_map_sorted_by_dist(hex_value)
-        return [r[0] for r in sorted_result[:max_results]]
+        cls._ensure_class_is_concrete()
+
+        result = cls._get_map_sorted_by_dist(hex_value)
+        return result[:max_results]
 
     @classmethod
     def _get_map_sorted_by_dist(
-        cls: t.Type[CT], hex_value: int
-    ) -> t.List[t.Tuple[CT, float]]:
+        cls: t.Type[ColorType], hex_value: int
+    ) -> t.List[ApproximationResult[ColorType]]:
+        if len(cls._map) == 0:
+            raise EmptyColorMapError(is_rgb=cls is ColorRGB)
+
+        input_r, input_g, input_b = cls.hex_to_rgb(hex_value)
+        result: t.List[ApproximationResult[ColorType]] = list()
+
+        for _, item in cls._map.items():
+            distance_sq: float = (
+                pow(item.r - input_r, 2)
+                + pow(item.g - input_g, 2)
+                + pow(item.b - input_b, 2)
+            )
+            result.append(ApproximationResult(item.color, distance_sq))
+
+        return sorted(result, key=lambda r: r.distance)
+
+    @classmethod
+    def find_by_code(cls: t.Type[ColorType], code: int) -> ColorType:
         """
-        Iterate the registered colors table and compute the euclidean distance
-        from argument to each color of the palette. Sort the results and return them.
 
-            sRGB euclidean distance
-            https://en.wikipedia.org/wiki/Color_difference#sRGB
-            https://stackoverflow.com/a/35114586/5834973
-
-        .. todo :: rewrite using HSV distance?
-
-        :param hex_value:
+        :param code:
         :return:
         """
-        input_r, input_g, input_b = cls.hex_to_rgb(hex_value)
-        result: t.List[t.Tuple[CT, float]] = list()
-
-        for _, (map_color, map_r, map_g, map_b) in cls._map.items():
-            distance_sq: float = (
-                pow(map_r - input_r, 2)
-                + pow(map_g - input_g, 2)
-                + pow(map_b - input_b, 2)
-            )
-            result.append((map_color, distance_sq))
-
-        return sorted(result, key=lambda r: r[1])
+        cls._ensure_class_is_concrete()
+        if color_item := cls._map.get(code):
+            return color_item.color
+        raise KeyError(f"Color #{code} does not exist")
 
     @classmethod
-    def find_by_code(cls: t.Type[CT], code: int) -> CT:
-        try:
-            if color := cls._map.get(code):
-                return color[0]
-            raise KeyError(f"Color #{code} does not exist")
-        except AttributeError as e:
-            raise RuntimeError(
-                "Code map does not exist. Use concrete class, e.g.: Color16.find_by_code()"
-            ) from e
-
-    @classmethod
-    def _add_to_map(cls: t.Type[CT], color: CT, code: int = None):
+    def _add_to_map(cls: t.Type[ColorType], color: ColorType, code: int = None):
         if code is None:
             code = len(cls._map)
 
         if code in cls._map.keys():
-            existing = cls._map.get(code)[0]
+            existing = cls._map.get(code).color
             if existing != color:
                 logger.warning(f"Color #{code} already exists ({existing}), skipping")
                 return
 
-        r, g, b = color.to_rgb()
-        cls._map[code] = (color, r, g, b)
+        cls._map[code] = _ColorMapItem(color)
+
+    @classmethod
+    def _ensure_class_is_concrete(cls):
+        if not hasattr(cls, "_map") or not hasattr(cls, "_approx_query_cache"):
+            raise RuntimeError(
+                "Code map does not exist. Use concrete class, "
+                "e.g.: Color16.find_by_code(), instead of abstract Color"
+            )
 
     @staticmethod
     def hex_to_hsv(hex_value: int) -> t.Tuple[float, float, float]:
@@ -247,6 +314,10 @@ class Color(metaclass=ABCMeta):
         integers corresponding to *red*, *blue* and *green* channel value
         respectively. Values are within [0; 255] range.
 
+        :param hex_value: Color RGB value.
+
+        .. rubric :: Example:
+
         >>> Color.hex_to_rgb(0x80ff80)
         (128, 255, 128)
         >>> Color.hex_to_rgb(0x000001)
@@ -281,7 +352,7 @@ class Color16(Color):
         self._code_fg: int = code_fg
         self._code_bg: int = code_bg
 
-        self._index.register(self, aliases)
+        Index.register(self, aliases)
         if add_to_map:
             self._add_to_map(self, self._code_fg)
 
@@ -331,16 +402,16 @@ class Color256(Color):
             self._color16_equiv = Color16.find_by_code(color16_equiv)
 
         if not self._color16_equiv:
-            self._index.register(self)
+            Index.register(self)
         if add_to_map:
             self._add_to_map(self, self._code)
 
     def to_sgr(self, bg: bool, bound: t.Type[Color] = None) -> SequenceSGR:
         if bound is ColorRGB:
-            return SequenceSGR.init_color_rgb(*self.to_rgb())
+            return SequenceSGR.new_color_rgb(*self.to_rgb())
 
         if bound is Color256 or bound is None:
-            return SequenceSGR.init_color_256(self._code, bg)
+            return SequenceSGR.new_color_256(self._code, bg)
 
         if self._color16_equiv:
             return self._color16_equiv.to_sgr(bg, bound)
@@ -367,13 +438,13 @@ class ColorRGB(Color):
     def __init__(self, hex_value: int, name: str = None, add_to_map: bool = False):
         super().__init__(hex_value, name)
 
-        self._index.register(self)
+        Index.register(self)
         if add_to_map:
             self._add_to_map(self)
 
     def to_sgr(self, bg: bool, bound: t.Type[Color] = None) -> SequenceSGR:
         if bound is ColorRGB or bound is None:
-            return SequenceSGR.init_color_rgb(*self.to_rgb(), bg)
+            return SequenceSGR.new_color_rgb(*self.to_rgb(), bg)
 
         return bound.find_closest(self._hex_value).to_sgr(bg, bound)
 
@@ -404,7 +475,10 @@ class _NoopColor(Color):
         raise ValueError("No color for NO-OP instance")
 
     def format_value(self, prefix: str = "0x") -> str:
-        return "NOP"
+        return (prefix if "=" in prefix else "") + "NOP"
+
+    def __repr__(self):
+        return f"Color[{self.format_value()}]"
 
 
 NOOP_COLOR = _NoopColor()
