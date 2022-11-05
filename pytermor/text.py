@@ -355,18 +355,24 @@ class TemplateEngine:
     def _tag_to_style(self, tag: _TemplateTag) -> Style | None:
         if tag.comment:
             return None
-        if tag.style in self._custom_styles.keys():
-            return self._custom_styles[tag.style]
 
         style_attrs = {}
+        base_style = NOOP_STYLE
+
         for style_attr in tag.style.split(" "):
+            if style_attr in self._custom_styles.keys():
+                if base_style != NOOP_STYLE:
+                    raise ValueError(f"Only one custom style per tag is allowed: ({tag.style})")
+                base_style = self._custom_styles[style_attr]
+                continue
             if style_attr.startswith("fg=") or style_attr.startswith("bg="):
                 style_attrs.update({k: v for k, v in (style_attr.split("="),)})
-            else:
-                if style_attr not in Style.renderable_attributes:
-                    raise ValueError(f'Unknown style name or attribute: "{style_attr}"')
+                continue
+            if style_attr in Style.renderable_attributes:
                 style_attrs.update({style_attr: True})
-        return Style(**style_attrs)
+                continue
+            raise ValueError(f'Unknown style name or attribute: "{style_attr}"')
+        return Style(base_style, **style_attrs)
 
 
 def render(string: t.Any, style: Style = NOOP_STYLE, renderer: AbstractRenderer = None):
