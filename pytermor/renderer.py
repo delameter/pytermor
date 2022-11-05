@@ -2,6 +2,11 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
+"""
+.. testsetup:: *
+
+    from pytermor.renderer import *
+"""
 from __future__ import annotations
 
 import enum
@@ -98,7 +103,7 @@ class OutputMode(enum.IntEnum):
     TRUE_COLOR = enum.auto()
     """RGB mode"""
     AUTO = enum.auto()
-    """Let the renderer to decide"""
+    """The renderer decide"""
 
 
 class SgrRenderer(AbstractRenderer):
@@ -118,7 +123,7 @@ class SgrRenderer(AbstractRenderer):
     3. `Color16` will be rendered as 16-color sequence.
     4. Nothing of the above will happen and all Colors will be discarded
        completely if output is not a terminal emulator or if the developer
-       explicitly set up the renderer to do so (**force_styles** = False).
+       explicitly set up the renderer to do so (`force_styles` = False).
 
     Compatibility preferences (see `SgrRenderer.setup()`) determine
     exact type of output SGRs. Renderer approximates RGB colors to closest
@@ -126,13 +131,13 @@ class SgrRenderer(AbstractRenderer):
     doesn't support even 256 colors, falls back to 16-color palette and picks
     closest samples again the same way. Color mode to color type mapping:
 
-    1. `OutputMode.TRUE_COLOR` does not apply restrictions to color rendering.
-    2. `OutputMode.XTERM_256` allows the renderer to use either `Color16`
-       or `Color256` (but RGB will be approximated to 256-color pallette).
-    3. `OutputMode.XTERM_16` enforces the renderer to approximate all color types
-       to `Color16` and render them as basic mode selection SGR sequences
-       (e.g., ``ESC[31m``, ``ESC[42m`` etc).
-    4. `OutputMode.NO_ANSI` discards all color information completely.
+        1. `OutputMode.TRUE_COLOR` does not apply restrictions to color rendering.
+        2. `OutputMode.XTERM_256` allows the renderer to use either `Color16`
+           or `Color256` (but RGB will be approximated to 256-color pallette).
+        3. `OutputMode.XTERM_16` enforces the renderer to approximate all color types
+           to `Color16` and render them as basic mode selection SGR sequences
+           (e.g., ``ESC[31m``, ``ESC[42m`` etc).
+        4. `OutputMode.NO_ANSI` discards all color information completely.
 
     >>> render('text', Styles.WARNING_LABEL, SgrRenderer(OutputMode.XTERM_256))
     '\\x1b[1;33mtext\\x1b[22;39m'
@@ -161,9 +166,9 @@ class SgrRenderer(AbstractRenderer):
             is not. Otherwise, the renderer will read ``TERM`` environment
             variable and follow these rules:
 
-                * `OutputMode.NO_ANSI` if ``TERM`` is set to `xterm``.
-                * `OutputMode.XTERM_16` if ``TERM`` is set to `xterm-color``.
-                * `OutputMode.XTERM_256` in all other cases.
+                - `OutputMode.NO_ANSI` if ``TERM`` is set to ``xterm``.
+                - `OutputMode.XTERM_16` if ``TERM`` is set to ``xterm-color``.
+                - `OutputMode.XTERM_256` in all other cases.
 
             Special case is when ``TERM`` equals to ``xterm-256color`` **and**
             ``COLORTERM`` is either ``truecolor`` or  ``24bit``, then
@@ -394,7 +399,6 @@ class DebugRenderer(SgrRenderer):
     """
     DebugRenderer
 
-    #>>> renderer = DebugRenderer(OutputMode.XTERM_256)
     >>> render('text', style.Style(fg='red', bold=True), DebugRenderer)
     '|ǝ1;31|text|ǝ22;39|'
     """

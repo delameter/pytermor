@@ -60,7 +60,10 @@ else:
     html_title = f'pytermor {version}'
 
 html_static_path = ['_static']
-html_css_files = ['custom.css', 'custom-furo.css']
+html_css_files = [
+    'custom.css',
+    'custom-furo.css',
+]
 html_js_files = ['custom.js']
 html_favicon = '_static/logo-96.svg'
 html_logo = '_static/logo-96.svg'
@@ -114,7 +117,7 @@ latex_logo = '_static/logo-96.png'
 autodoc_default_options = {
     'members': True,
     'undoc-members': True,
-    'inherited-members': True,
+    #'inherited-members': True,
     #'private-members': True,
     'show-inheritance': True,
     'special-members': '__call__',
@@ -126,7 +129,7 @@ autodoc_default_options = {
 #add_module_names = False
 
 # ???
-#modindex_common_prefix = ['pytermor']
+modindex_common_prefix = ['pytermor']
 #autosummary_generate = True
 autodoc_class_signature = 'separated'
 #doctest_test_doctest_blocks = 'True'
@@ -140,21 +143,21 @@ autodoc_class_signature = 'separated'
 #     RETURN TYPE:
 #       str
 #autodoc_typehints = 'both'
-autodoc_typehints = 'signature'
-#autodoc_typehints = 'description'
+#autodoc_typehints = 'signature'
+autodoc_typehints = 'description'
 
 keep_warnings = True
-nitpick_ignore = [('py:class', 'Match'),
-                  ('py:class', 'InitVar'),
-                  ('py:class', 'pytermor.common.T'),
-                  ('py:class', 'pytermor.color.TypeColor')]
+# nitpick_ignore = [('py:class', 'Match'),
+#                   ('py:class', 'InitVar'),
+#                   ('py:class', 'pytermor.common.T'),
+#                   ('py:class', 'pytermor.color.TypeColor')]
 
 # -- doctest ------------------------------------------------------------------
 
 doctest_global_setup = '''
 import pytermor as pt                         
-import pytermor.color as col                  
-pt.RendererManager.set_forced_sgr_as_default()
+import pytermor.color as col            
+pt.RendererManager.set_default_to_force_formatting()
 '''
 
 # -- Misc ---------------------------------------------------------------------
@@ -192,3 +195,10 @@ def add_directive_header_no_object_base(self, *args, **kwargs):
 
 add_directive_header = ClassDocumenter.add_directive_header
 ClassDocumenter.add_directive_header = add_directive_header_no_object_base
+
+
+# ---------------------------------------------------------------------------------------
+
+def setup(app):
+    # mark index docfile as always outdated, forces static files (e.g. CSS) update:
+    app.connect('env-get-outdated', lambda *args: ['index'])

@@ -38,7 +38,7 @@ Structure
    |     |                      | `Color256`           | (default 16-color, 256-color, RGB). Tools for color approximation               |
    |     |                      | `ColorRGB`           | and transformations.                                                            |
    |     |                      +----------------------+---------------------------------------------------------------------------------+
-   |     |                      | `ColorIndex`             | Color presets (see `presets`).                                                  |
+   |     |                      | `Index`              | Color registry.                                                                 |
    +-----+----------------------+----------------------+---------------------------------------------------------------------------------+
    | Lo  | `ansi`               | `Span`               | Abstraction consisting of "opening" SGR sequence defined by the                 |
    |     |                      |                      | developer (or taken from preset list) and complementary "closing"               |

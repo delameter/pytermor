@@ -6,9 +6,6 @@ Package containing a set of formatters for prettier output, as well as utility c
 some of the boilerplate code when dealing with escape sequences.
 
 
-.. automodule:: pytermor.util
-
-
 .. toctree::
 
    auto_float
@@ -17,3 +14,6 @@ some of the boilerplate code when dealing with escape sequences.
 
    stdlib_ext
    string_filter
+
+
+.. automodule:: pytermor.util

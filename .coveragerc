@@ -7,6 +7,8 @@ omit =
     */__init__.py
     pytermor/__main__.py
     pytermor/_version.py
+    pytermor/ansi.py:SeqIndex
+    pytermor/index_256.py
 
 dynamic_context = test_function
 
@@ -27,6 +29,9 @@ exclude_lines =
     # Don't complain if non-runnable code isn't run:
     if 0:
     if __name__ == .__main__.:
+
+    # Preset definitions:
+    [A-Z0-9_]+ *= *((Sequence|Color|Style)\w*\([]' ,.\w=[]+\)?|[A-Z0-9_]+)(\s*#.+)?$
 
 ignore_errors = True
 

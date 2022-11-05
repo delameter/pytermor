@@ -2,10 +2,23 @@
 /* pytermor [ANSI formatted terminal output toolset]                         */
 /* (c) 2022. A. Shavykin <0.delameter@gmail.com>                             */
 /*---------------------------------------------------------------------------*/
+
 body {
-    /*font-family: system-ui;*/
+    --api-header-border: 3px solid;
+    --color-pt-class: #e0edff;
+    --color-pt-class-b: #80b5ff;
+    --color-pt-exception: #ffe7e7;
+    --color-pt-exception-b: #cc6666;
+    --color-pt-module-method: #e7ffe7;
+    --color-pt-module-method-b: #66cc8f;
+    --color-pt-data: #f0f2f5;
+    --color-pt-data-b: #bbbcbf;
+    --color-pt-method: #f5f4f0;
+    --color-pt-method-b: #bfbebb;
 }
-h1, .sidebar-brand-text, .brand {
+/** Font **/
+
+h1, abbr, .sidebar-brand-text, .brand {
     font-family: ASM, monospace;
     text-transform: lowercase;
 }
@@ -14,10 +27,97 @@ h1, .sidebar-brand-text, .brand {
     font-weight: bold;
     text-align: center;
 }
-.xterm-palette, pre, .pre, kbd {
-    font-family: "JetBrains Mono", monospace;
+pre, .pre, kbd,
+.py a.reference.internal,
+.xterm-palette,
+.field-list dd.field-odd strong,
+.field-list dd.field-odd em {
+    font-family: "Iose7ka Terminal", monospace;
+}
+pre, .pre, kbd,
+.xterm-palette,
+article[role=main] .highlight pre {
+    line-height: 1.3;
 }
 
+code.literal {
+    font-size: var(--font-size--small);
+}
+
+abbr, abbr[title] {
+    text-decoration: 1px underline dashed var(--color-content-foreground);
+    text-transform: uppercase;
+}
+th abbr {
+    font-size: var(--font-size--small);
+}
+
+
+/** Layout **/
+
+article .align-center, article .align-default {
+    margin-block: 0.5em 1.0em; /** more below **/
+}
+kbd:not(.compound) {
+    vertical-align: middle;
+}
+blockquote {
+    background: transparent;
+    border: none;
+    padding-block: 0;
+}
+.hidden {
+    visibility: hidden;
+}
+
+
+/** Hyperlinks **/
+
+a.reference {
+    text-decoration: none;
+}
+a.reference:hover {
+    text-decoration: 1px underline solid;
+}
+a.reference.internal code,
+a.reference.internal:hover code,
+.py a.reference.internal,
+.py a.reference.internal:hover {
+    color: var(--color-content-foreground);
+    font-size: 100%;
+    font-weight: bold;
+    text-decoration: 1px underline dotted var(--color-content-foreground);
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+.toc-tree li.scroll-current > .reference {
+    color: var(--color-toc-item-text);
+}
+
+
+/** Images **/
+
+a.image-reference img {
+    border: 1px dotted var(--color-background-item);
+    padding: 5px;
+}
+.bottom-of-page .icons {
+    gap: 0.75rem;
+}
+
+
+/** Captions **/
+
+table caption {
+    margin-bottom: 1rem;
+}
+figcaption {
+    font-size: var(--font-size--small);
+}
+
+
+/** Intro **/
 
 .intro a.reference {
     font-size: 1.5rem;
@@ -29,6 +129,9 @@ h1, .sidebar-brand-text, .brand {
     font-size: 0.8rem;
 }
 
+
+/** Core API table **/
+
 table.core-api-refs p {
     font-size: 1.33em;
 }
@@ -36,81 +139,8 @@ table.core-api-refs td {
     padding: 1rem;
 }
 
-.bottom-of-page .icons {
-    gap: 0.75rem;
-}
 
-.toc-tree li.scroll-current>.reference {
-    color: var(--color-toc-item-text);
-}
-
-.smaller { font-size: 90%; }
-.dense { line-height: 1.2; }
-
-code.literal {
-    font-size: 100%;
-}
-
-kbd:not(.compound) {
-    vertical-align: middle;
-}
-
-table.docutils th {
-    padding-block: 0.75rem;
-}
-
-
-table.xterm-palette td {
-    font-family: monospace;
-    text-align: center;
-}
-body table.xterm-palette td {
-    border: 1px solid var(--color-background-secondary);
-}
-body[data-theme="dark"] table.xterm-palette td {
-    border: 1px solid var(--color-background-secondary);
-}
-span.xterm-palette-id {
-    font-weight: bold;
-}
-span.xterm-palette-color {
-    font-size: var(--font-size--small);
-}
-td.xterm-palette-light {
-    color: #ffffff;
-}
-td.xterm-palette-dark {
-    color: #000000;
-}
-th abbr {
-    font-family: 'ASM', monospace;
-    font-size: var(--font-size--small);
-    text-transform: uppercase;
-}
-
-
-
-table caption {
-    margin-bottom: 1rem;
-}
-
-figcaption {
-    font-size: var(--font-size--small);
-}
-
-article .align-center, article .align-default {
-    margin-block: 0.5em 1.0em;
-}
-
-section > dl.py.class {
-    border-top: 1px solid var(--color-background-item);
-}
-
-dl.class > dt.sig {
-    margin-bottom: 1rem;
-}
-
-
+/** Presets table **/
 
 table.presets {
     margin-inline: 0.125rem;
@@ -124,6 +154,9 @@ table.presets img {
 table.presets td, table.presets th {
     padding: 0 0 0.05rem;
     vertical-align: middle;
+}
+table.presets th {
+    padding-block: 0.75rem;
 }
 table.presets td {
     border: none;
@@ -143,15 +176,7 @@ table.preset-colors {
 table.preset-attributes td:nth-child(8) {
     font-size: 0.9rem;
 }
-
-
-
-a.image-reference img {
-    border: 1px dotted var(--color-background-item);
-    padding: 5px;
-}
-
-aside.footnote {
+table.presets aside.footnote {
     display: flex;
     flex-direction: row;
     align-items: flex-start;
@@ -159,35 +184,116 @@ aside.footnote {
 }
 
 
+/** API reference **/
 
-body[data-theme="dark"] .sig-name {
-    color: #f5c13d;
+dl.class > dt.sig {
+    margin-bottom: 1rem;
 }
-body[data-theme="dark"] .sig-prename {
-    color: #ee9a51;
-    font-weight: 400;
-}
-body[data-theme="dark"] .highlight .s1 {
-    color: #4e9a06;
+dl.method, dl.method > dt,
+dl.property, dl.property > dt,
+dl.attribute, dl.attribute > dt {
 }
 
+/** API reference **/
 
-.sig-return:before {
-    content: '➜';
+dl.class > dt,
+dl.class > dt:hover  {
+    background: var(--color-pt-class);
+    border-top: var(--api-header-border) var(--color-pt-class-b);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
 }
-.sig-return-icon {
-    display: none;
+dl.class > * > dl.class > dt,
+dl.class > * > dl.class > dt:hover  {
+    width: fit-content;
+    border-left: var(--api-header-border) var(--color-pt-class-b);
+    border-top: none;
+}
+dl.function > dt,
+dl.function > dt:hover  {
+    background: var(--color-pt-module-method);
+    border-top: var(--api-header-border) var(--color-pt-module-method-b);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+dl.exception > dt,
+dl.exception > dt:hover {
+    background: var(--color-pt-exception);
+    border-top: var(--api-header-border) var(--color-pt-exception-b);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+dl.class > * > dl.exception > dt,
+dl.class > * > dl.exception > dt:hover {
+    width: fit-content;
+    border-left: var(--api-header-border) var(--color-pt-exception-b);
+    border-top: none;
+}
+dl.data > dt,
+dl.data > dt:hover {
+    background: var(--color-pt-data);
+    border-top: var(--api-header-border) var(--color-pt-data-b);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+dl.attribute > dt,
+dl.attribute > dt:hover {
+    width: fit-content;
+    background: var(--color-pt-data);
+    border-left: var(--api-header-border) var(--color-pt-data-b);
+}
+dl.property > dt,
+dl.property > dt:hover {
+    width: fit-content;
+    background: var(--color-pt-data);
+    border-left: var(--api-header-border) var(--color-pt-data-b);
+}
+dl.method > dt,
+dl.method > dt:hover {
+    width: fit-content;
+    background: var(--color-pt-method);
+    border-left: var(--api-header-border) var(--color-pt-method-b);
 }
 
+/** API reference -- signature body **/
 
-.sig-prename {
+.sig {
+    font-weight: normal;
+    font-size: var(--font-size--normal);
+}
+.sig .reference {
+    font-weight: bold;
+}
+.property:first-child { /** class, classmethod etc **/
     font-size: var(--font-size--small);
+    font-style: italic;
 }
+.sig-prename { /** pytermor.renderer. **/
+    color: var(--color-api-keyword);
+}
+.sig-name { /** AbstractRenderer **/
+    font-weight: bold;
+    color: var(--color-api-keyword);
+}
+.sig-param .n { /** output_mode **/
+    color: var(--color-api-keyword);
+}
+/*.sig-param .o {}*/
+/*.sig-param .p {}*/
+/*.sig-param .default_value {}*/
+/*.sig-return-typehint .p {}*/
 
+
+/** API reference -- signature hyperlinks **/
+
+dl dt > .headerlink {
+    margin-right: 0.5rem;
+}
 
 .sig a.reference .viewcode-link {
     font-weight: normal;
     width: 2.5rem;
+    color: var(--color-link);
 }
 .sig a.reference .viewcode-link:before {
     content: '[src]';
@@ -197,33 +303,47 @@ body[data-theme="dark"] .highlight .s1 {
 }
 .sig a.reference .viewcode-link:hover {
     text-decoration: underline;
-    text-underline-position: under;
 }
 
-.sig {
-    /*font-weight: normal;*/
+
+/** API reference -- arguments **/
+
+dl[class] .field-list {
+    display: grid;
+    grid-template-columns: max-content auto;
 }
-.sig .reference {
-    /*font-weight: bold;*/
-}
-.sig-name {
-    /*font-weight: bold;*/
-}
-.sig-param .n:first-child {
-    /*font-weight: bold;*/
-}
-.sig-param .n:not(:first-child) {
-    /*color: #f00;*/
-    /*font-weight: normal;*/
-}
-.sig-param .p,
-.sig-return-typehint .p {
-    /*color: #0f0;*/
+dl[class] .field-list > dt {
+    font-size: var(--font-size--small--2) !important;
+    text-transform: uppercase;
 }
 
-.sig-param .default_value {
-    /*color: #71a5d9;*/
+
+/** XTerm palette **/
+
+table.xterm-palette td {
+    font-family: monospace;
+    text-align: center;
 }
-body[data-theme="dark"] .sig-param .default_value {
-    /*color: #71a5d9;*/
+body table.xterm-palette td {
+    border: 1px solid var(--color-background-secondary);
+}
+body[data-theme="dark"] table.xterm-palette td {
+    border: 1px solid var(--color-background-secondary);
+}
+span.xterm-palette-code {
+    font-weight: bold;
+}
+span.xterm-palette-color {
+    font-size: var(--font-size--small);
+}
+td.xterm-palette-light {
+    color: #ffffff;
+}
+td.xterm-palette-dark {
+    color: #000000;
+}
+
+.xterm-palette-options {
+    text-align: left;
+    margin-left: 0.5rem;
 }

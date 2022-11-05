@@ -6,27 +6,31 @@
 Module contains definitions for low-level ANSI escape sequences building.
 Can be used for creating a variety of sequences including:
 
-  - SGR sequences (text coloring, background coloring, text styling);
-  - CSI sequences (cursor contol, selective screen cleraing);
-  - OSC sequences (varoius operating system commands).
+    - SGR sequences (text coloring, background coloring, text styling);
+    - CSI sequences (cursor contol, selective screen cleraing);
+    - OSC sequences (varoius operating system commands).
 
 The module doesn't distinguish "single-instruction" sequences from several
-ones merged together, e.g. Style(fg='red', bold=True) produces only one
-SequenceSGR instance:
->>> from pytermor import Style, index_256, render, RendererManager
->>> RendererManager.set_default_to_force_formatting()
->>> render('A', Style(fg=index.RED, bold=True))
-'\\x1b[1;31mA\\x1b[22;39m'
+ones merged together, e.g. ``Style(fg='red', bold=True)`` produces only one
+opening SequenceSGR instance:
+
+>>> SequenceSGR(IntCode.BOLD, IntCode.RED).assemble()
+'\\x1b[1;31m'
 
 ...although generally speaking it is two of them (:kbd:`ESC[1m` and
 :kbd:`ESC[31m`). However, the module can automatically match terminating
 sequences for any form of input SGRs and translate it to specified format.
 
-XTerm Control Sequences
-https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
+XTerm Control Sequences:
+    https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
 
-ECMA-48 specification
-https://www.ecma-international.org/publications-and-standards/standards/ecma-48/
+ECMA-48 specification:
+    https://www.ecma-international.org/publications-and-standards/standards/ecma-48/
+
+.. testsetup:: *
+
+    from pytermor.ansi import *
+
 """
 from __future__ import annotations
 
@@ -94,8 +98,8 @@ class SequenceFe(Sequence, ABC):
     Wide range of sequence types that includes CSI, OSC and more.
 
     All subtypes of this sequence start with :kbd:`ESC` plus ASCII byte
-    from ``0x40`` to ``0x5F`` (:kbd:`@`:kbd:`[`:kbd:`\\\\`:kbd:`]`:kbd:`^`:kbd:`_`,
-    and capital letters :kbd:`A`-:kbd:`Z`).
+    from ``0x40`` to ``0x5F`` (:kbd:`@[\\\\]_^` and capital letters
+    :kbd:`A`-:kbd:`Z`).
     """
 
 
@@ -194,6 +198,7 @@ class SequenceSGR(SequenceCSI):
     predefined at module level as `NOOP_SEQ`.
 
     It's possible to add of one SGR sequence to another:
+
     >>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
     True
     """

@@ -2,6 +2,14 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
+"""
+Yare-yare daze
+
+.. testsetup:: *
+
+    from pytermor.color import *
+
+"""
 from __future__ import annotations
 
 import typing as t
@@ -396,7 +404,7 @@ class _NoopColor(Color):
         raise ValueError("No color for NO-OP instance")
 
     def format_value(self, prefix: str = "0x") -> str:
-        return "~"
+        return "NOP"
 
 
 NOOP_COLOR = _NoopColor()

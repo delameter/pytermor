@@ -8,7 +8,7 @@ from __future__ import annotations
 import typing as t
 from dataclasses import dataclass, field
 
-from . import color
+from . import index_256, color
 from .color import Color, NOOP_COLOR, ColorRGB, Index
 
 
@@ -141,9 +141,9 @@ class Style:
 
         h, s, v = self._bg.to_hsv()
         if v >= 0.45:
-            self._fg = index.GRAY_3
+            self._fg = index_256.GRAY_3
         else:
-            self._fg = index.GRAY_82
+            self._fg = index_256.GRAY_82
         return self
 
     def flip(self) -> Style:

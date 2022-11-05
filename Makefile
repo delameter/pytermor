@@ -14,27 +14,28 @@ include .env.dist
 export
 VERSION ?= 0.0.0
 
+NOW    := $(shell date '+%Y-%b-%0e.%H%M%S.%3N')
 BOLD   := $(shell tput -Txterm bold)
-UNDERL := $(shell tput -Txterm smul)
 GREEN  := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)
-RESET  := $(shell tput -Txterm sgr0)
-SEPU   := $(shell printf "┌%48s┐" "" | sed 's/ /─/g')
-SEPD   := $(shell printf "└%48s┘" "" | sed 's/ /─/g')
-SEPL   := $(shell printf "│ ")
-SEPR   := $(shell printf " │")
-log_success = (echo ${SEPU}; printf "%-6s%-36sOK\n" $1 | tr '\t' ' ' | sed -Ee "s/(\s*\S+\s+)(\S+\s+)(\S+)/${SEPL}\x01[m\2\x01[32m\1\x01[32;1;7m \3 \x01[m${SEPR}/" | tr '\001' '\033'; echo ${SEPD})
-
-
+BLUE   := $(shell tput -Txterm setaf 4)
+DIM    := $(shell tput -Txterm dim)
+RESET  := $(shell printf '\e[m')
+                                # tput -Txterm sgr0 returns SGR-0 with
+                                # nF code switching esq, which displaces the columns
 ## Common commands
 
 help:   ## Show this help
-	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s*([^#]+)#*\s*(.*)/\1${YELLOW}\2${RESET}#\3/; s/(.+):(#|\s)+(.+)/##   ${GREEN}\1${RESET}#\3/; s/\*(\w+)\*/${UNDERL}\1${RESET}/g' | column -t -s '#'
+	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s?(\s*#?[^#]+)#*\s*(.*)/\1${YELLOW}\2${RESET}#\3/; s/(.+):(#|\s)+(.+)/##   ${GREEN}\1${RESET}#\3/; s/\*(\w+)\*/${BOLD}\1${RESET}/g; 2~1s/<([ )*<@>.A-Za-z0-9_(-]+)>/${DIM}\1${RESET}/gi' -e 's/(\x1b\[)33m#/\136m/' | column -ts# | sed -Ee 's/ {3}>/ >/'
+
 
 all:   ## Prepare, run tests, generate docs and reports, build module
-all: prepare prepare-pdf test doctest coverage docs-all build
+all: prepare prepare-pdf auto-all test doctest coverage docs-all build
+
+# CI (on push into master): prepare prepare-pdf set-version set-tag auto-all test doctest coverage docs-all build upload upload-doc?
 
 prepare:  ## Prepare environment for module building
+	if [ ! -f .env ] ; then cp -u .env.dist .env && sed -i -Ee '/^VERSION=/d' .env.build ; fi
 	python3 -m venv venv
 	. venv/bin/activate
 	pip3 install --upgrade build twine
@@ -51,9 +52,16 @@ demolish-build:  ## Purge build output folders
 
 ## Automation
 
-preprocess-rgb:  ## A
+auto-all:  ## Run full cycle of automatic operations
+auto-all: preprocess-rgb update-index
+
+preprocess-rgb:  ## Transform interm. RGB config to suitable for embedding
 	PYTHONPATH=. venv/bin/python scripts/preprocess_rgb.py
 	PYTHONPATH=. venv/bin/python scripts/print_rgb.py
+
+update-index:  ## Process color configs and update library color index sources
+	echo NOP
+
 
 
 ## Testing / Pre-build
@@ -62,7 +70,6 @@ set-version: ## Set new package version
 	@echo "Current version: ${YELLOW}${VERSION}${RESET}"
 	read -p "New version (press enter to keep current): " VERSION
 	if [ -z $$VERSION ] ; then echo "No changes" && return 0 ; fi
-	if [ ! -f .env ] ; then cp -u .env.dist .env ; fi
 	sed -E -i "s/^VERSION.+/VERSION=$$VERSION/" .env.dist
 	sed -E -i "s/^version.+/version = $$VERSION/" setup.cfg
 	sed -E -i "s/^__version__.+/__version__ = '$$VERSION'/" ${PROJECT_NAME}/_version.py
@@ -109,37 +116,38 @@ reinit-docs: ## Erase and reinit docs with auto table of contents
 demolish-docs:  ## Purge docs output folder
 	rm -rvf docs/_build
 
-docs: ## Build HTML documentation
-docs: demolish-docs
-	. venv/bin/activate
-	sphinx-build -aEn docs docs/_build -b html
-	find docs/_build -type f -name '*.html' | sort | xargs -n1 grep -HnT ^ | sed s@^docs/_build/@@ > docs-build/${PROJECT_NAME}.html.dump
-	@if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/index.html ; fi
+docs: ## (Re)build HTML documentation  <from scratch>
+docs: demolish-docs docs-html
 
-docs-pdf: ## Build PDF documentation
+docs-html: ## Build HTML documentation  <caching allowed>
 	mkdir -p docs-build
-	. venv/bin/activate
-	yes "" | make -C docs latexpdf  # twice for building pdf toc
-	yes "" | make -C docs latexpdf  # @FIXME broken unicode
+	venv/bin/sphinx-build docs docs/_build -b html -n
+	#find docs/_build -type f -name '*.html' | sort | xargs -n1 grep -HnT ^ | sed s@^docs/_build/@@ > docs-build/${PROJECT_NAME}.html.dump
+	if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/index.html ; fi
+
+docs-pdf: ## Build PDF documentation  <caching allowed>
+	mkdir -p docs-build
+	yes "" | venv/bin/sphinx-build -M latexpdf docs docs/_build -n  # twice for building pdf toc
+	yes "" | venv/bin/sphinx-build -M latexpdf docs docs/_build     # @FIXME broken unicode
 	mv docs/_build/latex/${PROJECT_NAME}.pdf docs-build/${PROJECT_NAME}.pdf
-	@if [ -n "${DISPLAY}" ] ; then xdg-open docs-build/${PROJECT_NAME}.pdf ; fi
+	if [ -n "${DISPLAY}" ] ; then xdg-open docs-build/${PROJECT_NAME}.pdf ; fi
 
-docs-man: ## Build man pages
-	. venv/bin/activate
+docs-man: ## Build man pages  <caching allowed>
 	sed -i.bak -Ee 's/^.+<<<MAKE_DOCS_MAN<<</#&/' docs/conf.py
-	make -C docs man || echo 'Generation failed'
+	venv/bin/sphinx-build docs docs/_build -b man -n || echo 'Generation failed'
 	mv docs/conf.py.bak docs/conf.py
-	mv docs/_build/man/${PROJECT_NAME}.1 docs-build/${PROJECT_NAME}.1
+	mv docs/_build/${PROJECT_NAME}.1 docs-build/${PROJECT_NAME}.1
+	if command -v maf &>/dev/null; then maf docs-build/${PROJECT_NAME}.1; else man docs-build/${PROJECT_NAME}.1; fi
 
-docs-all: ## Build documentation in all formats
-docs-all: docs docs-pdf docs-man
+docs-all: ## (Re)build documentation in all formats
+docs-all: demolish-docs docs docs-pdf docs-man
 	@echo
 	@$(call log_success,$$(du -h docs-build/*)) | sed -E '1s/^(..).{7}/\1SUMMARY/'
 
 
 ## Releasing (dev)
 
-build-dev: ## Create new private build ("pytermor-delameter")
+build-dev: ## Create new private build  <*-delameter>
 build-dev: demolish-build
 	sed -E -i "s/^name.+/name = ${PROJECT_NAME_PRIVATE}/" setup.cfg
 	. venv/bin/activate
@@ -162,7 +170,7 @@ install-dev-public: ## Install latest *public* build from dev repo
 
 ## Releasing (MASTER)
 
-build: ## Create new *public* build ("pytermor")
+build: ## Create new *public* build
 build: demolish-build
 	. venv/bin/activate
 	python3 -m build

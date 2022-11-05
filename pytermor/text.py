@@ -23,6 +23,12 @@ this:
 >>> RendererManager.set_default_to_force_formatting()
 >>> render('Warning: AAAA', Styles.WARNING)
 '\\x1b[33mWarning: AAAA\\x1b[39m'
+
+
+.. testsetup:: *
+
+    from pytermor.text import *
+
 """
 from __future__ import annotations
 
