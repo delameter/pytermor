@@ -9,6 +9,8 @@ PROJECT_NAME_PUBLIC = ${PROJECT_NAME}
 PROJECT_NAME_PRIVATE = ${PROJECT_NAME}-delameter
 DEPENDS_PATH = scripts/diagrams
 
+VENV_PATH = venv
+
 include .env.dist
 -include .env
 export
@@ -31,20 +33,23 @@ help:   ## Show this help
 
 all:   ## Prepare, run tests, generate docs and reports, build module
 all: prepare prepare-pdf auto-all test doctest coverage docs-all build
-
 # CI (on push into master): prepare prepare-pdf set-version set-tag auto-all test doctest coverage docs-all build upload upload-doc?
 
 prepare:  ## Prepare environment for module building
+	rm -vrf ${VENV_PATH}
 	if [ ! -f .env ] ; then cp -u .env.dist .env && sed -i -Ee '/^VERSION=/d' .env.build ; fi
-	python3 -m venv venv
-	. venv/bin/activate
-	pip3 install --upgrade build twine
-	pip3 install -r requirements-dev.txt
+	python3 -m venv ${VENV_PATH}
+	venv/bin/pip3 install --upgrade build twine
+	venv/bin/pip3 install -r requirements-dev.txt
 
 prepare-pdf:  ## Prepare environment for pdf rendering
 	sudo apt install texlive-latex-recommended \
 					 texlive-fonts-recommended \
 					 texlive-latex-extra latexmk
+
+freeze:  ## Actualize the requirements.txt file(s)  <venv>
+	venv/bin/pip3 freeze -r requirements-dev.txt --all --exclude-editable > requirements-dev.txt.new
+	mv requirements-dev.txt.new requirements-dev.txt
 
 demolish-build:  ## Purge build output folders
 	rm -f -v dist/* ${PROJECT_NAME_PUBLIC}.egg-info/* ${PROJECT_NAME_PRIVATE}.egg-info/*
