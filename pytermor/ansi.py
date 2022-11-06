@@ -7,7 +7,6 @@ Module contains definitions for low-level ANSI escape sequences building.
 Can be used for creating a variety of sequences including:
 
     - :abbr:`SGR (Select Graphic Rendition)` sequences (text coloring, background
-      coloring, text styling);
     - :abbr:`CSI (Control Sequence Introducer)` sequences (cursor management,
       selective screen cleraing);
     - :abbr:`OSC (Operating System Command)` sequences (varoius system commands).
@@ -92,10 +91,10 @@ class Sequence(t.Sized, ABC):
         return self._params == other._params
 
     def __repr__(self):
-        params = ";".join([str(p) for p in self._params])
+        params = ",".join([str(p) for p in self._params])
         if len(self._params) == 0:
             params = "NOP"
-        return f"{self._short_class_name()}[{params}]"
+        return f"<{self._short_class_name()} [{params}]>"
 
 
 class SequenceFe(Sequence, ABC):
@@ -237,7 +236,9 @@ class SequenceSGR(SequenceCSI):
 
         for arg in args:
             if isinstance(arg, str):
-                result.append(IntCode.resolve(arg))
+                result.append(IntCode.resolve(arg).value)
+            elif isinstance(arg, IntCode):
+                result.append(arg.value)  # to avoid casting it later in assemble()
             elif isinstance(arg, int):
                 result.append(arg)
             elif isinstance(arg, SequenceSGR):
@@ -245,7 +246,7 @@ class SequenceSGR(SequenceCSI):
             else:
                 raise TypeError(f"Invalid argument type: {arg!r})")
 
-        result = [max(0, int(p)) for p in result]
+        result = [max(0, p) for p in result]
         super().__init__(self._TERMINATOR, *result)
 
     @classmethod
@@ -376,7 +377,7 @@ class IntCode(enum.IntEnum):
         return instance
 
     def __repr__(self) -> str:
-        return f"{self.value}|{self.name}"
+        return f"<{self.value}|{self.name}>"
 
     # -- SGR: default attributes and colors -----------------------------------
 
