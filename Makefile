@@ -48,8 +48,9 @@ prepare-pdf:  ## Prepare environment for pdf rendering
 					 texlive-latex-extra latexmk
 
 freeze:  ## Actualize the requirements.txt file(s)  <venv>
-	venv/bin/pip3 freeze -r requirements-dev.txt --all --exclude-editable > requirements-dev.txt.new
-	mv requirements-dev.txt.new requirements-dev.txt
+	venv/bin/pip3 freeze -r requirements-dev.txt --all --exclude-editable > requirements-dev.txt.tmp
+	sed -i -Ee '/were added by pip/ s/.+//' requirements-dev.txt.tmp
+	mv requirements-dev.txt.tmp requirements-dev.txt
 
 demolish-build:  ## Purge build output folders
 	rm -f -v dist/* ${PROJECT_NAME_PUBLIC}.egg-info/* ${PROJECT_NAME_PRIVATE}.egg-info/*
