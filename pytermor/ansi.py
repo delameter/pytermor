@@ -56,7 +56,13 @@ class Sequence(t.Sized, ABC):
     _TERMINATOR: str
 
     def __init__(self, *params: int | str):
-        self._params: t.List[int | str] = [*params]
+        self._params: t.List[int|str] = []
+
+        for param in params:
+            if isinstance(param, IntCode):
+                self._params.append(param.value)  # to avoid casting it later in assemble()
+                continue
+            self._params.append(param)
 
     def assemble(self) -> str:
         """
@@ -128,13 +134,13 @@ class SequenceOSC(SequenceFe):
     _TERMINATOR = SequenceST().assemble()
 
     @classmethod
-    def new_hyperlink(cls, url: str) -> SequenceOSC:
+    def new_hyperlink(cls, url: str = None) -> SequenceOSC:
         """
 
         :param url:
-        :example:  ``ESC]https://example.comESC\\``
+        :example:  ``ESC]8;;http://localhostESC\\TextESC]8;;ESC\\``
         """
-        return SequenceOSC(IntCode.HYPERLINK, "", url)
+        return SequenceOSC(IntCode.HYPERLINK, "", (url or ""))
 
     @classmethod
     def _short_class_name(cls):
@@ -263,8 +269,6 @@ class SequenceSGR(SequenceCSI):
         for arg in args:
             if isinstance(arg, str):
                 result.append(IntCode.resolve(arg).value)
-            elif isinstance(arg, IntCode):
-                result.append(arg.value)  # to avoid casting it later in assemble()
             elif isinstance(arg, int):
                 result.append(arg)
             elif isinstance(arg, SequenceSGR):
@@ -395,7 +399,7 @@ returns empty list.
 class IntCode(enum.IntEnum):
     """
     Complete or almost complete list of reliably working SGR param integer codes.
-    Fully interchangeable with plain *int*\-s. Suitable for `SequenceSGR`
+    Fully interchangeable with plain *int*. Suitable for `SequenceSGR`
     default constructor.
     """
 
@@ -683,3 +687,7 @@ _sgr_pairity_registry = _SgrPairityRegistry()
 
 def get_closing_seq(opening_seq: SequenceSGR) -> SequenceSGR:
     return _sgr_pairity_registry.get_closing_seq(opening_seq)
+
+
+def make_hyperlink_span(url: str, label: str) -> str:
+    return f"{SequenceOSC.new_hyperlink(url)}{label}{SequenceOSC.new_hyperlink('')}"

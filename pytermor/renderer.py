@@ -35,6 +35,7 @@ this:
 .. testsetup:: *
 
     from pytermor.renderer import *
+    from pytermor import render
 
 """
 from __future__ import annotations
@@ -61,7 +62,7 @@ class RendererManager:
         """
         Select a global renderer.
 
-            >>> RendererManager.set_default(DebugRenderer)
+            >>> RendererManager.set_default(DebugRenderer(OutputMode.XTERM_16))
             >>> render('text', Style(fg='red'))
             '|ǝ31|text|ǝ39|'
 
@@ -456,7 +457,7 @@ class DebugRenderer(SgrRenderer):
     """
     DebugRenderer
 
-    >>> DebugRenderer().render('text', Style(fg='red', bold=True))
+    >>> DebugRenderer(OutputMode.XTERM_16).render('text', Style(fg='red', bold=True))
     '|ǝ1;31|text|ǝ22;39|'
     """
 

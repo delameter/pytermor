@@ -20,14 +20,11 @@ from argument to each color of the palette. Sort the results and return them.
 from __future__ import annotations
 
 import dataclasses
-import enum
 import re
 import typing as t
 from abc import ABCMeta, abstractmethod
-from builtins import set
 
 from .ansi import SequenceSGR, NOOP_SEQ, HI_COLORS, BG_HI_COLORS
-from .common import logger
 
 ColorType = t.TypeVar("ColorType", "Color16", "Color256", "ColorRGB")
 """ :meta public: """
@@ -35,19 +32,19 @@ ColorType = t.TypeVar("ColorType", "Color16", "Color256", "ColorRGB")
 
 class _ColorRegistry(t.Generic[ColorType]):
     _TOKEN_SEPARATOR = "-"
-    _QUERY_SPLIT_REGEX = re.compile(r"\W+|(?<=[a-z])(?=[A-Z0-9])")
+    _QUERY_SPLIT_REGEX = re.compile(r"[\W_]+|(?<=[a-z])(?=[A-Z0-9])")
 
     def __init__(self):
         self._map: t.Dict[t.Tuple[str], ColorType] = {}
 
     def register(self, color: ColorType, name: str):
-        primary_tokens = tuple(name.split(self._TOKEN_SEPARATOR))
+        primary_tokens = tuple(self._QUERY_SPLIT_REGEX.split(name))
         self._register_pair(color, primary_tokens)
 
         for variation in color.variations.values():
             variation_tokens: t.Tuple[str, ...] = (
                 *primary_tokens,
-                *(variation.name.split(self._TOKEN_SEPARATOR)),
+                *(self._QUERY_SPLIT_REGEX.split(variation.name)),
             )
             self._register_pair(variation, variation_tokens)
 
@@ -62,7 +59,7 @@ class _ColorRegistry(t.Generic[ColorType]):
         raise ColorNameConflictError(tokens, existing_color, color)
 
     def resolve(self, name: str) -> ColorType:
-        query_tokens = (*self._QUERY_SPLIT_REGEX.split(name)),
+        query_tokens = *(qt.lower() for qt in self._QUERY_SPLIT_REGEX.split(name)),
         if color := self._map.get(query_tokens, None):
             return color
         raise ValueError(f"Color '{name}' does not exist")
@@ -170,8 +167,8 @@ class Color(metaclass=ABCMeta):
         #       are being set in some indistinct method, not in the constructor.
         for vari_hex_value, vari_name in variation_map.items():
             variation = type(self)(
-                hex_value=vari_hex_value, name=vari_name, register=False
-            )
+                hex_value=vari_hex_value, name=vari_name, register=False, index=True
+            )  # registration will be made by registry itself
             variation._base = self
             self._variations[vari_name] = variation
 

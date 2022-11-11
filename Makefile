@@ -121,6 +121,9 @@ reinit-docs: ## Erase and reinit docs with auto table of contents
 demolish-docs:  ## Purge docs output folder
 	rm -rvf docs/_build
 
+open-docs-html:  ## Open HTML docs in browser
+	if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/index.html ; fi
+
 docs: ## (Re)build HTML documentation  <from scratch>
 docs: demolish-docs docs-html
 
@@ -128,7 +131,6 @@ docs-html: ## Build HTML documentation  <caching allowed>
 	mkdir -p docs-build
 	venv/bin/sphinx-build docs docs/_build -b html -n || return 1
 	#find docs/_build -type f -name '*.html' | sort | xargs -n1 grep -HnT ^ | sed s@^docs/_build/@@ > docs-build/${PROJECT_NAME}.html.dump
-	#if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/index.html ; fi
 	if command -v notify-send ; then notify-send -i ${PWD}/docs/_static_src/logo-white-bg.svg pytermor 'HTML docs updated ${NOW}' ; fi
 
 docs-pdf: ## Build PDF documentation  <caching allowed>

@@ -81,11 +81,11 @@ class Style:
             with nullable color-type variables.
 
         >>> Style(fg='green', bold=True)
-        Style[fg=008000, bg=NOP, bold]
+        <Style[fg=<Color16[#32,008000?,green]>,bg=<_NoopColor[NOP]>,bold]>
         >>> Style(bg=0x0000ff)
-        Style[fg=NOP, bg=0000ff]
+        <Style[fg=<_NoopColor[NOP]>,bg=<ColorRGB[0000FF]>]>
         >>> Style(fg='DeepSkyBlue1', bg='gray3')
-        Style[fg=00afff, bg=080808]
+        <Style[fg=<Color256[#39,00AFFF,deep-sky-blue-1]>,bg=<Color256[#232,080808,gray-3]>]>
 
         :param parent:      Style to copy attributes without value from.
         :param fg:          Foreground (i.e., text) color.

@@ -36,8 +36,8 @@ class TestStatic(unittest.TestCase):
         self.assertEqual(NOOP_COLOR, Style().bg)
 
     def test_format_value(self):
-        self.assertEqual("0xff00ff", ColorRGB(0xFF00FF).format_value())
-        self.assertEqual("#ff00ff", ColorRGB(0xFF00FF).format_value("#"))
+        self.assertEqual("0xFF00FF", ColorRGB(0xFF00FF).format_value())
+        self.assertEqual("#FF00FF", ColorRGB(0xFF00FF).format_value("#"))
 
     def test_format_noop_color_value(self):
         self.assertEqual("NOP", NOOP_COLOR.format_value())
@@ -46,30 +46,41 @@ class TestStatic(unittest.TestCase):
 
 class TestNameMap(unittest.TestCase):
     def test_resolving_of_ambiguous_color_works_upon_abstract_color(self):
-        col = Color.resolve('green')
+        col = Color.resolve("green")
         self.assertEqual(col.hex_value, 0x008000)
         self.assertEqual(type(col), Color16)
 
     def test_resolving_of_ambiguous_color_works_upon_color_16(self):
-        col = Color16.resolve('green')
+        col = Color16.resolve("green")
         self.assertEqual(col.hex_value, 0x008000)
         self.assertEqual(type(col), Color16)
 
     def test_resolving_of_ambiguous_color_works_upon_color_256(self):
-        col = Color256.resolve('green')
+        col = Color256.resolve("green")
         self.assertEqual(col.hex_value, 0x008000)
         self.assertEqual(type(col), Color256)
 
     def test_resolving_of_ambiguous_color_works_upon_color_rgb(self):
-        col = ColorRGB.resolve('green')
-        self.assertEqual(col.hex_value, 0x008000)
+        col = ColorRGB.resolve("green")
+        self.assertEqual(col.hex_value, 0x1CAC78)
         self.assertEqual(type(col), ColorRGB)
 
     def test_registering_of_variation_works(self):
-        origin = ColorRGB(0x000001, 'test000001')
-        variation = ColorRGB(0x000002, 'test000001', variation='II')
+        col = ColorRGB(
+            0x000001,
+            "test 000001",
+            variation_map={0x000002: "ii"},
+            register=True,
+            index=True,
+        )
 
-        self.assertEqual()
+        self.assertEqual(len(col.variations), 1)
+        vari = col.variations.get("ii")
+
+        self.assertIs(vari.base, col)
+        self.assertEqual(vari.name, "ii")
+        self.assertIs(ColorRGB.find_closest(0x000003), vari)
+        self.assertIs(ColorRGB.resolve("test_000001-ii"), vari)
 
 
 class TestColorIndexed16(unittest.TestCase):

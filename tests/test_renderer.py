@@ -80,7 +80,7 @@ class TestTmuxRenderer(unittest.TestCase):
         result = pt.render("12345", Style(fg=0x3AEBA1, bg=0x3AC5A6))
 
         self.assertEqual(
-            "#[fg=#3aeba1 bg=#3ac5a6]" "12345" "#[fg=default bg=default]", result
+            "#[fg=#3AEBA1 bg=#3AC5A6]" "12345" "#[fg=default bg=default]", result
         )
 
     def test_nested_render_works(self):

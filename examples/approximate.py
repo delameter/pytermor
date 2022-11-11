@@ -34,25 +34,27 @@ class Main:
             self.run(pt.Color.rgb_to_hex(*random_rgb), "Random")
         else:
             for sample_value in sample_values:
-                self.run(sample_value, "Argument")
+                self.run(sample_value, "Input")
             return
 
-        epilog = (
-            "",
-            " In this example the library assumes that your terminal supports all color "
-            "modes including 256-color and True Color, and forces the renderer to act "
-            "accordingly. If that's not the case, weird results may (and will) happen. "
-            "Run 'examples/terminal_color_mode.py' for the details.",
-            "",
-            " You can specify any amount of colors as arguments to this program, and "
-            "they will be approximated instead of the default random one. Required "
-            "format is a string 1-6 characters long representing an integer(s) in a "
-            "hexadecimal form: 'FFFFFF' (case insensitive):"
-            "",
-            "",
-            f"  {sys.argv[0]} 3AEBA1 0bceaa 6",
+        pt.echo(
+            [
+                "",
+                "In this example the library assumes that your terminal supports "
+                "all color modes including 256-color and True Color, and forces "
+                "the renderer to act accordingly. If that's not the case, weird "
+                "results may (and will) happen. Run 'examples/terminal_color_mode.py' "
+                "for the details.",
+                "",
+                "You can specify any amount of colors as arguments to this program, and "
+                "they will be approximated instead of the default (random) one. Required "
+                "format is a string 1-6 characters long representing an integer(s) in a "
+                "hexadecimal form: 'FFFFFF' (case insensitive):",
+            ],
+            wrap=True,
+            indent=2,
         )
-        pt.echo(epilog, wrap=True)
+        pt.echo(f"{sys.argv[0]} 3AEBA1 0bceaa 6", wrap=True, indent=4)
 
     def run(self, sample_val: int, color_type: str):
         sample = pt.ColorRGB(sample_val)
@@ -85,11 +87,12 @@ class Main:
         direct_renderer = pt.SgrRenderer(pt.OutputMode.TRUE_COLOR)
 
         pt.echo()
-        pt.echo(f'  {color_type+" color:":<14s}  ', nl=False)
+        pt.echo(f'  {color_type+" color:":<15s}', nl=False)
         pt.echo("  ", pt.Style(bg=sample), direct_renderer, nl=False)
-        pt.echo(f" {sample.format_value()}\n\n ", nl=False)
-        header = (" Output mode".ljust(15) + " Approximated color").ljust(prim_len + 1)
-        pt.echo(header, pt.Style(underlined=True))
+        pt.echo(f" {sample.format_value()} ", pt.Style(bg=0x0), nl=False)
+        pt.echo("\n\n ", nl=False)
+        header = " Output mode".ljust(15) + " Approximated color"
+        pt.echo(header.ljust(prim_len + 1), pt.Style(underlined=True))
 
         for string, style, renderer in results:
             pt.echo(" ", nl=False)
