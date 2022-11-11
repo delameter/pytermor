@@ -7,4 +7,3 @@ style
 ========================
 
 .. automodule:: pytermor.style
-   :exclude-members: __new__,

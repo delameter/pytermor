@@ -281,10 +281,16 @@ dl.method > dt.sig:target {
 .sig-param .n { /** output_mode **/
     color: var(--color-api-keyword);
 }
-/*.sig-param .o {}*/
-/*.sig-param .p {}*/
-/*.sig-param .default_value {}*/
-/*.sig-return-typehint .p {}*/
+/*.sig-param .o {}             */
+/*.sig-param .p {}             */
+/*.sig-param .default_value {} */
+/*.sig-return-typehint .p {}   */
+/*.sig-return:before {         */
+/*    content: '➜';            */
+/*}                            */
+/*.sig-return-icon {           */
+/*    display: none;           */
+/*}                            */
 
 
 /** API reference -- signature hyperlinks **/

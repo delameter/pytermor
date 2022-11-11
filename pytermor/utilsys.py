@@ -26,10 +26,15 @@ def get_terminal_width(default: int = 80, padding: int = 2) -> int:
     """
     try:
         import shutil as _shutil
-
         return _shutil.get_terminal_size().columns - padding
     except ImportError:
         return int(os.environ.get("COLUMNS", default))
+
+
+def get_preferable_wrap_width(force_width: int|bool) -> int:
+    if isinstance(force_width, int) and force_width > 1:
+        return force_width
+    return min(120, get_terminal_width())
 
 
 def wait_key() -> t.AnyStr | None:

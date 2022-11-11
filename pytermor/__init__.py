@@ -5,8 +5,7 @@
 from .common import logger
 from .ansi import IntCode, SeqIndex, SequenceSGR, SequenceOSC, NOOP_SEQ
 from .color import Color, Color16, Color256, ColorRGB, NOOP_COLOR
-from . import index_256
-from . import index_rgb
+from . import cval
 from .style import Style, NOOP_STYLE, Styles
 from .renderer import RendererManager, OutputMode, SgrRenderer, AbstractRenderer
 from .text import Text, render, echo, Renderable

@@ -20,7 +20,8 @@ from abc import ABCMeta, abstractmethod
 
 from .common import LogicError
 from .color import Color, NOOP_COLOR
-from .utilstr import ljust_sgr, rjust_sgr, center_sgr
+from .utilstr import ljust_sgr, rjust_sgr, center_sgr, wrap_sgr
+from .utilsys import get_preferable_wrap_width
 from .style import Style, NOOP_STYLE
 from .renderer import AbstractRenderer, RendererManager
 
@@ -30,6 +31,7 @@ class Renderable(t.Sized, metaclass=ABCMeta):
     Renderable abstract class. Can be inherited when the default style
     overlaps resolution mechanism implemented in `Text` is not good enough.
     """
+
     @abstractmethod
     def render(self, renderer=None) -> str:
         raise NotImplementedError
@@ -90,7 +92,7 @@ class Text(Renderable):
         self.append(string, style, close_this, close_prev)
 
     def render(
-        self, renderer: AbstractRenderer|t.Type[AbstractRenderer] = None
+        self, renderer: AbstractRenderer | t.Type[AbstractRenderer] = None
     ) -> str:
         if isinstance(renderer, type):
             renderer = renderer()
@@ -318,7 +320,7 @@ class TemplateEngine:
 
         for tag_match in self._TAG_REGEXP.finditer(tpl):
             span = tag_match.span()
-            tpl_part = self._ESCAPE_REGEXP.sub(r"\1[", tpl[tpl_cursor: span[0]])
+            tpl_part = self._ESCAPE_REGEXP.sub(r"\1[", tpl[tpl_cursor : span[0]])
             if len(tpl_part) > 0 or style_buffer != NOOP_STYLE:
                 if split_style:
                     for tpl_chunk, sep in self._SPLIT_REGEXP.findall(tpl_part):
@@ -361,7 +363,9 @@ class TemplateEngine:
         for style_attr in tag.style.split(" "):
             if style_attr in self._custom_styles.keys():
                 if base_style != NOOP_STYLE:
-                    raise ValueError(f"Only one custom style per tag is allowed: ({tag.style})")
+                    raise ValueError(
+                        f"Only one custom style per tag is allowed: ({tag.style})"
+                    )
                 base_style = self._custom_styles[style_attr]
                 continue
             if style_attr.startswith("fg=") or style_attr.startswith("bg="):
@@ -374,19 +378,33 @@ class TemplateEngine:
         return Style(base_style, **style_attrs)
 
 
-def render(string: t.Any, style: Style = NOOP_STYLE, renderer: AbstractRenderer = None):
+def render(
+    string: t.Any, style: Style = NOOP_STYLE, renderer: AbstractRenderer = None
+) -> str | t.List[str]:
+    if string == "" and style == NOOP_STYLE:
+        return ""
     if isinstance(string, Text) and style == NOOP_STYLE:
         return string.render(renderer)
+    if isinstance(string, t.Iterable) and not isinstance(string, str):
+        return [render(s) for s in string]
     return Text(string, style).render(renderer)
 
 
 def echo(
-    string: t.Any,
+    string: t.Any = "",
     style: Style = NOOP_STYLE,
     renderer: AbstractRenderer = None,
     nl: bool = True,
     file: t.IO = sys.stdout,
     flush: bool = True,
+    wrap: bool | int = False,
+    indent: int = 0,
 ):
     end = "\n" if nl else ""
-    print(render(string, style, renderer), end=end, file=file, flush=flush)
+    result = render(string, style, renderer)
+
+    if wrap:
+        width = get_preferable_wrap_width(wrap)
+        result = wrap_sgr(result, width, indent)
+
+    print(result, end=end, file=file, flush=flush)

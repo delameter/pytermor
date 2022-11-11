@@ -7,5 +7,4 @@ ansi
 ========================
 
 .. automodule:: pytermor.ansi
-   :exclude-members: __new__,
-   :no-undoc-members:
+   :no-undoc-members: .. to hide IntCode and SeqIndex

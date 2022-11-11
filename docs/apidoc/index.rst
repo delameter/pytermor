@@ -10,10 +10,11 @@ API reference
 
    ansi
    color
+   common
+   cval
    renderer
    style
    text
-   common
    utilnum
    utilstr
    utilsys

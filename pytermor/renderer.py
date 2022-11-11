@@ -20,7 +20,7 @@ in all the others.
 
 On the contrary, if there is a necessity to use more than one renderer
 alternatingly, it's better to avoid using the global one at all, and just
-instantiate and invoke two renderers independently.
+instantiate and invoke two _get_renderers independently.
 
 .. rubric :: TL;DR
 
@@ -90,6 +90,16 @@ class RendererManager:
 
     @classmethod
     def set_default_to_force_formatting(cls):
+        """ deprecated """
+        cls.set_default_format_always()
+
+    @classmethod
+    def set_default_to_disable_formatting(cls):
+        """ deprecated """
+        cls.set_default_format_never()
+
+    @classmethod
+    def set_default_format_always(cls):
         """
         Shortcut for forcing all control sequences to be present in the
         output of a global renderer.
@@ -101,7 +111,7 @@ class RendererManager:
         cls.set_default(SgrRenderer(OutputMode.TRUE_COLOR))
 
     @classmethod
-    def set_default_to_disable_formatting(cls):
+    def set_default_format_never(cls):
         """
         Shortcut for disabling all output formatting of a global renderer.
         """
@@ -128,32 +138,32 @@ class AbstractRenderer(metaclass=ABCMeta):
         return self.__class__.__qualname__ + '[]'
 
 
-class OutputMode(enum.IntEnum):
+class OutputMode(enum.Enum):
     """
     Determines what types of SGR sequences are allowed to use in the output.
     """
 
-    NO_ANSI = enum.auto()
+    NO_ANSI = 'no_ansi'
     """
     The renderer discards all color and format information completely.
     """
-    XTERM_16 = enum.auto()
+    XTERM_16 = 'xterm_16'
     """
     16-colors mode. Enforces the renderer to approximate all color types
     to `Color16` and render them as basic mode selection SGR sequences
     (``ESC[31m``, ``ESC[42m`` etc). See `Color.approximate()` for approximation
     algorithm details.
     """
-    XTERM_256 = enum.auto()
+    XTERM_256 = 'xterm_256'
     """
     256-colors mode. Allows the renderer to use either `Color16` or `Color256` 
     (but RGB will be approximated to 256-color pallette).
     """
-    TRUE_COLOR = enum.auto()
+    TRUE_COLOR = 'true_color'
     """
     RGB color mode. Does not apply restrictions to color rendering.
     """
-    AUTO = enum.auto()
+    AUTO = 'auto'
     """
     Lets the renderer select the most suitable mode by itself.
     See `SgrRenderer` constructor documentation for the details. 
@@ -217,9 +227,7 @@ class SgrRenderer(AbstractRenderer):
 
     def __init__(self, output_mode: OutputMode = OutputMode.AUTO):
         self._output_mode = self._determine_output_mode(output_mode)
-        self._color_upper_bound = self._COLOR_UPPER_BOUNDS.get(
-            self._output_mode, type(None)
-        )
+        self._color_upper_bound = self._COLOR_UPPER_BOUNDS.get(self._output_mode, None)
 
         logger.debug(f"Output mode: {output_mode.name} -> {self._output_mode.name}")
         logger.debug(f"Color upper bound: {self._color_upper_bound}")
@@ -248,15 +256,21 @@ class SgrRenderer(AbstractRenderer):
     def _determine_output_mode(self, arg_value: OutputMode) -> OutputMode:
         if arg_value is not OutputMode.AUTO:
             return arg_value
-        if not sys.stdout.isatty():
-            return OutputMode.NO_ANSI
 
+        isatty = sys.stdout.isatty()
         term = os.environ.get("TERM", None)
+        colorterm = os.environ.get("COLORTERM", None)
+        logger.debug(f"Stdout is a terminal: {isatty}")
+        logger.debug(f"Environment: TERM='{term}'")
+        logger.debug(f"Environment: COLORTERM='{colorterm}'")
+
+        if not isatty:
+            return OutputMode.NO_ANSI
         if term == "xterm":
             return OutputMode.NO_ANSI
         if term == "xterm-color":
             return OutputMode.XTERM_16
-        if os.environ.get("COLORTERM", None) in ("truecolor", "24bit"):
+        if colorterm in ("truecolor", "24bit"):
             return OutputMode.TRUE_COLOR
         return OutputMode.XTERM_256
 
@@ -388,6 +402,13 @@ class HtmlRenderer(AbstractRenderer):
     ]
 
     def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
+        opening_tag, closing_tag = self._render_attributes(style)
+        return f'{opening_tag}{str(string)}{closing_tag}'  # @TODO  # attribues
+
+    def _render_attributes(self, style: Style = NOOP_STYLE) -> t.Tuple[str, str]:
+        if style == NOOP_STYLE:
+            return '', ''
+
         span_styles: t.Dict[str, t.Set[str]] = dict()
         for attr in self._get_default_attrs():
             span_styles[attr] = set()
@@ -425,9 +446,7 @@ class HtmlRenderer(AbstractRenderer):
         span_style_str = "; ".join(
             f"{k}: {' '.join(v)}" for k, v in span_styles.items() if len(v) > 0
         )
-        return (
-            f'<span{span_class_str} style="{span_style_str}">' + str(string) + "</span>"
-        )  # @TODO  # attribues
+        return f'<span{span_class_str} style="{span_style_str}">', "</span>"
 
     def _get_default_attrs(self) -> t.List[str]:
         return self.DEFAULT_ATTRS
@@ -441,11 +460,26 @@ class DebugRenderer(SgrRenderer):
     '|ǝ1;31|text|ǝ22;39|'
     """
 
+    def __init__(self, output_mode: OutputMode = OutputMode.AUTO):
+        super().__init__(output_mode)
+        self._format_override: bool|None = None
+
     def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
         return ReplaceSGR(r"|ǝ\3|").apply(super().render(str(string), style))
 
     def is_sgr_usage_allowed(self) -> bool:
-        return True
+        if self._format_override is not None:
+            return self._format_override
+        return super().is_sgr_usage_allowed()
+
+    def set_format_always(self):
+        self._format_override = True
+
+    def set_format_auto(self):
+        self._format_override = None
+
+    def set_format_never(self):
+        self._format_override = False
 
 
 RendererManager.set_default()

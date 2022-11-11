@@ -13,7 +13,7 @@ logger.addHandler(logging.NullHandler())
 ### catching library logs "from the outside":
 # logger = logging.getLogger('pytermor')
 # handler = logging.StreamHandler(sys.stderr)
-# logging.Formatter('[%(levelname)5.5s][%(name)s][%(module)s] %(message)s')
+# formatter = logging.Formatter('[%(levelname)5.5s][%(name)s][%(module)s] %(message)s')
 # handler.setFormatter(formatter)
 # logger.addHandler(handler)
 # logger.setLevel('DEBUG')
@@ -41,15 +41,3 @@ class LogicError(Exception):
 class ConflictError(Exception):
     pass
 
-
-class EmptyColorMapError(RuntimeError):
-    def __init__(self, is_rgb: bool) -> None:
-        msg = "Class color map is empty, cannot proceed."
-        if is_rgb:
-            msg += (
-                "\nIf you want to approximate color in RGB mode, first you need to "
-                "manually load colors to the map; the library does this for you "
-                "only for Color16 and Color256 classes in order to minify memory "
-                "consumption and speed up imports. See: pytermor.index_rgb.load()"
-            )
-        super().__init__(msg)

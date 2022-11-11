@@ -27,9 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "TODO" "1" "Nov 05, 2022" "2.6.0-dev1" "pytermor"
+.TH "TODO" "1" "Nov 06, 2022" "2.6.1-dev2" "pytermor"
 .SH NAME
-Todo \- pytermor 2.6.0-dev1
+Todo \- pytermor 2.6.1-dev2
 .sp
 \fI(yet another)\fP Python library designed for formatting terminal output using ANSI escape codes. Implements automatic \fI\%\(dqsoft\(dq\fP format termination. Provides a registry of low\-level SGR \fI\%sequences\fP and formatting \fBspans\fP (or combined sequences). Also includes a set of formatters for pretty output.
 .sp
@@ -157,7 +157,7 @@ Registry of escape control sequence parameters.
 T}
 _
 T{
-\fI\%util\fP
+\fButil\fP
 T}	T{
 *
 T}	T{
@@ -252,14 +252,14 @@ from pytermor import SequenceSGR, SeqIndex
 
 start_color = 41
 for idx, c in enumerate(range(start_color, start_color+(36*6), 36)):
-    print(f\(aq{SequenceSGR.init_color_256(c)}███{SeqIndex.COLOR_OFF}\(aq, end=\(aq\(aq)
+    print(f\(aq{SequenceSGR.new_color_256(c)}███{SeqIndex.COLOR_OFF}\(aq, end=\(aq\(aq)
 
 print(\(aq\en\(aq)
 for idx, c in enumerate(range(0, 256, 256//17)):
     r = max(0, 255\-c)
     g = max(0, min(255, 127\-(c*2)))
     b = c
-    print(f\(aq{SequenceSGR.init_color_rgb(r, g, b)}█{SeqIndex.COLOR_OFF}\(aq, end=\(aq\(aq)
+    print(f\(aq{SequenceSGR.new_color_rgb(r, g, b)}█{SeqIndex.COLOR_OFF}\(aq, end=\(aq\(aq)
 
 .ft P
 .fi
@@ -389,7 +389,7 @@ There is also a set of methods for dynamic \fBSequenceSGR\fP creation:
 \fBinit_color_indexed()\fP will produce sequence operating in 256\-colors mode (for a complete list
 see \fI\%Preset list\fP);
 .IP \(bu 2
-\fI\%init_color_rgb()\fP will create a sequence capable of setting the colors in True Color 16M mode (however, some terminal emulators doesn\(aqt
+\fI\%new_color_rgb()\fP will create a sequence capable of setting the colors in True Color 16M mode (however, some terminal emulators doesn\(aqt
 support it).
 .UNINDENT
 .sp
@@ -458,7 +458,7 @@ print(f\(aq{combined}combined{SeqIndex.RESET}\(aq, str(combined).assemble())
 .sp
 Preset lists are omitted from API docs to avoid unnesessary duplication;
 summary list of all presets defined in the library (not including
-\fI\%util.*\fP) is displayed here.
+\fButil.*\fP) is displayed here.
 .INDENT 0.0
 .INDENT 3.5
 .SS Todo
@@ -694,7 +694,7 @@ T}	T{
 T}	T{
 T}	T{
 Set foreground color [\fIindexed\fP/\fIRGB\fP mode];
-\fIuse\fP \fBinit_color_indexed\fP \fIand\fP \fI\%init_color_rgb\fP \fIinstead\fP
+\fIuse\fP \fBinit_color_indexed\fP \fIand\fP \fI\%new_color_rgb\fP \fIinstead\fP
 T}
 _
 T{
@@ -708,7 +708,7 @@ T}	T{
 T}	T{
 T}	T{
 Set background color [\fIindexed\fP/\fIRGB\fP mode];
-\fIuse\fP \fBinit_color_indexed\fP \fIand\fP \fI\%init_color_rgb\fP \fIinstead\fP
+\fIuse\fP \fBinit_color_indexed\fP \fIand\fP \fI\%new_color_rgb\fP \fIinstead\fP
 T}
 _
 T{
@@ -5820,6 +5820,7 @@ The library contains @TODO
 .sp
 .nf
 .ft C
+import pytermor.utilnum
 from pytermor import RendererManager, SgrRenderer
 from pytermor.util import time_delta
 
@@ -5827,12 +5828,12 @@ seconds_list = [2, 10, 60, 2700, 32340, 273600, 4752000, 864000000]
 max_len_list = [3, 6, 10]
 
 for max_len in max_len_list:
-    formatter = time_delta.registry.find_matching(max_len)
+    formatter = pytermor.utilnum.registry.find_matching(max_len)
 
 RendererManager.set_default(SgrRenderer)
 for seconds in seconds_list:
     for max_len in max_len_list:
-        formatter = time_delta.registry.get_by_max_len(max_len)
+        formatter = pytermor.utilnum.registry.get_by_max_len(max_len)
         print(formatter.format(seconds, True), end=\(aq \(aq)
     print()
 
@@ -5859,11 +5860,12 @@ Can be used for creating a variety of sequences including:
 .INDENT 3.5
 .INDENT 0.0
 .IP \(bu 2
-SGR sequences (text coloring, background coloring, text styling);
+SGR sequences (text coloring, background
 .IP \(bu 2
-CSI sequences (cursor contol, selective screen cleraing);
+CSI sequences (cursor management,
+selective screen cleraing);
 .IP \(bu 2
-OSC sequences (varoius operating system commands).
+OSC sequences (varoius system commands).
 .UNINDENT
 .UNINDENT
 .UNINDENT
@@ -5884,27 +5886,18 @@ opening SequenceSGR instance:
 sequences for any form of input SGRs and translate it to specified format.
 .INDENT 0.0
 .TP
-.B XTerm Control Sequences:
+\fBXTerm Control Sequences\fP
 \fI\%https://invisible\-island.net/xterm/ctlseqs/ctlseqs.html\fP
 .TP
-.B ECMA\-48 specification:
+\fBECMA\-48 specification\fP
 \fI\%https://www.ecma\-international.org/publications\-and\-standards/standards/ecma\-48/\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.ansi.Sequence
+.B class  pytermor.ansi.Sequence(*params)
 Bases: \fBSized\fP, \fBABC\fP
 .sp
 Abstract ancestor of all escape sequences.
-.INDENT 7.0
-.TP
-.B __init__(*params)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBparams\fP (\fIint\fP\fI | \fP\fIstr\fP) \-\- 
-.UNINDENT
-.UNINDENT
 .INDENT 7.0
 .TP
 .B assemble()
@@ -5924,7 +5917,7 @@ Return internal params as array.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.ansi.SequenceFe
+.B class  pytermor.ansi.SequenceFe(*params)
 Bases: \fI\%Sequence\fP, \fBABC\fP
 .sp
 Wide range of sequence types that includes CSI, OSC and more.
@@ -5932,35 +5925,10 @@ Wide range of sequence types that includes CSI, OSC and more.
 All subtypes of this sequence start with \fBESC\fP plus ASCII byte
 from \fB0x40\fP to \fB0x5F\fP (\fB@[\e]_^\fP and capital letters
 \fBA\fP\-\fBZ\fP).
-.INDENT 7.0
-.TP
-.B __init__(*params)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBparams\fP (\fIint\fP\fI | \fP\fIstr\fP) \-\- 
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B assemble()
-Build up actual byte sequence and return
-as an ASCII\-encoded string.
-.INDENT 7.0
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  params:  t.List[int  |  str]
-Return internal params as array.
-.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.ansi.SequenceST
+.B class  pytermor.ansi.SequenceST(*params)
 Bases: \fI\%SequenceFe\fP
 .sp
 String Terminator sequence (ST). Terminates strings in other control
@@ -5976,24 +5944,10 @@ as an ASCII\-encoded string.
 str
 .UNINDENT
 .UNINDENT
-.INDENT 7.0
-.TP
-.B __init__(*params)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBparams\fP (\fIint\fP\fI | \fP\fIstr\fP) \-\- 
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  params:  t.List[int  |  str]
-Return internal params as array.
-.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.ansi.SequenceOSC
+.B class  pytermor.ansi.SequenceOSC(*params)
 Bases: \fI\%SequenceFe\fP
 .sp
 Operating System Command sequence (OSC). Starts a control string for the
@@ -6001,45 +5955,17 @@ operating system to use. Encoded as \fBESC]\fP plus params separated by
 \fB;\fP, and terminated with \fI\%SequenceST\fP\&.
 .INDENT 7.0
 .TP
-.B classmethod  init_hyperlink(url)
+.B classmethod  new_hyperlink(url)
 .INDENT 7.0
-.TP
-.B Parameters
-\fBurl\fP (\fIstr\fP) \-\- 
 .TP
 .B Return type
 \fI\%SequenceOSC\fP
 .UNINDENT
 .UNINDENT
-.INDENT 7.0
-.TP
-.B __init__(*params)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBparams\fP (\fIint\fP\fI | \fP\fIstr\fP) \-\- 
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B assemble()
-Build up actual byte sequence and return
-as an ASCII\-encoded string.
-.INDENT 7.0
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  params:  t.List[int  |  str]
-Return internal params as array.
-.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.ansi.SequenceCSI
+.B class  pytermor.ansi.SequenceCSI(terminator, *params)
 Bases: \fI\%SequenceFe\fP
 .sp
 Class representing CSI\-type ANSI escape sequence. All subtypes
@@ -6049,21 +5975,17 @@ Sequences of this type are used to control text formatting,
 change cursor position, erase screen and more.
 .INDENT 7.0
 .TP
-.B __init__(terminator, *params)
-.INDENT 7.0
-.TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBterminator\fP (\fIstr\fP) \-\- 
+\fBterminator\fP \-\- 
 .IP \(bu 2
-\fBparams\fP (\fIint\fP) \-\- 
-.UNINDENT
+\fBparams\fP \-\- 
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
-.B classmethod  init_cursor_horizontal_absolute(column=1)
+.B classmethod  new_set_cursor_x_abs(column=1)
 Set cursor x\-coordinate to \fBcolumn\fP\&.
 .INDENT 7.0
 .TP
@@ -6076,14 +5998,11 @@ Set cursor x\-coordinate to \fBcolumn\fP\&.
 .UNINDENT
 .INDENT 7.0
 .TP
-.B classmethod  init_erase_in_line(mode=0)
+.B classmethod  new_erase_in_line(mode=0)
 Erase part of the line. If \fBmode\fP is 0, clear from cursor to the end
 of the line. If \fBmode\fP is 1, clear from cursor to beginning of the line.
 If \fBmode\fP is 2, clear the entire line. Cursor position does not change.
 .INDENT 7.0
-.TP
-.B Parameters
-\fBmode\fP (\fIint\fP) \-\- 
 .TP
 .B Return type
 \fI\%SequenceCSI\fP
@@ -6109,15 +6028,10 @@ as an ASCII\-encoded string.
 str
 .UNINDENT
 .UNINDENT
-.INDENT 7.0
-.TP
-.B property  params:  t.List[int  |  str]
-Return internal params as array.
-.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.ansi.SequenceSGR
+.B class  pytermor.ansi.SequenceSGR(*args)
 Bases: \fI\%SequenceCSI\fP
 .sp
 Class representing SGR\-type escape sequence with varying amount of parameters.
@@ -6125,52 +6039,63 @@ SGR sequences allow to change the color of text or/and terminal background
 (in 3 different color spaces) as well as set decorate text with italic style,
 underlining, overlining, cross\-lining, making it bold or blinking etc.
 .sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
 \fI\%SequenceSGR\fP with zero params was specifically implemented to
 translate into empty string and not into \fBESC[m\fP, which would have
 made sense, but also would be entangling, as this sequence is the equivalent
 of \fBESC[0m\fP \-\- hard reset sequence. The empty\-string\-sequence is
 predefined at module level as \fI\%NOOP_SEQ\fP\&.
+.UNINDENT
+.UNINDENT
 .sp
-It\(aqs possible to add of one SGR sequence to another:
->>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
-True
-.INDENT 7.0
-.TP
-.B __init__(*args)
-Create new \fI\%SequenceSGR\fP with specified \fBargs\fP as params.
-Resulting sequence param order is same as an argument order.
-.INDENT 7.0
-.TP
-.B Each sequence param can be specified as:
-.INDENT 7.0
-.IP \(bu 2
-string key (any of \fI\%IntCode\fP names, case\-insensitive)
-.IP \(bu 2
-integer param value (\fI\%IntCode\fP values)
-.IP \(bu 2
-existing \fBSequenceSGR\fP instance (params will be extracted).
-.UNINDENT
-.UNINDENT
+When cast to \fIstr\fP, as all other sequences, invokes \fI\%assemble()\fP method
+and transforms into encoded control sequence string. It\(aqs possible to add
+of one SGR sequence to another, resulting in a new one with merged params
+(see examples).
 .sp
 .nf
 .ft C
->>> SequenceSGR(91, 7)
-SGR[91;7]
->>> SequenceSGR(IntCode.HI_CYAN, IntCode.UNDERLINED)
-SGR[96;4]
->>> SequenceSGR(1, SequenceSGR(33))
-SGR[1;33]
+>>> SequenceSGR(91, SequenceSGR(7))
+<SGR[91,7]>
+>>> SequenceSGR(IntCode.HI_CYAN, \(aqunderlined\(aq)
+<SGR[96,4]>
+>>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
+True
 .ft P
 .fi
 .INDENT 7.0
 .TP
 .B Parameters
-\fBargs\fP (\fIstr\fP\fI | \fP\fIint\fP\fI | \fP\fI\%SequenceSGR\fP) \-\- 
+.INDENT 7.0
+.IP \(bu 2
+\fBargs\fP \-\- 
+.sp
+Sequence params. Resulting param order is the same as an
+argument order. Each argument can be specified as:
+.INDENT 2.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+\fIstr\fP \-\- any of \fI\%IntCode\fP names, case\-insensitive
+.IP \(bu 2
+\fIint\fP \-\- \fI\%IntCode\fP instance or plain integer
+.IP \(bu 2
+\fI\%SequenceSGR\fP instance (params will be extracted)
+.UNINDENT
+.UNINDENT
+.UNINDENT
+
+.IP \(bu 2
+\fBterminator\fP \-\- 
+.IP \(bu 2
+\fBparams\fP \-\- 
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
-.B classmethod  init_color_256(idx, bg=False)
+.B classmethod  new_color_256(code, bg=False)
 Wrapper for creation of \fI\%SequenceSGR\fP that sets foreground
 (or background) to one of 256\-color palette value.
 .INDENT 7.0
@@ -6178,7 +6103,7 @@ Wrapper for creation of \fI\%SequenceSGR\fP that sets foreground
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBidx\fP (\fIint\fP) \-\- Index of the color in the palette, 0 \-\- 255.
+\fBcode\fP (\fIint\fP) \-\- Index of the color in the palette, 0 \-\- 255.
 .IP \(bu 2
 \fBbg\fP (\fIbool\fP) \-\- Set to \fITrue\fP to change the background color
 (default is foreground).
@@ -6193,7 +6118,7 @@ Wrapper for creation of \fI\%SequenceSGR\fP that sets foreground
 .UNINDENT
 .INDENT 7.0
 .TP
-.B classmethod  init_color_rgb(r, g, b, bg=False)
+.B classmethod  new_color_rgb(r, g, b, bg=False)
 Wrapper for creation of \fI\%SequenceSGR\fP operating in True Color mode (16M).
 Valid values for \fIr\fP, \fIg\fP and \fIb\fP are in range [0; 255]. This range
 linearly translates into [\fB0x00\fP; \fB0xFF\fP] for each channel. The result
@@ -6204,7 +6129,7 @@ value is composed as \fB#RRGGBB\fP\&. For example, sequence with color of
 .sp
 .nf
 .ft C
-SequenceSGR.init_color_rgb(255, 51, 0)
+SequenceSGR.new_color_rgb(255, 51, 0)
 .ft P
 .fi
 .UNINDENT
@@ -6245,49 +6170,16 @@ str
 .INDENT 7.0
 .TP
 .B property  params:  List[int]
-Return internal params as array.
-.UNINDENT
 .INDENT 7.0
 .TP
-.B classmethod  init_cursor_horizontal_absolute(column=1)
-Set cursor x\-coordinate to \fBcolumn\fP\&.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBcolumn\fP (\fIint\fP) \-\- 
-.TP
-.B Return type
-\fI\%SequenceCSI\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  init_erase_in_line(mode=0)
-Erase part of the line. If \fBmode\fP is 0, clear from cursor to the end
-of the line. If \fBmode\fP is 1, clear from cursor to beginning of the line.
-If \fBmode\fP is 2, clear the entire line. Cursor position does not change.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBmode\fP (\fIint\fP) \-\- 
-.TP
-.B Return type
-\fI\%SequenceCSI\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B regexp()
-.INDENT 7.0
-.TP
-.B Return type
-str
+.B Returns
+Sequence params as integers or \fI\%IntCode\fP instances.
 .UNINDENT
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.ansi.NOOP_SEQ  =  SGR[~]
+.B pytermor.ansi.NOOP_SEQ  =  <SGR[NOP]>
 Special sequence in case you \fIhave to\fP provide one or another SGR, but do 
 not want any control sequences to be actually included in the output. 
 \fBNOOP_SEQ.assemble()\fP returns empty string, \fBNOOP_SEQ.params\fP 
@@ -6304,19 +6196,16 @@ returns empty list.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.ansi.IntCode
-Bases: \fBint\fP, \fBEnum\fP
+.B class  pytermor.ansi.IntCode(value)
+Bases: \fBIntEnum\fP
 .sp
 Complete or almost complete list of reliably working SGR param integer codes.
-.sp
-Suitable for \fI\%SequenceSGR\fP default constructor.
+Fully interchangeable with plain \fIint\fP\-s. Suitable for \fI\%SequenceSGR\fP
+default constructor.
 .INDENT 7.0
 .TP
 .B classmethod  resolve(name)
 .INDENT 7.0
-.TP
-.B Parameters
-\fBname\fP (\fIstr\fP) \-\- 
 .TP
 .B Return type
 \fI\%IntCode\fP
@@ -6565,237 +6454,234 @@ Suitable for \fI\%SequenceSGR\fP default constructor.
 Registry of sequence presets.
 .INDENT 7.0
 .TP
-.B RESET  =  SGR[0]
+.B RESET  =  <SGR[0]>
 Hard reset sequence.
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BOLD  =  SGR[1]
+.B BOLD  =  <SGR[1]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B DIM  =  SGR[2]
+.B DIM  =  <SGR[2]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B ITALIC  =  SGR[3]
+.B ITALIC  =  <SGR[3]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B UNDERLINED  =  SGR[4]
+.B UNDERLINED  =  <SGR[4]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BLINK_SLOW  =  SGR[5]
+.B BLINK_SLOW  =  <SGR[5]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BLINK_FAST  =  SGR[6]
+.B BLINK_FAST  =  <SGR[6]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BLINK_DEFAULT  =  SGR[5]
+.B BLINK_DEFAULT  =  <SGR[5]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B INVERSED  =  SGR[7]
+.B INVERSED  =  <SGR[7]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B HIDDEN  =  SGR[8]
+.B HIDDEN  =  <SGR[8]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B CROSSLINED  =  SGR[9]
+.B CROSSLINED  =  <SGR[9]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B DOUBLE_UNDERLINED  =  SGR[21]
+.B DOUBLE_UNDERLINED  =  <SGR[21]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B OVERLINED  =  SGR[53]
+.B OVERLINED  =  <SGR[53]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BOLD_DIM_OFF  =  SGR[22]
+.B BOLD_DIM_OFF  =  <SGR[22]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B ITALIC_OFF  =  SGR[23]
+.B ITALIC_OFF  =  <SGR[23]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B UNDERLINED_OFF  =  SGR[24]
+.B UNDERLINED_OFF  =  <SGR[24]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BLINK_OFF  =  SGR[25]
+.B BLINK_OFF  =  <SGR[25]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B INVERSED_OFF  =  SGR[27]
+.B INVERSED_OFF  =  <SGR[27]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B HIDDEN_OFF  =  SGR[28]
+.B HIDDEN_OFF  =  <SGR[28]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B CROSSLINED_OFF  =  SGR[29]
+.B CROSSLINED_OFF  =  <SGR[29]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B OVERLINED_OFF  =  SGR[55]
+.B OVERLINED_OFF  =  <SGR[55]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BLACK  =  SGR[30]
+.B BLACK  =  <SGR[30]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B RED  =  SGR[31]
+.B RED  =  <SGR[31]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B GREEN  =  SGR[32]
+.B GREEN  =  <SGR[32]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B YELLOW  =  SGR[33]
+.B YELLOW  =  <SGR[33]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BLUE  =  SGR[34]
+.B BLUE  =  <SGR[34]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B MAGENTA  =  SGR[35]
+.B MAGENTA  =  <SGR[35]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B CYAN  =  SGR[36]
+.B CYAN  =  <SGR[36]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B WHITE  =  SGR[37]
+.B WHITE  =  <SGR[37]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B COLOR_OFF  =  SGR[39]
+.B COLOR_OFF  =  <SGR[39]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_BLACK  =  SGR[40]
+.B BG_BLACK  =  <SGR[40]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_RED  =  SGR[41]
+.B BG_RED  =  <SGR[41]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_GREEN  =  SGR[42]
+.B BG_GREEN  =  <SGR[42]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_YELLOW  =  SGR[43]
+.B BG_YELLOW  =  <SGR[43]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_BLUE  =  SGR[44]
+.B BG_BLUE  =  <SGR[44]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_MAGENTA  =  SGR[45]
+.B BG_MAGENTA  =  <SGR[45]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_CYAN  =  SGR[46]
+.B BG_CYAN  =  <SGR[46]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_WHITE  =  SGR[47]
+.B BG_WHITE  =  <SGR[47]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_COLOR_OFF  =  SGR[49]
+.B BG_COLOR_OFF  =  <SGR[49]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B GRAY  =  SGR[90]
+.B GRAY  =  <SGR[90]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B HI_RED  =  SGR[91]
+.B HI_RED  =  <SGR[91]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B HI_GREEN  =  SGR[92]
+.B HI_GREEN  =  <SGR[92]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B HI_YELLOW  =  SGR[93]
+.B HI_YELLOW  =  <SGR[93]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B HI_BLUE  =  SGR[94]
+.B HI_BLUE  =  <SGR[94]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B HI_MAGENTA  =  SGR[95]
+.B HI_MAGENTA  =  <SGR[95]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B HI_CYAN  =  SGR[96]
+.B HI_CYAN  =  <SGR[96]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B HI_WHITE  =  SGR[97]
+.B HI_WHITE  =  <SGR[97]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_GRAY  =  SGR[100]
+.B BG_GRAY  =  <SGR[100]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_HI_RED  =  SGR[101]
+.B BG_HI_RED  =  <SGR[101]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_HI_GREEN  =  SGR[102]
+.B BG_HI_GREEN  =  <SGR[102]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_HI_YELLOW  =  SGR[103]
+.B BG_HI_YELLOW  =  <SGR[103]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_HI_BLUE  =  SGR[104]
+.B BG_HI_BLUE  =  <SGR[104]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_HI_MAGENTA  =  SGR[105]
+.B BG_HI_MAGENTA  =  <SGR[105]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_HI_CYAN  =  SGR[106]
+.B BG_HI_CYAN  =  <SGR[106]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B BG_HI_WHITE  =  SGR[107]
+.B BG_HI_WHITE  =  <SGR[107]>
 .UNINDENT
 .INDENT 7.0
 .TP
-.B HYPERLINK  =  OSC[IntCode.HIDDEN]
+.B HYPERLINK  =  <OSC[IntCode.HIDDEN]>
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
 .B pytermor.ansi.get_closing_seq(opening_seq)
 .INDENT 7.0
-.TP
-.B Parameters
-\fBopening_seq\fP (\fI\%SequenceSGR\fP) \-\- 
 .TP
 .B Return type
 \fI\%SequenceSGR\fP
@@ -6804,6 +6690,23 @@ Hard reset sequence.
 .SS color
 .sp
 Yare\-yare daze
+.sp
+Iterate the registered colors table and compute the euclidean distance
+from argument to each color of the palette. Sort the results and return them.
+.INDENT 0.0
+.TP
+\fBsRGB euclidean distance\fP
+\fI\%https://en.wikipedia.org/wiki/Color_difference#sRGB\fP
+\fI\%https://stackoverflow.com/a/35114586/5834973\fP
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.color.ColorType
+.INDENT 7.0
+.UNINDENT
+.sp
+alias of TypeVar(\(aqColorType\(aq, bound=\fBUnion\fP[\fI\%Color16\fP, \fI\%Color256\fP, \fI\%ColorRGB\fP])
+.UNINDENT
 .INDENT 0.0
 .TP
 .B class  pytermor.color.Index
@@ -6819,6 +6722,9 @@ Yare\-yare daze
 .IP \(bu 2
 \fBaliases\fP (\fIOptional\fP\fI[\fP\fIList\fP\fI[\fP\fIstr\fP\fI]\fP\fI]\fP) \-\- 
 .UNINDENT
+.TP
+.B Returns
+
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
@@ -6860,34 +6766,62 @@ Case\-insensitive search through registry contents.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.color.Color
+.B class  pytermor.color.ApproximationResult(color, distance)
+Bases: \fBGeneric\fP[\fI\%ColorType\fP]
+.sp
+AP
+.INDENT 7.0
+.TP
+.B color:  ColorType
+.UNINDENT
+.INDENT 7.0
+.TP
+.B distance:  float
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.color.Color(*args, **kwargs)
 Abstract superclass for other \fBColors\fP\&.
 .INDENT 7.0
 .TP
-.B __init__(hex_value, name=None)
+.B to_hsv()
 .INDENT 7.0
 .TP
-.B Parameters
+.B Return type
+\fITuple\fP[float, float, float]
+.UNINDENT
+.UNINDENT
 .INDENT 7.0
-.IP \(bu 2
-\fBhex_value\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBname\fP (\fIOptional\fP\fI[\fP\fIstr\fP\fI]\fP) \-\- 
+.TP
+.B to_rgb()
+.INDENT 7.0
+.TP
+.B Return type
+\fITuple\fP[int, int, int]
 .UNINDENT
 .UNINDENT
+.INDENT 7.0
+.TP
+.B format_value(prefix=\(aq0x\(aq)
+.INDENT 7.0
+.TP
+.B Return type
+str
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  hex_value:  int
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  name:  str  |  None
 .UNINDENT
 .INDENT 7.0
 .TP
 .B abstract  to_sgr(bg, bound=None)
 .INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBbg\fP (\fIbool\fP) \-\- 
-.IP \(bu 2
-\fBbound\fP (\fIOptional\fP\fI[\fP\fIType\fP\fI[\fP\fI\%Color\fP\fI]\fP\fI]\fP) \-\- 
-.UNINDENT
 .TP
 .B Return type
 \fI\%SequenceSGR\fP
@@ -6898,91 +6832,113 @@ Abstract superclass for other \fBColors\fP\&.
 .B abstract  to_tmux(bg)
 .INDENT 7.0
 .TP
-.B Parameters
-\fBbg\fP (\fIbool\fP) \-\- 
-.TP
 .B Return type
 str
 .UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B to_hsv()
-.INDENT 7.0
-.TP
-.B Return type
-\fITuple\fP[float, float, float]
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B to_rgb()
-.INDENT 7.0
-.TP
-.B Return type
-\fITuple\fP[int, int, int]
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B format_value(prefix=\(aq0x\(aq)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBprefix\fP (\fIstr\fP) \-\- 
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  hex_value:  int
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  name:  str  |  None
 .UNINDENT
 .INDENT 7.0
 .TP
 .B classmethod  find_closest(hex_value)
-Search for color nearest to \fBhex_value\fP and return it. Is used to find
-applicable color alternatives if user\(aqs terminal is incapable of operating
-in more advanced mode.
+Search and return the nearset color to \fBhex_value\fP\&. Depending on
+the desired result type and current color mode you might use either of:
+.INDENT 7.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+\fBColor16.find_closest(..)\fP \-> \fI\%Color16\fP
+.IP \(bu 2
+\fBColor256.find_closest(..)\fP \-> \fI\%Color256\fP
+.IP \(bu 2
+\fBColorRGB.find_closest(..)\fP \-> \fI\%ColorRGB\fP
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+Invoking the method of \fI\%Color\fP itself will result in a \fBRuntimeError\fP,
+as it is an abstract class and therefore the color map for this
+type will always be empty.
+.UNINDENT
+.UNINDENT
+.sp
+Method is useful for finding applicable color alternatives if user\(aqs
+terminal is incapable of operating in more advanced mode.
+.sp
+This method caches the results, i.e., the same search query will from then
+onward result in the same return value without the necessity of iterating
+through the color index. If that\(aqs not applicable, use similar method
+\fI\%approximate()\fP, which is unaware of caching mechanism altogether.
 .INDENT 7.0
 .TP
 .B Parameters
-\fBhex_value\fP (\fIint\fP) \-\- Color RGB value.
+\fBhex_value\fP (\fIint\fP) \-\- Target color RGB value.
 .TP
 .B Returns
-Nearest to \fBhex_value\fP instance of \fBColor\fP or found. Type depends
-on class of the method.
+Nearest to \fBhex_value\fP instance of \fBColor\fP found. Type will
+be the same as the class of called method.
 .TP
 .B Return type
-\fICT\fP
+\fIColorType\fP
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
 .B classmethod  approximate(hex_value, max_results=1)
-Search for colors nearest to \fBhex_value\fP and return the first
-\fB<max_results>\fP of them.
+Search for nearest colors to \fBhex_value\fP and return the first
+\fBmax_results\fP of them. This method is similar to the \fI\%find_closest()\fP,
+although they differ in some aspects:
+.INDENT 7.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+\fI\%approximate()\fP can return more than one result;
+.IP \(bu 2
+\fI\%approximate()\fP returns not just \fI\%Color\fP instances, but also a
+number equal to the distance to the target color for each of them;
+.IP \(bu 2
+\fI\%find_closest()\fP caches the results, while \fI\%approximate()\fP ignores
+the cache completely.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+Invoking the method is the same as for its sibling \-\- do not use
+abstract class method \fI\%Color.approximate()\fP, choose one of the concrete
+class methods instead. The type of \fI\%Color\fP instances in the result will
+be the same as the \fI\%Color\fP class the called method is originating from:
+.INDENT 7.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+\fBColor16.approximate(..)\fP \-> [ApproximationResult[\fI\%Color16\fP], ...]
+.IP \(bu 2
+\fBColor256.approximate(..)\fP \-> [ApproximationResult[\fI\%Color256\fP], ...]
+.IP \(bu 2
+\fBColorRGB.approximate(..)\fP \-> [ApproximationResult[\fI\%ColorRGB\fP], ...]
+.UNINDENT
+.UNINDENT
+.UNINDENT
 .INDENT 7.0
 .TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBhex_value\fP (\fIint\fP) \-\- Color RGB value.
+\fBhex_value\fP (\fIint\fP) \-\- Target color RGB value.
 .IP \(bu 2
-\fBmax_results\fP (\fIint\fP) \-\- Maximum amount of values to return.
+\fBmax_results\fP (\fIint\fP) \-\- Return no more than \fBmax_results\fP items.
 .UNINDENT
 .TP
 .B Returns
-Closest \fI\%Color\fP instance(s) found, sorted by color distance
-descending, i.e., 0\-th element is the closest to the input value.
+Pairs of closest \fI\%Color\fP instance(s) found with their distances
+to the target color, sorted by distance descending, i.e., element
+at index 0 is the closest color found, paired with its distance
+to the target; element with index 1 is second\-closest color
+(if any) and corresponding distance value, etc.
 .TP
 .B Return type
-\fIList\fP[\fICT\fP]
+\fIList\fP[\fI\%ApproximationResult\fP[\fIColorType\fP]]
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
@@ -6993,8 +6949,11 @@ descending, i.e., 0\-th element is the closest to the input value.
 .B Parameters
 \fBcode\fP (\fIint\fP) \-\- 
 .TP
+.B Returns
+
+.TP
 .B Return type
-\fICT\fP
+\fIColorType\fP
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
@@ -7004,9 +6963,6 @@ Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three numbers
 corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values respectively.
 \fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are within [0; 1] range.
 .INDENT 7.0
-.TP
-.B Parameters
-\fBhex_value\fP (\fIint\fP) \-\- 
 .TP
 .B Return type
 \fITuple\fP[float, float, float]
@@ -7018,6 +6974,16 @@ corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values resp
 Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
 integers corresponding to \fIred\fP, \fIblue\fP and \fIgreen\fP channel value
 respectively. Values are within [0; 255] range.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBhex_value\fP (\fIint\fP) \-\- Color RGB value.
+.TP
+.B Return type
+\fITuple\fP[int, int, int]
+.UNINDENT
+.sp
+Example:
 .sp
 .nf
 .ft C
@@ -7027,29 +6993,11 @@ respectively. Values are within [0; 255] range.
 (0, 0, 1)
 .ft P
 .fi
-.INDENT 7.0
-.TP
-.B Parameters
-\fBhex_value\fP (\fIint\fP) \-\- 
-.TP
-.B Return type
-\fITuple\fP[int, int, int]
-.UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
 .B static  rgb_to_hex(r, g, b)
 .INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBr\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBg\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBb\fP (\fIint\fP) \-\- 
-.UNINDENT
 .TP
 .B Return type
 int
@@ -7058,42 +7006,12 @@ int
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.color.Color16
+.B class  pytermor.color.Color16(*args, **kwargs)
 Bases: \fI\%Color\fP
-.INDENT 7.0
-.TP
-.B __init__(hex_value, code_fg, code_bg, name=None, aliases=None, add_to_map=False)
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBhex_value\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBcode_fg\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBcode_bg\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBname\fP (\fIOptional\fP\fI[\fP\fIstr\fP\fI]\fP) \-\- 
-.IP \(bu 2
-\fBaliases\fP (\fIOptional\fP\fI[\fP\fIList\fP\fI[\fP\fIstr\fP\fI]\fP\fI]\fP) \-\- 
-.IP \(bu 2
-\fBadd_to_map\fP (\fIbool\fP) \-\- 
-.UNINDENT
-.UNINDENT
-.UNINDENT
 .INDENT 7.0
 .TP
 .B to_sgr(bg, bound=None)
 .INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBbg\fP (\fIbool\fP) \-\- 
-.IP \(bu 2
-\fBbound\fP (\fIOptional\fP\fI[\fP\fIType\fP\fI[\fP\fI\%Color\fP\fI]\fP\fI]\fP) \-\- 
-.UNINDENT
 .TP
 .B Return type
 \fI\%SequenceSGR\fP
@@ -7104,200 +7022,19 @@ Bases: \fI\%Color\fP
 .B to_tmux(bg)
 .INDENT 7.0
 .TP
-.B Parameters
-\fBbg\fP (\fIbool\fP) \-\- 
-.TP
 .B Return type
 str
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  approximate(hex_value, max_results=1)
-Search for colors nearest to \fBhex_value\fP and return the first
-\fB<max_results>\fP of them.
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBhex_value\fP (\fIint\fP) \-\- Color RGB value.
-.IP \(bu 2
-\fBmax_results\fP (\fIint\fP) \-\- Maximum amount of values to return.
-.UNINDENT
-.TP
-.B Returns
-Closest \fI\%Color\fP instance(s) found, sorted by color distance
-descending, i.e., 0\-th element is the closest to the input value.
-.TP
-.B Return type
-\fIList\fP[\fICT\fP]
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  find_by_code(code)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBcode\fP (\fIint\fP) \-\- 
-.TP
-.B Return type
-\fICT\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  find_closest(hex_value)
-Search for color nearest to \fBhex_value\fP and return it. Is used to find
-applicable color alternatives if user\(aqs terminal is incapable of operating
-in more advanced mode.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBhex_value\fP (\fIint\fP) \-\- Color RGB value.
-.TP
-.B Returns
-Nearest to \fBhex_value\fP instance of \fBColor\fP or found. Type depends
-on class of the method.
-.TP
-.B Return type
-\fICT\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B format_value(prefix=\(aq0x\(aq)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBprefix\fP (\fIstr\fP) \-\- 
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B static  hex_to_hsv(hex_value)
-Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three numbers
-corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values respectively.
-\fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are within [0; 1] range.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBhex_value\fP (\fIint\fP) \-\- 
-.TP
-.B Return type
-\fITuple\fP[float, float, float]
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B static  hex_to_rgb(hex_value)
-Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
-integers corresponding to \fIred\fP, \fIblue\fP and \fIgreen\fP channel value
-respectively. Values are within [0; 255] range.
-.sp
-.nf
-.ft C
->>> Color.hex_to_rgb(0x80ff80)
-(128, 255, 128)
->>> Color.hex_to_rgb(0x000001)
-(0, 0, 1)
-.ft P
-.fi
-.INDENT 7.0
-.TP
-.B Parameters
-\fBhex_value\fP (\fIint\fP) \-\- 
-.TP
-.B Return type
-\fITuple\fP[int, int, int]
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  hex_value:  int
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  name:  str  |  None
-.UNINDENT
-.INDENT 7.0
-.TP
-.B static  rgb_to_hex(r, g, b)
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBr\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBg\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBb\fP (\fIint\fP) \-\- 
-.UNINDENT
-.TP
-.B Return type
-int
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B to_hsv()
-.INDENT 7.0
-.TP
-.B Return type
-\fITuple\fP[float, float, float]
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B to_rgb()
-.INDENT 7.0
-.TP
-.B Return type
-\fITuple\fP[int, int, int]
 .UNINDENT
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.color.Color256
+.B class  pytermor.color.Color256(*args, **kwargs)
 Bases: \fI\%Color\fP
-.INDENT 7.0
-.TP
-.B __init__(hex_value, code, name=None, add_to_map=False, color16_equiv=None)
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBhex_value\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBcode\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBname\fP (\fIOptional\fP\fI[\fP\fIstr\fP\fI]\fP) \-\- 
-.IP \(bu 2
-\fBadd_to_map\fP (\fIbool\fP) \-\- 
-.IP \(bu 2
-\fBcolor16_equiv\fP (\fIOptional\fP\fI[\fP\fIint\fP\fI]\fP) \-\- 
-.UNINDENT
-.UNINDENT
-.UNINDENT
 .INDENT 7.0
 .TP
 .B to_sgr(bg, bound=None)
 .INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBbg\fP (\fIbool\fP) \-\- 
-.IP \(bu 2
-\fBbound\fP (\fIOptional\fP\fI[\fP\fIType\fP\fI[\fP\fI\%Color\fP\fI]\fP\fI]\fP) \-\- 
-.UNINDENT
 .TP
 .B Return type
 \fI\%SequenceSGR\fP
@@ -7307,9 +7044,6 @@ Bases: \fI\%Color\fP
 .TP
 .B to_tmux(bg)
 .INDENT 7.0
-.TP
-.B Parameters
-\fBbg\fP (\fIbool\fP) \-\- 
 .TP
 .B Return type
 str
@@ -7319,189 +7053,15 @@ str
 .TP
 .B property  code:  int
 .UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  approximate(hex_value, max_results=1)
-Search for colors nearest to \fBhex_value\fP and return the first
-\fB<max_results>\fP of them.
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBhex_value\fP (\fIint\fP) \-\- Color RGB value.
-.IP \(bu 2
-\fBmax_results\fP (\fIint\fP) \-\- Maximum amount of values to return.
-.UNINDENT
-.TP
-.B Returns
-Closest \fI\%Color\fP instance(s) found, sorted by color distance
-descending, i.e., 0\-th element is the closest to the input value.
-.TP
-.B Return type
-\fIList\fP[\fICT\fP]
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  find_by_code(code)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBcode\fP (\fIint\fP) \-\- 
-.TP
-.B Return type
-\fICT\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  find_closest(hex_value)
-Search for color nearest to \fBhex_value\fP and return it. Is used to find
-applicable color alternatives if user\(aqs terminal is incapable of operating
-in more advanced mode.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBhex_value\fP (\fIint\fP) \-\- Color RGB value.
-.TP
-.B Returns
-Nearest to \fBhex_value\fP instance of \fBColor\fP or found. Type depends
-on class of the method.
-.TP
-.B Return type
-\fICT\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B format_value(prefix=\(aq0x\(aq)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBprefix\fP (\fIstr\fP) \-\- 
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B static  hex_to_hsv(hex_value)
-Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three numbers
-corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values respectively.
-\fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are within [0; 1] range.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBhex_value\fP (\fIint\fP) \-\- 
-.TP
-.B Return type
-\fITuple\fP[float, float, float]
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B static  hex_to_rgb(hex_value)
-Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
-integers corresponding to \fIred\fP, \fIblue\fP and \fIgreen\fP channel value
-respectively. Values are within [0; 255] range.
-.sp
-.nf
-.ft C
->>> Color.hex_to_rgb(0x80ff80)
-(128, 255, 128)
->>> Color.hex_to_rgb(0x000001)
-(0, 0, 1)
-.ft P
-.fi
-.INDENT 7.0
-.TP
-.B Parameters
-\fBhex_value\fP (\fIint\fP) \-\- 
-.TP
-.B Return type
-\fITuple\fP[int, int, int]
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  hex_value:  int
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  name:  str  |  None
-.UNINDENT
-.INDENT 7.0
-.TP
-.B static  rgb_to_hex(r, g, b)
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBr\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBg\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBb\fP (\fIint\fP) \-\- 
-.UNINDENT
-.TP
-.B Return type
-int
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B to_hsv()
-.INDENT 7.0
-.TP
-.B Return type
-\fITuple\fP[float, float, float]
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B to_rgb()
-.INDENT 7.0
-.TP
-.B Return type
-\fITuple\fP[int, int, int]
-.UNINDENT
-.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.color.ColorRGB
+.B class  pytermor.color.ColorRGB(*args, **kwargs)
 Bases: \fI\%Color\fP
-.INDENT 7.0
-.TP
-.B __init__(hex_value, name=None, add_to_map=False)
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBhex_value\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBname\fP (\fIOptional\fP\fI[\fP\fIstr\fP\fI]\fP) \-\- 
-.IP \(bu 2
-\fBadd_to_map\fP (\fIbool\fP) \-\- 
-.UNINDENT
-.UNINDENT
-.UNINDENT
 .INDENT 7.0
 .TP
 .B to_sgr(bg, bound=None)
 .INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBbg\fP (\fIbool\fP) \-\- 
-.IP \(bu 2
-\fBbound\fP (\fIOptional\fP\fI[\fP\fIType\fP\fI[\fP\fI\%Color\fP\fI]\fP\fI]\fP) \-\- 
-.UNINDENT
 .TP
 .B Return type
 \fI\%SequenceSGR\fP
@@ -7512,222 +7072,114 @@ Bases: \fI\%Color\fP
 .B to_tmux(bg)
 .INDENT 7.0
 .TP
-.B Parameters
-\fBbg\fP (\fIbool\fP) \-\- 
-.TP
 .B Return type
 str
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  approximate(hex_value, max_results=1)
-Search for colors nearest to \fBhex_value\fP and return the first
-\fB<max_results>\fP of them.
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBhex_value\fP (\fIint\fP) \-\- Color RGB value.
-.IP \(bu 2
-\fBmax_results\fP (\fIint\fP) \-\- Maximum amount of values to return.
-.UNINDENT
-.TP
-.B Returns
-Closest \fI\%Color\fP instance(s) found, sorted by color distance
-descending, i.e., 0\-th element is the closest to the input value.
-.TP
-.B Return type
-\fIList\fP[\fICT\fP]
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  find_by_code(code)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBcode\fP (\fIint\fP) \-\- 
-.TP
-.B Return type
-\fICT\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  find_closest(hex_value)
-Search for color nearest to \fBhex_value\fP and return it. Is used to find
-applicable color alternatives if user\(aqs terminal is incapable of operating
-in more advanced mode.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBhex_value\fP (\fIint\fP) \-\- Color RGB value.
-.TP
-.B Returns
-Nearest to \fBhex_value\fP instance of \fBColor\fP or found. Type depends
-on class of the method.
-.TP
-.B Return type
-\fICT\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B format_value(prefix=\(aq0x\(aq)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBprefix\fP (\fIstr\fP) \-\- 
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B static  hex_to_hsv(hex_value)
-Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three numbers
-corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values respectively.
-\fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are within [0; 1] range.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBhex_value\fP (\fIint\fP) \-\- 
-.TP
-.B Return type
-\fITuple\fP[float, float, float]
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B static  hex_to_rgb(hex_value)
-Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
-integers corresponding to \fIred\fP, \fIblue\fP and \fIgreen\fP channel value
-respectively. Values are within [0; 255] range.
-.sp
-.nf
-.ft C
->>> Color.hex_to_rgb(0x80ff80)
-(128, 255, 128)
->>> Color.hex_to_rgb(0x000001)
-(0, 0, 1)
-.ft P
-.fi
-.INDENT 7.0
-.TP
-.B Parameters
-\fBhex_value\fP (\fIint\fP) \-\- 
-.TP
-.B Return type
-\fITuple\fP[int, int, int]
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  hex_value:  int
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  name:  str  |  None
-.UNINDENT
-.INDENT 7.0
-.TP
-.B static  rgb_to_hex(r, g, b)
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBr\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBg\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBb\fP (\fIint\fP) \-\- 
-.UNINDENT
-.TP
-.B Return type
-int
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B to_hsv()
-.INDENT 7.0
-.TP
-.B Return type
-\fITuple\fP[float, float, float]
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B to_rgb()
-.INDENT 7.0
-.TP
-.B Return type
-\fITuple\fP[int, int, int]
 .UNINDENT
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.color.NOOP_COLOR  =  <pytermor.color._NoopColor object>
+.B pytermor.color.NOOP_COLOR  =  Color[NOP]
 Special \fI\%Color\fP instance always rendering into empty string.
 .UNINDENT
 .SS renderer
+.sp
+Module with output formatters. Default global renderer type is \fI\%SgrRenderer\fP\&.
+.sp
+Customizing of rendering mode can be accomplished in two ways:
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.IP a. 3
+Method \fI\%RendererManager.set_default()\fP sets the default renderer globally.
+After that calling \fI\%text.render()\fP will automatically invoke a said renderer
+and all formatting will be applied.
+.IP b. 3
+Alternatively, you can use renderer\(aqs own instance method \fBrender()\fP
+directly and avoid messing up with the manager:
+\fI\%HtmlRenderer.render()\fP\&.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+Generally speaking, if you need to invoke a custom renderer just once, it\(aqs
+convenient to use the second method for this case and use the global one
+in all the others.
+.sp
+On the contrary, if there is a necessity to use more than one renderer
+alternatingly, it\(aqs better to avoid using the global one at all, and just
+instantiate and invoke two renderers independently.
+.sp
+TL;DR
+.sp
+To unconditionally print formatted message to standard output, do something like
+this:
+.sp
+.nf
+.ft C
+>>> from pytermor import render, RendererManager, Styles
+>>> RendererManager.set_default_to_force_formatting()
+>>> render(\(aqWarning: AAAA\(aq, Styles.WARNING)
+\(aq\ex1b[33mWarning: AAAA\ex1b[39m\(aq
+.ft P
+.fi
 .INDENT 0.0
 .TP
 .B class  pytermor.renderer.RendererManager
 .INDENT 7.0
 .TP
 .B classmethod  set_default(renderer=None)
-Set up renderer preferences.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBrenderer\fP (\fI\%AbstractRenderer\fP\fI | \fP\fIt.Type\fP\fI[\fP\fI\%AbstractRenderer\fP\fI]\fP) \-\- Default renderer to use globally. Passing None will result in library
-default setting restored (\fI\%SgrRenderer\fP). Default renderer is used
-when no other is specified, e.g. in \fI\%render()\fP package method.
-.TP
-.B Returns
-Renderer instance set as default.
-.TP
-.B Return type
-\fI\%AbstractRenderer\fP
-.UNINDENT
+Select a global renderer.
 .sp
 .nf
 .ft C
->>> renderer(\(aqtext\(aq, Style(fg=\(aqred\(aq), DebugRenderer)
+>>> RendererManager.set_default(DebugRenderer)
+>>> render(\(aqtext\(aq, Style(fg=\(aqred\(aq))
 \(aq|ǝ31|text|ǝ39|\(aq
->>> renderer(\(aqtext\(aq, Style(fg=\(aqred\(aq), NoOpRenderer)
-\(aqtext\(aq
 .ft P
 .fi
+.INDENT 7.0
+.TP
+.B Parameters
+\fBrenderer\fP (\fI\%AbstractRenderer\fP\fI | \fP\fIt.Type\fP\fI[\fP\fI\%AbstractRenderer\fP\fI]\fP) \-\- 
+.sp
+Default renderer to use globally. Calling this method without arguments
+will result in library default renderer \fI\%SgrRenderer\fP being set as default.
+.sp
+All the methods with the \fBrenderer\fP argument (e.g., \fI\%text.render()\fP)
+will use the global default one if said argument is omitted or set to \fINone\fP\&.
+.sp
+You can specify either the renderer class, in which case manager will
+instantiate it with the default parameters, or provide already instantiated
+and set up renderer, which will be registred as global.
+
+.UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
 .B classmethod  get_default()
-Get global default renderer instance (\fI\%SgrRenderer\fP, or the one
-provided with \fBsetup\fP).
+Get global renderer instance (\fI\%SgrRenderer\fP, or the one provided with
+\fI\%set_default()\fP).
 .INDENT 7.0
 .TP
 .B Return type
 \fI\%AbstractRenderer\fP
 .UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  set_default_to_disable_formatting()
-Shortcut for forcing all control sequences to be omitted when using
-a default renderer (i.e., doesn\(aqt specifying it).
 .UNINDENT
 .INDENT 7.0
 .TP
 .B classmethod  set_default_to_force_formatting()
 Shortcut for forcing all control sequences to be present in the
-output when using a default renderer (i.e., doesn\(aqt specifying it).
+output of a global renderer.
+.sp
+Note that it applies only to the renderer that is set up as default at
+the moment of calling this method, i.e., all previously created instances,
+as well as the ones that will be created afterwards, are unaffected.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  set_default_to_disable_formatting()
+Shortcut for disabling all output formatting of a global renderer.
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
@@ -7736,19 +7188,23 @@ output when using a default renderer (i.e., doesn\(aqt specifying it).
 Renderer interface.
 .INDENT 7.0
 .TP
-.B abstract  render(string, style=Style[NOP, NOP])
+.B abstract  render(string, style=Style[NOP])
 Apply colors and attributes described in \fBstyle\fP argument to
 \fBstring\fP and return the result. Output format depends on renderer\(aqs
-class (which defines the implementation).
+class, which defines the implementation.
 .INDENT 7.0
 .TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBstring\fP (\fIAny\fP) \-\- 
+\fBstring\fP (\fIAny\fP) \-\- String to format.
 .IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- 
+\fBstyle\fP (\fI\%Style\fP) \-\- Style to apply.
 .UNINDENT
+.TP
+.B Returns
+String with formatting applied, or without it, depending on
+renderer settings.
 .TP
 .B Return type
 str
@@ -7757,40 +7213,44 @@ str
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.renderer.OutputMode
+.B class  pytermor.renderer.OutputMode(value)
 Bases: \fBIntEnum\fP
 .sp
 Determines what types of SGR sequences are allowed to use in the output.
-See \fI\%SgrRenderer\fP documentation for exact color mappings.
 .INDENT 7.0
 .TP
 .B NO_ANSI  =  1
-Disable all formatting
+The renderer discards all color and format information completely.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B XTERM_16  =  2
-16\-colors mode
+16\-colors mode. Enforces the renderer to approximate all color types
+to \fI\%Color16\fP and render them as basic mode selection SGR sequences
+(\fBESC[31m\fP, \fBESC[42m\fP etc). See \fI\%Color.approximate()\fP for approximation
+algorithm details.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B XTERM_256  =  3
-256\-colors mode
+256\-colors mode. Allows the renderer to use either \fI\%Color16\fP or \fI\%Color256\fP 
+(but RGB will be approximated to 256\-color pallette).
 .UNINDENT
 .INDENT 7.0
 .TP
 .B TRUE_COLOR  =  4
-RGB mode
+RGB color mode. Does not apply restrictions to color rendering.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B AUTO  =  5
-The renderer decide
+Lets the renderer select the most suitable mode by itself.
+See \fI\%SgrRenderer\fP constructor documentation for the details.
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.renderer.SgrRenderer
+.B class  pytermor.renderer.SgrRenderer(output_mode=OutputMode.AUTO)
 Bases: \fI\%AbstractRenderer\fP
 .INDENT 7.0
 .INDENT 3.5
@@ -7800,56 +7260,38 @@ make render() protected (?)
 .UNINDENT
 .UNINDENT
 .sp
-Default renderer invoked by \fBText._render()\fP\&. Transforms \fI\%Color\fP instances
+Default renderer invoked by \fI\%Text.render()\fP\&. Transforms \fI\%Color\fP instances
 defined in \fBstyle\fP into ANSI control sequence bytes and merges them with
-input string. Type of output \fBSequenceSGR\fP depends on type of \fI\%Color\fP
+input string. Type of resulting \fI\%SequenceSGR\fP depends on type of \fI\%Color\fP
 instances in \fBstyle\fP argument and current output mode of the renderer.
 .INDENT 7.0
 .IP 1. 3
 \fI\%ColorRGB\fP can be rendered as True Color sequence, 256\-color sequence
-or 16\-color sequence depending on compatibility settings (see below).
+or 16\-color sequence depending on specified \fI\%OutputMode\fP\&.
 .IP 2. 3
 \fI\%Color256\fP can be rendered as 256\-color sequence or 16\-color
 sequence.
 .IP 3. 3
 \fI\%Color16\fP will be rendered as 16\-color sequence.
 .IP 4. 3
-Nothing of the above will happen and all Colors will be discarded
-completely if output is not a terminal emulator or if the developer
-explicitly set up the renderer to do so (\fBforce_styles\fP = False).
+Nothing of the above will happen and all formatting will be discarded
+completely if output device is not a terminal emulator or if the developer
+explicitly set up the renderer to do so (\fI\%OutputMode.NO_ANSI\fP).
 .UNINDENT
 .sp
-Compatibility preferences (see \fBSgrRenderer.setup()\fP) determine
-exact type of output SGRs. Renderer approximates RGB colors to closest
-\fIindexed\fP colors if terminal doesn\(aqt support RGB output. In case terminal
-doesn\(aqt support even 256 colors, falls back to 16\-color palette and picks
-closest samples again the same way. Color mode to color type mapping:
-.INDENT 7.0
-.IP 1. 3
-\fI\%OutputMode.TRUE_COLOR\fP does not apply restrictions to color rendering.
-.IP 2. 3
-\fI\%OutputMode.XTERM_256\fP allows the renderer to use either \fI\%Color16\fP
-or \fI\%Color256\fP (but RGB will be approximated to 256\-color pallette).
-.IP 3. 3
-\fI\%OutputMode.XTERM_16\fP enforces the renderer to approximate all color types
-to \fI\%Color16\fP and render them as basic mode selection SGR sequences
-(e.g., \fBESC[31m\fP, \fBESC[42m\fP etc).
-.IP 4. 3
-\fI\%OutputMode.NO_ANSI\fP discards all color information completely.
-.UNINDENT
+Renderer approximates RGB colors to closest \fBindexed\fP colors if terminal doesn\(aqt
+support RGB output. In case terminal doesn\(aqt support even 256 colors, it
+falls back to 16\-color palette and picks closest samples again the same way.
+See \fI\%OutputMode\fP documentation for exact mappings.
 .sp
 .nf
 .ft C
->>> render(\(aqtext\(aq, Styles.WARNING_LABEL, SgrRenderer(OutputMode.XTERM_256))
+>>> SgrRenderer(OutputMode.XTERM_256).render(\(aqtext\(aq, Styles.WARNING_LABEL)
 \(aq\ex1b[1;33mtext\ex1b[22;39m\(aq
->>> render(\(aqtext\(aq, Styles.WARNING_LABEL, SgrRenderer(OutputMode.NO_ANSI))
+>>> SgrRenderer(OutputMode.NO_ANSI).render(\(aqtext\(aq, Styles.WARNING_LABEL)
 \(aqtext\(aq
 .ft P
 .fi
-.INDENT 7.0
-.TP
-.B __init__(output_mode=OutputMode.AUTO)
-Set up renderer preferences.
 .INDENT 7.0
 .TP
 .B Parameters
@@ -7865,9 +7307,9 @@ variable and follow these rules:
 .INDENT 3.5
 .INDENT 0.0
 .IP \(bu 2
-\fI\%OutputMode.NO_ANSI\fP if \fBTERM\fP is set to \fBxterm\(ga\fP\&.
+\fI\%OutputMode.NO_ANSI\fP if \fBTERM\fP is set to \fBxterm\fP\&.
 .IP \(bu 2
-\fI\%OutputMode.XTERM_16\fP if \fBTERM\fP is set to \fBxterm\-color\(ga\fP\&.
+\fI\%OutputMode.XTERM_16\fP if \fBTERM\fP is set to \fBxterm\-color\fP\&.
 .IP \(bu 2
 \fI\%OutputMode.XTERM_256\fP in all other cases.
 .UNINDENT
@@ -7878,26 +7320,29 @@ Special case is when \fBTERM\fP equals to \fBxterm\-256color\fP \fBand\fP
 \fBCOLORTERM\fP is either \fBtruecolor\fP or  \fB24bit\fP, then
 \fI\%OutputMode.TRUE_COLOR\fP will be used.
 
-.TP
-.B Returns
-self
-.UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
-.B render(string, style=Style[NOP, NOP])
+.B render(string, style=Style[NOP])
 Apply colors and attributes described in \fBstyle\fP argument to
 \fBstring\fP and return the result. Output format depends on renderer\(aqs
-class (which defines the implementation).
+class, which defines the implementation.
 .INDENT 7.0
 .TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBstring\fP (\fIAny\fP) \-\- 
+\fBstring\fP (\fIAny\fP) \-\- String to format.
 .IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- 
+\fBstyle\fP (\fI\%Style\fP) \-\- Style to apply.
 .UNINDENT
+.TP
+.B Returns
+String with formatting applied, or without it, depending on
+renderer settings.
+.TP
+.B Return type
+str
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
@@ -7919,8 +7364,8 @@ tmux
 .sp
 .nf
 .ft C
->>> render(\(aqtext\(aq, Style(fg=\(aqblue\(aq, bold=True), TmuxRenderer(OutputMode.XTERM_16))
-\(aq#[bold]#[fg=blue]text#[nobold nodim]#[fg=default]\(aq
+>>> TmuxRenderer().render(\(aqtext\(aq,  Style(fg=\(aqblue\(aq, bold=True))
+\(aq#[fg=blue bold]text#[fg=default nobold]\(aq
 .ft P
 .fi
 .INDENT 7.0
@@ -7929,19 +7374,26 @@ tmux
 .UNINDENT
 .INDENT 7.0
 .TP
-.B render(string, style=Style[NOP, NOP])
+.B render(string, style=Style[NOP])
 Apply colors and attributes described in \fBstyle\fP argument to
 \fBstring\fP and return the result. Output format depends on renderer\(aqs
-class (which defines the implementation).
+class, which defines the implementation.
 .INDENT 7.0
 .TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBstring\fP (\fIAny\fP) \-\- 
+\fBstring\fP (\fIAny\fP) \-\- String to format.
 .IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- 
+\fBstyle\fP (\fI\%Style\fP) \-\- Style to apply.
 .UNINDENT
+.TP
+.B Returns
+String with formatting applied, or without it, depending on
+renderer settings.
+.TP
+.B Return type
+str
 .UNINDENT
 .UNINDENT
 .UNINDENT
@@ -7956,25 +7408,29 @@ otherwise argument will be casted to str and then returned.
 .sp
 .nf
 .ft C
->>> render(\(aqtext\(aq, Style(fg=\(aqgreen\(aq, bold=True), NoOpRenderer)
+>>> NoOpRenderer().render(\(aqtext\(aq, Style(fg=\(aqgreen\(aq, bold=True))
 \(aqtext\(aq
 .ft P
 .fi
 .INDENT 7.0
 .TP
-.B render(string, style=Style[NOP, NOP])
+.B render(string, style=Style[NOP])
 Apply colors and attributes described in \fBstyle\fP argument to
 \fBstring\fP and return the result. Output format depends on renderer\(aqs
-class (which defines the implementation).
+class, which defines the implementation.
 .INDENT 7.0
 .TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBstring\fP (\fIAny\fP) \-\- 
+\fBstring\fP (\fIAny\fP) \-\- String to format.
 .IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- 
+\fBstyle\fP (\fI\%Style\fP) \-\- Style to apply.
 .UNINDENT
+.TP
+.B Returns
+String with formatting applied, or without it, depending on
+renderer settings.
 .TP
 .B Return type
 str
@@ -7990,7 +7446,7 @@ html
 .sp
 .nf
 .ft C
->>> render(\(aqtext\(aq, Style(fg=\(aqred\(aq,bold=True), HtmlRenderer)
+>>> HtmlRenderer().render(\(aqtext\(aq, Style(fg=\(aqred\(aq, bold=True))
 \(aq<span style=\(dqcolor: #800000; font\-weight: 700\(dq>text</span>\(aq
 .ft P
 .fi
@@ -8000,19 +7456,23 @@ html
 .UNINDENT
 .INDENT 7.0
 .TP
-.B render(string, style=Style[NOP, NOP])
+.B render(string, style=Style[NOP])
 Apply colors and attributes described in \fBstyle\fP argument to
 \fBstring\fP and return the result. Output format depends on renderer\(aqs
-class (which defines the implementation).
+class, which defines the implementation.
 .INDENT 7.0
 .TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBstring\fP (\fIAny\fP) \-\- 
+\fBstring\fP (\fIAny\fP) \-\- String to format.
 .IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- 
+\fBstyle\fP (\fI\%Style\fP) \-\- Style to apply.
 .UNINDENT
+.TP
+.B Returns
+String with formatting applied, or without it, depending on
+renderer settings.
 .TP
 .B Return type
 str
@@ -8021,69 +7481,36 @@ str
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.renderer.DebugRenderer
+.B class  pytermor.renderer.DebugRenderer(output_mode=OutputMode.AUTO)
 Bases: \fI\%SgrRenderer\fP
-.sp
-DebugRenderer
 .sp
 .nf
 .ft C
->>> render(\(aqtext\(aq, style.Style(fg=\(aqred\(aq, bold=True), DebugRenderer)
+>>> DebugRenderer().render(\(aqtext\(aq, Style(fg=\(aqred\(aq, bold=True))
 \(aq|ǝ1;31|text|ǝ22;39|\(aq
 .ft P
 .fi
 .INDENT 7.0
-.TP
-.B __init__(output_mode=OutputMode.AUTO)
-Set up renderer preferences.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBoutput_mode\fP (\fI\%OutputMode\fP) \-\- 
-.sp
-SGR output mode to use. Valid values are listed in \fI\%OutputMode\fP enum.
-.sp
-With \fI\%OutputMode.AUTO\fP the renderer will first check if the output
-device is a terminal emulator, and use \fI\%OutputMode.NO_ANSI\fP when it
-is not. Otherwise, the renderer will read \fBTERM\fP environment
-variable and follow these rules:
-.INDENT 7.0
-.INDENT 3.5
-.INDENT 0.0
-.IP \(bu 2
-\fI\%OutputMode.NO_ANSI\fP if \fBTERM\fP is set to \fBxterm\(ga\fP\&.
-.IP \(bu 2
-\fI\%OutputMode.XTERM_16\fP if \fBTERM\fP is set to \fBxterm\-color\(ga\fP\&.
-.IP \(bu 2
-\fI\%OutputMode.XTERM_256\fP in all other cases.
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.sp
-Special case is when \fBTERM\fP equals to \fBxterm\-256color\fP \fBand\fP
-\fBCOLORTERM\fP is either \fBtruecolor\fP or  \fB24bit\fP, then
-\fI\%OutputMode.TRUE_COLOR\fP will be used.
-
-.TP
-.B Returns
-self
-.UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
-.B render(string, style=Style[NOP, NOP])
+.B render(string, style=Style[NOP])
 Apply colors and attributes described in \fBstyle\fP argument to
 \fBstring\fP and return the result. Output format depends on renderer\(aqs
-class (which defines the implementation).
+class, which defines the implementation.
 .INDENT 7.0
 .TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBstring\fP (\fIAny\fP) \-\- 
+\fBstring\fP (\fIAny\fP) \-\- String to format.
 .IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- 
+\fBstyle\fP (\fI\%Style\fP) \-\- Style to apply.
 .UNINDENT
+.TP
+.B Returns
+String with formatting applied, or without it, depending on
+renderer settings.
 .TP
 .B Return type
 str
@@ -8102,127 +7529,93 @@ bool
 .SS style
 .INDENT 0.0
 .TP
-.B class  pytermor.style.Style
-Create a new \fBStyle()\fP\&.
-.sp
-Key difference between \fBStyles\fP and \fBSpans\fP or \fBSGRs\fP is that
-\fBStyles\fP describe colors in RGB format and therefore support output
-rendering in several different formats (see \fB_render\fP).
-.sp
-Both \fBfg\fP and \fBbg\fP can be specified as:
+.B class  pytermor.style.Style(parent=None, fg=None, bg=None, blink=None, bold=None, crosslined=None, dim=None, double_underlined=None, inversed=None, italic=None, overlined=None, underlined=None, class_name=None)
+Create a new \fBStyle()\fP\&. Both \fBfg\fP and \fBbg\fP can be specified as:
 .INDENT 7.0
+.INDENT 3.5
+.INDENT 0.0
 .IP 1. 3
 \fI\%Color\fP instance or library preset;
 .IP 2. 3
-name of any of these presets, case\-insensitive;
+\fB*str*\fP \-\- name of any of these presets, case\-insensitive;
 .IP 3. 3
-integer color value in hexademical RGB format.
+\fB*int*\fP \-\- color value in hexademical RGB format;
 .IP 4. 3
-None \-\- the color will be unset.
+\fINone\fP \-\- the color will be unset.
+.UNINDENT
+.UNINDENT
 .UNINDENT
 .sp
 Inheritance \fBparent\fP \-> \fBchild\fP works this way:
 .INDENT 7.0
-.IP 1. 3
-If an argument in child\(aqs constructor is empty (=None), take value from
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+If an argument in child\(aqs constructor is empty (\fINone\fP), take value from
 \fBparent\fP\(aqs corresponding attribute.
-.IP 2. 3
-If an argument in child\(aqs constructor is \fInot\fP empty (=True|False|Color etc.),
-use it as child\(aqs attribute.
+.IP \(bu 2
+If an argument in child\(aqs constructor is \fInot\fP empty (\fBTrue\fP,
+\fBFalse\fP, \fI\%Color\fP etc.), use it as child\(aqs attribute.
+.UNINDENT
+.UNINDENT
 .UNINDENT
 .sp
 \fBNOTE:\fP
 .INDENT 7.0
 .INDENT 3.5
-There will be no empty (=None) attributes of type \fI\%Color\fP after initialization
-\-\- they are replaced with special constant \fI\%NOOP_COLOR\fP, that works as if
-there was no color defined and allows to avoid writing of boilerplate code
-to check if a color is None here and there.
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBparent\fP \-\- Style to copy attributes without value from.
-.IP \(bu 2
-\fBfg\fP \-\- Foreground (i.e., text) color.
-.IP \(bu 2
-\fBbg\fP \-\- Background color.
-.IP \(bu 2
-\fBblink\fP \-\- Blinking effect; \fIsupported by limited amount of Renderers\fP\&.
-.IP \(bu 2
-\fBbold\fP \-\- Bold or increased intensity.
-.IP \(bu 2
-\fBcrosslined\fP \-\- Strikethrough.
-.IP \(bu 2
-\fBdim\fP \-\- Faint, decreased intensity.
-.IP \(bu 2
-\fBdouble_underlined\fP \-\- Faint, decreased intensity.
-.IP \(bu 2
-\fBinversed\fP \-\- Swap foreground and background colors.
-.IP \(bu 2
-\fBitalic\fP \-\- Italic.
-.IP \(bu 2
-\fBoverlined\fP \-\- Overline.
-.IP \(bu 2
-\fBunderlined\fP \-\- Underline.
-.IP \(bu 2
-\fBclass_name\fP \-\- Arbitary string used by some renderers, e.g. by
-\fBHtmlRenderer\fP\&.
+Both empty (i.e., \fINone\fP) attributes of type \fI\%Color\fP after initialization
+will be replaced with special constant \fI\%NOOP_COLOR\fP, which behaves like
+there was no color defined, and at the same time makes it safer to work
+with nullable color\-type variables.
 .UNINDENT
 .UNINDENT
 .sp
 .nf
 .ft C
 >>> Style(fg=\(aqgreen\(aq, bold=True)
-Style[fg=008000, ~, bold]
+Style[fg=008000, bg=NOP, bold]
 >>> Style(bg=0x0000ff)
-Style[~, bg=0000ff]
+Style[fg=NOP, bg=0000ff]
 >>> Style(fg=\(aqDeepSkyBlue1\(aq, bg=\(aqgray3\(aq)
 Style[fg=00afff, bg=080808]
 .ft P
 .fi
 .INDENT 7.0
 .TP
-.B renderable_attributes  =  frozenset({\(aqbg\(aq, \(aqblink\(aq, \(aqbold\(aq, \(aqcrosslined\(aq, \(aqdim\(aq, \(aqdouble_underlined\(aq, \(aqfg\(aq, \(aqinversed\(aq, \(aqitalic\(aq, \(aqoverlined\(aq, \(aqunderlined\(aq})
-.UNINDENT
-.INDENT 7.0
-.TP
-.B __init__(parent=None, fg=None, bg=None, blink=None, bold=None, crosslined=None, dim=None, double_underlined=None, inversed=None, italic=None, overlined=None, underlined=None, class_name=None)
-.INDENT 7.0
-.TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBparent\fP (\fI\%Style\fP) \-\- 
+\fBparent\fP (\fI\%Style\fP) \-\- Style to copy attributes without value from.
 .IP \(bu 2
-\fBfg\fP (\fI\%Color\fP\fI | \fP\fIint\fP\fI | \fP\fIstr\fP) \-\- 
+\fBfg\fP (\fI\%Color\fP\fI | \fP\fIint\fP\fI | \fP\fIstr\fP) \-\- Foreground (i.e., text) color.
 .IP \(bu 2
-\fBbg\fP (\fI\%Color\fP\fI | \fP\fIint\fP\fI | \fP\fIstr\fP) \-\- 
+\fBbg\fP (\fI\%Color\fP\fI | \fP\fIint\fP\fI | \fP\fIstr\fP) \-\- Background color.
 .IP \(bu 2
-\fBblink\fP (\fIbool\fP) \-\- 
+\fBblink\fP (\fIbool\fP) \-\- Blinking effect; \fIsupported by limited amount of Renderers\fP\&.
 .IP \(bu 2
-\fBbold\fP (\fIbool\fP) \-\- 
+\fBbold\fP (\fIbool\fP) \-\- Bold or increased intensity.
 .IP \(bu 2
-\fBcrosslined\fP (\fIbool\fP) \-\- 
+\fBcrosslined\fP (\fIbool\fP) \-\- Strikethrough.
 .IP \(bu 2
-\fBdim\fP (\fIbool\fP) \-\- 
+\fBdim\fP (\fIbool\fP) \-\- Faint, decreased intensity.
 .IP \(bu 2
-\fBdouble_underlined\fP (\fIbool\fP) \-\- 
+\fBdouble_underlined\fP (\fIbool\fP) \-\- Faint, decreased intensity.
 .IP \(bu 2
-\fBinversed\fP (\fIbool\fP) \-\- 
+\fBinversed\fP (\fIbool\fP) \-\- Swap foreground and background colors.
 .IP \(bu 2
-\fBitalic\fP (\fIbool\fP) \-\- 
+\fBitalic\fP (\fIbool\fP) \-\- Italic.
 .IP \(bu 2
-\fBoverlined\fP (\fIbool\fP) \-\- 
+\fBoverlined\fP (\fIbool\fP) \-\- Overline.
 .IP \(bu 2
-\fBunderlined\fP (\fIbool\fP) \-\- 
+\fBunderlined\fP (\fIbool\fP) \-\- Underline.
 .IP \(bu 2
-\fBclass_name\fP (\fIstr\fP) \-\- 
+\fBclass_name\fP (\fIstr\fP) \-\- Arbitary string used by some renderers, e.g. by
+\fBHtmlRenderer\fP\&.
 .UNINDENT
 .UNINDENT
+.INDENT 7.0
+.TP
+.B renderable_attributes  =  frozenset({\(aqbg\(aq, \(aqblink\(aq, \(aqbold\(aq, \(aqcrosslined\(aq, \(aqdim\(aq, \(aqdouble_underlined\(aq, \(aqfg\(aq, \(aqinversed\(aq, \(aqitalic\(aq, \(aqoverlined\(aq, \(aqunderlined\(aq})
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -8260,10 +7653,6 @@ Swap foreground color and background color.
 .UNINDENT
 .INDENT 7.0
 .TP
-.B property  attributes:  FrozenSet
-.UNINDENT
-.INDENT 7.0
-.TP
 .B clone()
 .INDENT 7.0
 .TP
@@ -8282,31 +7671,36 @@ Swap foreground color and background color.
 .UNINDENT
 .INDENT 0.0
 .TP
+.B pytermor.style.NOOP_STYLE  =  Style[NOP]
+Special style passing the text through without any modifications.
+.UNINDENT
+.INDENT 0.0
+.TP
 .B class  pytermor.style.Styles
 Some ready\-to\-use styles. Can be used as examples.
 .INDENT 7.0
 .TP
-.B WARNING  =  Style[fg=808000, NOP]
+.B WARNING  =  Style[fg=808000, bg=NOP]
 .UNINDENT
 .INDENT 7.0
 .TP
-.B WARNING_LABEL  =  Style[fg=808000, NOP, bold]
+.B WARNING_LABEL  =  Style[fg=808000, bg=NOP, bold]
 .UNINDENT
 .INDENT 7.0
 .TP
-.B WARNING_ACCENT  =  Style[fg=ffff00, NOP]
+.B WARNING_ACCENT  =  Style[fg=ffff00, bg=NOP]
 .UNINDENT
 .INDENT 7.0
 .TP
-.B ERROR  =  Style[fg=800000, NOP]
+.B ERROR  =  Style[fg=800000, bg=NOP]
 .UNINDENT
 .INDENT 7.0
 .TP
-.B ERROR_LABEL  =  Style[fg=800000, NOP, bold]
+.B ERROR_LABEL  =  Style[fg=800000, bg=NOP, bold]
 .UNINDENT
 .INDENT 7.0
 .TP
-.B ERROR_ACCENT  =  Style[fg=ff0000, NOP]
+.B ERROR_ACCENT  =  Style[fg=ff0000, bg=NOP]
 .UNINDENT
 .INDENT 7.0
 .TP
@@ -8322,87 +7716,40 @@ Some ready\-to\-use styles. Can be used as examples.
 .UNINDENT
 .UNINDENT
 .SS text
-.sp
-Module with output formatters. By default \fBSgrRenderer\fP is used. It
-also contains compatibility settings, see \fBSgrRenderer.setup()\fP\&.
-.sp
-Working with non\-default renderer can be achieved in two ways:
-.INDENT 0.0
-.INDENT 3.5
-.INDENT 0.0
-.IP a. 3
-Method \fI\%RendererManager.set_default()\fP sets the default renderer globally.
-After that calling \fI\%render()\fP will automatically invoke said renderer
-and all formatting will be applied.
-.IP b. 3
-Alternatively, you can use renderer\(aqs own instance method \fBrender()\fP
-directly and avoid messing up with the manager:
-\fBHtmlRenderer().render(<Text>)\fP
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.sp
-TL;DR
-.sp
-To unconditionally print formatted message to output terminal, do something like
-this:
-.sp
-.nf
-.ft C
->>> RendererManager.set_default_to_force_formatting()
->>> render(\(aqWarning: AAAA\(aq, Styles.WARNING)
-\(aq\ex1b[33mWarning: AAAA\ex1b[39m\(aq
-.ft P
-.fi
 .INDENT 0.0
 .TP
-.B class  pytermor.text.Text
+.B class  pytermor.text.Renderable(*args, **kwds)
+Bases: \fBSized\fP
+.sp
+Renderable abstract class. Can be inherited when the default style
+overlaps resolution mechanism implemented in \fI\%Text\fP is not good enough.
+.INDENT 7.0
+.TP
+.B abstract  render(renderer=None)
+.INDENT 7.0
+.TP
+.B Return type
+str
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B abstract  raw()
+.INDENT 7.0
+.TP
+.B Return type
+str
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.text.Text(string=\(aq\(aq, style=Style[NOP], close_this=True, close_prev=False)
 Bases: \fI\%Renderable\fP
-.INDENT 7.0
-.TP
-.B WIDTH_MAX_LEN_REGEXP  =  re.compile(\(aq[\e\ed.]+$\(aq)
-.UNINDENT
-.INDENT 7.0
-.TP
-.B ALIGN_LEFT  =  \(aq<\(aq
-.UNINDENT
-.INDENT 7.0
-.TP
-.B ALIGN_RIGHT  =  \(aq>\(aq
-.UNINDENT
-.INDENT 7.0
-.TP
-.B ALIGN_CENTER  =  \(aq^\(aq
-.UNINDENT
-.INDENT 7.0
-.TP
-.B ALIGN_FUNC_MAP  =  {None: <function ljust_sgr>, \(aq<\(aq: <function ljust_sgr>, \(aq>\(aq: <function rjust_sgr>, \(aq^\(aq: <function center_sgr>}
-.UNINDENT
-.INDENT 7.0
-.TP
-.B __init__(string=\(aq\(aq, style=Style[NOP, NOP], close_this=True, close_prev=False)
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBstring\fP (\fIstr\fP) \-\- 
-.IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- 
-.IP \(bu 2
-\fBclose_this\fP (\fIbool\fP) \-\- 
-.IP \(bu 2
-\fBclose_prev\fP (\fIbool\fP) \-\- 
-.UNINDENT
-.UNINDENT
-.UNINDENT
 .INDENT 7.0
 .TP
 .B render(renderer=None)
 .INDENT 7.0
-.TP
-.B Parameters
-\fBrenderer\fP (\fI\%AbstractRenderer\fP\fI | \fP\fIt.Type\fP\fI[\fP\fI\%AbstractRenderer\fP\fI]\fP) \-\- 
 .TP
 .B Return type
 str
@@ -8419,20 +7766,8 @@ str
 .UNINDENT
 .INDENT 7.0
 .TP
-.B append(string, style=Style[NOP, NOP], close_this=True, close_prev=False)
+.B append(string, style=Style[NOP], close_this=True, close_prev=False)
 .INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBstring\fP (\fIstr\fP\fI | \fP\fI\%Text\fP) \-\- 
-.IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- 
-.IP \(bu 2
-\fBclose_this\fP (\fIbool\fP) \-\- 
-.IP \(bu 2
-\fBclose_prev\fP (\fIbool\fP) \-\- 
-.UNINDENT
 .TP
 .B Return type
 \fI\%Text\fP
@@ -8440,20 +7775,8 @@ str
 .UNINDENT
 .INDENT 7.0
 .TP
-.B prepend(string, style=Style[NOP, NOP], close_this=True, close_prev=False)
+.B prepend(string, style=Style[NOP], close_this=True, close_prev=False)
 .INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBstring\fP (\fIstr\fP\fI | \fP\fI\%Text\fP) \-\- 
-.IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- 
-.IP \(bu 2
-\fBclose_this\fP (\fIbool\fP) \-\- 
-.IP \(bu 2
-\fBclose_prev\fP (\fIbool\fP) \-\- 
-.UNINDENT
 .TP
 .B Return type
 \fI\%Text\fP
@@ -8462,36 +7785,14 @@ str
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.text.TemplateEngine
+.B class  pytermor.text.TemplateEngine(custom_styles=None)
 .INDENT 7.0
-.TP
-.B TAG_REGEXP  =  re.compile(\(aq\en        (?:\en          (?P<set>@[\e\ew]+)?\en          (?P<add>:)\en          |\en          (?P<comment>_)\en        )\en        (?![^\e\e\e\e]\e\e\e\e) (?# ignore [ escaped with single backslash, but not double), re.VERBOSE)
-.UNINDENT
-.INDENT 7.0
-.TP
-.B ESCAPE_REGEXP  =  re.compile(\(aq([^\e\e\e\e])\e\e\e\e\e\e[\(aq)
-.UNINDENT
-.INDENT 7.0
-.TP
-.B SPLIT_REGEXP  =  re.compile(\(aq([^\e\es,]+)?([\e\es,]*)\(aq)
-.UNINDENT
-.INDENT 7.0
-.TP
-.B __init__(custom_styles=None)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBcustom_styles\fP (\fIOptional\fP\fI[\fP\fIDict\fP\fI[\fP\fIstr\fP\fI, \fP\fI\%Style\fP\fI]\fP\fI]\fP) \-\- 
-.UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
 .B parse(tpl)
 .INDENT 7.0
 .TP
-.B Parameters
-\fBtpl\fP (\fIstr\fP) \-\- 
-.TP
 .B Return type
 \fI\%Text\fP
 .UNINDENT
@@ -8499,105 +7800,71 @@ str
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.text.render(string, style=Style[NOP, NOP], renderer=None)
+.B pytermor.text.render(string, style=Style[NOP], renderer=None)
 .INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBstring\fP (\fIAny\fP) \-\- 
-.IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- 
-.IP \(bu 2
-\fBrenderer\fP (\fIOptional\fP\fI[\fP\fI\%AbstractRenderer\fP\fI]\fP) \-\- 
-.UNINDENT
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.text.echo(string, style=Style[NOP, NOP], renderer=None, nl=True, file=<_io.TextIOWrapper name=\(aq<stdout>\(aq mode=\(aqw\(aq encoding=\(aqutf\-8\(aq>, flush=True)
+.B pytermor.text.echo(string, style=Style[NOP], renderer=None, nl=True, file=<_io.TextIOWrapper name=\(aq<stdout>\(aq mode=\(aqw\(aq encoding=\(aqutf\-8\(aq>, flush=True)
 .INDENT 7.0
+.UNINDENT
+.UNINDENT
+.SS common
+.INDENT 0.0
 .TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBstring\fP (\fIAny\fP) \-\- 
-.IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- 
-.IP \(bu 2
-\fBrenderer\fP (\fIOptional\fP\fI[\fP\fI\%AbstractRenderer\fP\fI]\fP) \-\- 
-.IP \(bu 2
-\fBnl\fP (\fIbool\fP) \-\- 
-.IP \(bu 2
-\fBfile\fP (\fIIO\fP) \-\- 
-.IP \(bu 2
-\fBflush\fP (\fIbool\fP) \-\- 
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.SS util
+.B pytermor.common.T
+\fBt.Any\fP
 .sp
-Package containing a set of formatters for prettier output, as well as utility classes for removing
-some of the boilerplate code when dealing with escape sequences.
-.INDENT 0.0
-.TP
-.B pytermor.util.format_thousand_sep(value, separator=\(aq \(aq)
-Returns input \fBvalue\fP with integer part splitted into groups of three digits,
-joined then with \fBseparator\fP string.
-.sp
-.nf
-.ft C
->>> format_thousand_sep(260341)
-\(aq260 341\(aq
->>> format_thousand_sep(\-9123123123.55, \(aq,\(aq)
-\(aq\-9,123,123,123.55\(aq
-.ft P
-.fi
-.INDENT 7.0
-.TP
-.B Parameters
-\fBvalue\fP (\fIint\fP\fI | \fP\fIfloat\fP) \-\- 
-.UNINDENT
+alias of TypeVar(\(aqT\(aq)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.util.distribute_padded(values, max_len, pad_before=False, pad_after=False)
+.B pytermor.common.StrType
+\fI\%StrType\fP in a method signature usually means that regular strings as well as 
+\fI\%Renderable\fP implementations are supported, can be intermixed, and:
 .INDENT 7.0
 .INDENT 3.5
-.SS Todo
+.INDENT 0.0
+.IP \(bu 2
+return type will be \fIstr\fP if and only if type of all arguments is \fIstr\fP;
+.IP \(bu 2
+otherwise return type will be \fI\%Renderable\fP \-\- \fIstr\fP arguments, if any, will
+be transformed into \fI\%Renderable\fP and concatenated.
+.UNINDENT
+.UNINDENT
+.UNINDENT
 .sp
-todo
+alias of TypeVar(\(aqStrType\(aq, bound=\fBUnion\fP[\fBstr\fP, \fBRenderable\fP])
 .UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBvalues\fP (\fIList\fP\fI[\fP\fIstr\fP\fI | \fP\fI\%Renderable\fP\fI]\fP) \-\- 
-.IP \(bu 2
-\fBmax_len\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBpad_before\fP (\fIbool\fP) \-\- 
-.IP \(bu 2
-\fBpad_after\fP (\fIbool\fP) \-\- 
-.UNINDENT
-.TP
-.B Returns
-
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
-.SS auto_float
 .INDENT 0.0
 .TP
-.B pytermor.util.auto_float.format_auto_float(value, req_len, allow_exponent_notation=True)
+.B exception  pytermor.common.LogicError
+Bases: \fBException\fP
+.UNINDENT
+.INDENT 0.0
+.TP
+.B exception  pytermor.common.ConflictError
+Bases: \fBException\fP
+.UNINDENT
+.INDENT 0.0
+.TP
+.B exception  pytermor.common.EmptyColorMapError(is_rgb)
+Bases: \fBRuntimeError\fP
+.INDENT 7.0
+.UNINDENT
+.UNINDENT
+.SS index_16
+.SS index_256
+.SS index_rgb
+.SS utilnum
+.INDENT 0.0
+.TP
+.B pytermor.utilnum.format_auto_float(value, req_len, allow_exponent_notation=True)
 Dynamically adjust decimal digit amount and format
 to fill up the output string with as many significant
 digits as possible, and keep the output length
-strictly equal to \fIreq_len\fP  at the same time.
+strictly equal to \fBreq_len\fP  at the same time.
 .sp
 .nf
 .ft C
@@ -8655,13 +7922,14 @@ str
 New in version 1.7.
 
 .UNINDENT
-.SS prefixed_unit
 .INDENT 0.0
 .TP
-.B pytermor.util.prefixed_unit.format_si_metric(value, unit=\(aqm\(aq)
+.B pytermor.utilnum.format_si_metric(value, unit=\(aqm\(aq)
 Format \fBvalue\fP as meters with SI\-prefixes, max result length is
-\fI7\fP chars: 4 for value plus 3 for default unit, prefix and
-separator. Base is \fI1000\fP\&. Unit can be customized.
+7 chars: 4 for value plus 3 for default unit, prefix and
+separator. Base is 1000. Unit can be customized.
+Suitable for formatting any SI unit with values
+from approximately 10^\-27 to 10^27.
 .sp
 .nf
 .ft C
@@ -8697,10 +7965,10 @@ New in version 2.0.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.util.prefixed_unit.format_si_binary(value, unit=\(aqb\(aq)
+.B pytermor.utilnum.format_si_binary(value, unit=\(aqb\(aq)
 Format \fBvalue\fP as binary size (bytes, kbytes, Mbytes), max
-result length is \fI8\fP chars: 5 for value plus 3 for default unit,
-prefix and separator. Base is \fI1024\fP\&. Unit can be customized.
+result length is 8 chars: 5 for value plus 3 for default unit,
+prefix and separator. Base is 1024. Unit can be customized.
 .sp
 .nf
 .ft C
@@ -8736,7 +8004,7 @@ New in version 2.0.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.prefixed_unit.PrefixedUnitFormatter
+.B class  pytermor.utilnum.PrefixedUnitFormatter(max_value_len, truncate_frac=False, unit=None, unit_separator=None, mcoef=1000.0, prefixes=None, prefix_zero_idx=None)
 Formats \fBvalue\fP using settings passed to constructor. The main idea of this class
 is to fit into specified string length as much significant digits as it\(aqs
 theoretically possible by using multipliers and unit prefixes to
@@ -8746,24 +8014,6 @@ You can create your own formatters if you need fine tuning of the
 output and customization. If that\(aqs not the case, there are facade
 methods \fI\%format_si_metric()\fP and \fI\%format_si_binary()\fP,
 which will invoke predefined formatters and doesn\(aqt require setting up.
-.INDENT 7.0
-.INDENT 3.5
-.SS Todo
-.sp
-params
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B Parameters
-\fBprefix_zero_idx\fP \-\- Index of prefix which will be used as default, i.e. without multiplying coefficients.
-.UNINDENT
-.sp
-New in version 1.7.
-
-.INDENT 7.0
-.TP
-.B __init__(max_value_len, truncate_frac=False, unit=None, unit_separator=None, mcoef=1000.0, prefixes=None, prefix_zero_idx=None)
 .INDENT 7.0
 .TP
 .B Parameters
@@ -8781,10 +8031,12 @@ New in version 1.7.
 .IP \(bu 2
 \fBprefixes\fP (\fIList\fP\fI[\fP\fIstr\fP\fI | \fP\fINone\fP\fI]\fP) \-\- 
 .IP \(bu 2
-\fBprefix_zero_idx\fP (\fIint\fP) \-\- 
+\fBprefix_zero_idx\fP (\fIint\fP) \-\- Index of prefix which will be used as default, i.e. without multiplying coefficients.
 .UNINDENT
 .UNINDENT
-.UNINDENT
+.sp
+New in version 1.7.
+
 .INDENT 7.0
 .TP
 .B property  max_len:  int
@@ -8792,7 +8044,7 @@ New in version 1.7.
 .TP
 .B Returns
 Maximum length of the result. Note that constructor argument
-is \fImax_value_len\fP, which is different parameter.
+is \fBmax_value_len\fP, which is a different parameter.
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
@@ -8818,24 +8070,52 @@ str
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.util.prefixed_unit.PREFIXES_SI  =  [\(aqy\(aq, \(aqz\(aq, \(aqa\(aq, \(aqf\(aq, \(aqp\(aq, \(aqn\(aq, \(aqμ\(aq, \(aqm\(aq, None, \(aqk\(aq, \(aqM\(aq, \(aqG\(aq, \(aqT\(aq, \(aqP\(aq, \(aqE\(aq, \(aqZ\(aq, \(aqY\(aq]
+.B pytermor.utilnum.PREFIXES_SI  =  [\(aqy\(aq, \(aqz\(aq, \(aqa\(aq, \(aqf\(aq, \(aqp\(aq, \(aqn\(aq, \(aqμ\(aq, \(aqm\(aq, None, \(aqk\(aq, \(aqM\(aq, \(aqG\(aq, \(aqT\(aq, \(aqP\(aq, \(aqE\(aq, \(aqZ\(aq, \(aqY\(aq]
 Prefix presets used by default module formatters. Can be
 useful if you are building your own formatter.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.util.prefixed_unit.PREFIX_ZERO_SI  =  8
+.B pytermor.utilnum.PREFIX_ZERO_SI  =  8
 Index of prefix which will be used as default, i.e. without 
 multiplying coefficients.
 .UNINDENT
-.SS time_delta
-.sp
-Module for time difference formatting (e.g. \(dq4 days 15 hours\(dq, \(dq8h 59m\(dq).
-.sp
-Supports several output lengths and can be customized even more.
 .INDENT 0.0
 .TP
-.B pytermor.util.time_delta.format_time_delta(seconds, max_len=None)
+.B pytermor.utilnum._formatter_si_metric  =  PrefixedUnitFormatter
+Configuration example, used by \fI\%format_si_binary\fP\&.
+.sp
+\fBmax_value_len\fP must be at least 4, because it\(aqs a
+minimum requirement for formatting values from 999 to \-999.
+Next number to 999 is 1000, which will be formatted as \(dq1k\(dq.
+.sp
+Total maximum length is \fBmax_value_len + 3\fP, which is 7
+(+3 is from separator, unit and prefix, assuming all of them
+have 1\-char width). Without unit (default) it\(aqs 6.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.utilnum._formatter_si_binary  =  PrefixedUnitFormatter
+Configuration example, used by \fI\%format_si_metric\fP\&.
+.sp
+While being similar to \fI\%_formatter_si_metric\fP, this formatter 
+differs in one aspect.  Given a variable with default value = 995,
+formatting it\(aqs value results in \(dq995 b\(dq. After increasing it
+by 20 we\(aqll have 1015, but it\(aqs still not enough to become
+a kilobyte \-\- so returned value will be \(dq1015 b\(dq. Only after one
+more increase (at 1024 and more) the value will be in a form
+of \(dq1.00 kb\(dq.
+.sp
+So, in this case \fBmax_value_len\fP must be at least 5 (not 4),
+because it\(aqs a minimum requirement for formatting values from 1023
+to \-1023.
+.sp
+Total maximum length is \fBmax_value_len + 3\fP = 8 (+3 is from separator,
+unit and prefix, assuming all of them have 1\-char width).
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.utilnum.format_time_delta(seconds, max_len=None)
 Format time delta using suitable format (which depends on
 \fBmax_len\fP argument). Key feature of this formatter is
 ability to combine two units and display them simultaneously,
@@ -8844,7 +8124,7 @@ e.g. return \(dq3h 48min\(dq instead of \(dq228 mins\(dq or \(dq3 hours\(dq,
 There are predefined formatters with output length of 3, 4,
 6 and 10 characters. Therefore, you can pass in any value
 from 3 inclusive and it\(aqs guarenteed that result\(aqs length
-will be less or equal to required length. If \fImax_len\fP is
+will be less or equal to required length. If \fI\%max_len\fP is
 omitted, longest registred formatter will be used.
 .sp
 .nf
@@ -8878,7 +8158,7 @@ str
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.time_delta.TimeDeltaFormatter
+.B class  pytermor.utilnum.TimeDeltaFormatter(units, allow_negative, unit_separator=None, plural_suffix=None, overflow_msg=\(aqOVERFLOW\(aq)
 Formatter for time intervals. Key feature of this formatter is
 ability to combine two units and display them simultaneously,
 e.g. return \(dq3h 48min\(dq instead of \(dq228 mins\(dq or \(dq3 hours\(dq, etc.
@@ -8901,9 +8181,6 @@ Example output:
 .UNINDENT
 .INDENT 7.0
 .TP
-.B __init__(units, allow_negative, unit_separator=None, plural_suffix=None, overflow_msg=\(aqOVERFLOW\(aq)
-.INDENT 7.0
-.TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
@@ -8911,12 +8188,11 @@ Example output:
 .IP \(bu 2
 \fBallow_negative\fP (\fIbool\fP) \-\- 
 .IP \(bu 2
-\fBunit_separator\fP (\fIOptional\fP\fI[\fP\fIstr\fP\fI]\fP) \-\- 
+\fBunit_separator\fP (\fIstr\fP) \-\- 
 .IP \(bu 2
-\fBplural_suffix\fP (\fIOptional\fP\fI[\fP\fIstr\fP\fI]\fP) \-\- 
+\fBplural_suffix\fP (\fIstr\fP) \-\- 
 .IP \(bu 2
 \fBoverflow_msg\fP (\fIstr\fP) \-\- 
-.UNINDENT
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
@@ -8941,7 +8217,7 @@ Pretty\-print difference between two moments in time.
 .IP \(bu 2
 \fBseconds\fP (\fIfloat\fP) \-\- Input value.
 .IP \(bu 2
-\fBalways_max_len\fP (\fIbool\fP) \-\- If result string is less than \fImax_len\fP it will be returned
+\fBalways_max_len\fP (\fIbool\fP) \-\- If result string is less than \fI\%max_len\fP it will be returned
 as is, unless this flag is set to \fITrue\fP\&. In that case output
 string will be padded with spaces on the left side so that
 resulting length would be always equal to maximum length.
@@ -8975,8 +8251,9 @@ str | None
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.time_delta.TimeUnit
-TimeUnit(name: \(aqstr\(aq, in_next: \(aqint\(aq = None, custom_short: \(aqstr\(aq = None, collapsible_after: \(aqint\(aq = None, overflow_afer: \(aqint\(aq = None)
+.B class  pytermor.utilnum.TimeUnit(name:  \(aqstr\(aq, in_next:  \(aqint\(aq  =  None, custom_short:  \(aqstr\(aq  =  None, collapsible_after:  \(aqint\(aq  =  None, overflow_afer:  \(aqint\(aq  =  None)
+.INDENT 7.0
+.UNINDENT
 .INDENT 7.0
 .TP
 .B name:  str
@@ -8997,87 +8274,99 @@ TimeUnit(name: \(aqstr\(aq, in_next: \(aqint\(aq = None, custom_short: \(aqstr\(
 .TP
 .B overflow_afer:  int  =  None
 .UNINDENT
-.INDENT 7.0
+.UNINDENT
+.SS utilstr
+.sp
+Package containing a set of formatters for prettier output, as well as utility classes for removing
+some of the boilerplate code when dealing with escape sequences.
+.INDENT 0.0
 .TP
-.B __init__(name, in_next=None, custom_short=None, collapsible_after=None, overflow_afer=None)
+.B pytermor.utilstr.format_thousand_sep(value, separator=\(aq \(aq)
+Returns input \fBvalue\fP with integer part split into groups of three digits,
+joined then with \fBseparator\fP string.
+.sp
+.nf
+.ft C
+>>> format_thousand_sep(260341)
+\(aq260 341\(aq
+>>> format_thousand_sep(\-9123123123.55, \(aq,\(aq)
+\(aq\-9,123,123,123.55\(aq
+.ft P
+.fi
 .INDENT 7.0
 .TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBname\fP (\fIstr\fP) \-\- 
+\fBvalue\fP (\fIint\fP\fI | \fP\fIfloat\fP) \-\- 
 .IP \(bu 2
-\fBin_next\fP (\fIOptional\fP\fI[\fP\fIint\fP\fI]\fP) \-\- 
-.IP \(bu 2
-\fBcustom_short\fP (\fIOptional\fP\fI[\fP\fIstr\fP\fI]\fP) \-\- 
-.IP \(bu 2
-\fBcollapsible_after\fP (\fIOptional\fP\fI[\fP\fIint\fP\fI]\fP) \-\- 
-.IP \(bu 2
-\fBoverflow_afer\fP (\fIOptional\fP\fI[\fP\fIint\fP\fI]\fP) \-\- 
+\fBseparator\fP (\fIstr\fP) \-\- 
 .UNINDENT
 .TP
 .B Return type
-None
+str
 .UNINDENT
 .UNINDENT
-.UNINDENT
-.SS stdlib_ext
-.sp
-Some of the Python Standard Library methods rewritten
-for correct work with strings containing control sequences.
 .INDENT 0.0
 .TP
-.B pytermor.util.stdlib_ext.ljust_sgr(s, width, fillchar=\(aq \(aq, actual_len=None)
+.B pytermor.utilstr.distribute_padded(values, max_len, pad_before=False, pad_after=False)
+.INDENT 7.0
+.INDENT 3.5
+.SS Todo
+.sp
+todo
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBvalues\fP (\fIList\fP\fI[\fP\fIStrType\fP\fI]\fP) \-\- 
+.IP \(bu 2
+\fBmax_len\fP (\fIint\fP) \-\- 
+.IP \(bu 2
+\fBpad_before\fP (\fIbool\fP) \-\- 
+.IP \(bu 2
+\fBpad_after\fP (\fIbool\fP) \-\- 
+.UNINDENT
+.TP
+.B Returns
+
+.TP
+.B Return type
+\fIStrType\fP
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.utilstr.ljust_sgr(s, width, fillchar=\(aq \(aq, actual_len=None)
 SGR\-formatting\-aware implementation of \fBstr.ljust\fP\&.
 .sp
 Return a left\-justified string of length \fBwidth\fP\&. Padding is done
 using the specified fill character (default is a space).
 .INDENT 7.0
 .TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBs\fP (\fIstr\fP) \-\- 
-.IP \(bu 2
-\fBwidth\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBfillchar\fP (\fIstr\fP) \-\- 
-.IP \(bu 2
-\fBactual_len\fP (\fIOptional\fP\fI[\fP\fIint\fP\fI]\fP) \-\- 
-.UNINDENT
-.TP
 .B Return type
 str
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.util.stdlib_ext.rjust_sgr(s, width, fillchar=\(aq \(aq, actual_len=None)
+.B pytermor.utilstr.rjust_sgr(s, width, fillchar=\(aq \(aq, actual_len=None)
 SGR\-formatting\-aware implementation of \fBstr.rjust\fP\&.
 .sp
 Return a right\-justified string of length \fBwidth\fP\&. Padding is done
 using the specified fill character (default is a space).
 .INDENT 7.0
 .TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBs\fP (\fIstr\fP) \-\- 
-.IP \(bu 2
-\fBwidth\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBfillchar\fP (\fIstr\fP) \-\- 
-.IP \(bu 2
-\fBactual_len\fP (\fIOptional\fP\fI[\fP\fIint\fP\fI]\fP) \-\- 
-.UNINDENT
-.TP
 .B Return type
 str
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.util.stdlib_ext.center_sgr(s, width, fillchar=\(aq \(aq, actual_len=None)
+.B pytermor.utilstr.center_sgr(s, width, fillchar=\(aq \(aq, actual_len=None)
 SGR\-formatting\-aware implementation of \fBstr.center\fP\&.
 .sp
 Return a centered string of length \fBwidth\fP\&. Padding is done using the
@@ -9092,39 +8381,20 @@ specified fill character (default is a space).
 .UNINDENT
 .INDENT 7.0
 .TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBs\fP (\fIstr\fP) \-\- 
-.IP \(bu 2
-\fBwidth\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBfillchar\fP (\fIstr\fP) \-\- 
-.IP \(bu 2
-\fBactual_len\fP (\fIOptional\fP\fI[\fP\fIint\fP\fI]\fP) \-\- 
-.UNINDENT
-.TP
 .B Return type
 str
 .UNINDENT
 .UNINDENT
-.SS string_filter
-.sp
-String filtering module.
-.sp
-Main idea is to provide a common interface for string filtering, that can make
-possible working with filters like with objects rather than with functions/lambdas.
 .INDENT 0.0
 .TP
-.B pytermor.util.string_filter.apply_filters(s, *args)
+.B pytermor.utilstr.apply_filters(s, *args)
 Method for applying dynamic filter list to a target string/bytes.
 Example (will replace all \fBESC\fP control characters to \fBE\fP and
 thus make SGR params visible):
 .sp
 .nf
 .ft C
->>> import pytermor as pt
->>> pt.apply_filters(f\(aq{pt.SeqIndex.RED}test{pt.SeqIndex.COLOR_OFF}\(aq, pt.ReplaceSGR(r\(aqE\e2\e3\e4\(aq))
+>>> apply_filters(f\(aq{SeqIndex.RED}test{SeqIndex.COLOR_OFF}\(aq, ReplaceSGR(r\(aqE\e2\e3\e4\(aq))
 \(aqE[31mtestE[39m\(aq
 .ft P
 .fi
@@ -9137,9 +8407,9 @@ you can apply it only to bytes\-type strings.
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBs\fP (\fIAnyStr\fP) \-\- String to filter.
+\fBs\fP (\fIST\fP) \-\- String to filter.
 .IP \(bu 2
-\fBargs\fP (\fI\%StringFilter\fP\fI | \fP\fIType\fP\fI[\fP\fI\%StringFilter\fP\fI]\fP) \-\- \fIStringFilter\fP instance(s) or \fBStringFilter\fP class(es).
+\fBargs\fP (\fI\%StringFilter\fP\fI | \fP\fIType\fP\fI[\fP\fI\%StringFilter\fP\fI]\fP) \-\- \fI\%StringFilter\fP instance(s) or \fBStringFilter\fP class(es).
 .UNINDENT
 .TP
 .B Returns
@@ -9151,32 +8421,15 @@ ST
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.string_filter.StringFilter
+.B class  pytermor.utilstr.StringFilter(pattern, repl)
 Bases: \fBGeneric\fP[\fBST\fP]
 .sp
 Common string modifier interface.
 .INDENT 7.0
 .TP
-.B __init__(pattern, repl)
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBpattern\fP (\fIST\fP\fI | \fP\fIPattern\fP\fI[\fP\fIST\fP\fI]\fP) \-\- 
-.IP \(bu 2
-\fBrepl\fP (\fIST\fP\fI | \fP\fICallable\fP\fI[\fP\fI[\fP\fIST\fP\fI | \fP\fIMatch\fP\fI]\fP\fI, \fP\fIST\fP\fI]\fP) \-\- 
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
 .B __call__(s)
-Can be used instead of \fIapply()\fP
+Can be used instead of \fI\%apply()\fP
 .INDENT 7.0
-.TP
-.B Parameters
-\fBs\fP (\fIST\fP) \-\- 
 .TP
 .B Return type
 \fIST\fP
@@ -9188,21 +8441,14 @@ Can be used instead of \fIapply()\fP
 Apply filter to \fBs\fP string (or bytes).
 .INDENT 7.0
 .TP
-.B Parameters
-\fBs\fP (\fIST\fP) \-\- 
-.TP
 .B Return type
 \fIST\fP
 .UNINDENT
 .UNINDENT
-.INDENT 7.0
-.TP
-.B static  __new__(cls, *args, **kwds)
-.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.string_filter.VisualuzeWhitespace
+.B class  pytermor.utilstr.VisualuzeWhitespace(repl=\(aq·\(aq)
 Bases: \fI\%StringFilter\fP[\fBstr\fP]
 .sp
 Replace every invisible character with \fBrepl\fP (default is \fB·\fP),
@@ -9210,56 +8456,21 @@ except newlines. Newlines are kept and get_by_code prepneded with same string.
 .sp
 .nf
 .ft C
->>> import pytermor as pt
->>> pt.util.VisualuzeWhitespace().apply(\(aqA  B  C\(aq)
+>>> VisualuzeWhitespace().apply(\(aqA  B  C\(aq)
 \(aqA··B··C\(aq
->>> pt.apply_filters(\(aq1. D\en2. L \(aq, pt.util.VisualuzeWhitespace)
+>>> apply_filters(\(aq1. D\en2. L \(aq, VisualuzeWhitespace)
 \(aq1.·D·\en2.·L·\(aq
 .ft P
 .fi
 .INDENT 7.0
 .TP
-.B __init__(repl=\(aq·\(aq)
-.INDENT 7.0
-.TP
 .B Parameters
-\fBrepl\fP (\fIstr\fP) \-\- 
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B __call__(s)
-Can be used instead of \fIapply()\fP
-.INDENT 7.0
-.TP
-.B Parameters
-\fBs\fP (\fIST\fP) \-\- 
-.TP
-.B Return type
-\fIST\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B static  __new__(cls, *args, **kwds)
-.UNINDENT
-.INDENT 7.0
-.TP
-.B apply(s)
-Apply filter to \fBs\fP string (or bytes).
-.INDENT 7.0
-.TP
-.B Parameters
-\fBs\fP (\fIST\fP) \-\- 
-.TP
-.B Return type
-\fIST\fP
-.UNINDENT
+\fBrepl\fP \-\- 
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.string_filter.ReplaceSGR
+.B class  pytermor.utilstr.ReplaceSGR(repl=\(aq\(aq)
 Bases: \fI\%StringFilter\fP[\fBstr\fP]
 .sp
 Find all SGR seqs (e.g. \fBESC[1;4m\fP) and replace with given string. More
@@ -9269,49 +8480,10 @@ specific version of \fI\%ReplaceCSI\fP\&.
 .B Parameters
 \fBrepl\fP \-\- Replacement, can contain regexp groups (see \fI\%apply_filters()\fP).
 .UNINDENT
-.INDENT 7.0
-.TP
-.B __init__(repl=\(aq\(aq)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBrepl\fP (\fIstr\fP) \-\- 
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B __call__(s)
-Can be used instead of \fIapply()\fP
-.INDENT 7.0
-.TP
-.B Parameters
-\fBs\fP (\fIST\fP) \-\- 
-.TP
-.B Return type
-\fIST\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B static  __new__(cls, *args, **kwds)
-.UNINDENT
-.INDENT 7.0
-.TP
-.B apply(s)
-Apply filter to \fBs\fP string (or bytes).
-.INDENT 7.0
-.TP
-.B Parameters
-\fBs\fP (\fIST\fP) \-\- 
-.TP
-.B Return type
-\fIST\fP
-.UNINDENT
-.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.string_filter.ReplaceCSI
+.B class  pytermor.utilstr.ReplaceCSI(repl=\(aq\(aq)
 Bases: \fI\%StringFilter\fP[\fBstr\fP]
 .sp
 Find all CSI seqs (i.e. starting with \fBESC[\fP) and replace with given
@@ -9322,49 +8494,10 @@ and many other sequence subtypes.
 .B Parameters
 \fBrepl\fP \-\- Replacement, can contain regexp groups (see \fI\%apply_filters()\fP).
 .UNINDENT
-.INDENT 7.0
-.TP
-.B __init__(repl=\(aq\(aq)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBrepl\fP (\fIstr\fP) \-\- 
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B __call__(s)
-Can be used instead of \fIapply()\fP
-.INDENT 7.0
-.TP
-.B Parameters
-\fBs\fP (\fIST\fP) \-\- 
-.TP
-.B Return type
-\fIST\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B static  __new__(cls, *args, **kwds)
-.UNINDENT
-.INDENT 7.0
-.TP
-.B apply(s)
-Apply filter to \fBs\fP string (or bytes).
-.INDENT 7.0
-.TP
-.B Parameters
-\fBs\fP (\fIST\fP) \-\- 
-.TP
-.B Return type
-\fIST\fP
-.UNINDENT
-.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.util.string_filter.ReplaceNonAsciiBytes
+.B class  pytermor.utilstr.ReplaceNonAsciiBytes(repl=b\(aq?\(aq)
 Bases: \fI\%StringFilter\fP[\fBbytes\fP]
 .sp
 Keep 7\-bit ASCII bytes [\fB0x00\fP \- \fB0x7f\fP], replace other to \fB?\fP\&.
@@ -9373,69 +8506,15 @@ Keep 7\-bit ASCII bytes [\fB0x00\fP \- \fB0x7f\fP], replace other to \fB?\fP\&.
 .B Parameters
 \fBrepl\fP \-\- Replacement byte\-string.
 .UNINDENT
-.INDENT 7.0
-.TP
-.B __call__(s)
-Can be used instead of \fIapply()\fP
-.INDENT 7.0
-.TP
-.B Parameters
-\fBs\fP (\fIST\fP) \-\- 
-.TP
-.B Return type
-\fIST\fP
 .UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B __init__(repl=b\(aq?\(aq)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBrepl\fP (\fIbytes\fP) \-\- 
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B static  __new__(cls, *args, **kwds)
-.UNINDENT
-.INDENT 7.0
-.TP
-.B apply(s)
-Apply filter to \fBs\fP string (or bytes).
-.INDENT 7.0
-.TP
-.B Parameters
-\fBs\fP (\fIST\fP) \-\- 
-.TP
-.B Return type
-\fIST\fP
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.SS common
+.SS utilsys
 .INDENT 0.0
 .TP
-.B pytermor.common.T
-Any
-.sp
-alias of TypeVar(\(aqT\(aq)
-.UNINDENT
-.INDENT 0.0
-.TP
-.B pytermor.common.get_terminal_width(default=80, padding=2)
+.B pytermor.utilsys.get_terminal_width(default=80, padding=2)
 .INDENT 7.0
 .TP
 .B Returns
 terminal_width
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBdefault\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBpadding\fP (\fIint\fP) \-\- 
-.UNINDENT
 .TP
 .B Return type
 int
@@ -9443,7 +8522,7 @@ int
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.common.wait_key()
+.B pytermor.utilsys.wait_key()
 Wait for a key press on the console and return it.
 .INDENT 7.0
 .TP
@@ -9453,66 +8532,25 @@ t.AnyStr | None
 .UNINDENT
 .INDENT 0.0
 .TP
-.B exception  pytermor.common.LogicError
-Bases: \fBException\fP
-.INDENT 7.0
-.TP
-.B __init__(*args, **kwargs)
-.UNINDENT
-.INDENT 7.0
-.TP
-.B args
-.UNINDENT
-.INDENT 7.0
-.TP
-.B with_traceback()
-Exception.with_traceback(tb) \-\-
-set self.__traceback__ to tb and return self.
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B exception  pytermor.common.ConflictError
-Bases: \fBException\fP
-.INDENT 7.0
-.TP
-.B __init__(*args, **kwargs)
-.UNINDENT
-.INDENT 7.0
-.TP
-.B args
-.UNINDENT
-.INDENT 7.0
-.TP
-.B with_traceback()
-Exception.with_traceback(tb) \-\-
-set self.__traceback__ to tb and return self.
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B class  pytermor.common.Renderable
-Bases: \fBSized\fP
+.B pytermor.utilsys.total_size(o, handlers=None, verbose=False)
+Returns the approximate memory footprint an object and all of its contents.
 .sp
-Renderable abstract class. Can be inherited when the default style
-overlaps resolution mechanism implemented in \fI\%Text\fP is not good enough.
+Automatically finds the contents of the following builtin containers and
+their subclasses:  tuple, list, deque, dict, set and frozenset.
+To search other containers, add handlers to iterate over their contents:
 .INDENT 7.0
+.INDENT 3.5
+.INDENT 0.0
 .TP
-.B abstract  render(renderer=None)
+.B handlers = {SomeContainerClass: iter,
+OtherContainerClass: OtherContainerClass.get_elements}
+.UNINDENT
+.UNINDENT
+.UNINDENT
 .INDENT 7.0
 .TP
 .B Return type
-str
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B abstract  raw()
-.INDENT 7.0
-.TP
-.B Return type
-str
-.UNINDENT
+int
 .UNINDENT
 .UNINDENT
 .SH CHANGELOG
@@ -9544,7 +8582,7 @@ Unit tests output formatting.
 .IP \(bu 2
 \fBsequence.NOOP\fP SGR sequence and \fBspan.NOOP\fP format.
 .IP \(bu 2
-Max decimal points for \fI\%auto_float\fP extended from (2) to (max\-2).
+Max decimal points for \fBauto_float\fP extended from (2) to (max\-2).
 .UNINDENT
 .SS v1.7.4
 .INDENT 0.0
@@ -9593,7 +8631,7 @@ Removed excessive \fBEmptySequenceSGR\fP \-\- default \fBSGR\fP class was specif
 .SS v1.4.0
 .INDENT 0.0
 .IP \(bu 2
-\fBSpan.wrap()\fP now accepts any type of argument, not only \fBstr\fP\&.
+\fBSpan.wrap()\fP now accepts any type of argument, not only \fIstr\fP\&.
 .IP \(bu 2
 Rebuilt \fBSequence\fP inheritance tree.
 .IP \(bu 2

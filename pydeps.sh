@@ -26,17 +26,17 @@ venv/bin/pydeps ${PROJECT_NAME} \
     --keep \
     -o ${DEPENDS_PATH}/imports-deep.svg
 
-venv/bin/pydeps ${PROJECT_NAME} \
-    --start-color 0 \
-    --max-bacon 3 \
-    --cluster \
-    --collapse \
-    -o ${DEPENDS_PATH}/imports-cross.svg
-
-venv/bin/pydeps ${PROJECT_NAME} \
-    --start-color 0 \
-    --max-bacon 12 \
-    --max-mod 1 \
-    --cluster \
-    --collapse \
-    -o ${DEPENDS_PATH}/imports-far.svg
+#venv/bin/pydeps ${PROJECT_NAME} \
+#    --start-color 0 \
+#    --max-bacon 3 \
+#    --cluster \
+#    --collapse \
+#    -o ${DEPENDS_PATH}/imports-cross.svg
+#
+#venv/bin/pydeps ${PROJECT_NAME} \
+#    --start-color 0 \
+#    --max-bacon 12 \
+#    --max-mod 1 \
+#    --cluster \
+#    --collapse \
+#    -o ${DEPENDS_PATH}/imports-far.svg

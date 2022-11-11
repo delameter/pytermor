@@ -14,10 +14,12 @@ from __future__ import annotations
 
 import math
 import re
+import textwrap
 from functools import reduce
-from typing import List, TypeVar, Type, Generic, Pattern, Callable, Match
-
+import typing as t
 from .common import StrType
+
+_PRIVATE_REPLACER = "\U000E5750"
 
 
 def format_thousand_sep(value: int | float, separator: str = " ") -> str:
@@ -25,10 +27,10 @@ def format_thousand_sep(value: int | float, separator: str = " ") -> str:
     Returns input ``value`` with integer part split into groups of three digits,
     joined then with ``separator`` string.
 
-        >>> format_thousand_sep(260341)
-        '260 341'
-        >>> format_thousand_sep(-9123123123.55, ',')
-        '-9,123,123,123.55'
+    >>> format_thousand_sep(260341)
+    '260 341'
+    >>> format_thousand_sep(-9123123123.55, ',')
+    '-9,123,123,123.55'
 
     :param value:
     :param separator:
@@ -37,7 +39,7 @@ def format_thousand_sep(value: int | float, separator: str = " ") -> str:
 
 
 def distribute_padded(
-    values: List[StrType],
+    values: t.List[StrType],
     max_len: int,
     pad_before: bool = False,
     pad_after: bool = False,
@@ -74,14 +76,13 @@ def distribute_padded(
     return result
 
 
-
-
 """
 Some of the Python Standard Library methods rewritten
 for correct work with strings containing control sequences.
 """
 
-def ljust_sgr(s: str, width: int, fillchar: str = ' ', actual_len: int = None) -> str:
+
+def ljust_sgr(s: str, width: int, fillchar: str = " ", actual_len: int = None) -> str:
     """
     SGR-formatting-aware implementation of ``str.ljust``.
 
@@ -93,7 +94,7 @@ def ljust_sgr(s: str, width: int, fillchar: str = ' ', actual_len: int = None) -
     return s + fillchar * max(0, width - actual_len)
 
 
-def rjust_sgr(s: str, width: int, fillchar: str = ' ', actual_len: int = None) -> str:
+def rjust_sgr(s: str, width: int, fillchar: str = " ", actual_len: int = None) -> str:
     """
     SGR-formatting-aware implementation of ``str.rjust``.
 
@@ -105,7 +106,7 @@ def rjust_sgr(s: str, width: int, fillchar: str = ' ', actual_len: int = None) -
     return fillchar * max(0, width - actual_len) + s
 
 
-def center_sgr(s: str, width: int, fillchar: str = ' ', actual_len: int = None) -> str:
+def center_sgr(s: str, width: int, fillchar: str = " ", actual_len: int = None) -> str:
     """
     SGR-formatting-aware implementation of ``str.center``.
 
@@ -132,6 +133,44 @@ def center_sgr(s: str, width: int, fillchar: str = ' ', actual_len: int = None) 
     return (fillchar * left_fill_len) + s + (fillchar * right_fill_len)
 
 
+def wrap_sgr(raw_input: str|list[str], width: int, indent: int = 0) -> str:
+    """
+    A workaround to make standard library ``textwrap.wrap()`` more friendly
+    to an SGR-formatted strings.
+     
+    The main idea is
+
+    :param raw_input:
+    :param width:
+    :return:
+    """
+    # initially was written as a part of es7s/core
+    # package, and transferred here later
+    sgrs: list[str] = []
+
+    def push(m: t.Match):
+        sgrs.append(m.group())
+        return _PRIVATE_REPLACER
+
+    if isinstance(raw_input, str):  # input can be just one paragraph
+        raw_input = [raw_input]
+
+    if indent >= width:
+        raise ValueError(f"Invalid indent value ({indent}): must be < width ({width})")
+
+    width -= indent
+    indent_str = (' '*indent)
+
+    result = ""
+    for raw_line in raw_input:
+        # had an inspiration and wrote it; no idea how does it work exactly, it just does
+        replaced_line = re.sub(r"(\s?\S?)((\x1b\[([0-9;]*)m)+)", push, raw_line)
+        wrapped_line = f"\n{indent_str}".join(textwrap.wrap(replaced_line, width=width))
+        final_line = re.sub(_PRIVATE_REPLACER, lambda _: sgrs.pop(0), wrapped_line)
+        result += indent_str + final_line + "\n"
+    return result
+
+
 """
 String filtering module.
 
@@ -140,18 +179,18 @@ possible working with filters like with objects rather than with functions/lambd
 """
 
 
-SGR_REGEXP = re.compile(r'(\x1b)(\[)([0-9;]*)(m)')
-ST = TypeVar('ST', str, bytes)
+SGR_REGEXP = re.compile(r"(\x1b)(\[)([0-9;]*)(m)")
+ST = t.TypeVar("ST", str, bytes)
 
 
-def apply_filters(s: ST, *args: StringFilter|Type[StringFilter]) -> ST:
+def apply_filters(s: ST, *args: StringFilter | t.Type[StringFilter]) -> ST:
     """
     Method for applying dynamic filter list to a target string/bytes.
-    Example (will replace all :kbd:`ESC` control characters to :kbd:`E` and
+    Example (will replace all ``ESC`` control characters to ``E`` and
     thus make SGR params visible):
 
-      >>> apply_filters(f'{SeqIndex.RED}test{SeqIndex.COLOR_OFF}', ReplaceSGR(r'E\\2\\3\\4'))
-      'E[31mtestE[39m'
+    >>> apply_filters(f'{SeqIndex.RED}test{SeqIndex.COLOR_OFF}', ReplaceSGR(r'E\\2\\3\\4'))
+    'E[31mtestE[39m'
 
     Note that type of ``s`` argument must be same as ``StringFilter`` parameterized
     type, i.e. :class:`ReplaceNonAsciiBytes` is ``StringFilter[bytes]`` type, so
@@ -165,15 +204,13 @@ def apply_filters(s: ST, *args: StringFilter|Type[StringFilter]) -> ST:
     return reduce(lambda s_, f: f.apply(s_), filters, s)
 
 
-class StringFilter(Generic[ST]):
+class StringFilter(t.Generic[ST]):
     """
     Common string modifier interface.
     """
 
     def __init__(
-        self,
-        pattern: ST|Pattern[ST],
-        repl: ST|Callable[[ST|Match], ST]
+        self, pattern: ST | t.Pattern[ST], repl: ST | t.Callable[[ST | t.Match], ST]
     ):
         if isinstance(pattern, (str, bytes)):
             self._regexp = re.compile(pattern)
@@ -182,46 +219,47 @@ class StringFilter(Generic[ST]):
         self._repl = repl
 
     def __call__(self, s: ST) -> ST:
-        """ Can be used instead of `apply()` """
+        """Can be used instead of `apply()`"""
         return self.apply(s)
 
     def apply(self, s: ST) -> ST:
-        """ Apply filter to ``s`` string (or bytes). """
+        """Apply filter to ``s`` string (or bytes)."""
         return self._regexp.sub(self._repl, s)
 
 
 class VisualuzeWhitespace(StringFilter[str]):
     """
-    Replace every invisible character with ``repl`` (default is :kbd:`·`),
+    Replace every invisible character with ``repl`` (default is ``·``),
     except newlines. Newlines are kept and get_by_code prepneded with same string.
 
-        >>> VisualuzeWhitespace().apply('A  B  C')
-        'A··B··C'
-        >>> apply_filters('1. D\\n2. L ', VisualuzeWhitespace)
-        '1.·D·\\n2.·L·'
+    >>> VisualuzeWhitespace().apply('A  B  C')
+    'A··B··C'
+    >>> apply_filters('1. D\\n2. L ', VisualuzeWhitespace)
+    '1.·D·\\n2.·L·'
 
     :param repl:
     """
-    def __init__(self, repl: str = '·'):
-        super().__init__(r'(\n)|\s', repl + '\\1')
+
+    def __init__(self, repl: str = "·"):
+        super().__init__(r"(\n)|\s", repl + "\\1")
 
 
 class ReplaceSGR(StringFilter[str]):
     """
-    Find all SGR seqs (e.g. :kbd:`ESC[1;4m`) and replace with given string. More
+    Find all SGR seqs (e.g. ``ESC[1;4m``) and replace with given string. More
     specific version of :class:`ReplaceCSI`.
 
     :param repl:
         Replacement, can contain regexp groups (see :meth:`apply_filters()`).
     """
 
-    def __init__(self, repl: str = ''):
+    def __init__(self, repl: str = ""):
         super().__init__(SGR_REGEXP, repl)
 
 
 class ReplaceCSI(StringFilter[str]):
     """
-    Find all CSI seqs (i.e. starting with :kbd:`ESC[`) and replace with given
+    Find all CSI seqs (i.e. starting with ``ESC[``) and replace with given
     string. Less specific version of :class:`ReplaceSGR`, as CSI consists of SGR
     and many other sequence subtypes.
 
@@ -229,16 +267,16 @@ class ReplaceCSI(StringFilter[str]):
         Replacement, can contain regexp groups (see :meth:`apply_filters()`).
     """
 
-    def __init__(self, repl: str = ''):
-        super().__init__(r'(\x1b)(\[)(([0-9;:<=>?])*)([@A-Za-z])', repl)
+    def __init__(self, repl: str = ""):
+        super().__init__(r"(\x1b)(\[)(([0-9;:<=>?])*)([@A-Za-z])", repl)
 
 
 class ReplaceNonAsciiBytes(StringFilter[bytes]):
     """
-    Keep 7-bit ASCII bytes [``0x00`` - ``0x7f``], replace other to :kbd:`?`.
+    Keep 7-bit ASCII bytes [``0x00`` - ``0x7f``], replace other to ``?``.
 
     :param repl: Replacement byte-string.
     """
 
-    def __init__(self, repl: bytes = b'?'):
-        super().__init__(b'[\x80-\xff]', repl)
+    def __init__(self, repl: bytes = b"?"):
+        super().__init__(b"[\x80-\xff]", repl)

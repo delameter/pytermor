@@ -6,7 +6,8 @@
 Module contains definitions for low-level ANSI escape sequences building.
 Can be used for creating a variety of sequences including:
 
-    - :abbr:`SGR (Select Graphic Rendition)` sequences (text coloring, background
+    - :abbr:`SGR (Select Graphic Rendition)` sequences (text and background
+      coloring, other text formatting and effects);
     - :abbr:`CSI (Control Sequence Introducer)` sequences (cursor management,
       selective screen cleraing);
     - :abbr:`OSC (Operating System Command)` sequences (varoius system commands).
@@ -18,8 +19,8 @@ opening SequenceSGR instance:
 >>> SequenceSGR(IntCode.BOLD, IntCode.RED).assemble()
 '\\x1b[1;31m'
 
-...although generally speaking it is two of them (:kbd:`ESC[1m` and
-:kbd:`ESC[31m`). However, the module can automatically match terminating
+...although generally speaking it is two of them (``ESC[1m`` and
+``ESC[31m``). However, the module can automatically match terminating
 sequences for any form of input SGRs and translate it to specified format.
 
 **XTerm Control Sequences**
@@ -90,27 +91,22 @@ class Sequence(t.Sized, ABC):
             return False
         return self._params == other._params
 
-    def __repr__(self):
-        params = ",".join([str(p) for p in self._params])
-        if len(self._params) == 0:
-            params = "NOP"
-        return f"<{self._short_class_name()} [{params}]>"
-
 
 class SequenceFe(Sequence, ABC):
     """
-    Wide range of sequence types that includes CSI, OSC and more.
+    Wide range of sequence types that includes `CSI <SequenceCSI>`,
+    `OSC <SequenceOSC>` and more.
 
-    All subtypes of this sequence start with :kbd:`ESC` plus ASCII byte
-    from ``0x40`` to ``0x5F`` (:kbd:`@[\\\\]_^` and capital letters
-    :kbd:`A`-:kbd:`Z`).
+    All subtypes of this sequence start with ``ESC`` plus ASCII byte
+    from ``0x40`` to ``0x5F`` (``@``, ``[``, ``\\``, ``]``, ``_``, ``^`` and 
+    capital letters ``A``-``Z``).
     """
 
 
 class SequenceST(SequenceFe):
     """
     String Terminator sequence (ST). Terminates strings in other control
-    sequences. Encoded as :kbd:`ESC\\\\` (``0x1B`` ``0x5C``).
+    sequences. Encoded as ``ESC\\`` (``0x1B`` ``0x5C``).
     """
     _INTRODUCER = '\\'
 
@@ -124,15 +120,20 @@ class SequenceST(SequenceFe):
 
 class SequenceOSC(SequenceFe):
     """
-    Operating System Command sequence (OSC). Starts a control string for the
-    operating system to use. Encoded as :kbd:`ESC]` plus params separated by
-    :kbd:`;`, and terminated with `SequenceST`.
+    :abbr:`OSC (Operating System Command)`-type sequence. Starts a control
+    string for the operating system to use. Encoded as ``ESC]``, plus params
+    separated by ``;``, and terminated with `SequenceST`.
     """
     _INTRODUCER = ']'
     _TERMINATOR = SequenceST().assemble()
 
     @classmethod
-    def init_hyperlink(cls, url: str) -> SequenceOSC:
+    def new_hyperlink(cls, url: str) -> SequenceOSC:
+        """
+
+        :param url:
+        :example:  ``ESC]https://example.comESC\\``
+        """
         return SequenceOSC(IntCode.HYPERLINK, "", url)
 
     @classmethod
@@ -142,42 +143,60 @@ class SequenceOSC(SequenceFe):
 
 class SequenceCSI(SequenceFe):
     """
-    Class representing CSI-type ANSI escape sequence. All subtypes
-    of this sequence start with :kbd:`ESC[`.
+    Class representing :abbr:`CSI (Control Sequence Introducer)`-type ANSI
+    escape sequence. All subtypes of this sequence start with ``ESC[``.
 
     Sequences of this type are used to control text formatting,
     change cursor position, erase screen and more.
+
+    >>> SequenceCSI.new_erase_in_line().assemble()
+    '\\x1b[0K'
     """
     _INTRODUCER = '['
 
-    def __init__(self, terminator: str, *params: int):
+    def __init__(self, terminator: str, short_name: str, *params: int):
         """
 
         :param terminator:
+        :param short_name:
         :param params:
         """
         self._terminator = terminator
+        self._short_name = short_name
         super().__init__(*params)
 
-    @classmethod
-    def init_cursor_horizontal_absolute(cls, column: int = 1) -> SequenceCSI:
+    @staticmethod
+    def new_set_cursor_x_abs(x: int = 1) -> SequenceCSI:
         """
-        Set cursor x-coordinate to ``column``.
+        Create :abbr:`CHA (Cursor Horizontal Absolute)` sequence that sets
+        cursor horizontal position, or column, to ``x``.
 
-        :param column:
+        :param x:  New cursor horizontal position.
+        :example:  ``ESC[1G``
         """
-        return SequenceCSI("G", column)
+        if x <= 0:
+            raise ValueError(f"Invalid x value: {x}, expected x > 0")
+        return SequenceCSI("G", "CHA", x)
 
-    @classmethod
-    def init_erase_in_line(cls, mode: int = 0) -> SequenceCSI:
+    @staticmethod
+    def new_erase_in_line(mode: int = 0) -> SequenceCSI:
         """
-        Erase part of the line. If ``mode`` is 0, clear from cursor to the end
-        of the line. If ``mode`` is 1, clear from cursor to beginning of the line.
-        If ``mode`` is 2, clear the entire line. Cursor position does not change.
+        Create :abbr:`EL (Erase in Line)` sequence that erases a part of the line
+        or the entire line. Cursor position does not change.
+
+        :param mode:  .. ::
+
+                      Sequence operating mode.
+                      
+                         - If set to 0, clear from cursor to the end of the line.
+                         - If set to 1, clear from cursor to beginning of the line.
+                         - If set to 2, clear the entire line.
+                         
+        :example:     ``ESC[0K``
         """
         if not (0 <= mode <= 2):
             raise ValueError(f"Invalid mode: {mode}, expected [0;2]")
-        return SequenceCSI("K", mode)
+        return SequenceCSI("K", "EL", mode)
 
     def regexp(self) -> str:
         return f"\\x1b\\[[0-9;]*{self._terminator}"
@@ -190,39 +209,46 @@ class SequenceCSI(SequenceFe):
             + self._terminator
         )
 
-    @classmethod
-    def _short_class_name(cls):
-        return "CSI"
+    def _short_class_name(self):
+        result = "CSI"
+        if self._short_name:
+            result += ":" + self._short_name
+        return result
+
+    def __repr__(self) -> str:
+        params = ",".join([str(p) for p in self._params])
+        return f"<{self._short_class_name()}[{params}]>"
 
 
 class SequenceSGR(SequenceCSI):
     """
-    Class representing SGR-type escape sequence with varying amount of parameters.
-    SGR sequences allow to change the color of text or/and terminal background
-    (in 3 different color spaces) as well as set decorate text with italic style,
-    underlining, overlining, cross-lining, making it bold or blinking etc.
-
-    .. note ::
-        `SequenceSGR` with zero params was specifically implemented to
-        translate into empty string and not into :kbd:`ESC[m`, which would have
-        made sense, but also would be entangling, as this sequence is the equivalent
-        of :kbd:`ESC[0m` -- hard reset sequence. The empty-string-sequence is
-        predefined at module level as `NOOP_SEQ`.
+    Class representing :abbr:`SGR (Select Graphic Rendition)`-type escape sequence
+    with varying amount of parameters. SGR sequences allow to change the color
+    of text or/and terminal background (in 3 different color spaces) as well
+    as set decorate text with italic style, underlining, overlining, cross-lining,
+    making it bold or blinking etc.
 
     When cast to *str*, as all other sequences, invokes `assemble()` method
     and transforms into encoded control sequence string. It's possible to add
     of one SGR sequence to another, resulting in a new one with merged params
     (see examples).
 
-        >>> SequenceSGR(91, SequenceSGR(7))
-        SGR[91;7]
-        >>> SequenceSGR(IntCode.HI_CYAN, 'underlined')
-        SGR[96;4]
-        >>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
-        True
+    .. note ::
+        `SequenceSGR` with zero params was specifically implemented to
+        translate into empty string and not into ``ESC[m``, which would have
+        made sense, but also would be entangling, as this sequence is the equivalent
+        of ``ESC[0m`` -- hard reset sequence. The empty-string-sequence is
+        predefined at module level as `NOOP_SEQ`.
 
-    :param args:  Sequence params. Resulting param order is the same as an
-                  argument order. Each argument can be specified as:
+    >>> SequenceSGR(IntCode.HI_CYAN, 'underlined', 1)
+    <SGR[96,4,1]>
+    >>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
+    True
+
+    :param args:  ..  ::3
+
+                    Sequence params. Resulting param order is the same as an
+                    argument order. Each argument can be specified as:
 
                      - *str* -- any of `IntCode` names, case-insensitive
                      - *int* -- `IntCode` instance or plain integer
@@ -247,7 +273,7 @@ class SequenceSGR(SequenceCSI):
                 raise TypeError(f"Invalid argument type: {arg!r})")
 
         result = [max(0, p) for p in result]
-        super().__init__(self._TERMINATOR, *result)
+        super().__init__(self._TERMINATOR, 'SGR', *result)
 
     @classmethod
     def new_color_256(cls, code: int, bg: bool = False) -> SequenceSGR:
@@ -255,6 +281,7 @@ class SequenceSGR(SequenceCSI):
         Wrapper for creation of `SequenceSGR` that sets foreground
         (or background) to one of 256-color palette value.
 
+        :example:     ``ESC[38;5;141m``
         :param code:  Index of the color in the palette, 0 -- 255.
         :param bg:    Set to *True* to change the background color
                       (default is foreground).
@@ -276,6 +303,7 @@ class SequenceSGR(SequenceCSI):
 
             SequenceSGR.new_color_rgb(255, 51, 0)
 
+        :example:  ``ESC[38;2;255;51;0m``
         :param r:  Red channel value, 0 -- 255.
         :param g:  Blue channel value, 0 -- 255.
         :param b:  Green channel value, 0 -- 255.
@@ -327,6 +355,11 @@ class SequenceSGR(SequenceCSI):
         if type(self) != type(other):
             return False
         return self._params == other._params
+
+    def __repr__(self) -> str:
+        if len(self._params) == 0:
+            return "<SGR[NOP]>"
+        return super().__repr__()
 
     @staticmethod
     def _ensure_sequence(subject: t.Any):

@@ -7,4 +7,3 @@ color
 ========================
 
 .. automodule:: pytermor.color
-   :exclude-members: __new__,

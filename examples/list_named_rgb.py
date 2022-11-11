@@ -5,51 +5,132 @@
 
 from __future__ import annotations
 
+import abc
 import os.path
 import shutil
 import typing as t
+from abc import abstractmethod
 from os.path import abspath, join, dirname
 
 import yaml
 
+
+# logger = logging.getLogger('pytermor')
+# handler = logging.StreamHandler(sys.stderr)
+# formatter = logging.Formatter('[%(levelname)5.5s][%(name)s][%(module)s] %(message)s')
+# handler.setFormatter(formatter)
+# logger.addHandler(handler)
+# logger.setLevel('DEBUG')
+
 import pytermor as pt
-import pytermor.index_256
+import pytermor.cval
 import pytermor.utilstr
 import pytermor.utilsys
 
 
-def sort_by_name(cdef: dict) -> str:
-    return cdef["name"]
+def sort_by_name(cdef: IColorRGB) -> str:
+    return cdef.name
 
 
-def sort_by_hue(cdef: dict) -> t.Tuple[float, ...]:
+def sort_by_hue(cdef: IColorRGB) -> t.Tuple[float, ...]:
     # partitioning by hue, sat and val, grayscale group first:
-    h, s, v = pt.Color.hex_to_hsv(cdef["value"])
+    h, s, v = pt.Color.hex_to_hsv(cdef.hex_value)
     result = (h // 18 if s > 0 else -v), h // 18, s * 5 // 1, v * 20 // 1
     return result
+
+
+class IColorRGB(metaclass=abc.ABCMeta):
+    @property
+    @abstractmethod
+    def hex_value(self) -> int: raise NotImplementedError
+    @property
+    @abstractmethod
+    def name(self) -> str: raise NotImplementedError
+    @property
+    @abstractmethod
+    def original_name(self) -> str|None: raise NotImplementedError
+    @property
+    @abstractmethod
+    def variation(self) -> str|None: raise NotImplementedError
+
+
+class ColorRGBConfigAdapter(IColorRGB):
+    def __init__(self, data: t.Dict):
+        self._data = data
+
+    @property
+    def hex_value(self) -> int:
+        return self._data.get('value')
+    @property
+    def name(self) -> str:
+        return self._data.get('name')
+    @property
+    def original_name(self) -> str|None:
+        return self._data.get('original_name')
+    @property
+    def variation(self) -> str|None:
+        return self._data.get('variation')
+
+
+class ColorRGBOriginAdapter(IColorRGB):
+    SEP = pt.color._ColorRegistry._TOKEN_SEPARATOR
+
+    def __init__(self, origin: pt.ColorRGB, tokens: t.Tuple[str]):
+        self._origin = origin
+        self._name = self.SEP.join(tokens)
+
+    @property
+    def hex_value(self) -> int:
+        return self._origin.hex_value
+
+    @property
+    def name(self) -> str:
+        if base := self._origin.base:
+            return base.name
+        return self._name
+
+    @property
+    def original_name(self) -> str|None:
+        return None
+
+    @property
+    def variation(self) -> str|None:
+        if base := self._origin.base:
+            return self._name.replace(base.name, '').lstrip(self.SEP)
+        return None
+
+
+class ConfigLoader:
+    PROJECT_ROOT = abspath(join(dirname(__file__), ".."))
+    CONFIG_PATH = join(PROJECT_ROOT, "config")
+    INPUT_CONFIG_FILENAME = "rgb.yml"
+
+    def __init__(self):
+        with open(os.path.join(self.CONFIG_PATH, self.INPUT_CONFIG_FILENAME), "rt") as f:
+            self.colors = [ColorRGBConfigAdapter(c) for c in yaml.safe_load(f).get("colors")]
 
 
 class RgbListPrinter:
     MAX_NAME_L = 30
     MAX_ORIG_L = 30
 
-    def print(self, colors: t.List[t.Dict]):
-        for idx, c in enumerate(sorted(colors, key=sort_by_hue)):
+    def print(self, colors: t.List[IColorRGB]):
+        for idx, c in enumerate(sorted(colors, key=sort_by_name)):
             pad = "".ljust(2)
-            vari_style = pt.Style(fg=pt.index_256.GRAY_42)
-            orig_style = pt.Style(fg=pt.index_256.GRAY_30)
+            vari_style = pt.Style(fg=pt.cval.GRAY_42)
+            orig_style = pt.Style(fg=pt.cval.GRAY_30)
 
-            style = pt.Style(bg=pt.ColorRGB(c["value"])).autopick_fg()
+            style = pt.Style(bg=pt.ColorRGB(c.hex_value)).autopick_fg()
             style2 = pt.Style(fg=style.bg)
 
-            name = pt.Text(c["name"]) + pad + pt.Text(c.get("variation", ""), vari_style)
-            orig_name = pt.Text(c.get("original_name", ""), orig_style)
+            name = pt.Text(c.name) + pad + pt.Text(c.variation or '', vari_style)
+            orig_name = pt.Text(c.original_name or "", orig_style)
 
             print(
                 pad
                 + pt.render(f"{pad}{idx + 1:>4d}{pad}", style)
                 + pad
-                + pt.render(f"0x{c['value']:06x}", style2)
+                + pt.render(f"0x{c.hex_value:06x}", style2)
                 + pad
                 + pad
                 + f"{name:<{self.MAX_NAME_L}.{self.MAX_NAME_L}s}"
@@ -83,7 +164,7 @@ class RgbTablePrinter:
         self._cell_margin_x = " " * min(2, max(0, self._cell_width // 3 - 3))
         self._cell_margin_y = "\n" * (len(self._cell_margin_x) // 2)
 
-    def print(self, colors: t.List[t.Dict]):
+    def print(self, colors: t.List[IColorRGB]):
         style_idx = pt.Style(bold=True)
 
         lines = [""] * self._cell_height
@@ -91,30 +172,30 @@ class RgbTablePrinter:
         max_idx = len(colors)
 
         for idx, c in enumerate(sorted(colors, key=sort_by_hue)):
-            style = pt.Style(bg=pt.ColorRGB(c["value"])).autopick_fg()
+            style = pt.Style(bg=pt.ColorRGB(c.hex_value)).autopick_fg()
 
             sparse_x = max(0, self._cell_width - self._cell_padding_x)
             sparse_y = max(0, self._cell_height - self._cell_padding_y)
             parts = []
-            dyn_tx = ''
+            dyn_tx = ""
 
             if sparse_y - len(parts) > 0:
                 idxstr = str(idx + 1)
                 if sparse_x >= len(str(max_idx)):
                     parts.append(pt.render(idxstr, style_idx))
                 else:
-                    dyn_tx += idxstr + ' '
+                    dyn_tx += idxstr + " "
 
             if sparse_y - len(parts) > 0:
-                valstr = f"{c['value']:06x}"
+                valstr = f"{c.hex_value:06x}"
                 if sparse_x >= 6:
                     parts.append(valstr)
                 else:
                     dyn_tx += valstr
 
             if sparse_y - len(parts) > 0:
-                vari = c.get("variation", "")
-                name = c["name"] + ("\n(" + vari + ")" if vari else "")
+                vari = c.variation or ""
+                name = c.name + ("\n(" + vari + ")" if vari else "")
                 if sparse_y - len(parts) > 3:
                     name = "\n" + name
                 dyn_tx += name
@@ -154,22 +235,14 @@ class RgbTablePrinter:
 
 
 if __name__ == "__main__":
-    PROJECT_ROOT = abspath(join(dirname(__file__), ".."))
-    CONFIG_PATH = join(PROJECT_ROOT, "config")
-    INPUT_CONFIG_FILENAME = "rgb.yml"
-    with open(os.path.join(CONFIG_PATH, INPUT_CONFIG_FILENAME), "rt") as f:
-        colors = yaml.safe_load(f).get('colors')
+    #_colors = ConfigLoader().colors
+    _colors = [ColorRGBOriginAdapter(v, k) for k, v in pt.ColorRGB._registry._map.items()]
+    pt.RendererManager.set_default_to_force_formatting()
 
-    #pt.RendererManager.set_default_to_force_formatting()
-
-    RgbListPrinter().print(colors)
+    RgbListPrinter().print(_colors)
     print()
 
     RgbTablePrinter(
         int(os.environ.get("CELL_SIZE", 0)), int(os.environ.get("CELL_HEIGHT", 0))
-    ).print(colors)
+    ).print(_colors)
     print()
-
-    from pytermor.utilstr import distribute_padded
-    print((distribute_padded([
-        pt.Text('111', pt.Styles.WARNING), '22'], 10)))

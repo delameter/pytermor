@@ -7,5 +7,4 @@ utilsys
 ========================
 
 .. automodule:: pytermor.utilsys
-   :exclude-members: __new__,
 

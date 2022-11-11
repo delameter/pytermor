@@ -44,21 +44,32 @@ class TestStatic(unittest.TestCase):
         self.assertEqual("NOP", NOOP_COLOR.format_value("#"))
 
 
-class TestColorMap(unittest.TestCase):
-    def test_lookup_table_inits_on_real_color_creation(self):
-        pass
+class TestNameMap(unittest.TestCase):
+    def test_resolving_of_ambiguous_color_works_upon_abstract_color(self):
+        col = Color.resolve('green')
+        self.assertEqual(col.hex_value, 0x008000)
+        self.assertEqual(type(col), Color16)
 
-    def test_lookup_table_ignores_duplicates(self):
-        pass
+    def test_resolving_of_ambiguous_color_works_upon_color_16(self):
+        col = Color16.resolve('green')
+        self.assertEqual(col.hex_value, 0x008000)
+        self.assertEqual(type(col), Color16)
 
-    def test_find_closest_works(self):
-        pass
+    def test_resolving_of_ambiguous_color_works_upon_color_256(self):
+        col = Color256.resolve('green')
+        self.assertEqual(col.hex_value, 0x008000)
+        self.assertEqual(type(col), Color256)
 
-    def test_cache_works(self):
-        pass
+    def test_resolving_of_ambiguous_color_works_upon_color_rgb(self):
+        col = ColorRGB.resolve('green')
+        self.assertEqual(col.hex_value, 0x008000)
+        self.assertEqual(type(col), ColorRGB)
 
-    def test_search_returns_default_if_no_colors_registered(self):
-        pass
+    def test_registering_of_variation_works(self):
+        origin = ColorRGB(0x000001, 'test000001')
+        variation = ColorRGB(0x000002, 'test000001', variation='II')
+
+        self.assertEqual()
 
 
 class TestColorIndexed16(unittest.TestCase):

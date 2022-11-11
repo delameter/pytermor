@@ -62,8 +62,8 @@ auto-all:  ## Run full cycle of automatic operations
 auto-all: preprocess-rgb update-index
 
 preprocess-rgb:  ## Transform interm. RGB config to suitable for embedding
-	PYTHONPATH=. venv/bin/python scripts/preprocess_rgb.py
-	PYTHONPATH=. venv/bin/python scripts/print_rgb.py
+	PYTHONPATH=. venv/bin/python dev/preprocess_rgb.py && \
+	  PYTHONPATH=. venv/bin/python dev/build_index.py
 
 update-index:  ## Process color configs and update library color index sources
 	echo NOP
@@ -91,8 +91,7 @@ test-debug: ## Run pytest with VERY detailed output
 	venv/bin/python -m pytest tests -v --log-cli-level=DEBUG
 
 doctest: ## Run doctest
-	. venv/bin/activate
-	sphinx-build docs docs/_build -b doctest -q && echo "Doctest ${GREEN}OK${RESET}"
+	venv/bin/sphinx-build docs docs/_build -b doctest -Eq && echo "Doctest ${GREEN}OK${RESET}"
 
 coverage: ## Run coverage and make a report
 	rm -v coverage-report/*
@@ -127,7 +126,7 @@ docs: demolish-docs docs-html
 
 docs-html: ## Build HTML documentation  <caching allowed>
 	mkdir -p docs-build
-	venv/bin/sphinx-build docs docs/_build -b html -n
+	venv/bin/sphinx-build docs docs/_build -b html -n || return 1
 	#find docs/_build -type f -name '*.html' | sort | xargs -n1 grep -HnT ^ | sed s@^docs/_build/@@ > docs-build/${PROJECT_NAME}.html.dump
 	#if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/index.html ; fi
 	if command -v notify-send ; then notify-send -i ${PWD}/docs/_static_src/logo-white-bg.svg pytermor 'HTML docs updated ${NOW}' ; fi

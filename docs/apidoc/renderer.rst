@@ -7,4 +7,3 @@ renderer
 ========================
 
 .. automodule:: pytermor.renderer
-   :exclude-members: __new__,

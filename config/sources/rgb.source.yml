@@ -207,7 +207,7 @@
   value: 0x7c0a02
 - name: "Battery charged blue"
   value: 0x1dacd6
-- name: "Battleship grey"
+- name: "Battleship gray"
   value: 0x848482
 - name: "Bayside"
   value: 0x5fc9bf
@@ -247,8 +247,6 @@
   value: 0xfe6f5e
 - name: "Bittersweet shimmer"
   value: 0xbf4f51
-- name: "Black"
-  value: 0x000000
 - name: "Black (Kokushoku)"
   value: 0x171412
 - name: "Black bean"
@@ -291,8 +289,6 @@
   value: 0x660000
 - name: "Blood red (Benihi)"
   value: 0xf35336
-- name: "Blue"
-  value: 0x0000ff
 - name: "Blue (Crayola)"
   value: 0x1f75fe
 - name: "Blue (Munsell)"
@@ -421,7 +417,7 @@
   value: 0x5f1933
 - name: "Brown Coffee"
   value: 0x4a2c2a
-- name: "Brown rat grey (Dobunezumi)"
+- name: "Brown rat gray (Dobunezumi)"
   value: 0x4b3c39
 - name: "Brown sugar"
   value: 0xaf6e4d
@@ -467,7 +463,7 @@
   value: 0x5f9ea0
 - name: "Cadet blue (Crayola)"
   value: 0xa9b2c3
-- name: "Cadet grey"
+- name: "Cadet gray"
   value: 0x91a3b0
 - name: "Cadmium blue"
   value: 0x0a1195
@@ -705,7 +701,7 @@
   value: 0xeee0b1
 - name: "Cool black"
   value: 0x002e63
-- name: "Cool grey"
+- name: "Cool gray"
   value: 0x8c92ac
 - name: "Copper"
   value: 0xb87333
@@ -929,7 +925,7 @@
   value: 0x9b870c
 - name: "Dartmouth green"
   value: 0x00703c
-- name: "Davy's grey"
+- name: "Davy's gray"
   value: 0x555555
 - name: "Dawn-color (Akebono-iro)"
   value: 0xfa7b62
@@ -1049,7 +1045,7 @@
   value: 0x2e963d
 - name: "Douban Light Yellow"
   value: 0xf7c58e
-- name: "Dove feather grey (Hatobanezumi)"
+- name: "Dove feather gray (Hatobanezumi)"
   value: 0x755d5b
 - name: "Duke blue"
   value: 0x00009c
@@ -1096,8 +1092,6 @@
   value: 0xb56257
 - name: "Electric crimson"
   value: 0xff003f
-- name: "Electric green"
-  value: 0x00ff00
 - name: "Electric indigo"
   value: 0x6f00ff
 - name: "Electric lime"
@@ -1312,7 +1306,7 @@
   value: 0xffdf00
 - name: "Golden yellow (and a particular rose varietal) (Yamabuki-iro)"
   value: 0xffa400
-- name: "Golden-grey bamboo (dried and weathered) (Kinsusutake)"
+- name: "Golden-gray bamboo (dried and weathered) (Kinsusutake)"
   value: 0x7d4e2d
 - name: "Goldenrod"
   value: 0xdaa520
@@ -1338,9 +1332,10 @@
   value: 0xbebebe
 - name: "Gray-asparagus"
   value: 0x465945
-- name: "Green"
-  #value: 0x008001
-  value: 0x008000
+- name: "Grayed red (lit. silvered red) (Ginshu)"
+  value: 0xbc2d29
+- name: "Grayish dark green (Rikyūnezumi)"
+  value: 0x656255
 - name: "Green (Crayola)"
   value: 0x1cac78
 - name: "Green (Midori)"
@@ -1379,10 +1374,6 @@
   value: 0xf0e891
 - name: "Greenfinch color (Hiwa-iro)"
   value: 0xbda928
-- name: "Greyed red (lit. silvered red) (Ginshu)"
-  value: 0xbc2d29
-- name: "Greyish dark green (Rikyūnezumi)"
-  value: 0x656255
 - name: "Grullo"
   value: 0xa99a86
 - name: "Gunmetal"
@@ -1970,7 +1961,7 @@
   value: 0x4d8c57
 - name: "Middle green yellow"
   value: 0xacbf60
-- name: "Middle grey"
+- name: "Middle gray"
   value: 0x8b8680
 - name: "Middle purple"
   value: 0xd982b5
@@ -2550,8 +2541,6 @@
   value: 0x8d4e85
 - name: "Rebecca Purple"
   value: 0x663399
-- name: "Red"
-  value: 0xff0000
 - name: "Red (Crayola)"
   value: 0xee204d
 - name: "Red (Munsell)"
@@ -2832,7 +2821,7 @@
   value: 0xc4aead
 - name: "Silver sand"
   value: 0xbfc1c2
-- name: "Silver-grey (Ginnezumi)"
+- name: "Silver-gray (Ginnezumi)"
   value: 0x97867c
 - name: "Simmered seaweed (Mirucha)"
   value: 0x4c3d30
@@ -3070,7 +3059,7 @@
   value: 0xfd0e35
 - name: "Tree peony (Bōtan)"
   value: 0xa4345d
-- name: "Trolley grey"
+- name: "Trolley gray"
   value: 0x808080
 - name: "Tropical rain forest"
   value: 0x00755e
@@ -3288,8 +3277,6 @@
   value: 0x645452
 - name: "Wheat"
   value: 0xf5deb3
-- name: "White"
-  value: 0xffffff
 - name: "White chocolate"
   value: 0xede6d6
 - name: "White coffee"
@@ -3310,7 +3297,7 @@
   value: 0xff43a4
 - name: "Willow dye (Yanagizome)"
   value: 0x8c9e5e
-- name: "Willow grey (Yanaginezumi)"
+- name: "Willow gray (Yanaginezumi)"
   value: 0x817b69
 - name: "Willow tea (Yanagicha)"
   value: 0x9c8a4d
@@ -3346,8 +3333,6 @@
   value: 0x0f4d92
 - name: "Yankees blue"
   value: 0x1c2841
-- name: "Yellow"
-  value: 0xffff00
 - name: "Yellow (Crayola)"
   value: 0xfce883
 - name: "Yellow (Munsell)"
@@ -3388,6 +3373,8 @@
 # ---------------------------
 # es7s
 # ---------------------------
+- name: "White"
+  value: 0xc5c8c6
 - name: "Superuser"
   value: 0xf8b889
 
@@ -3416,3 +3403,47 @@
   value: 0x303940
 - name: "Banff Blue"
   value: 0x83a9c1
+
+# ---------------------------
+# minmax channel value colors
+# ---------------------------
+- name: "Full white"
+  value: 0xffffff
+  aliases:
+    - True white
+    - Pure white
+
+- name: "Full black"
+  value: 0x000000
+  aliases:
+    - True black
+    - Pure black
+
+- name: "Full red"
+  value: 0xff0000
+- name: "Full green"
+  value: 0x00ff00
+- name: "Full blue"
+  value: 0x0000ff
+- name: "Full yellow"
+  value: 0xffff00
+- name: "Full cyan"
+  value: 0x00ffff
+- name: "Full magenta"
+  value: 0xff00ff
+
+# ---------------------------
+# 1/2 channel value colors
+# ---------------------------
+- name: "Red (xterm)"
+  value: 0x800000
+- name: "Green (xterm)"
+  value: 0x008000
+- name: "Blue (xterm)"
+  value: 0x000080
+- name: "Yellow (xterm)"
+  value: 0x808000
+- name: "Cyan (xterm)"
+  value: 0x008080
+- name: "Magenta (xterm)"
+  value: 0x800080

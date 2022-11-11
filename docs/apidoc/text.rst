@@ -7,5 +7,4 @@ text
 ========================
 
 .. automodule:: pytermor.text
-   :exclude-members: __new__,
 

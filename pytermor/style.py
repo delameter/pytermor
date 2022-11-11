@@ -12,8 +12,8 @@ from __future__ import annotations
 import typing as t
 from dataclasses import dataclass, field
 
-from . import index_256, color
-from .color import Color, NOOP_COLOR, ColorRGB, Index
+from . import cval
+from .color import Color, NOOP_COLOR, ColorRGB
 
 
 @dataclass()
@@ -100,7 +100,7 @@ class Style:
         :param italic:      Italic.
         :param overlined:   Overline.
         :param underlined:  Underline.
-        :param class_name:  Arbitary string used by some renderers, e.g. by
+        :param class_name:  Arbitary string used by some _get_renderers, e.g. by
                             ``HtmlRenderer``.
         """
         if fg is not None:
@@ -145,9 +145,9 @@ class Style:
 
         h, s, v = self._bg.to_hsv()
         if v >= 0.45:
-            self._fg = index_256.GRAY_3
+            self._fg = cval.GRAY_3
         else:
-            self._fg = index_256.GRAY_82
+            self._fg = cval.GRAY_82
         return self
 
     def flip(self) -> Style:
@@ -175,7 +175,7 @@ class Style:
         if isinstance(arg, int):
             return ColorRGB(arg)
         if isinstance(arg, str):
-            return Index.resolve(arg)
+            return Color.resolve(arg)
         return None if nullable else NOOP_COLOR
 
     def __eq__(self, other: Style):
@@ -185,16 +185,16 @@ class Style:
 
     def __repr__(self):
         if self == NOOP_STYLE:
-            return  self.__class__.__name__ + "[NOP]"
+            return self.__class__.__name__ + "[NOP]"
         if self._fg is None or self._bg is None:
             return self.__class__.__name__ + "[uninitialized]"
-        props_set = [self.fg.format_value("fg="), self.bg.format_value("bg=")]
+        props_set = [f"fg={self.fg!r}", f"bg={self.bg!r}"]
         for attr_name in self.renderable_attributes:
             attr = getattr(self, attr_name)
             if isinstance(attr, bool) and attr is True:
                 props_set.append(attr_name)
 
-        return self.__class__.__name__ + "[{:s}]".format(", ".join(props_set))
+        return f"<{self.__class__.__name__}" + "[{:s}]>".format(",".join(props_set))
 
     @property
     def fg(self) -> Color:
@@ -222,14 +222,14 @@ class Styles:
     Some ready-to-use styles. Can be used as examples.
     """
 
-    WARNING = Style(fg=color.YELLOW)
+    WARNING = Style(fg=cval.YELLOW)
     WARNING_LABEL = Style(WARNING, bold=True)
-    WARNING_ACCENT = Style(fg=color.HI_YELLOW)
+    WARNING_ACCENT = Style(fg=cval.HI_YELLOW)
 
-    ERROR = Style(fg=color.RED)
+    ERROR = Style(fg=cval.RED)
     ERROR_LABEL = Style(ERROR, bold=True)
-    ERROR_ACCENT = Style(fg=color.HI_RED)
+    ERROR_ACCENT = Style(fg=cval.HI_RED)
 
-    CRITICAL = Style(bg=color.HI_RED, fg=color.HI_WHITE)
+    CRITICAL = Style(bg=cval.HI_RED, fg=cval.HI_WHITE)
     CRITICAL_LABEL = Style(CRITICAL, bold=True)
     CRITICAL_ACCENT = Style(CRITICAL, bold=True, blink=True)

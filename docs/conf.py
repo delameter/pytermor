@@ -198,6 +198,7 @@ autoclass_content = "both"
 #autodoc_typehints = 'signature'
 autodoc_typehints = 'description'
 autodoc_typehints_description_target = 'documented_params'
+#autodoc_inherit_docstrings =
 
 keep_warnings = True
 # nitpick_ignore = [('py:class', 'Match'),

@@ -7,4 +7,3 @@ common
 ========================
 
 .. automodule:: pytermor.common
-   :exclude-members: __new__,

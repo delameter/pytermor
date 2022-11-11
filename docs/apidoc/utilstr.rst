@@ -10,4 +10,3 @@ Package containing a set of formatters for prettier output, as well as utility c
 some of the boilerplate code when dealing with escape sequences.
 
 .. automodule:: pytermor.utilstr
-   :exclude-members: __new__,

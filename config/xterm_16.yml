@@ -2,109 +2,107 @@ class: Color16
 colors:
   - code: BLACK
     code_bg: BG_BLACK
-    name: "Black"
+    name: "black"
     value: 0x000000
 
   - code: RED
     code_bg: BG_RED
-    name: "Red"
-    original_name: "Maroon"
+    name: "red"
+    original_name: "maroon"
     value: 0x800000
 
   - code: GREEN
     code_bg: BG_GREEN
-    name: "Green"
+    name: "green"
     value: 0x008000
 
   - code: YELLOW
     code_bg: BG_YELLOW
-    name: "Yellow"
-    original_name: "Olive"
+    name: "yellow"
+    original_name: "olive"
     value: 0x808000
 
   - code: BLUE
     code_bg: BG_BLUE
-    name: "Blue"
-    original_name: "Navy"
+    name: "blue"
+    original_name: "navy"
     value: 0x000080
 
   - code: MAGENTA
     code_bg: BG_MAGENTA
-    name: "Magenta"
-    original_name: "Purple"
+    name: "magenta"
+    original_name: "purple"
     value: 0x800080
 
   - code: CYAN
     code_bg: BG_CYAN
-    name: "Cyan"
-    original_name: "Teal"
+    name: "cyan"
+    original_name: "teal"
     value: 0x008080
 
   - code: WHITE
     code_bg: BG_WHITE
-    name: "White"
-    original_name: "Silver"
+    name: "white"
+    original_name: "silver"
     value: 0xc0c0c0
 
   - code: GRAY
     code_bg: BG_GRAY
-    name: "Gray"
-    aliases:
-      - "grey"
+    name: "gray"
     value: 0x808080
 
   - code: HI_RED
     code_bg: BG_HI_RED
-    name: "HiRed"
-    original_name: "Red"
+    name: "hi-red"
+    original_name: "red"
     aliases:
-      - "brightred"
+      - "bright-red"
     value: 0xff0000
 
   - code: HI_GREEN
     code_bg: BG_HI_GREEN
-    name: "HiGreen"
-    original_name: "Lime"
+    name: "hi-green"
+    original_name: "lime"
     aliases:
-      - "brightgreen"
+      - "bright-green"
     value: 0x00ff00
 
   - code: HI_YELLOW
     code_bg: BG_HI_YELLOW
-    name: "HiYellow"
-    original_name: "Yellow"
+    name: "hi-yellow"
+    original_name: "yellow"
     aliases:
-      - "brightyellow"
+      - "bright-yellow"
     value: 0xffff00
 
   - code: HI_BLUE
     code_bg: BG_HI_BLUE
-    name: "HiBlue"
-    original_name: "Blue"
+    name: "hi-blue"
+    original_name: "blue"
     aliases:
-      - "brightblue"
+      - "bright-blue"
     value: 0x0000ff
 
   - code: HI_MAGENTA
     code_bg: BG_HI_MAGENTA
-    name: "HiMagenta"
-    original_name: "Fuchsia"
+    name: "hi-magenta"
+    original_name: "fuchsia"
     aliases:
-      - "brightmagenta"
+      - "bright-magenta"
     value: 0xff00ff
 
   - code: HI_CYAN
     code_bg: BG_HI_CYAN
-    name: "HiCyan"
-    original_name: "Aqua"
+    name: "hi-cyan"
+    original_name: "aqua"
     aliases:
-      - "brightcyan"
+      - "bright-cyan"
     value: 0x00ffff
 
   - code: HI_WHITE
     code_bg: BG_HI_WHITE
-    name: "HiWhite"
-    original_name: "White"
+    name: "hi-white"
+    original_name: "white"
     aliases:
-      - "brightwhite"
+      - "bright-white"
     value: 0xffffff
