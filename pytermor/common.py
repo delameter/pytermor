@@ -4,6 +4,7 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
+import inspect
 import typing as t
 import logging
 
@@ -41,3 +42,10 @@ class LogicError(Exception):
 class ConflictError(Exception):
     pass
 
+
+class ArgTypeError(Exception):
+    def __init__(self, method: t.Callable, arg_name: str, actual_type: t.Type):
+        expected_type = inspect.getfullargspec(method).annotations.get(arg_name)
+        actual_type = actual_type.__qualname__
+        msg = f"Invalid argument type, expected: '{expected_type}', got: '{actual_type}'"
+        super().__init__(msg)

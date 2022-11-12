@@ -1,3 +1,4 @@
+#!/bin/env python3
 # -----------------------------------------------------------------------------
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
@@ -52,9 +53,9 @@ class Main:
                 "hexadecimal form: 'FFFFFF' (case insensitive):",
             ],
             wrap=True,
-            indent=2,
+            indent_first=2,
         )
-        pt.echo(f"{sys.argv[0]} 3AEBA1 0bceaa 6", wrap=True, indent=4)
+        pt.echo(f"python {sys.argv[0]} 3AEBA1 0bceaa 6", wrap=True, indent_first=4)
 
     def run(self, sample_val: int, color_type: str):
         sample = pt.ColorRGB(sample_val)

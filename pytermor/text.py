@@ -398,13 +398,14 @@ def echo(
     file: t.IO = sys.stdout,
     flush: bool = True,
     wrap: bool | int = False,
-    indent: int = 0,
+    indent_first: int = 0,
+    indent_subseq: int = 0,
 ):
     end = "\n" if nl else ""
     result = render(string, style, renderer)
 
     if wrap:
         width = get_preferable_wrap_width(wrap)
-        result = wrap_sgr(result, width, indent)
+        result = wrap_sgr(result, width, indent_first, indent_subseq)
 
     print(result, end=end, file=file, flush=flush)

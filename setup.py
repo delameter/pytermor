@@ -2,4 +2,7 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
-__version__ = '2.8.0-dev1'
+
+from setuptools import setup
+
+setup()

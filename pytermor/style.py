@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 
 from . import cval
 from .color import Color, NOOP_COLOR, ColorRGB
+from .common import ArgTypeError
 
 
 @dataclass()
@@ -104,9 +105,9 @@ class Style:
                             ``HtmlRenderer``.
         """
         if fg is not None:
-            self._fg = self._resolve_color(fg, True)
+            self._fg = self._resolve_color(fg)
         if bg is not None:
-            self._bg = self._resolve_color(bg, True)
+            self._bg = self._resolve_color(bg)
 
         self.blink = blink
         self.bold = bold
@@ -169,14 +170,16 @@ class Style:
                 setattr(self, attr, parent_val)
 
     # noinspection PyMethodMayBeStatic
-    def _resolve_color(self, arg: str | int | Color, nullable: bool) -> Color | None:
+    def _resolve_color(self, arg: str|int|Color|None) -> Color | None:
+        if arg is None:
+            return NOOP_COLOR
         if isinstance(arg, Color):
             return arg
         if isinstance(arg, int):
             return ColorRGB(arg)
         if isinstance(arg, str):
             return Color.resolve(arg)
-        return None if nullable else NOOP_COLOR
+        raise ArgTypeError(self._resolve_color, 'arg', type(arg))
 
     def __eq__(self, other: Style):
         return all(
@@ -185,16 +188,17 @@ class Style:
 
     def __repr__(self):
         if self == NOOP_STYLE:
-            return self.__class__.__name__ + "[NOP]"
-        if self._fg is None or self._bg is None:
-            return self.__class__.__name__ + "[uninitialized]"
-        props_set = [f"fg={self.fg!r}", f"bg={self.bg!r}"]
-        for attr_name in self.renderable_attributes:
-            attr = getattr(self, attr_name)
-            if isinstance(attr, bool) and attr is True:
-                props_set.append(attr_name)
+            props_set = ["NOP"]
+        elif self._fg is None or self._bg is None:
+            props_set = ["uninitialized"]
+        else:
+            props_set = [f"fg={self.fg!r}", f"bg={self.bg!r}"]
+            for attr_name in self.renderable_attributes:
+                attr = getattr(self, attr_name)
+                if isinstance(attr, bool) and attr is True:
+                    props_set.append(attr_name)
 
-        return f"<{self.__class__.__name__}" + "[{:s}]>".format(",".join(props_set))
+        return f"<{self.__class__.__name__}[{','.join(props_set)}]>"
 
     @property
     def fg(self) -> Color:
@@ -205,12 +209,12 @@ class Style:
         return self._bg
 
     @fg.setter
-    def fg(self, val: str | int | Color):
-        self._fg: Color = self._resolve_color(val, nullable=False)
+    def fg(self, val: str | int | Color | None):
+        self._fg: Color = self._resolve_color(val)
 
     @bg.setter
-    def bg(self, val: str | int | Color):
-        self._bg: Color = self._resolve_color(val, nullable=False)
+    def bg(self, val: str | int | Color | None):
+        self._bg: Color = self._resolve_color(val)
 
 
 NOOP_STYLE = Style()

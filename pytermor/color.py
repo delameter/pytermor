@@ -257,6 +257,8 @@ class Color(metaclass=ABCMeta):
             return cls._registry.resolve(name)
 
         for color_cls in [Color16, Color256, ColorRGB]:
+            if cls is color_cls:
+                continue
             try:
                 return color_cls.resolve(name)
             except ValueError:

@@ -1,3 +1,4 @@
+#!/bin/env python3
 # -----------------------------------------------------------------------------
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
@@ -28,7 +29,7 @@ class Main:
         pt.echo(
             ["", "Look at the rectangle below. In normal conditions you:"],
             wrap=True,
-            indent=2,
+            indent_first=2,
         )
         pt.echo(
             [
@@ -37,7 +38,8 @@ class Main:
                 "3) can distinguish 3 sections of the rectangle with different brightness.",
             ],
             wrap=True,
-            indent=4,
+            indent_first=2,
+            indent_subseq=5,
         )
 
         pt.echo()
@@ -73,7 +75,7 @@ class Main:
                 "distinguish between True Color mode and 256 colors mode:",
             ],
             wrap=True,
-            indent=2,
+            indent_first=2,
         )
 
         pt.echo()
@@ -90,28 +92,29 @@ class Main:
         pt.echo()
         pt.echo()
         pt.echo(
-            ["Same as before, there are three conditions. You:"], wrap=True, indent=2
+            ["Same as before, there are three conditions. You:"], wrap=True, indent_first=2
         )
         pt.echo(
             [
                 "1) should see that the left part is a green rectangle with some "
-                "green letters inside, and the right part is similar, but color "
-                "is red;",
+                "green letters inside, and the right part is similar, except the "
+                "color is red;",
                 "2) should be able to read the full word;",
-                "3) can distinguish 2 sections of each rectangle with different "
-                "brightness (4 total).",
+                "3) can recognize 4 sections of the target with different brightness -- "
+                "the green sections (4 total).",
             ],
             wrap=True,
-            indent=4,
+            indent_first=2,
+            indent_subseq=5,
         )
         pt.echo(
             [
                 "If all these are met -- your terminal is in True Color mode and "
                 "can display full variety of RGB color space (16M colors). Otherwise "
-                "the mode is indexed xterm-256.",
+                "the mode is indexed xterm-256."
             ],
             wrap=True,
-            indent=2,
+            indent_first=2,
         )
 
 

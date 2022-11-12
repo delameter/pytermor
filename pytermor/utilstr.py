@@ -133,11 +133,13 @@ def center_sgr(s: str, width: int, fillchar: str = " ", actual_len: int = None) 
     return (fillchar * left_fill_len) + s + (fillchar * right_fill_len)
 
 
-def wrap_sgr(raw_input: str|list[str], width: int, indent: int = 0) -> str:
+def wrap_sgr(
+    raw_input: str | list[str], width: int, indent_first: int = 0, indent_subseq: int = 0
+) -> str:
     """
     A workaround to make standard library ``textwrap.wrap()`` more friendly
     to an SGR-formatted strings.
-     
+
     The main idea is
 
     :param raw_input:
@@ -155,19 +157,20 @@ def wrap_sgr(raw_input: str|list[str], width: int, indent: int = 0) -> str:
     if isinstance(raw_input, str):  # input can be just one paragraph
         raw_input = [raw_input]
 
-    if indent >= width:
-        raise ValueError(f"Invalid indent value ({indent}): must be < width ({width})")
-
-    width -= indent
-    indent_str = (' '*indent)
-
     result = ""
     for raw_line in raw_input:
         # had an inspiration and wrote it; no idea how does it work exactly, it just does
         replaced_line = re.sub(r"(\s?\S?)((\x1b\[([0-9;]*)m)+)", push, raw_line)
-        wrapped_line = f"\n{indent_str}".join(textwrap.wrap(replaced_line, width=width))
+        wrapped_line = f"\n".join(
+            textwrap.wrap(
+                replaced_line,
+                width=width,
+                initial_indent=(indent_first * " "),
+                subsequent_indent=(indent_subseq * " "),
+            )
+        )
         final_line = re.sub(_PRIVATE_REPLACER, lambda _: sgrs.pop(0), wrapped_line)
-        result += indent_str + final_line + "\n"
+        result += final_line + "\n"
     return result
 
 

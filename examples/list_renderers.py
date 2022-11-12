@@ -1,3 +1,4 @@
+#!/bin/env python3
 # -----------------------------------------------------------------------------
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
@@ -49,7 +50,7 @@ class Main:
                 "width is dynamic and depends on the terminal size.",
             ],
             wrap=True,
-            indent=2,
+            indent_first=2,
         )
 
     def _render_results(self, text, style, om, fillchar=" ", header=False):
@@ -63,7 +64,7 @@ class Main:
                 current_renderer,
                 (
                     pt.renderer.TmuxRenderer,
-                    pt.renderer.DebugRenderer,
+                    pt.renderer.SgrRendererDebugger,
                     pt.renderer.HtmlRenderer,
                 ),
             ):
@@ -87,8 +88,8 @@ class Main:
         per_sgr_width = other_r_width * 2 // 7
         return {
             pt.renderer.SgrRenderer(om): sgr_r_width,
+            pt.renderer.SgrRendererDebugger(om): per_sgr_width,
             pt.renderer.TmuxRenderer(): per_sgr_width,
-            pt.renderer.DebugRenderer(om): per_sgr_width,
             pt.renderer.HtmlRenderer(): per_sgr_width,
             pt.renderer.NoOpRenderer(): per_sgr_width // 2,
         }

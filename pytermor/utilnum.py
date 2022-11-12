@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from math import floor, log10, trunc, log, isclose
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 from .utilstr import rjust_sgr
 
@@ -164,7 +164,7 @@ def format_auto_float(value: float, req_len: int, allow_exponent_notation: bool 
     return f'{sign}{abs_value:{req_len}{dot_str}f}'
 
 
-def format_si_metric(value: float, unit: str = 'm') -> str:
+def format_si_metric(value: float, unit: str = 'm', join: bool = True) -> str:
     """
     Format ``value`` as meters with SI-prefixes, max result length is
     7 chars: 4 for value plus 3 for default unit, prefix and
@@ -187,10 +187,10 @@ def format_si_metric(value: float, unit: str = 'm') -> str:
 
     .. versionadded:: 2.0
     """
-    return _formatter_si_metric.format(value, unit)
+    return _formatter_si_metric.format(value, unit, join)
 
 
-def format_si_binary(value: float, unit: str = 'b') -> str:
+def format_si_binary(value: float, unit: str = 'b', join: bool = True) -> str:
     """
     Format ``value`` as binary size (bytes, kbytes, Mbytes), max
     result length is 8 chars: 5 for value plus 3 for default unit,
@@ -211,7 +211,7 @@ def format_si_binary(value: float, unit: str = 'b') -> str:
 
     .. versionadded:: 2.0
     """
-    return _formatter_si_binary.format(value, unit)
+    return _formatter_si_binary.format(value, unit, join)
 
 
 class PrefixedUnitFormatter:
@@ -266,7 +266,7 @@ class PrefixedUnitFormatter:
         result += max([len(p) for p in self._prefixes if p])
         return result
 
-    def format(self, value: float, unit: str = None) -> str:
+    def format(self, value: float, unit: str = None, join: bool = True) -> str|Tuple[str, ...]:
         """
         :param value:  Input value
         :param unit:   Unit override
@@ -302,7 +302,9 @@ class PrefixedUnitFormatter:
         else:
             num_str = format_auto_float(value, self._max_value_len, allow_exponent_notation=False)
 
-        result = f'{num_str.strip()}{unit_separator}{unit_full.strip()}'
+        result = num_str.strip(), unit_separator, unit_full.strip()
+        if join:
+            return ''.join(result)
         return result
 
     def __repr__(self) -> str:

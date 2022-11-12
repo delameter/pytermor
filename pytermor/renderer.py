@@ -62,7 +62,7 @@ class RendererManager:
         """
         Select a global renderer.
 
-            >>> RendererManager.set_default(DebugRenderer(OutputMode.XTERM_16))
+            >>> RendererManager.set_default(SgrRendererDebugger(OutputMode.XTERM_16))
             >>> render('text', Style(fg='red'))
             '|ǝ31|text|ǝ39|'
 
@@ -121,6 +121,13 @@ class RendererManager:
 
 class AbstractRenderer(metaclass=ABCMeta):
     """Renderer interface."""
+
+    @property
+    @abstractmethod
+    def is_format_allowed(self) -> bool:
+        """
+        :return:
+        """
 
     @abstractmethod
     def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
@@ -233,6 +240,10 @@ class SgrRenderer(AbstractRenderer):
         logger.debug(f"Output mode: {output_mode.name} -> {self._output_mode.name}")
         logger.debug(f"Color upper bound: {self._color_upper_bound}")
 
+    @property
+    def is_format_allowed(self) -> bool:
+        return self._output_mode is not OutputMode.NO_ANSI
+
     def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
         opening_seq = (
             self._render_attributes(style, squash=True)
@@ -250,9 +261,6 @@ class SgrRenderer(AbstractRenderer):
                 opening_seq.assemble() + line + get_closing_seq(opening_seq).assemble()
             )
         return rendered_text
-
-    def is_sgr_usage_allowed(self) -> bool:
-        return self._output_mode is not OutputMode.NO_ANSI
 
     def _determine_output_mode(self, arg_value: OutputMode) -> OutputMode:
         if arg_value is not OutputMode.AUTO:
@@ -278,7 +286,7 @@ class SgrRenderer(AbstractRenderer):
     def _render_attributes(
         self, style: Style, squash: bool
     ) -> t.List[SequenceSGR] | SequenceSGR:
-        if not self.is_sgr_usage_allowed():
+        if not self.is_format_allowed:
             return NOOP_SEQ if squash else [NOOP_SEQ]
 
         result = []
@@ -306,7 +314,7 @@ class SgrRenderer(AbstractRenderer):
         return result
 
     def _render_color(self, color: Color, bg: bool) -> SequenceSGR:
-        if not self.is_sgr_usage_allowed() or color == NOOP_COLOR:
+        if not self.is_format_allowed or color == NOOP_COLOR:
             return NOOP_SEQ
         return color.to_sgr(bg, self._color_upper_bound)
 
@@ -332,6 +340,10 @@ class TmuxRenderer(AbstractRenderer):
         "overlined": "overline",
         "underlined": "underscore",
     }
+
+    @property
+    def is_format_allowed(self) -> bool:
+        return True
 
     def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
         command_open, command_close = self._render_attributes(style)
@@ -380,6 +392,10 @@ class NoOpRenderer(AbstractRenderer):
     'text'
     """
 
+    @property
+    def is_format_allowed(self) -> bool:
+        return False
+
     def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
         return str(string)
 
@@ -401,6 +417,10 @@ class HtmlRenderer(AbstractRenderer):
         "border",
         "filter",
     ]
+
+    @property
+    def is_format_allowed(self) -> bool:
+        return True
 
     def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
         opening_tag, closing_tag = self._render_attributes(style)
@@ -453,25 +473,25 @@ class HtmlRenderer(AbstractRenderer):
         return self.DEFAULT_ATTRS
 
 
-class DebugRenderer(SgrRenderer):
+class SgrRendererDebugger(SgrRenderer):
     """
-    DebugRenderer
+    SgrRendererDebugger
 
-    >>> DebugRenderer(OutputMode.XTERM_16).render('text', Style(fg='red', bold=True))
+    >>> SgrRendererDebugger(OutputMode.XTERM_16).render('text', Style(fg='red', bold=True))
     '|ǝ1;31|text|ǝ22;39|'
     """
-
     def __init__(self, output_mode: OutputMode = OutputMode.AUTO):
         super().__init__(output_mode)
         self._format_override: bool|None = None
 
-    def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
-        return ReplaceSGR(r"|ǝ\3|").apply(super().render(str(string), style))
-
-    def is_sgr_usage_allowed(self) -> bool:
+    @property
+    def is_format_allowed(self) -> bool:
         if self._format_override is not None:
             return self._format_override
-        return super().is_sgr_usage_allowed()
+        return super().is_format_allowed
+
+    def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
+        return ReplaceSGR(r"|ǝ\3|").apply(super().render(str(string), style))
 
     def set_format_always(self):
         self._format_override = True
