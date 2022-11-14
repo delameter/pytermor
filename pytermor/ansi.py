@@ -602,7 +602,7 @@ class SeqIndex:
     Create a hyperlink in the text *(supported by limited amount of terminals)*.
      
     .. seealso ::
-        `make_hyperlink()` and `assemble_hyperlink_span()`.
+        `make_hyperlink()` and `assemble_hyperlink()`.
     """
 
 
@@ -782,7 +782,7 @@ def make_color_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
     return SequenceSGR(key_code, IntCode.EXTENDED_MODE_RGB, r, g, b)
 
 
-def make_hyperlink(url: str = None) -> SequenceOSC:
+def make_hyperlink_part(url: str = None) -> SequenceOSC:
     """
 
     :param url:
@@ -791,10 +791,10 @@ def make_hyperlink(url: str = None) -> SequenceOSC:
     return SequenceOSC(IntCode.HYPERLINK, "", (url or ""))
 
 
-def assemble_hyperlink_span(url: str, label: str) -> str:
+def assemble_hyperlink(url: str, label: str) -> str:
     """
 
     :param url:
     :param label:
     """
-    return f"{make_hyperlink(url)}{label}{make_hyperlink('')}"
+    return f"{make_hyperlink_part(url)}{label}{make_hyperlink_part('')}"
