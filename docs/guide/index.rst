@@ -14,3 +14,4 @@ Guide
    presets
    color-palette
    formatters
+   guidelines

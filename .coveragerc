@@ -8,7 +8,7 @@ omit =
     pytermor/__main__.py
     pytermor/_version.py
     pytermor/ansi.py:SeqIndex
-    pytermor/index_256.py
+    pytermor/cval.py
 
 dynamic_context = test_function
 

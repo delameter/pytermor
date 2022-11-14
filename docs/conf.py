@@ -165,7 +165,7 @@ latex_logo = '_static/logo-96.png'
 #autodoc_typehints_format = 'short'
 autodoc_default_options = {
     'members': True,
-    'undoc-members': True,
+    #'undoc-members': True,
     #'inherited-members': True,
     #'private-members': True,
     'show-inheritance': True,

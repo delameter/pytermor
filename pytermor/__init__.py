@@ -2,12 +2,35 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
-from .common import logger
-from .ansi import IntCode, SeqIndex, SequenceSGR, SequenceOSC, NOOP_SEQ
-from .color import Color, Color16, Color256, ColorRGB, NOOP_COLOR
-from . import cval
-from .style import Style, NOOP_STYLE, Styles
-from .renderer import RendererManager, OutputMode, SgrRenderer, AbstractRenderer
-from .text import Text, render, echo, Renderable
 from ._version import __version__
-from . import utilnum, utilstr, utilsys
+from .common import logger
+
+from .ansi import IntCode
+from .ansi import SeqIndex
+from .ansi import SequenceSGR
+from .ansi import SequenceOSC
+from .ansi import NOOP_SEQ
+from .ansi import get_closing_seq
+from .ansi import make_color_256
+from .ansi import make_color_rgb
+from .color import ApproximationResult
+from .color import Color
+from .color import Color16
+from .color import Color256
+from .color import ColorRGB
+from .color import NOOP_COLOR
+from . import cval
+from .style import Style
+from .style import Styles
+from .style import NOOP_STYLE
+from .renderer import RendererManager
+from .renderer import OutputMode
+from .renderer import AbstractRenderer
+from .renderer import SgrRenderer
+from .text import Renderable
+from .text import Text
+from .text import render
+from .text import echo
+from . import utilnum
+from . import utilstr
+from . import utilsys

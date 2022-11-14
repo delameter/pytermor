@@ -3,15 +3,6 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-Yare-yare daze
-
-Iterate the registered colors table and compute the euclidean distance
-from argument to each color of the palette. Sort the results and return them.
-
-**sRGB euclidean distance**
-    https://en.wikipedia.org/wiki/Color_difference#sRGB
-    https://stackoverflow.com/a/35114586/5834973
-
 .. testsetup:: *
 
     from pytermor.color import *
@@ -24,13 +15,20 @@ import re
 import typing as t
 from abc import ABCMeta, abstractmethod
 
-from .ansi import SequenceSGR, NOOP_SEQ, HI_COLORS, BG_HI_COLORS
+from .ansi import (
+    SequenceSGR,
+    NOOP_SEQ,
+    HI_COLORS,
+    BG_HI_COLORS,
+    make_color_256,
+    make_color_rgb,
+)
 
 ColorType = t.TypeVar("ColorType", "Color16", "Color256", "ColorRGB")
 """ :meta public: """
 
 
-class _ColorRegistry(t.Generic[ColorType]):
+class _ColorRegistry(t.Generic[ColorType], t.Sized):
     _TOKEN_SEPARATOR = "-"
     _QUERY_SPLIT_REGEX = re.compile(r"[\W_]+|(?<=[a-z])(?=[A-Z0-9])")
 
@@ -59,10 +57,13 @@ class _ColorRegistry(t.Generic[ColorType]):
         raise ColorNameConflictError(tokens, existing_color, color)
 
     def resolve(self, name: str) -> ColorType:
-        query_tokens = *(qt.lower() for qt in self._QUERY_SPLIT_REGEX.split(name)),
+        query_tokens = (*(qt.lower() for qt in self._QUERY_SPLIT_REGEX.split(name)),)
         if color := self._map.get(query_tokens, None):
             return color
         raise ValueError(f"Color '{name}' does not exist")
+
+    def __len__(self) -> int:
+        return len(self._map)
 
 
 class _ColorIndex(t.Generic[ColorType], t.Sized):
@@ -207,7 +208,7 @@ class Color(metaclass=ABCMeta):
     def variations(self) -> t.Dict[str, ColorType]:
         return self._variations
 
-    def _repr(self, *params: t.Any) -> str:
+    def _repr(self, *params: t.Any) -> str:  # pragma: no cover
         params_str = ",".join(str(s) for s in filter(None, params))
         return f"<{self.__class__.__name__}[{params_str}]>"
 
@@ -257,8 +258,6 @@ class Color(metaclass=ABCMeta):
             return cls._registry.resolve(name)
 
         for color_cls in [Color16, Color256, ColorRGB]:
-            if cls is color_cls:
-                continue
             try:
                 return color_cls.resolve(name)
             except ValueError:
@@ -312,7 +311,7 @@ class Color(metaclass=ABCMeta):
 
             - `approximate()` can return more than one result;
             - `approximate()` returns not just `Color` instances, but also a
-              number equal to the distance to the target color for each of them;
+              number equal to squared distance to the target color for each of them;
             - `find_closest()` caches the results, while `approximate()` ignores
               the cache completely.
 
@@ -345,9 +344,17 @@ class Color(metaclass=ABCMeta):
     def _find_neighbours(
         cls: t.Type[ColorType], hex_value: int
     ) -> t.List[ApproximationResult[ColorType]]:
-        if len(cls._index) == 0:
-            raise EmptyColorMapError(is_rgb=cls is ColorRGB)
+        """
+        Iterate the registered colors table and compute the squared euclidean distance
+        from argument to each color of the palette. Sort the results and return them.
 
+        **sRGB euclidean distance**
+            https://en.wikipedia.org/wiki/Color_difference#sRGB
+            https://stackoverflow.com/a/35114586/5834973
+
+        :param hex_value:
+        :return:
+        """
         input_r, input_g, input_b = cls.hex_to_rgb(hex_value)
         result: t.List[ApproximationResult[ColorType]] = list()
 
@@ -473,7 +480,7 @@ class Color16(Color):
         # question mark after color value indicates that we cannot be 100% sure
         # about the exact value of xterm-16 colors, as they are configurable and
         # depend on the terminal theme and settings. that's not the case for xterm-256,
-        # though -- it's almost guaranteed to have the same color nearly everywhere. 
+        # though -- it's almost guaranteed to have the same color nearly everywhere.
         # the exceptions are rare and include color mapping at low level, e.g.,
         # ``tmux`` with specifically configured terminal capability overrides.
         # that's not something that you'd expect from a regular user, anyway.
@@ -503,10 +510,10 @@ class Color256(Color):
 
     def to_sgr(self, bg: bool, upper_bound: t.Type[Color] = None) -> SequenceSGR:
         if upper_bound is ColorRGB:
-            return SequenceSGR.new_color_rgb(*self.to_rgb(), bg)
+            return make_color_rgb(*self.to_rgb(), bg)
 
         if upper_bound is Color256 or upper_bound is None:
-            return SequenceSGR.new_color_256(self._code, bg)
+            return make_color_256(self._code, bg)
 
         if self._color16_equiv:
             return self._color16_equiv.to_sgr(bg, upper_bound)
@@ -527,7 +534,7 @@ class Color256(Color):
 
     def __repr__(self):
         code = f"#{self._code}"
-        return self._repr(code, self.format_value(''), self._name)
+        return self._repr(code, self.format_value(""), self._name)
 
 
 class ColorRGB(Color):
@@ -545,7 +552,7 @@ class ColorRGB(Color):
 
     def to_sgr(self, bg: bool, upper_bound: t.Type[Color] = None) -> SequenceSGR:
         if upper_bound is ColorRGB or upper_bound is None:
-            return SequenceSGR.new_color_rgb(*self.to_rgb(), bg)
+            return make_color_rgb(*self.to_rgb(), bg)
 
         return upper_bound.find_closest(self._hex_value).to_sgr(bg, upper_bound)
 
@@ -558,7 +565,7 @@ class ColorRGB(Color):
         return self._hex_value == other._hex_value
 
     def __repr__(self):
-        return self._repr(self.format_value(''), self._name)
+        return self._repr(self.format_value(""), self._name)
 
 
 class _NoopColor(Color):
@@ -586,19 +593,6 @@ NOOP_COLOR = _NoopColor()
 """
 Special `Color` instance always rendering into empty string.
 """
-
-
-class EmptyColorMapError(RuntimeError):
-    def __init__(self, is_rgb: bool) -> None:
-        msg = "Class color map is empty, cannot proceed."
-        if is_rgb:
-            msg += (
-                "\nIf you want to approximate color in RGB mode, first you need to "
-                "manually load colors to the map; the library does this for you "
-                "only for Color16 and Color256 classes in order to minify memory "
-                "consumption and speed up imports. See: pytermor.index_rgb.load()"
-            )
-        super().__init__(msg)
 
 
 class ColorNameConflictError(Exception):

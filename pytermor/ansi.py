@@ -12,6 +12,9 @@ Can be used for creating a variety of sequences including:
       selective screen cleraing);
     - :abbr:`OSC (Operating System Command)` sequences (varoius system commands).
 
+.. important ::
+    blah-blah-blah low-level @TODO
+
 The module doesn't distinguish "single-instruction" sequences from several
 ones merged together, e.g. ``Style(fg='red', bold=True)`` produces only one
 opening SequenceSGR instance:
@@ -97,6 +100,10 @@ class Sequence(t.Sized, ABC):
             return False
         return self._params == other._params
 
+    def __repr__(self) -> str:
+        params = ",".join([str(p) for p in self._params])
+        return f"<{self._short_class_name()}[{params}]>"
+
 
 class SequenceFe(Sequence, ABC):
     """
@@ -134,15 +141,6 @@ class SequenceOSC(SequenceFe):
     _TERMINATOR = SequenceST().assemble()
 
     @classmethod
-    def new_hyperlink(cls, url: str = None) -> SequenceOSC:
-        """
-
-        :param url:
-        :example:  ``ESC]8;;http://localhostESC\\TextESC]8;;ESC\\``
-        """
-        return SequenceOSC(IntCode.HYPERLINK, "", (url or ""))
-
-    @classmethod
     def _short_class_name(cls):
         return "OSC"
 
@@ -155,7 +153,7 @@ class SequenceCSI(SequenceFe):
     Sequences of this type are used to control text formatting,
     change cursor position, erase screen and more.
 
-    >>> SequenceCSI.new_erase_in_line().assemble()
+    >>> make_erase_in_line().assemble()
     '\\x1b[0K'
     """
     _INTRODUCER = '['
@@ -170,39 +168,6 @@ class SequenceCSI(SequenceFe):
         self._terminator = terminator
         self._short_name = short_name
         super().__init__(*params)
-
-    @staticmethod
-    def new_set_cursor_x_abs(x: int = 1) -> SequenceCSI:
-        """
-        Create :abbr:`CHA (Cursor Horizontal Absolute)` sequence that sets
-        cursor horizontal position, or column, to ``x``.
-
-        :param x:  New cursor horizontal position.
-        :example:  ``ESC[1G``
-        """
-        if x <= 0:
-            raise ValueError(f"Invalid x value: {x}, expected x > 0")
-        return SequenceCSI("G", "CHA", x)
-
-    @staticmethod
-    def new_erase_in_line(mode: int = 0) -> SequenceCSI:
-        """
-        Create :abbr:`EL (Erase in Line)` sequence that erases a part of the line
-        or the entire line. Cursor position does not change.
-
-        :param mode:  .. ::
-
-                      Sequence operating mode.
-                      
-                         - If set to 0, clear from cursor to the end of the line.
-                         - If set to 1, clear from cursor to beginning of the line.
-                         - If set to 2, clear the entire line.
-                         
-        :example:     ``ESC[0K``
-        """
-        if not (0 <= mode <= 2):
-            raise ValueError(f"Invalid mode: {mode}, expected [0;2]")
-        return SequenceCSI("K", "EL", mode)
 
     def regexp(self) -> str:
         return f"\\x1b\\[[0-9;]*{self._terminator}"
@@ -220,10 +185,6 @@ class SequenceCSI(SequenceFe):
         if self._short_name:
             result += ":" + self._short_name
         return result
-
-    def __repr__(self) -> str:
-        params = ",".join([str(p) for p in self._params])
-        return f"<{self._short_class_name()}[{params}]>"
 
 
 class SequenceSGR(SequenceCSI):
@@ -279,47 +240,6 @@ class SequenceSGR(SequenceCSI):
         result = [max(0, p) for p in result]
         super().__init__(self._TERMINATOR, 'SGR', *result)
 
-    @classmethod
-    def new_color_256(cls, code: int, bg: bool = False) -> SequenceSGR:
-        """
-        Wrapper for creation of `SequenceSGR` that sets foreground
-        (or background) to one of 256-color palette value.
-
-        :example:     ``ESC[38;5;141m``
-        :param code:  Index of the color in the palette, 0 -- 255.
-        :param bg:    Set to *True* to change the background color
-                      (default is foreground).
-        :returns:     `SequenceSGR` with required params.
-        """
-
-        cls._validate_extended_color(code)
-        key_code = IntCode.BG_COLOR_EXTENDED if bg else IntCode.COLOR_EXTENDED
-        return SequenceSGR(key_code, IntCode.EXTENDED_MODE_256, code)
-
-    @classmethod
-    def new_color_rgb(cls, r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
-        """
-        Wrapper for creation of `SequenceSGR` operating in True Color mode (16M).
-        Valid values for *r*, *g* and *b* are in range [0; 255]. This range
-        linearly translates into [``0x00``; ``0xFF``] for each channel. The result
-        value is composed as ``#RRGGBB``. For example, sequence with color of
-        ``#FF3300`` can be created with::
-
-            SequenceSGR.new_color_rgb(255, 51, 0)
-
-        :example:  ``ESC[38;2;255;51;0m``
-        :param r:  Red channel value, 0 -- 255.
-        :param g:  Blue channel value, 0 -- 255.
-        :param b:  Green channel value, 0 -- 255.
-        :param bg: Set to *True* to change the background color
-                   (default is foreground).
-        :return:   `SequenceSGR` with required params.
-        """
-
-        [cls._validate_extended_color(color) for color in [r, g, b]]
-        key_code = IntCode.BG_COLOR_EXTENDED if bg else IntCode.COLOR_EXTENDED
-        return SequenceSGR(key_code, IntCode.EXTENDED_MODE_RGB, r, g, b)
-
     def assemble(self) -> str:
         if len(self._params) == 0:  # NOOP
             return ""
@@ -371,7 +291,7 @@ class SequenceSGR(SequenceCSI):
             raise TypeError(f"Expected SequenceSGR, got {type(subject)}")
 
     @staticmethod
-    def _validate_extended_color(value: int):
+    def validate_extended_color(value: int):
         if value < 0 or value > 255:
             raise ValueError(
                 f"Invalid color value: expected range [0-255], got: {value}"
@@ -401,6 +321,12 @@ class IntCode(enum.IntEnum):
     Complete or almost complete list of reliably working SGR param integer codes.
     Fully interchangeable with plain *int*. Suitable for `SequenceSGR`
     default constructor.
+
+    .. note ::
+        `IntCode` predefined constants are omitted from documentation to avoid
+        useless repeats and save space, as most of the time `SeqIndex` will be
+        more than enough, and on top of that, the constant names are literally
+        the same for `SeqIndex` and `IntCode`.
     """
 
     @classmethod
@@ -430,8 +356,8 @@ class IntCode(enum.IntEnum):
     CROSSLINED = 9
     DOUBLE_UNDERLINED = 21
     OVERLINED = 53
-    BOLD_DIM_OFF = 22  # there is no separate sequence for disabling either
-    ITALIC_OFF = 23  # of BOLD or DIM while keeping the other
+    BOLD_DIM_OFF = 22  # no sequence to disable BOLD or DIM while keeping the other
+    ITALIC_OFF = 23
     UNDERLINED_OFF = 24
     BLINK_OFF = 25
     INVERSED_OFF = 27
@@ -449,7 +375,7 @@ class IntCode(enum.IntEnum):
     MAGENTA = 35
     CYAN = 36
     WHITE = 37
-    COLOR_EXTENDED = 38  # use new_color_256() and new_color_rgb() instead
+    COLOR_EXTENDED = 38  # use ansi.make_color_256() and ansi.make_color_rgb() instead
 
     BG_BLACK = 40
     BG_RED = 41
@@ -459,7 +385,7 @@ class IntCode(enum.IntEnum):
     BG_MAGENTA = 45
     BG_CYAN = 46
     BG_WHITE = 47
-    BG_COLOR_EXTENDED = 48  # use new_color_256() and new_color_rgb() instead
+    BG_COLOR_EXTENDED = 48  # use ansi.make_color_256() and ansi.make_color_rgb() instead
 
     GRAY = 90
     HI_RED = 91
@@ -505,83 +431,179 @@ class SeqIndex:
     Registry of sequence presets.
     """
 
-    # == SGR ==================================================================
+    # -- SGR ------------------------------------------------------------------
 
     RESET = SequenceSGR(IntCode.RESET)
     """
     Hard reset sequence.
     """
 
-    # attributes
     BOLD = SequenceSGR(IntCode.BOLD)
-    DIM = SequenceSGR(IntCode.DIM)
-    ITALIC = SequenceSGR(IntCode.ITALIC)
-    UNDERLINED = SequenceSGR(IntCode.UNDERLINED)
-    BLINK_SLOW = SequenceSGR(IntCode.BLINK_SLOW)
-    BLINK_FAST = SequenceSGR(IntCode.BLINK_FAST)
-    BLINK_DEFAULT = BLINK_SLOW
-    INVERSED = SequenceSGR(IntCode.INVERSED)
-    HIDDEN = SequenceSGR(IntCode.HIDDEN)
-    CROSSLINED = SequenceSGR(IntCode.CROSSLINED)
-    DOUBLE_UNDERLINED = SequenceSGR(IntCode.DOUBLE_UNDERLINED)
-    OVERLINED = SequenceSGR(IntCode.OVERLINED)
+    """ Bold or increased intensity. """
 
-    BOLD_DIM_OFF = SequenceSGR(IntCode.BOLD_DIM_OFF)  # there is no separate sequence for
-    ITALIC_OFF = SequenceSGR(IntCode.ITALIC_OFF)  # disabling either of BOLD or DIM
-    UNDERLINED_OFF = SequenceSGR(IntCode.UNDERLINED_OFF)  # while keeping the other
+    DIM = SequenceSGR(IntCode.DIM)
+    """ Faint, decreased intensity. """
+
+    ITALIC = SequenceSGR(IntCode.ITALIC)
+    """ Italic *(not widely supported)*. """
+
+    UNDERLINED = SequenceSGR(IntCode.UNDERLINED)
+    """ Underline. """
+
+    BLINK_SLOW = SequenceSGR(IntCode.BLINK_SLOW)
+    """ Set blinking to < 150 cpm. """
+
+    BLINK_FAST = SequenceSGR(IntCode.BLINK_FAST)
+    """  Set blinking to 150+ cpm *(not widely supported)*. """
+
+    INVERSED = SequenceSGR(IntCode.INVERSED)
+    """ Swap foreground and background colors. """
+
+    HIDDEN = SequenceSGR(IntCode.HIDDEN)
+    """ Conceal characters *(not widely supported)*. """
+
+    CROSSLINED = SequenceSGR(IntCode.CROSSLINED)
+    """ Strikethrough. """
+
+    DOUBLE_UNDERLINED = SequenceSGR(IntCode.DOUBLE_UNDERLINED)
+    """ Double-underline. *On several terminals disables* `BOLD` *instead*. """
+
+    OVERLINED = SequenceSGR(IntCode.OVERLINED)
+    """ Overline *(not widely supported)*. """
+
+    BOLD_DIM_OFF = SequenceSGR(IntCode.BOLD_DIM_OFF)
+    """
+    Disable ``BOLD`` and ``DIM`` attributes. 
+    
+    *Special aspects... It's impossible to reliably disable them on a separate basis.*
+    """
+
+    ITALIC_OFF = SequenceSGR(IntCode.ITALIC_OFF)
+    """ Disable italic. """
+
+    UNDERLINED_OFF = SequenceSGR(IntCode.UNDERLINED_OFF)
+    """ Disable underlining. """
+
     BLINK_OFF = SequenceSGR(IntCode.BLINK_OFF)
+    """ Disable blinking. """
+
     INVERSED_OFF = SequenceSGR(IntCode.INVERSED_OFF)
+    """ Disable inversing. """
+
     HIDDEN_OFF = SequenceSGR(IntCode.HIDDEN_OFF)
+    """ Disable conecaling. """
+
     CROSSLINED_OFF = SequenceSGR(IntCode.CROSSLINED_OFF)
+    """ Disable strikethrough. """
+
     OVERLINED_OFF = SequenceSGR(IntCode.OVERLINED_OFF)
+    """ Disable overlining. """
 
     # text colors
+
     BLACK = SequenceSGR(IntCode.BLACK)
+    """ Set text color to 0x000000. """
+
     RED = SequenceSGR(IntCode.RED)
+    """ Set text color to 0x800000. """
+
     GREEN = SequenceSGR(IntCode.GREEN)
+    """ Set text color to 0x008000. """
+
     YELLOW = SequenceSGR(IntCode.YELLOW)
+    """ Set text color to 0x808000. """
+
     BLUE = SequenceSGR(IntCode.BLUE)
+    """ Set text color to 0x000080. """
+
     MAGENTA = SequenceSGR(IntCode.MAGENTA)
+    """ Set text color to 0x800080. """
+
     CYAN = SequenceSGR(IntCode.CYAN)
+    """ Set text color to 0x008080. """
+
     WHITE = SequenceSGR(IntCode.WHITE)
-    # code.COLOR_EXTENDED is handled by color_indexed()
+    """ Set text color to 0xc0c0c0. """
+
     COLOR_OFF = SequenceSGR(IntCode.COLOR_OFF)
+    """ Reset foreground color. """
 
     # background colors
+
     BG_BLACK = SequenceSGR(IntCode.BG_BLACK)
+    """ Set background color to 0x000000. """
+
     BG_RED = SequenceSGR(IntCode.BG_RED)
+    """ Set background color to 0x800000. """
+
     BG_GREEN = SequenceSGR(IntCode.BG_GREEN)
+    """ Set background color to 0x008000. """
+
     BG_YELLOW = SequenceSGR(IntCode.BG_YELLOW)
+    """ Set background color to 0x808000. """
+
     BG_BLUE = SequenceSGR(IntCode.BG_BLUE)
+    """ Set background color to 0x000080. """
+
     BG_MAGENTA = SequenceSGR(IntCode.BG_MAGENTA)
+    """ Set background color to 0x800080. """
+
     BG_CYAN = SequenceSGR(IntCode.BG_CYAN)
+    """ Set background color to 0x008080. """
+
     BG_WHITE = SequenceSGR(IntCode.BG_WHITE)
-    # code.BG_COLOR_EXTENDED is handled by color_indexed()
+    """ Set background color to 0xc0c0c0. """
+
     BG_COLOR_OFF = SequenceSGR(IntCode.BG_COLOR_OFF)
+    """ Reset background color. """
 
     # high intensity text colors
+
     GRAY = SequenceSGR(IntCode.GRAY)
+    """ Set text color to 0x808080. """
     HI_RED = SequenceSGR(IntCode.HI_RED)
+    """ Set text color to 0xff0000. """
     HI_GREEN = SequenceSGR(IntCode.HI_GREEN)
+    """ Set text color to 0x00ff00. """
     HI_YELLOW = SequenceSGR(IntCode.HI_YELLOW)
+    """ Set text color to 0xffff00. """
     HI_BLUE = SequenceSGR(IntCode.HI_BLUE)
+    """ Set text color to 0x0000ff. """
     HI_MAGENTA = SequenceSGR(IntCode.HI_MAGENTA)
+    """ Set text color to 0xff00ff. """
     HI_CYAN = SequenceSGR(IntCode.HI_CYAN)
+    """ Set text color to 0x00ffff. """
     HI_WHITE = SequenceSGR(IntCode.HI_WHITE)
+    """ Set text color to 0xffffff. """
 
     # high intensity background colors
-    BG_GRAY = SequenceSGR(IntCode.BG_GRAY)
-    BG_HI_RED = SequenceSGR(IntCode.BG_HI_RED)
-    BG_HI_GREEN = SequenceSGR(IntCode.BG_HI_GREEN)
-    BG_HI_YELLOW = SequenceSGR(IntCode.BG_HI_YELLOW)
-    BG_HI_BLUE = SequenceSGR(IntCode.BG_HI_BLUE)
-    BG_HI_MAGENTA = SequenceSGR(IntCode.BG_HI_MAGENTA)
-    BG_HI_CYAN = SequenceSGR(IntCode.BG_HI_CYAN)
-    BG_HI_WHITE = SequenceSGR(IntCode.BG_HI_WHITE)
 
-    # == OSC ==================================================================
+    BG_GRAY = SequenceSGR(IntCode.BG_GRAY)
+    """ Set background color to 0x808080. """
+    BG_HI_RED = SequenceSGR(IntCode.BG_HI_RED)
+    """ Set background color to 0xff0000. """
+    BG_HI_GREEN = SequenceSGR(IntCode.BG_HI_GREEN)
+    """ Set background color to 0x00ff00. """
+    BG_HI_YELLOW = SequenceSGR(IntCode.BG_HI_YELLOW)
+    """ Set background color to 0xffff00. """
+    BG_HI_BLUE = SequenceSGR(IntCode.BG_HI_BLUE)
+    """ Set background color to 0x0000ff. """
+    BG_HI_MAGENTA = SequenceSGR(IntCode.BG_HI_MAGENTA)
+    """ Set background color to 0xff00ff. """
+    BG_HI_CYAN = SequenceSGR(IntCode.BG_HI_CYAN)
+    """ Set background color to 0x00ffff. """
+    BG_HI_WHITE = SequenceSGR(IntCode.BG_HI_WHITE)
+    """ Set background color to 0xffffff. """
+
+    # -- OSC ------------------------------------------------------------------
 
     HYPERLINK = SequenceOSC(IntCode.HYPERLINK)
+    """
+    Create a hyperlink in the text *(supported by limited amount of terminals)*.
+     
+    .. seealso ::
+        `make_hyperlink()` and `assemble_hyperlink_span()`.
+    """
 
 
 COLORS = list(range(30, 39))
@@ -689,5 +711,90 @@ def get_closing_seq(opening_seq: SequenceSGR) -> SequenceSGR:
     return _sgr_pairity_registry.get_closing_seq(opening_seq)
 
 
-def make_hyperlink_span(url: str, label: str) -> str:
-    return f"{SequenceOSC.new_hyperlink(url)}{label}{SequenceOSC.new_hyperlink('')}"
+def make_set_cursor_x_abs(x: int = 1) -> SequenceCSI:
+    """
+    Create :abbr:`CHA (Cursor Horizontal Absolute)` sequence that sets
+    cursor horizontal position, or column, to ``x``.
+
+    :param x:  New cursor horizontal position.
+    :example:  ``ESC[1G``
+    """
+    if x <= 0:
+        raise ValueError(f"Invalid x value: {x}, expected x > 0")
+    return SequenceCSI("G", "CHA", x)
+
+
+def make_erase_in_line(mode: int = 0) -> SequenceCSI:
+    """
+    Create :abbr:`EL (Erase in Line)` sequence that erases a part of the line
+    or the entire line. Cursor position does not change.
+
+    :param mode:  .. ::
+
+                  Sequence operating mode.
+
+                     - If set to 0, clear from cursor to the end of the line.
+                     - If set to 1, clear from cursor to beginning of the line.
+                     - If set to 2, clear the entire line.
+
+    :example:     ``ESC[0K``
+    """
+    if not (0 <= mode <= 2):
+        raise ValueError(f"Invalid mode: {mode}, expected [0;2]")
+    return SequenceCSI("K", "EL", mode)
+
+
+def make_color_256(code: int, bg: bool = False) -> SequenceSGR:
+    """
+    Wrapper for creation of `SequenceSGR` that sets foreground
+    (or background) to one of 256-color palette value.
+
+    :param code:  Index of the color in the palette, 0 -- 255.
+    :param bg:    Set to *True* to change the background color
+                  (default is foreground).
+    :example:     ``ESC[38;5;141m``
+    """
+
+    SequenceSGR.validate_extended_color(code)
+    key_code = IntCode.BG_COLOR_EXTENDED if bg else IntCode.COLOR_EXTENDED
+    return SequenceSGR(key_code, IntCode.EXTENDED_MODE_256, code)
+
+
+def make_color_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
+    """
+    Wrapper for creation of `SequenceSGR` operating in True Color mode (16M).
+    Valid values for ``r``, ``g`` and ``b`` are in range of [0; 255]. This range
+    linearly translates into [0x00; 0xFF] for each channel. The result
+    value is composed as "0xRRGGBB". For example, sequence with color of
+    0xFF3300 can be created with::
+
+        make_color_rgb(255, 51, 0)
+
+    :param r:  Red channel value, 0 -- 255.
+    :param g:  Blue channel value, 0 -- 255.
+    :param b:  Green channel value, 0 -- 255.
+    :param bg: Set to *True* to change the background color (default is foreground).
+    :example:  ``ESC[38;2;255;51;0m``
+    """
+
+    [SequenceSGR.validate_extended_color(color) for color in [r, g, b]]
+    key_code = IntCode.BG_COLOR_EXTENDED if bg else IntCode.COLOR_EXTENDED
+    return SequenceSGR(key_code, IntCode.EXTENDED_MODE_RGB, r, g, b)
+
+
+def make_hyperlink(url: str = None) -> SequenceOSC:
+    """
+
+    :param url:
+    :example:  ``ESC]8;;http://localhostESC\\TextESC]8;;ESC\\``
+    """
+    return SequenceOSC(IntCode.HYPERLINK, "", (url or ""))
+
+
+def assemble_hyperlink_span(url: str, label: str) -> str:
+    """
+
+    :param url:
+    :param label:
+    """
+    return f"{make_hyperlink(url)}{label}{make_hyperlink('')}"

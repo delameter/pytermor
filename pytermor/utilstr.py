@@ -17,6 +17,7 @@ import re
 import textwrap
 from functools import reduce
 import typing as t
+
 from .common import StrType
 
 _PRIVATE_REPLACER = "\U000E5750"
