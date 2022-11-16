@@ -244,14 +244,10 @@ class SequenceSGR(SequenceCSI):
         if len(self._params) == 0:  # NOOP
             return ""
 
-        params = self._params
-        if params == [0]:  # \x1b[0m <=> \x1b[m, saving 1 byte
-            params = []
-
         return (
             self._ESC_CHARACTER
             + self._INTRODUCER
-            + self._SEPARATOR.join([str(param) for param in params])
+            + self._SEPARATOR.join([str(param) for param in self._params])
             + self._TERMINATOR
         )
 
