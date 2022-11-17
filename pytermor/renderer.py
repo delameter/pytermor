@@ -130,14 +130,15 @@ class AbstractRenderer(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
+    def render(self, string: t.Any, fmt: Color|Style = NOOP_STYLE) -> str:
         """
-        Apply colors and attributes described in ``style`` argument to
+        Apply colors and attributes described in ``fmt`` argument to
         ``string`` and return the result. Output format depends on renderer's
         class, which defines the implementation.
 
         :param string: String to format.
-        :param style:  Style to apply.
+        :param fmt:    Style or color to apply. If ``fmt`` is a `Color` instance,
+                       it is assumed to be a foreground color.
         :return: String with formatting applied, or without it, depending on
                  renderer settings.
         """
@@ -154,7 +155,7 @@ class OutputMode(enum.Enum):
     NO_ANSI = 'no_ansi'
     """
     The renderer discards all color and format information completely.
-    """
+    """ 
     XTERM_16 = 'xterm_16'
     """
     16-colors mode. Enforces the renderer to approximate all color types
@@ -244,7 +245,8 @@ class SgrRenderer(AbstractRenderer):
     def is_format_allowed(self) -> bool:
         return self._output_mode is not OutputMode.NO_ANSI
 
-    def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
+    def render(self, string: t.Any, fmt: Color|Style = NOOP_STYLE) -> str:
+        style = Style.make(fmt)
         opening_seq = (
             self._render_attributes(style, squash=True)
             + self._render_color(style.fg, False)
@@ -345,7 +347,8 @@ class TmuxRenderer(AbstractRenderer):
     def is_format_allowed(self) -> bool:
         return True
 
-    def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
+    def render(self, string: t.Any, fmt: Color|Style = NOOP_STYLE) -> str:
+        style = Style.make(fmt)
         command_open, command_close = self._render_attributes(style)
         rendered_text = ""
         for line in str(string).splitlines(keepends=True):
@@ -396,7 +399,7 @@ class NoOpRenderer(AbstractRenderer):
     def is_format_allowed(self) -> bool:
         return False
 
-    def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
+    def render(self, string: t.Any, fmt: Color|Style = NOOP_STYLE) -> str:
         return str(string)
 
 
@@ -422,7 +425,8 @@ class HtmlRenderer(AbstractRenderer):
     def is_format_allowed(self) -> bool:
         return True
 
-    def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
+    def render(self, string: t.Any, fmt: Color|Style = NOOP_STYLE) -> str:
+        style = Style.make(fmt)
         opening_tag, closing_tag = self._render_attributes(style)
         return f'{opening_tag}{str(string)}{closing_tag}'  # @TODO  # attribues
 
@@ -490,8 +494,8 @@ class SgrRendererDebugger(SgrRenderer):
             return self._format_override
         return super().is_format_allowed
 
-    def render(self, string: t.Any, style: Style = NOOP_STYLE) -> str:
-        return ReplaceSGR(r"|ǝ\3|").apply(super().render(str(string), style))
+    def render(self, string: t.Any, fmt: Color|Style = NOOP_STYLE) -> str:
+        return ReplaceSGR(r"|ǝ\3|").apply(super().render(str(string), fmt))
 
     def set_format_always(self):
         self._format_override = True

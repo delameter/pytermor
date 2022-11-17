@@ -19,8 +19,7 @@ from .common import ArgTypeError
 
 @dataclass()
 class Style:
-    """
-    """
+    """ """
 
     _fg: Color = field(default=None, init=False)
     _bg: Color = field(default=None, init=False)
@@ -44,6 +43,18 @@ class Style:
     @property
     def _attributes(self) -> t.FrozenSet:
         return frozenset(list(self.__dict__.keys()) + ["_fg", "_bg"])
+
+    @staticmethod
+    def make(fmt: Color | Style | None):
+        if not fmt:
+            return NOOP_STYLE
+        if isinstance(fmt, Color):
+            if fmt == NOOP_COLOR:
+                return NOOP_STYLE
+            return Style(fg=fmt)
+        if isinstance(fmt, Style):
+            return fmt
+        raise ArgTypeError(type(fmt), "fmt", fn=Style.make)
 
     def __init__(
         self,
@@ -169,8 +180,7 @@ class Style:
             if self_val is None and parent_val is not None:
                 setattr(self, attr, parent_val)
 
-    # noinspection PyMethodMayBeStatic
-    def _resolve_color(self, arg: str|int|Color|None) -> Color | None:
+    def _resolve_color(self, arg: str | int | Color | None) -> Color | None:
         if arg is None:
             return NOOP_COLOR
         if isinstance(arg, Color):
@@ -179,7 +189,7 @@ class Style:
             return ColorRGB(arg)
         if isinstance(arg, str):
             return Color.resolve(arg)
-        raise ArgTypeError(self._resolve_color, 'arg', type(arg))
+        raise ArgTypeError(type(arg), "arg", fn=self._resolve_color)
 
     def __eq__(self, other: Style):
         return all(

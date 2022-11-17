@@ -48,19 +48,24 @@ class Renderable(t.Sized, metaclass=ABCMeta):
 @dataclasses.dataclass
 class _TextFragment(t.Sized):
     string: str = ""
-    style: Style = NOOP_STYLE
+    fmt: Color | Style = NOOP_STYLE
     close_this: bool = True
     close_prev: bool = False
 
     def __post_init__(self):
         if self.close_prev:
             self.close_this = True
+        self._style = Style.make(self.fmt)
+
+    @property
+    def style(self) -> Style:
+        return self._style
 
     def __len__(self) -> int:
         return len(self.string)
 
     def __repr__(self):
-        props_set = [f'"{self.string}"', f"{self.style!r}"]
+        props_set = [f'"{self.string}"', f"{self._style!r}"]
         if self.close_this:
             props_set.append("close_this")
         if self.close_prev:
@@ -84,12 +89,12 @@ class Text(Renderable):
     def __init__(
         self,
         string: str = "",
-        style: Style = NOOP_STYLE,
+        fmt: Color | Style = NOOP_STYLE,
         close_this: bool = True,
         close_prev: bool = False,
     ):
         self._fragments: t.Deque[_TextFragment] = collections.deque()
-        self.append(string, style, close_this, close_prev)
+        self.append(string, fmt, close_this, close_prev)
 
     def render(
         self, renderer: AbstractRenderer | t.Type[AbstractRenderer] = None
@@ -135,15 +140,15 @@ class Text(Renderable):
     def append(
         self,
         string: str | Text,
-        style: Style = NOOP_STYLE,
+        fmt: Color | Style = NOOP_STYLE,
         close_this: bool = True,
         close_prev: bool = False,
     ) -> Text:
         if isinstance(string, str):
-            self._fragments.append(_TextFragment(string, style, close_this, close_prev))
+            self._fragments.append(_TextFragment(string, fmt, close_this, close_prev))
         elif isinstance(string, Text):
-            if style != NOOP_STYLE:
-                self._fragments.append(_TextFragment("", style, close_this, close_prev))
+            if fmt != NOOP_STYLE and fmt != NOOP_COLOR:
+                self._fragments.append(_TextFragment("", fmt, close_this, close_prev))
             self._fragments.extend(string._fragments)
         else:
             raise TypeError("Only str or another Text can be added to Text instance")
@@ -152,18 +157,18 @@ class Text(Renderable):
     def prepend(
         self,
         string: str | Text,
-        style: Style = NOOP_STYLE,
+        fmt: Color | Style = NOOP_STYLE,
         close_this: bool = True,
         close_prev: bool = False,
     ) -> Text:
         if isinstance(string, str):
             self._fragments.appendleft(
-                _TextFragment(string, style, close_this, close_prev)
+                _TextFragment(string, fmt, close_this, close_prev)
             )
         elif isinstance(string, Text):
-            if style != NOOP_STYLE:
+            if fmt != NOOP_STYLE and fmt != NOOP_COLOR:
                 self._fragments.appendleft(
-                    _TextFragment("", style, close_this, close_prev)
+                    _TextFragment("", fmt, close_this, close_prev)
                 )
             self._fragments.extendleft(string._fragments)
         else:
@@ -379,20 +384,20 @@ class TemplateEngine:
 
 
 def render(
-    string: t.Any, style: Style = NOOP_STYLE, renderer: AbstractRenderer = None
+    string: t.Any, fmt: Color | Style = NOOP_STYLE, renderer: AbstractRenderer = None
 ) -> str | t.List[str]:
-    if string == "" and style == NOOP_STYLE:
+    if string == "" and fmt == NOOP_STYLE:
         return ""
-    if isinstance(string, Text) and style == NOOP_STYLE:
+    if isinstance(string, Text) and fmt == NOOP_STYLE:
         return string.render(renderer)
     if isinstance(string, t.Iterable) and not isinstance(string, str):
         return [render(s) for s in string]
-    return Text(string, style).render(renderer)
+    return Text(string, fmt).render(renderer)
 
 
 def echo(
     string: t.Any = "",
-    style: Style = NOOP_STYLE,
+    fmt: Color | Style = NOOP_STYLE,
     renderer: AbstractRenderer = None,
     nl: bool = True,
     file: t.IO = sys.stdout,
@@ -402,7 +407,7 @@ def echo(
     indent_subseq: int = 0,
 ):
     end = "\n" if nl else ""
-    result = render(string, style, renderer)
+    result = render(string, fmt, renderer)
 
     if wrap:
         width = get_preferable_wrap_width(wrap)
