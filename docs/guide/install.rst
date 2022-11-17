@@ -1,7 +1,5 @@
 .. _guide.install:
 
-.. default-role:: any
-
 ===============================
 Getting started
 ===============================

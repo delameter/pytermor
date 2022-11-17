@@ -47,7 +47,7 @@ import typing as t
 from abc import ABCMeta, abstractmethod
 from functools import reduce
 
-from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, get_closing_seq
+from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose
 from .color import Color, Color16, Color256, ColorRGB, NOOP_COLOR
 from .common import logger
 from .style import Style, NOOP_STYLE, Styles
@@ -259,9 +259,7 @@ class SgrRenderer(AbstractRenderer):
         # user's pager, multiplexer, terminal emulator etc.
         rendered_text = ""
         for line in str(string).splitlines(keepends=True):
-            rendered_text += (
-                opening_seq.assemble() + line + get_closing_seq(opening_seq).assemble()
-            )
+            rendered_text += enclose(opening_seq, line)
         return rendered_text
 
     def _determine_output_mode(self, arg_value: OutputMode) -> OutputMode:

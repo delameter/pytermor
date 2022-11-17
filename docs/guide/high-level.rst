@@ -1,7 +1,5 @@
 .. _guide.high-level:
 
-.. default-role:: any
-
 ==========================
 High-level abstractions
 ==========================

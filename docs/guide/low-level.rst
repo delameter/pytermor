@@ -1,7 +1,5 @@
 .. _guide.low-level:
 
-.. default-role:: any
-
 ==========================
 Low-level abstractions
 ==========================
@@ -96,7 +94,7 @@ To get the resulting sequence chars use `assemble() <SequenceSGR.assemble()>` me
 
 - First line is the string with encoded escape sequence;
 - Second line shows up the string in raw mode, as if sequences were ignored by the terminal;
-- Third line is hexademical string representation.
+- Third line is hexadecimal string representation.
 
 
 :mono:`SGR` sequence structure

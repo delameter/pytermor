@@ -72,6 +72,8 @@ th abbr {
 
 /** Layout **/
 
+.right { text-align: right; }
+
 article .align-center, article .align-default {
     margin-block: 0.5em 1.0em; /** more below **/
 }

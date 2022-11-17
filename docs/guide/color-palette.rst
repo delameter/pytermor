@@ -1,7 +1,5 @@
 .. _guide.color-palette:
 
-.. default-role:: any
-
 ============================
 Color palette
 ============================

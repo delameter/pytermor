@@ -76,7 +76,7 @@ class Style:
 
             1. :class:`.Color` instance or library preset;
             2. `*str*` -- name of any of these presets, case-insensitive;
-            3. `*int*` -- color value in hexademical RGB format;
+            3. `*int*` -- color value in hexadecimal RGB format;
             4. *None* -- the color will be unset.
 
         Inheritance ``parent`` -> ``child`` works this way:

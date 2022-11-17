@@ -158,8 +158,9 @@ def wrap_sgr(
     if isinstance(raw_input, str):  # input can be just one paragraph
         raw_input = [raw_input]
 
+    input = '\n\n'.join(raw_input).split('\n\n')
     result = ""
-    for raw_line in raw_input:
+    for raw_line in input:
         # had an inspiration and wrote it; no idea how does it work exactly, it just does
         replaced_line = re.sub(r"(\s?\S?)((\x1b\[([0-9;]*)m)+)", push, raw_line)
         wrapped_line = f"\n".join(

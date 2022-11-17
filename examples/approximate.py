@@ -14,58 +14,93 @@ import pytermor as pt
 
 
 class Main:
-    WIDTH = 100
-
     def __init__(self, argv: typing.List):
-        sample_values = []
+        usage = [
+            f"  python {sys.argv[0]} [-e] [COLOR]...",
+            "",
+            "Option -e|--extended enables more approximation details.",
+        ]
+        input_values = []
+        self._extended_mode = False
+
         for arg in argv:
             try:
+                if arg.startswith('-'):
+                    if arg == '-e' or arg == '--extended':
+                        self._extended_mode = True
+                        continue
+                    raise ValueError(f"Invalid option {arg}")
+
                 val = int(arg, 16)
                 if not 0 <= val < 16777216:
                     raise ValueError(f"Argument is not valid RGB value: 0x{val:X}")
-                sample_values.append(val)
+                input_values.append(val)
             except ValueError as e:
-                raise ValueError(
-                    f"{e}\n" + "Expected argument format: '[0-9a-f]{1,6}', i.e. a "
-                    "hexadecimal integer X, where 0 <= X <= 0xFFFFFF."
-                ) from e
+                pt.echo("USAGE:")
+                pt.echo([
+                    *usage,
+                    "Expected COLOR format: '(0x)?[0-9a-f]{1,6}', i.e. a hexadecimal "
+                    "integer X, where 0 <= X <= 0xFFFFFF.",
+                ], wrap=True)
+                raise e
 
-        if len(sample_values) == 0:
-            random_rgb = (random.randint(40, 255) for _ in range(3))
-            self.run(pt.Color.rgb_to_hex(*random_rgb), "Random")
+        if len(input_values) == 0:
+            self.run(None, "Random")
         else:
-            for sample_value in sample_values:
+            for sample_value in input_values:
                 self.run(sample_value, "Input")
+
+        if len(input_values) > 0 or self._extended_mode:
             return
 
         pt.echo(
             [
-                "",
                 "In this example the library assumes that your terminal supports "
                 "all color modes including 256-color and True Color, and forces "
                 "the renderer to act accordingly. If that's not the case, weird "
                 "results may (and will) happen. Run 'examples/terminal_color_mode.py' "
                 "for the details.",
                 "",
-                "You can specify any amount of colors as arguments to this program, and "
-                "they will be approximated instead of the default (random) one. Required "
-                "format is a string 1-6 characters long representing an integer(s) in a "
-                "hexadecimal form: 'FFFFFF' (case insensitive):",
+                "Basic usage:",
+                *usage,
+                "You can specify any amount of colors as arguments, and they will be "
+                "approximated instead of the default (random) one. Required format is "
+                "a string 1-6 characters long representing an integer(s) in a hexadecimal "
+                "form: 'FFFFFF' (case insensitive):",
+                "",
+                f"  python {sys.argv[0]} 3AEBA1 0bceaa 6",
             ],
             wrap=True,
             indent_first=2,
         )
-        pt.echo(f"python {sys.argv[0]} 3AEBA1 0bceaa 6", wrap=True, indent_first=4)
 
-    def run(self, sample_val: int, color_type: str):
+    def run(self, sample_val: int|None, color_type: str):
+        if sample_val is None:
+            random_rgb = (random.randint(40, 255) for _ in range(3))
+            sample_val = pt.Color.rgb_to_hex(*random_rgb)
+
         sample = pt.ColorRGB(sample_val)
+        direct_renderer = pt.SgrRenderer(pt.OutputMode.TRUE_COLOR)
 
+        pt.echo()
+        pt.echo(f'  {color_type+" color:":<15s}', nl=False)
+        pt.echo("  ", pt.Style(bg=sample), direct_renderer, nl=False)
+        pt.echo(f" {sample.format_value()} ", pt.Style(bg=0x0), nl=False)
+        pt.echo("\n\n ", nl=False)
+
+        if self._extended_mode:
+            self.run_extended(sample)
+        else:
+            self.run_default(sample)
+        pt.echo()
+
+    def run_default(self, sample: pt.ColorRGB):
         results = []
         descriptions = [
             "No approximation (direct output)",
-            "Closest color in pytermor Named RGB list",
-            "Closest color in xterm-256 Index table",
-            "Closest color in xterm-16 Index table",
+            "Closest color in named colors list (pytermor)",
+            "Closest color in xterm-256 index",
+            "Closest color in xterm-16 index",
             "SGR formatting disabled",
         ]
 
@@ -76,23 +111,22 @@ class Main:
             style = pt.NOOP_STYLE
 
             sample_approx = pt.NOOP_COLOR
+            dist = None
             if upper_bound := renderer._COLOR_UPPER_BOUNDS.get(om, None):
-                sample_approx = upper_bound.find_closest(sample.hex_value)
+                approx_results = upper_bound.approximate(sample.hex_value, 1)
+                closest = approx_results[0]
+                sample_approx = closest.color
+                dist = closest.distance_real
                 if idx == 0:
                     sample_approx = sample
+                    dist = 0.0
                 style = pt.Style(bg=sample_approx).autopick_fg()
-            string = f" {om.name:<10s} -> {sample_approx}"
+            dist_str = "--" if dist is None else f"{dist:.1f}"
+            string = f" {om.name:<10s} {dist_str:>6s}  {sample_approx}"
             results.append((string, style, renderer))
 
         prim_len = max(len(s[0]) for s in results)
-        direct_renderer = pt.SgrRenderer(pt.OutputMode.TRUE_COLOR)
-
-        pt.echo()
-        pt.echo(f'  {color_type+" color:":<15s}', nl=False)
-        pt.echo("  ", pt.Style(bg=sample), direct_renderer, nl=False)
-        pt.echo(f" {sample.format_value()} ", pt.Style(bg=0x0), nl=False)
-        pt.echo("\n\n ", nl=False)
-        header = " Output mode".ljust(15) + " Approximated color"
+        header = " Mode".ljust(12) + " sRGB Δ".rjust(7) + "  " + "Approximated color"
         pt.echo(header.ljust(prim_len + 1), pt.Style(underlined=True))
 
         for string, style, renderer in results:
@@ -100,11 +134,12 @@ class Main:
             pt.echo(f"{string:<{prim_len}s} ", style, renderer, nl=False)
             pt.echo("  " + descriptions.pop(0), pt.Style(fg="gray"))
 
-        pt.echo()
+    def run_extended(self, sample: pt.ColorRGB):
+        raise NotImplementedError('@TODO')
 
 
 if __name__ == "__main__":
     try:
         Main(sys.argv[1:])
     except Exception as e:
-        pt.echo(str(e), style=pt.Styles.ERROR)
+        pt.echo(f"[ERROR] {type(e).__qualname__}: {e}\n", fmt=pt.Styles.ERROR)

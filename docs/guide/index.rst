@@ -1,7 +1,5 @@
 .. _guide.index:
 
-.. default-role:: any
-
 ===================
 Guide
 ===================

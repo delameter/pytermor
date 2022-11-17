@@ -1,7 +1,5 @@
 .. _guide.formatters:
 
-.. default-role:: any
-
 =======================================
 Formatters and Filters
 =======================================

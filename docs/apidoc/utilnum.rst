@@ -1,7 +1,5 @@
 .. _apidoc.utilnum:
 
-.. default-role:: any
-
 ========================
 utilnum
 ========================

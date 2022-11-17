@@ -1,7 +1,5 @@
 .. _apidoc.index:
 
-.. default-role:: any
-
 ===================
 API reference
 ===================

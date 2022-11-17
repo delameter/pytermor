@@ -54,9 +54,9 @@ def format_auto_float(value: float, req_len: int, allow_exponent_notation: bool 
 
     :param value:   Value to format
     :param req_len: Required output string length
-    :param allow_exponent_notation: Enable/disable exponent form.
-
-    :return: Formatted string of required length
+    :param allow_exponent_notation:
+                    Enable/disable exponent form.
+    :return:        Formatted string of required length
     :except ValueError:
 
     .. versionadded:: 1.7
@@ -164,7 +164,7 @@ def format_auto_float(value: float, req_len: int, allow_exponent_notation: bool 
     return f'{sign}{abs_value:{req_len}{dot_str}f}'
 
 
-def format_si_metric(value: float, unit: str = 'm', join: bool = True) -> str:
+def format_si_metric(value: float, unit: str = 'm', join: bool = True) -> str|Tuple[str, str, str]:
     """
     Format ``value`` as meters with SI-prefixes, max result length is
     7 chars: 4 for value plus 3 for default unit, prefix and
@@ -183,6 +183,8 @@ def format_si_metric(value: float, unit: str = 'm', join: bool = True) -> str:
 
     :param value: Input value (unitless).
     :param unit:  Value unit, printed right after the prefix.
+    :param join:  Return the result as a string if set to *True*,
+                  or as a (num, sep, unit) tuple otherwise.
     :return:      Formatted string with SI-prefix if necessary.
 
     .. versionadded:: 2.0
@@ -190,7 +192,7 @@ def format_si_metric(value: float, unit: str = 'm', join: bool = True) -> str:
     return _formatter_si_metric.format(value, unit, join)
 
 
-def format_si_binary(value: float, unit: str = 'b', join: bool = True) -> str:
+def format_si_binary(value: float, unit: str = 'b', join: bool = True) -> str|Tuple[str, str, str]:
     """
     Format ``value`` as binary size (bytes, kbytes, Mbytes), max
     result length is 8 chars: 5 for value plus 3 for default unit,
@@ -207,6 +209,8 @@ def format_si_binary(value: float, unit: str = 'b', join: bool = True) -> str:
 
     :param value: Input value in bytes.
     :param unit:  Value unit, printed right after the prefix.
+    :param join:  Return the result as a string if set to *True*,
+                  or as a (num, sep, unit) tuple otherwise.
     :return:      Formatted string with SI-prefix if necessary.
 
     .. versionadded:: 2.0
@@ -266,10 +270,12 @@ class PrefixedUnitFormatter:
         result += max([len(p) for p in self._prefixes if p])
         return result
 
-    def format(self, value: float, unit: str = None, join: bool = True) -> str|Tuple[str, ...]:
+    def format(self, value: float, unit: str = None, join: bool = True) -> str|Tuple[str, str, str]:
         """
         :param value:  Input value
         :param unit:   Unit override
+        :param join:   Return the result as a string if set to *True*,
+                       or as a (num, sep, unit) tuple otherwise.
         :return:       Formatted value
         """
         if self._truncate_frac:
@@ -379,6 +385,7 @@ unit and prefix, assuming all of them have 1-char width).
     Supports several output lengths and can be customized even more.
 
 """
+
 
 def format_time_delta(seconds: float, max_len: int = None) -> str:
     """

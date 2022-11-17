@@ -22,8 +22,8 @@ opening SequenceSGR instance:
 >>> SequenceSGR(IntCode.BOLD, IntCode.RED).assemble()
 '\\x1b[1;31m'
 
-...although generally speaking it is two of them (``ESC[1m`` and
-``ESC[31m``). However, the module can automatically match terminating
+...although generally speaking it is two of them (|e|\ ``[1m`` and
+|e|\ ``[31m``). However, the module can automatically match terminating
 sequences for any form of input SGRs and translate it to specified format.
 
 **XTerm Control Sequences**
@@ -59,11 +59,13 @@ class Sequence(t.Sized, ABC):
     _TERMINATOR: str
 
     def __init__(self, *params: int | str):
-        self._params: t.List[int|str] = []
+        self._params: t.List[int | str] = []
 
         for param in params:
             if isinstance(param, IntCode):
-                self._params.append(param.value)  # to avoid casting it later in assemble()
+                self._params.append(
+                    param.value
+                )  # to avoid casting it later in assemble()
                 continue
             self._params.append(param)
 
@@ -72,10 +74,12 @@ class Sequence(t.Sized, ABC):
         Build up actual byte sequence and return
         as an ASCII-encoded string.
         """
-        return self._ESC_CHARACTER + \
-               self._INTRODUCER + \
-               self._SEPARATOR.join([str(param) for param in self.params]) + \
-               self._TERMINATOR
+        return (
+            self._ESC_CHARACTER
+            + self._INTRODUCER
+            + self._SEPARATOR.join([str(param) for param in self.params])
+            + self._TERMINATOR
+        )
 
     @property
     def params(self) -> t.List[int | str]:
@@ -110,8 +114,8 @@ class SequenceFe(Sequence, ABC):
     Wide range of sequence types that includes `CSI <SequenceCSI>`,
     `OSC <SequenceOSC>` and more.
 
-    All subtypes of this sequence start with ``ESC`` plus ASCII byte
-    from ``0x40`` to ``0x5F`` (``@``, ``[``, ``\\``, ``]``, ``_``, ``^`` and 
+    All subtypes of this sequence start with |e| plus ASCII byte
+    from ``0x40`` to ``0x5F`` (``@``, ``[``, ``\\``, ``]``, ``_``, ``^`` and
     capital letters ``A``-``Z``).
     """
 
@@ -119,9 +123,10 @@ class SequenceFe(Sequence, ABC):
 class SequenceST(SequenceFe):
     """
     String Terminator sequence (ST). Terminates strings in other control
-    sequences. Encoded as ``ESC\\`` (``0x1B`` ``0x5C``).
+    sequences. Encoded as |e|\ ``\\`` (``0x1B`` ``0x5C``).
     """
-    _INTRODUCER = '\\'
+
+    _INTRODUCER = "\\"
 
     def assemble(self) -> str:
         return self._ESC_CHARACTER + self._INTRODUCER
@@ -134,10 +139,11 @@ class SequenceST(SequenceFe):
 class SequenceOSC(SequenceFe):
     """
     :abbr:`OSC (Operating System Command)`-type sequence. Starts a control
-    string for the operating system to use. Encoded as ``ESC]``, plus params
+    string for the operating system to use. Encoded as |e|\ ``]``, plus params
     separated by ``;``, and terminated with `SequenceST`.
     """
-    _INTRODUCER = ']'
+
+    _INTRODUCER = "]"
     _TERMINATOR = SequenceST().assemble()
 
     @classmethod
@@ -148,7 +154,7 @@ class SequenceOSC(SequenceFe):
 class SequenceCSI(SequenceFe):
     """
     Class representing :abbr:`CSI (Control Sequence Introducer)`-type ANSI
-    escape sequence. All subtypes of this sequence start with ``ESC[``.
+    escape sequence. All subtypes of this sequence start with |e|\ ``[``.
 
     Sequences of this type are used to control text formatting,
     change cursor position, erase screen and more.
@@ -156,7 +162,8 @@ class SequenceCSI(SequenceFe):
     >>> make_erase_in_line().assemble()
     '\\x1b[0K'
     """
-    _INTRODUCER = '['
+
+    _INTRODUCER = "["
 
     def __init__(self, terminator: str, short_name: str, *params: int):
         """
@@ -196,15 +203,15 @@ class SequenceSGR(SequenceCSI):
     making it bold or blinking etc.
 
     When cast to *str*, as all other sequences, invokes `assemble()` method
-    and transforms into encoded control sequence string. It's possible to add
+    and transforms into encoded control sequence string. It is possible to add
     of one SGR sequence to another, resulting in a new one with merged params
     (see examples).
 
     .. note ::
         `SequenceSGR` with zero params was specifically implemented to
-        translate into empty string and not into ``ESC[m``, which would have
+        translate into empty string and not into |e|\ ``[m``, which would have
         made sense, but also would be entangling, as this sequence is the equivalent
-        of ``ESC[0m`` -- hard reset sequence. The empty-string-sequence is
+        of |e|\ ``[0m`` -- hard reset sequence. The empty-string-sequence is
         predefined at module level as `NOOP_SEQ`.
 
     >>> SequenceSGR(IntCode.HI_CYAN, 'underlined', 1)
@@ -238,7 +245,7 @@ class SequenceSGR(SequenceCSI):
                 raise TypeError(f"Invalid argument type: {arg!r})")
 
         result = [max(0, p) for p in result]
-        super().__init__(self._TERMINATOR, 'SGR', *result)
+        super().__init__(self._TERMINATOR, "SGR", *result)
 
     def assemble(self) -> str:
         if len(self._params) == 0:  # NOOP
@@ -327,6 +334,11 @@ class IntCode(enum.IntEnum):
 
     @classmethod
     def resolve(cls, name: str) -> IntCode:
+        """
+        
+        :param name:
+        :return:
+        """
         name_norm = name.upper()
         try:
             instance = cls[name_norm]
@@ -469,8 +481,7 @@ class SeqIndex:
 
     BOLD_DIM_OFF = SequenceSGR(IntCode.BOLD_DIM_OFF)
     """
-    Disable ``BOLD`` and ``DIM`` attributes. 
-    
+    Disable ``BOLD`` and ``DIM`` attributes.\n
     *Special aspects... It's impossible to reliably disable them on a separate basis.*
     """
 
@@ -598,7 +609,7 @@ class SeqIndex:
     Create a hyperlink in the text *(supported by limited amount of terminals)*.
      
     .. seealso ::
-        `make_hyperlink()` and `assemble_hyperlink()`.
+        `make_hyperlink_part()` and `assemble_hyperlink()`.
     """
 
 
@@ -611,7 +622,8 @@ ALL_COLORS = COLORS + BG_COLORS + HI_COLORS + BG_HI_COLORS
 
 class _SgrPairityRegistry:
     """
-    Internal class responsible for correct SGRs termination.
+    Internal class providing methods for mapping an SGR to a
+    complement (closing) SGR.
     """
 
     _code_to_breaker_map: t.Dict[int | t.Tuple[int, ...], SequenceSGR] = dict()
@@ -704,7 +716,22 @@ _sgr_pairity_registry = _SgrPairityRegistry()
 
 
 def get_closing_seq(opening_seq: SequenceSGR) -> SequenceSGR:
+    """
+
+    :param opening_seq:
+    :return:
+    """
     return _sgr_pairity_registry.get_closing_seq(opening_seq)
+
+
+def enclose(opening_seq: SequenceSGR, string: str) -> str:
+    """
+
+    :param opening_seq:
+    :param string:
+    :return:
+    """
+    return f"{opening_seq}{string}{get_closing_seq(opening_seq)}"
 
 
 def make_set_cursor_x_abs(x: int = 1) -> SequenceCSI:
@@ -713,7 +740,7 @@ def make_set_cursor_x_abs(x: int = 1) -> SequenceCSI:
     cursor horizontal position, or column, to ``x``.
 
     :param x:  New cursor horizontal position.
-    :example:  ``ESC[1G``
+    :example:  |e|\ ``[1G``
     """
     if x <= 0:
         raise ValueError(f"Invalid x value: {x}, expected x > 0")
@@ -733,7 +760,7 @@ def make_erase_in_line(mode: int = 0) -> SequenceCSI:
                      - If set to 1, clear from cursor to beginning of the line.
                      - If set to 2, clear the entire line.
 
-    :example:     ``ESC[0K``
+    :example:     |e|\ ``[0K``
     """
     if not (0 <= mode <= 2):
         raise ValueError(f"Invalid mode: {mode}, expected [0;2]")
@@ -748,7 +775,7 @@ def make_color_256(code: int, bg: bool = False) -> SequenceSGR:
     :param code:  Index of the color in the palette, 0 -- 255.
     :param bg:    Set to *True* to change the background color
                   (default is foreground).
-    :example:     ``ESC[38;5;141m``
+    :example:     |e|\ ``[38;5;141m``
     """
 
     SequenceSGR.validate_extended_color(code)
@@ -770,7 +797,7 @@ def make_color_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
     :param g:  Blue channel value, 0 -- 255.
     :param b:  Green channel value, 0 -- 255.
     :param bg: Set to *True* to change the background color (default is foreground).
-    :example:  ``ESC[38;2;255;51;0m``
+    :example:  |e|\ ``[38;2;255;51;0m``
     """
 
     [SequenceSGR.validate_extended_color(color) for color in [r, g, b]]
@@ -782,7 +809,7 @@ def make_hyperlink_part(url: str = None) -> SequenceOSC:
     """
 
     :param url:
-    :example:  ``ESC]8;;http://localhostESC\\TextESC]8;;ESC\\``
+    :example: |e|\ ``]8;;http://localhost``\ |e|\ ``\\``
     """
     return SequenceOSC(IntCode.HYPERLINK, "", (url or ""))
 
@@ -792,5 +819,6 @@ def assemble_hyperlink(url: str, label: str) -> str:
 
     :param url:
     :param label:
+    :example:  |e|\ ``]8;;http://localhost``\ |e|\ ``\\Text``\ |e|\ ``]8;;``\ |e|\ ``\\``
     """
-    return f"{make_hyperlink_part(url)}{label}{make_hyperlink_part('')}"
+    return f"{make_hyperlink_part(url)}{label}{make_hyperlink_part()}"

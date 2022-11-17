@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import dataclasses
+import math
 import re
 import typing as t
 from abc import ABCMeta, abstractmethod
@@ -110,6 +111,10 @@ class ApproximationResult(t.Generic[ColorType]):
     color: ColorType
     distance: float
 
+    @property
+    def distance_real(self) -> float:
+        return math.sqrt(self.distance)
+
 
 class Color(metaclass=ABCMeta):
     """
@@ -179,33 +184,57 @@ class Color(metaclass=ABCMeta):
         return self._hex_value == other._hex_value
 
     def to_hsv(self) -> t.Tuple[float, float, float]:
-        """ """
+        """
+
+        :return:
+        """
         return self.hex_to_hsv(self._hex_value)
 
     def to_rgb(self) -> t.Tuple[int, int, int]:
-        """ """
+        """
+
+        :return:
+        """
         return self.hex_to_rgb(self._hex_value)
 
     def format_value(self, prefix: str = "0x") -> str:
-        """ """
+        """
+
+        :param prefix:
+        :return:
+        """
         return f"{prefix:s}{self._hex_value:06X}"
 
     @property
     def hex_value(self) -> int:
-        """ """
+        """
+
+        :return:
+        """
         return self._hex_value
 
     @property
     def name(self) -> str | None:
-        """ """
+        """
+        
+        :return:
+        """
         return self._name
 
     @property
     def base(self) -> ColorType | None:
+        """
+
+        :return:
+        """
         return self._base
 
     @property
     def variations(self) -> t.Dict[str, ColorType]:
+        """
+
+        :return:
+        """
         return self._variations
 
     def _repr(self, *params: t.Any) -> str:  # pragma: no cover
@@ -214,10 +243,21 @@ class Color(metaclass=ABCMeta):
 
     @abstractmethod
     def to_sgr(self, bg: bool, upper_bound: t.Type[Color] = None) -> SequenceSGR:
+        """
+
+        :param bg:
+        :param upper_bound:
+        :return:
+        """
         raise NotImplementedError
 
     @abstractmethod
     def to_tmux(self, bg: bool) -> str:
+        """
+
+        :param bg:
+        :return:
+        """
         raise NotImplementedError
 
     @classmethod
@@ -425,11 +465,28 @@ class Color(metaclass=ABCMeta):
 
     @staticmethod
     def rgb_to_hex(r: int, g: int, b: int) -> int:
-        """ """
+        """
+        
+        :param r:
+        :param g:
+        :param b:
+        :return:
+        """
         return (r << 16) + (g << 8) + b
 
 
 class Color16(Color):
+    """
+
+    :param hex_value:
+    :param code_fg:
+    :param code_bg:
+    :param name:
+    :param aliases:
+    :param variation_map:
+    :param register:
+    :param index:
+    """
     def __init__(
         self,
         hex_value: int,
@@ -461,10 +518,18 @@ class Color16(Color):
 
     @property
     def code_fg(self) -> int:
+        """
+
+        :return:
+        """
         return self._code_fg
 
     @property
     def code_bg(self) -> int:
+        """
+        
+        :return:
+        """
         return self._code_bg
 
     def __eq__(self, other) -> bool:
@@ -479,7 +544,7 @@ class Color16(Color):
     def __repr__(self):
         # question mark after color value indicates that we cannot be 100% sure
         # about the exact value of xterm-16 colors, as they are configurable and
-        # depend on the terminal theme and settings. that's not the case for xterm-256,
+        # depend on terminal theme and settings. that's not the case for xterm-256,
         # though -- it's almost guaranteed to have the same color nearly everywhere.
         # the exceptions are rare and include color mapping at low level, e.g.,
         # ``tmux`` with specifically configured terminal capability overrides.
@@ -490,6 +555,16 @@ class Color16(Color):
 
 
 class Color256(Color):
+    """
+    :param hex_value:
+    :param code:
+    :param name:
+    :param aliases:
+    :param variation_map:
+    :param color16_equiv:
+    :param register:
+    :param index:
+    """
     def __init__(
         self,
         hex_value: int,
@@ -525,6 +600,10 @@ class Color256(Color):
 
     @property
     def code(self) -> int:
+        """
+
+        :return:
+        """
         return self._code
 
     def __eq__(self, other) -> bool:
@@ -538,6 +617,15 @@ class Color256(Color):
 
 
 class ColorRGB(Color):
+    """
+
+    :param hex_value:
+    :param name:
+    :param aliases:
+    :param variation_map:
+    :param register:
+    :param index:
+    """
     def __init__(
         self,
         hex_value: int,

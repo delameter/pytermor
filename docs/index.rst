@@ -1,7 +1,5 @@
 .. _index:
 
-.. default-role:: any
-
 .. title:: pytermor
 
 =====================

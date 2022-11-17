@@ -1,7 +1,5 @@
 .. _apidoc.common:
 
-.. default-role:: any
-
 ========================
 common
 ========================

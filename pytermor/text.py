@@ -17,6 +17,7 @@ import typing as t
 import collections
 import dataclasses
 from abc import ABCMeta, abstractmethod
+from typing import Union
 
 from .common import LogicError
 from .color import Color, NOOP_COLOR
@@ -353,7 +354,7 @@ class TemplateEngine:
             elif tag.comment:
                 pass
             else:
-                raise LogicError(f"Unknown tag operand: {_TemplateTag}")
+                raise ValueError(f"Unknown tag operand: {_TemplateTag}")
 
         result.append(tpl[tpl_cursor:])
         return result
@@ -368,7 +369,7 @@ class TemplateEngine:
         for style_attr in tag.style.split(" "):
             if style_attr in self._custom_styles.keys():
                 if base_style != NOOP_STYLE:
-                    raise ValueError(
+                    raise LogicError(
                         f"Only one custom style per tag is allowed: ({tag.style})"
                     )
                 base_style = self._custom_styles[style_attr]
@@ -383,15 +384,39 @@ class TemplateEngine:
         return Style(base_style, **style_attrs)
 
 
+_template_engine = TemplateEngine()
+
+
 def render(
-    string: t.Any, fmt: Color | Style = NOOP_STYLE, renderer: AbstractRenderer = None
+    string: t.Any,
+    fmt: Color | Style = NOOP_STYLE,
+    renderer: AbstractRenderer = None,
+    parse_template: bool = False,
 ) -> str | t.List[str]:
+    """
+
+    :param string:
+    :param fmt:
+    :param renderer:
+    :param parse_template:
+    :return:
+    """
     if string == "" and fmt == NOOP_STYLE:
         return ""
+    if parse_template:
+        if isinstance(string, Text):
+            raise ValueError("Template parsing is supported for raw strings only.")
+        try:
+            text = _template_engine.parse(string)
+        except Union[ValueError, LogicError] as e:
+            string += f" [pytermor] Template parsing failed with {e}"
+            return render(string, fmt, renderer)
+        else:
+            return render(text, fmt, renderer)
     if isinstance(string, Text) and fmt == NOOP_STYLE:
         return string.render(renderer)
     if isinstance(string, t.Iterable) and not isinstance(string, str):
-        return [render(s) for s in string]
+        return [render(s, fmt, renderer, parse_template) for s in string]
     return Text(string, fmt).render(renderer)
 
 
@@ -399,6 +424,7 @@ def echo(
     string: t.Any = "",
     fmt: Color | Style = NOOP_STYLE,
     renderer: AbstractRenderer = None,
+    parse_template: bool = False,
     nl: bool = True,
     file: t.IO = sys.stdout,
     flush: bool = True,
@@ -406,10 +432,23 @@ def echo(
     indent_first: int = 0,
     indent_subseq: int = 0,
 ):
-    end = "\n" if nl else ""
-    result = render(string, fmt, renderer)
+    """
 
-    if wrap:
+    :param string:
+    :param fmt:
+    :param renderer:
+    :param parse_template:
+    :param nl:
+    :param file:
+    :param flush:
+    :param wrap:
+    :param indent_first:
+    :param indent_subseq:
+    """
+    end = "\n" if nl else ""
+    result = render(string, fmt, renderer, parse_template)
+
+    if wrap or indent_first or indent_subseq:
         width = get_preferable_wrap_width(wrap)
         result = wrap_sgr(result, width, indent_first, indent_subseq)
 

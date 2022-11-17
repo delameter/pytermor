@@ -8,15 +8,16 @@
 
 from __future__ import annotations
 
-import timeit
-import unicodedata
-from os.path import abspath, join, dirname
 import re
 import typing as t
+import unicodedata
+from os.path import join
 
 import yaml
 
 import pytermor as pt
+from common import CONFIG_PATH, error, TaskRunner
+
 
 # logger = logging.getLogger('pytermor')
 # handler = logging.StreamHandler(sys.stderr)
@@ -24,41 +25,35 @@ import pytermor as pt
 # handler.setFormatter(formatter)
 # logger.addHandler(handler)
 # logger.setLevel('DEBUG')
-import pytermor.text
-import pytermor.utilnum
 
 
-def error(string: str | pytermor.text.Renderable):
-    print(pt.render("[ERROR] ", pt.Styles.ERROR_LABEL) + string)
-    exit(1)
-
-
-class RgbPreprocessor:
+class RgbPreprocessor(TaskRunner):
     NAME_ALLOWED_CHARS = "[a-z0-9 -]+"
     NAME_ALLOWED_REGEX = re.compile(NAME_ALLOWED_CHARS, flags=re.ASCII)
 
-    PROJECT_ROOT = abspath(join(dirname(__file__), ".."))
-    CONFIG_PATH = join(PROJECT_ROOT, "config")
     INPUT_CONFIG_FILENAME = "sources/rgb.source.yml"
     OUTPUT_CONFIG_FILENAME = "rgb.yml"
 
     def __init__(self):
-        with open(join(self.CONFIG_PATH, self.INPUT_CONFIG_FILENAME), "rt") as f:
-            self.color_defs = yaml.safe_load(f)
-            filesize = pytermor.utilnum.format_si_binary(f.tell())
-            print(f"Read  {filesize:8s} <-- '{self.INPUT_CONFIG_FILENAME}'")
+        config_path = join(CONFIG_PATH, self.INPUT_CONFIG_FILENAME)
+        with open(config_path, "rt") as f:
+            self._color_defs = yaml.safe_load(f)
+            self._print_fin_result(f, config_path)
 
         # tuple(name, variation_part_1, variation_part_2...)
-        self.ids: t.Set[t.Tuple[str, ...]] = set()
-        self.colors: t.Dict[str, t.Dict] = {}
-        self.variations: t.Dict[str, t.Dict[str, t.Dict]] = {}
+        self._ids: t.Set[t.Tuple[str, ...]] = set()
+        self._colors: t.Dict[str, t.Dict] = {}
+        self._variations: t.Dict[str, t.Dict[str, t.Dict]] = {}
 
-    def run(self) -> t.List[t.Dict]:
-        for color_def in self.color_defs:
+    def _run(self) -> t.List[t.Dict]:
+        for color_def in self._color_defs:
             self._process_color_def(color_def)
         config = self._assemble_config()
         self._dump_config(config)
         return config.get("colors")
+
+    def _run_callback(self, result: t.List[t.Dict]):
+        print(f"Definitions preprocessed: {len(result)}")
 
     def _process_color_def(self, color_def: t.Dict):
         color_def_name = color_def.get("name")
@@ -99,13 +94,13 @@ class RgbPreprocessor:
     def _pick_unique_id(self, parts: t.List[str]) -> t.Tuple[str, str]:
         for part_idx in range(0, len(parts)):
             possible_id = tuple(parts[: part_idx + 1])
-            if possible_id in self.ids:
+            if possible_id in self._ids:
                 if part_idx < len(parts) - 1:
                     continue
                 parts_str = pt.render(" ".join(parts), pt.Styles.WARNING)
                 error("Unresolvable conflict: " + parts_str + " already exists")
             else:
-                self.ids.add(possible_id)
+                self._ids.add(possible_id)
                 return parts[0], "-".join(parts[1 : part_idx + 1])
 
     def _create_color(
@@ -117,18 +112,18 @@ class RgbPreprocessor:
             "original_name": original_name,
         }
         if variation:
-            if name not in self.variations.keys():
-                self.variations[name] = {}
-            self.variations[name][variation] = color
+            if name not in self._variations.keys():
+                self._variations[name] = {}
+            self._variations[name][variation] = color
         else:
-            self.colors[name] = color
+            self._colors[name] = color
         return color
 
     def _assemble_config(self):
         color_defs = []
-        for color in sorted(self.colors.values(), key=lambda c: c.get("name")):
+        for color in sorted(self._colors.values(), key=lambda c: c.get("name")):
             color_name = color.get("name")
-            if color_variations := self.variations.get(color_name):
+            if color_variations := self._variations.get(color_name):
                 sorted_variations = sorted(
                     color_variations.values(), key=lambda v: v["name"]
                 )
@@ -148,24 +143,18 @@ class RgbPreprocessor:
             def increase_indent(self, flow=False, indentless=False):
                 return super(IndentedDumper, self).increase_indent(flow, False)
 
-        with open(join(self.CONFIG_PATH, self.OUTPUT_CONFIG_FILENAME), "wt") as f:
+        output_path = join(CONFIG_PATH, self.OUTPUT_CONFIG_FILENAME)
+        with open(output_path, "wt") as fout:
             yaml.dump(
                 config,
-                f,
+                fout,
                 allow_unicode=True,
                 indent=2,
                 encoding="utf8",
                 Dumper=IndentedDumper,
             )
-            filesize = pytermor.utilnum.format_si_binary(f.tell())
-            print(f"Wrote {filesize:8s} --> '{self.OUTPUT_CONFIG_FILENAME}'")
-
-
-def __main():
-    color_defs = RgbPreprocessor().run()
-    print(f"Preprocessed {len(color_defs)} definitions", end="")
+            self._print_fout_result(fout, output_path)
 
 
 if __name__ == "__main__":
-    elapsed = timeit.Timer(__main).timeit(1)
-    print(f" in {pytermor.utilnum.format_si_metric(elapsed, 's')}")
+    RgbPreprocessor().run()

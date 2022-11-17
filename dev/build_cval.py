@@ -11,43 +11,67 @@ from __future__ import annotations
 import datetime
 import re
 import typing as t
-from os.path import join, dirname, abspath
+from os.path import join
+
 import yaml
 
+from common import PROJECT_ROOT, CONFIG_PATH, TaskRunner
 
-class IndexBuilder:
-    PROJECT_ROOT = abspath(join(dirname(__file__), ".."))
-    CONFIG_PATH = join(PROJECT_ROOT, "config")
+
+class IndexBuilder(TaskRunner):
     OUTPUT_TPL_PATH = join(PROJECT_ROOT, "pytermor", "cval.py.tpl")
     OUTPUT_DEST_PATH = join(PROJECT_ROOT, "pytermor", "cval.py")
+    INDENT = " " * 4
+
+    MODE_TO_SORTER_MAP: t.Dict[str, t.Callable] = {
+        "xterm_16": lambda _: 0,
+        "xterm_256": lambda col: (
+            "_" + str(col.get("code")).zfill(2)
+            if col.get("color16_equiv")
+            else col.get("name")
+        ),
+        "rgb": lambda col: col.get("name"),
+    }
 
     def __init__(self):
-        self.names = set()
+        self._names = set()
+        self._colors_count = 0
 
-    def run(self):
+    def _run(self) -> int:
         result = ""
-        for mode in ["xterm_16", "xterm_256", "rgb"]:
-            result += "\n".join(self._run_mode(mode)) + "\n\n"
+        for mode, sorter in self.MODE_TO_SORTER_MAP.items():
+            result += "\n".join(self._run_mode(mode, sorter)) + "\n\n"
         result = result.rstrip()
 
         now = datetime.datetime.now().isoformat()
-        with open(self.OUTPUT_TPL_PATH, "rt") as inp:
-            with open(self.OUTPUT_DEST_PATH, "wt") as out:
-                out.write(inp.read().replace("%s", result).replace("%t", now))
+        with open(self.OUTPUT_TPL_PATH, "rt") as fin:
+            with open(self.OUTPUT_DEST_PATH, "wt") as fout:
+                fout.write(fin.read().replace("%s", result).replace("%t", now))
+                self._print_fout_result(fout, self.OUTPUT_DEST_PATH)
+        return self._colors_count
 
-    def _run_mode(self, mode: str):
-        with open(join(self.CONFIG_PATH, mode + ".yml")) as f:
+    def _run_callback(self, colors_count: int):
+        print(f"Colors processed: {colors_count}")
+
+    def _run_mode(self, mode: str, sorter: t.Callable):
+        config_path = join(CONFIG_PATH, mode + ".yml")
+        with open(config_path, "rt") as f:
             config = yaml.safe_load(f)
+            self._print_fin_result(f, config_path)
         color_class = config.get("class")
 
-        for color in config.get("colors"):
+        colors = sorted(config.get("colors"), key=sorter)
+        for color in colors:
             color["var_name"] = color.get("name").upper().replace("-", "_")
             self._validate_names(color)
+
         longest_name_len = 1 + max(
             len(color.get("var_name")) for color in config.get("colors")
         )
 
-        for color in config.get("colors"):
+        for color in colors:
+            self._colors_count += 1
+
             var_name = color.get("var_name")
             code = str(color.get("code"))
             color16_equiv = None
@@ -90,13 +114,13 @@ class IndexBuilder:
                 col_value,
                 *cols_code,
                 col_name,
-                'register=True, ',
-                'index=True, ',
+                "register=True, ",
+                "index=True, ",
                 col_color16_eq,
                 col_aliases,
                 col_variations,
             ]
-            yield "".join(filter(None, columns)).rstrip(", ") + ")"
+            yield self.INDENT + "".join(filter(None, columns)).rstrip(", ") + ")"
 
     def _extract_names(self, color: t.Dict) -> t.List[str]:
         return [
@@ -112,7 +136,8 @@ class IndexBuilder:
 
     def _map_variations(self, variations: t.List[t.Dict]) -> str:
         return ", \n".join(
-            f"         0x{v.get('value'):06x}:   \"{v.get('name')}\"" for v in variations
+            f"{self.INDENT}{'':9s}0x{v.get('value'):06x}:{'':3s}\"{v.get('name')}\""
+            for v in variations
         )
 
 

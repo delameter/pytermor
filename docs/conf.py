@@ -47,6 +47,11 @@ exclude_patterns = ['_build', '_depreacted', '_generated']
 rst_prolog = """
 .. role:: mono
     :class: entity
+
+.. |e| replace:: :kbd:`ESC`
+
+.. default-role:: any
+.. include:: <isonum.txt>
 """
 
 # -- HTML ---------------------------------------------------------------------
