@@ -25,16 +25,6 @@ Documentation guidelines
 
    ````param1```` |rarr| ``param1``
 
-   ````[31m```` |rarr| ``[31m``
+   ````ESC [31m```` |rarr| ``ESC [31m``
 
-  On the top of that ASCII control chars should be written within ``:kbd:`` for better readability:
-
-  ``ESC]8;;http://localhostESC\\TextESC]8;;ESC\\``
-
-  |e|\ ``]8;;http://localhost``\ |e|\ ``\\Text``\ |e|\ ``]8;;``\ |e|\ ``\\``
-
-  ::
-
-   |e|\ ``]8;;http://localhost``\ |e|\ ``\\Text``\ |e|\ ``]8;;``\ |e|\ ``\\``
-
-  ``|e|`` is a globally registered replacer of ``:kbd:`ESC```.
+  On the top of that, ASCII control chars should be padded with spaces for better readability. Also this will allow to apply custom styles to them.

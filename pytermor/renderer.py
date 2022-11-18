@@ -160,7 +160,7 @@ class OutputMode(enum.Enum):
     """
     16-colors mode. Enforces the renderer to approximate all color types
     to `Color16` and render them as basic mode selection SGR sequences
-    (``ESC[31m``, ``ESC[42m`` etc). See `Color.approximate()` for approximation
+    (``ESC [31m``, ``ESC [42m`` etc). See `Color.approximate()` for approximation
     algorithm details.
     """
     XTERM_256 = 'xterm_256'

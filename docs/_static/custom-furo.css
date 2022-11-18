@@ -91,6 +91,16 @@ blockquote {
 
 /** Code **/
 
+.control-char {
+    /*background: var(--color-pt-control-char-background);*/
+    border: 1px dotted;
+    padding: 3px;
+    margin: 1px;
+    font-family: 'ASM';
+    font-size: .8em;
+    vertical-align: middle;
+}
+
 .highlight {
     background: var(--color-pt-doctest-background);
     border: 1px solid var(--color-pt-doctest-border)

@@ -12,7 +12,7 @@ Format soft reset
 
 There are two ways to manage color and attribute termination:
 
-- hard reset (SGR-0 or ``ESC[0m``)
+- hard reset (SGR-0 or ``ESC [0m``)
 - soft reset (SGR-22, 23, 24 etc.)
 
 The main difference between them is that *hard* reset disables all formatting after itself, while *soft*
@@ -26,7 +26,7 @@ doesn't have to restore all previously applied formats after every closing seque
 
 We are given a text span which is initially *bold* and *underlined*. We want to recolor a few words inside of this
 span. By default this will result in losing all the formatting to the right of updated text span (because
-`RESET <SeqIndex.RESET>`, or ``ESC[0m``, clears all text attributes).
+`RESET <SeqIndex.RESET>`, or ``ESC [0m``, clears all text attributes).
 
 However, there is an option to specify what attributes should be disabled or let the library do that for you:
 
@@ -72,8 +72,8 @@ argument values as well as preset constants are described in `presets` page.
 
 .. important::
   ``SequenceSGR`` with zero params was specifically implemented to translate into an empty string and not
-  into ``ESC[m``, which would make sense, but also could be very entangling, as terminal emulators interpret
-  that sequence as ``ESC[0m``, which is *hard* reset sequence.
+  into ``ESC [m``, which would make sense, but also could be very entangling, as terminal emulators interpret
+  that sequence as ``ESC [0m``, which is *hard* reset sequence.
 
 There is also a set of methods for dynamic ``SequenceSGR`` creation:
 
@@ -100,7 +100,7 @@ To get the resulting sequence chars use `assemble() <SequenceSGR.assemble()>` me
 :mono:`SGR` sequence structure
 ================================
 
-1. ``ESC`` is escape *control character*, which opens a control sequence (can also be
+1. ``ESC `` is escape *control character*, which opens a control sequence (can also be
    written as ``\x1b``, ``\033`` or ``\e``).
 
 2. ``[`` is sequence *introducer*; it determines the type of control sequence (in this case

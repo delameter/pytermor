@@ -159,8 +159,8 @@ docs-html: ## Build HTML documentation  <caching allowed>
 
 docs-pdf: ## Build PDF documentation  <caching allowed>
 	mkdir -p docs-build
-	yes "" | ${VENV_PATH}/bin/sphinx-build -M latexpdf docs docs/_build -n  # twice for building pdf toc
-	yes "" | ${VENV_PATH}/bin/sphinx-build -M latexpdf docs docs/_build     # @FIXME broken unicode
+	yes "" | ${VENV_PATH}/bin/sphinx-build -M latexpdf docs docs/_build -n >/dev/null # twice for building pdf toc
+	yes "" | ${VENV_PATH}/bin/sphinx-build -M latexpdf docs docs/_build    >/dev/null # @FIXME broken unicode
 	mv docs/_build/latex/${PROJECT_NAME}.pdf docs-build/${PROJECT_NAME}.pdf
 	if [ -n "${DISPLAY}" ] ; then xdg-open docs-build/${PROJECT_NAME}.pdf ; fi
 

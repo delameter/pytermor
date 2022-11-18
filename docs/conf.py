@@ -106,6 +106,7 @@ html_theme_options = {
 
         "color-pt-doctest-background": "#f8f8f8",
         "color-pt-doctest-border": "#f0f0f0",
+        "color-pt-control-char-background": "hsla(0, 90%, 50%, .15)",
 
         "color-pt-class-background": "hsla(215, 100%, 95%, 0.5)",
         "color-pt-class-border": "hsl(208, 100%, 75%)",
@@ -124,6 +125,7 @@ html_theme_options = {
     "dark_css_variables": {
         "color-pt-doctest-background": "#202020",
         "color-pt-doctest-border": "#282828",
+        "color-pt-control-char-background": "hsla(0, 90%, 50%, .15)",
 
         "color-api-overall": "var(--color-foreground-secondary)",
         "color-api-name": "var(--color-foreground-primary)",

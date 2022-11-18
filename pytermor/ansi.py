@@ -22,8 +22,8 @@ opening SequenceSGR instance:
 >>> SequenceSGR(IntCode.BOLD, IntCode.RED).assemble()
 '\\x1b[1;31m'
 
-...although generally speaking it is two of them (|e|\ ``[1m`` and
-|e|\ ``[31m``). However, the module can automatically match terminating
+...although generally speaking it is two of them (``ESC [1m`` and
+``ESC [31m``). However, the module can automatically match terminating
 sequences for any form of input SGRs and translate it to specified format.
 
 **XTerm Control Sequences**
@@ -114,7 +114,7 @@ class SequenceFe(Sequence, ABC):
     Wide range of sequence types that includes `CSI <SequenceCSI>`,
     `OSC <SequenceOSC>` and more.
 
-    All subtypes of this sequence start with |e| plus ASCII byte
+    All subtypes of this sequence start with ``ESC`` plus ASCII byte
     from ``0x40`` to ``0x5F`` (``@``, ``[``, ``\\``, ``]``, ``_``, ``^`` and
     capital letters ``A``-``Z``).
     """
@@ -123,7 +123,7 @@ class SequenceFe(Sequence, ABC):
 class SequenceST(SequenceFe):
     """
     String Terminator sequence (ST). Terminates strings in other control
-    sequences. Encoded as |e|\ ``\\`` (``0x1B`` ``0x5C``).
+    sequences. Encoded as ``ESC \\`` (``0x1B`` ``0x5C``).
     """
 
     _INTRODUCER = "\\"
@@ -139,7 +139,7 @@ class SequenceST(SequenceFe):
 class SequenceOSC(SequenceFe):
     """
     :abbr:`OSC (Operating System Command)`-type sequence. Starts a control
-    string for the operating system to use. Encoded as |e|\ ``]``, plus params
+    string for the operating system to use. Encoded as ``ESC ]``, plus params
     separated by ``;``, and terminated with `SequenceST`.
     """
 
@@ -154,7 +154,7 @@ class SequenceOSC(SequenceFe):
 class SequenceCSI(SequenceFe):
     """
     Class representing :abbr:`CSI (Control Sequence Introducer)`-type ANSI
-    escape sequence. All subtypes of this sequence start with |e|\ ``[``.
+    escape sequence. All subtypes of this sequence start with ``ESC [``.
 
     Sequences of this type are used to control text formatting,
     change cursor position, erase screen and more.
@@ -209,9 +209,9 @@ class SequenceSGR(SequenceCSI):
 
     .. note ::
         `SequenceSGR` with zero params was specifically implemented to
-        translate into empty string and not into |e|\ ``[m``, which would have
+        translate into empty string and not into ``ESC [m``, which would have
         made sense, but also would be entangling, as this sequence is the equivalent
-        of |e|\ ``[0m`` -- hard reset sequence. The empty-string-sequence is
+        of ``ESC [0m`` -- hard reset sequence. The empty-string-sequence is
         predefined at module level as `NOOP_SEQ`.
 
     >>> SequenceSGR(IntCode.HI_CYAN, 'underlined', 1)
@@ -740,7 +740,7 @@ def make_set_cursor_x_abs(x: int = 1) -> SequenceCSI:
     cursor horizontal position, or column, to ``x``.
 
     :param x:  New cursor horizontal position.
-    :example:  |e|\ ``[1G``
+    :example:  ``ESC [1G``
     """
     if x <= 0:
         raise ValueError(f"Invalid x value: {x}, expected x > 0")
@@ -760,7 +760,7 @@ def make_erase_in_line(mode: int = 0) -> SequenceCSI:
                      - If set to 1, clear from cursor to beginning of the line.
                      - If set to 2, clear the entire line.
 
-    :example:     |e|\ ``[0K``
+    :example:     ``ESC [0K``
     """
     if not (0 <= mode <= 2):
         raise ValueError(f"Invalid mode: {mode}, expected [0;2]")
@@ -775,7 +775,7 @@ def make_color_256(code: int, bg: bool = False) -> SequenceSGR:
     :param code:  Index of the color in the palette, 0 -- 255.
     :param bg:    Set to *True* to change the background color
                   (default is foreground).
-    :example:     |e|\ ``[38;5;141m``
+    :example:     ``ESC [38;5;141m``
     """
 
     SequenceSGR.validate_extended_color(code)
@@ -797,7 +797,7 @@ def make_color_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
     :param g:  Blue channel value, 0 -- 255.
     :param b:  Green channel value, 0 -- 255.
     :param bg: Set to *True* to change the background color (default is foreground).
-    :example:  |e|\ ``[38;2;255;51;0m``
+    :example:  ``ESC [38;2;255;51;0m``
     """
 
     [SequenceSGR.validate_extended_color(color) for color in [r, g, b]]
@@ -809,7 +809,7 @@ def make_hyperlink_part(url: str = None) -> SequenceOSC:
     """
 
     :param url:
-    :example: |e|\ ``]8;;http://localhost``\ |e|\ ``\\``
+    :example: ``ESC ]8;;http://localhost ESC \\``
     """
     return SequenceOSC(IntCode.HYPERLINK, "", (url or ""))
 
@@ -819,6 +819,6 @@ def assemble_hyperlink(url: str, label: str) -> str:
 
     :param url:
     :param label:
-    :example:  |e|\ ``]8;;http://localhost``\ |e|\ ``\\Text``\ |e|\ ``]8;;``\ |e|\ ``\\``
+    :example:  ``ESC ]8;;http://localhost ESC \\Text ESC ]8;; ESC \\``
     """
     return f"{make_hyperlink_part(url)}{label}{make_hyperlink_part()}"
