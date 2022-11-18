@@ -4,11 +4,13 @@
 # -----------------------------------------------------------------------------
 from ._version import __version__ as __version__
 from .common import logger as logger
+from .common import ArgTypeError as ArgTypeError
+from .common import ConflictError as ConflictError
+from .common import LogicError as LogicError
 
 from .ansi import IntCode as IntCode
 from .ansi import SeqIndex as SeqIndex
 from .ansi import SequenceSGR as SequenceSGR
-from .ansi import SequenceOSC as SequenceOSC
 from .ansi import NOOP_SEQ as NOOP_SEQ
 from .ansi import get_closing_seq as get_closing_seq
 from .ansi import enclose as enclose
@@ -27,9 +29,11 @@ from .style import NOOP_STYLE as NOOP_STYLE
 from .renderer import RendererManager as RendererManager
 from .renderer import OutputMode as OutputMode
 from .renderer import AbstractRenderer as AbstractRenderer
+from .renderer import HtmlRenderer as HtmlRenderer
 from .renderer import SgrRenderer as SgrRenderer
 from .text import Renderable as Renderable
 from .text import Text as Text
+from .text import TemplateEngine
 from .text import render as render
 from .text import echo as echo
 from .utilnum import format_auto_float as format_auto_float
