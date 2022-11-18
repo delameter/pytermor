@@ -8,6 +8,8 @@ PROJECT_NAME = pytermor
 PROJECT_NAME_PUBLIC = ${PROJECT_NAME}
 PROJECT_NAME_PRIVATE = ${PROJECT_NAME}-delameter
 DEPENDS_PATH = scripts/diagrams
+LOCALHOST_URL = http://localhost/pytermor
+LOCALHOST_WRITE_PATH = localhost
 
 VENV_PATH = venv
 PYTHONPATH = .
@@ -110,7 +112,14 @@ coverage: ## Run coverage and make a report
 	${VENV_PATH}/bin/coverage run tests -vv
 	${VENV_PATH}/bin/coverage report
 	${VENV_PATH}/bin/coverage html
-	if [ -n $$DISPLAY ] ; then xdg-open coverage-report/index.html ; fi
+	if [ -d ${LOCALHOST_WRITE_PATH} ] ; then \
+    	mkdir -p ${LOCALHOST_WRITE_PATH}/coverage-report && \
+	    cp -auv coverage-report/* ${LOCALHOST_WRITE_PATH}/coverage-report/
+	fi
+
+open-coverage:  ## Open coverage report in browser
+	if [ -z "${DISPLAY}" ] ; then echo 'ERROR: No $$DISPLAY' && return 1 ; fi
+	if [ -d localhost ] ; then xdg-open ${LOCALHOST_URL}/coverage-report ; else xdg-open coverage-report/index.html ; fi
 
 depends:  ## Build and display module dependency graph
 	rm -vrf ${DEPENDS_PATH}
@@ -132,14 +141,19 @@ demolish-docs:  ## Purge docs output folder
 	rm -rvf docs/_build
 
 open-docs-html:  ## Open HTML docs in browser
-	if [ -n "${DISPLAY}" ] ; then xdg-open docs/_build/index.html ; fi
+	if [ -z "${DISPLAY}" ] ; then echo 'ERROR: No $$DISPLAY' && return 1 ; fi
+	if [ -d localhost ] ; then xdg-open ${LOCALHOST_URL}/docs ; else xdg-open docs/_build/index.html ; fi
 
-docs: ## (Re)build HTML documentation  <from scratch>
+docs: ## (Re)build HTML documentation  <no cache>
 docs: demolish-docs docs-html
 
 docs-html: ## Build HTML documentation  <caching allowed>
 	mkdir -p docs-build
 	${VENV_PATH}/bin/sphinx-build docs docs/_build -b html -n || return 1
+	if [ -d localhost ] ; then \
+    	mkdir -p ${LOCALHOST_WRITE_PATH}/docs && \
+		cp -auv docs/_build/* ${LOCALHOST_WRITE_PATH}/docs/ ; \
+    fi
 	#find docs/_build -type f -name '*.html' | sort | xargs -n1 grep -HnT ^ | sed s@^docs/_build/@@ > docs-build/${PROJECT_NAME}.html.dump
 	if command -v notify-send ; then notify-send -i ${PWD}/docs/_static_src/logo-white-bg.svg pytermor 'HTML docs updated ${NOW}' ; fi
 
@@ -157,7 +171,7 @@ docs-man: ## Build man pages  <caching allowed>
 	mv docs/_build/${PROJECT_NAME}.1 docs-build/${PROJECT_NAME}.1
 	if command -v maf &>/dev/null; then maf docs-build/${PROJECT_NAME}.1; else man docs-build/${PROJECT_NAME}.1; fi
 
-docs-all: ## (Re)build documentation in all formats
+docs-all: ## (Re)build documentation in all formats  <no cache>
 docs-all: demolish-docs docs docs-pdf docs-man
 	@echo
 	@$(call log_success,$$(du -h docs-build/*)) | sed -E '1s/^(..).{7}/\1SUMMARY/'

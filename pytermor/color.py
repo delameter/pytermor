@@ -105,14 +105,18 @@ class _ColorChannels(t.Generic[ColorType]):
 @dataclasses.dataclass(frozen=True)
 class ApproximationResult(t.Generic[ColorType]):
     """
-    AP
+    :param color:    `Color` instance.
+    :param distance: Squared sRGB distance from this instance to
+                     the approximation target.
     """
-
     color: ColorType
-    distance: float
+    distance: int
 
     @property
     def distance_real(self) -> float:
+        """
+        Actual distance from instance to target: Sqrt(distance).
+        """
         return math.sqrt(self.distance)
 
 
@@ -399,7 +403,7 @@ class Color(metaclass=ABCMeta):
         result: t.List[ApproximationResult[ColorType]] = list()
 
         for channels in cls._index.values:
-            distance_sq: float = (
+            distance_sq: int = (
                 pow(channels.r - input_r, 2)
                 + pow(channels.g - input_g, 2)
                 + pow(channels.b - input_b, 2)
@@ -411,9 +415,9 @@ class Color(metaclass=ABCMeta):
     @staticmethod
     def hex_to_hsv(hex_value: int) -> t.Tuple[float, float, float]:
         """
-        Transforms ``hex_value`` in ``0xffffff`` format into tuple of three numbers
-        corresponding to *hue*, *saturation* and *value* channel values respectively.
-        *Hue* is within [0, 359] range, *saturation* and *value* are within [0; 1] range.
+        Transforms ``hex_value`` in 0xFFFFFF format into a tuple of three numbers
+        corresponding to **hue**, **saturation** and **value** channel values respectively.
+        Hue is within [0, 359] range, both saturation and value are within [0; 1] range.
         """
         if not isinstance(hex_value, int):
             raise TypeError(f"Argument type should be 'int', got: {type(hex_value)}")
@@ -445,8 +449,8 @@ class Color(metaclass=ABCMeta):
     @staticmethod
     def hex_to_rgb(hex_value: int) -> t.Tuple[int, int, int]:
         """
-        Transforms ``hex_value`` in ``0xffffff`` format into tuple of three
-        integers corresponding to *red*, *blue* and *green* channel value
+        Transforms ``hex_value`` in 0xFFFFFF format into a tuple of three
+        integers corresponding to **red**, **blue** and **green** channel value
         respectively. Values are within [0; 255] range.
 
         >>> Color.hex_to_rgb(0x80ff80)

@@ -158,10 +158,10 @@ def wrap_sgr(
     if isinstance(raw_input, str):  # input can be just one paragraph
         raw_input = [raw_input]
 
-    input = '\n\n'.join(raw_input).split('\n\n')
+    input = "\n\n".join(raw_input).split("\n\n")
     result = ""
     for raw_line in input:
-        # had an inspiration and wrote it; no idea how does it work exactly, it just does
+        # had an inspiration and wrote this; no idea how does it work exactly, it just does
         replaced_line = re.sub(r"(\s?\S?)((\x1b\[([0-9;]*)m)+)", push, raw_line)
         wrapped_line = f"\n".join(
             textwrap.wrap(
@@ -176,12 +176,6 @@ def wrap_sgr(
     return result
 
 
-"""
-String filtering module.
-
-Main idea is to provide a common interface for string filtering, that can make
-possible working with filters like with objects rather than with functions/lambdas.
-"""
 
 
 SGR_REGEXP = re.compile(r"(\x1b)(\[)([0-9;]*)(m)")
@@ -211,7 +205,8 @@ def apply_filters(s: ST, *args: StringFilter | t.Type[StringFilter]) -> ST:
 
 class StringFilter(t.Generic[ST]):
     """
-    Common string modifier interface.
+    Main idea is to provide a common interface for string filtering, that can make
+    possible working with filters like with objects rather than with functions/lambdas.
     """
 
     def __init__(
@@ -251,7 +246,7 @@ class VisualuzeWhitespace(StringFilter[str]):
 
 class ReplaceSGR(StringFilter[str]):
     """
-    Find all SGR seqs (e.g. ``ESC[1;4m``) and replace with given string. More
+    Find all SGR seqs (e.g. |e|\ ``[1;4m``) and replace with given string. More
     specific version of :class:`ReplaceCSI`.
 
     :param repl:
@@ -264,7 +259,7 @@ class ReplaceSGR(StringFilter[str]):
 
 class ReplaceCSI(StringFilter[str]):
     """
-    Find all CSI seqs (i.e. starting with ``ESC[``) and replace with given
+    Find all CSI seqs (i.e. starting with |e|\ ``[``) and replace with given
     string. Less specific version of :class:`ReplaceSGR`, as CSI consists of SGR
     and many other sequence subtypes.
 
@@ -278,7 +273,7 @@ class ReplaceCSI(StringFilter[str]):
 
 class ReplaceNonAsciiBytes(StringFilter[bytes]):
     """
-    Keep 7-bit ASCII bytes [``0x00`` - ``0x7f``], replace other to ``?``.
+    Keep 7-bit ASCII bytes [0x00-0x7f], replace other to '?'.
 
     :param repl: Replacement byte-string.
     """
