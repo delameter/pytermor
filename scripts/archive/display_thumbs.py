@@ -8,6 +8,7 @@ from contextlib import redirect_stdout
 from pytermor import Span, ansi
 from pytermor.util import ReplaceSGR
 
+
 class Cycle:
     def __init__(self, *args):
         self._elems = list(args)

@@ -153,7 +153,10 @@ docs: demolish-docs docs-html
 
 docs-html: ## Build HTML documentation  <caching allowed>
 	mkdir -p docs-build
-	${VENV_PATH}/bin/sphinx-build docs docs/_build -b html -n || return 1
+	if ! ${VENV_PATH}/bin/sphinx-build docs docs/_build -b html -n ; then \
+    	notify-send -i cancel pytermor 'HTML docs build failed ${NOW}' && \
+    	return 1 ; \
+    fi
 	if [ -d localhost ] ; then \
     	mkdir -p ${LOCALHOST_WRITE_PATH}/docs && \
 		cp -auv docs/_build/* ${LOCALHOST_WRITE_PATH}/docs/ ; \

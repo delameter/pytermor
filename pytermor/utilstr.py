@@ -15,9 +15,9 @@ from __future__ import annotations
 import math
 import re
 import textwrap
-from functools import reduce
 import typing as t
-from typing import AnyStr
+from functools import reduce
+from typing import Union
 
 from .common import StrType
 
@@ -179,10 +179,16 @@ def wrap_sgr(
 # -----------------------------------------------------------------------------
 
 
-SGR_SEQ_REGEX = re.compile(r"(\x1b)(\[)([0-9;]*)(m)")
+SGR_SEQ_SREGEX = re.compile(r"(\x1b)(\[)([0-9;]*)(m)")
+CONTROL_SREGEX = re.compile(r"([\x00-\x09\x0b-\x1f\x7f]+)")
+NON_ASCII_BREGEX = re.compile(br"([\x80-\xff]+)")
+CONTROL_AND_NON_ASCII_BREGEX = re.compile(br"([\x00-\x09\x0b-\x1f\x7f\x80-\xff]+)")
 
-IT = t.TypeVar("IT", str, bytes)
-OT = t.TypeVar("OT", str, bytes, contravariant=True)
+IT = t.TypeVar("IT", str, bytes)  # input type
+OT = t.TypeVar("OT", str, bytes)  # output type
+PT = Union[OT, t.Pattern[OT]]   # pattern type (=output)
+RT = Union[OT, t.Callable[[t.Match[OT]], OT]]  # replacer type (=output)
+FT = Union['OmniFilter[IT, OT]', t.Type['OmniFilter[IT, OT]']]  # filter type (any)
 
 
 class OmniFilter(t.Generic[IT, OT]):
@@ -190,55 +196,62 @@ class OmniFilter(t.Generic[IT, OT]):
     Main idea is to provide a common interface for string filtering, that can make
     possible working with filters like with objects rather than with functions/lambdas.
     """
+
     def __call__(self, s: IT) -> OT:
         """Can be used instead of `apply()`"""
         return self.apply(s)
 
-    def apply(self, s: IT) -> OT:
+    def apply(self, inp: IT) -> OT:
         """
-        :param s:
+        :param inp:
         :return:
         """
         raise NotImplementedError
 
+    def _transcode(self, inp: IT, target: t.Type[OT]) -> OT:
+        if isinstance(inp, target):
+            return inp
+        return inp.encode() if isinstance(inp, str) else inp.decode()
+
 
 class NoopFilter(OmniFilter[IT, OT]):
-    def apply(self, s: IT) -> OT:
-        return s
+    def apply(self, inp: IT) -> OT:
+        return inp
 
 
 class OmniDecoder(OmniFilter[IT, str]):
-    def apply(self, s: IT) -> str:
-        return s.decode() if isinstance(s, bytes) else s
+    def apply(self, inp: IT) -> str:
+        return inp.decode() if isinstance(inp, bytes) else inp
 
 
 class OmniEncoder(OmniFilter[IT, bytes]):
-    def apply(self, s: IT) -> bytes:
-        return s.encode() if isinstance(s, str) else s
+    def apply(self, inp: IT) -> bytes:
+        return inp.encode() if isinstance(inp, str) else inp
 
 
-class OmniReplacer(OmniFilter[IT, IT]):
+class OmniReplacer(OmniFilter[IT, OT]):
     """."""
-    def __init__(
-        self,
-        pattern: IT | t.Pattern[IT],
-        repl: IT | t.Callable[[t.Match[IT]], IT],
-    ):
-        if not isinstance(pattern, t.Pattern):
-            self._regexp: t.Pattern[IT] = re.compile(pattern)
+
+    def __init__(self, pattern: PT, repl: RT):
+        if isinstance(pattern, (str, bytes)):
+            self._pattern: t.Pattern[OT] = re.compile(pattern)
         else:
-            self._regexp: t.Pattern[IT] = pattern
+            self._pattern: t.Pattern[OT] = pattern
         self._repl = repl
 
-    def apply(self, s: IT) -> IT:
+    def apply(self, inp: IT) -> OT:
         """Apply filter to ``s`` string (or bytes)."""
-        return self._regexp.sub(self._repl, s)
+        target: t.Type[OT] = type(self._pattern.pattern)
+        inp_transcoded: OT = self._transcode(inp, target)
+        return self._pattern.sub(self._repl, inp_transcoded)
 
 
-class StringReplacer(OmniReplacer[str]): pass
+class StringReplacer(OmniReplacer[str, str]):
+    pass
 
 
-class BytesReplacer(OmniReplacer[bytes]): pass
+class BytesReplacer(OmniReplacer[bytes, bytes]):
+    pass
 
 
 class SgrStringReplacer(StringReplacer):
@@ -250,8 +263,8 @@ class SgrStringReplacer(StringReplacer):
         Replacement, can contain regexp groups (see :meth:`apply_filters()`).
     """
 
-    def __init__(self, repl: str = ""):
-        super().__init__(SGR_SEQ_REGEX, repl)
+    def __init__(self, repl: RT[str] = ""):
+        super().__init__(SGR_SEQ_SREGEX, repl)
 
 
 class CsiStringReplacer(StringReplacer):
@@ -264,7 +277,7 @@ class CsiStringReplacer(StringReplacer):
         Replacement, can contain regexp groups (see :meth:`apply_filters()`).
     """
 
-    def __init__(self, repl: str = ""):
+    def __init__(self, repl: RT[str] = ""):
         super().__init__(r"(\x1b)(\[)(([0-9;:<=>?])*)([@A-Za-z])", repl)
 
 
@@ -282,7 +295,8 @@ class WhitespacesStringReplacer(StringReplacer):
     :param repl:
     :param keep_newlines:
     """
-    def __init__(self, repl: str = "", keep_newlines: bool = True):
+
+    def __init__(self, repl: RT[str] = "", keep_newlines: bool = True):
         if keep_newlines:
             super().__init__(r"(\n)|\s", rf"{repl}\1")
         else:
@@ -291,8 +305,9 @@ class WhitespacesStringReplacer(StringReplacer):
 
 class ControlCharsStringReplacer(StringReplacer):
     """."""
-    def __init__(self, repl: str | t.Callable[[t.Match[str]], str] = ""):
-        super().__init__("([\x00-\x09\x0b-\x1f\x7f]+)", repl)
+
+    def __init__(self, repl: RT[str] = ""):
+        super().__init__(CONTROL_SREGEX, repl)
 
 
 class NonAsciiByteReplacer(BytesReplacer):
@@ -309,21 +324,22 @@ class NonAsciiByteReplacer(BytesReplacer):
 
     :param repl: Replacement byte-string.
     """
-    def __init__(self, repl: bytes | t.Callable[[t.Match[bytes]], bytes] = b""):
-        super().__init__(b"([\x80-\xff]+)", repl)
+
+    def __init__(self, repl: RT[bytes] = b""):
+        super().__init__(NON_ASCII_BREGEX, repl)
 
 
-class OmniSanitizer(BytesReplacer):
-    def __init__(self, repl: bytes | t.Callable[[t.Match[bytes]], bytes] = b""):
-        super().__init__(b"([\x00-\x09\x0b-\x1f\x7f\x80-\xff]+)", repl)
+class OmniSanitizer(OmniReplacer[IT, bytes]):
+    def __init__(self, repl: RT[bytes] = b""):
+        super().__init__(CONTROL_AND_NON_ASCII_BREGEX, repl)
 
-    def apply(self, s: IT) -> bytes:
-        if isinstance(s, str):
-            s = s.encode()
-        return super().apply(s)
+    def apply(self, inp: IT) -> bytes:
+        if isinstance(inp, str):
+            inp = inp.encode()
+        return super().apply(inp)
 
 
-def apply_filters(s: IT, *args: OmniFilter[IT, OT]|t.Type[OmniFilter[IT, OT]]) -> OT:
+def apply_filters(string: IT, *args: FT) -> OT:
     """
     Method for applying dynamic filter list to a target string/bytes.
     Example (will replace all ``ESC`` control characters to ``E`` and
@@ -336,10 +352,8 @@ def apply_filters(s: IT, *args: OmniFilter[IT, OT]|t.Type[OmniFilter[IT, OT]]) -
     type, i.e. :class:`ReplaceNonAsciiBytes` is ``StringFilter`` type, so
     you can apply it only to bytes-type strings.
 
-    :param s:     String to filter.
-    :param args:  `StringFilter` instance(s) or ``StringFilter`` class(es).
-    :return:      Filtered ``s``.
+    :param string: String to filter.
+    :param args:   `OmniFilter` instance(s) or ``OmniFilter`` type(s).
+    :return:       Filtered ``s``.
     """
-    filters = map(lambda t: t() if isinstance(t, type) else t, args)
-    return reduce(lambda s_, f: f(s_) if f else s_, filters, s)
-
+    return reduce(lambda s, f: f()(s) if isinstance(f, type) else f(s), args, string)

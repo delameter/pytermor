@@ -54,6 +54,9 @@ from .style import Style, NOOP_STYLE, Styles
 from .utilstr import SgrStringReplacer
 
 
+T = t.TypeVar("T", bound="AbstractRenderer")
+
+
 class RendererManager:
     _default: AbstractRenderer = None
 
@@ -142,6 +145,9 @@ class AbstractRenderer(metaclass=ABCMeta):
         :return: String with formatting applied, or without it, depending on
                  renderer settings.
         """
+        
+    def clone(self: T, *args: t.Any, **kwargs: t.Any) -> T:
+        return self.__class__(*args, **kwargs)
 
     def __repr__(self):
         return self.__class__.__qualname__ + '[]'
@@ -261,6 +267,9 @@ class SgrRenderer(AbstractRenderer):
         for line in str(string).splitlines(keepends=True):
             rendered_text += enclose(opening_seq, line)
         return rendered_text
+
+    def clone(self) -> SgrRenderer:
+        return SgrRenderer(self._output_mode)
 
     def _determine_output_mode(self, arg_value: OutputMode) -> OutputMode:
         if arg_value is not OutputMode.AUTO:
@@ -494,6 +503,11 @@ class SgrRendererDebugger(SgrRenderer):
 
     def render(self, string: t.Any, fmt: Color|Style = NOOP_STYLE) -> str:
         return SgrStringReplacer(r"|ǝ\3|").apply(super().render(str(string), fmt))
+
+    def clone(self) -> SgrRendererDebugger:
+        cloned = SgrRendererDebugger(self._output_mode)
+        cloned._format_override = self._format_override
+        return cloned
 
     def set_format_always(self):
         self._format_override = True

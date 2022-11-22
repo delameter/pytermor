@@ -47,8 +47,12 @@ from .utilstr import rjust_sgr as rjust_sgr
 from .utilstr import wrap_sgr as wrap_sgr
 from .utilstr import distribute_padded as distribute_padded
 from .utilstr import format_thousand_sep as format_thousand_sep
-from .utilstr import StringReplacer as StringFilter
-from .utilstr import SGR_SEQ_REGEX as SGR_SEQ_REGEX
+from .utilstr import OmniFilter as OmniFilter
+from .utilstr import OmniEncoder as OmniEncoder
+from .utilstr import OmniDecoder as OmniDecoder
+from .utilstr import OmniSanitizer as OmniSanitizer
+from .utilstr import SgrStringReplacer as SgrStringReplacer
+from .utilstr import SGR_SEQ_SREGEX as SGR_SEQ_SREGEX
 from .utilsys import get_terminal_width as get_terminal_width
 from .utilsys import get_preferable_wrap_width as get_preferable_wrap_width
 from .utilsys import total_size as total_size
