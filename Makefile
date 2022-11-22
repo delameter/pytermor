@@ -40,7 +40,7 @@ all: prepare prepare-pdf auto-all test doctest coverage docs-all build
 
 prepare:  ## Prepare environment for module building
 	rm -vrf ${VENV_PATH}
-	if [ ! -f .env ] ; then cp -u .env.dist .env && sed -i -Ee '/^VERSION=/d' .env.build ; fi
+	if [ ! -f .env ] ; then cp -u .env.dist .env && sed -i -Ee '/^VERSION=/d' .env ; fi
 	python3 -m venv ${VENV_PATH}
 	${VENV_PATH}/bin/pip install --upgrade build twine
 	${VENV_PATH}/bin/pip install -r requirements-dev.txt
@@ -48,7 +48,8 @@ prepare:  ## Prepare environment for module building
 prepare-pdf:  ## Prepare environment for pdf rendering
 	sudo apt install texlive-latex-recommended \
 					 texlive-fonts-recommended \
-					 texlive-latex-extra latexmk
+					 texlive-latex-extra \
+					 latexmk
 
 freeze:  ## Actualize the requirements.txt file(s)  <venv>
 	${VENV_PATH}/bin/pip freeze -r requirements-dev.txt --all --exclude-editable > requirements-dev.txt.tmp
@@ -85,6 +86,9 @@ build-cval: ## Process color configs and update library color values source file
 
 
 ## Testing / Pre-build
+
+show-version: ## Show current package version
+	@echo "Current version: ${YELLOW}${VERSION}${RESET}"
 
 set-version: ## Set new package version
 	@echo "Current version: ${YELLOW}${VERSION}${RESET}"

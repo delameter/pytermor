@@ -16,6 +16,7 @@ import re
 import typing as t
 from abc import ABCMeta, abstractmethod
 
+from .common import LogicError
 from .ansi import (
     SequenceSGR,
     NOOP_SEQ,
@@ -61,7 +62,7 @@ class _ColorRegistry(t.Generic[ColorType], t.Sized):
         query_tokens = (*(qt.lower() for qt in self._QUERY_SPLIT_REGEX.split(name)),)
         if color := self._map.get(query_tokens, None):
             return color
-        raise ValueError(f"Color '{name}' does not exist")
+        raise LookupError(f"Color '{name}' does not exist")
 
     def __len__(self) -> int:
         return len(self._map)
@@ -294,9 +295,9 @@ class Color(metaclass=ABCMeta):
             in `Color256`, and, if previous two were unsuccessful, in the
             largest `ColorRGB` registry.
 
-        :param name:        name of the color to look up for.
-        :raises ValueError: if no color with specified name is registered.
-        :returns:           `Color` instance.
+        :param name:         name of the color to look up for.
+        :raises LookupError: if no color with specified name is registered.
+        :returns:            `Color` instance.
         """
         if hasattr(cls, "_registry"):
             return cls._registry.resolve(name)
@@ -304,9 +305,9 @@ class Color(metaclass=ABCMeta):
         for color_cls in [Color16, Color256, ColorRGB]:
             try:
                 return color_cls.resolve(name)
-            except ValueError:
+            except LookupError:
                 continue
-        raise ValueError(f"Color '{name}' was not found in any of registries")
+        raise LookupError(f"Color '{name}' was not found in any of registries")
 
     @classmethod
     def find_closest(cls: t.Type[ColorType], hex_value: int) -> ColorType:
@@ -514,7 +515,7 @@ class Color16(Color):
 
     def to_tmux(self, bg: bool) -> str:
         if self._name is None:
-            raise ValueError("Translation to tmux format failed: color name required")
+            raise LogicError("Translation to tmux format failed: color name required")
         code = self._code_bg if bg else self._code_fg
         is_hi = code in HI_COLORS or code in BG_HI_COLORS
         tmux_name = ("bright" if is_hi else "") + self._name.lower().replace("hi-", "")
@@ -672,7 +673,7 @@ class _NoopColor(Color):
 
     @property
     def hex_value(self) -> int:
-        raise ValueError("No color for NO-OP instance")
+        raise LogicError("No color for NO-OP instance")
 
     def format_value(self, prefix: str = "0x") -> str:
         return (prefix if "=" in prefix else "") + "NOP"

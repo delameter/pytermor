@@ -47,8 +47,8 @@ from .utilstr import rjust_sgr as rjust_sgr
 from .utilstr import wrap_sgr as wrap_sgr
 from .utilstr import distribute_padded as distribute_padded
 from .utilstr import format_thousand_sep as format_thousand_sep
-from .utilstr import StringFilter as StringFilter
-from .utilstr import SGR_REGEXP as SGR_REGEXP
+from .utilstr import StringReplacer as StringFilter
+from .utilstr import SGR_SEQ_REGEX as SGR_SEQ_REGEX
 from .utilsys import get_terminal_width as get_terminal_width
 from .utilsys import get_preferable_wrap_width as get_preferable_wrap_width
 from .utilsys import total_size as total_size

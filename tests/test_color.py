@@ -5,6 +5,8 @@
 import logging
 import unittest
 
+from pytermor.common import LogicError
+
 import pytermor.cval
 from pytermor import NOOP_SEQ, Style, SequenceSGR, IntCode
 from pytermor.color import (
@@ -108,7 +110,7 @@ class TestColorRegistry(unittest.TestCase):
         self.assertRaises(ColorNameConflictError, ColorRGB, 0x3, "test 4", register=True)
 
     def test_resolving_of_non_existing_color_fails(self):
-        self.assertRaises(ValueError, Color256.resolve, "non-existing-color")
+        self.assertRaises(LookupError, Color256.resolve, "non-existing-color")
 
     def test_resolving_of_ambiguous_color_works_upon_abstract_color(self):
         col = Color.resolve("green")
@@ -179,7 +181,7 @@ class TestColor(unittest.TestCase):
         self.assertIs(col, Color.resolve("test-1"))
 
     def test_class_method_resolve_of_non_existing_color_fails(self):
-        self.assertRaises(ValueError, Color.resolve, "non-existing-color")
+        self.assertRaises(LookupError, Color.resolve, "non-existing-color")
 
     def test_class_method_find_closest_works_as_256(self):
         self.assertIs(pytermor.cval.AQUAMARINE_1, Color.find_closest(0x87FFD7))
@@ -243,7 +245,7 @@ class TestColor16(unittest.TestCase):
 
     def test_to_tmux_without_name_fails(self):
         col = Color16(0x800000, IntCode.RED, IntCode.BG_RED)
-        self.assertRaises(ValueError, col.to_tmux, False)
+        self.assertRaises(LogicError, col.to_tmux, False)
 
     def test_format_value(self):
         self.assertEqual("0x800000", Color16(0x800000, 133, 143).format_value())
@@ -413,4 +415,4 @@ class TestNoopColor(unittest.TestCase):
         self.assertEqual("", NOOP_COLOR.to_tmux(True))
 
     def test_getting_hex_value_fails(self):
-        self.assertRaises(ValueError, lambda: NOOP_COLOR.hex_value)
+        self.assertRaises(LogicError, lambda: NOOP_COLOR.hex_value)

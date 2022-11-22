@@ -51,7 +51,7 @@ from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose
 from .color import Color, Color16, Color256, ColorRGB, NOOP_COLOR
 from .common import logger
 from .style import Style, NOOP_STYLE, Styles
-from .utilstr import ReplaceSGR
+from .utilstr import SgrStringReplacer
 
 
 class RendererManager:
@@ -493,7 +493,7 @@ class SgrRendererDebugger(SgrRenderer):
         return super().is_format_allowed
 
     def render(self, string: t.Any, fmt: Color|Style = NOOP_STYLE) -> str:
-        return ReplaceSGR(r"|ǝ\3|").apply(super().render(str(string), fmt))
+        return SgrStringReplacer(r"|ǝ\3|").apply(super().render(str(string), fmt))
 
     def set_format_always(self):
         self._format_override = True

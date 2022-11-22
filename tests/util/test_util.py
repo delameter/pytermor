@@ -6,7 +6,7 @@ import unittest
 
 import pytermor as pt
 from pytermor.ansi import SeqIndex
-from pytermor.utilstr import format_thousand_sep, center_sgr, ReplaceSGR
+from pytermor.utilstr import format_thousand_sep, center_sgr, SgrStringReplacer
 
 
 class TestFormatThousandSep(unittest.TestCase):
@@ -20,7 +20,7 @@ class TestFormatThousandSep(unittest.TestCase):
 class TestStringFilter(unittest.TestCase):  # @TODO
     def test_replace_sgr_filter(self):
         self.assertEqual(
-            ReplaceSGR().apply(f'{SeqIndex.RED}213{SeqIndex.RESET}'),
+            SgrStringReplacer().apply(f'{SeqIndex.RED}213{SeqIndex.RESET}'),
             '213'
         )
 
@@ -43,5 +43,5 @@ class TestStdlibExtensions(unittest.TestCase):  # @TODO
                 sgr_string = raw_string.replace('123', f'1{SeqIndex.RED}2{SeqIndex.COLOR_OFF}3')
                 self.assertEqual(
                     raw_string.center(width, '.'),
-                    ReplaceSGR().apply(center_sgr(sgr_string, width, '.')),
+                    SgrStringReplacer().apply(center_sgr(sgr_string, width, '.')),
                 )

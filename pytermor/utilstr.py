@@ -17,6 +17,7 @@ import re
 import textwrap
 from functools import reduce
 import typing as t
+from typing import AnyStr
 
 from .common import StrType
 
@@ -91,7 +92,7 @@ def ljust_sgr(s: str, width: int, fillchar: str = " ", actual_len: int = None) -
     using the specified fill character (default is a space).
     """
     if actual_len is None:
-        actual_len = len(ReplaceSGR().apply(s))
+        actual_len = len(SgrStringReplacer().apply(s))
     return s + fillchar * max(0, width - actual_len)
 
 
@@ -103,7 +104,7 @@ def rjust_sgr(s: str, width: int, fillchar: str = " ", actual_len: int = None) -
     using the specified fill character (default is a space).
     """
     if actual_len is None:
-        actual_len = len(ReplaceSGR().apply(s))
+        actual_len = len(SgrStringReplacer().apply(s))
     return fillchar * max(0, width - actual_len) + s
 
 
@@ -120,7 +121,7 @@ def center_sgr(s: str, width: int, fillchar: str = " ", actual_len: int = None) 
         если алгоритм поедет -- можно заменить на f-стринги
     """
     if actual_len is None:
-        actual_len = len(ReplaceSGR().apply(s))
+        actual_len = len(SgrStringReplacer().apply(s))
 
     fill_len = max(0, width - actual_len)
     if fill_len == 0:
@@ -175,92 +176,88 @@ def wrap_sgr(
         result += final_line + "\n"
     return result
 
+# -----------------------------------------------------------------------------
 
 
+SGR_SEQ_REGEX = re.compile(r"(\x1b)(\[)([0-9;]*)(m)")
 
-SGR_REGEXP = re.compile(r"(\x1b)(\[)([0-9;]*)(m)")
-ST = t.TypeVar("ST", str, bytes)
-
-
-def apply_filters(s: ST, *args: StringFilter | t.Type[StringFilter]) -> ST:
-    """
-    Method for applying dynamic filter list to a target string/bytes.
-    Example (will replace all ``ESC`` control characters to ``E`` and
-    thus make SGR params visible):
-
-    >>> apply_filters(f'{SeqIndex.RED}test{SeqIndex.COLOR_OFF}', ReplaceSGR(r'E\\2\\3\\4'))
-    'E[31mtestE[39m'
-
-    Note that type of ``s`` argument must be same as ``StringFilter`` parameterized
-    type, i.e. :class:`ReplaceNonAsciiBytes` is ``StringFilter[bytes]`` type, so
-    you can apply it only to bytes-type strings.
-
-    :param s:     String to filter.
-    :param args:  `StringFilter` instance(s) or ``StringFilter`` class(es).
-    :return:      Filtered ``s``.
-    """
-    filters = map(lambda t: t() if isinstance(t, type) else t, args)
-    return reduce(lambda s_, f: f.apply(s_), filters, s)
+IT = t.TypeVar("IT", str, bytes)
+OT = t.TypeVar("OT", str, bytes, contravariant=True)
 
 
-class StringFilter(t.Generic[ST]):
+class OmniFilter(t.Generic[IT, OT]):
     """
     Main idea is to provide a common interface for string filtering, that can make
     possible working with filters like with objects rather than with functions/lambdas.
     """
-
-    def __init__(
-        self, pattern: ST | t.Pattern[ST], repl: ST | t.Callable[[ST | t.Match], ST]
-    ):
-        if isinstance(pattern, (str, bytes)):
-            self._regexp = re.compile(pattern)
-        else:
-            self._regexp = pattern
-        self._repl = repl
-
-    def __call__(self, s: ST) -> ST:
+    def __call__(self, s: IT) -> OT:
         """Can be used instead of `apply()`"""
         return self.apply(s)
 
-    def apply(self, s: ST) -> ST:
+    def apply(self, s: IT) -> OT:
+        """
+        :param s:
+        :return:
+        """
+        raise NotImplementedError
+
+
+class NoopFilter(OmniFilter[IT, OT]):
+    def apply(self, s: IT) -> OT:
+        return s
+
+
+class OmniDecoder(OmniFilter[IT, str]):
+    def apply(self, s: IT) -> str:
+        return s.decode() if isinstance(s, bytes) else s
+
+
+class OmniEncoder(OmniFilter[IT, bytes]):
+    def apply(self, s: IT) -> bytes:
+        return s.encode() if isinstance(s, str) else s
+
+
+class OmniReplacer(OmniFilter[IT, IT]):
+    """."""
+    def __init__(
+        self,
+        pattern: IT | t.Pattern[IT],
+        repl: IT | t.Callable[[t.Match[IT]], IT],
+    ):
+        if not isinstance(pattern, t.Pattern):
+            self._regexp: t.Pattern[IT] = re.compile(pattern)
+        else:
+            self._regexp: t.Pattern[IT] = pattern
+        self._repl = repl
+
+    def apply(self, s: IT) -> IT:
         """Apply filter to ``s`` string (or bytes)."""
         return self._regexp.sub(self._repl, s)
 
 
-class VisualuzeWhitespace(StringFilter[str]):
-    """
-    Replace every invisible character with ``repl`` (default is ``·``),
-    except newlines. Newlines are kept and get_by_code prepneded with same string.
-
-    >>> VisualuzeWhitespace().apply('A  B  C')
-    'A··B··C'
-    >>> apply_filters('1. D\\n2. L ', VisualuzeWhitespace)
-    '1.·D·\\n2.·L·'
-
-    :param repl:
-    """
-
-    def __init__(self, repl: str = "·"):
-        super().__init__(r"(\n)|\s", repl + "\\1")
+class StringReplacer(OmniReplacer[str]): pass
 
 
-class ReplaceSGR(StringFilter[str]):
+class BytesReplacer(OmniReplacer[bytes]): pass
+
+
+class SgrStringReplacer(StringReplacer):
     """
     Find all SGR seqs (e.g. |e|\ ``[1;4m``) and replace with given string. More
-    specific version of :class:`ReplaceCSI`.
+    specific version of :class:`CsiReplacer`.
 
     :param repl:
         Replacement, can contain regexp groups (see :meth:`apply_filters()`).
     """
 
     def __init__(self, repl: str = ""):
-        super().__init__(SGR_REGEXP, repl)
+        super().__init__(SGR_SEQ_REGEX, repl)
 
 
-class ReplaceCSI(StringFilter[str]):
+class CsiStringReplacer(StringReplacer):
     """
     Find all CSI seqs (i.e. starting with |e|\ ``[``) and replace with given
-    string. Less specific version of :class:`ReplaceSGR`, as CSI consists of SGR
+    string. Less specific version of :class:`SgrReplacer`, as CSI consists of SGR
     and many other sequence subtypes.
 
     :param repl:
@@ -271,12 +268,78 @@ class ReplaceCSI(StringFilter[str]):
         super().__init__(r"(\x1b)(\[)(([0-9;:<=>?])*)([@A-Za-z])", repl)
 
 
-class ReplaceNonAsciiBytes(StringFilter[bytes]):
+class WhitespacesStringReplacer(StringReplacer):
     """
-    Keep 7-bit ASCII bytes [0x00-0x7f], replace other to '?'.
+    Replace every invisible character with ``repl`` (default is ``·``),
+    except newlines. Newlines are kept and get prepneded with same string by
+    default, but this behaviour can be disabled with ``keep_newlines`` = *False*.
+
+    >>> WhitespacesStringReplacer("·").apply('A  B  C')
+    'A··B··C'
+    >>> apply_filters('1. D\\n2. L ', WhitespacesStringReplacer(keep_newlines=False))
+    '1.D2.L'
+
+    :param repl:
+    :param keep_newlines:
+    """
+    def __init__(self, repl: str = "", keep_newlines: bool = True):
+        if keep_newlines:
+            super().__init__(r"(\n)|\s", rf"{repl}\1")
+        else:
+            super().__init__(r"\s", repl)
+
+
+class ControlCharsStringReplacer(StringReplacer):
+    """."""
+    def __init__(self, repl: str | t.Callable[[t.Match[str]], str] = ""):
+        super().__init__("([\x00-\x09\x0b-\x1f\x7f]+)", repl)
+
+
+class NonAsciiByteReplacer(BytesReplacer):
+    """
+    Keep 7-bit ASCII bytes [0x00-0x7f], replace or remove (this is a default) others.
+
+    >>> inp = bytes((0x60, 0x70, 0x80, 0x90, 0x50))
+    >>> NonAsciiByteReplacer().apply(inp)
+    b'`pP'
+    >>> NonAsciiByteReplacer(lambda m: b'?'*len(m.group())).apply(inp)
+    b'`p??P'
+    >>> NonAsciiByteReplacer(lambda m: f'[{m.group().hex()}]'.encode()).apply(inp)
+    b'`p[8090]P'
 
     :param repl: Replacement byte-string.
     """
+    def __init__(self, repl: bytes | t.Callable[[t.Match[bytes]], bytes] = b""):
+        super().__init__(b"([\x80-\xff]+)", repl)
 
-    def __init__(self, repl: bytes = b"?"):
-        super().__init__(b"[\x80-\xff]", repl)
+
+class OmniSanitizer(BytesReplacer):
+    def __init__(self, repl: bytes | t.Callable[[t.Match[bytes]], bytes] = b""):
+        super().__init__(b"([\x00-\x09\x0b-\x1f\x7f\x80-\xff]+)", repl)
+
+    def apply(self, s: IT) -> bytes:
+        if isinstance(s, str):
+            s = s.encode()
+        return super().apply(s)
+
+
+def apply_filters(s: IT, *args: OmniFilter[IT, OT]|t.Type[OmniFilter[IT, OT]]) -> OT:
+    """
+    Method for applying dynamic filter list to a target string/bytes.
+    Example (will replace all ``ESC`` control characters to ``E`` and
+    thus make SGR params visible):
+
+    >>> apply_filters(f'{SeqIndex.RED}test{SeqIndex.COLOR_OFF}', SgrStringReplacer(r'E\\2\\3\\4'))
+    'E[31mtestE[39m'
+
+    Note that type of ``s`` argument must be same as ``StringFilter`` parameterized
+    type, i.e. :class:`ReplaceNonAsciiBytes` is ``StringFilter`` type, so
+    you can apply it only to bytes-type strings.
+
+    :param s:     String to filter.
+    :param args:  `StringFilter` instance(s) or ``StringFilter`` class(es).
+    :return:      Filtered ``s``.
+    """
+    filters = map(lambda t: t() if isinstance(t, type) else t, args)
+    return reduce(lambda s_, f: f(s_) if f else s_, filters, s)
+
