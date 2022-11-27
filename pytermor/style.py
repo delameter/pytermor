@@ -244,6 +244,6 @@ class Styles:
     ERROR_LABEL = Style(ERROR, bold=True)
     ERROR_ACCENT = Style(fg=cval.HI_RED)
 
-    CRITICAL = Style(bg=cval.HI_RED, fg=cval.HI_WHITE)
-    CRITICAL_LABEL = Style(CRITICAL, bold=True)
-    CRITICAL_ACCENT = Style(CRITICAL, bold=True, blink=True)
+    CRITICAL = Style(bg=cval.RED, fg=cval.HI_WHITE)
+    CRITICAL_LABEL = Style(CRITICAL, bg=cval.HI_RED, bold=True)
+    CRITICAL_ACCENT = Style(CRITICAL_LABEL, blink=True)

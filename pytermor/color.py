@@ -110,6 +110,7 @@ class ApproximationResult(t.Generic[ColorType]):
     :param distance: Squared sRGB distance from this instance to
                      the approximation target.
     """
+
     color: ColorType
     distance: int
 
@@ -221,7 +222,7 @@ class Color(metaclass=ABCMeta):
     @property
     def name(self) -> str | None:
         """
-        
+
         :return:
         """
         return self._name
@@ -454,10 +455,12 @@ class Color(metaclass=ABCMeta):
         integers corresponding to **red**, **blue** and **green** channel value
         respectively. Values are within [0; 255] range.
 
-        >>> Color.hex_to_rgb(0x80ff80)
-        (128, 255, 128)
-
         :param hex_value: Color RGB value.
+
+        Usage::
+
+          >>> Color.hex_to_rgb(0x80ff80)
+          (128, 255, 128)
         """
         if not isinstance(hex_value, int):
             raise TypeError(f"Argument type should be 'int', got: {type(hex_value)}")
@@ -471,7 +474,7 @@ class Color(metaclass=ABCMeta):
     @staticmethod
     def rgb_to_hex(r: int, g: int, b: int) -> int:
         """
-        
+
         :param r:
         :param g:
         :param b:
@@ -492,6 +495,7 @@ class Color16(Color):
     :param register:
     :param index:
     """
+
     def __init__(
         self,
         hex_value: int,
@@ -532,7 +536,7 @@ class Color16(Color):
     @property
     def code_bg(self) -> int:
         """
-        
+
         :return:
         """
         return self._code_bg
@@ -570,6 +574,7 @@ class Color256(Color):
     :param register:
     :param index:
     """
+
     def __init__(
         self,
         hex_value: int,
@@ -631,6 +636,7 @@ class ColorRGB(Color):
     :param register:
     :param index:
     """
+
     def __init__(
         self,
         hex_value: int,

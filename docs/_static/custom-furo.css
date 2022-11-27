@@ -139,6 +139,10 @@ a.reference.internal:hover code,
     color: var(--color-toc-item-text);
 }
 
+.toctree-wrapper code, .toc-tree code {
+    font-weight: 300 !important;
+}
+
 
 /** Images **/
 

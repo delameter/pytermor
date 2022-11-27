@@ -219,7 +219,7 @@ class SequenceSGR(SequenceCSI):
     >>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
     True
 
-    :param args:  ..  ::3
+    :param args:  ..  ::
 
                     Sequence params. Resulting param order is the same as an
                     argument order. Each argument can be specified as:
@@ -305,6 +305,23 @@ class SequenceSGR(SequenceCSI):
         return "SGR"
 
 
+class CurlyUnderlinedSequenceSGR(SequenceSGR):
+    """
+    Registered as a separate class, because this is the one and only SGR in the
+    package, which is identified by "4:3" string (in contrast with all the other
+    sequences entirely made of digits and semicolon separators).
+    """
+    def __init__(self):
+        """ """
+        super().__init__()
+        self._params = [f"{IntCode.UNDERLINED}:3"]
+
+    @property
+    def params(self) -> t.List[str]:
+        """  """
+        return self._params
+
+
 NOOP_SEQ = SequenceSGR()
 """
 Special sequence in case you *have to* provide one or another SGR, but do 
@@ -327,9 +344,9 @@ class IntCode(enum.IntEnum):
 
     .. note ::
         `IntCode` predefined constants are omitted from documentation to avoid
-        useless repeats and save space, as most of the time `SeqIndex` will be
-        more than enough, and on top of that, the constant names are literally
-        the same for `SeqIndex` and `IntCode`.
+        useless repeats and save space, as most of the time "next level" class
+        `SeqIndex` is more appropriate, and on top of that, the constant
+        names are literally the same for `SeqIndex` and `IntCode`.
     """
 
     @classmethod
@@ -357,6 +374,7 @@ class IntCode(enum.IntEnum):
     DIM = 2
     ITALIC = 3
     UNDERLINED = 4
+    # CURLY_UNDERLINED = '4:3'  # TODO
     BLINK_SLOW = 5
     BLINK_FAST = 6
     INVERSED = 7
@@ -383,7 +401,7 @@ class IntCode(enum.IntEnum):
     MAGENTA = 35
     CYAN = 36
     WHITE = 37
-    COLOR_EXTENDED = 38  # use ansi.make_color_256() and ansi.make_color_rgb() instead
+    COLOR_EXTENDED = 38
 
     BG_BLACK = 40
     BG_RED = 41
@@ -393,7 +411,10 @@ class IntCode(enum.IntEnum):
     BG_MAGENTA = 45
     BG_CYAN = 46
     BG_WHITE = 47
-    BG_COLOR_EXTENDED = 48  # use ansi.make_color_256() and ansi.make_color_rgb() instead
+    BG_COLOR_EXTENDED = 48
+
+    # UNDERLINE_COLOR_EXTENDED = 58  # @TODO
+    # UNDERLINE_COLOR_OFF = 59
 
     GRAY = 90
     HI_RED = 91
@@ -420,7 +441,6 @@ class IntCode(enum.IntEnum):
     #    51: framed
     #    52: encircled
     #    54: neither framed nor encircled
-    # 58-59: underline color
     # 60-65: ideogram attributes
     # 73-75: superscript and subscript
 
@@ -436,7 +456,7 @@ class IntCode(enum.IntEnum):
 
 class SeqIndex:
     """
-    Registry of sequence presets.
+    Registry of static sequence presets.
     """
 
     # -- SGR ------------------------------------------------------------------
@@ -462,7 +482,7 @@ class SeqIndex:
     """ Set blinking to < 150 cpm. """
 
     BLINK_FAST = SequenceSGR(IntCode.BLINK_FAST)
-    """  Set blinking to 150+ cpm *(not widely supported)*. """
+    """ Set blinking to 150+ cpm *(not widely supported)*. """
 
     INVERSED = SequenceSGR(IntCode.INVERSED)
     """ Swap foreground and background colors. """
@@ -607,6 +627,7 @@ class SeqIndex:
     HYPERLINK = SequenceOSC(IntCode.HYPERLINK)
     """
     Create a hyperlink in the text *(supported by limited amount of terminals)*.
+    Note that for a working hyperlink you'll need two sequences, not just one.
      
     .. seealso ::
         `make_hyperlink_part()` and `assemble_hyperlink()`.
@@ -622,11 +643,11 @@ ALL_COLORS = COLORS + BG_COLORS + HI_COLORS + BG_HI_COLORS
 
 class _SgrPairityRegistry:
     """
-    Internal class providing methods for mapping an SGR to a
-    complement (closing) SGR.
+    Internal class providing methods for mapping SGRs to a
+    complement (closing) SGRs, also referred to as "resetters".
     """
 
-    _code_to_breaker_map: t.Dict[int | t.Tuple[int, ...], SequenceSGR] = dict()
+    _code_to_resetter_map: t.Dict[int|t.Tuple[int, ...], SequenceSGR] = dict()
     _complex_code_def: t.Dict[int | t.Tuple[int, ...], int] = dict()
     _complex_code_max_len: int = 0
 
@@ -659,23 +680,19 @@ class _SgrPairityRegistry:
         self._bind_complex((IntCode.BG_COLOR_EXTENDED, 5), 1, IntCode.BG_COLOR_OFF)
         self._bind_complex((IntCode.BG_COLOR_EXTENDED, 2), 3, IntCode.BG_COLOR_OFF)
 
-    def _bind_regular(self, starter_code: int | t.Tuple[int, ...], breaker_code: int):
-        if starter_code in self._code_to_breaker_map:
-            raise ConflictError(
-                f"SGR code {starter_code} already has a registered breaker"
-            )
+    def _bind_regular(self, starter_code: int | t.Tuple[int, ...], resetter_code: int):
+        if starter_code in self._code_to_resetter_map:
+            raise ConflictError(f"SGR {starter_code} already has a registered resetter")
 
-        self._code_to_breaker_map[starter_code] = SequenceSGR(breaker_code)
+        self._code_to_resetter_map[starter_code] = SequenceSGR(resetter_code)
 
     def _bind_complex(
-        self, starter_codes: t.Tuple[int, ...], param_len: int, breaker_code: int
+        self, starter_codes: t.Tuple[int, ...], param_len: int, resetter_code: int
     ):
-        self._bind_regular(starter_codes, breaker_code)
+        self._bind_regular(starter_codes, resetter_code)
 
         if starter_codes in self._complex_code_def:
-            raise ConflictError(
-                f"SGR complex {starter_codes} already has a registered breaker"
-            )
+            raise ConflictError(f"SGR {starter_codes} already has a registered resetter")
 
         self._complex_code_def[starter_codes] = param_len
         self._complex_code_max_len = max(
@@ -704,10 +721,10 @@ class _SgrPairityRegistry:
 
             if key_params is None:
                 key_params = opening_params.pop(0)
-            if key_params not in self._code_to_breaker_map:
+            if key_params not in self._code_to_resetter_map:
                 continue
 
-            closing_seq_params.extend(self._code_to_breaker_map[key_params].params)
+            closing_seq_params.extend(self._code_to_resetter_map[key_params].params)
 
         return SequenceSGR(*closing_seq_params)
 

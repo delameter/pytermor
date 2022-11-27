@@ -12,6 +12,7 @@
 """
 from __future__ import annotations
 
+import codecs
 import math
 import re
 import textwrap
@@ -175,6 +176,10 @@ def wrap_sgr(
         final_line = re.sub(_PRIVATE_REPLACER, lambda _: sgrs.pop(0), wrapped_line)
         result += final_line + "\n"
     return result
+
+
+codecs.register_error("replace_with_qmark", lambda e: ("?", e.start + 1))
+
 
 # -----------------------------------------------------------------------------
 

@@ -280,6 +280,8 @@ class PrefixedUnitFormatter:
         """
         if self._truncate_frac:
             value = trunc(value)
+        if unit is None:
+            unit = self._unit
 
         abs_value = abs(value)
         power_base = self._mcoef**(1/3)  # =10 for metric, ~10.079 for binary
@@ -295,15 +297,15 @@ class PrefixedUnitFormatter:
         value /= power_base**(prefix_shift*3)
         unit_idx = self._prefix_zero_idx + prefix_shift
         if 0 <= unit_idx < len(self._prefixes):
-            unit_full = (self._prefixes[unit_idx] or '') + (unit or self._unit)
+            unit_full = (self._prefixes[unit_idx] or '') + unit
         else:
-            unit_full = ('?' * max([len(p) for p in self._prefixes if p])) + self._unit
+            unit_full = ('?' * max([len(p) for p in self._prefixes if p])) + unit
 
         unit_separator = self._unit_separator
         if not unit_full or unit_full.isspace():
             unit_separator = ''
 
-        if self._truncate_frac and unit_idx == self._prefix_zero_idx:
+        if self._truncate_frac:
             num_str = f'{trunc(value)!s:.{self._max_value_len}s}'
         else:
             num_str = format_auto_float(value, self._max_value_len, allow_exponent_notation=False)

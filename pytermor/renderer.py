@@ -49,7 +49,7 @@ from functools import reduce
 
 from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose
 from .color import Color, Color16, Color256, ColorRGB, NOOP_COLOR
-from .common import logger
+from .common import logger, get_qname
 from .style import Style, NOOP_STYLE, Styles
 from .utilstr import SgrStringReplacer
 
@@ -94,12 +94,12 @@ class RendererManager:
 
     @classmethod
     def set_default_to_force_formatting(cls):
-        """ deprecated """
+        """deprecated"""
         cls.set_default_format_always()
 
     @classmethod
     def set_default_to_disable_formatting(cls):
-        """ deprecated """
+        """deprecated"""
         cls.set_default_format_never()
 
     @classmethod
@@ -133,7 +133,7 @@ class AbstractRenderer(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def render(self, string: t.Any, fmt: Color|Style = NOOP_STYLE) -> str:
+    def render(self, string: t.Any, fmt: Color | Style = NOOP_STYLE) -> str:
         """
         Apply colors and attributes described in ``fmt`` argument to
         ``string`` and return the result. Output format depends on renderer's
@@ -145,12 +145,12 @@ class AbstractRenderer(metaclass=ABCMeta):
         :return: String with formatting applied, or without it, depending on
                  renderer settings.
         """
-        
+
     def clone(self: T, *args: t.Any, **kwargs: t.Any) -> T:
         return self.__class__(*args, **kwargs)
 
     def __repr__(self):
-        return self.__class__.__qualname__ + '[]'
+        return self.__class__.__qualname__ + "[]"
 
 
 class OutputMode(enum.Enum):
@@ -158,27 +158,27 @@ class OutputMode(enum.Enum):
     Determines what types of SGR sequences are allowed to use in the output.
     """
 
-    NO_ANSI = 'no_ansi'
+    NO_ANSI = "no_ansi"
     """
     The renderer discards all color and format information completely.
-    """ 
-    XTERM_16 = 'xterm_16'
+    """
+    XTERM_16 = "xterm_16"
     """
     16-colors mode. Enforces the renderer to approximate all color types
     to `Color16` and render them as basic mode selection SGR sequences
     (``ESC [31m``, ``ESC [42m`` etc). See `Color.approximate()` for approximation
     algorithm details.
     """
-    XTERM_256 = 'xterm_256'
+    XTERM_256 = "xterm_256"
     """
     256-colors mode. Allows the renderer to use either `Color16` or `Color256` 
     (but RGB will be approximated to 256-color pallette).
     """
-    TRUE_COLOR = 'true_color'
+    TRUE_COLOR = "true_color"
     """
     RGB color mode. Does not apply restrictions to color rendering.
     """
-    AUTO = 'auto'
+    AUTO = "auto"
     """
     Lets the renderer select the most suitable mode by itself.
     See `SgrRenderer` constructor documentation for the details. 
@@ -244,14 +244,17 @@ class SgrRenderer(AbstractRenderer):
         self._output_mode = self._determine_output_mode(output_mode)
         self._color_upper_bound = self._COLOR_UPPER_BOUNDS.get(self._output_mode, None)
 
-        logger.debug(f"Output mode: {output_mode.name} -> {self._output_mode.name}")
-        logger.debug(f"Color upper bound: {self._color_upper_bound}")
+        logger.info(
+            f"Instantiated {self.__class__.__qualname__}"
+            f"({output_mode.name} -> {self._output_mode.name}, "
+            f"upper bound {get_qname(self._color_upper_bound)})"
+        )
 
     @property
     def is_format_allowed(self) -> bool:
         return self._output_mode is not OutputMode.NO_ANSI
 
-    def render(self, string: t.Any, fmt: Color|Style = NOOP_STYLE) -> str:
+    def render(self, string: t.Any, fmt: Color | Style = NOOP_STYLE) -> str:
         style = Style.make(fmt)
         opening_seq = (
             self._render_attributes(style, squash=True)
@@ -278,6 +281,7 @@ class SgrRenderer(AbstractRenderer):
         isatty = sys.stdout.isatty()
         term = os.environ.get("TERM", None)
         colorterm = os.environ.get("COLORTERM", None)
+
         logger.debug(f"Stdout is a terminal: {isatty}")
         logger.debug(f"Environment: TERM='{term}'")
         logger.debug(f"Environment: COLORTERM='{colorterm}'")
@@ -354,7 +358,7 @@ class TmuxRenderer(AbstractRenderer):
     def is_format_allowed(self) -> bool:
         return True
 
-    def render(self, string: t.Any, fmt: Color|Style = NOOP_STYLE) -> str:
+    def render(self, string: t.Any, fmt: Color | Style = NOOP_STYLE) -> str:
         style = Style.make(fmt)
         command_open, command_close = self._render_attributes(style)
         rendered_text = ""
@@ -406,7 +410,7 @@ class NoOpRenderer(AbstractRenderer):
     def is_format_allowed(self) -> bool:
         return False
 
-    def render(self, string: t.Any, fmt: Color|Style = NOOP_STYLE) -> str:
+    def render(self, string: t.Any, fmt: Color | Style = NOOP_STYLE) -> str:
         return str(string)
 
 
@@ -432,14 +436,14 @@ class HtmlRenderer(AbstractRenderer):
     def is_format_allowed(self) -> bool:
         return True
 
-    def render(self, string: t.Any, fmt: Color|Style = NOOP_STYLE) -> str:
+    def render(self, string: t.Any, fmt: Color | Style = NOOP_STYLE) -> str:
         style = Style.make(fmt)
         opening_tag, closing_tag = self._render_attributes(style)
-        return f'{opening_tag}{str(string)}{closing_tag}'  # @TODO  # attribues
+        return f"{opening_tag}{str(string)}{closing_tag}"  # @TODO  # attribues
 
     def _render_attributes(self, style: Style = NOOP_STYLE) -> t.Tuple[str, str]:
         if style == NOOP_STYLE:
-            return '', ''
+            return "", ""
 
         span_styles: t.Dict[str, t.Set[str]] = dict()
         for attr in self._get_default_attrs():
@@ -491,9 +495,10 @@ class SgrRendererDebugger(SgrRenderer):
     >>> SgrRendererDebugger(OutputMode.XTERM_16).render('text', Style(fg='red', bold=True))
     '|ǝ1;31|text|ǝ22;39|'
     """
+
     def __init__(self, output_mode: OutputMode = OutputMode.AUTO):
         super().__init__(output_mode)
-        self._format_override: bool|None = None
+        self._format_override: bool | None = None
 
     @property
     def is_format_allowed(self) -> bool:
@@ -501,7 +506,7 @@ class SgrRendererDebugger(SgrRenderer):
             return self._format_override
         return super().is_format_allowed
 
-    def render(self, string: t.Any, fmt: Color|Style = NOOP_STYLE) -> str:
+    def render(self, string: t.Any, fmt: Color | Style = NOOP_STYLE) -> str:
         return SgrStringReplacer(r"|ǝ\3|").apply(super().render(str(string), fmt))
 
     def clone(self) -> SgrRendererDebugger:

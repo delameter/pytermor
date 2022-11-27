@@ -27,9 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "TODO" "1" "Nov 06, 2022" "2.6.1-dev2" "pytermor"
+.TH "TODO" "1" "Nov 27, 2022" "2.11.0-dev2" "pytermor"
 .SH NAME
-Todo \- pytermor 2.6.1-dev2
+Todo \- pytermor 2.11.0-dev2
 .sp
 \fI(yet another)\fP Python library designed for formatting terminal output using ANSI escape codes. Implements automatic \fI\%\(dqsoft\(dq\fP format termination. Provides a registry of low\-level SGR \fI\%sequences\fP and formatting \fBspans\fP (or combined sequences). Also includes a set of formatters for pretty output.
 .sp
@@ -87,7 +87,7 @@ Renders into specified format keeping all the formatting.
 T}
 _
 T{
-\fI\%Style\fP
+\fBStyle\fP
 \fI\%Styles\fP
 T}	T{
 Reusable abstractions defining colors and text attributes (text
@@ -299,7 +299,7 @@ So, what\(aqs happening under the hood?
 There are two ways to manage color and attribute termination:
 .INDENT 0.0
 .IP \(bu 2
-hard reset (SGR\-0 or \fBESC[0m\fP)
+hard reset (SGR\-0 or \fBESC [0m\fP)
 .IP \(bu 2
 soft reset (SGR\-22, 23, 24 etc.)
 .UNINDENT
@@ -315,7 +315,7 @@ Example
 .sp
 We are given a text span which is initially \fIbold\fP and \fIunderlined\fP\&. We want to recolor a few words inside of this
 span. By default this will result in losing all the formatting to the right of updated text span (because
-\fI\%RESET\fP, or \fBESC[0m\fP, clears all text attributes).
+\fI\%RESET\fP, or \fBESC [0m\fP, clears all text attributes).
 .sp
 However, there is an option to specify what attributes should be disabled or let the library do that for you:
 .INDENT 0.0
@@ -378,18 +378,18 @@ argument values as well as preset constants are described in \fI\%Preset list\fP
 .INDENT 0.0
 .INDENT 3.5
 \fBSequenceSGR\fP with zero params was specifically implemented to translate into an empty string and not
-into \fBESC[m\fP, which would make sense, but also could be very entangling, as terminal emulators interpret
-that sequence as \fBESC[0m\fP, which is \fIhard\fP reset sequence.
+into \fBESC [m\fP, which would make sense, but also could be very entangling, as terminal emulators interpret
+that sequence as \fBESC [0m\fP, which is \fIhard\fP reset sequence.
 .UNINDENT
 .UNINDENT
 .sp
 There is also a set of methods for dynamic \fBSequenceSGR\fP creation:
 .INDENT 0.0
 .IP \(bu 2
-\fBinit_color_indexed()\fP will produce sequence operating in 256\-colors mode (for a complete list
+\fI\%make_color_256()\fP will produce sequence operating in 256\-colors mode (for a complete list
 see \fI\%Preset list\fP);
 .IP \(bu 2
-\fI\%new_color_rgb()\fP will create a sequence capable of setting the colors in True Color 16M mode (however, some terminal emulators doesn\(aqt
+\fI\%make_color_rgb()\fP will create a sequence capable of setting the colors in True Color 16M mode (however, some terminal emulators doesn\(aqt
 support it).
 .UNINDENT
 .sp
@@ -419,13 +419,13 @@ First line is the string with encoded escape sequence;
 .IP \(bu 2
 Second line shows up the string in raw mode, as if sequences were ignored by the terminal;
 .IP \(bu 2
-Third line is hexademical string representation.
+Third line is hexadecimal string representation.
 .UNINDENT
 .SS SGR sequence structure
 .INDENT 0.0
 .IP 1. 3
-\fBESC\fP is escape \fIcontrol character\fP, which opens a control sequence (can also be
-written as \fB\ee\fP or \fB\ex1b\fP).
+\fBESC \(ga\(ga is escape *control character*, which opens a control sequence (can also be
+written as \(ga\(ga\ex1b\fP, \fB\e033\fP or \fB\ee\fP).
 .IP 2. 3
 \fB[\fP is sequence \fIintroducer\fP; it determines the type of control sequence (in this case
 it\(aqs CSI).
@@ -471,7 +471,9 @@ There are two types of color palettes used in modern terminals \-\- first one
 containing 16 colors (\fI\%Color16\fP), and second one consisting of 256 colors
 (\fI\%Color256\fP). There is also True Color mode (referenced as \fIRGB\fP mode),
 but it is not palette\-based.
-.SS Meta, attributes, breakers
+.IP "System Message: ERROR/3 (/home/a.shavykin/dl/pytermor/docs/guide/presets.rst:, line 26)"
+Duplicate substitution definition name: \(dqnbsp\(dq.
+.SS Meta, attributes, resetters
 .TS
 center;
 |l|l|l|l|l|l|l|l|.
@@ -694,7 +696,7 @@ T}	T{
 T}	T{
 T}	T{
 Set foreground color [\fIindexed\fP/\fIRGB\fP mode];
-\fIuse\fP \fBinit_color_indexed\fP \fIand\fP \fI\%new_color_rgb\fP \fIinstead\fP
+\fIuse\fP \fI\%make_color_256\fP \fIand\fP \fI\%make_color_rgb\fP \fIinstead\fP
 T}
 _
 T{
@@ -708,7 +710,7 @@ T}	T{
 T}	T{
 T}	T{
 Set background color [\fIindexed\fP/\fIRGB\fP mode];
-\fIuse\fP \fBinit_color_indexed\fP \fIand\fP \fI\%new_color_rgb\fP \fIinstead\fP
+\fIuse\fP \fI\%make_color_256\fP \fIand\fP \fI\%make_color_rgb\fP \fIinstead\fP
 T}
 _
 T{
@@ -728,7 +730,7 @@ Overline; \fInot widely supported\fP
 T}
 _
 T{
-Breakers
+Resetters
 T}
 _
 T{
@@ -5851,6 +5853,40 @@ for seconds in seconds_list:
 @TODO
 .UNINDENT
 .UNINDENT
+.SS Documentation guidelines
+.sp
+\fI(mostly as a reminder for myself)\fP
+.INDENT 0.0
+.IP \(bu 2
+Basic types and built\-in values should be surrounded with asterisks:
+.INDENT 2.0
+.INDENT 3.5
+\fB*True*\fP → \fITrue\fP
+.sp
+\fB*None*\fP → \fINone\fP
+.sp
+\fB*int*\fP → \fIint\fP
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Library classes, methods, etc. should be enclosed in single backticks in order to become a hyperlinks:
+.INDENT 2.0
+.INDENT 3.5
+\fB\(gaSgrRenderer.render()\(ga\fP → \fI\%SgrRenderer.render()\fP
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Parameter names and string literals that include escape sequences or their fragments should be wrapped in double backticks:
+.INDENT 2.0
+.INDENT 3.5
+\fB\(ga\(gaparam1\(ga\(ga\fP → \fBparam1\fP
+.sp
+\fB\(ga\(gaESC\ [31m\(ga\(ga\fP → \fBESC [31m\fP
+.UNINDENT
+.UNINDENT
+.sp
+On the top of that, ASCII control chars should be padded with spaces for better readability. Also this will allow to apply custom styles to them.
+.UNINDENT
 .SH API REFERENCE
 .SS ansi
 .sp
@@ -5860,7 +5896,8 @@ Can be used for creating a variety of sequences including:
 .INDENT 3.5
 .INDENT 0.0
 .IP \(bu 2
-SGR sequences (text coloring, background
+SGR sequences (text and background
+coloring, other text formatting and effects);
 .IP \(bu 2
 CSI sequences (cursor management,
 selective screen cleraing);
@@ -5870,7 +5907,14 @@ OSC sequences (varoius system commands).
 .UNINDENT
 .UNINDENT
 .sp
-The module doesn\(aqt distinguish \(dqsingle\-instruction\(dq sequences from several
+\fBIMPORTANT:\fP
+.INDENT 0.0
+.INDENT 3.5
+blah\-blah\-blah low\-level @TODO
+.UNINDENT
+.UNINDENT
+.sp
+The module doesn’t distinguish “single\-instruction” sequences from several
 ones merged together, e.g. \fBStyle(fg=\(aqred\(aq, bold=True)\fP produces only one
 opening SequenceSGR instance:
 .sp
@@ -5881,8 +5925,8 @@ opening SequenceSGR instance:
 .ft P
 .fi
 .sp
-\&...although generally speaking it is two of them (\fBESC[1m\fP and
-\fBESC[31m\fP). However, the module can automatically match terminating
+…although generally speaking it is two of them (\fBESC [1m\fP and
+\fBESC [31m\fP). However, the module can automatically match terminating
 sequences for any form of input SGRs and translate it to specified format.
 .INDENT 0.0
 .TP
@@ -5920,11 +5964,28 @@ Return internal params as array.
 .B class  pytermor.ansi.SequenceFe(*params)
 Bases: \fI\%Sequence\fP, \fBABC\fP
 .sp
-Wide range of sequence types that includes CSI, OSC and more.
+Wide range of sequence types that includes \fI\%CSI\fP,
+\fI\%OSC\fP and more.
 .sp
 All subtypes of this sequence start with \fBESC\fP plus ASCII byte
-from \fB0x40\fP to \fB0x5F\fP (\fB@[\e]_^\fP and capital letters
-\fBA\fP\-\fBZ\fP).
+from \fB0x40\fP to \fB0x5F\fP (\fB@\fP, \fB[\fP, \fB\e\fP, \fB]\fP, \fB_\fP, \fB^\fP and
+capital letters \fBA\fP\-\fBZ\fP).
+.INDENT 7.0
+.TP
+.B assemble()
+Build up actual byte sequence and return
+as an ASCII\-encoded string.
+.INDENT 7.0
+.TP
+.B Return type
+str
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  params:  t.List[int  |  str]
+Return internal params as array.
+.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -5932,7 +5993,7 @@ from \fB0x40\fP to \fB0x5F\fP (\fB@[\e]_^\fP and capital letters
 Bases: \fI\%SequenceFe\fP
 .sp
 String Terminator sequence (ST). Terminates strings in other control
-sequences. Encoded as \fBESC\e\fP (\fB0x1B\fP \fB0x5C\fP).
+sequences. Encoded as \fBESC \e\fP (\fB0x1B\fP \fB0x5C\fP).
 .INDENT 7.0
 .TP
 .B assemble()
@@ -5943,6 +6004,11 @@ as an ASCII\-encoded string.
 .B Return type
 str
 .UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  params:  t.List[int  |  str]
+Return internal params as array.
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
@@ -5950,71 +6016,53 @@ str
 .B class  pytermor.ansi.SequenceOSC(*params)
 Bases: \fI\%SequenceFe\fP
 .sp
-Operating System Command sequence (OSC). Starts a control string for the
-operating system to use. Encoded as \fBESC]\fP plus params separated by
-\fB;\fP, and terminated with \fI\%SequenceST\fP\&.
+OSC\-type sequence. Starts a control
+string for the operating system to use. Encoded as \fBESC ]\fP, plus params
+separated by \fB;\fP, and terminated with \fI\%SequenceST\fP\&.
 .INDENT 7.0
 .TP
-.B classmethod  new_hyperlink(url)
-.INDENT 7.0
-.TP
-.B Return type
-\fI\%SequenceOSC\fP
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B class  pytermor.ansi.SequenceCSI(terminator, *params)
-Bases: \fI\%SequenceFe\fP
-.sp
-Class representing CSI\-type ANSI escape sequence. All subtypes
-of this sequence start with \fBESC[\fP\&.
-.sp
-Sequences of this type are used to control text formatting,
-change cursor position, erase screen and more.
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBterminator\fP \-\- 
-.IP \(bu 2
-\fBparams\fP \-\- 
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  new_set_cursor_x_abs(column=1)
-Set cursor x\-coordinate to \fBcolumn\fP\&.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBcolumn\fP (\fIint\fP) \-\- 
-.TP
-.B Return type
-\fI\%SequenceCSI\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  new_erase_in_line(mode=0)
-Erase part of the line. If \fBmode\fP is 0, clear from cursor to the end
-of the line. If \fBmode\fP is 1, clear from cursor to beginning of the line.
-If \fBmode\fP is 2, clear the entire line. Cursor position does not change.
-.INDENT 7.0
-.TP
-.B Return type
-\fI\%SequenceCSI\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B regexp()
+.B assemble()
+Build up actual byte sequence and return
+as an ASCII\-encoded string.
 .INDENT 7.0
 .TP
 .B Return type
 str
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  params:  t.List[int  |  str]
+Return internal params as array.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.ansi.SequenceCSI(terminator, short_name, *params)
+Bases: \fI\%SequenceFe\fP
+.sp
+Class representing CSI\-type ANSI
+escape sequence. All subtypes of this sequence start with \fBESC [\fP\&.
+.sp
+Sequences of this type are used to control text formatting,
+change cursor position, erase screen and more.
+.sp
+.nf
+.ft C
+>>> make_erase_in_line().assemble()
+\(aq\ex1b[0K\(aq
+.ft P
+.fi
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBterminator\fP – 
+.IP \(bu 2
+\fBshort_name\fP – 
+.IP \(bu 2
+\fBparams\fP – 
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
@@ -6028,39 +6076,43 @@ as an ASCII\-encoded string.
 str
 .UNINDENT
 .UNINDENT
+.INDENT 7.0
+.TP
+.B property  params:  t.List[int  |  str]
+Return internal params as array.
+.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
 .B class  pytermor.ansi.SequenceSGR(*args)
 Bases: \fI\%SequenceCSI\fP
 .sp
-Class representing SGR\-type escape sequence with varying amount of parameters.
-SGR sequences allow to change the color of text or/and terminal background
-(in 3 different color spaces) as well as set decorate text with italic style,
-underlining, overlining, cross\-lining, making it bold or blinking etc.
+Class representing SGR\-type escape sequence
+with varying amount of parameters. SGR sequences allow to change the color
+of text or/and terminal background (in 3 different color spaces) as well
+as set decorate text with italic style, underlining, overlining, cross\-lining,
+making it bold or blinking etc.
+.sp
+When cast to \fIstr\fP, as all other sequences, invokes \fI\%assemble()\fP method
+and transforms into encoded control sequence string. It is possible to add
+of one SGR sequence to another, resulting in a new one with merged params
+(see examples).
 .sp
 \fBNOTE:\fP
 .INDENT 7.0
 .INDENT 3.5
 \fI\%SequenceSGR\fP with zero params was specifically implemented to
-translate into empty string and not into \fBESC[m\fP, which would have
+translate into empty string and not into \fBESC [m\fP, which would have
 made sense, but also would be entangling, as this sequence is the equivalent
-of \fBESC[0m\fP \-\- hard reset sequence. The empty\-string\-sequence is
+of \fBESC [0m\fP – hard reset sequence. The empty\-string\-sequence is
 predefined at module level as \fI\%NOOP_SEQ\fP\&.
 .UNINDENT
 .UNINDENT
 .sp
-When cast to \fIstr\fP, as all other sequences, invokes \fI\%assemble()\fP method
-and transforms into encoded control sequence string. It\(aqs possible to add
-of one SGR sequence to another, resulting in a new one with merged params
-(see examples).
-.sp
 .nf
 .ft C
->>> SequenceSGR(91, SequenceSGR(7))
-<SGR[91,7]>
->>> SequenceSGR(IntCode.HI_CYAN, \(aqunderlined\(aq)
-<SGR[96,4]>
+>>> SequenceSGR(IntCode.HI_CYAN, \(aqunderlined\(aq, 1)
+<SGR[96,4,1]>
 >>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
 True
 .ft P
@@ -6070,7 +6122,7 @@ True
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBargs\fP \-\- 
+\fBargs\fP – 
 .sp
 Sequence params. Resulting param order is the same as an
 argument order. Each argument can be specified as:
@@ -6078,9 +6130,9 @@ argument order. Each argument can be specified as:
 .INDENT 3.5
 .INDENT 0.0
 .IP \(bu 2
-\fIstr\fP \-\- any of \fI\%IntCode\fP names, case\-insensitive
+\fIstr\fP – any of \fI\%IntCode\fP names, case\-insensitive
 .IP \(bu 2
-\fIint\fP \-\- \fI\%IntCode\fP instance or plain integer
+\fIint\fP – \fI\%IntCode\fP instance or plain integer
 .IP \(bu 2
 \fI\%SequenceSGR\fP instance (params will be extracted)
 .UNINDENT
@@ -6088,72 +6140,11 @@ argument order. Each argument can be specified as:
 .UNINDENT
 
 .IP \(bu 2
-\fBterminator\fP \-\- 
+\fBterminator\fP – 
 .IP \(bu 2
-\fBparams\fP \-\- 
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  new_color_256(code, bg=False)
-Wrapper for creation of \fI\%SequenceSGR\fP that sets foreground
-(or background) to one of 256\-color palette value.
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
+\fBshort_name\fP – 
 .IP \(bu 2
-\fBcode\fP (\fIint\fP) \-\- Index of the color in the palette, 0 \-\- 255.
-.IP \(bu 2
-\fBbg\fP (\fIbool\fP) \-\- Set to \fITrue\fP to change the background color
-(default is foreground).
-.UNINDENT
-.TP
-.B Returns
-\fI\%SequenceSGR\fP with required params.
-.TP
-.B Return type
-\fI\%SequenceSGR\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  new_color_rgb(r, g, b, bg=False)
-Wrapper for creation of \fI\%SequenceSGR\fP operating in True Color mode (16M).
-Valid values for \fIr\fP, \fIg\fP and \fIb\fP are in range [0; 255]. This range
-linearly translates into [\fB0x00\fP; \fB0xFF\fP] for each channel. The result
-value is composed as \fB#RRGGBB\fP\&. For example, sequence with color of
-\fB#FF3300\fP can be created with:
-.INDENT 7.0
-.INDENT 3.5
-.sp
-.nf
-.ft C
-SequenceSGR.new_color_rgb(255, 51, 0)
-.ft P
-.fi
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBr\fP (\fIint\fP) \-\- Red channel value, 0 \-\- 255.
-.IP \(bu 2
-\fBg\fP (\fIint\fP) \-\- Blue channel value, 0 \-\- 255.
-.IP \(bu 2
-\fBb\fP (\fIint\fP) \-\- Green channel value, 0 \-\- 255.
-.IP \(bu 2
-\fBbg\fP (\fIbool\fP) \-\- Set to \fITrue\fP to change the background color
-(default is foreground).
-.UNINDENT
-.TP
-.B Returns
-\fI\%SequenceSGR\fP with required params.
-.TP
-.B Return type
-\fI\%SequenceSGR\fP
+\fBparams\fP – 
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
@@ -6174,6 +6165,26 @@ str
 .TP
 .B Returns
 Sequence params as integers or \fI\%IntCode\fP instances.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.ansi.CurlyUnderlinedSequenceSGR
+Bases: \fI\%SequenceSGR\fP
+.sp
+Registered as a separate class, because this is the one and only SGR in the
+package, which is identified by “4:3” string (in contrast with all the other
+sequences entirely made of digits and semicolon separators).
+.INDENT 7.0
+.TP
+.B assemble()
+Build up actual byte sequence and return
+as an ASCII\-encoded string.
+.INDENT 7.0
+.TP
+.B Return type
+str
 .UNINDENT
 .UNINDENT
 .UNINDENT
@@ -6200,258 +6211,38 @@ returns empty list.
 Bases: \fBIntEnum\fP
 .sp
 Complete or almost complete list of reliably working SGR param integer codes.
-Fully interchangeable with plain \fIint\fP\-s. Suitable for \fI\%SequenceSGR\fP
+Fully interchangeable with plain \fIint\fP\&. Suitable for \fI\%SequenceSGR\fP
 default constructor.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+\fI\%IntCode\fP predefined constants are omitted from documentation to avoid
+useless repeats and save space, as most of the time “next level” class
+\fI\%SeqIndex\fP is more appropriate, and on top of that, the constant
+names are literally the same for \fI\%SeqIndex\fP and \fI\%IntCode\fP\&.
+.UNINDENT
+.UNINDENT
 .INDENT 7.0
 .TP
 .B classmethod  resolve(name)
 .INDENT 7.0
 .TP
+.B Parameters
+\fBname\fP (\fIstr\fP) – 
+.TP
+.B Returns
+
+.TP
 .B Return type
 \fI\%IntCode\fP
 .UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B RESET  =  0
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BOLD  =  1
-.UNINDENT
-.INDENT 7.0
-.TP
-.B DIM  =  2
-.UNINDENT
-.INDENT 7.0
-.TP
-.B ITALIC  =  3
-.UNINDENT
-.INDENT 7.0
-.TP
-.B UNDERLINED  =  4
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BLINK_SLOW  =  5
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BLINK_FAST  =  6
-.UNINDENT
-.INDENT 7.0
-.TP
-.B INVERSED  =  7
-.UNINDENT
-.INDENT 7.0
-.TP
-.B HIDDEN  =  8
-.UNINDENT
-.INDENT 7.0
-.TP
-.B CROSSLINED  =  9
-.UNINDENT
-.INDENT 7.0
-.TP
-.B DOUBLE_UNDERLINED  =  21
-.UNINDENT
-.INDENT 7.0
-.TP
-.B OVERLINED  =  53
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BOLD_DIM_OFF  =  22
-.UNINDENT
-.INDENT 7.0
-.TP
-.B ITALIC_OFF  =  23
-.UNINDENT
-.INDENT 7.0
-.TP
-.B UNDERLINED_OFF  =  24
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BLINK_OFF  =  25
-.UNINDENT
-.INDENT 7.0
-.TP
-.B INVERSED_OFF  =  27
-.UNINDENT
-.INDENT 7.0
-.TP
-.B HIDDEN_OFF  =  28
-.UNINDENT
-.INDENT 7.0
-.TP
-.B CROSSLINED_OFF  =  29
-.UNINDENT
-.INDENT 7.0
-.TP
-.B COLOR_OFF  =  39
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_COLOR_OFF  =  49
-.UNINDENT
-.INDENT 7.0
-.TP
-.B OVERLINED_OFF  =  55
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BLACK  =  30
-.UNINDENT
-.INDENT 7.0
-.TP
-.B RED  =  31
-.UNINDENT
-.INDENT 7.0
-.TP
-.B GREEN  =  32
-.UNINDENT
-.INDENT 7.0
-.TP
-.B YELLOW  =  33
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BLUE  =  34
-.UNINDENT
-.INDENT 7.0
-.TP
-.B MAGENTA  =  35
-.UNINDENT
-.INDENT 7.0
-.TP
-.B CYAN  =  36
-.UNINDENT
-.INDENT 7.0
-.TP
-.B WHITE  =  37
-.UNINDENT
-.INDENT 7.0
-.TP
-.B COLOR_EXTENDED  =  38
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_BLACK  =  40
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_RED  =  41
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_GREEN  =  42
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_YELLOW  =  43
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_BLUE  =  44
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_MAGENTA  =  45
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_CYAN  =  46
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_WHITE  =  47
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_COLOR_EXTENDED  =  48
-.UNINDENT
-.INDENT 7.0
-.TP
-.B GRAY  =  90
-.UNINDENT
-.INDENT 7.0
-.TP
-.B HI_RED  =  91
-.UNINDENT
-.INDENT 7.0
-.TP
-.B HI_GREEN  =  92
-.UNINDENT
-.INDENT 7.0
-.TP
-.B HI_YELLOW  =  93
-.UNINDENT
-.INDENT 7.0
-.TP
-.B HI_BLUE  =  94
-.UNINDENT
-.INDENT 7.0
-.TP
-.B HI_MAGENTA  =  95
-.UNINDENT
-.INDENT 7.0
-.TP
-.B HI_CYAN  =  96
-.UNINDENT
-.INDENT 7.0
-.TP
-.B HI_WHITE  =  97
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_GRAY  =  100
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_HI_RED  =  101
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_HI_GREEN  =  102
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_HI_YELLOW  =  103
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_HI_BLUE  =  104
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_HI_MAGENTA  =  105
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_HI_CYAN  =  106
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BG_HI_WHITE  =  107
-.UNINDENT
-.INDENT 7.0
-.TP
-.B EXTENDED_MODE_256  =  5
-.UNINDENT
-.INDENT 7.0
-.TP
-.B EXTENDED_MODE_RGB  =  2
-.UNINDENT
-.INDENT 7.0
-.TP
-.B HYPERLINK  =  8
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
 .B class  pytermor.ansi.SeqIndex
-Registry of sequence presets.
+Registry of static sequence presets.
 .INDENT 7.0
 .TP
 .B RESET  =  <SGR[0]>
@@ -6460,222 +6251,282 @@ Hard reset sequence.
 .INDENT 7.0
 .TP
 .B BOLD  =  <SGR[1]>
+Bold or increased intensity.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B DIM  =  <SGR[2]>
+Faint, decreased intensity.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B ITALIC  =  <SGR[3]>
+Italic \fI(not widely supported)\fP\&.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B UNDERLINED  =  <SGR[4]>
+Underline.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BLINK_SLOW  =  <SGR[5]>
+Set blinking to < 150 cpm.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BLINK_FAST  =  <SGR[6]>
-.UNINDENT
-.INDENT 7.0
-.TP
-.B BLINK_DEFAULT  =  <SGR[5]>
+Set blinking to 150+ cpm \fI(not widely supported)\fP\&.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B INVERSED  =  <SGR[7]>
+Swap foreground and background colors.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B HIDDEN  =  <SGR[8]>
+Conceal characters \fI(not widely supported)\fP\&.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B CROSSLINED  =  <SGR[9]>
+Strikethrough.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B DOUBLE_UNDERLINED  =  <SGR[21]>
+Double\-underline. \fIOn several terminals disables\fP \fI\%BOLD\fP \fIinstead\fP\&.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B OVERLINED  =  <SGR[53]>
+Overline \fI(not widely supported)\fP\&.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BOLD_DIM_OFF  =  <SGR[22]>
+Disable \fBBOLD\fP and \fBDIM\fP attributes.
+.sp
+\fISpecial aspects… It’s impossible to reliably disable them on a separate basis.\fP
 .UNINDENT
 .INDENT 7.0
 .TP
 .B ITALIC_OFF  =  <SGR[23]>
+Disable italic.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B UNDERLINED_OFF  =  <SGR[24]>
+Disable underlining.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BLINK_OFF  =  <SGR[25]>
+Disable blinking.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B INVERSED_OFF  =  <SGR[27]>
+Disable inversing.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B HIDDEN_OFF  =  <SGR[28]>
+Disable conecaling.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B CROSSLINED_OFF  =  <SGR[29]>
+Disable strikethrough.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B OVERLINED_OFF  =  <SGR[55]>
+Disable overlining.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BLACK  =  <SGR[30]>
+Set text color to 0x000000.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B RED  =  <SGR[31]>
+Set text color to 0x800000.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B GREEN  =  <SGR[32]>
+Set text color to 0x008000.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B YELLOW  =  <SGR[33]>
+Set text color to 0x808000.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BLUE  =  <SGR[34]>
+Set text color to 0x000080.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B MAGENTA  =  <SGR[35]>
+Set text color to 0x800080.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B CYAN  =  <SGR[36]>
+Set text color to 0x008080.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B WHITE  =  <SGR[37]>
+Set text color to 0xc0c0c0.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B COLOR_OFF  =  <SGR[39]>
+Reset foreground color.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_BLACK  =  <SGR[40]>
+Set background color to 0x000000.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_RED  =  <SGR[41]>
+Set background color to 0x800000.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_GREEN  =  <SGR[42]>
+Set background color to 0x008000.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_YELLOW  =  <SGR[43]>
+Set background color to 0x808000.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_BLUE  =  <SGR[44]>
+Set background color to 0x000080.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_MAGENTA  =  <SGR[45]>
+Set background color to 0x800080.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_CYAN  =  <SGR[46]>
+Set background color to 0x008080.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_WHITE  =  <SGR[47]>
+Set background color to 0xc0c0c0.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_COLOR_OFF  =  <SGR[49]>
+Reset background color.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B GRAY  =  <SGR[90]>
+Set text color to 0x808080.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B HI_RED  =  <SGR[91]>
+Set text color to 0xff0000.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B HI_GREEN  =  <SGR[92]>
+Set text color to 0x00ff00.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B HI_YELLOW  =  <SGR[93]>
+Set text color to 0xffff00.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B HI_BLUE  =  <SGR[94]>
+Set text color to 0x0000ff.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B HI_MAGENTA  =  <SGR[95]>
+Set text color to 0xff00ff.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B HI_CYAN  =  <SGR[96]>
+Set text color to 0x00ffff.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B HI_WHITE  =  <SGR[97]>
+Set text color to 0xffffff.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_GRAY  =  <SGR[100]>
+Set background color to 0x808080.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_HI_RED  =  <SGR[101]>
+Set background color to 0xff0000.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_HI_GREEN  =  <SGR[102]>
+Set background color to 0x00ff00.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_HI_YELLOW  =  <SGR[103]>
+Set background color to 0xffff00.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_HI_BLUE  =  <SGR[104]>
+Set background color to 0x0000ff.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_HI_MAGENTA  =  <SGR[105]>
+Set background color to 0xff00ff.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_HI_CYAN  =  <SGR[106]>
+Set background color to 0x00ffff.
 .UNINDENT
 .INDENT 7.0
 .TP
 .B BG_HI_WHITE  =  <SGR[107]>
+Set background color to 0xffffff.
 .UNINDENT
 .INDENT 7.0
 .TP
-.B HYPERLINK  =  <OSC[IntCode.HIDDEN]>
+.B HYPERLINK  =  <OSC[8]>
+Create a hyperlink in the text \fI(supported by limited amount of terminals)\fP\&.
+Note that for a working hyperlink you’ll need two sequences, not just one.
+.sp
+\fBSEE ALSO:\fP
+.INDENT 7.0
+.INDENT 3.5
+\fI\%make_hyperlink_part()\fP and \fI\%assemble_hyperlink()\fP\&.
+.UNINDENT
+.UNINDENT
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
@@ -6683,100 +6534,210 @@ Hard reset sequence.
 .B pytermor.ansi.get_closing_seq(opening_seq)
 .INDENT 7.0
 .TP
+.B Parameters
+\fBopening_seq\fP (\fI\%SequenceSGR\fP) – 
+.TP
+.B Returns
+
+.TP
 .B Return type
 \fI\%SequenceSGR\fP
 .UNINDENT
 .UNINDENT
-.SS color
-.sp
-Yare\-yare daze
-.sp
-Iterate the registered colors table and compute the euclidean distance
-from argument to each color of the palette. Sort the results and return them.
 .INDENT 0.0
 .TP
-\fBsRGB euclidean distance\fP
-\fI\%https://en.wikipedia.org/wiki/Color_difference#sRGB\fP
-\fI\%https://stackoverflow.com/a/35114586/5834973\fP
+.B pytermor.ansi.enclose(opening_seq, string)
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBopening_seq\fP (\fI\%SequenceSGR\fP) – 
+.IP \(bu 2
+\fBstring\fP (\fIstr\fP) – 
 .UNINDENT
+.TP
+.B Returns
+
+.TP
+.B Return type
+str
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.ansi.make_set_cursor_x_abs(x=1)
+Create CHA sequence that sets
+cursor horizontal position, or column, to \fBx\fP\&.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBx\fP (\fIint\fP) – New cursor horizontal position.
+.TP
+.B Example
+\fBESC [1G\fP
+.TP
+.B Return type
+\fI\%SequenceCSI\fP
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.ansi.make_erase_in_line(mode=0)
+Create EL sequence that erases a part of the line
+or the entire line. Cursor position does not change.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBmode\fP (\fIint\fP) – 
+.sp
+Sequence operating mode.
+.INDENT 7.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+If set to 0, clear from cursor to the end of the line.
+.IP \(bu 2
+If set to 1, clear from cursor to beginning of the line.
+.IP \(bu 2
+If set to 2, clear the entire line.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+
+.TP
+.B Example
+\fBESC [0K\fP
+.TP
+.B Return type
+\fI\%SequenceCSI\fP
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.ansi.make_color_256(code, bg=False)
+Wrapper for creation of \fI\%SequenceSGR\fP that sets foreground
+(or background) to one of 256\-color palette value.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBcode\fP (\fIint\fP) – Index of the color in the palette, 0 – 255.
+.IP \(bu 2
+\fBbg\fP (\fIbool\fP) – Set to \fITrue\fP to change the background color
+(default is foreground).
+.UNINDENT
+.TP
+.B Example
+\fBESC [38;5;141m\fP
+.TP
+.B Return type
+\fI\%SequenceSGR\fP
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.ansi.make_color_rgb(r, g, b, bg=False)
+Wrapper for creation of \fI\%SequenceSGR\fP operating in True Color mode (16M).
+Valid values for \fBr\fP, \fBg\fP and \fBb\fP are in range of [0; 255]. This range
+linearly translates into [0x00; 0xFF] for each channel. The result
+value is composed as “0xRRGGBB”. For example, sequence with color of
+0xFF3300 can be created with:
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+make_color_rgb(255, 51, 0)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBr\fP (\fIint\fP) – Red channel value, 0 – 255.
+.IP \(bu 2
+\fBg\fP (\fIint\fP) – Blue channel value, 0 – 255.
+.IP \(bu 2
+\fBb\fP (\fIint\fP) – Green channel value, 0 – 255.
+.IP \(bu 2
+\fBbg\fP (\fIbool\fP) – Set to \fITrue\fP to change the background color (default is foreground).
+.UNINDENT
+.TP
+.B Example
+\fBESC [38;2;255;51;0m\fP
+.TP
+.B Return type
+\fI\%SequenceSGR\fP
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.ansi.make_hyperlink_part(url=None)
+.INDENT 7.0
+.TP
+.B Parameters
+\fBurl\fP (\fIOptional\fP\fI[\fP\fIstr\fP\fI]\fP) – 
+.TP
+.B Example
+\fBESC ]8;;http://localhost ESC \e\fP
+.TP
+.B Return type
+\fI\%SequenceOSC\fP
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.ansi.assemble_hyperlink(url, label)
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBurl\fP (\fIstr\fP) – 
+.IP \(bu 2
+\fBlabel\fP (\fIstr\fP) – 
+.UNINDENT
+.TP
+.B Example
+\fBESC ]8;;http://localhost ESC \eText ESC ]8;; ESC \e\fP
+.TP
+.B Return type
+str
+.UNINDENT
+.UNINDENT
+.SS color
 .INDENT 0.0
 .TP
 .B pytermor.color.ColorType
 .INDENT 7.0
 .UNINDENT
 .sp
-alias of TypeVar(\(aqColorType\(aq, bound=\fBUnion\fP[\fI\%Color16\fP, \fI\%Color256\fP, \fI\%ColorRGB\fP])
-.UNINDENT
-.INDENT 0.0
-.TP
-.B class  pytermor.color.Index
-.INDENT 7.0
-.TP
-.B classmethod  register(color, aliases=None)
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBcolor\fP (\fI\%Color\fP) \-\- 
-.IP \(bu 2
-\fBaliases\fP (\fIOptional\fP\fI[\fP\fIList\fP\fI[\fP\fIstr\fP\fI]\fP\fI]\fP) \-\- 
-.UNINDENT
-.TP
-.B Returns
-
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  register_virtual(hex_value, name)
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBhex_value\fP (\fIint\fP) \-\- 
-.IP \(bu 2
-\fBname\fP (\fIstr\fP) \-\- 
-.UNINDENT
-.TP
-.B Returns
-
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  resolve(name)
-Case\-insensitive search through registry contents.
-.INDENT 7.0
-.TP
-.B Parameters
-\fBname\fP (\fIstr\fP) \-\- name of the color to look up for.
-.TP
-.B Raises
-\fBKeyError\fP \-\- if no color with specified name is registered.
-.TP
-.B Returns
-\fI\%Color\fP instance.
-.TP
-.B Return type
-\fI\%Color\fP
-.UNINDENT
-.UNINDENT
+alias of TypeVar(‘ColorType’, Color16, Color256, ColorRGB)
 .UNINDENT
 .INDENT 0.0
 .TP
 .B class  pytermor.color.ApproximationResult(color, distance)
 Bases: \fBGeneric\fP[\fI\%ColorType\fP]
-.sp
-AP
 .INDENT 7.0
 .TP
-.B color:  ColorType
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBcolor\fP – \fI\%Color\fP instance.
+.IP \(bu 2
+\fBdistance\fP – Squared sRGB distance from this instance to
+the approximation target.
+.UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
-.B distance:  float
+.B property  distance_real:  float
+Actual distance from instance to target: Sqrt(distance).
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
@@ -6788,6 +6749,9 @@ Abstract superclass for other \fBColors\fP\&.
 .B to_hsv()
 .INDENT 7.0
 .TP
+.B Returns
+
+.TP
 .B Return type
 \fITuple\fP[float, float, float]
 .UNINDENT
@@ -6796,6 +6760,9 @@ Abstract superclass for other \fBColors\fP\&.
 .TP
 .B to_rgb()
 .INDENT 7.0
+.TP
+.B Returns
+
 .TP
 .B Return type
 \fITuple\fP[int, int, int]
@@ -6806,6 +6773,12 @@ Abstract superclass for other \fBColors\fP\&.
 .B format_value(prefix=\(aq0x\(aq)
 .INDENT 7.0
 .TP
+.B Parameters
+\fBprefix\fP (\fIstr\fP) – 
+.TP
+.B Returns
+
+.TP
 .B Return type
 str
 .UNINDENT
@@ -6813,15 +6786,54 @@ str
 .INDENT 7.0
 .TP
 .B property  hex_value:  int
+.INDENT 7.0
+.TP
+.B Returns
+
+.UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
 .B property  name:  str  |  None
+.INDENT 7.0
+.TP
+.B Returns
+
+.UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
-.B abstract  to_sgr(bg, bound=None)
+.B property  base:  ColorType  |  None
 .INDENT 7.0
+.TP
+.B Returns
+
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  variations:  Dict[str,  ColorType]
+.INDENT 7.0
+.TP
+.B Returns
+
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B abstract  to_sgr(bg, upper_bound=None)
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBbg\fP (\fIbool\fP) – 
+.IP \(bu 2
+\fBupper_bound\fP (\fIOptional\fP\fI[\fP\fIType\fP\fI[\fP\fI\%Color\fP\fI]\fP\fI]\fP) – 
+.UNINDENT
+.TP
+.B Returns
+
 .TP
 .B Return type
 \fI\%SequenceSGR\fP
@@ -6832,8 +6844,71 @@ str
 .B abstract  to_tmux(bg)
 .INDENT 7.0
 .TP
+.B Parameters
+\fBbg\fP (\fIbool\fP) – 
+.TP
+.B Returns
+
+.TP
 .B Return type
 str
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  get_by_code(code)
+.INDENT 7.0
+.TP
+.B Parameters
+\fBcode\fP (\fIint\fP) – 
+.TP
+.B Returns
+
+.TP
+.B Return type
+\fIColorType\fP
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B classmethod  resolve(name)
+Case\-insensitive search through registry contents. Type of the
+result depends on invoked class:
+.INDENT 7.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+\fBColor16.resolve(..)\fP \-> \fI\%Color16\fP
+.IP \(bu 2
+\fBColor256.resolve(..)\fP \-> \fI\%Color256\fP
+.IP \(bu 2
+\fBColorRGB.resolve(..)\fP \-> \fI\%ColorRGB\fP
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+Invoking the method of \fI\%Color\fP itself is a special case. The search
+will be first performed in the registry of \fI\%Color16\fP class, then –
+in \fI\%Color256\fP, and, if previous two were unsuccessful, in the
+largest \fI\%ColorRGB\fP registry.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Parameters
+\fBname\fP (\fIstr\fP) – name of the color to look up for.
+.TP
+.B Raises
+\fBLookupError\fP – if no color with specified name is registered.
+.TP
+.B Returns
+\fI\%Color\fP instance.
+.TP
+.B Return type
+\fIColorType\fP
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
@@ -6857,26 +6932,25 @@ the desired result type and current color mode you might use either of:
 \fBNOTE:\fP
 .INDENT 7.0
 .INDENT 3.5
-Invoking the method of \fI\%Color\fP itself will result in a \fBRuntimeError\fP,
-as it is an abstract class and therefore the color map for this
-type will always be empty.
+Invoking the method of \fI\%Color\fP itself is equivalent to
+calling \fBColor256.find_closest()\fP\&.
 .UNINDENT
 .UNINDENT
 .sp
-Method is useful for finding applicable color alternatives if user\(aqs
+Method is useful for finding applicable color alternatives if user’s
 terminal is incapable of operating in more advanced mode.
 .sp
 This method caches the results, i.e., the same search query will from then
 onward result in the same return value without the necessity of iterating
-through the color index. If that\(aqs not applicable, use similar method
+through the color index. If that’s not applicable, use similar method
 \fI\%approximate()\fP, which is unaware of caching mechanism altogether.
 .INDENT 7.0
 .TP
 .B Parameters
-\fBhex_value\fP (\fIint\fP) \-\- Target color RGB value.
+\fBhex_value\fP (\fIint\fP) – Target color RGB value.
 .TP
 .B Returns
-Nearest to \fBhex_value\fP instance of \fBColor\fP found. Type will
+Nearest to \fBhex_value\fP instance of \fI\%Color\fP found. Type will
 be the same as the class of called method.
 .TP
 .B Return type
@@ -6896,7 +6970,7 @@ although they differ in some aspects:
 \fI\%approximate()\fP can return more than one result;
 .IP \(bu 2
 \fI\%approximate()\fP returns not just \fI\%Color\fP instances, but also a
-number equal to the distance to the target color for each of them;
+number equal to squared distance to the target color for each of them;
 .IP \(bu 2
 \fI\%find_closest()\fP caches the results, while \fI\%approximate()\fP ignores
 the cache completely.
@@ -6904,20 +6978,27 @@ the cache completely.
 .UNINDENT
 .UNINDENT
 .sp
-Invoking the method is the same as for its sibling \-\- do not use
-abstract class method \fI\%Color.approximate()\fP, choose one of the concrete
-class methods instead. The type of \fI\%Color\fP instances in the result will
-be the same as the \fI\%Color\fP class the called method is originating from:
+The type of \fI\%Color\fP instances in the result will be the same as the
+\fI\%Color\fP class the called method is originating from (same as for method’s
+sibling):
 .INDENT 7.0
 .INDENT 3.5
 .INDENT 0.0
 .IP \(bu 2
-\fBColor16.approximate(..)\fP \-> [ApproximationResult[\fI\%Color16\fP], ...]
+\fBColor16.approximate(..)\fP \-> [ApproximationResult[\fI\%Color16\fP], …]
 .IP \(bu 2
-\fBColor256.approximate(..)\fP \-> [ApproximationResult[\fI\%Color256\fP], ...]
+\fBColor256.approximate(..)\fP \-> [ApproximationResult[\fI\%Color256\fP], …]
 .IP \(bu 2
-\fBColorRGB.approximate(..)\fP \-> [ApproximationResult[\fI\%ColorRGB\fP], ...]
+\fBColorRGB.approximate(..)\fP \-> [ApproximationResult[\fI\%ColorRGB\fP], …]
 .UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+Invoking the method of \fI\%Color\fP itself is equivalent to
+calling \fBColor256.find_closest()\fP\&.
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
@@ -6925,9 +7006,9 @@ be the same as the \fI\%Color\fP class the called method is originating from:
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBhex_value\fP (\fIint\fP) \-\- Target color RGB value.
+\fBhex_value\fP (\fIint\fP) – Target color RGB value.
 .IP \(bu 2
-\fBmax_results\fP (\fIint\fP) \-\- Return no more than \fBmax_results\fP items.
+\fBmax_results\fP (\fIint\fP) – Return no more than \fBmax_results\fP items.
 .UNINDENT
 .TP
 .B Returns
@@ -6943,25 +7024,10 @@ to the target; element with index 1 is second\-closest color
 .UNINDENT
 .INDENT 7.0
 .TP
-.B classmethod  find_by_code(code)
-.INDENT 7.0
-.TP
-.B Parameters
-\fBcode\fP (\fIint\fP) \-\- 
-.TP
-.B Returns
-
-.TP
-.B Return type
-\fIColorType\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
 .B static  hex_to_hsv(hex_value)
-Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three numbers
-corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values respectively.
-\fIHue\fP is within [0, 359] range, \fIsaturation\fP and \fIvalue\fP are within [0; 1] range.
+Transforms \fBhex_value\fP in 0xFFFFFF format into a tuple of three numbers
+corresponding to \fBhue\fP, \fBsaturation\fP and \fBvalue\fP channel values respectively.
+Hue is within [0, 359] range, both saturation and value are within [0; 1] range.
 .INDENT 7.0
 .TP
 .B Return type
@@ -6971,33 +7037,48 @@ corresponding to \fIhue\fP, \fIsaturation\fP and \fIvalue\fP channel values resp
 .INDENT 7.0
 .TP
 .B static  hex_to_rgb(hex_value)
-Transforms \fBhex_value\fP in \fB0xffffff\fP format into tuple of three
-integers corresponding to \fIred\fP, \fIblue\fP and \fIgreen\fP channel value
+Transforms \fBhex_value\fP in 0xFFFFFF format into a tuple of three
+integers corresponding to \fBred\fP, \fBblue\fP and \fBgreen\fP channel value
 respectively. Values are within [0; 255] range.
 .INDENT 7.0
 .TP
 .B Parameters
-\fBhex_value\fP (\fIint\fP) \-\- Color RGB value.
+\fBhex_value\fP (\fIint\fP) – Color RGB value.
 .TP
 .B Return type
 \fITuple\fP[int, int, int]
 .UNINDENT
 .sp
-Example:
+Usage:
+.INDENT 7.0
+.INDENT 3.5
 .sp
 .nf
 .ft C
 >>> Color.hex_to_rgb(0x80ff80)
 (128, 255, 128)
->>> Color.hex_to_rgb(0x000001)
-(0, 0, 1)
 .ft P
 .fi
+.UNINDENT
+.UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
 .B static  rgb_to_hex(r, g, b)
 .INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBr\fP (\fIint\fP) – 
+.IP \(bu 2
+\fBg\fP (\fIint\fP) – 
+.IP \(bu 2
+\fBb\fP (\fIint\fP) – 
+.UNINDENT
+.TP
+.B Returns
+
 .TP
 .B Return type
 int
@@ -7010,8 +7091,41 @@ int
 Bases: \fI\%Color\fP
 .INDENT 7.0
 .TP
-.B to_sgr(bg, bound=None)
+.B Parameters
 .INDENT 7.0
+.IP \(bu 2
+\fBhex_value\fP – 
+.IP \(bu 2
+\fBcode_fg\fP – 
+.IP \(bu 2
+\fBcode_bg\fP – 
+.IP \(bu 2
+\fBname\fP – 
+.IP \(bu 2
+\fBaliases\fP – 
+.IP \(bu 2
+\fBvariation_map\fP – 
+.IP \(bu 2
+\fBregister\fP – 
+.IP \(bu 2
+\fBindex\fP – 
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B to_sgr(bg, upper_bound=None)
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBbg\fP (\fIbool\fP) – 
+.IP \(bu 2
+\fBupper_bound\fP (\fIOptional\fP\fI[\fP\fIType\fP\fI[\fP\fI\%Color\fP\fI]\fP\fI]\fP) – 
+.UNINDENT
+.TP
+.B Returns
+
 .TP
 .B Return type
 \fI\%SequenceSGR\fP
@@ -7022,8 +7136,32 @@ Bases: \fI\%Color\fP
 .B to_tmux(bg)
 .INDENT 7.0
 .TP
+.B Parameters
+\fBbg\fP (\fIbool\fP) – 
+.TP
+.B Returns
+
+.TP
 .B Return type
 str
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  code_fg:  int
+.INDENT 7.0
+.TP
+.B Returns
+
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  code_bg:  int
+.INDENT 7.0
+.TP
+.B Returns
+
 .UNINDENT
 .UNINDENT
 .UNINDENT
@@ -7033,8 +7171,41 @@ str
 Bases: \fI\%Color\fP
 .INDENT 7.0
 .TP
-.B to_sgr(bg, bound=None)
+.B Parameters
 .INDENT 7.0
+.IP \(bu 2
+\fBhex_value\fP – 
+.IP \(bu 2
+\fBcode\fP – 
+.IP \(bu 2
+\fBname\fP – 
+.IP \(bu 2
+\fBaliases\fP – 
+.IP \(bu 2
+\fBvariation_map\fP – 
+.IP \(bu 2
+\fBcolor16_equiv\fP – 
+.IP \(bu 2
+\fBregister\fP – 
+.IP \(bu 2
+\fBindex\fP – 
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B to_sgr(bg, upper_bound=None)
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBbg\fP (\fIbool\fP) – 
+.IP \(bu 2
+\fBupper_bound\fP (\fIOptional\fP\fI[\fP\fIType\fP\fI[\fP\fI\%Color\fP\fI]\fP\fI]\fP) – 
+.UNINDENT
+.TP
+.B Returns
+
 .TP
 .B Return type
 \fI\%SequenceSGR\fP
@@ -7044,6 +7215,12 @@ Bases: \fI\%Color\fP
 .TP
 .B to_tmux(bg)
 .INDENT 7.0
+.TP
+.B Parameters
+\fBbg\fP (\fIbool\fP) – 
+.TP
+.B Returns
+
 .TP
 .B Return type
 str
@@ -7052,6 +7229,11 @@ str
 .INDENT 7.0
 .TP
 .B property  code:  int
+.INDENT 7.0
+.TP
+.B Returns
+
+.UNINDENT
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
@@ -7060,8 +7242,37 @@ str
 Bases: \fI\%Color\fP
 .INDENT 7.0
 .TP
-.B to_sgr(bg, bound=None)
+.B Parameters
 .INDENT 7.0
+.IP \(bu 2
+\fBhex_value\fP – 
+.IP \(bu 2
+\fBname\fP – 
+.IP \(bu 2
+\fBaliases\fP – 
+.IP \(bu 2
+\fBvariation_map\fP – 
+.IP \(bu 2
+\fBregister\fP – 
+.IP \(bu 2
+\fBindex\fP – 
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B to_sgr(bg, upper_bound=None)
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBbg\fP (\fIbool\fP) – 
+.IP \(bu 2
+\fBupper_bound\fP (\fIOptional\fP\fI[\fP\fIType\fP\fI[\fP\fI\%Color\fP\fI]\fP\fI]\fP) – 
+.UNINDENT
+.TP
+.B Returns
+
 .TP
 .B Return type
 \fI\%SequenceSGR\fP
@@ -7072,6 +7283,12 @@ Bases: \fI\%Color\fP
 .B to_tmux(bg)
 .INDENT 7.0
 .TP
+.B Parameters
+\fBbg\fP (\fIbool\fP) – 
+.TP
+.B Returns
+
+.TP
 .B Return type
 str
 .UNINDENT
@@ -7079,8 +7296,1097 @@ str
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.color.NOOP_COLOR  =  Color[NOP]
+.B pytermor.color.NOOP_COLOR  =  <_NoopColor[NOP]>
 Special \fI\%Color\fP instance always rendering into empty string.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B exception  pytermor.color.ColorNameConflictError(tokens, existing_color, new_color)
+Bases: \fBException\fP
+.INDENT 7.0
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B exception  pytermor.color.ColorCodeConflictError(code, existing_color, new_color)
+Bases: \fBException\fP
+.INDENT 7.0
+.UNINDENT
+.UNINDENT
+.SS common
+.INDENT 0.0
+.TP
+.B pytermor.common.T
+\fBt.Any\fP
+.sp
+alias of TypeVar(‘T’)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.common.StrType
+\fI\%StrType\fP in a method signature usually means that regular strings as well as 
+\fI\%Renderable\fP implementations are supported, can be intermixed, and:
+.INDENT 7.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+return type will be \fIstr\fP if and only if type of all arguments is \fIstr\fP;
+.IP \(bu 2
+otherwise return type will be \fI\%Renderable\fP – \fIstr\fP arguments, if any, will
+be transformed into \fI\%Renderable\fP and concatenated.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+alias of TypeVar(‘StrType’, bound=\fBUnion\fP[\fBstr\fP, \fBRenderable\fP])
+.UNINDENT
+.INDENT 0.0
+.TP
+.B exception  pytermor.common.LogicError
+Bases: \fBException\fP
+.UNINDENT
+.INDENT 0.0
+.TP
+.B exception  pytermor.common.ConflictError
+Bases: \fBException\fP
+.UNINDENT
+.INDENT 0.0
+.TP
+.B exception  pytermor.common.ArgTypeError(actual_type, arg_name=None, fn=None)
+Bases: \fBException\fP
+.INDENT 7.0
+.UNINDENT
+.UNINDENT
+.SS cval
+.sp
+Color preset list.
+.INDENT 0.0
+.TP
+.B class  pytermor.cval.CValues
+.INDENT 7.0
+.TP
+.B BLACK  =  <Color16[#30,000000?,black]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B RED  =  <Color16[#31,800000?,red]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GREEN  =  <Color16[#32,008000?,green]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B YELLOW  =  <Color16[#33,808000?,yellow]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B BLUE  =  <Color16[#34,000080?,blue]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MAGENTA  =  <Color16[#35,800080?,magenta]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CYAN  =  <Color16[#36,008080?,cyan]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B WHITE  =  <Color16[#37,C0C0C0?,white]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY  =  <Color16[#90,808080?,gray]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B HI_RED  =  <Color16[#91,FF0000?,hi\-red]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B HI_GREEN  =  <Color16[#92,00FF00?,hi\-green]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B HI_YELLOW  =  <Color16[#93,FFFF00?,hi\-yellow]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B HI_BLUE  =  <Color16[#94,0000FF?,hi\-blue]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B HI_MAGENTA  =  <Color16[#95,FF00FF?,hi\-magenta]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B HI_CYAN  =  <Color16[#96,00FFFF?,hi\-cyan]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B HI_WHITE  =  <Color16[#97,FFFFFF?,hi\-white]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B AQUAMARINE_1  =  <Color256[#122,87FFD7,aquamarine\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B AQUAMARINE_2  =  <Color256[#86,5FFFD7,aquamarine\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B AQUAMARINE_3  =  <Color256[#79,5FD7AF,aquamarine\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B BLUE_1  =  <Color256[#21,0000FF,blue\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B BLUE_2  =  <Color256[#20,0000D7,blue\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B BLUE_3  =  <Color256[#19,0000AF,blue\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B BLUE_VIOLET  =  <Color256[#57,5F00FF,blue\-violet]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CADET_BLUE  =  <Color256[#73,5FAFAF,cadet\-blue]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CADET_BLUE_2  =  <Color256[#72,5FAF87,cadet\-blue\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CHARTREUSE_1  =  <Color256[#118,87FF00,chartreuse\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CHARTREUSE_2  =  <Color256[#82,5FFF00,chartreuse\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CHARTREUSE_3  =  <Color256[#112,87D700,chartreuse\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CHARTREUSE_4  =  <Color256[#76,5FD700,chartreuse\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CHARTREUSE_5  =  <Color256[#70,5FAF00,chartreuse\-5]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CHARTREUSE_6  =  <Color256[#64,5F8700,chartreuse\-6]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CORNFLOWER_BLUE  =  <Color256[#69,5F87FF,cornflower\-blue]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CORNSILK_1  =  <Color256[#230,FFFFD7,cornsilk\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CYAN_1  =  <Color256[#51,00FFFF,cyan\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CYAN_2  =  <Color256[#50,00FFD7,cyan\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B CYAN_3  =  <Color256[#43,00D7AF,cyan\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_BLUE  =  <Color256[#18,000087,dark\-blue]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_CYAN  =  <Color256[#36,00AF87,dark\-cyan]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_GOLDENROD  =  <Color256[#136,AF8700,dark\-goldenrod]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_GREEN  =  <Color256[#22,005F00,dark\-green]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_KHAKI  =  <Color256[#143,AFAF5F,dark\-khaki]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_MAGENTA  =  <Color256[#91,8700AF,dark\-magenta]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_MAGENTA_2  =  <Color256[#90,870087,dark\-magenta\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_OLIVE_GREEN_1  =  <Color256[#192,D7FF87,dark\-olive\-green\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_OLIVE_GREEN_2  =  <Color256[#191,D7FF5F,dark\-olive\-green\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_OLIVE_GREEN_3  =  <Color256[#155,AFFF5F,dark\-olive\-green\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_OLIVE_GREEN_4  =  <Color256[#113,87D75F,dark\-olive\-green\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_OLIVE_GREEN_5  =  <Color256[#149,AFD75F,dark\-olive\-green\-5]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_OLIVE_GREEN_6  =  <Color256[#107,87AF5F,dark\-olive\-green\-6]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_ORANGE  =  <Color256[#208,FF8700,dark\-orange]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_ORANGE_2  =  <Color256[#166,D75F00,dark\-orange\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_ORANGE_3  =  <Color256[#130,AF5F00,dark\-orange\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_RED  =  <Color256[#88,870000,dark\-red]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_RED_2  =  <Color256[#52,5F0000,dark\-red\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_SEA_GREEN_1  =  <Color256[#158,AFFFD7,dark\-sea\-green\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_SEA_GREEN_2  =  <Color256[#193,D7FFAF,dark\-sea\-green\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_SEA_GREEN_3  =  <Color256[#157,AFFFAF,dark\-sea\-green\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_SEA_GREEN_4  =  <Color256[#151,AFD7AF,dark\-sea\-green\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_SEA_GREEN_5  =  <Color256[#115,87D7AF,dark\-sea\-green\-5]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_SEA_GREEN_6  =  <Color256[#150,AFD787,dark\-sea\-green\-6]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_SEA_GREEN_7  =  <Color256[#108,87AF87,dark\-sea\-green\-7]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_SEA_GREEN_8  =  <Color256[#71,5FAF5F,dark\-sea\-green\-8]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_SEA_GREEN_9  =  <Color256[#65,5F875F,dark\-sea\-green\-9]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_SLATE_GRAY_1  =  <Color256[#123,87FFFF,dark\-slate\-gray\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_SLATE_GRAY_2  =  <Color256[#87,5FFFFF,dark\-slate\-gray\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_SLATE_GRAY_3  =  <Color256[#116,87D7D7,dark\-slate\-gray\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_TURQUOISE  =  <Color256[#44,00D7D7,dark\-turquoise]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_VIOLET  =  <Color256[#128,AF00D7,dark\-violet]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DARK_VIOLET_2  =  <Color256[#92,8700D7,dark\-violet\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DEEP_PINK_1  =  <Color256[#199,FF00AF,deep\-pink\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DEEP_PINK_2  =  <Color256[#198,FF0087,deep\-pink\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DEEP_PINK_3  =  <Color256[#162,D70087,deep\-pink\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DEEP_PINK_4  =  <Color256[#197,FF005F,deep\-pink\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DEEP_PINK_5  =  <Color256[#161,D7005F,deep\-pink\-5]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DEEP_PINK_6  =  <Color256[#125,AF005F,deep\-pink\-6]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DEEP_PINK_7  =  <Color256[#89,87005F,deep\-pink\-7]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DEEP_PINK_8  =  <Color256[#53,5F005F,deep\-pink\-8]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DEEP_SKY_BLUE_1  =  <Color256[#39,00AFFF,deep\-sky\-blue\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DEEP_SKY_BLUE_2  =  <Color256[#38,00AFD7,deep\-sky\-blue\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DEEP_SKY_BLUE_3  =  <Color256[#32,0087D7,deep\-sky\-blue\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DEEP_SKY_BLUE_4  =  <Color256[#31,0087AF,deep\-sky\-blue\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DEEP_SKY_BLUE_5  =  <Color256[#25,005FAF,deep\-sky\-blue\-5]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DEEP_SKY_BLUE_6  =  <Color256[#24,005F87,deep\-sky\-blue\-6]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DEEP_SKY_BLUE_7  =  <Color256[#23,005F5F,deep\-sky\-blue\-7]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DODGER_BLUE_1  =  <Color256[#33,0087FF,dodger\-blue\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DODGER_BLUE_2  =  <Color256[#27,005FFF,dodger\-blue\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B DODGER_BLUE_3  =  <Color256[#26,005FD7,dodger\-blue\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GOLD_1  =  <Color256[#220,FFD700,gold\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GOLD_2  =  <Color256[#178,D7AF00,gold\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GOLD_3  =  <Color256[#142,AFAF00,gold\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_0  =  <Color256[#16,000000,gray\-0]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_100  =  <Color256[#231,FFFFFF,gray\-100]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_11  =  <Color256[#234,1C1C1C,gray\-11]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_15  =  <Color256[#235,262626,gray\-15]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_19  =  <Color256[#236,303030,gray\-19]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_23  =  <Color256[#237,3A3A3A,gray\-23]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_27  =  <Color256[#238,444444,gray\-27]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_3  =  <Color256[#232,080808,gray\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_30  =  <Color256[#239,4E4E4E,gray\-30]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_35  =  <Color256[#240,585858,gray\-35]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_37  =  <Color256[#59,5F5F5F,gray\-37]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_39  =  <Color256[#241,626262,gray\-39]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_42  =  <Color256[#242,6C6C6C,gray\-42]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_46  =  <Color256[#243,767676,gray\-46]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_50  =  <Color256[#244,808080,gray\-50]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_53  =  <Color256[#102,878787,gray\-53]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_54  =  <Color256[#245,8A8A8A,gray\-54]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_58  =  <Color256[#246,949494,gray\-58]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_62  =  <Color256[#247,9E9E9E,gray\-62]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_63  =  <Color256[#139,AF87AF,gray\-63]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_66  =  <Color256[#248,A8A8A8,gray\-66]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_69  =  <Color256[#145,AFAFAF,gray\-69]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_7  =  <Color256[#233,121212,gray\-7]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_70  =  <Color256[#249,B2B2B2,gray\-70]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_74  =  <Color256[#250,BCBCBC,gray\-74]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_78  =  <Color256[#251,C6C6C6,gray\-78]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_82  =  <Color256[#252,D0D0D0,gray\-82]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_84  =  <Color256[#188,D7D7D7,gray\-84]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_85  =  <Color256[#253,DADADA,gray\-85]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_89  =  <Color256[#254,E4E4E4,gray\-89]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GRAY_93  =  <Color256[#255,EEEEEE,gray\-93]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GREEN_2  =  <Color256[#46,00FF00,green\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GREEN_3  =  <Color256[#40,00D700,green\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GREEN_4  =  <Color256[#34,00AF00,green\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GREEN_5  =  <Color256[#28,008700,green\-5]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B GREEN_YELLOW  =  <Color256[#154,AFFF00,green\-yellow]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B HONEYDEW_2  =  <Color256[#194,D7FFD7,honeydew\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B HOT_PINK  =  <Color256[#206,FF5FD7,hot\-pink]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B HOT_PINK_2  =  <Color256[#205,FF5FAF,hot\-pink\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B HOT_PINK_3  =  <Color256[#169,D75FAF,hot\-pink\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B HOT_PINK_4  =  <Color256[#168,D75F87,hot\-pink\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B HOT_PINK_5  =  <Color256[#132,AF5F87,hot\-pink\-5]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B INDIAN_RED_1  =  <Color256[#203,FF5F5F,indian\-red\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B INDIAN_RED_2  =  <Color256[#204,FF5F87,indian\-red\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B INDIAN_RED_3  =  <Color256[#167,D75F5F,indian\-red\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B INDIAN_RED_4  =  <Color256[#131,AF5F5F,indian\-red\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B KHAKI_1  =  <Color256[#228,FFFF87,khaki\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B KHAKI_3  =  <Color256[#185,D7D75F,khaki\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_CORAL  =  <Color256[#210,FF8787,light\-coral]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_CYAN_1  =  <Color256[#195,D7FFFF,light\-cyan\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_CYAN_3  =  <Color256[#152,AFD7D7,light\-cyan\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_GOLDENROD_1  =  <Color256[#227,FFFF5F,light\-goldenrod\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_GOLDENROD_2  =  <Color256[#222,FFD787,light\-goldenrod\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_GOLDENROD_3  =  <Color256[#186,D7D787,light\-goldenrod\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_GOLDENROD_4  =  <Color256[#221,FFD75F,light\-goldenrod\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_GOLDENROD_5  =  <Color256[#179,D7AF5F,light\-goldenrod\-5]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_GREEN  =  <Color256[#120,87FF87,light\-green]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_GREEN_2  =  <Color256[#119,87FF5F,light\-green\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_PINK_1  =  <Color256[#217,FFAFAF,light\-pink\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_PINK_2  =  <Color256[#174,D78787,light\-pink\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_PINK_3  =  <Color256[#95,875F5F,light\-pink\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_SALMON_1  =  <Color256[#216,FFAF87,light\-salmon\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_SALMON_2  =  <Color256[#173,D7875F,light\-salmon\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_SALMON_3  =  <Color256[#137,AF875F,light\-salmon\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_SEA_GREEN  =  <Color256[#37,00AFAF,light\-sea\-green]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_SKY_BLUE_1  =  <Color256[#153,AFD7FF,light\-sky\-blue\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_SKY_BLUE_2  =  <Color256[#110,87AFD7,light\-sky\-blue\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_SKY_BLUE_3  =  <Color256[#109,87AFAF,light\-sky\-blue\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_SLATE_BLUE  =  <Color256[#105,8787FF,light\-slate\-blue]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_SLATE_GRAY  =  <Color256[#103,8787AF,light\-slate\-gray]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_STEEL_BLUE_1  =  <Color256[#189,D7D7FF,light\-steel\-blue\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_STEEL_BLUE_2  =  <Color256[#147,AFAFFF,light\-steel\-blue\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_STEEL_BLUE_3  =  <Color256[#146,AFAFD7,light\-steel\-blue\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B LIGHT_YELLOW_3  =  <Color256[#187,D7D7AF,light\-yellow\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MAGENTA_1  =  <Color256[#201,FF00FF,magenta\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MAGENTA_2  =  <Color256[#200,FF00D7,magenta\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MAGENTA_3  =  <Color256[#163,D700AF,magenta\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MAGENTA_4  =  <Color256[#165,D700FF,magenta\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MAGENTA_5  =  <Color256[#164,D700D7,magenta\-5]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MAGENTA_6  =  <Color256[#127,AF00AF,magenta\-6]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MEDIUM_ORCHID_1  =  <Color256[#207,FF5FFF,medium\-orchid\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MEDIUM_ORCHID_2  =  <Color256[#171,D75FFF,medium\-orchid\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MEDIUM_ORCHID_3  =  <Color256[#134,AF5FD7,medium\-orchid\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MEDIUM_ORCHID_4  =  <Color256[#133,AF5FAF,medium\-orchid\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MEDIUM_PURPLE_1  =  <Color256[#141,AF87FF,medium\-purple\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MEDIUM_PURPLE_2  =  <Color256[#135,AF5FFF,medium\-purple\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MEDIUM_PURPLE_3  =  <Color256[#140,AF87D7,medium\-purple\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MEDIUM_PURPLE_4  =  <Color256[#104,8787D7,medium\-purple\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MEDIUM_PURPLE_5  =  <Color256[#98,875FD7,medium\-purple\-5]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MEDIUM_PURPLE_6  =  <Color256[#97,875FAF,medium\-purple\-6]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MEDIUM_PURPLE_7  =  <Color256[#60,5F5F87,medium\-purple\-7]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MEDIUM_SPRING_GREEN  =  <Color256[#49,00FFAF,medium\-spring\-green]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MEDIUM_TURQUOISE  =  <Color256[#80,5FD7D7,medium\-turquoise]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MEDIUM_VIOLET_RED  =  <Color256[#126,AF0087,medium\-violet\-red]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MISTY_ROSE_1  =  <Color256[#224,FFD7D7,misty\-rose\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B MISTY_ROSE_3  =  <Color256[#181,D7AFAF,misty\-rose\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B NAVAJO_WHITE_1  =  <Color256[#223,FFD7AF,navajo\-white\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B NAVAJO_WHITE_3  =  <Color256[#144,AFAF87,navajo\-white\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B NAVY_BLUE  =  <Color256[#17,00005F,navy\-blue]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B ORANGE_1  =  <Color256[#214,FFAF00,orange\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B ORANGE_2  =  <Color256[#172,D78700,orange\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B ORANGE_3  =  <Color256[#94,875F00,orange\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B ORANGE_4  =  <Color256[#58,5F5F00,orange\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B ORANGE_RED_1  =  <Color256[#202,FF5F00,orange\-red\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B ORCHID_1  =  <Color256[#213,FF87FF,orchid\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B ORCHID_2  =  <Color256[#212,FF87D7,orchid\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B ORCHID_3  =  <Color256[#170,D75FD7,orchid\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PALE_GREEN_1  =  <Color256[#121,87FFAF,pale\-green\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PALE_GREEN_2  =  <Color256[#156,AFFF87,pale\-green\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PALE_GREEN_3  =  <Color256[#114,87D787,pale\-green\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PALE_GREEN_4  =  <Color256[#77,5FD75F,pale\-green\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PALE_TURQUOISE_1  =  <Color256[#159,AFFFFF,pale\-turquoise\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PALE_TURQUOISE_4  =  <Color256[#66,5F8787,pale\-turquoise\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PALE_VIOLET_RED_1  =  <Color256[#211,FF87AF,pale\-violet\-red\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PINK_1  =  <Color256[#218,FFAFD7,pink\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PINK_3  =  <Color256[#175,D787AF,pink\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PLUM_1  =  <Color256[#219,FFAFFF,plum\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PLUM_2  =  <Color256[#183,D7AFFF,plum\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PLUM_3  =  <Color256[#176,D787D7,plum\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PLUM_4  =  <Color256[#96,875F87,plum\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PURPLE  =  <Color256[#129,AF00FF,purple]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PURPLE_2  =  <Color256[#93,8700FF,purple\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PURPLE_3  =  <Color256[#56,5F00D7,purple\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PURPLE_4  =  <Color256[#55,5F00AF,purple\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B PURPLE_6  =  <Color256[#54,5F0087,purple\-6]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B RED_1  =  <Color256[#196,FF0000,red\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B RED_3  =  <Color256[#160,D70000,red\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B RED_4  =  <Color256[#124,AF0000,red\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B ROSY_BROWN  =  <Color256[#138,AF8787,rosy\-brown]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B ROYAL_BLUE_1  =  <Color256[#63,5F5FFF,royal\-blue\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SALMON_1  =  <Color256[#209,FF875F,salmon\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SANDY_BROWN  =  <Color256[#215,FFAF5F,sandy\-brown]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SEA_GREEN_1  =  <Color256[#85,5FFFAF,sea\-green\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SEA_GREEN_2  =  <Color256[#84,5FFF87,sea\-green\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SEA_GREEN_3  =  <Color256[#78,5FD787,sea\-green\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SEA_GREEN_4  =  <Color256[#83,5FFF5F,sea\-green\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SKY_BLUE_1  =  <Color256[#117,87D7FF,sky\-blue\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SKY_BLUE_2  =  <Color256[#111,87AFFF,sky\-blue\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SKY_BLUE_3  =  <Color256[#74,5FAFD7,sky\-blue\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SLATE_BLUE_1  =  <Color256[#99,875FFF,slate\-blue\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SLATE_BLUE_2  =  <Color256[#62,5F5FD7,slate\-blue\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SLATE_BLUE_3  =  <Color256[#61,5F5FAF,slate\-blue\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SPRING_GREEN_1  =  <Color256[#48,00FF87,spring\-green\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SPRING_GREEN_2  =  <Color256[#47,00FF5F,spring\-green\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SPRING_GREEN_3  =  <Color256[#41,00D75F,spring\-green\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SPRING_GREEN_4  =  <Color256[#29,00875F,spring\-green\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SPRING_GREEN_5  =  <Color256[#35,00AF5F,spring\-green\-5]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B SPRING_GREEN_6  =  <Color256[#42,00D787,spring\-green\-6]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B STEEL_BLUE  =  <Color256[#67,5F87AF,steel\-blue]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B STEEL_BLUE_1  =  <Color256[#81,5FD7FF,steel\-blue\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B STEEL_BLUE_2  =  <Color256[#75,5FAFFF,steel\-blue\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B STEEL_BLUE_3  =  <Color256[#68,5F87D7,steel\-blue\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B TAN  =  <Color256[#180,D7AF87,tan]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B THISTLE_1  =  <Color256[#225,FFD7FF,thistle\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B THISTLE_3  =  <Color256[#182,D7AFD7,thistle\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B TURQUOISE_2  =  <Color256[#45,00D7FF,turquoise\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B TURQUOISE_4  =  <Color256[#30,008787,turquoise\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B VIOLET  =  <Color256[#177,D787FF,violet]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B WHEAT_1  =  <Color256[#229,FFFFAF,wheat\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B WHEAT_4  =  <Color256[#101,87875F,wheat\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B YELLOW_1  =  <Color256[#226,FFFF00,yellow\-1]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B YELLOW_2  =  <Color256[#190,D7FF00,yellow\-2]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B YELLOW_3  =  <Color256[#184,D7D700,yellow\-3]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B YELLOW_4  =  <Color256[#106,87AF00,yellow\-4]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B YELLOW_5  =  <Color256[#148,AFD700,yellow\-5]>
+.UNINDENT
+.INDENT 7.0
+.TP
+.B YELLOW_6  =  <Color256[#100,878700,yellow\-6]>
+.UNINDENT
 .UNINDENT
 .SS renderer
 .sp
@@ -7091,24 +8397,24 @@ Customizing of rendering mode can be accomplished in two ways:
 .INDENT 3.5
 .INDENT 0.0
 .IP a. 3
-Method \fI\%RendererManager.set_default()\fP sets the default renderer globally.
+Method \fBRendererManager.set_default()\fP sets the default renderer globally.
 After that calling \fI\%text.render()\fP will automatically invoke a said renderer
 and all formatting will be applied.
 .IP b. 3
-Alternatively, you can use renderer\(aqs own instance method \fBrender()\fP
+Alternatively, you can use renderer’s own instance method \fBrender()\fP
 directly and avoid messing up with the manager:
 \fI\%HtmlRenderer.render()\fP\&.
 .UNINDENT
 .UNINDENT
 .UNINDENT
 .sp
-Generally speaking, if you need to invoke a custom renderer just once, it\(aqs
+Generally speaking, if you need to invoke a custom renderer just once, it’s
 convenient to use the second method for this case and use the global one
 in all the others.
 .sp
 On the contrary, if there is a necessity to use more than one renderer
-alternatingly, it\(aqs better to avoid using the global one at all, and just
-instantiate and invoke two renderers independently.
+alternatingly, it’s better to avoid using the global one at all, and just
+instantiate and invoke two _get_renderers independently.
 .sp
 TL;DR
 .sp
@@ -7125,81 +8431,32 @@ this:
 .fi
 .INDENT 0.0
 .TP
-.B class  pytermor.renderer.RendererManager
+.B class  pytermor.renderer.AbstractRenderer
+Renderer interface.
 .INDENT 7.0
 .TP
-.B classmethod  set_default(renderer=None)
-Select a global renderer.
-.sp
-.nf
-.ft C
->>> RendererManager.set_default(DebugRenderer)
->>> render(\(aqtext\(aq, Style(fg=\(aqred\(aq))
-\(aq|ǝ31|text|ǝ39|\(aq
-.ft P
-.fi
+.B abstract  property  is_format_allowed:  bool
 .INDENT 7.0
 .TP
-.B Parameters
-\fBrenderer\fP (\fI\%AbstractRenderer\fP\fI | \fP\fIt.Type\fP\fI[\fP\fI\%AbstractRenderer\fP\fI]\fP) \-\- 
-.sp
-Default renderer to use globally. Calling this method without arguments
-will result in library default renderer \fI\%SgrRenderer\fP being set as default.
-.sp
-All the methods with the \fBrenderer\fP argument (e.g., \fI\%text.render()\fP)
-will use the global default one if said argument is omitted or set to \fINone\fP\&.
-.sp
-You can specify either the renderer class, in which case manager will
-instantiate it with the default parameters, or provide already instantiated
-and set up renderer, which will be registred as global.
+.B Returns
 
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
-.B classmethod  get_default()
-Get global renderer instance (\fI\%SgrRenderer\fP, or the one provided with
-\fI\%set_default()\fP).
-.INDENT 7.0
-.TP
-.B Return type
-\fI\%AbstractRenderer\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  set_default_to_force_formatting()
-Shortcut for forcing all control sequences to be present in the
-output of a global renderer.
-.sp
-Note that it applies only to the renderer that is set up as default at
-the moment of calling this method, i.e., all previously created instances,
-as well as the ones that will be created afterwards, are unaffected.
-.UNINDENT
-.INDENT 7.0
-.TP
-.B classmethod  set_default_to_disable_formatting()
-Shortcut for disabling all output formatting of a global renderer.
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B class  pytermor.renderer.AbstractRenderer
-Renderer interface.
-.INDENT 7.0
-.TP
-.B abstract  render(string, style=Style[NOP])
-Apply colors and attributes described in \fBstyle\fP argument to
-\fBstring\fP and return the result. Output format depends on renderer\(aqs
+.B abstract  render(string, fmt=<Style[NOP]>)
+Apply colors and attributes described in \fBfmt\fP argument to
+\fBstring\fP and return the result. Output format depends on renderer’s
 class, which defines the implementation.
 .INDENT 7.0
 .TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBstring\fP (\fIAny\fP) \-\- String to format.
+\fBstring\fP (\fIt.Any\fP) – String to format.
 .IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- Style to apply.
+\fBfmt\fP (\fI\%Color\fP\fI | \fP\fIStyle\fP) – Style or color to apply. If \fBfmt\fP is a \fI\%Color\fP instance,
+it is assumed to be a foreground color.
 .UNINDENT
 .TP
 .B Returns
@@ -7214,36 +8471,36 @@ str
 .INDENT 0.0
 .TP
 .B class  pytermor.renderer.OutputMode(value)
-Bases: \fBIntEnum\fP
+Bases: \fBEnum\fP
 .sp
 Determines what types of SGR sequences are allowed to use in the output.
 .INDENT 7.0
 .TP
-.B NO_ANSI  =  1
+.B NO_ANSI  =  \(aqno_ansi\(aq
 The renderer discards all color and format information completely.
 .UNINDENT
 .INDENT 7.0
 .TP
-.B XTERM_16  =  2
+.B XTERM_16  =  \(aqxterm_16\(aq
 16\-colors mode. Enforces the renderer to approximate all color types
 to \fI\%Color16\fP and render them as basic mode selection SGR sequences
-(\fBESC[31m\fP, \fBESC[42m\fP etc). See \fI\%Color.approximate()\fP for approximation
+(\fBESC [31m\fP, \fBESC [42m\fP etc). See \fI\%Color.approximate()\fP for approximation
 algorithm details.
 .UNINDENT
 .INDENT 7.0
 .TP
-.B XTERM_256  =  3
+.B XTERM_256  =  \(aqxterm_256\(aq
 256\-colors mode. Allows the renderer to use either \fI\%Color16\fP or \fI\%Color256\fP 
 (but RGB will be approximated to 256\-color pallette).
 .UNINDENT
 .INDENT 7.0
 .TP
-.B TRUE_COLOR  =  4
+.B TRUE_COLOR  =  \(aqtrue_color\(aq
 RGB color mode. Does not apply restrictions to color rendering.
 .UNINDENT
 .INDENT 7.0
 .TP
-.B AUTO  =  5
+.B AUTO  =  \(aqauto\(aq
 Lets the renderer select the most suitable mode by itself.
 See \fI\%SgrRenderer\fP constructor documentation for the details.
 .UNINDENT
@@ -7260,7 +8517,7 @@ make render() protected (?)
 .UNINDENT
 .UNINDENT
 .sp
-Default renderer invoked by \fI\%Text.render()\fP\&. Transforms \fI\%Color\fP instances
+Default renderer invoked by \fBText.render()\fP\&. Transforms \fI\%Color\fP instances
 defined in \fBstyle\fP into ANSI control sequence bytes and merges them with
 input string. Type of resulting \fI\%SequenceSGR\fP depends on type of \fI\%Color\fP
 instances in \fBstyle\fP argument and current output mode of the renderer.
@@ -7279,8 +8536,8 @@ completely if output device is not a terminal emulator or if the developer
 explicitly set up the renderer to do so (\fI\%OutputMode.NO_ANSI\fP).
 .UNINDENT
 .sp
-Renderer approximates RGB colors to closest \fBindexed\fP colors if terminal doesn\(aqt
-support RGB output. In case terminal doesn\(aqt support even 256 colors, it
+Renderer approximates RGB colors to closest \fBindexed\fP colors if terminal doesn’t
+support RGB output. In case terminal doesn’t support even 256 colors, it
 falls back to 16\-color palette and picks closest samples again the same way.
 See \fI\%OutputMode\fP documentation for exact mappings.
 .sp
@@ -7295,7 +8552,7 @@ See \fI\%OutputMode\fP documentation for exact mappings.
 .INDENT 7.0
 .TP
 .B Parameters
-\fBoutput_mode\fP (\fI\%OutputMode\fP) \-\- 
+\fBoutput_mode\fP (\fI\%OutputMode\fP) – 
 .sp
 SGR output mode to use. Valid values are listed in \fI\%OutputMode\fP enum.
 .sp
@@ -7323,18 +8580,28 @@ Special case is when \fBTERM\fP equals to \fBxterm\-256color\fP \fBand\fP
 .UNINDENT
 .INDENT 7.0
 .TP
-.B render(string, style=Style[NOP])
-Apply colors and attributes described in \fBstyle\fP argument to
-\fBstring\fP and return the result. Output format depends on renderer\(aqs
+.B property  is_format_allowed:  bool
+.INDENT 7.0
+.TP
+.B Returns
+
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B render(string, fmt=<Style[NOP]>)
+Apply colors and attributes described in \fBfmt\fP argument to
+\fBstring\fP and return the result. Output format depends on renderer’s
 class, which defines the implementation.
 .INDENT 7.0
 .TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBstring\fP (\fIAny\fP) \-\- String to format.
+\fBstring\fP (\fIt.Any\fP) – String to format.
 .IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- Style to apply.
+\fBfmt\fP (\fI\%Color\fP\fI | \fP\fIStyle\fP) – Style or color to apply. If \fBfmt\fP is a \fI\%Color\fP instance,
+it is assumed to be a foreground color.
 .UNINDENT
 .TP
 .B Returns
@@ -7343,15 +8610,6 @@ renderer settings.
 .TP
 .B Return type
 str
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B is_sgr_usage_allowed()
-.INDENT 7.0
-.TP
-.B Return type
-bool
 .UNINDENT
 .UNINDENT
 .UNINDENT
@@ -7370,22 +8628,28 @@ tmux
 .fi
 .INDENT 7.0
 .TP
-.B STYLE_ATTR_TO_TMUX_MAP  =  {\(aqbg\(aq: \(aqbg\(aq, \(aqblink\(aq: \(aqblink\(aq, \(aqbold\(aq: \(aqbold\(aq, \(aqcrosslined\(aq: \(aqstrikethrough\(aq, \(aqdim\(aq: \(aqdim\(aq, \(aqdouble_underlined\(aq: \(aqdouble\-underscore\(aq, \(aqfg\(aq: \(aqfg\(aq, \(aqinversed\(aq: \(aqreverse\(aq, \(aqitalic\(aq: \(aqitalics\(aq, \(aqoverlined\(aq: \(aqoverline\(aq, \(aqunderlined\(aq: \(aqunderscore\(aq}
+.B property  is_format_allowed:  bool
+.INDENT 7.0
+.TP
+.B Returns
+
+.UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
-.B render(string, style=Style[NOP])
-Apply colors and attributes described in \fBstyle\fP argument to
-\fBstring\fP and return the result. Output format depends on renderer\(aqs
+.B render(string, fmt=<Style[NOP]>)
+Apply colors and attributes described in \fBfmt\fP argument to
+\fBstring\fP and return the result. Output format depends on renderer’s
 class, which defines the implementation.
 .INDENT 7.0
 .TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBstring\fP (\fIAny\fP) \-\- String to format.
+\fBstring\fP (\fIt.Any\fP) – String to format.
 .IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- Style to apply.
+\fBfmt\fP (\fI\%Color\fP\fI | \fP\fIStyle\fP) – Style or color to apply. If \fBfmt\fP is a \fI\%Color\fP instance,
+it is assumed to be a foreground color.
 .UNINDENT
 .TP
 .B Returns
@@ -7403,7 +8667,7 @@ str
 Bases: \fI\%AbstractRenderer\fP
 .sp
 Special renderer type that does nothing with the input string and just
-returns it as is. That\(aqs true only when it _is_ a str beforehand;
+returns it as is. That’s true only when it _is_ a str beforehand;
 otherwise argument will be casted to str and then returned.
 .sp
 .nf
@@ -7414,18 +8678,28 @@ otherwise argument will be casted to str and then returned.
 .fi
 .INDENT 7.0
 .TP
-.B render(string, style=Style[NOP])
-Apply colors and attributes described in \fBstyle\fP argument to
-\fBstring\fP and return the result. Output format depends on renderer\(aqs
+.B property  is_format_allowed:  bool
+.INDENT 7.0
+.TP
+.B Returns
+
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B render(string, fmt=<Style[NOP]>)
+Apply colors and attributes described in \fBfmt\fP argument to
+\fBstring\fP and return the result. Output format depends on renderer’s
 class, which defines the implementation.
 .INDENT 7.0
 .TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBstring\fP (\fIAny\fP) \-\- String to format.
+\fBstring\fP (\fIt.Any\fP) – String to format.
 .IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- Style to apply.
+\fBfmt\fP (\fI\%Color\fP\fI | \fP\fIStyle\fP) – Style or color to apply. If \fBfmt\fP is a \fI\%Color\fP instance,
+it is assumed to be a foreground color.
 .UNINDENT
 .TP
 .B Returns
@@ -7452,22 +8726,28 @@ html
 .fi
 .INDENT 7.0
 .TP
-.B DEFAULT_ATTRS  =  [\(aqcolor\(aq, \(aqbackground\-color\(aq, \(aqfont\-weight\(aq, \(aqfont\-style\(aq, \(aqtext\-decoration\(aq, \(aqborder\(aq, \(aqfilter\(aq]
+.B property  is_format_allowed:  bool
+.INDENT 7.0
+.TP
+.B Returns
+
+.UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
-.B render(string, style=Style[NOP])
-Apply colors and attributes described in \fBstyle\fP argument to
-\fBstring\fP and return the result. Output format depends on renderer\(aqs
+.B render(string, fmt=<Style[NOP]>)
+Apply colors and attributes described in \fBfmt\fP argument to
+\fBstring\fP and return the result. Output format depends on renderer’s
 class, which defines the implementation.
 .INDENT 7.0
 .TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBstring\fP (\fIAny\fP) \-\- String to format.
+\fBstring\fP (\fIt.Any\fP) – String to format.
 .IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- Style to apply.
+\fBfmt\fP (\fI\%Color\fP\fI | \fP\fIStyle\fP) – Style or color to apply. If \fBfmt\fP is a \fI\%Color\fP instance,
+it is assumed to be a foreground color.
 .UNINDENT
 .TP
 .B Returns
@@ -7481,12 +8761,12 @@ str
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.renderer.DebugRenderer(output_mode=OutputMode.AUTO)
+.B class  pytermor.renderer.SgrRendererDebugger(output_mode=OutputMode.AUTO)
 Bases: \fI\%SgrRenderer\fP
 .sp
 .nf
 .ft C
->>> DebugRenderer().render(\(aqtext\(aq, Style(fg=\(aqred\(aq, bold=True))
+>>> SgrRendererDebugger(OutputMode.XTERM_16).render(\(aqtext\(aq, Style(fg=\(aqred\(aq, bold=True))
 \(aq|ǝ1;31|text|ǝ22;39|\(aq
 .ft P
 .fi
@@ -7494,18 +8774,28 @@ Bases: \fI\%SgrRenderer\fP
 .UNINDENT
 .INDENT 7.0
 .TP
-.B render(string, style=Style[NOP])
-Apply colors and attributes described in \fBstyle\fP argument to
-\fBstring\fP and return the result. Output format depends on renderer\(aqs
+.B property  is_format_allowed:  bool
+.INDENT 7.0
+.TP
+.B Returns
+
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B render(string, fmt=<Style[NOP]>)
+Apply colors and attributes described in \fBfmt\fP argument to
+\fBstring\fP and return the result. Output format depends on renderer’s
 class, which defines the implementation.
 .INDENT 7.0
 .TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBstring\fP (\fIAny\fP) \-\- String to format.
+\fBstring\fP (\fIt.Any\fP) – String to format.
 .IP \(bu 2
-\fBstyle\fP (\fI\%Style\fP) \-\- Style to apply.
+\fBfmt\fP (\fI\%Color\fP\fI | \fP\fIStyle\fP) – Style or color to apply. If \fBfmt\fP is a \fI\%Color\fP instance,
+it is assumed to be a foreground color.
 .UNINDENT
 .TP
 .B Returns
@@ -7516,204 +8806,17 @@ renderer settings.
 str
 .UNINDENT
 .UNINDENT
-.INDENT 7.0
-.TP
-.B is_sgr_usage_allowed()
-.INDENT 7.0
-.TP
-.B Return type
-bool
-.UNINDENT
-.UNINDENT
 .UNINDENT
 .SS style
 .INDENT 0.0
 .TP
-.B class  pytermor.style.Style(parent=None, fg=None, bg=None, blink=None, bold=None, crosslined=None, dim=None, double_underlined=None, inversed=None, italic=None, overlined=None, underlined=None, class_name=None)
-Create a new \fBStyle()\fP\&. Both \fBfg\fP and \fBbg\fP can be specified as:
-.INDENT 7.0
-.INDENT 3.5
-.INDENT 0.0
-.IP 1. 3
-\fI\%Color\fP instance or library preset;
-.IP 2. 3
-\fB*str*\fP \-\- name of any of these presets, case\-insensitive;
-.IP 3. 3
-\fB*int*\fP \-\- color value in hexademical RGB format;
-.IP 4. 3
-\fINone\fP \-\- the color will be unset.
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.sp
-Inheritance \fBparent\fP \-> \fBchild\fP works this way:
-.INDENT 7.0
-.INDENT 3.5
-.INDENT 0.0
-.IP \(bu 2
-If an argument in child\(aqs constructor is empty (\fINone\fP), take value from
-\fBparent\fP\(aqs corresponding attribute.
-.IP \(bu 2
-If an argument in child\(aqs constructor is \fInot\fP empty (\fBTrue\fP,
-\fBFalse\fP, \fI\%Color\fP etc.), use it as child\(aqs attribute.
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.sp
-\fBNOTE:\fP
-.INDENT 7.0
-.INDENT 3.5
-Both empty (i.e., \fINone\fP) attributes of type \fI\%Color\fP after initialization
-will be replaced with special constant \fI\%NOOP_COLOR\fP, which behaves like
-there was no color defined, and at the same time makes it safer to work
-with nullable color\-type variables.
-.UNINDENT
-.UNINDENT
-.sp
-.nf
-.ft C
->>> Style(fg=\(aqgreen\(aq, bold=True)
-Style[fg=008000, bg=NOP, bold]
->>> Style(bg=0x0000ff)
-Style[fg=NOP, bg=0000ff]
->>> Style(fg=\(aqDeepSkyBlue1\(aq, bg=\(aqgray3\(aq)
-Style[fg=00afff, bg=080808]
-.ft P
-.fi
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBparent\fP (\fI\%Style\fP) \-\- Style to copy attributes without value from.
-.IP \(bu 2
-\fBfg\fP (\fI\%Color\fP\fI | \fP\fIint\fP\fI | \fP\fIstr\fP) \-\- Foreground (i.e., text) color.
-.IP \(bu 2
-\fBbg\fP (\fI\%Color\fP\fI | \fP\fIint\fP\fI | \fP\fIstr\fP) \-\- Background color.
-.IP \(bu 2
-\fBblink\fP (\fIbool\fP) \-\- Blinking effect; \fIsupported by limited amount of Renderers\fP\&.
-.IP \(bu 2
-\fBbold\fP (\fIbool\fP) \-\- Bold or increased intensity.
-.IP \(bu 2
-\fBcrosslined\fP (\fIbool\fP) \-\- Strikethrough.
-.IP \(bu 2
-\fBdim\fP (\fIbool\fP) \-\- Faint, decreased intensity.
-.IP \(bu 2
-\fBdouble_underlined\fP (\fIbool\fP) \-\- Faint, decreased intensity.
-.IP \(bu 2
-\fBinversed\fP (\fIbool\fP) \-\- Swap foreground and background colors.
-.IP \(bu 2
-\fBitalic\fP (\fIbool\fP) \-\- Italic.
-.IP \(bu 2
-\fBoverlined\fP (\fIbool\fP) \-\- Overline.
-.IP \(bu 2
-\fBunderlined\fP (\fIbool\fP) \-\- Underline.
-.IP \(bu 2
-\fBclass_name\fP (\fIstr\fP) \-\- Arbitary string used by some renderers, e.g. by
-\fBHtmlRenderer\fP\&.
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B renderable_attributes  =  frozenset({\(aqbg\(aq, \(aqblink\(aq, \(aqbold\(aq, \(aqcrosslined\(aq, \(aqdim\(aq, \(aqdouble_underlined\(aq, \(aqfg\(aq, \(aqinversed\(aq, \(aqitalic\(aq, \(aqoverlined\(aq, \(aqunderlined\(aq})
-.UNINDENT
-.INDENT 7.0
-.TP
-.B autopick_fg()
-Pick \fBfg_color\fP depending on \fBbg_color\fP\&. Set \fBfg_color\fP to
-either 3% gray (almost black) if background is bright, or to 80% gray
-(bright gray) if it is dark. If background is None, do nothing.
-.INDENT 7.0
-.INDENT 3.5
-.SS Todo
-.sp
-check if there is a better algorithm,
-because current thinks text on #000080 should be black
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B Returns
-self
-.TP
-.B Return type
-\fI\%Style\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B flip()
-Swap foreground color and background color.
-:return: self
-.INDENT 7.0
-.TP
-.B Return type
-\fI\%Style\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B clone()
-.INDENT 7.0
-.TP
-.B Return type
-\fI\%Style\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  fg:  \fI\%Color\fP
-.UNINDENT
-.INDENT 7.0
-.TP
-.B property  bg:  \fI\%Color\fP
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B pytermor.style.NOOP_STYLE  =  Style[NOP]
+.B pytermor.style.NOOP_STYLE  =  <Style[NOP]>
 Special style passing the text through without any modifications.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B class  pytermor.style.Styles
 Some ready\-to\-use styles. Can be used as examples.
-.INDENT 7.0
-.TP
-.B WARNING  =  Style[fg=808000, bg=NOP]
-.UNINDENT
-.INDENT 7.0
-.TP
-.B WARNING_LABEL  =  Style[fg=808000, bg=NOP, bold]
-.UNINDENT
-.INDENT 7.0
-.TP
-.B WARNING_ACCENT  =  Style[fg=ffff00, bg=NOP]
-.UNINDENT
-.INDENT 7.0
-.TP
-.B ERROR  =  Style[fg=800000, bg=NOP]
-.UNINDENT
-.INDENT 7.0
-.TP
-.B ERROR_LABEL  =  Style[fg=800000, bg=NOP, bold]
-.UNINDENT
-.INDENT 7.0
-.TP
-.B ERROR_ACCENT  =  Style[fg=ff0000, bg=NOP]
-.UNINDENT
-.INDENT 7.0
-.TP
-.B CRITICAL  =  Style[fg=ffffff, bg=ff0000]
-.UNINDENT
-.INDENT 7.0
-.TP
-.B CRITICAL_LABEL  =  Style[fg=ffffff, bg=ff0000, bold]
-.UNINDENT
-.INDENT 7.0
-.TP
-.B CRITICAL_ACCENT  =  Style[fg=ffffff, bg=ff0000, bold, blink]
-.UNINDENT
 .UNINDENT
 .SS text
 .INDENT 0.0
@@ -7723,140 +8826,66 @@ Bases: \fBSized\fP
 .sp
 Renderable abstract class. Can be inherited when the default style
 overlaps resolution mechanism implemented in \fI\%Text\fP is not good enough.
-.INDENT 7.0
-.TP
-.B abstract  render(renderer=None)
-.INDENT 7.0
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B abstract  raw()
-.INDENT 7.0
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.text.Text(string=\(aq\(aq, style=Style[NOP], close_this=True, close_prev=False)
+.B class  pytermor.text.Text(string=\(aq\(aq, fmt=<Style[NOP]>, close_this=True, close_prev=False)
 Bases: \fI\%Renderable\fP
-.INDENT 7.0
-.TP
-.B render(renderer=None)
-.INDENT 7.0
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B raw()
-.INDENT 7.0
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B append(string, style=Style[NOP], close_this=True, close_prev=False)
-.INDENT 7.0
-.TP
-.B Return type
-\fI\%Text\fP
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B prepend(string, style=Style[NOP], close_this=True, close_prev=False)
-.INDENT 7.0
-.TP
-.B Return type
-\fI\%Text\fP
-.UNINDENT
-.UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.text.TemplateEngine(custom_styles=None)
-.INDENT 7.0
-.UNINDENT
+.B pytermor.text.render(string, fmt=<Style[NOP]>, renderer=None, parse_template=False)
 .INDENT 7.0
 .TP
-.B parse(tpl)
+.B Parameters
 .INDENT 7.0
-.TP
-.B Return type
-\fI\%Text\fP
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B pytermor.text.render(string, style=Style[NOP], renderer=None)
-.INDENT 7.0
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B pytermor.text.echo(string, style=Style[NOP], renderer=None, nl=True, file=<_io.TextIOWrapper name=\(aq<stdout>\(aq mode=\(aqw\(aq encoding=\(aqutf\-8\(aq>, flush=True)
-.INDENT 7.0
-.UNINDENT
-.UNINDENT
-.SS common
-.INDENT 0.0
-.TP
-.B pytermor.common.T
-\fBt.Any\fP
-.sp
-alias of TypeVar(\(aqT\(aq)
-.UNINDENT
-.INDENT 0.0
-.TP
-.B pytermor.common.StrType
-\fI\%StrType\fP in a method signature usually means that regular strings as well as 
-\fI\%Renderable\fP implementations are supported, can be intermixed, and:
-.INDENT 7.0
-.INDENT 3.5
-.INDENT 0.0
 .IP \(bu 2
-return type will be \fIstr\fP if and only if type of all arguments is \fIstr\fP;
+\fBstring\fP (\fIt.Any\fP) – 
 .IP \(bu 2
-otherwise return type will be \fI\%Renderable\fP \-\- \fIstr\fP arguments, if any, will
-be transformed into \fI\%Renderable\fP and concatenated.
+\fBfmt\fP (\fI\%Color\fP\fI | \fP\fIStyle\fP) – 
+.IP \(bu 2
+\fBrenderer\fP (\fI\%AbstractRenderer\fP) – 
+.IP \(bu 2
+\fBparse_template\fP (\fIbool\fP) – 
 .UNINDENT
+.TP
+.B Returns
+
+.TP
+.B Return type
+str | t.List[str]
 .UNINDENT
-.UNINDENT
-.sp
-alias of TypeVar(\(aqStrType\(aq, bound=\fBUnion\fP[\fBstr\fP, \fBRenderable\fP])
 .UNINDENT
 .INDENT 0.0
 .TP
-.B exception  pytermor.common.LogicError
-Bases: \fBException\fP
-.UNINDENT
-.INDENT 0.0
-.TP
-.B exception  pytermor.common.ConflictError
-Bases: \fBException\fP
-.UNINDENT
-.INDENT 0.0
-.TP
-.B exception  pytermor.common.EmptyColorMapError(is_rgb)
-Bases: \fBRuntimeError\fP
+.B pytermor.text.echo(string=\(aq\(aq, fmt=<Style[NOP]>, renderer=None, parse_template=False, nl=True, file=<_io.TextIOWrapper name=\(aq<stdout>\(aq mode=\(aqw\(aq encoding=\(aqutf\-8\(aq>, flush=True, wrap=False, indent_first=0, indent_subseq=0)
 .INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBstring\fP (\fIt.Any\fP) – 
+.IP \(bu 2
+\fBfmt\fP (\fI\%Color\fP\fI | \fP\fIStyle\fP) – 
+.IP \(bu 2
+\fBrenderer\fP (\fI\%AbstractRenderer\fP) – 
+.IP \(bu 2
+\fBparse_template\fP (\fIbool\fP) – 
+.IP \(bu 2
+\fBnl\fP (\fIbool\fP) – 
+.IP \(bu 2
+\fBfile\fP (\fIt.IO\fP) – 
+.IP \(bu 2
+\fBflush\fP (\fIbool\fP) – 
+.IP \(bu 2
+\fBwrap\fP (\fIbool\fP\fI | \fP\fIint\fP) – 
+.IP \(bu 2
+\fBindent_first\fP (\fIint\fP) – 
+.IP \(bu 2
+\fBindent_subseq\fP (\fIint\fP) – 
 .UNINDENT
 .UNINDENT
-.SS index_16
-.SS index_256
-.SS index_rgb
+.UNINDENT
 .SS utilnum
 .INDENT 0.0
 .TP
@@ -7924,7 +8953,7 @@ New in version 1.7.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.utilnum.format_si_metric(value, unit=\(aqm\(aq)
+.B pytermor.utilnum.format_si_metric(value, unit=\(aqm\(aq, join=True)
 Format \fBvalue\fP as meters with SI\-prefixes, max result length is
 7 chars: 4 for value plus 3 for default unit, prefix and
 separator. Base is 1000. Unit can be customized.
@@ -7951,13 +8980,16 @@ from approximately 10^\-27 to 10^27.
 \fBvalue\fP (\fIfloat\fP) \-\- Input value (unitless).
 .IP \(bu 2
 \fBunit\fP (\fIstr\fP) \-\- Value unit, printed right after the prefix.
+.IP \(bu 2
+\fBjoin\fP (\fIbool\fP) \-\- Return the result as a string if set to \fITrue\fP,
+or as a (num, sep, unit) tuple otherwise.
 .UNINDENT
 .TP
 .B Returns
 Formatted string with SI\-prefix if necessary.
 .TP
 .B Return type
-str
+str | Tuple[str, str, str]
 .UNINDENT
 .sp
 New in version 2.0.
@@ -7965,7 +8997,7 @@ New in version 2.0.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.utilnum.format_si_binary(value, unit=\(aqb\(aq)
+.B pytermor.utilnum.format_si_binary(value, unit=\(aqb\(aq, join=True)
 Format \fBvalue\fP as binary size (bytes, kbytes, Mbytes), max
 result length is 8 chars: 5 for value plus 3 for default unit,
 prefix and separator. Base is 1024. Unit can be customized.
@@ -7990,13 +9022,16 @@ prefix and separator. Base is 1024. Unit can be customized.
 \fBvalue\fP (\fIfloat\fP) \-\- Input value in bytes.
 .IP \(bu 2
 \fBunit\fP (\fIstr\fP) \-\- Value unit, printed right after the prefix.
+.IP \(bu 2
+\fBjoin\fP (\fIbool\fP) \-\- Return the result as a string if set to \fITrue\fP,
+or as a (num, sep, unit) tuple otherwise.
 .UNINDENT
 .TP
 .B Returns
 Formatted string with SI\-prefix if necessary.
 .TP
 .B Return type
-str
+str | Tuple[str, str, str]
 .UNINDENT
 .sp
 New in version 2.0.
@@ -8049,7 +9084,7 @@ is \fBmax_value_len\fP, which is a different parameter.
 .UNINDENT
 .INDENT 7.0
 .TP
-.B format(value, unit=None)
+.B format(value, unit=None, join=True)
 .INDENT 7.0
 .TP
 .B Parameters
@@ -8057,14 +9092,17 @@ is \fBmax_value_len\fP, which is a different parameter.
 .IP \(bu 2
 \fBvalue\fP (\fIfloat\fP) \-\- Input value
 .IP \(bu 2
-\fBunit\fP (\fIOptional\fP\fI[\fP\fIstr\fP\fI]\fP) \-\- Unit override
+\fBunit\fP (\fIstr\fP) \-\- Unit override
+.IP \(bu 2
+\fBjoin\fP (\fIbool\fP) \-\- Return the result as a string if set to \fITrue\fP,
+or as a (num, sep, unit) tuple otherwise.
 .UNINDENT
 .TP
 .B Returns
 Formatted value
 .TP
 .B Return type
-str
+str | Tuple[str, str, str]
 .UNINDENT
 .UNINDENT
 .UNINDENT
@@ -8254,26 +9292,6 @@ str | None
 .B class  pytermor.utilnum.TimeUnit(name:  \(aqstr\(aq, in_next:  \(aqint\(aq  =  None, custom_short:  \(aqstr\(aq  =  None, collapsible_after:  \(aqint\(aq  =  None, overflow_afer:  \(aqint\(aq  =  None)
 .INDENT 7.0
 .UNINDENT
-.INDENT 7.0
-.TP
-.B name:  str
-.UNINDENT
-.INDENT 7.0
-.TP
-.B in_next:  int  =  None
-.UNINDENT
-.INDENT 7.0
-.TP
-.B custom_short:  str  =  None
-.UNINDENT
-.INDENT 7.0
-.TP
-.B collapsible_after:  int  =  None
-.UNINDENT
-.INDENT 7.0
-.TP
-.B overflow_afer:  int  =  None
-.UNINDENT
 .UNINDENT
 .SS utilstr
 .sp
@@ -8387,44 +9405,35 @@ str
 .UNINDENT
 .INDENT 0.0
 .TP
-.B pytermor.utilstr.apply_filters(s, *args)
-Method for applying dynamic filter list to a target string/bytes.
-Example (will replace all \fBESC\fP control characters to \fBE\fP and
-thus make SGR params visible):
+.B pytermor.utilstr.wrap_sgr(raw_input, width, indent_first=0, indent_subseq=0)
+A workaround to make standard library \fBtextwrap.wrap()\fP more friendly
+to an SGR\-formatted strings.
 .sp
-.nf
-.ft C
->>> apply_filters(f\(aq{SeqIndex.RED}test{SeqIndex.COLOR_OFF}\(aq, ReplaceSGR(r\(aqE\e2\e3\e4\(aq))
-\(aqE[31mtestE[39m\(aq
-.ft P
-.fi
-.sp
-Note that type of \fBs\fP argument must be same as \fBStringFilter\fP parameterized
-type, i.e. \fI\%ReplaceNonAsciiBytes\fP is \fBStringFilter[bytes]\fP type, so
-you can apply it only to bytes\-type strings.
+The main idea is
 .INDENT 7.0
 .TP
 .B Parameters
 .INDENT 7.0
 .IP \(bu 2
-\fBs\fP (\fIST\fP) \-\- String to filter.
+\fBraw_input\fP (\fIstr\fP\fI | \fP\fIlist\fP\fI[\fP\fIstr\fP\fI]\fP) \-\- 
 .IP \(bu 2
-\fBargs\fP (\fI\%StringFilter\fP\fI | \fP\fIType\fP\fI[\fP\fI\%StringFilter\fP\fI]\fP) \-\- \fI\%StringFilter\fP instance(s) or \fBStringFilter\fP class(es).
+\fBwidth\fP (\fIint\fP) \-\- 
 .UNINDENT
 .TP
 .B Returns
-Filtered \fBs\fP\&.
+
 .TP
 .B Return type
-ST
+str
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.utilstr.StringFilter(pattern, repl)
-Bases: \fBGeneric\fP[\fBST\fP]
+.B class  pytermor.utilstr.OmniFilter(*args, **kwds)
+Bases: \fBGeneric\fP[\fBIT\fP, \fBOT\fP]
 .sp
-Common string modifier interface.
+Main idea is to provide a common interface for string filtering, that can make
+possible working with filters like with objects rather than with functions/lambdas.
 .INDENT 7.0
 .TP
 .B __call__(s)
@@ -8432,49 +9441,119 @@ Can be used instead of \fI\%apply()\fP
 .INDENT 7.0
 .TP
 .B Return type
-\fIST\fP
+\fIOT\fP
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
 .TP
-.B apply(s)
+.B apply(inp)
+.INDENT 7.0
+.TP
+.B Parameters
+\fBinp\fP (\fIIT\fP) \-\- 
+.TP
+.B Returns
+
+.TP
+.B Return type
+\fIOT\fP
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.utilstr.NoopFilter(*args, **kwds)
+Bases: \fI\%OmniFilter\fP[\fBIT\fP, \fBOT\fP]
+.INDENT 7.0
+.TP
+.B apply(inp)
+.INDENT 7.0
+.TP
+.B Parameters
+\fBinp\fP (\fIIT\fP) \-\- 
+.TP
+.B Returns
+
+.TP
+.B Return type
+\fIOT\fP
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.utilstr.OmniDecoder(*args, **kwds)
+Bases: \fI\%OmniFilter\fP[\fBIT\fP, \fBstr\fP]
+.INDENT 7.0
+.TP
+.B apply(inp)
+.INDENT 7.0
+.TP
+.B Parameters
+\fBinp\fP (\fIIT\fP) \-\- 
+.TP
+.B Returns
+
+.TP
+.B Return type
+str
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.utilstr.OmniEncoder(*args, **kwds)
+Bases: \fI\%OmniFilter\fP[\fBIT\fP, \fBbytes\fP]
+.INDENT 7.0
+.TP
+.B apply(inp)
+.INDENT 7.0
+.TP
+.B Parameters
+\fBinp\fP (\fIIT\fP) \-\- 
+.TP
+.B Returns
+
+.TP
+.B Return type
+bytes
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.utilstr.OmniReplacer(pattern, repl)
+Bases: \fI\%OmniFilter\fP[\fBIT\fP, \fBOT\fP]
+.sp
+\&.
+.INDENT 7.0
+.TP
+.B apply(inp)
 Apply filter to \fBs\fP string (or bytes).
 .INDENT 7.0
 .TP
 .B Return type
-\fIST\fP
+\fIOT\fP
 .UNINDENT
 .UNINDENT
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.utilstr.VisualuzeWhitespace(repl=\(aq·\(aq)
-Bases: \fI\%StringFilter\fP[\fBstr\fP]
-.sp
-Replace every invisible character with \fBrepl\fP (default is \fB·\fP),
-except newlines. Newlines are kept and get_by_code prepneded with same string.
-.sp
-.nf
-.ft C
->>> VisualuzeWhitespace().apply(\(aqA  B  C\(aq)
-\(aqA··B··C\(aq
->>> apply_filters(\(aq1. D\en2. L \(aq, VisualuzeWhitespace)
-\(aq1.·D·\en2.·L·\(aq
-.ft P
-.fi
-.INDENT 7.0
-.TP
-.B Parameters
-\fBrepl\fP \-\- 
-.UNINDENT
+.B class  pytermor.utilstr.StringReplacer(pattern, repl)
+Bases: \fI\%OmniReplacer\fP[\fBstr\fP, \fBstr\fP]
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.utilstr.ReplaceSGR(repl=\(aq\(aq)
-Bases: \fI\%StringFilter\fP[\fBstr\fP]
+.B class  pytermor.utilstr.BytesReplacer(pattern, repl)
+Bases: \fI\%OmniReplacer\fP[\fBbytes\fP, \fBbytes\fP]
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.utilstr.SgrStringReplacer(repl=\(aq\(aq)
+Bases: \fI\%StringReplacer\fP
 .sp
-Find all SGR seqs (e.g. \fBESC[1;4m\fP) and replace with given string. More
-specific version of \fI\%ReplaceCSI\fP\&.
+Find all SGR seqs (e.g. \fBESC\fP\fB[1;4m\fP) and replace with given string. More
+specific version of \fBCsiReplacer\fP\&.
 .INDENT 7.0
 .TP
 .B Parameters
@@ -8483,11 +9562,11 @@ specific version of \fI\%ReplaceCSI\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.utilstr.ReplaceCSI(repl=\(aq\(aq)
-Bases: \fI\%StringFilter\fP[\fBstr\fP]
+.B class  pytermor.utilstr.CsiStringReplacer(repl=\(aq\(aq)
+Bases: \fI\%StringReplacer\fP
 .sp
-Find all CSI seqs (i.e. starting with \fBESC[\fP) and replace with given
-string. Less specific version of \fI\%ReplaceSGR\fP, as CSI consists of SGR
+Find all CSI seqs (i.e. starting with \fBESC\fP\fB[\fP) and replace with given
+string. Less specific version of \fBSgrReplacer\fP, as CSI consists of SGR
 and many other sequence subtypes.
 .INDENT 7.0
 .TP
@@ -8497,14 +9576,110 @@ and many other sequence subtypes.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.utilstr.ReplaceNonAsciiBytes(repl=b\(aq?\(aq)
-Bases: \fI\%StringFilter\fP[\fBbytes\fP]
+.B class  pytermor.utilstr.WhitespacesStringReplacer(repl=\(aq\(aq, keep_newlines=True)
+Bases: \fI\%StringReplacer\fP
 .sp
-Keep 7\-bit ASCII bytes [\fB0x00\fP \- \fB0x7f\fP], replace other to \fB?\fP\&.
+Replace every invisible character with \fBrepl\fP (default is \fB·\fP),
+except newlines. Newlines are kept and get prepneded with same string by
+default, but this behaviour can be disabled with \fBkeep_newlines\fP = \fIFalse\fP\&.
+.sp
+.nf
+.ft C
+>>> WhitespacesStringReplacer(\(dq·\(dq).apply(\(aqA  B  C\(aq)
+\(aqA··B··C\(aq
+>>> apply_filters(\(aq1. D\en2. L \(aq, WhitespacesStringReplacer(keep_newlines=False))
+\(aq1.D2.L\(aq
+.ft P
+.fi
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBrepl\fP \-\- 
+.IP \(bu 2
+\fBkeep_newlines\fP \-\- 
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.utilstr.ControlCharsStringReplacer(repl=\(aq\(aq)
+Bases: \fI\%StringReplacer\fP
+.sp
+\&.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.utilstr.NonAsciiByteReplacer(repl=b\(aq\(aq)
+Bases: \fI\%BytesReplacer\fP
+.sp
+Keep 7\-bit ASCII bytes [0x00\-0x7f], replace or remove (this is a default) others.
+.sp
+.nf
+.ft C
+>>> inp = bytes((0x60, 0x70, 0x80, 0x90, 0x50))
+>>> NonAsciiByteReplacer().apply(inp)
+b\(aq\(gapP\(aq
+>>> NonAsciiByteReplacer(lambda m: b\(aq?\(aq*len(m.group())).apply(inp)
+b\(aq\(gap??P\(aq
+>>> NonAsciiByteReplacer(lambda m: f\(aq[{m.group().hex()}]\(aq.encode()).apply(inp)
+b\(aq\(gap[8090]P\(aq
+.ft P
+.fi
 .INDENT 7.0
 .TP
 .B Parameters
 \fBrepl\fP \-\- Replacement byte\-string.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.utilstr.OmniSanitizer(repl=b\(aq\(aq)
+Bases: \fI\%OmniReplacer\fP[\fBIT\fP, \fBbytes\fP]
+.INDENT 7.0
+.TP
+.B apply(inp)
+Apply filter to \fBs\fP string (or bytes).
+.INDENT 7.0
+.TP
+.B Return type
+bytes
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.utilstr.apply_filters(string, *args)
+Method for applying dynamic filter list to a target string/bytes.
+Example (will replace all \fBESC\fP control characters to \fBE\fP and
+thus make SGR params visible):
+.sp
+.nf
+.ft C
+>>> apply_filters(f\(aq{SeqIndex.RED}test{SeqIndex.COLOR_OFF}\(aq, SgrStringReplacer(r\(aqE\e2\e3\e4\(aq))
+\(aqE[31mtestE[39m\(aq
+.ft P
+.fi
+.sp
+Note that type of \fBs\fP argument must be same as \fBStringFilter\fP parameterized
+type, i.e. \fBReplaceNonAsciiBytes\fP is \fBStringFilter\fP type, so
+you can apply it only to bytes\-type strings.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBstring\fP (\fIIT\fP) \-\- String to filter.
+.IP \(bu 2
+\fBargs\fP (\fIUnion\fP\fI[\fP\fI\%OmniFilter\fP\fI[\fP\fIIT\fP\fI, \fP\fIOT\fP\fI]\fP\fI, \fP\fIType\fP\fI[\fP\fI\%OmniFilter\fP\fI[\fP\fIIT\fP\fI, \fP\fIOT\fP\fI]\fP\fI]\fP\fI]\fP) \-\- \fI\%OmniFilter\fP instance(s) or \fBOmniFilter\fP type(s).
+.UNINDENT
+.TP
+.B Returns
+Filtered \fBs\fP\&.
+.TP
+.B Return type
+\fIOT\fP
 .UNINDENT
 .UNINDENT
 .SS utilsys
@@ -8559,7 +9734,7 @@ int
 .IP \(bu 2
 Complete library rewrite.
 .IP \(bu 2
-High\-level abstractions \fI\%Color\fP, \fI\%Renderer\fP and \fI\%Style\fP\&.
+High\-level abstractions \fI\%Color\fP, \fI\%Renderer\fP and \fBStyle\fP\&.
 .IP \(bu 2
 Unit tests for formatters and new modules.
 .IP \(bu 2

@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import inspect
+import typing
 from typing import Type, Callable, TypeVar, Union
 import logging
 
@@ -33,6 +34,14 @@ StrType = TypeVar("StrType", bound=Union[str, "Renderable"])
       be transformed into `Renderable` and concatenated.
 
 """
+
+
+def get_qname(obj: typing.Any) -> str:
+    if isinstance(obj, type):
+        return obj.__qualname__
+    if isinstance(obj, object):
+        return obj.__class__.__qualname__
+    return str(obj)
 
 
 class LogicError(Exception):
