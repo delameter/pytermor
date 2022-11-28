@@ -154,7 +154,7 @@ docs: demolish-docs docs-html
 docs-html: ## Build HTML documentation  <caching allowed>
 	mkdir -p docs-build
 	if ! ${VENV_PATH}/bin/sphinx-build docs docs/_build -b html -n ; then \
-    	notify-send -i cancel pytermor 'HTML docs build failed ${NOW}' && \
+    	notify-send -i important pytermor 'HTML docs build failed ${NOW}' && \
     	return 1 ; \
     fi
 	if [ -d localhost ] ; then \
@@ -162,7 +162,7 @@ docs-html: ## Build HTML documentation  <caching allowed>
 		cp -auv docs/_build/* ${LOCALHOST_WRITE_PATH}/docs/ ; \
     fi
 	#find docs/_build -type f -name '*.html' | sort | xargs -n1 grep -HnT ^ | sed s@^docs/_build/@@ > docs-build/${PROJECT_NAME}.html.dump
-	if command -v notify-send ; then notify-send -i ${PWD}/docs/_static_src/logo-white-bg.svg pytermor 'HTML docs updated ${NOW}' ; fi
+	if command -v notify-send ; then notify-send -i ${PWD}/docs/_static_src/logo-white-bg.svg 'pytermor ${VERSION}' 'HTML docs updated ${NOW}' ; fi
 
 docs-pdf: ## Build PDF documentation  <caching allowed>
 	mkdir -p docs-build

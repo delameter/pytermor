@@ -183,6 +183,31 @@ codecs.register_error("replace_with_qmark", lambda e: ("?", e.start + 1))
 
 # -----------------------------------------------------------------------------
 
+ESCAPE_SEQUENCE_SREGEX = re.compile(r"""
+    (?P<escape_char>\x1b)
+    (?P<data>
+      (?P<nf_class_seq>
+        (?P<nf_interm>[\x20-\x2f]+)
+        (?P<nf_final>[\x30-\x7e])
+      )|
+      (?P<fp_class_seq>
+        (?P<fp_classifier>[\x30-\x3f])
+        (?P<fp_params>[\x20-\x7e]*)
+        (?P<fp_terminator>)
+      )|
+      (?P<fe_class_seq>
+        (?P<fe_classifier>[\x40-\x5f])
+        (?P<fe_params>[\x30-\x3f]*)
+        (?P<fe_termintaor>[\x40-\x5a])
+      )|
+      (?P<fs_class_seq>
+        (?P<fs_classifier>[\x60-\x7e])
+        (?P<fs_params>[\x20-\x7e]*)
+        (?P<fs_termintaor>)
+      )  
+    )
+""", flags=re.VERBOSE)
+# https://ecma-international.org/wp-content/uploads/ECMA-35_6th_edition_december_1994.pdf
 
 SGR_SEQ_SREGEX = re.compile(r"(\x1b)(\[)([0-9;]*)(m)")
 CONTROL_SREGEX = re.compile(r"([\x00-\x09\x0b-\x1f\x7f]+)")
@@ -191,8 +216,9 @@ CONTROL_AND_NON_ASCII_BREGEX = re.compile(br"([\x00-\x09\x0b-\x1f\x7f\x80-\xff]+
 
 IT = t.TypeVar("IT", str, bytes)  # input type
 OT = t.TypeVar("OT", str, bytes)  # output type
-PT = Union[OT, t.Pattern[OT]]   # pattern type (=output)
-RT = Union[OT, t.Callable[[t.Match[OT]], OT]]  # replacer type (=output)
+AT = t.TypeVar("AT", str, bytes)  # type of pattern and replacer, which should be the same
+PT = Union[AT, t.Pattern[AT]]   # pattern type (=output)
+RT = Union[AT, t.Callable[[t.Match[AT]], AT]]  # replacer type (=output)
 FT = Union['OmniFilter[IT, OT]', t.Type['OmniFilter[IT, OT]']]  # filter type (any)
 
 
@@ -220,43 +246,66 @@ class OmniFilter(t.Generic[IT, OT]):
 
 
 class NoopFilter(OmniFilter[IT, OT]):
+    """
+
+    """
     def apply(self, inp: IT) -> OT:
         return inp
 
 
 class OmniDecoder(OmniFilter[IT, str]):
+    """
+
+    """
     def apply(self, inp: IT) -> str:
         return inp.decode() if isinstance(inp, bytes) else inp
 
 
 class OmniEncoder(OmniFilter[IT, bytes]):
+    """
+    """
     def apply(self, inp: IT) -> bytes:
         return inp.encode() if isinstance(inp, str) else inp
 
 
-class OmniReplacer(OmniFilter[IT, OT]):
+class OmniReplacer(OmniFilter[IT, IT]):
     """."""
 
     def __init__(self, pattern: PT, repl: RT):
         if isinstance(pattern, (str, bytes)):
-            self._pattern: t.Pattern[OT] = re.compile(pattern)
+            self._pattern: t.Pattern[AT] = re.compile(pattern)
         else:
-            self._pattern: t.Pattern[OT] = pattern
+            self._pattern: t.Pattern[AT] = pattern
         self._repl = repl
 
-    def apply(self, inp: IT) -> OT:
+    def apply(self, inp: IT) -> IT:
         """Apply filter to ``s`` string (or bytes)."""
-        target: t.Type[OT] = type(self._pattern.pattern)
-        inp_transcoded: OT = self._transcode(inp, target)
-        return self._pattern.sub(self._repl, inp_transcoded)
+        target: t.Type[IT] = type(inp)
+        inp_transcoded: AT = self._transcode(inp, type(self._pattern.pattern))
+        output = self._pattern.sub(self._repl, inp_transcoded)
+        return self._transcode(output, target)
 
 
-class StringReplacer(OmniReplacer[str, str]):
+class StringReplacer(OmniReplacer[str]):
+    """
+
+    """
     pass
 
 
-class BytesReplacer(OmniReplacer[bytes, bytes]):
+class BytesReplacer(OmniReplacer[bytes]):
+    """
+
+    """
     pass
+
+
+class EscapeSequenceStringReplacer(StringReplacer):
+    """
+    """
+
+    def __init__(self, repl: RT[str] = ""):
+        super().__init__(ESCAPE_SEQUENCE_SREGEX, repl)
 
 
 class SgrStringReplacer(StringReplacer):
@@ -334,14 +383,12 @@ class NonAsciiByteReplacer(BytesReplacer):
         super().__init__(NON_ASCII_BREGEX, repl)
 
 
-class OmniSanitizer(OmniReplacer[IT, bytes]):
+class OmniSanitizer(OmniReplacer[IT]):
+    """
+
+    """
     def __init__(self, repl: RT[bytes] = b""):
         super().__init__(CONTROL_AND_NON_ASCII_BREGEX, repl)
-
-    def apply(self, inp: IT) -> bytes:
-        if isinstance(inp, str):
-            inp = inp.encode()
-        return super().apply(inp)
 
 
 def apply_filters(string: IT, *args: FT) -> OT:

@@ -24,7 +24,7 @@ class TestRendererConfiguration(unittest.TestCase):
         self.assertEqual("12345", result)
 
     def test_force_color_default(self):
-        result = pt.render("12345", Style(fg="red"), SgrRenderer(OutputMode.NO_ANSI))
+        result = pt.render("12345", Style(fg="red"), SgrRenderer(OutputMode.AUTO))
         if sys.stdout.isatty():
             self.assertEqual("\x1b[31m12345\x1b[39m", result)
         else:

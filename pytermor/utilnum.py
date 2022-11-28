@@ -201,11 +201,11 @@ def format_si_binary(value: float, unit: str = 'b', join: bool = True) -> str|Tu
     >>> format_si_binary(1010)  # 1010 b < 1 kb
     '1010 b'
     >>> format_si_binary(1080)
-    '1.055 kb'
+    '1 kb'
     >>> format_si_binary(45200)
-    '44.14 kb'
+    '44 kb'
     >>> format_si_binary(1.258 * pow(10, 6), 'bps')
-    '1.200 Mbps'
+    '1 Mbps'
 
     :param value: Input value in bytes.
     :param unit:  Value unit, printed right after the prefix.
