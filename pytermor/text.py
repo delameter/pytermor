@@ -19,7 +19,7 @@ import dataclasses
 from abc import ABCMeta, abstractmethod
 from typing import Union
 
-from .common import LogicError
+from .common import LogicError, ArgTypeError
 from .color import Color, NOOP_COLOR
 from .utilstr import ljust_sgr, rjust_sgr, center_sgr, wrap_sgr
 from .utilsys import get_preferable_wrap_width
@@ -192,7 +192,7 @@ class Text(Renderable):
         return self
 
     def __str__(self) -> str:
-        return self.render()
+        raise LogicError("Casting to str is prohibited. Explicitly call render() instead.")
 
     def __format__(self, format_spec: str) -> str:
         """
@@ -388,7 +388,7 @@ _template_engine = TemplateEngine()
 
 
 def render(
-    string: t.Any,
+    string: str|Renderable,
     fmt: Color | Style = NOOP_STYLE,
     renderer: AbstractRenderer = None,
     parse_template: bool = False,
@@ -403,25 +403,32 @@ def render(
     """
     if string == "" and fmt == NOOP_STYLE:
         return ""
+
     if parse_template:
         if isinstance(string, Text):
             raise ValueError("Template parsing is supported for raw strings only.")
         try:
-            text = _template_engine.parse(string)
+            string = _template_engine.parse(string)
         except Union[ValueError, LogicError] as e:
             string += f" [pytermor] Template parsing failed with {e}"
-            return render(string, fmt, renderer)
-        else:
-            return render(text, fmt, renderer)
-    if isinstance(string, Text) and fmt == NOOP_STYLE:
-        return string.render(renderer)
+        return render(string, fmt, renderer, parse_template=False)
+
     if isinstance(string, t.Iterable) and not isinstance(string, str):
         return [render(s, fmt, renderer, parse_template) for s in string]
-    return Text(string, fmt).render(renderer)
+
+    if isinstance(string, Text):
+        if fmt == NOOP_STYLE:
+            return string.render(renderer)
+        return Text(fmt=fmt).append(string).render(renderer)
+
+    if isinstance(string, str):
+        return Text(string, fmt).render(renderer)
+
+    raise ArgTypeError(type(string), 'string')
 
 
 def echo(
-    string: t.Any = "",
+    string:  str|Renderable,
     fmt: Color | Style = NOOP_STYLE,
     renderer: AbstractRenderer = None,
     parse_template: bool = False,

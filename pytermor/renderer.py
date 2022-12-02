@@ -133,7 +133,7 @@ class AbstractRenderer(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def render(self, string: t.Any, fmt: Color | Style = NOOP_STYLE) -> str:
+    def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
         """
         Apply colors and attributes described in ``fmt`` argument to
         ``string`` and return the result. Output format depends on renderer's
@@ -145,6 +145,10 @@ class AbstractRenderer(metaclass=ABCMeta):
         :return: String with formatting applied, or without it, depending on
                  renderer settings.
         """
+
+    def _ensure_not_renderable(self, string: t.Any):
+        if not isinstance(string, type("Renderable")):
+            raise TypeError("Renderers are not supposed to work with Renderables directly.")
 
     def clone(self: T, *args: t.Any, **kwargs: t.Any) -> T:
         return self.__class__(*args, **kwargs)
@@ -254,7 +258,7 @@ class SgrRenderer(AbstractRenderer):
     def is_format_allowed(self) -> bool:
         return self._output_mode is not OutputMode.NO_ANSI
 
-    def render(self, string: t.Any, fmt: Color | Style = NOOP_STYLE) -> str:
+    def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
         style = Style.make(fmt)
         opening_seq = (
             self._render_attributes(style, squash=True)
@@ -267,7 +271,7 @@ class SgrRenderer(AbstractRenderer):
         # will be correctly displayed regardless of implementation details of
         # user's pager, multiplexer, terminal emulator etc.
         rendered_text = ""
-        for line in str(string).splitlines(keepends=True):
+        for line in string.splitlines(keepends=True):
             rendered_text += enclose(opening_seq, line)
         return rendered_text
 
@@ -358,11 +362,11 @@ class TmuxRenderer(AbstractRenderer):
     def is_format_allowed(self) -> bool:
         return True
 
-    def render(self, string: t.Any, fmt: Color | Style = NOOP_STYLE) -> str:
+    def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
         style = Style.make(fmt)
         command_open, command_close = self._render_attributes(style)
         rendered_text = ""
-        for line in str(string).splitlines(keepends=True):
+        for line in string.splitlines(keepends=True):
             rendered_text += command_open + line + command_close
         return rendered_text
 
@@ -410,8 +414,8 @@ class NoOpRenderer(AbstractRenderer):
     def is_format_allowed(self) -> bool:
         return False
 
-    def render(self, string: t.Any, fmt: Color | Style = NOOP_STYLE) -> str:
-        return str(string)
+    def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
+        return string
 
 
 class HtmlRenderer(AbstractRenderer):
@@ -436,10 +440,10 @@ class HtmlRenderer(AbstractRenderer):
     def is_format_allowed(self) -> bool:
         return True
 
-    def render(self, string: t.Any, fmt: Color | Style = NOOP_STYLE) -> str:
+    def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
         style = Style.make(fmt)
         opening_tag, closing_tag = self._render_attributes(style)
-        return f"{opening_tag}{str(string)}{closing_tag}"  # @TODO  # attribues
+        return f"{opening_tag}{string}{closing_tag}"  # @TODO  # attribues
 
     def _render_attributes(self, style: Style = NOOP_STYLE) -> t.Tuple[str, str]:
         if style == NOOP_STYLE:
@@ -506,8 +510,8 @@ class SgrRendererDebugger(SgrRenderer):
             return self._format_override
         return super().is_format_allowed
 
-    def render(self, string: t.Any, fmt: Color | Style = NOOP_STYLE) -> str:
-        return SgrStringReplacer(r"|ǝ\3|").apply(super().render(str(string), fmt))
+    def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
+        return SgrStringReplacer(r"|ǝ\3|").apply(super().render(string, fmt))
 
     def clone(self) -> SgrRendererDebugger:
         cloned = SgrRendererDebugger(self._output_mode)
