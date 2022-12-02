@@ -449,7 +449,8 @@ def echo(
     result = render(string, fmt, renderer, parse_template)
 
     if wrap or indent_first or indent_subseq:
-        width = get_preferable_wrap_width(wrap)
+        force_width = wrap if isinstance(wrap, int) else None
+        width = get_preferable_wrap_width(force_width)
         result = wrap_sgr(result, width, indent_first, indent_subseq)
 
     print(result, end=end, file=file, flush=flush)

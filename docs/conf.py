@@ -101,8 +101,8 @@ html_theme_options = {
         },
     ],
     "light_css_variables": {
-        # "color-brand-primary": "#7C4DFF",
-        # "color-brand-content": "#7C4DFF",
+        "color-brand-primary": "#2b8cee",
+        "color-brand-content": "#2a5adf",
 
         "color-pt-doctest-background": "#f8f8f8",
         "color-pt-doctest-border": "#f0f0f0",
@@ -123,6 +123,9 @@ html_theme_options = {
         "color-pt-highlight-target-foreground": "var(--color-api-keyword)",
     },
     "dark_css_variables": {
+        "color-brand-primary": "#2b8cee",
+        "color-brand-content": "#368ce2",
+
         "color-pt-doctest-background": "#202020",
         "color-pt-doctest-border": "#282828",
         "color-pt-control-char-background": "hsla(0, 90%, 50%, .15)",

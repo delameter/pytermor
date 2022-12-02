@@ -33,7 +33,7 @@ from .renderer import HtmlRenderer as HtmlRenderer
 from .renderer import SgrRenderer as SgrRenderer
 from .text import Renderable as Renderable
 from .text import Text as Text
-from .text import TemplateEngine
+from .text import TemplateEngine as TemplateEngine
 from .text import render as render
 from .text import echo as echo
 from .utilnum import format_auto_float as format_auto_float
@@ -55,5 +55,6 @@ from .utilstr import SgrStringReplacer as SgrStringReplacer
 from .utilstr import SGR_SEQ_SREGEX as SGR_SEQ_SREGEX
 from .utilsys import get_terminal_width as get_terminal_width
 from .utilsys import get_preferable_wrap_width as get_preferable_wrap_width
-from .utilsys import total_size as total_size
+from .utilsys import confirm as confirm
 from .utilsys import wait_key as wait_key
+from .utilsys import total_size as total_size

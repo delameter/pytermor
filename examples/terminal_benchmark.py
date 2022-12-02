@@ -16,11 +16,11 @@ from timeit import timeit
 
 import pytermor as pt
 from pytermor import SgrRenderer, wait_key
+from pytermor.utilsys import confirm
+from pytermor.common import UserAbort, UserCancel
 
 
-# from es7s/core
-
-
+# from es7s/core:
 class PrefixedNumericsHighlighter:
     # fmt: off
     PREFIX_UNIT_REGEX = re.compile(
@@ -462,6 +462,13 @@ def get_test_device(mode_read) -> str:
         devstr = input(prompt)
         if not devstr:
             return dev
+
+        if not mode_read and not devstr.startswith('/dev'):
+            pt.echo(f"NOTICE: The application will write around 4.15 Gb of data in order to "
+                    f"measure speed using various buffer sizes. After the measurements the "
+                    f"file then will be truncated to zero size.", pt.Styles.WARNING, wrap=True)
+            confirm(required=True)
+
         if not mode_read and os.path.isfile(devstr):
             if not os.getenv("FORCE_OVERWRITE", None):
                 pt.echo(
@@ -475,10 +482,11 @@ def get_test_device(mode_read) -> str:
                     wrap=True,
                 )
                 devstr = "/dev/null"
-                input("Press Enter to continue")
+                confirm(required=True)
         return devstr
-    except (EOFError, KeyboardInterrupt):
-        print("\nCancelled")
+
+    except (EOFError, KeyboardInterrupt, UserAbort, UserCancel):
+        print("\nTerminating")
         raise SystemExit(126)
 
 

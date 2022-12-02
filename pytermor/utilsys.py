@@ -15,23 +15,29 @@ import os
 import sys
 import typing as t
 from collections import deque
+from io import StringIO
 from itertools import chain
 from sys import getsizeof, stderr
+
+from .common import UserAbort, UserCancel
 
 
 def get_terminal_width(default: int = 80, padding: int = 2) -> int:
     """
-    get_terminal_width
-    :return:  terminal_width
+    Return current terminal width with an optional "safety buffer".
     """
     try:
         import shutil as _shutil
+
         return _shutil.get_terminal_size().columns - padding
     except ImportError:
         return int(os.environ.get("COLUMNS", default))
 
 
-def get_preferable_wrap_width(force_width: int|bool) -> int:
+def get_preferable_wrap_width(force_width: int = None) -> int:
+    """
+    Return preferable terminal width for comfort reading of wrapped text.
+    """
     if isinstance(force_width, int) and force_width > 1:
         return force_width
     return min(120, get_terminal_width())
@@ -40,16 +46,16 @@ def get_preferable_wrap_width(force_width: int|bool) -> int:
 def wait_key() -> t.AnyStr | None:
     """
     Wait for a key press on the console and return it.
+
+    :raises: EOFError
     """
     if os.name == "nt":
         import msvcrt
 
         return msvcrt.getch()
-
     import termios
 
     fd = sys.stdin.fileno()
-
     oldterm = termios.tcgetattr(fd)
     newattr = termios.tcgetattr(fd)
     newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
@@ -65,6 +71,90 @@ def wait_key() -> t.AnyStr | None:
     return result
 
 
+def confirm(
+    attempts: int = 1,
+    default: bool = False,
+    keymap: t.Mapping[str, bool] = None,
+    prompt: str = None,
+    quiet: bool = False,
+    required: bool = False,
+) -> bool:
+    """
+    Ensure the next action is manually confirmed by user. Print the terminal
+    prompt with ``prompt`` text and wait for a keypress. Return *True*
+    if user pressed :kbd:`Y` and *False* in all the other cases (by default).
+
+    Valid keys are :kbd:`Y` and :kbd:`N` (case insensitive), while all the other keys
+    and combinations are considered invalid, and will trigger the return of the
+    ``default`` value, which is *False* if not set otherwise. In other words,
+    by default the user is expected to press either :kbd:`Y` or :kbd:`N`, and if
+    that's not the case, the confirmation request will be automatically failed.
+
+    :kbd:`Ctrl+C` instantly aborts the confirmation process regardless of attempts
+    count and raises `UserAbort`.
+
+    Example keymap (default one)::
+
+        keymap = {"y": True, "n": False}
+
+    :param attempts:  Set how many times the user is allowed to perform the
+                      input before auto-cancellation (or auto-confirmation) will
+                      occur. 1 means there will be only one attempt, the first one.
+                      When set to -1, allows to repeat the input infinitely.
+    :param default:   Default value that will be returned when user presses invalid
+                      key (e.g. :kbd:`Backspace`, :kbd:`Ctrl+Q` etc.) and his
+                      ``attempts`` counter decreases to 0. Setting this to *True*
+                      effectively means that the user's only way to deny the request
+                      is to press :kbd:`N` or :kbd:`Ctrl+C`, while all the other
+                      keys are treated as :kbd:`Y`.
+    :param keymap:    Key to result mapping.
+    :param prompt:    String to display before each input attempt. Default is:
+                      ``"Press Y to continue, N to cancel, Ctrl+C to abort: "``
+    :param quiet:     If set to *True*, suppress all messages to stdout and work
+                      silently.
+    :param required:  If set to *True*, raise `UserCancel` or `UserAbort` when
+                      user rejects to confirm current action. If set to *False*,
+                      do not raise any exceptions, just return *False*.
+    :returns:         *True* if there was a confirmation by user's input or
+                      automatically, *False* otherwise.
+    :raises: UserAbort
+    :raises: UserCancel
+    """
+    def check_required(v: bool, exc: t.Type = UserCancel):
+        if v is False and required:
+            raise exc
+        return v
+
+    if not keymap:
+        keymap = {"y": True, "n": False}
+    if prompt is None:
+        prompt = "Press Y to continue, N to cancel, Ctrl+C to abort: "
+
+    file = sys.stdout
+    if quiet:
+        file = StringIO()
+
+    while attempts != 0:
+        print(prompt, end="", flush=True, file=file)
+        try:
+            inp = wait_key()
+        except EOFError:
+            inp = None
+        except KeyboardInterrupt:
+            return check_required(False, UserAbort)
+
+        inp = (inp or "").lower()
+        print(inp, file=file)
+        if inp in keymap.keys():
+            return check_required(keymap.get(inp))
+
+        print("Invalid key", file=file)
+        attempts -= 1
+
+    print(f"Auto-{'confirming' if default else 'cancelling'} the action", file=file)
+    return check_required(default)
+
+
 # -----------------------------------------------------------------------------
 # origin: https://code.activestate.com/recipes/577504/
 
@@ -74,12 +164,14 @@ except ImportError:
     pass
 
 
-def total_size(o: t.Any, handlers: t.Dict[t.Any, t.Iterator] = None, verbose: bool = False) -> int:
-    """Returns the approximate memory footprint an object and all of its contents.
+def total_size(
+    o: t.Any, handlers: t.Dict[t.Any, t.Iterator] = None, verbose: bool = False
+) -> int:
+    """Returns the approximate memory footprint of an object and all of its contents.
 
     Automatically finds the contents of the following builtin containers and
     their subclasses:  tuple, list, deque, dict, set and frozenset.
-    To search other containers, add handlers to iterate over their contents:
+    To search other containers, add handlers to iterate over their contents::
 
         handlers = {SomeContainerClass: iter,
                     OtherContainerClass: OtherContainerClass.get_elements}

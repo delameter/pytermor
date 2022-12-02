@@ -21,10 +21,10 @@ Documentation guidelines
 
    ```SgrRenderer.render()``` |rarr| `SgrRenderer.render()`
 
-- Parameter names and string literals that include escape sequences or their fragments should be wrapped in double backticks:
+- Argument names and string literals that include escape sequences or their fragments should be wrapped in double backticks:
 
-   ````param1```` |rarr| ``param1``
+   ````arg1```` |rarr| ``arg1``
 
-   ````ESC [31m```` |rarr| ``ESC [31m``
+   ````ESC [31m ESC [m```` |rarr| ``ESC [31m ESC [m``
 
-  On the top of that, ASCII control chars should be padded with spaces for better readability. Also this will allow to apply custom styles to them.
+  On the top of that, ESC control char should be padded with spaces for better readability. This also triggers automatic application of custom style for even more visual difference.

@@ -44,6 +44,14 @@ def get_qname(obj: typing.Any) -> str:
     return str(obj)
 
 
+class UserCancel(Exception):
+    pass
+
+
+class UserAbort(Exception):
+    pass
+
+
 class LogicError(Exception):
     pass
 

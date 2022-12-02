@@ -100,7 +100,7 @@ To get the resulting sequence chars use `assemble() <SequenceSGR.assemble()>` me
 :mono:`SGR` sequence structure
 ================================
 
-1. ``ESC `` is escape *control character*, which opens a control sequence (can also be
+1. ``ESC`` is escape *control character*, which opens a control sequence (can also be
    written as ``\x1b``, ``\033`` or ``\e``).
 
 2. ``[`` is sequence *introducer*; it determines the type of control sequence (in this case
