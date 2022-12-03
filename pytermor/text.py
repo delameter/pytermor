@@ -388,7 +388,7 @@ _template_engine = TemplateEngine()
 
 
 def render(
-    string: str|Renderable,
+    string: str|Renderable = '',
     fmt: Color | Style = NOOP_STYLE,
     renderer: AbstractRenderer = None,
     parse_template: bool = False,
@@ -428,7 +428,7 @@ def render(
 
 
 def echo(
-    string:  str|Renderable,
+    string: str|Renderable = '',
     fmt: Color | Style = NOOP_STYLE,
     renderer: AbstractRenderer = None,
     parse_template: bool = False,
