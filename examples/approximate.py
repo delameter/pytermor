@@ -5,6 +5,7 @@
 # -----------------------------------------------------------------------------
 
 from __future__ import annotations
+import re
 import random
 import sys
 import typing
@@ -68,7 +69,7 @@ class Main:
                 "a string 1-6 characters long representing an integer(s) in a hexadecimal "
                 "form: 'FFFFFF' (case insensitive):",
                 "",
-                f"  python {sys.argv[0]} 3AEBA1 0bceaa 6",
+                f"  python {sys.argv[0]} 3AEBA1 0bceeb 6",
             ],
             wrap=True,
             indent_first=2,
@@ -122,11 +123,13 @@ class Main:
                     dist = 0.0
                 style = pt.Style(bg=sample_approx).autopick_fg()
             dist_str = "--" if dist is None else f"{dist:.1f}"
-            string = f" {om.name:<10s} {dist_str:>6s}  {sample_approx}"
+            sample_approx_str = re.sub("<(Color)?|>|(,)", lambda m: " " if m.group() else "", repr(sample_approx))
+            sample_approx_str = re.sub(r"^(\s*16)", r" \1", sample_approx_str)
+            string = f" {om.name:<10s} {dist_str:>6s}  {sample_approx_str}"
             results.append((string, style, renderer))
 
         prim_len = max(len(s[0]) for s in results)
-        header = " Mode".ljust(12) + " sRGB Δ".rjust(7) + "  " + "Approximated color"
+        header = " Mode".ljust(12) + " Δ".center(7) + "  " + "Approximated color"
         pt.echo(header.ljust(prim_len + 1), pt.Style(underlined=True))
 
         for string, style, renderer in results:
