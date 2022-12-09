@@ -248,7 +248,7 @@ class SgrRenderer(AbstractRenderer):
         self._output_mode = self._determine_output_mode(output_mode)
         self._color_upper_bound = self._COLOR_UPPER_BOUNDS.get(self._output_mode, None)
 
-        logger.info(
+        logger.debug(
             f"Instantiated {self.__class__.__qualname__}"
             f"({output_mode.name} -> {self._output_mode.name}, "
             f"upper bound {get_qname(self._color_upper_bound)})"

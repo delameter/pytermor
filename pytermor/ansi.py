@@ -831,11 +831,11 @@ def make_hyperlink_part(url: str = None) -> SequenceOSC:
     return SequenceOSC(IntCode.HYPERLINK, "", (url or ""))
 
 
-def assemble_hyperlink(url: str, label: str) -> str:
+def assemble_hyperlink(url: str, label: str = None) -> str:
     """
 
     :param url:
     :param label:
     :example:  ``ESC ]8;;http://localhost ESC \\Text ESC ]8;; ESC \\``
     """
-    return f"{make_hyperlink_part(url)}{label}{make_hyperlink_part()}"
+    return f"{make_hyperlink_part(url)}{label or url}{make_hyperlink_part()}"
