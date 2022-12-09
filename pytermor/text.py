@@ -22,7 +22,7 @@ from typing import Union
 from .common import LogicError, ArgTypeError, StrType
 from .color import Color, NOOP_COLOR
 from .utilstr import ljust_sgr, rjust_sgr, center_sgr, wrap_sgr
-from .utilsys import get_preferable_wrap_width
+from .utilmisc import get_preferable_wrap_width
 from .style import Style, NOOP_STYLE
 from .renderer import AbstractRenderer, RendererManager
 

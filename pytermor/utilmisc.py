@@ -11,6 +11,7 @@
 """
 from __future__ import annotations
 
+import itertools
 import os
 import sys
 import typing as t
@@ -206,3 +207,8 @@ def total_size(
         return s
 
     return sizeof(o)
+
+
+def chunk(arr_range, arr_size):
+    arr_range = iter(arr_range)
+    return iter(lambda: tuple(itertools.islice(arr_range, arr_size)), ())

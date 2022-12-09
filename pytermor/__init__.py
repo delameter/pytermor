@@ -53,8 +53,8 @@ from .utilstr import OmniDecoder as OmniDecoder
 from .utilstr import OmniSanitizer as OmniSanitizer
 from .utilstr import SgrStringReplacer as SgrStringReplacer
 from .utilstr import SGR_SEQ_SREGEX as SGR_SEQ_SREGEX
-from .utilsys import get_terminal_width as get_terminal_width
-from .utilsys import get_preferable_wrap_width as get_preferable_wrap_width
-from .utilsys import confirm as confirm
-from .utilsys import wait_key as wait_key
-from .utilsys import total_size as total_size
+from .utilmisc import get_terminal_width as get_terminal_width
+from .utilmisc import get_preferable_wrap_width as get_preferable_wrap_width
+from .utilmisc import confirm as confirm
+from .utilmisc import wait_key as wait_key
+from .utilmisc import total_size as total_size

@@ -26,7 +26,7 @@ import yaml
 import pytermor as pt
 import pytermor.cval
 import pytermor.utilstr
-import pytermor.utilsys
+import pytermor.utilmisc
 
 
 def sort_by_name(cdef: IColorRGB) -> str:

@@ -16,7 +16,7 @@ from timeit import timeit
 
 import pytermor as pt
 from pytermor import SgrRenderer, wait_key
-from pytermor.utilsys import confirm
+from pytermor.utilmisc import confirm
 from pytermor.common import UserAbort, UserCancel
 
 

@@ -214,12 +214,13 @@ CONTROL_SREGEX = re.compile(r"([\x00-\x09\x0b-\x1f\x7f]+)")
 NON_ASCII_BREGEX = re.compile(br"([\x80-\xff]+)")
 CONTROL_AND_NON_ASCII_BREGEX = re.compile(br"([\x00-\x09\x0b-\x1f\x7f\x80-\xff]+)")
 
-IT = t.TypeVar("IT", str, bytes)  # input type
-OT = t.TypeVar("OT", str, bytes)  # output type
-AT = t.TypeVar("AT", str, bytes)  # type of pattern and replacer, which should be the same
-PT = Union[AT, t.Pattern[AT]]   # pattern type (=output)
-RT = Union[AT, t.Callable[[t.Match[AT]], AT]]  # replacer type (=output)
-FT = Union['OmniFilter[IT, OT]', t.Type['OmniFilter[IT, OT]']]  # filter type (any)
+IT = t.TypeVar("IT", str, bytes)  # input-type
+OT = t.TypeVar("OT", str, bytes)  # output-type
+AT = t.TypeVar("AT", str, bytes)  # pattern and replacer internal types (should be the same)
+PT = Union[AT, t.Pattern[AT]]     # pattern wrapper type
+RT = Union[AT, t.Callable[[t.Match[AT]], AT]]  # replacer wrapper type
+AnyFilter = 'OmniFilter[IT, OT]'
+FT = Union[AnyFilter, t.Type[AnyFilter]]
 
 
 class OmniFilter(t.Generic[IT, OT]):
@@ -391,6 +392,19 @@ class OmniSanitizer(OmniReplacer[IT]):
         super().__init__(CONTROL_AND_NON_ASCII_BREGEX, repl)
 
 
+class OmniHexPrinter(OmniReplacer[IT]):
+    """
+
+    """
+
+    @staticmethod
+    def bytes_as_hex(m: t.Match[bytes]) -> bytes:
+        return b" ".join(bytes(i).hex(":").encode() for _, i in zip(range(4), m.group()))
+
+    def __init__(self):
+        super().__init__(b".+", self.bytes_as_hex)
+
+
 def apply_filters(string: IT, *args: FT) -> OT:
     """
     Method for applying dynamic filter list to a target string/bytes.
@@ -408,4 +422,6 @@ def apply_filters(string: IT, *args: FT) -> OT:
     :param args:   `OmniFilter` instance(s) or ``OmniFilter`` type(s).
     :return:       Filtered ``s``.
     """
-    return reduce(lambda s, f: f()(s) if isinstance(f, type) else f(s), args, string)
+    def instantiate(f):
+        return f() if isinstance(f, type) else f
+    return reduce(lambda s, f: instantiate(f)(s), args, string)

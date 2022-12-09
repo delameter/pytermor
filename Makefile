@@ -35,10 +35,10 @@ help:   ## Show this help
 
 
 all:   ## Prepare, run tests, generate docs and reports, build module
-all: prepare prepare-pdf auto-all test doctest coverage docs-all build
+all: reinit-venv prepare-pdf auto-all test doctest coverage docs-all build
 # CI (on push into master): prepare prepare-pdf set-version set-tag auto-all test doctest coverage docs-all build upload upload-doc?
 
-prepare:  ## Prepare environment for module building
+reinit-venv:  ## Prepare environment for module building
 	rm -vrf ${VENV_PATH}
 	if [ ! -f .env ] ; then cp -u .env.dist .env && sed -i -Ee '/^VERSION=/d' .env ; fi
 	python3 -m venv ${VENV_PATH}
@@ -51,15 +51,7 @@ prepare-pdf:  ## Prepare environment for pdf rendering
 					 texlive-latex-extra \
 					 latexmk
 
-freeze:  ## Actualize the requirements.txt file(s)  <venv>
-	${VENV_PATH}/bin/pip freeze -r requirements-dev.txt --all --exclude-editable > requirements-dev.txt.tmp
-	sed -i -Ee '/were added by pip/ s/.+//' requirements-dev.txt.tmp
-	mv requirements-dev.txt.tmp requirements-dev.txt
-
-demolish-build:  ## Purge build output folders
-	rm -f -v dist/* ${PROJECT_NAME_PUBLIC}.egg-info/* ${PROJECT_NAME_PRIVATE}.egg-info/*
-
-
+##
 ## Examples
 
 ex-list-renderers:  ## Run "list renderers" example
@@ -71,7 +63,7 @@ ex-terminal-color-mode:  ## Run "terminal color mode" example
 ex-approximate:  ## Run "approximate color" example
 	${VENV_PATH}/bin/python examples/approximate.py
 
-
+##
 ## Automation
 
 auto-all:  ## Run full cycle of automatic operations
@@ -83,8 +75,12 @@ preprocess-rgb:  ## Transform interm. RGB config to suitable for embedding
 build-cval: ## Process color configs and update library color values source file
 	${VENV_PATH}/bin/python dev/build_cval.py
 
+#update-readme: # Generate and rewrite README
+#	. venv/bin/activate
+#	PYTHONPATH=`pwd` python3 -s dev/readme/update_readme.py
 
 
+##
 ## Testing / Pre-build
 
 show-version: ## Show current package version
@@ -130,11 +126,7 @@ depends:  ## Build and display module dependency graph
 	mkdir -p ${DEPENDS_PATH}
 	./pydeps.sh ${PROJECT_NAME} ${DEPENDS_PATH}
 
-#update-readme: # Generate and rewrite README
-#	. venv/bin/activate
-#	PYTHONPATH=`pwd` python3 -s dev/readme/update_readme.py
-
-
+##
 ## Documentation
 
 reinit-docs: ## Erase and reinit docs with auto table of contents
@@ -183,8 +175,18 @@ docs-all: demolish-docs docs docs-pdf docs-man
 	@echo
 	@$(call log_success,$$(du -h docs-build/*)) | sed -E '1s/^(..).{7}/\1SUMMARY/'
 
+##
+## Building / Packaging
 
-## Releasing (dev)
+freeze:  ## Actualize the requirements.txt file(s)  <venv>
+	${VENV_PATH}/bin/pip freeze -r requirements-dev.txt --all --exclude-editable > requirements-dev.txt.tmp
+	sed -i -Ee '/were added by pip/ s/.+//' requirements-dev.txt.tmp
+	mv requirements-dev.txt.tmp requirements-dev.txt
+
+demolish-build:  ## Purge build output folders
+	rm -f -v dist/* ${PROJECT_NAME_PUBLIC}.egg-info/* ${PROJECT_NAME_PRIVATE}.egg-info/*
+
+### dev
 
 build-dev: ## Create new private build  <*-delameter>
 build-dev: demolish-build
@@ -202,8 +204,7 @@ install-dev: ## Install latest private build from dev repo
 install-dev-public: ## Install latest *public* build from dev repo
 	${VENV_PATH}/bin/pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME_PUBLIC}==${VERSION}
 
-
-## Releasing (MASTER)
+### release
 
 build: ## Create new *public* build
 build: demolish-build
@@ -215,4 +216,4 @@ upload: ## Upload latest *public* build to MASTER repo
 install: ## Install latest *public* build from MASTER repo
 	${VENV_PATH}/bin/pip install ${PROJECT_NAME_PUBLIC}==${VERSION}
 
-
+##
