@@ -21,6 +21,7 @@ from functools import reduce
 from typing import Union
 
 from .common import StrType
+from .utilmisc import chunk
 
 _PRIVATE_REPLACER = "\U000E5750"
 
@@ -399,7 +400,7 @@ class OmniHexPrinter(OmniReplacer[IT]):
 
     @staticmethod
     def bytes_as_hex(m: t.Match[bytes]) -> bytes:
-        return b" ".join(bytes(i).hex(":").encode() for _, i in zip(range(4), m.group()))
+        return " ".join(":".join([f"{b:02X}" for b in (*c,)]) for c in chunk(m.group(), 4)).encode()
 
     def __init__(self):
         super().__init__(b".+", self.bytes_as_hex)

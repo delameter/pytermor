@@ -66,13 +66,13 @@ class _TextFragment(t.Sized):
         return len(self.string)
 
     def __repr__(self):
-        props_set = [f'"{self.string}"', f"{self._style!r}"]
+        props_set = [f'"{self.string:.10s}"({len(self.string)})', f"{self._style!r}"]
         if self.close_this:
             props_set.append("close_this")
         if self.close_prev:
             props_set.append("close_prev")
 
-        return self.__class__.__name__ + "[" + ", ".join(props_set) + "]"
+        return f"<{self.__class__.__qualname__}>[" + ", ".join(props_set) + "]"
 
 
 class Text(Renderable):
@@ -193,6 +193,13 @@ class Text(Renderable):
 
     def __str__(self) -> str:
         raise LogicError("Casting to str is prohibited. Explicitly call render() instead.")
+
+    def __repr__(self) -> str:
+        result = f"<{self.__class__.__qualname__}[%s]>"
+        frags = len(self._fragments)
+        if frags == 0:
+            return result % ""
+        return result % (repr(self._fragments[0]) + f"({frags})")
 
     def __format__(self, format_spec: str) -> str:
         """
