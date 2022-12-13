@@ -25,7 +25,7 @@ from .color import Color as Color
 from .color import Color16 as Color16
 from .color import Color256 as Color256
 from .color import ColorRGB as ColorRGB
-from .cval import CValues as cval
+from .cval import CV as cval
 from .style import NOOP_STYLE as NOOP_STYLE
 from .style import Style as Style
 from .style import Styles as Styles

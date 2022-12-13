@@ -150,10 +150,10 @@ class Color(metaclass=ABCMeta):
     def _post_init(
         self: ColorType,
         code: int | None,
-        aliases: t.List[str],
-        variation_map: t.Dict[int, str],
         register: bool,
         index: bool,
+        aliases: t.List[str],
+        variation_map: t.Dict[int, str],
     ):
         self._make_variations(variation_map)
         if register:
@@ -502,15 +502,15 @@ class Color16(Color):
         code_fg: int,
         code_bg: int,
         name: str = None,
-        aliases: t.List[str] = None,
-        variation_map: t.Dict[int, str] = None,
         register: bool = False,
         index: bool = False,
+        aliases: t.List[str] = None,
+        variation_map: t.Dict[int, str] = None,
     ):
         super().__init__(hex_value, name)
         self._code_fg: int = code_fg
         self._code_bg: int = code_bg
-        self._post_init(self._code_fg, aliases, variation_map, register, index)
+        self._post_init(self._code_fg, register, index, aliases, variation_map)
 
     def to_sgr(self, bg: bool, upper_bound: t.Type[Color] = None) -> SequenceSGR:
         if bg:
@@ -580,18 +580,18 @@ class Color256(Color):
         hex_value: int,
         code: int,
         name: str = None,
-        aliases: t.List[str] = None,
-        variation_map: t.Dict[int, str] = None,
-        color16_equiv: Color16 = None,
         register: bool = False,
         index: bool = False,
+        color16_equiv: Color16 = None,
+        aliases: t.List[str] = None,
+        variation_map: t.Dict[int, str] = None,
     ):
         super().__init__(hex_value, name)
         self._code: int | None = code
         self._color16_equiv: Color16 | None = None
         if color16_equiv:
             self._color16_equiv = Color16.get_by_code(color16_equiv.code_fg)
-        self._post_init(self._code, aliases, variation_map, register, index)
+        self._post_init(self._code, register, index, aliases, variation_map)
 
     def to_sgr(self, bg: bool, upper_bound: t.Type[Color] = None) -> SequenceSGR:
         if upper_bound is ColorRGB:
@@ -641,13 +641,13 @@ class ColorRGB(Color):
         self,
         hex_value: int,
         name: str = None,
-        aliases: t.List[str] = None,
-        variation_map: t.Dict[int, str] = None,
         register: bool = False,
         index: bool = False,
+        aliases: t.List[str] = None,
+        variation_map: t.Dict[int, str] = None,
     ):
         super().__init__(hex_value, name)
-        self._post_init(None, aliases, variation_map, register, index)
+        self._post_init(None, register, index, aliases, variation_map)
 
     def to_sgr(self, bg: bool, upper_bound: t.Type[Color] = None) -> SequenceSGR:
         if upper_bound is ColorRGB or upper_bound is None:
