@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 import inspect
-import typing
 from typing import Type, Callable, TypeVar, Union
 import logging
 
@@ -36,14 +35,6 @@ StrType = TypeVar("StrType", bound=Union[str, "Renderable"])
 """
 
 
-def get_qname(obj: typing.Any) -> str:
-    if isinstance(obj, type):
-        return obj.__qualname__
-    if isinstance(obj, object):
-        return obj.__class__.__qualname__
-    return str(obj)
-
-
 class UserCancel(Exception):
     pass
 
@@ -66,6 +57,11 @@ class ArgTypeError(Exception):
     """
     def __init__(self, actual_type: Type, arg_name: str = None, fn: Callable = None):
         arg_name_str = f'"{arg_name}"' if arg_name else "argument"
+        # @todo suggestion
+        # f = inspect.currentframe()
+        # fp = f.f_back
+        # fn = getattr(fp.f_locals['self'].__class__, fp.f_code.co_name)
+        # argspec = inspect.getfullargspec(fn)
         if fn is None:
             try:
                 stacks = inspect.stack()
@@ -82,4 +78,14 @@ class ArgTypeError(Exception):
         else:
             msg = f"Unexpected {arg_name_str} type: <{actual_type}>"
 
+        super().__init__(msg)
+
+           
+class ArgCountError(Exception):
+    """
+    
+    """
+    def __init__(self, actual: int, *expected: int) -> None:
+        expected_str = ", ".join(str(e) for e in expected)
+        msg = f"Invalid arguments amount, expected one of: ({expected_str}), got: {actual}"
         super().__init__(msg)

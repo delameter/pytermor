@@ -23,6 +23,19 @@ from sys import getsizeof, stderr
 from .common import UserAbort, UserCancel
 
 
+def get_qname(obj: t.Any) -> str:
+    if isinstance(obj, type):
+        return obj.__qualname__
+    if isinstance(obj, object):
+        return obj.__class__.__qualname__
+    return str(obj)
+
+
+def chunk(arr_range, arr_size):
+    arr_range = iter(arr_range)
+    return iter(lambda: tuple(itertools.islice(arr_range, arr_size)), ())
+
+
 def get_terminal_width(default: int = 80, padding: int = 2) -> int:
     """
     Return current terminal width with an optional "safety buffer".
@@ -207,8 +220,3 @@ def total_size(
         return s
 
     return sizeof(o)
-
-
-def chunk(arr_range, arr_size):
-    arr_range = iter(arr_range)
-    return iter(lambda: tuple(itertools.islice(arr_range, arr_size)), ())

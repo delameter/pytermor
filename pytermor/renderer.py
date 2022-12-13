@@ -49,8 +49,9 @@ from functools import reduce
 
 from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose
 from .color import Color, Color16, Color256, ColorRGB, NOOP_COLOR
-from .common import logger, get_qname
+from .common import logger
 from .style import Style, NOOP_STYLE, Styles
+from .utilmisc import get_qname
 from .utilstr import SgrStringReplacer
 
 
