@@ -357,7 +357,9 @@ class TestColorRGB(unittest.TestCase):
 
     def test_to_sgr_with_256_upper_bound_results_in_sgr_256(self):
         col = ColorRGB(0xFF33FF)
-        self.assertEqual(SequenceSGR(38, 5, 207), col.to_sgr(False, upper_bound=Color256))
+        self.assertEqual(
+            SequenceSGR(38, 5, 207), col.to_sgr(False, upper_bound=Color256)
+        )
         self.assertEqual(SequenceSGR(48, 5, 207), col.to_sgr(True, upper_bound=Color256))
 
     def test_to_sgr_with_16_upper_bound_results_in_sgr_16(self):

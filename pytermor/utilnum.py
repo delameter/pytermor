@@ -17,10 +17,12 @@ from typing import List, Dict, Tuple
 
 from .utilstr import rjust_sgr
 
-_OVERFLOW_CHAR = '!'
+_OVERFLOW_CHAR = "!"
 
 
-def format_auto_float(value: float, req_len: int, allow_exponent_notation: bool = True) -> str:
+def format_auto_float(
+    value: float, req_len: int, allow_exponent_notation: bool = True
+) -> str:
     """
     Dynamically adjust decimal digit amount and format
     to fill up the output string with as many significant
@@ -62,11 +64,11 @@ def format_auto_float(value: float, req_len: int, allow_exponent_notation: bool 
     .. versionadded:: 1.7
     """
     if req_len < -1:
-        raise ValueError(f'Required length should be >= 0 (got {req_len})')
+        raise ValueError(f"Required length should be >= 0 (got {req_len})")
 
-    sign = ''
+    sign = ""
     if value < 0:
-        sign = '-'
+        sign = "-"
         req_len -= 1
 
     if req_len == 0:
@@ -75,10 +77,10 @@ def format_auto_float(value: float, req_len: int, allow_exponent_notation: bool 
     abs_value = abs(value)
     if abs_value < 1 and req_len == 1:
         # '0' is better than '-'
-        return f'{sign}0'
+        return f"{sign}0"
 
     if value == 0.0:
-        return f'{sign}{0:{req_len}.0f}'
+        return f"{sign}{0:{req_len}.0f}"
 
     exponent = floor(log10(abs_value))
     exp_threshold_left = -2
@@ -114,44 +116,47 @@ def format_auto_float(value: float, req_len: int, allow_exponent_notation: bool 
         exp_threshold_left = None
 
     required_exponent = (
-        (exp_threshold_left is not None and exponent < exp_threshold_left) or
-        exponent > exp_threshold_right
-    )
+        exp_threshold_left is not None and exponent < exp_threshold_left
+    ) or exponent > exp_threshold_right
 
     if required_exponent:
         if not allow_exponent_notation:  # oh well...
-            raise ValueError(f'Failed to fit {value:.2f} into {req_len} chars without scientific notation')
+            raise ValueError(
+                f"Failed to fit {value:.2f} into {req_len} chars without scientific notation"
+            )
 
         exponent_len = len(str(exponent)) + 1  # 'e'
         if req_len < exponent_len:
             # there is no place even for exponent
             return _OVERFLOW_CHAR * (len(sign) + req_len)
 
-        significand = abs_value/pow(10, exponent)
+        significand = abs_value / pow(10, exponent)
         max_significand_len = req_len - exponent_len
         try:
             # max_significand_len can be 0, in that case significand_str will be empty; that
             # means we cannot fit it the significand, but still can display approximate number power
             # using the 'eN'/'-eN' notation
-            significand_str = format_auto_float(significand, max_significand_len, allow_exponent_notation=False)
+            significand_str = format_auto_float(
+                significand, max_significand_len, allow_exponent_notation=False
+            )
 
         except ValueError:
-            return f'{sign}e{exponent}'.rjust(req_len)
+            return f"{sign}e{exponent}".rjust(req_len)
 
-        return f'{sign}{significand_str}e{exponent}'
+        return f"{sign}{significand_str}e{exponent}"
 
     integer_len = max(1, exponent + 1)
     if integer_len == req_len:
         # special case when rounding
         # can change the result length
-        integer_str = f'{abs_value:{req_len}.0f}'
+        integer_str = f"{abs_value:{req_len}.0f}"
 
         if len(integer_str) > integer_len:
             # e.g. req_len = 1, abs_value = 9.9
             #      => should be displayed as 9, not 10
-            integer_str = f'{trunc(abs_value):{req_len}d}'
+            integer_str = f"{trunc(abs_value):{req_len}d}"
 
-        return f'{sign}{integer_str}'
+        return f"{sign}{integer_str}"
 
     decimals_with_point_len = req_len - integer_len
     decimals_len = decimals_with_point_len - 1
@@ -159,12 +164,14 @@ def format_auto_float(value: float, req_len: int, allow_exponent_notation: bool 
     # dot without decimals makes no sense, but
     # python's standard library handles
     # this by itself: f'{12.3:.0f}' => '12'
-    dot_str = f'.{decimals_len!s}'
+    dot_str = f".{decimals_len!s}"
 
-    return f'{sign}{abs_value:{req_len}{dot_str}f}'
+    return f"{sign}{abs_value:{req_len}{dot_str}f}"
 
 
-def format_si_metric(value: float, unit: str = 'm', join: bool = True) -> str|Tuple[str, str, str]:
+def format_si_metric(
+    value: float, unit: str = "m", join: bool = True
+) -> str | Tuple[str, str, str]:
     """
     Format ``value`` as meters with SI-prefixes, max result length is
     7 chars: 4 for value plus 3 for default unit, prefix and
@@ -192,7 +199,9 @@ def format_si_metric(value: float, unit: str = 'm', join: bool = True) -> str|Tu
     return _formatter_si_metric.format(value, unit, join)
 
 
-def format_si_binary(value: float, unit: str = 'b', join: bool = True) -> str|Tuple[str, str, str]:
+def format_si_binary(
+    value: float, unit: str = "b", join: bool = True
+) -> str | Tuple[str, str, str]:
     """
     Format ``value`` as binary size (bytes, kbytes, Mbytes), max
     result length is 8 chars: 5 for value plus 3 for default unit,
@@ -241,21 +250,23 @@ class PrefixedUnitFormatter:
 
     .. versionadded:: 1.7
     """
-    def __init__(self,
-                 max_value_len: int,
-                 truncate_frac: bool = False,
-                 unit: str = None,
-                 unit_separator: str = None,
-                 mcoef: float = 1000.0,
-                 prefixes: List[str|None] = None,
-                 prefix_zero_idx: int = None,
-                 ):
+
+    def __init__(
+        self,
+        max_value_len: int,
+        truncate_frac: bool = False,
+        unit: str = None,
+        unit_separator: str = None,
+        mcoef: float = 1000.0,
+        prefixes: List[str | None] = None,
+        prefix_zero_idx: int = None,
+    ):
         self._max_value_len: int = max_value_len
         self._truncate_frac: bool = truncate_frac
-        self._unit: str = unit or ''
-        self._unit_separator: str = unit_separator or ''
+        self._unit: str = unit or ""
+        self._unit_separator: str = unit_separator or ""
         self._mcoef: float = mcoef
-        self._prefixes: List[str|None] = prefixes or []
+        self._prefixes: List[str | None] = prefixes or []
         self._prefix_zero_idx: int = prefix_zero_idx or 0
 
     @property
@@ -270,7 +281,9 @@ class PrefixedUnitFormatter:
         result += max([len(p) for p in self._prefixes if p])
         return result
 
-    def format(self, value: float, unit: str = None, join: bool = True) -> str|Tuple[str, str, str]:
+    def format(
+        self, value: float, unit: str = None, join: bool = True
+    ) -> str | Tuple[str, str, str]:
         """
         :param value:  Input value
         :param unit:   Unit override
@@ -284,46 +297,54 @@ class PrefixedUnitFormatter:
             unit = self._unit
 
         abs_value = abs(value)
-        power_base = self._mcoef**(1/3)  # =10 for metric, ~10.079 for binary
+        power_base = self._mcoef ** (1 / 3)  # =10 for metric, ~10.079 for binary
         if abs_value == 0.0:
             prefix_shift = 0
         else:
             exponent = floor(log(abs_value, power_base))
             if exponent > 0:
-                prefix_shift = floor(exponent/3)
+                prefix_shift = floor(exponent / 3)
             else:
-                prefix_shift = round(exponent/3)
+                prefix_shift = round(exponent / 3)
 
-        value /= power_base**(prefix_shift*3)
+        value /= power_base ** (prefix_shift * 3)
         unit_idx = self._prefix_zero_idx + prefix_shift
         if 0 <= unit_idx < len(self._prefixes):
-            unit_full = (self._prefixes[unit_idx] or '') + unit
+            unit_full = (self._prefixes[unit_idx] or "") + unit
         else:
-            unit_full = ('?' * max([len(p) for p in self._prefixes if p])) + unit
+            unit_full = ("?" * max([len(p) for p in self._prefixes if p])) + unit
 
         unit_separator = self._unit_separator
         if not unit_full or unit_full.isspace():
-            unit_separator = ''
+            unit_separator = ""
 
         if self._truncate_frac:
-            num_str = f'{trunc(value)!s:.{self._max_value_len}s}'
+            num_str = f"{trunc(value)!s:.{self._max_value_len}s}"
         else:
-            num_str = format_auto_float(value, self._max_value_len, allow_exponent_notation=False)
+            num_str = format_auto_float(
+                value, self._max_value_len, allow_exponent_notation=False
+            )
 
         result = num_str.strip(), unit_separator, unit_full.strip()
         if join:
-            return ''.join(result)
+            return "".join(result)
         return result
 
     def __repr__(self) -> str:
         return self.__class__.__qualname__
 
 
-PREFIXES_SI = ['y', 'z', 'a', 'f', 'p', 'n', 'μ', 'm', None, 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+# fmt: off
+PREFIXES_SI = [
+    'y', 'z', 'a', 'f', 'p', 'n', 'μ', 'm',
+    None,
+    'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y',
+]
 """
 Prefix presets used by default module formatters. Can be
 useful if you are building your own formatter.
 """
+# fmt: on
 
 PREFIX_ZERO_SI = 8
 """
@@ -334,8 +355,8 @@ multiplying coefficients.
 _formatter_si_metric = PrefixedUnitFormatter(
     max_value_len=4,
     truncate_frac=False,
-    unit='',
-    unit_separator=' ',
+    unit="",
+    unit_separator=" ",
     mcoef=1000.0,
     prefixes=PREFIXES_SI,
     prefix_zero_idx=PREFIX_ZERO_SI,
@@ -355,8 +376,8 @@ have 1-char width). Without unit (default) it's 6.
 _formatter_si_binary = PrefixedUnitFormatter(
     max_value_len=5,
     truncate_frac=True,
-    unit='b',
-    unit_separator=' ',
+    unit="b",
+    unit_separator=" ",
     mcoef=1024.0,
     prefixes=PREFIXES_SI,
     prefix_zero_idx=PREFIX_ZERO_SI,
@@ -421,7 +442,7 @@ def format_time_delta(seconds: float, max_len: int = None) -> str:
         formatter = registry.find_matching(max_len)
 
     if formatter is None:
-        raise ValueError(f'No settings defined for max length = {max_len} (or less)')
+        raise ValueError(f"No settings defined for max length = {max_len} (or less)")
 
     return formatter.format(seconds)
 
@@ -447,8 +468,15 @@ class TimeDeltaFormatter:
     :param plural_suffix:
     :param overflow_msg:
     """
-    def __init__(self, units: List[TimeUnit], allow_negative: bool, unit_separator: str = None,
-                 plural_suffix: str = None,  overflow_msg: str = 'OVERFLOW'):
+
+    def __init__(
+        self,
+        units: List[TimeUnit],
+        allow_negative: bool,
+        unit_separator: str = None,
+        plural_suffix: str = None,
+        overflow_msg: str = "OVERFLOW",
+    ):
         self._units = units
         self._allow_negative = allow_negative
         self._unit_separator = unit_separator
@@ -481,14 +509,14 @@ class TimeDeltaFormatter:
         """
         result = self.format_raw(seconds)
         if result is None:
-            result = self._overflow_msg[:self.max_len]
+            result = self._overflow_msg[: self.max_len]
 
         if always_max_len:
             result = rjust_sgr(result, self._max_len)
 
         return result
 
-    def format_raw(self, seconds: float) -> str|None:
+    def format_raw(self, seconds: float) -> str | None:
         """
         Pretty-print difference between two moments in time, do not replace
         the output with "OVERFLOW" warning message.
@@ -499,10 +527,10 @@ class TimeDeltaFormatter:
         """
         num = abs(seconds)
         unit_idx = 0
-        prev_frac = ''
+        prev_frac = ""
 
         negative = self._allow_negative and seconds < 0
-        sign = '-' if negative else ''
+        sign = "-" if negative else ""
         result = None
 
         while result is None and unit_idx < len(self._units):
@@ -522,30 +550,32 @@ class TimeDeltaFormatter:
                 short_unit_name = unit.custom_short
 
             next_unit_ratio = unit.in_next
-            unit_separator = self._unit_separator or ''
+            unit_separator = self._unit_separator or ""
 
             if abs(num) < 1:
                 if negative:
-                    result = f'~0{unit_separator}{unit_name_suffixed:s}'
+                    result = f"~0{unit_separator}{unit_name_suffixed:s}"
                 elif isclose(num, 0, abs_tol=1e-03):
-                    result = f'0{unit_separator}{unit_name_suffixed:s}'
+                    result = f"0{unit_separator}{unit_name_suffixed:s}"
                 else:
-                    result = f'<1{unit_separator}{unit_name:s}'
+                    result = f"<1{unit_separator}{unit_name:s}"
 
             elif unit.collapsible_after is not None and num < unit.collapsible_after:
-                result = f'{sign}{floor(num):d}{short_unit_name:s}{unit_separator}{prev_frac:<s}'
+                result = f"{sign}{floor(num):d}{short_unit_name:s}{unit_separator}{prev_frac:<s}"
 
             elif not next_unit_ratio or num < next_unit_ratio:
-                result = f'{sign}{floor(num):d}{unit_separator}{unit_name_suffixed:s}'
+                result = f"{sign}{floor(num):d}{unit_separator}{unit_name_suffixed:s}"
 
             else:
                 next_num = floor(num / next_unit_ratio)
-                prev_frac = '{:d}{:s}'.format(floor(num - (next_num * next_unit_ratio)), short_unit_name)
+                prev_frac = "{:d}{:s}".format(
+                    floor(num - (next_num * next_unit_ratio)), short_unit_name
+                )
                 num = next_num
                 unit_idx += 1
                 continue
 
-        return result or ''
+        return result or ""
 
     def _compute_max_len(self) -> int:
         max_len = 0
@@ -557,7 +587,9 @@ class TimeDeltaFormatter:
                 test_val = unit.overflow_afer
             if not test_val:
                 continue
-            test_val_seconds = coef * (test_val - 1) * (-1 if self._allow_negative else 1)
+            test_val_seconds = (
+                coef * (test_val - 1) * (-1 if self._allow_negative else 1)
+            )
 
             try:
                 max_len_unit = self.format_raw(test_val_seconds)
@@ -573,10 +605,10 @@ class TimeDeltaFormatter:
 @dataclass(frozen=True)
 class TimeUnit:
     name: str
-    in_next: int = None             # how many current units equal to the (one) next unit
+    in_next: int = None  # how many current units equal to the (one) next unit
     custom_short: str = None
-    collapsible_after: int = None   # min threshold for double-delta to become regular
-    overflow_afer: int = None       # max threshold
+    collapsible_after: int = None  # min threshold for double-delta to become regular
+    overflow_afer: int = None  # max threshold
 
 
 class _TimeDeltaFormatterRegistry:
@@ -584,6 +616,7 @@ class _TimeDeltaFormatterRegistry:
     Simple registry for storing formatters and selecting
     the suitable one by max output length.
     """
+
     def __init__(self):
         self._formatters: Dict[int, TimeDeltaFormatter] = dict()
 
@@ -619,51 +652,56 @@ registry = _TimeDeltaFormatterRegistry()
 
 
 registry.register(
-    TimeDeltaFormatter([
-        TimeUnit('s', 60),
-        TimeUnit('m', 60),
-        TimeUnit('h', 24),
-        TimeUnit('d', overflow_afer=99),
-    ], allow_negative=False,
+    TimeDeltaFormatter(
+        [
+            TimeUnit("s", 60),
+            TimeUnit("m", 60),
+            TimeUnit("h", 24),
+            TimeUnit("d", overflow_afer=99),
+        ],
+        allow_negative=False,
         unit_separator=None,
         plural_suffix=None,
-        overflow_msg='ERR',
+        overflow_msg="ERR",
     ),
-
-    TimeDeltaFormatter([
-        TimeUnit('s', 60),
-        TimeUnit('m', 60),
-        TimeUnit('h', 24),
-        TimeUnit('d', 30),
-        TimeUnit('M', 12),
-        TimeUnit('y', overflow_afer=99),
-    ], allow_negative=False,
-        unit_separator=' ',
+    TimeDeltaFormatter(
+        [
+            TimeUnit("s", 60),
+            TimeUnit("m", 60),
+            TimeUnit("h", 24),
+            TimeUnit("d", 30),
+            TimeUnit("M", 12),
+            TimeUnit("y", overflow_afer=99),
+        ],
+        allow_negative=False,
+        unit_separator=" ",
         plural_suffix=None,
-        overflow_msg='ERRO',
+        overflow_msg="ERRO",
     ),
-
-    TimeDeltaFormatter([
-        TimeUnit('sec', 60),
-        TimeUnit('min', 60),
-        TimeUnit('hr', 24, collapsible_after=10),
-        TimeUnit('day', 30, collapsible_after=10),
-        TimeUnit('mon', 12),
-        TimeUnit('yr', overflow_afer=99),
-    ], allow_negative=False,
-        unit_separator=' ',
+    TimeDeltaFormatter(
+        [
+            TimeUnit("sec", 60),
+            TimeUnit("min", 60),
+            TimeUnit("hr", 24, collapsible_after=10),
+            TimeUnit("day", 30, collapsible_after=10),
+            TimeUnit("mon", 12),
+            TimeUnit("yr", overflow_afer=99),
+        ],
+        allow_negative=False,
+        unit_separator=" ",
         plural_suffix=None,
     ),
-
-    TimeDeltaFormatter([
-        TimeUnit('sec', 60),
-        TimeUnit('min', 60, custom_short='min'),
-        TimeUnit('hour', 24, collapsible_after=24),
-        TimeUnit('day', 30, collapsible_after=10),
-        TimeUnit('month', 12),
-        TimeUnit('year', overflow_afer=999),
-    ], allow_negative=True,
-        unit_separator=' ',
-        plural_suffix='s',
+    TimeDeltaFormatter(
+        [
+            TimeUnit("sec", 60),
+            TimeUnit("min", 60, custom_short="min"),
+            TimeUnit("hour", 24, collapsible_after=24),
+            TimeUnit("day", 30, collapsible_after=10),
+            TimeUnit("month", 12),
+            TimeUnit("year", overflow_afer=999),
+        ],
+        allow_negative=True,
+        unit_separator=" ",
+        plural_suffix="s",
     ),
 )

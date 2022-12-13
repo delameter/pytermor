@@ -192,7 +192,7 @@ class Text(Renderable):
         return self
 
     def __str__(self) -> str:
-        raise LogicError("Casting to str is prohibited. Explicitly call render() instead.")
+        raise LogicError("Casting to str is prohibited, use render() instead.")
 
     def __repr__(self) -> str:
         result = f"<{self.__class__.__qualname__}[%s]>"
@@ -395,7 +395,7 @@ _template_engine = TemplateEngine()
 
 
 def render(
-    string: StrType|t.Iterable[StrType] = '',
+    string: StrType | t.Iterable[StrType] = "",
     fmt: Color | Style = NOOP_STYLE,
     renderer: AbstractRenderer = None,
     parse_template: bool = False,
@@ -431,11 +431,11 @@ def render(
     if isinstance(string, str):
         return Text(string, fmt).render(renderer)
 
-    raise ArgTypeError(type(string), 'string', fn=render)
+    raise ArgTypeError(type(string), "string", fn=render)
 
 
 def echo(
-    string: StrType|t.Iterable[StrType] = '',
+    string: StrType | t.Iterable[StrType] = "",
     fmt: Color | Style = NOOP_STYLE,
     renderer: AbstractRenderer = None,
     parse_template: bool = False,

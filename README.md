@@ -11,9 +11,9 @@
     <a href="https://pepy.tech/project/pytermor/">
       <img alt="Downloads" src="https://pepy.tech/badge/pytermor">
     </a>
-    <!-- <a href="https://github.com/psf/black">
+    <a href="https://github.com/psf/black">
         <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg">
-    </a> -->
+    </a>
 </p>
 
 _(yet another)_ Python library designed for formatting terminal output using ANSI escape codes. Implements automatic "soft" format termination. Provides a registry of ready-to-use SGR sequences and formatting spans (or combined sequences). Also includes a set of number formatters for pretty output.

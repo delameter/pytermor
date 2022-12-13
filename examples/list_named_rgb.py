@@ -43,16 +43,23 @@ def sort_by_hue(cdef: IColorRGB) -> t.Tuple[float, ...]:
 class IColorRGB(metaclass=abc.ABCMeta):
     @property
     @abstractmethod
-    def hex_value(self) -> int: raise NotImplementedError
+    def hex_value(self) -> int:
+        raise NotImplementedError
+
     @property
     @abstractmethod
-    def name(self) -> str: raise NotImplementedError
+    def name(self) -> str:
+        raise NotImplementedError
+
     @property
     @abstractmethod
-    def original_name(self) -> str|None: raise NotImplementedError
+    def original_name(self) -> str | None:
+        raise NotImplementedError
+
     @property
     @abstractmethod
-    def variation(self) -> str|None: raise NotImplementedError
+    def variation(self) -> str | None:
+        raise NotImplementedError
 
 
 class ColorRGBConfigAdapter(IColorRGB):
@@ -61,16 +68,19 @@ class ColorRGBConfigAdapter(IColorRGB):
 
     @property
     def hex_value(self) -> int:
-        return self._data.get('value')
+        return self._data.get("value")
+
     @property
     def name(self) -> str:
-        return self._data.get('name')
+        return self._data.get("name")
+
     @property
-    def original_name(self) -> str|None:
-        return self._data.get('original_name')
+    def original_name(self) -> str | None:
+        return self._data.get("original_name")
+
     @property
-    def variation(self) -> str|None:
-        return self._data.get('variation')
+    def variation(self) -> str | None:
+        return self._data.get("variation")
 
 
 class ColorRGBOriginAdapter(IColorRGB):
@@ -91,13 +101,13 @@ class ColorRGBOriginAdapter(IColorRGB):
         return self._name
 
     @property
-    def original_name(self) -> str|None:
+    def original_name(self) -> str | None:
         return None
 
     @property
-    def variation(self) -> str|None:
+    def variation(self) -> str | None:
         if base := self._origin.base:
-            return self._name.replace(base.name, '').lstrip(self.SEP)
+            return self._name.replace(base.name, "").lstrip(self.SEP)
         return None
 
 
@@ -108,7 +118,9 @@ class ConfigLoader:
 
     def __init__(self):
         with open(os.path.join(self.CONFIG_PATH, self.INPUT_CONFIG_FILENAME), "rt") as f:
-            self.colors = [ColorRGBConfigAdapter(c) for c in yaml.safe_load(f).get("colors")]
+            self.colors = [
+                ColorRGBConfigAdapter(c) for c in yaml.safe_load(f).get("colors")
+            ]
 
 
 class RgbListPrinter:
@@ -124,7 +136,7 @@ class RgbListPrinter:
             style = pt.Style(bg=pt.ColorRGB(c.hex_value)).autopick_fg()
             style2 = pt.Style(fg=style.bg)
 
-            name = pt.Text(c.name) + pad + pt.Text(c.variation or '', vari_style)
+            name = pt.Text(c.name) + pad + pt.Text(c.variation or "", vari_style)
             orig_name = pt.Text(c.original_name or "", orig_style)
 
             print(
@@ -146,7 +158,7 @@ class RgbTablePrinter:
     def __init__(self, cell_size: int = None, cell_height: int = None):
         self._cell_padding_x = 2
         self._cell_padding_y = 2
-        self._term_width = pytermor.utilsys.get_terminal_width()
+        self._term_width = pytermor.utilmisc.get_terminal_width()
         self._term_height = shutil.get_terminal_size().lines
 
         if not cell_size:
@@ -236,8 +248,10 @@ class RgbTablePrinter:
 
 
 if __name__ == "__main__":
-    #_colors = ConfigLoader().colors
-    _colors = [ColorRGBOriginAdapter(v, k) for k, v in pt.ColorRGB._registry._map.items()]
+    # _colors = ConfigLoader().colors
+    _colors = [
+        ColorRGBOriginAdapter(v, k) for k, v in pt.ColorRGB._registry._map.items()
+    ]
     pt.RendererManager.set_default_to_force_formatting()
 
     RgbListPrinter().print(_colors)

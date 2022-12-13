@@ -12,7 +12,10 @@ from pytermor.ansi import (
     IntCode,
     _sgr_pairity_registry,
     make_color_rgb,
-    make_color_256, make_erase_in_line, make_hyperlink_part, assemble_hyperlink,
+    make_color_256,
+    make_erase_in_line,
+    make_hyperlink_part,
+    assemble_hyperlink,
 )
 
 
@@ -123,13 +126,13 @@ class TestSequenceCSI(unittest.TestCase):
 
 class TestSequenceOSC(unittest.TestCase):
     def test_make_hyperlink_part(self):
-        s = make_hyperlink_part('http://example.test')
-        self.assertIn('http://example.test', s.assemble())
+        s = make_hyperlink_part("http://example.test")
+        self.assertIn("http://example.test", s.assemble())
 
     def test_assemble_hyperlink(self):
-        s = assemble_hyperlink('http://example.test', 'label')
-        self.assertIn('http://example.test', s)
-        self.assertIn('label', s)
+        s = assemble_hyperlink("http://example.test", "label")
+        self.assertIn("http://example.test", s)
+        self.assertIn("label", s)
 
 
 class TestSgrRegistry(unittest.TestCase):

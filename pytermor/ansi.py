@@ -311,6 +311,7 @@ class CurlyUnderlinedSequenceSGR(SequenceSGR):
     package, which is identified by "4:3" string (in contrast with all the other
     sequences entirely made of digits and semicolon separators).
     """
+
     def __init__(self):
         """ """
         super().__init__()
@@ -318,7 +319,7 @@ class CurlyUnderlinedSequenceSGR(SequenceSGR):
 
     @property
     def params(self) -> t.List[str]:
-        """  """
+        """ """
         return self._params
 
 
@@ -352,7 +353,7 @@ class IntCode(enum.IntEnum):
     @classmethod
     def resolve(cls, name: str) -> IntCode:
         """
-        
+
         :param name:
         :return:
         """
@@ -647,7 +648,7 @@ class _SgrPairityRegistry:
     complement (closing) SGRs, also referred to as "resetters".
     """
 
-    _code_to_resetter_map: t.Dict[int|t.Tuple[int, ...], SequenceSGR] = dict()
+    _code_to_resetter_map: t.Dict[int | t.Tuple[int, ...], SequenceSGR] = dict()
     _complex_code_def: t.Dict[int | t.Tuple[int, ...], int] = dict()
     _complex_code_max_len: int = 0
 

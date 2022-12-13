@@ -149,7 +149,9 @@ class AbstractRenderer(metaclass=ABCMeta):
 
     def _ensure_not_renderable(self, string: t.Any):
         if not isinstance(string, type("Renderable")):
-            raise TypeError("Renderers are not supposed to work with Renderables directly.")
+            raise TypeError(
+                "Renderers are not supposed to work with Renderables directly."
+            )
 
     def clone(self: T, *args: t.Any, **kwargs: t.Any) -> T:
         return self.__class__(*args, **kwargs)

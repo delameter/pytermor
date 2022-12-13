@@ -52,9 +52,8 @@ class ConflictError(Exception):
 
 
 class ArgTypeError(Exception):
-    """
+    """ """
 
-    """
     def __init__(self, actual_type: Type, arg_name: str = None, fn: Callable = None):
         arg_name_str = f'"{arg_name}"' if arg_name else "argument"
         # @todo suggestion
@@ -80,11 +79,10 @@ class ArgTypeError(Exception):
 
         super().__init__(msg)
 
-           
+
 class ArgCountError(Exception):
-    """
-    
-    """
+    """ """
+
     def __init__(self, actual: int, *expected: int) -> None:
         expected_str = ", ".join(str(e) for e in expected)
         msg = f"Invalid arguments amount, expected one of: ({expected_str}), got: {actual}"

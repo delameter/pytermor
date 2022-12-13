@@ -6,7 +6,7 @@
 
 .. testsetup:: *
 
-    from pytermor.utilsys import *
+    from pytermor.utilmisc import *
 
 """
 from __future__ import annotations
@@ -134,6 +134,7 @@ def confirm(
     :raises: UserAbort
     :raises: UserCancel
     """
+
     def check_required(v: bool, exc: t.Type = UserCancel):
         if v is False and required:
             raise exc

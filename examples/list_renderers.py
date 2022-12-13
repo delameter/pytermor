@@ -44,10 +44,8 @@ class Main:
         pt.echo(
             [
                 "",
-                "List of the output of each renderer per each output mode."
-                "",
-                "Table "
-                "width is dynamic and depends on the terminal size.",
+                "List of the output of each renderer per each output mode." "",
+                "Table " "width is dynamic and depends on the terminal size.",
             ],
             wrap=True,
             indent_first=2,

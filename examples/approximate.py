@@ -26,8 +26,8 @@ class Main:
 
         for arg in argv:
             try:
-                if arg.startswith('-'):
-                    if arg == '-e' or arg == '--extended':
+                if arg.startswith("-"):
+                    if arg == "-e" or arg == "--extended":
                         self._extended_mode = True
                         continue
                     raise ValueError(f"Invalid option {arg}")
@@ -38,11 +38,14 @@ class Main:
                 input_values.append(val)
             except ValueError as e:
                 pt.echo("USAGE:")
-                pt.echo([
-                    *usage,
-                    "Expected COLOR format: '(0x)?[0-9a-f]{1,6}', i.e. a hexadecimal "
-                    "integer X, where 0 <= X <= 0xFFFFFF.",
-                ], wrap=True)
+                pt.echo(
+                    [
+                        *usage,
+                        "Expected COLOR format: '(0x)?[0-9a-f]{1,6}', i.e. a hexadecimal "
+                        "integer X, where 0 <= X <= 0xFFFFFF.",
+                    ],
+                    wrap=True,
+                )
                 raise e
 
         if len(input_values) == 0:
@@ -75,7 +78,7 @@ class Main:
             indent_first=2,
         )
 
-    def run(self, sample_val: int|None, color_type: str):
+    def run(self, sample_val: int | None, color_type: str):
         if sample_val is None:
             random_rgb = (random.randint(40, 255) for _ in range(3))
             sample_val = pt.Color.rgb_to_hex(*random_rgb)
@@ -123,7 +126,11 @@ class Main:
                     dist = 0.0
                 style = pt.Style(bg=sample_approx).autopick_fg()
             dist_str = "--" if dist is None else f"{dist:.1f}"
-            sample_approx_str = re.sub("<(Color)?|>|(,)", lambda m: " " if m.group() else "", repr(sample_approx))
+            sample_approx_str = re.sub(
+                "<(Color)?|>|(,)",
+                lambda m: " " if m.group() else "",
+                repr(sample_approx),
+            )
             sample_approx_str = re.sub(r"^(\s*16)", r" \1", sample_approx_str)
             string = f" {om.name:<10s} {dist_str:>6s}  {sample_approx_str}"
             results.append((string, style, renderer))
@@ -138,7 +145,7 @@ class Main:
             pt.echo("  " + descriptions.pop(0), pt.Style(fg="gray"))
 
     def run_extended(self, sample: pt.ColorRGB):
-        raise NotImplementedError('@TODO')
+        raise NotImplementedError("@TODO")
 
 
 if __name__ == "__main__":

@@ -12,9 +12,8 @@ from .ansi import IntCode
 
 
 class CValues:
-    """
+    """ """
 
-    """
     # fmt: off
     BLACK      = Color16(0x000000, IntCode.BLACK,       IntCode.BG_BLACK,       "black",       register=True, index=True)
     RED        = Color16(0x800000, IntCode.RED,         IntCode.BG_RED,         "red",         register=True, index=True)

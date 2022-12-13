@@ -184,7 +184,8 @@ codecs.register_error("replace_with_qmark", lambda e: ("?", e.start + 1))
 
 # -----------------------------------------------------------------------------
 
-ESCAPE_SEQUENCE_SREGEX = re.compile(r"""
+ESCAPE_SEQUENCE_SREGEX = re.compile(
+    r"""
     (?P<escape_char>\x1b)
     (?P<data>
       (?P<nf_class_seq>
@@ -207,20 +208,22 @@ ESCAPE_SEQUENCE_SREGEX = re.compile(r"""
         (?P<fs_termintaor>)
       )  
     )
-""", flags=re.VERBOSE)
+""",
+    flags=re.VERBOSE,
+)
 # https://ecma-international.org/wp-content/uploads/ECMA-35_6th_edition_december_1994.pdf
 
 SGR_SEQ_SREGEX = re.compile(r"(\x1b)(\[)([0-9;]*)(m)")
 CONTROL_SREGEX = re.compile(r"([\x00-\x09\x0b-\x1f\x7f]+)")
-NON_ASCII_BREGEX = re.compile(br"([\x80-\xff]+)")
-CONTROL_AND_NON_ASCII_BREGEX = re.compile(br"([\x00-\x09\x0b-\x1f\x7f\x80-\xff]+)")
+NON_ASCII_BREGEX = re.compile(rb"([\x80-\xff]+)")
+CONTROL_AND_NON_ASCII_BREGEX = re.compile(rb"([\x00-\x09\x0b-\x1f\x7f\x80-\xff]+)")
 
 IT = t.TypeVar("IT", str, bytes)  # input-type
 OT = t.TypeVar("OT", str, bytes)  # output-type
-AT = t.TypeVar("AT", str, bytes)  # pattern and replacer internal types (should be the same)
-PT = Union[AT, t.Pattern[AT]]     # pattern wrapper type
+AT = t.TypeVar("AT", str, bytes)  # pattern and replacer internal types (should be same)
+PT = Union[AT, t.Pattern[AT]]  # pattern wrapper type
 RT = Union[AT, t.Callable[[t.Match[AT]], AT]]  # replacer wrapper type
-AnyFilter = 'OmniFilter[IT, OT]'
+AnyFilter = "OmniFilter[IT, OT]"
 FT = Union[AnyFilter, t.Type[AnyFilter]]
 
 
@@ -248,24 +251,22 @@ class OmniFilter(t.Generic[IT, OT]):
 
 
 class NoopFilter(OmniFilter[IT, OT]):
-    """
+    """ """
 
-    """
     def apply(self, inp: IT) -> OT:
         return inp
 
 
 class OmniDecoder(OmniFilter[IT, str]):
-    """
+    """ """
 
-    """
     def apply(self, inp: IT) -> str:
         return inp.decode() if isinstance(inp, bytes) else inp
 
 
 class OmniEncoder(OmniFilter[IT, bytes]):
-    """
-    """
+    """ """
+
     def apply(self, inp: IT) -> bytes:
         return inp.encode() if isinstance(inp, str) else inp
 
@@ -289,22 +290,19 @@ class OmniReplacer(OmniFilter[IT, IT]):
 
 
 class StringReplacer(OmniReplacer[str]):
-    """
+    """ """
 
-    """
     pass
 
 
 class BytesReplacer(OmniReplacer[bytes]):
-    """
+    """ """
 
-    """
     pass
 
 
 class EscapeSequenceStringReplacer(StringReplacer):
-    """
-    """
+    """ """
 
     def __init__(self, repl: RT[str] = ""):
         super().__init__(ESCAPE_SEQUENCE_SREGEX, repl)
@@ -386,21 +384,20 @@ class NonAsciiByteReplacer(BytesReplacer):
 
 
 class OmniSanitizer(OmniReplacer[IT]):
-    """
+    """ """
 
-    """
     def __init__(self, repl: RT[bytes] = b""):
         super().__init__(CONTROL_AND_NON_ASCII_BREGEX, repl)
 
 
 class OmniHexPrinter(OmniReplacer[IT]):
-    """
-
-    """
+    """ """
 
     @staticmethod
     def bytes_as_hex(m: t.Match[bytes]) -> bytes:
-        return " ".join(":".join([f"{b:02X}" for b in (*c,)]) for c in chunk(m.group(), 4)).encode()
+        return " ".join(
+            ":".join([f"{b:02X}" for b in (*c,)]) for c in chunk(m.group(), 4)
+        ).encode()
 
     def __init__(self):
         super().__init__(b".+", self.bytes_as_hex)
@@ -423,6 +420,8 @@ def apply_filters(string: IT, *args: FT) -> OT:
     :param args:   `OmniFilter` instance(s) or ``OmniFilter`` type(s).
     :return:       Filtered ``s``.
     """
+
     def instantiate(f):
         return f() if isinstance(f, type) else f
+
     return reduce(lambda s, f: instantiate(f)(s), args, string)

@@ -18,15 +18,18 @@ class TestAutoFloat(unittest.TestCase):
             subtest_msg = f'autofloat/match #{idx}: >{max_len}< "{value:.2e}" -> "{expected_output}"'
 
             with self.subTest(msg=subtest_msg):
-                self.assertEqual(len(expected_output), max_len, f'Invalid expectations for {args}')
+                self.assertEqual(
+                    len(expected_output), max_len, f"Invalid expectations for {args}"
+                )
 
                 actual_output = format_auto_float(value, max_len)
-                actual_output = actual_output.replace(' ', '_')
+                actual_output = actual_output.replace(" ", "_")
                 logging.debug(subtest_msg + f' => "{actual_output}"')
 
-                self.assertEqual(expected_output, actual_output, f'for {args}')
+                self.assertEqual(expected_output, actual_output, f"for {args}")
 
 
+# fmt: off
 class TestAutoFloatFixedLength(TestAutoFloat):
     def test_length6_has_expected_format(self):
         self._test_output_has_expected_format([
@@ -172,3 +175,4 @@ class TestAutoFloatFixedValue(TestAutoFloat):
             # ['-9', -9.9, 2],
             # ['-10', -9.9, 3],
         ])
+# fmt: on

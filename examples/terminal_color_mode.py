@@ -92,7 +92,9 @@ class Main:
         pt.echo()
         pt.echo()
         pt.echo(
-            ["Same as before, there are three conditions. You:"], wrap=True, indent_first=2
+            ["Same as before, there are three conditions. You:"],
+            wrap=True,
+            indent_first=2,
         )
         pt.echo(
             [

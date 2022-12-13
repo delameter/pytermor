@@ -463,10 +463,14 @@ def get_test_device(mode_read) -> str:
         if not devstr:
             return dev
 
-        if not mode_read and not devstr.startswith('/dev'):
-            pt.echo(f"NOTICE: The application will write around 4.15 Gb of data in order to "
-                    f"measure speed using various buffer sizes. After the measurements the "
-                    f"file then will be truncated to zero size.", pt.Styles.WARNING, wrap=True)
+        if not mode_read and not devstr.startswith("/dev"):
+            pt.echo(
+                f"NOTICE: The application will write around 4.15 Gb of data in order to "
+                f"measure speed using various buffer sizes. After the measurements the "
+                f"file then will be truncated to zero size.",
+                pt.Styles.WARNING,
+                wrap=True,
+            )
             confirm(required=True)
 
         if not mode_read and os.path.isfile(devstr):

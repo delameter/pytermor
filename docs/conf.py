@@ -11,67 +11,71 @@ import sys
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-sys.path.insert(0, os.path.abspath('..'))
-root_doc = 'index'
+sys.path.insert(0, os.path.abspath(".."))
+root_doc = "index"
 
 # -- Project information ------------------------------------------------------
 
-project = 'pytermor'
-copyright = '2022, Alexandr Shavykin'
-author = 'Alexandr Shavykin'
+project = "pytermor"
+copyright = "2022, Alexandr Shavykin"
+author = "Alexandr Shavykin"
 show_authors = True
 
-github_repository = 'pytermor'
-github_branch     = 'master'
+github_repository = "pytermor"
+github_branch = "master"
 
 import pytermor
+
 version = pytermor.__version__
 release = version
 
 # -- General configuration ----------------------------------------------------
 
 extensions = [
-    'sphinx.ext.autodoc',     'sphinx.ext.todo',
-    'sphinx.ext.autosummary', 'sphinx.ext.extlinks',
-    'sphinx.ext.viewcode',    'sphinx.ext.inheritance_diagram',
-    'sphinx.ext.doctest',
-    'sphinx_copybutton',
-    'sphinx_design',           # <<<MAKE_DOCS_MAN<<<
+    "sphinx.ext.autodoc",
+    "sphinx.ext.todo",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.extlinks",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.doctest",
+    "sphinx_copybutton",
+    "sphinx_design",  # <<<MAKE_DOCS_MAN<<<
 ]
 # sphinx-design breaks building docs in man format, so `make` comments that
 # line before building it and uncomments it afterwards (yeah I know it's ugly)
 
-templates_path = ['_templates']
-exclude_patterns = ['_build', '_depreacted', '_generated']
+templates_path = ["_templates"]
+exclude_patterns = ["_build", "_depreacted", "_generated"]
 
 rst_prolog = """
 .. role:: mono
     :class: entity
 
-.. |e| replace:: :kbd:`ESC`
-
 .. default-role:: any
 .. include:: <isonum.txt>
+
+.. |e| replace:: :kbd:`ESC`
+
+.. |nbspt| unicode:: 0xA0
+   :trim:
 """
 
 # -- HTML ---------------------------------------------------------------------
 
-#html_theme = 'alabaster'  # alibabaster f[f[f[
-html_theme = 'furo'
+# html_theme = 'alabaster'  # alibabaster f[f[f[
+html_theme = "furo"
 
 if len(version) > 5:
-    html_title = f'pytermor<br>{version}'
+    html_title = f"pytermor<br>{version}"
 else:
-    html_title = f'pytermor {version}'
+    html_title = f"pytermor {version}"
 
-html_static_path = ['_static']
-html_css_files = [
-    'custom.css',
-    'custom-furo.css',
-]
-html_js_files = ['custom.js']
-html_favicon = '_static/logo-96.svg'
-html_logo = '_static/logo-96.svg'
+html_static_path = ["_static"]
+html_css_files = ["custom.css", "custom-furo.css"]
+html_js_files = ["custom.js"]
+html_favicon = "_static/logo-96.svg"
+html_logo = "_static/logo-96.svg"
 
 html_theme_options = {
     "footer_icons": [
@@ -103,11 +107,9 @@ html_theme_options = {
     "light_css_variables": {
         "color-brand-primary": "#2b8cee",
         "color-brand-content": "#2a5adf",
-
         "color-pt-doctest-background": "#f8f8f8",
         "color-pt-doctest-border": "#f0f0f0",
         "color-pt-control-char-background": "hsla(0, 90%, 50%, .15)",
-
         "color-pt-class-background": "hsla(215, 100%, 95%, 0.5)",
         "color-pt-class-border": "hsl(208, 100%, 75%)",
         "color-pt-exception-background": "hsla(0, 100%, 95%, 0.5)",
@@ -118,24 +120,20 @@ html_theme_options = {
         "color-pt-data-border": "hsl(220, 3%, 74%)",
         "color-pt-method-background": "hsla(45, 20%, 95%, 0.5)",
         "color-pt-method-border": "hsl(45, 3%, 74%)",
-
         "color-pt-highlight-target-border": "hsl(50, 75%, 60%)",
         "color-pt-highlight-target-foreground": "var(--color-api-keyword)",
     },
     "dark_css_variables": {
         "color-brand-primary": "#2b8cee",
         "color-brand-content": "#368ce2",
-
         "color-pt-doctest-background": "#202020",
         "color-pt-doctest-border": "#282828",
         "color-pt-control-char-background": "hsla(0, 90%, 50%, .15)",
-
         "color-api-overall": "var(--color-foreground-secondary)",
         "color-api-name": "var(--color-foreground-primary)",
         "color-api-pre-name": "var(--color-foreground-primary)",
         "color-api-paren": "var(--color-foreground-secondary)",
         "color-api-keyword": "var(--color-foreground-primary)",
-
         "color-pt-class-background": "hsla(215, 70%, 25%, 0.25)",
         "color-pt-class-border": "hsla(208, 100%, 35%, 0.5)",
         "color-pt-exception-background": "hsla(0, 70%, 25%, 0.25)",
@@ -146,10 +144,9 @@ html_theme_options = {
         "color-pt-data-border": "hsla(220, 20%, 65%, 0.5)",
         "color-pt-method-background": "hsla(45, 10%, 35%, 0.25)",
         "color-pt-method-border": "hsla(45, 20%, 65%, 0.5)",
-
         "color-pt-highlight-target-border": "hsl(50, 75%, 60%)",
         "color-pt-highlight-target-foreground": "hsla(50, 100%, 50%, 75%)",
-    }
+    },
 }
 
 pygments_style = "tango"
@@ -159,7 +156,7 @@ copybutton_prompt_text = ">>> "
 
 # -- LaTeX / PDF --------------------------------------------------------------
 
-latex_logo = '_static/logo-96.png'
+latex_logo = "_static/logo-96.png"
 
 # -- autodoc ------------------------------------------------------------------
 
@@ -172,29 +169,29 @@ latex_logo = '_static/logo-96.png'
 #     if what == 'class' and name.startswith('__'):
 #         print(what, name, obj, skip, options)
 
-#autodoc_typehints_format = 'short'
+# autodoc_typehints_format = 'short'
 autodoc_default_options = {
-    'members': True,
+    "members": True,
     #'undoc-members': True,
     #'inherited-members': True,
     #'private-members': True,
-    'show-inheritance': True,
-    'special-members': '__call__',
-    'member-order': 'bysource',
+    "show-inheritance": True,
+    "special-members": "__call__",
+    "member-order": "bysource",
     #'member-order': 'groupwise',
 }
 
 # class pytermor.Colors.Color(hex_value.. -> class Color(..
-#add_module_names = False
+# add_module_names = False
 
-#autosummary_generate = True
+# autosummary_generate = True
 
 # include signature in the class desc or document __init__ separately
 autodoc_class_signature = "mixed"  # 'separated'
 
 autoclass_content = "both"
 
-#doctest_test_doctest_blocks = 'True'
+# doctest_test_doctest_blocks = 'True'
 
 # static set_up(force_styles: bool | None = False, compatibility_indexed: bool.. ->
 # static set_up(force_styles=False, compatibility_indexed=False, compatibility_default..
@@ -204,11 +201,11 @@ autoclass_content = "both"
 #   Build up actual byte sequence and return as an ASCII-assembled string.
 #     RETURN TYPE:
 #       str
-#autodoc_typehints = 'both'
-#autodoc_typehints = 'signature'
-autodoc_typehints = 'description'
-autodoc_typehints_description_target = 'documented_params'
-#autodoc_inherit_docstrings =
+# autodoc_typehints = 'both'
+# autodoc_typehints = 'signature'
+autodoc_typehints = "description"
+autodoc_typehints_description_target = "documented_params"
+# autodoc_inherit_docstrings =
 
 keep_warnings = True
 # nitpick_ignore = [('py:class', 'Match'),
@@ -218,15 +215,15 @@ keep_warnings = True
 
 # -- doctest ------------------------------------------------------------------
 
-doctest_global_setup = '''
+doctest_global_setup = """
 import pytermor as pt                         
 import pytermor.color as col            
 pt.RendererManager.set_default_to_force_formatting()
-'''
+"""
 
 # -- Misc ---------------------------------------------------------------------
 
-#modindex_common_prefix = ['pytermor']
+# modindex_common_prefix = ['pytermor']
 
 todo_include_todos = True
 # todo_emit_warnings = True
@@ -243,7 +240,7 @@ todo_include_todos = True
 from sphinx.ext.autodoc import ClassDocumenter, _
 
 add_line = ClassDocumenter.add_line
-line_to_delete = _(u'Bases: %s') % u':py:class:`object`'
+line_to_delete = _("Bases: %s") % ":py:class:`object`"
 
 
 def add_line_no_object_base(self, text, *args, **kwargs):
@@ -265,6 +262,7 @@ ClassDocumenter.add_directive_header = add_directive_header_no_object_base
 
 # ---------------------------------------------------------------------------------------
 
+
 def setup(app):
     # mark index docfile as always outdated, forces static files (e.g. CSS) update:
-    app.connect('env-get-outdated', lambda *args: ['index'])
+    app.connect("env-get-outdated", lambda *args: ["index"])

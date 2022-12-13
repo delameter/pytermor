@@ -132,5 +132,3 @@ class TestTextFormatting(unittest.TestCase):
     def test_invalid_type_format_fails(self):
         for fmt in "bcdoxXneEfFgGn%":
             self.assertRaises(ValueError, lambda text=self.text: f"{text:{fmt}}")
-
-

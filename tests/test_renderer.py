@@ -39,10 +39,7 @@ class TestTmuxRenderer(unittest.TestCase):
     def test_basic_render_works(self):
         result = pt.render("12345", Style(fg="red", bg="black", bold=True))
         self.assertEqual(
-            "#[fg=red bg=black bold]"
-            "12345"
-            "#[fg=default bg=default nobold]",
-            result,
+            "#[fg=red bg=black bold]" "12345" "#[fg=default bg=default nobold]", result
         )
 
     def test_attribute_render_works(self):

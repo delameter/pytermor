@@ -13,6 +13,6 @@ API reference
    renderer
    style
    text
+   utilmisc
    utilnum
    utilstr
-   utilsys

@@ -5,10 +5,17 @@
 import logging
 import unittest
 
-from pytermor.utilnum import format_si_metric, format_si_binary, PrefixedUnitFormatter, PREFIXES_SI, PREFIX_ZERO_SI
+from pytermor.utilnum import (
+    format_si_metric,
+    format_si_binary,
+    PrefixedUnitFormatter,
+    PREFIXES_SI,
+    PREFIX_ZERO_SI,
+)
 
 
 class TestPrefixedUnit(unittest.TestCase):
+    # fmt: off
     expected_format_dataset = [
         [format_si_binary, [
             # ['-20.5 ?b', -2.54324345e28], ['- 192 Yb', -0.2315142e27],
@@ -82,9 +89,12 @@ class TestPrefixedUnit(unittest.TestCase):
             ['10.0 PV',  1e16], ['100 PV',   1e17], ['1.00 EV',  1e18],
         ]]
     ]
+    # fmt: on
 
     def test_output_has_expected_format(self):
-        for formatter_idx, (formatter_fn, formatter_input) in enumerate(self.expected_format_dataset):
+        for formatter_idx, (formatter_fn, formatter_input) in enumerate(
+            self.expected_format_dataset
+        ):
             for input_idx, (expected_output, input_num) in enumerate(formatter_input):
                 subtest_msg = f'prefixed/match F{formatter_idx} #{input_idx}: "{input_num:.2e}" -> "{expected_output}"'
 
@@ -97,38 +107,57 @@ class TestPrefixedUnit(unittest.TestCase):
     """ ----------------------------------------------------------------------------------------------------------- """
 
     req_len_dataset = [
-        [6, lambda val: format_si_metric(val, unit='')],
+        [6, lambda val: format_si_metric(val, unit="")],
         [8, format_si_binary],
-        [6, PrefixedUnitFormatter(
-            max_value_len=4,
-            truncate_frac=False,
-            mcoef=1000.0,
-            prefixes=PREFIXES_SI,
-            prefix_zero_idx=PREFIX_ZERO_SI,
-            unit='m', unit_separator=None,
-        ).format],
-        [10, PrefixedUnitFormatter(
-            max_value_len=9,
-            truncate_frac=False,
-            mcoef=1000.0,
-            prefixes=PREFIXES_SI,
-            prefix_zero_idx=PREFIX_ZERO_SI,
-            unit=None, unit_separator=None,
-        ).format],
+        [
+            6,
+            PrefixedUnitFormatter(
+                max_value_len=4,
+                truncate_frac=False,
+                mcoef=1000.0,
+                prefixes=PREFIXES_SI,
+                prefix_zero_idx=PREFIX_ZERO_SI,
+                unit="m",
+                unit_separator=None,
+            ).format,
+        ],
+        [
+            10,
+            PrefixedUnitFormatter(
+                max_value_len=9,
+                truncate_frac=False,
+                mcoef=1000.0,
+                prefixes=PREFIXES_SI,
+                prefix_zero_idx=PREFIX_ZERO_SI,
+                unit=None,
+                unit_separator=None,
+            ).format,
+        ],
     ]
-    req_len_input_num_list = [.076 * pow(11, x) * (1 - 2 * (x % 2)) for x in range(-20, 20)]
+    req_len_input_num_list = [
+        0.076 * pow(11, x) * (1 - 2 * (x % 2)) for x in range(-20, 20)
+    ]
 
     def test_output_fits_in_required_length(self):
-        for formatter_idx, (expected_max_len, formatter_fn) in enumerate(self.req_len_dataset):
-            logging.debug(f'expected_max_len={expected_max_len}: ')
+        for formatter_idx, (expected_max_len, formatter_fn) in enumerate(
+            self.req_len_dataset
+        ):
+            logging.debug(f"expected_max_len={expected_max_len}: ")
 
             for input_idx, input_num in enumerate(self.req_len_input_num_list):
-                subtest_msg = f'prefixed/len P{formatter_idx} #{input_idx} "{input_num:.2e}" -> (len {expected_max_len})'
+                subtest_msg = (
+                    f'prefixed/len P{formatter_idx} #{input_idx} "{input_num:.2e}"'
+                    f" -> (len {expected_max_len})"
+                )
 
                 with self.subTest(msg=subtest_msg):
                     actual_output = formatter_fn(input_num)
-                    logging.debug(subtest_msg + f' => (len {len(actual_output)}) "{actual_output}"')
+                    logging.debug(
+                        subtest_msg + f' => (len {len(actual_output)}) "{actual_output}"'
+                    )
 
-                    self.assertGreaterEqual(expected_max_len,
-                                            len(actual_output),
-                                            f'Actual output ("{actual_output}") exceeds maximum')
+                    self.assertGreaterEqual(
+                        expected_max_len,
+                        len(actual_output),
+                        f'Actual output ("{actual_output}") exceeds maximum',
+                    )
