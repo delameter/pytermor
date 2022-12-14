@@ -4,7 +4,7 @@
 /*---------------------------------------------------------------------------*/
 
 $(document).ready(function () {
-    $('a.external, a.internal.image-reference').attr('target', '_blank');
+    $('a.external, a.internal.image-reference, .icons a').attr('target', '_blank');
 
     handleEscCharLabels()
 });

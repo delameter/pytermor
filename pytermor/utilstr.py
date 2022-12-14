@@ -400,7 +400,7 @@ class OmniHexPrinter(OmniReplacer[IT]):
         ).encode()
 
     def __init__(self):
-        super().__init__(b".+", self.bytes_as_hex)
+        super().__init__(re.compile(b".+", flags=re.DOTALL), self.bytes_as_hex)
 
 
 def apply_filters(string: IT, *args: FT) -> OT:
