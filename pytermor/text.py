@@ -75,7 +75,7 @@ class _TextFragment(t.Sized):
         return f"<{self.__class__.__qualname__}>[" + ", ".join(props_set) + "]"
 
 
-class Text(Renderable):
+class FrozenText(Renderable):
     _WIDTH_MAX_LEN_REGEXP = re.compile(r"[\d.]+$")
     _ALIGN_LEFT = "<"
     _ALIGN_RIGHT = ">"
@@ -89,13 +89,31 @@ class Text(Renderable):
 
     def __init__(
         self,
-        string: str = "",
+        string: str | Renderable = "",
         fmt: Color | Style = NOOP_STYLE,
         close_this: bool = True,
         close_prev: bool = False,
+        frozen: bool = False,
     ):
-        self._fragments: t.Deque[_TextFragment] = collections.deque()
-        self.append(string, fmt, close_this, close_prev)
+        self._frozen = frozen
+        self._fragments: t.Deque[_TextFragment] = collections.deque(
+            self._init_fragments(string, fmt, close_this, close_prev)
+        )
+
+    def _init_fragments(
+        self,
+        string: str | Renderable,
+        fmt: Color | Style = NOOP_STYLE,
+        close_this: bool = True,
+        close_prev: bool = False,
+    ) -> t.Sequence[_TextFragment]:
+        if isinstance(string, str):
+            return [_TextFragment(string, fmt, close_this, close_prev)]
+        elif isinstance(string, (FrozenText, Text)):
+            if fmt != NOOP_STYLE and fmt != NOOP_COLOR:
+                return [_TextFragment("", fmt, close_this, close_prev)]
+            return string._fragments
+        raise ArgTypeError(type(string), "string", fn=self._init_fragments)
 
     def render(
         self, renderer: AbstractRenderer | t.Type[AbstractRenderer] = None
@@ -138,58 +156,8 @@ class Text(Renderable):
     def raw(self) -> str:
         return "".join(frag.string for frag in self._fragments)
 
-    def append(
-        self,
-        string: str | Renderable,
-        fmt: Color | Style = NOOP_STYLE,
-        close_this: bool = True,
-        close_prev: bool = False,
-    ) -> Text:
-        if isinstance(string, str):
-            self._fragments.append(_TextFragment(string, fmt, close_this, close_prev))
-        elif isinstance(string, Text):
-            if fmt != NOOP_STYLE and fmt != NOOP_COLOR:
-                self._fragments.append(_TextFragment("", fmt, close_this, close_prev))
-            self._fragments.extend(string._fragments)
-        else:
-            raise ArgTypeError(type(string), "string", fn=self.append)
-        return self
-
-    def prepend(
-        self,
-        string: str | Text,
-        fmt: Color | Style = NOOP_STYLE,
-        close_this: bool = True,
-        close_prev: bool = False,
-    ) -> Text:
-        if isinstance(string, str):
-            self._fragments.appendleft(
-                _TextFragment(string, fmt, close_this, close_prev)
-            )
-        elif isinstance(string, Text):
-            if fmt != NOOP_STYLE and fmt != NOOP_COLOR:
-                self._fragments.appendleft(
-                    _TextFragment("", fmt, close_this, close_prev)
-                )
-            self._fragments.extendleft(string._fragments)
-        else:
-            raise TypeError("Only str or another Text can be added to Text instance")
-        return self
-
     def __len__(self) -> int:
         return sum(len(frag) for frag in self._fragments)
-
-    def __add__(self, other: str | Text) -> Text:
-        self.append(other)
-        return self
-
-    def __iadd__(self, other: str | Text) -> Text:
-        self.append(other)
-        return self
-
-    def __radd__(self, other: str | Text) -> Text:
-        self.prepend(other)
-        return self
 
     def __str__(self) -> str:
         raise LogicError("Casting to str is prohibited, use render() instead.")
@@ -280,6 +248,40 @@ class Text(Renderable):
             raise LogicError(f"Unrecognized format spec: '{format_spec_orig}'")
 
         return width, max_len, align, fill
+
+
+class Text(FrozenText):
+    def append(
+        self,
+        string: str | Renderable,
+        fmt: Color | Style = NOOP_STYLE,
+        close_this: bool = True,
+        close_prev: bool = False,
+    ) -> Text:
+        self._fragments.extend(self._init_fragments(string, fmt, close_this, close_prev))
+        return self
+
+    def prepend(
+        self,
+        string: str | Text,
+        fmt: Color | Style = NOOP_STYLE,
+        close_this: bool = True,
+        close_prev: bool = False,
+    ) -> Text:
+        self._fragments.extendleft(self._init_fragments(string, fmt, close_this, close_prev))
+        return self
+
+    def __add__(self, other: str | Text) -> Text:
+        self.append(other)
+        return self
+
+    def __iadd__(self, other: str | Text) -> Text:
+        self.append(other)
+        return self
+
+    def __radd__(self, other: str | Text) -> Text:
+        self.prepend(other)
+        return self
 
 
 class _TemplateTag:

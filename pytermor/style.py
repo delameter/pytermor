@@ -45,7 +45,7 @@ class Style:
         return frozenset(list(self.__dict__.keys()) + ["_fg", "_bg"])
 
     @staticmethod
-    def make(fmt: Color | Style | None):
+    def make(fmt: Color | Style | None) -> Style:
         if not fmt:
             return NOOP_STYLE
         if isinstance(fmt, Color):
