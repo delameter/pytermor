@@ -247,14 +247,14 @@ class SgrRenderer(AbstractRenderer):
 
     _output_mode: OutputMode = OutputMode.AUTO
 
-    def __init__(self, output_mode: OutputMode = OutputMode.AUTO):
-        self._output_mode = self._determine_output_mode(output_mode)
+    def __init__(self, output_mode: OutputMode = OutputMode.AUTO, io: t.IO = sys.stdout):
+        self._output_mode = self._determine_output_mode(output_mode, io)
         self._color_upper_bound = self._COLOR_UPPER_BOUNDS.get(self._output_mode, None)
 
         logger.debug(
             f"Instantiated {self.__class__.__qualname__}"
-            f"({output_mode.name} -> {self._output_mode.name}, "
-            f"upper bound {get_qname(self._color_upper_bound)})"
+            f"[{self._output_mode.name} <- {output_mode.name}, "
+            f"upper bound {get_qname(self._color_upper_bound)}]"
         )
 
     @property
@@ -281,15 +281,15 @@ class SgrRenderer(AbstractRenderer):
     def clone(self) -> SgrRenderer:
         return SgrRenderer(self._output_mode)
 
-    def _determine_output_mode(self, arg_value: OutputMode) -> OutputMode:
+    def _determine_output_mode(self, arg_value: OutputMode, io: t.IO) -> OutputMode:
         if arg_value is not OutputMode.AUTO:
             return arg_value
 
-        isatty = sys.stdout.isatty()
+        isatty = io.isatty()
         term = os.environ.get("TERM", None)
         colorterm = os.environ.get("COLORTERM", None)
 
-        logger.debug(f"Stdout is a terminal: {isatty}")
+        logger.debug(f"{io.name} is a terminal: {isatty}")
         logger.debug(f"Environment: TERM='{term}'")
         logger.debug(f"Environment: COLORTERM='{colorterm}'")
 
