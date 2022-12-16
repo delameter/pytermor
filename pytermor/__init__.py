@@ -67,7 +67,9 @@ from .utilstr import OmniHexPrinter as OmniHexPrinter
 from .utilstr import OmniReplacer as OmniReplacer
 from .utilstr import OmniSanitizer as OmniSanitizer
 from .utilstr import SgrStringReplacer as SgrStringReplacer
+from .utilstr import StringHexPrinter as StringHexPrinter
 from .utilstr import StringReplacer as StringReplacer
+from .utilstr import StringUcpPrinter as StringUcpPrinter
 from .utilstr import WhitespacesStringReplacer as WhitespacesStringReplacer
 from .utilstr import apply_filters as apply_filters
 from .utilstr import center_sgr as center_sgr

@@ -391,16 +391,44 @@ class OmniSanitizer(OmniReplacer[IT]):
 
 
 class OmniHexPrinter(OmniReplacer[IT]):
-    """ """
+    """ str/bytes as byte hex codes, grouped by 4 """
 
     @staticmethod
-    def bytes_as_hex(m: t.Match[bytes]) -> bytes:
+    def bytes_as_hex(s: bytes) -> bytes:
         return " ".join(
-            ":".join([f"{b:02X}" for b in (*c,)]) for c in chunk(m.group(), 4)
+            ":".join([f"{b:02X}" for b in (*c,)]) for c in chunk(s, 4)
         ).encode()
 
     def __init__(self):
-        super().__init__(re.compile(b".+", flags=re.DOTALL), self.bytes_as_hex)
+        super().__init__(
+            re.compile(b".+", flags=re.DOTALL), lambda m: self.bytes_as_hex(m.group())
+        )
+
+
+class StringHexPrinter(StringReplacer):
+    """ str as byte hex codes (UTF-8), grouped by characters """
+
+    @staticmethod
+    def str_as_hex(s: str) -> str:
+        return " ".join("".join(f"{b:02X}" for b in c.encode()).ljust(8) for c in s)
+
+    def __init__(self):
+        super().__init__(
+            re.compile(".+", flags=re.DOTALL), lambda m: self.str_as_hex(m.group())
+        )
+
+
+class StringUcpPrinter(StringReplacer):
+    """ str as Unicode codepoints """
+
+    @staticmethod
+    def str_as_ucp(s: str, prefix: str) -> str:
+        return " ".join(f"{prefix}{ord(c):>5x}" for c in s)
+
+    def __init__(self, prefix="U+"):
+        super().__init__(
+            re.compile(".+", flags=re.DOTALL), lambda m: self.str_as_ucp(m.group(), prefix)
+        )
 
 
 def apply_filters(string: IT, *args: FT) -> OT:
