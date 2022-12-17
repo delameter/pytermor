@@ -17,29 +17,17 @@ import math
 import re
 import textwrap
 import typing as t
+from abc import ABC
+from dataclasses import dataclass, field
 from functools import reduce
+from math import ceil
 from typing import Union
 
+from . import ArgTypeError
 from .common import StrType
-from .utilmisc import chunk
+from .utilmisc import chunk, get_terminal_width
 
 _PRIVATE_REPLACER = "\U000E5750"
-
-
-def format_thousand_sep(value: int | float, separator: str = " ") -> str:
-    """
-    Returns input ``value`` with integer part split into groups of three digits,
-    joined then with ``separator`` string.
-
-    >>> format_thousand_sep(260341)
-    '260 341'
-    >>> format_thousand_sep(-9123123123.55, ',')
-    '-9,123,123,123.55'
-
-    :param value:
-    :param separator:
-    """
-    return f"{value:_}".replace("_", separator)
 
 
 def distribute_padded(
@@ -182,9 +170,10 @@ def wrap_sgr(
 codecs.register_error("replace_with_qmark", lambda e: ("?", e.start + 1))
 
 
-# -----------------------------------------------------------------------------
+# =============================================================================
+# Filters
 
-ESCAPE_SEQUENCE_SREGEX = re.compile(
+ESCAPE_SEQ_REGEX = re.compile(
     r"""
     (?P<escape_char>\x1b)
     (?P<data>
@@ -213,99 +202,102 @@ ESCAPE_SEQUENCE_SREGEX = re.compile(
 )
 # https://ecma-international.org/wp-content/uploads/ECMA-35_6th_edition_december_1994.pdf
 
-SGR_SEQ_SREGEX = re.compile(r"(\x1b)(\[)([0-9;]*)(m)")
-CONTROL_SREGEX = re.compile(r"([\x00-\x09\x0b-\x1f\x7f]+)")
-NON_ASCII_BREGEX = re.compile(rb"([\x80-\xff]+)")
-CONTROL_AND_NON_ASCII_BREGEX = re.compile(rb"([\x00-\x09\x0b-\x1f\x7f\x80-\xff]+)")
+SGR_SEQ_REGEX = re.compile(r"(\x1b)(\[)([0-9;]*)(m)")
+CSI_SEQ_REGEX = re.compile(r"(\x1b)(\[)(([0-9;:<=>?])*)([@A-Za-z])")
+
+CONTROL_CHARS = [*range(0x00, 0x08 + 1), *range(0x0E, 0x1F + 1), 0x7F]
+WHITESPACE_CHARS = [*range(0x09, 0x0D + 1), 0x20]
+PRINTABLE_CHARS = [*range(0x21, 0x7E + 1)]
+NON_ASCII_CHARS = [*range(0x80, 0xFF + 1)]
 
 IT = t.TypeVar("IT", str, bytes)  # input-type
 OT = t.TypeVar("OT", str, bytes)  # output-type
-AT = t.TypeVar("AT", str, bytes)  # pattern and replacer internal types (should be same)
-PT = Union[AT, t.Pattern[AT]]  # pattern wrapper type
-RT = Union[AT, t.Callable[[t.Match[AT]], AT]]  # replacer wrapper type
-AnyFilter = "OmniFilter[IT, OT]"
-FT = Union[AnyFilter, t.Type[AnyFilter]]
+PT = Union[IT, t.Pattern[IT]]  # pattern type
+RT = Union[OT, t.Callable[[t.Match[OT]], OT]]  # replacer type
+MT = t.Dict[int, IT]  # map
+AT = Union["OmniFilter", t.Type["OmniFilter"]]
 
 
-class OmniFilter(t.Generic[IT, OT]):
+class GenericFilter(t.Generic[IT, OT], ABC):
     """
     Main idea is to provide a common interface for string filtering, that can make
     possible working with filters like with objects rather than with functions/lambdas.
     """
 
+    def __init__(self):
+        pass
+
     def __call__(self, s: IT) -> OT:
         """Can be used instead of `apply()`"""
         return self.apply(s)
 
-    def apply(self, inp: IT) -> OT:
+    def apply(self, inp: IT, extra: t.Any = None) -> OT:
         """
-        :param inp:
-        :return:
+        Apply the filter to input *str* or *bytes*.
+
+        :param inp:   input string
+        :param extra: additional options
+        :return: transformed string; the type can match the input type,
+                 as well as be different -- that depends on filter type.
         """
         raise NotImplementedError
 
-    def _transcode(self, inp: IT, target: t.Type[OT]) -> OT:
+    def _transcode(self, inp: IT, target: t.Type[RT]) -> RT:
         if isinstance(inp, target):
             return inp
         return inp.encode() if isinstance(inp, str) else inp.decode()
 
 
-class NoopFilter(OmniFilter[IT, OT]):
+class NoopFilter(GenericFilter[IT, OT]):
     """ """
 
-    def apply(self, inp: IT) -> OT:
+    def apply(self, inp: IT, extra: t.Any = None) -> OT:
         return inp
 
 
-class OmniDecoder(OmniFilter[IT, str]):
+class OmniDecoder(GenericFilter[IT, str]):
     """ """
 
-    def apply(self, inp: IT) -> str:
+    def apply(self, inp: IT, extra: t.Any = None) -> str:
         return inp.decode() if isinstance(inp, bytes) else inp
 
 
-class OmniEncoder(OmniFilter[IT, bytes]):
+class OmniEncoder(GenericFilter[IT, bytes]):
     """ """
 
-    def apply(self, inp: IT) -> bytes:
+    def apply(self, inp: IT, extra: t.Any = None) -> bytes:
         return inp.encode() if isinstance(inp, str) else inp
 
 
-class OmniReplacer(OmniFilter[IT, IT]):
-    """."""
+# -----------------------------------------------------------------------------
+# Filters[Replacers]
 
-    def __init__(self, pattern: PT, repl: RT):
-        if isinstance(pattern, (str, bytes)):
-            self._pattern: t.Pattern[AT] = re.compile(pattern)
+
+class StringReplacer(GenericFilter[str, str]):
+    """
+    .
+    """
+
+    def __init__(self, pattern: PT[str], repl: RT[str]):
+        super().__init__()
+        if isinstance(pattern, str):
+            self._pattern: t.Pattern[str] = re.compile(pattern)
         else:
-            self._pattern: t.Pattern[AT] = pattern
+            self._pattern: t.Pattern[str] = pattern
         self._repl = repl
 
-    def apply(self, inp: IT) -> IT:
-        """Apply filter to ``s`` string (or bytes)."""
-        target: t.Type[IT] = type(inp)
-        inp_transcoded: AT = self._transcode(inp, type(self._pattern.pattern))
-        output = self._pattern.sub(self._repl, inp_transcoded)
-        return self._transcode(output, target)
+    def apply(self, inp: str, extra: t.Any = None) -> str:
+        return self._replace(inp)
 
-
-class StringReplacer(OmniReplacer[str]):
-    """ """
-
-    pass
-
-
-class BytesReplacer(OmniReplacer[bytes]):
-    """ """
-
-    pass
+    def _replace(self, inp: str) -> str:
+        return self._pattern.sub(self._repl, inp)
 
 
 class EscapeSequenceStringReplacer(StringReplacer):
     """ """
 
     def __init__(self, repl: RT[str] = ""):
-        super().__init__(ESCAPE_SEQUENCE_SREGEX, repl)
+        super().__init__(ESCAPE_SEQ_REGEX, repl)
 
 
 class SgrStringReplacer(StringReplacer):
@@ -318,7 +310,7 @@ class SgrStringReplacer(StringReplacer):
     """
 
     def __init__(self, repl: RT[str] = ""):
-        super().__init__(SGR_SEQ_SREGEX, repl)
+        super().__init__(SGR_SEQ_REGEX, repl)
 
 
 class CsiStringReplacer(StringReplacer):
@@ -332,106 +324,432 @@ class CsiStringReplacer(StringReplacer):
     """
 
     def __init__(self, repl: RT[str] = ""):
-        super().__init__(r"(\x1b)(\[)(([0-9;:<=>?])*)([@A-Za-z])", repl)
+        super().__init__(CSI_SEQ_REGEX, repl)
 
 
-class WhitespacesStringReplacer(StringReplacer):
+# -----------------------------------------------------------------------------
+# Filters[Mappers]
+
+
+class OmniMapper(GenericFilter[IT, IT]):
     """
-    Replace every invisible character with ``repl`` (default is ``·``),
-    except newlines. Newlines are kept and get prepneded with same string by
-    default, but this behaviour can be disabled with ``keep_newlines`` = *False*.
+    Input type: *str*, *bytes*. Abstract mapper. Replaces every character found in
+    map keys to corresponding map value. Map should be a dictionary of this type:
+    ``dict[int, str|bytes|None]``; moreover, length of *str*/*bytes* must be strictly 1
+    character (ASCII codepage). If there is a necessity to map Unicode characters,
+    `StringMapper` should be used instead.
 
-    >>> WhitespacesStringReplacer("·").apply('A  B  C')
-    'A··B··C'
-    >>> apply_filters('1. D\\n2. L ', WhitespacesStringReplacer(keep_newlines=False))
-    '1.D2.L'
+    >>> OmniMapper({0x20: '.'}).apply(b'abc def ghi')
+    b'abc.def.ghi'
 
-    :param repl:
-    :param keep_newlines:
-    """
+    For mass mapping it is better to subclass `OmniMapper` and override two methods --
+    `_get_default_keys` and `_get_default_replacer`. In this case you don't have to
+    manually compose a replacement map with every character you want to replace.
 
-    def __init__(self, repl: RT[str] = "", keep_newlines: bool = True):
-        if keep_newlines:
-            super().__init__(r"(\n)|\s", rf"{repl}\1")
-        else:
-            super().__init__(r"\s", repl)
-
-
-class ControlCharsStringReplacer(StringReplacer):
-    """."""
-
-    def __init__(self, repl: RT[str] = ""):
-        super().__init__(CONTROL_SREGEX, repl)
-
-
-class NonAsciiByteReplacer(BytesReplacer):
-    """
-    Keep 7-bit ASCII bytes [0x00-0x7f], replace or remove (this is a default) others.
-
-    >>> inp = bytes((0x60, 0x70, 0x80, 0x90, 0x50))
-    >>> NonAsciiByteReplacer().apply(inp)
-    b'`pP'
-    >>> NonAsciiByteReplacer(lambda m: b'?'*len(m.group())).apply(inp)
-    b'`p??P'
-    >>> NonAsciiByteReplacer(lambda m: f'[{m.group().hex()}]'.encode()).apply(inp)
-    b'`p[8090]P'
-
-    :param repl: Replacement byte-string.
+    :param override: a dictionary with mappings: keys must be *ints*, values must be
+                     either a single-char *strs* or *bytes*, or None.
+    :see: `NonPrintablesOmniVisualizer`
     """
 
-    def __init__(self, repl: RT[bytes] = b""):
-        super().__init__(NON_ASCII_BREGEX, repl)
+    def __init__(self, override: MT = None):
+        super().__init__()
+        self._make_maps(override)
+
+    def _get_default_keys(self) -> t.List[int]:
+        """
+        Helper method for avoiding character map manual composing in the mapper subclass.
+
+        :return: List of int codes that should be replaced by default (i.e., without
+                 taking ``override`` argument into account, or when it is not present).
+        """
+        return []
+
+    def _get_default_replacer(self) -> IT:
+        """
+        Helper method for avoiding character map manual composing in the mapper subclass.
+
+        :return: Default replacement character for int codes that are not present in
+                 ``override`` keys list, or when there is no overriding at all.
+        """
+        raise NotImplementedError
+
+    def _make_maps(self, override: MT | None):
+        self._maps = {
+            str: str.maketrans(self._make_premap(str, override)),
+            bytes: bytes.maketrans(*self._make_bytemaps(override)),
+        }
+
+    def _make_premap(self, inp_type: t.Type[IT], override: MT | None) -> t.Dict[int, IT]:
+        default_map = dict()
+        default_replacer = None
+        for i in self._get_default_keys():
+            if default_replacer is None:
+                default_replacer = self._transcode(
+                    self._get_default_replacer(), inp_type
+                )
+            default_map.setdefault(i, default_replacer)
+
+        if override is None:
+            return default_map
+        if not isinstance(override, dict):
+            raise ArgTypeError(type(override), "override", self.__init__)
+
+        if not all(isinstance(k, int) and 0 <= k <= 255 for k in override.keys()):
+            raise TypeError("Mapper keys should be ints such as: 0 <= key <= 255")
+        if not all(
+            isinstance(v, (str, bytes)) or v is None for v in override.values()
+        ):
+            raise TypeError(
+                "Each map value should be either a single char in 'str' or 'bytes' form, or None"
+            )
+        for i, v in override.items():
+            default_map.update({i: self._transcode(v, inp_type)})
+        return default_map
+
+    def _make_bytemaps(self, override: MT | None) -> t.Tuple[bytes, bytes]:
+        premap = self._make_premap(bytes, override)
+        srcmap = b"".join(int.to_bytes(k, 1, "big") for k in premap.keys())
+        for v in premap.values():
+            if len(v) != 1:
+                raise ValueError(
+                    "All OmniMapper replacement values should be one byte long (i.e. be "
+                    "an ASCII char). To utilize non-ASCII characters use StringMapper."
+                )
+        destmap = b"".join(premap.values())
+        return srcmap, destmap
+
+    def apply(self, inp: IT, extra: t.Any = None) -> IT:
+        return inp.translate(self._maps[type(inp)])
 
 
-class OmniSanitizer(OmniReplacer[IT]):
-    """ """
+class StringMapper(OmniMapper[str]):
+    """
+    a
+    """
 
-    def __init__(self, repl: RT[bytes] = b""):
-        super().__init__(CONTROL_AND_NON_ASCII_BREGEX, repl)
+    def _make_maps(self, override: MT | None):
+        self._maps = {str: str.maketrans(self._make_premap(str, override))}
 
-
-class OmniHexPrinter(OmniReplacer[IT]):
-    """ str/bytes as byte hex codes, grouped by 4 """
-
-    @staticmethod
-    def bytes_as_hex(s: bytes) -> bytes:
-        return " ".join(
-            ":".join([f"{b:02X}" for b in (*c,)]) for c in chunk(s, 4)
-        ).encode()
-
-    def __init__(self):
-        super().__init__(
-            re.compile(b".+", flags=re.DOTALL), lambda m: self.bytes_as_hex(m.group())
-        )
+    def apply(self, inp: str, extra: t.Any = None) -> str:
+        if isinstance(inp, bytes):
+            raise TypeError("String mappers allow 'str' as input only")
+        return super().apply(inp, extra)
 
 
-class StringHexPrinter(StringReplacer):
-    """ str as byte hex codes (UTF-8), grouped by characters """
+class NonPrintablesOmniVisualizer(OmniMapper):
+    """
+    Input type: *str*, *bytes*. Replace every whitespace character with ``.``.
+    """
 
-    @staticmethod
-    def str_as_hex(s: str) -> str:
-        return " ".join("".join(f"{b:02X}" for b in c.encode()).ljust(8) for c in s)
+    def _get_default_keys(self) -> t.List[int]:
+        return WHITESPACE_CHARS + CONTROL_CHARS
 
-    def __init__(self):
-        super().__init__(
-            re.compile(".+", flags=re.DOTALL), lambda m: self.str_as_hex(m.group())
-        )
-
-
-class StringUcpPrinter(StringReplacer):
-    """ str as Unicode codepoints """
-
-    @staticmethod
-    def str_as_ucp(s: str, prefix: str) -> str:
-        return " ".join(f"{prefix}{ord(c):>5x}" for c in s)
-
-    def __init__(self, prefix="U+"):
-        super().__init__(
-            re.compile(".+", flags=re.DOTALL), lambda m: self.str_as_ucp(m.group(), prefix)
-        )
+    def _get_default_replacer(self) -> IT:
+        return b"."
 
 
-def apply_filters(string: IT, *args: FT) -> OT:
+class NonPrintablesStringVisualizer(StringMapper):
+    """
+    Input type: *str*. Replace every whitespace character with "·", except
+    newlines. Newlines are kept and get prepneded with same char by default,
+    but this behaviour can be disabled with ``keep_newlines`` = *False*.
+
+    >>> NonPrintablesStringVisualizer().apply('A  B  C')
+    'A␣␣B␣␣C'
+    >>> apply_filters('1. D\\n2. L ', NonPrintablesStringVisualizer(keep_newlines=False))
+    '1.␣D↵2.␣L␣'
+
+    :param keep_newlines: When *True*, transform newline characters into "↵\\\\n", or
+                          into just "↵" otherwise.
+    """
+
+    def __init__(self, keep_newlines: bool = True):
+        override = {
+            0x09: "⇥",
+            0x0A: "↵" + ("\n" if keep_newlines else ""),
+            0x0B: "⤓",
+            0x0C: "↡",
+            0x0D: "⇤",
+            0x20: "␣",
+        }
+        super().__init__(override)
+
+    def _get_default_keys(self) -> t.List[int]:
+        return WHITESPACE_CHARS + CONTROL_CHARS
+
+    def _get_default_replacer(self) -> str:
+        return "·"
+
+
+class OmniSanitizer(OmniMapper):
+    """
+    Input type: *str*, *bytes*. Replace every control character and every non-ASCII
+    character (0x80-0xFF) with ".", or with specified char. Note that the replacement
+    should be a single ASCII character, because ``Omni-`` filters are designed to work
+    with *str* inputs and *bytes* inputs on equal terms.
+
+    :param repl: Value to replace control/non-ascii characters with. Should be strictly 1
+                 character long.
+    """
+    def __init__(self, repl: IT = b"."):
+        self._override_replacer = repl
+        super().__init__()
+
+    def _get_default_keys(self) -> t.List[int]:
+        return CONTROL_CHARS + NON_ASCII_CHARS
+
+    def _get_default_replacer(self) -> IT:
+        return self._override_replacer
+
+
+# -----------------------------------------------------------------------------
+# Filters[Printers]
+
+
+@dataclass
+class PrinterExtra:
+    label: str
+
+
+@dataclass
+class _PrinterState:
+    inp_size: int = field(init=False, default=None)
+    lineno: int = field(init=False, default=None)
+    offset: int = field(init=False, default=None)
+
+    inp_size_len: int = field(init=False, default=None)
+    offset_len: int = field(init=False, default=None)
+
+    rows: t.List[t.List[str]] = field(init=False, default=None)
+    cols_max_len: t.List[int] | None = field(init=False, default=None)
+
+    def reset(self, inp: IT):
+        self.inp_size = len(inp)
+        self.lineno = 0
+        self.offset = 0
+
+        self.inp_size_len = 0
+        self.offset_len = 0
+
+        self.rows = []
+        self.cols_max_len = None
+
+    def add_row(self, row: t.List):
+        if self.cols_max_len is None:
+            self.cols_max_len = [0] * len(row)
+        for col_idx, col_val in enumerate(row):
+            self.cols_max_len[col_idx] = max(self.cols_max_len[col_idx], len(col_val))
+        self.rows.append(row)
+
+
+class GenericPrinter(GenericFilter[IT, str], ABC):
+    def __init__(self, char_per_line: int):
+        super().__init__()
+        self._char_per_line = char_per_line
+        self._state: _PrinterState = _PrinterState()
+
+    def apply(self, inp: IT, extra: PrinterExtra = None) -> str:
+        if len(inp) == 0:
+            return "\n"
+
+        self._state.reset(inp)
+        self._state.inp_size_len = len(str(self._state.inp_size))
+        self._state.offset_len = len(self._format_offset(self._state.inp_size))
+
+        while len(inp) > 0:
+            inp, part = inp[self._char_per_line :], inp[: self._char_per_line]
+            self._process(part)
+            self._state.lineno += 1
+            self._state.offset += self._char_per_line
+
+        header = self._format_line_separator("_", f"{extra.label}" if extra else "")
+        footer = self._format_line_separator("-", "(" + str(self._state.inp_size) + ")")
+
+        result = header + "\n"
+        result += "\n".join(self._render_rows())
+        result += "\n" + footer + "\n"
+        return result
+
+    def _format_offset(self, override: int = None) -> str:
+        offset = override or self._state.offset
+        return str(offset).rjust(self._state.inp_size_len)
+
+    def _format_line_separator(self, fill: str, label: str) -> str:
+        return label + fill * (self._get_output_line_len() - len(label))
+
+    def _render_rows(self) -> t.Iterable[str]:
+        for row in self._state.rows:
+            row_str = ""
+            for col_idx, col_val in enumerate(row):
+                row_str += col_val.rjust(self._state.cols_max_len[col_idx])
+            yield row_str
+
+    def _get_vert_sep_char(self):
+        return "|"
+
+    def _get_output_line_len(self) -> int:
+        # useless before processing
+        if self._state.cols_max_len is None:
+            return 0
+        return sum(l for l in self._state.cols_max_len)
+
+    def _process(self, part: IT) -> str:
+        raise NotImplementedError
+
+    @classmethod
+    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
+        raise NotImplementedError
+
+
+class BytesHexPrinter(GenericPrinter[bytes]):
+    """
+    str/bytes as byte hex codes, grouped by 4
+
+    .. code-block:: hexdump
+       :caption: Example output
+
+        0000  0A 20 32 31 36 20 20 20  E2 94 82 20 20 75 70 6C  |a
+        0010  20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20  |a
+    """
+
+    GROUP_SIZE = 4
+
+    def __init__(self, char_per_line: int = 32):
+        super().__init__(self.GROUP_SIZE * ceil(char_per_line / self.GROUP_SIZE))
+
+    def _process(self, part: IT):
+        self._state.add_row(self._make_row(part))
+
+    def _make_row(self, part: IT) -> t.List[str]:
+        return [
+            " ",
+            self._format_offset(),
+            "  " + self._get_vert_sep_char(),
+            *self._format_main(part),
+        ]
+
+    def _format_offset(self, override: int = None) -> str:
+        offset = override or self._state.offset
+        size_len = 2 * ceil(self._state.inp_size_len / 2)
+        return f"0x{offset:0{size_len}X}"
+
+    def _format_main(self, part: bytes) -> t.Iterable[str]:
+        for c in chunk(part, self.GROUP_SIZE):
+            yield (" ".join([f"{b:02X}" for b in (*c,)])).ljust(3 * self.GROUP_SIZE + 1)
+
+    @classmethod
+    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
+        sep_len = 3
+        offset_len = len(str(inp_size))
+        main_len = 3 * char_per_line * cls.GROUP_SIZE + char_per_line // cls.GROUP_SIZE
+        return sep_len + offset_len + main_len
+
+
+class GenericStringPrinter(GenericPrinter[str], ABC):
+    OUTPUT_FILTERS = [NonPrintablesStringVisualizer(keep_newlines=False)]
+
+    def _format_output_text(self, text: str) -> str:
+        return apply_filters(text, *self.OUTPUT_FILTERS).ljust(self._char_per_line)
+
+
+class StringHexPrinter(GenericStringPrinter):
+    """
+    str as byte hex codes (UTF-8), grouped by characters
+
+    .. code-block:: hexdump
+       :caption: Example output
+
+       0056  45 4D 20 43 50 55     20     4F 56 48 20 4E   45 3E 0A 20  |E|
+       0072  20 20 20 20 20 20 E29482     20 20 20 20 20   20 20 20 20  |␣|
+       0088  20 20 20 20 37 20     2B     30 20 20 20 20 CE94 20 32 68  |␣|
+       0104  20 33 33 6D 20 20     20 EFAA8F 20 2D 35 20 C2B0 43 20 20  |␣|
+    """
+
+    def __init__(self, char_per_line: int = 16):
+        super().__init__(char_per_line)
+
+    def _process(self, part: IT):
+        self._state.add_row(self._make_row(part))
+
+    def _make_row(self, part: str) -> t.List[str]:
+        return [
+            " ",
+            self._format_offset(),
+            " " + self._get_vert_sep_char(),
+            "0x",
+            " ",
+            *self._format_main(part),
+            self._get_vert_sep_char(),
+            self._format_output_text(part),
+        ]
+
+    def _format_main(self, part: str) -> t.Iterable[str]:
+        for s in part:
+            yield "".join(f"{b:02X}" for b in s.encode())
+            yield " "
+        yield from [""] * 2 * (self._char_per_line - len(part))
+
+    @classmethod
+    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
+        sep_len = 6
+        prefix_len = 2
+        offset_len = len(str(inp_size))
+        main_len = (8 + 1) * char_per_line
+        return sep_len + prefix_len + offset_len + main_len
+
+
+class StringUcpPrinter(GenericStringPrinter):
+    """
+    str as Unicode codepoints
+
+    .. todo::
+        venv/lib/python3.8/site-packages/pygments/lexers/hexdump.py
+
+    .. code-block:: bash
+       :caption: Example output
+
+        56 |U+ 45 4d 20 43 50 55   20   4f 56 48 20 4e  45 3e 0a 20 | EM␣CPU␣OVH␣NE>↵␣
+        72 |U+ 20 20 20 20 20 20 2502   20 20 20 20 20  20 20 20 20 | ␣␣␣␣␣␣│␣␣␣␣␣␣␣␣␣
+        88 |U+ 20 20 20 20 37 20   2b   30 20 20 20 20 394 20 32 68 | ␣␣␣␣7␣+0␣␣␣␣Δ␣2h
+       104 |U+ 20 33 33 6d 20 20   20 fa8f 20 2d 35 20  b0 43 20 20 | ␣33m␣␣␣摒␣-5␣°C␣␣
+    """
+
+    def __init__(self, char_per_line: int = 16):
+        super().__init__(char_per_line)
+
+    def _process(self, part: IT):
+        self._state.add_row(self._make_row(part))
+
+    def _make_row(self, part: str) -> t.List[str]:
+        return [
+            " ",
+            self._format_offset(),
+            " " + self._get_vert_sep_char(),
+            "U+",
+            " ",
+            *self._format_main(part),
+            self._get_vert_sep_char(),
+            self._format_output_text(part),
+        ]
+
+    def _format_main(self, part: str) -> t.Iterable[str]:
+        for s in part:
+            yield from [f"{ord(s):>02x}", " "]
+        yield from [""] * 2 * (self._char_per_line - len(part))
+
+    @classmethod
+    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
+        sep_len = 6
+        prefix_len = 2
+        offset_len = len(str(inp_size))
+        main_len = (5 + 1) * char_per_line
+        return sep_len + prefix_len + offset_len + main_len
+
+
+# -----------------------------------------------------------------------------
+
+
+def apply_filters(string: IT, *args: AT) -> OT:
     """
     Method for applying dynamic filter list to a target string/bytes.
     Example (will replace all ``ESC`` control characters to ``E`` and
@@ -453,3 +771,17 @@ def apply_filters(string: IT, *args: FT) -> OT:
         return f() if isinstance(f, type) else f
 
     return reduce(lambda s, f: instantiate(f)(s), args, string)
+
+
+def dump(data: t.Any, label: str = None, adjust_for_tty: bool = False) -> str | None:
+    printer_t = StringUcpPrinter
+    printer = printer_t(32)
+    if adjust_for_tty:
+        max_len = get_terminal_width()
+        for chars_per_line in [8, 12, 16, 20, 24, 32, 40, 48, 64]:
+            est_len = printer_t.estimate_line_len(chars_per_line, len(data))
+            if est_len < max_len:
+                printer = printer_t(chars_per_line)
+                continue
+            break
+    return printer.apply(data, PrinterExtra(label))

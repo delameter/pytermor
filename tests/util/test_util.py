@@ -6,7 +6,8 @@ import unittest
 
 import pytermor as pt
 from pytermor.ansi import SeqIndex
-from pytermor.utilstr import format_thousand_sep, center_sgr, SgrStringReplacer
+from pytermor.utilstr import center_sgr, SgrStringReplacer
+from pytermor import format_thousand_sep
 
 
 class TestFormatThousandSep(unittest.TestCase):
