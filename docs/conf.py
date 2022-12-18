@@ -52,6 +52,12 @@ rst_prolog = """
 .. role:: mono
     :class: entity
 
+.. role:: strike
+    :class: strike
+
+.. role:: date
+    :class: date
+
 .. default-role:: any
 .. include:: <isonum.txt>
 
@@ -177,14 +183,14 @@ autodoc_default_options = {
     #'private-members': True,
     "show-inheritance": True,
     "special-members": "__call__",
-    "member-order": "bysource",
-    #'member-order': 'groupwise',
+    #"member-order": "bysource",
+    'member-order': 'groupwise',
 }
 
 # class pytermor.Colors.Color(hex_value.. -> class Color(..
 # add_module_names = False
 
-# autosummary_generate = True
+autosummary_generate = True
 
 # include signature in the class desc or document __init__ separately
 autodoc_class_signature = "mixed"  # 'separated'
@@ -207,6 +213,10 @@ autodoc_typehints = "description"
 autodoc_typehints_description_target = "documented_params"
 # autodoc_inherit_docstrings =
 
+autodoc_type_aliases = {
+    #"CT": "pytermor.color.CT",
+}
+
 keep_warnings = True
 # nitpick_ignore = [('py:class', 'Match'),
 #                   ('py:class', 'InitVar'),
@@ -218,7 +228,7 @@ keep_warnings = True
 doctest_global_setup = """
 import pytermor as pt                         
 import pytermor.color as col            
-pt.RendererManager.set_default_to_force_formatting()
+pt.RendererManager.set_default_format_always()
 """
 
 # -- Misc ---------------------------------------------------------------------

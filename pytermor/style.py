@@ -12,14 +12,14 @@ from __future__ import annotations
 import typing as t
 from dataclasses import dataclass, field
 
-from . import cval
+from . import cv, color
 from .color import Color, NOOP_COLOR, ColorRGB
 from .common import ArgTypeError
 
 
 @dataclass()
 class Style:
-    """ """
+    """ style """
 
     _fg: Color = field(default=None, init=False)
     _bg: Color = field(default=None, init=False)
@@ -157,9 +157,9 @@ class Style:
 
         h, s, v = self._bg.to_hsv()
         if v >= 0.45:
-            self._fg = cval.GRAY_3
+            self._fg = cv.GRAY_3
         else:
-            self._fg = cval.GRAY_82
+            self._fg = cv.GRAY_82
         return self
 
     def flip(self) -> Style:
@@ -188,7 +188,7 @@ class Style:
         if isinstance(arg, int):
             return ColorRGB(arg)
         if isinstance(arg, str):
-            return Color.resolve(arg)
+            return color.resolve(arg)
         raise ArgTypeError(type(arg), "arg", fn=self._resolve_color)
 
     def __eq__(self, other: Style):
@@ -236,14 +236,14 @@ class Styles:
     Some ready-to-use styles. Can be used as examples.
     """
 
-    WARNING = Style(fg=cval.YELLOW)
+    WARNING = Style(fg=cv.YELLOW)
     WARNING_LABEL = Style(WARNING, bold=True)
-    WARNING_ACCENT = Style(fg=cval.HI_YELLOW)
+    WARNING_ACCENT = Style(fg=cv.HI_YELLOW)
 
-    ERROR = Style(fg=cval.RED)
+    ERROR = Style(fg=cv.RED)
     ERROR_LABEL = Style(ERROR, bold=True)
-    ERROR_ACCENT = Style(fg=cval.HI_RED)
+    ERROR_ACCENT = Style(fg=cv.HI_RED)
 
-    CRITICAL = Style(bg=cval.RED, fg=cval.HI_WHITE)
-    CRITICAL_LABEL = Style(CRITICAL, bg=cval.HI_RED, bold=True)
+    CRITICAL = Style(bg=cv.RED, fg=cv.HI_WHITE)
+    CRITICAL_LABEL = Style(CRITICAL, bg=cv.HI_RED, bold=True)
     CRITICAL_ACCENT = Style(CRITICAL_LABEL, blink=True)

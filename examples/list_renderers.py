@@ -14,10 +14,10 @@ from pytermor.utilmisc import get_terminal_width
 class Main:
     STYLES = {
         "NOOP_COLOR": pt.Style(),
-        "Color16:fg": pt.Style(fg=pt.cval.RED),
-        "Color16:bg": pt.Style(bg=pt.cval.HI_RED),
-        "Color256:fg": pt.Style(fg=pt.cval.GREEN_4),
-        "Color256:bg": pt.Style(bg=pt.cval.DARK_SEA_GREEN_4),
+        "Color16:fg": pt.Style(fg=pt.cv.RED),
+        "Color16:bg": pt.Style(bg=pt.cv.HI_RED),
+        "Color256:fg": pt.Style(fg=pt.cv.GREEN_4),
+        "Color256:bg": pt.Style(bg=pt.cv.DARK_SEA_GREEN_4),
         "ColorRGB:fg": pt.Style(fg=pt.ColorRGB(0x004585)),
         "ColorRGB:bg": pt.Style(bg=pt.ColorRGB(0x6E3DC7)),
     }

@@ -37,13 +37,13 @@ class PrefixedNumericsHighlighter:
                                                                           # |_PW_|_G.MULT___G.DIV______TIME______
     STYLE_DEFAULT = pt.NOOP_STYLE                                         # |    | misc.               second
     STYLE_NUL = pt.Style(STYLE_DEFAULT, dim=True)                         # |  0 | zero
-    STYLE_PRC = pt.Style(STYLE_DEFAULT, fg=pt.cval.MAGENTA, bold=True)    # |  2 |          percent
-    STYLE_KIL = pt.Style(STYLE_DEFAULT, fg=pt.cval.BLUE, bold=True)       # |  3 | Kilo-    milli-     minute
-    STYLE_MEG = pt.Style(STYLE_DEFAULT, fg=pt.cval.CYAN, bold=True)       # |  6 | Mega-    micro-     hour
-    STYLE_GIG = pt.Style(STYLE_DEFAULT, fg=pt.cval.GREEN, bold=True)      # |  9 | Giga-    nano-      day
-    STYLE_TER = pt.Style(STYLE_DEFAULT, fg=pt.cval.YELLOW, bold=True)     # | 12 | Tera-    pico-      week
-    STYLE_MON = pt.Style(STYLE_DEFAULT, fg=pt.cval.HI_YELLOW, bold=True)  # |    |                     month
-    STYLE_PET = pt.Style(STYLE_DEFAULT, fg=pt.cval.RED, bold=True)        # | 15 | Peta-               year
+    STYLE_PRC = pt.Style(STYLE_DEFAULT, fg=pt.cv.MAGENTA, bold=True)    # |  2 |          percent
+    STYLE_KIL = pt.Style(STYLE_DEFAULT, fg=pt.cv.BLUE, bold=True)       # |  3 | Kilo-    milli-     minute
+    STYLE_MEG = pt.Style(STYLE_DEFAULT, fg=pt.cv.CYAN, bold=True)       # |  6 | Mega-    micro-     hour
+    STYLE_GIG = pt.Style(STYLE_DEFAULT, fg=pt.cv.GREEN, bold=True)      # |  9 | Giga-    nano-      day
+    STYLE_TER = pt.Style(STYLE_DEFAULT, fg=pt.cv.YELLOW, bold=True)     # | 12 | Tera-    pico-      week
+    STYLE_MON = pt.Style(STYLE_DEFAULT, fg=pt.cv.HI_YELLOW, bold=True)  # |    |                     month
+    STYLE_PET = pt.Style(STYLE_DEFAULT, fg=pt.cv.RED, bold=True)        # | 15 | Peta-               year
 
     PREFIX_MAP = {
         '%': STYLE_PRC,
@@ -280,7 +280,7 @@ class Printer:
             sample = sample[:max_size].hex(" ", -2).upper()
         else:
             sample = re.sub("[^\x20-\x7e]", ".", sample)
-        return self.render(f"{sample + '..':<s} ", pt.Style(fg=pt.cval.GRAY_35))
+        return self.render(f"{sample + '..':<s} ", pt.Style(fg=pt.cv.GRAY_35))
 
     def update_status(
         self,
@@ -308,7 +308,7 @@ class Printer:
         status += (
             f"{pt.format_auto_float(100 * progress, 3)+'%':>4s}"
             if progress < 1
-            else self.render("DONE", pt.Style(fg=pt.cval.HI_MAGENTA))
+            else self.render("DONE", pt.Style(fg=pt.cv.HI_MAGENTA))
         )
 
         status += f"   I/O total:"

@@ -3,6 +3,10 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
+Package containing a set of formatters for prettier output, as well as utility classes
+for removing some of the boilerplate code when dealing with escape sequences. Also
+includes several Python Standard Library methods rewritten for correct work with
+strings containing control sequences.
 
 .. testsetup:: *
 
@@ -44,7 +48,6 @@ def distribute_padded(
     :param max_len:
     :param pad_before:
     :param pad_after:
-    :return:
     """
     if pad_before:
         values.insert(0, "")
@@ -66,12 +69,6 @@ def distribute_padded(
         spaces_amount -= gape_len
 
     return result
-
-
-"""
-Some of the Python Standard Library methods rewritten
-for correct work with strings containing control sequences.
-"""
 
 
 def ljust_sgr(s: str, width: int, fillchar: str = " ", actual_len: int = None) -> str:
@@ -136,7 +133,6 @@ def wrap_sgr(
 
     :param raw_input:
     :param width:
-    :return:
     """
     # initially was written as a part of es7s/core
     # package, and transferred here later

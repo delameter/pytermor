@@ -1,7 +1,7 @@
-.. _guide.color-palette:
+.. _guide.xterm-color-palette:
 
 ============================
-Color palette
+Xterm color palette
 ============================
 
 Actual colors of *default* palette depend on user's terminal settings, i.e.

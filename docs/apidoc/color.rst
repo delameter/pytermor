@@ -5,3 +5,4 @@ color
 ========================
 
 .. automodule:: pytermor.color
+   :inherited-members:  Exception

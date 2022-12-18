@@ -5,22 +5,25 @@
 """
 Module with output formatters. Default global renderer type is `SgrRenderer`.
 
-Customizing of rendering mode can be accomplished in two ways:
+Setting up a rendering mode can be accomplished in several ways:
 
-    a. Method `RendererManager.set_default()` sets the default renderer globally.
+    a. By using general-purpose functions `text.render()` and `text.echo()` --
+       both have an argument ``renderer`` (preferrable; introduced in `pytermor 2.x`).
+    b. Method `RendererManager.set_default()` sets the default renderer globally.
        After that calling `text.render()` will automatically invoke a said renderer
-       and all formatting will be applied.
-    b. Alternatively, you can use renderer's own instance method ``render()``
-       directly and avoid messing up with the manager:
-       `HtmlRenderer.render()`.
+       and apply the required formatting (that is, if ``renderer`` argument is
+       left empty).
+    c. Alternatively, you can use renderer's own instance method ``render()``
+       directly and avoid messing up with the manager: `HtmlRenderer.render()`
+       (not recommended and possibly will be deprecated in future versions).
 
 Generally speaking, if you need to invoke a custom renderer just once, it's
-convenient to use the second method for this case and use the global one
-in all the others.
+convenient to use the first method for this matter, and use the second one
+in all the other cases.
 
 On the contrary, if there is a necessity to use more than one renderer
 alternatingly, it's better to avoid using the global one at all, and just
-instantiate and invoke two _get_renderers independently.
+instantiate and invoke both renderers independently.
 
 .. rubric :: TL;DR
 
@@ -28,7 +31,7 @@ To unconditionally print formatted message to standard output, do something like
 this:
 
     >>> from pytermor import render, RendererManager, Styles
-    >>> RendererManager.set_default_to_force_formatting()
+    >>> RendererManager.set_default_format_always()
     >>> render('Warning: AAAA', Styles.WARNING)
     '\\x1b[33mWarning: AAAA\\x1b[39m'
 
@@ -59,6 +62,9 @@ T = t.TypeVar("T", bound="AbstractRenderer")
 
 
 class RendererManager:
+    """
+    Class for global renderer setup.
+    """
     _default: AbstractRenderer = None
 
     @classmethod
@@ -68,7 +74,7 @@ class RendererManager:
 
             >>> RendererManager.set_default(SgrRendererDebugger(OutputMode.XTERM_16))
             >>> render('text', Style(fg='red'))
-            '|ǝ31|text|ǝ39|'
+            '(ǝ[31m)text(ǝ[39m)'
 
         :param renderer:
             Default renderer to use globally. Calling this method without arguments
@@ -88,20 +94,10 @@ class RendererManager:
     @classmethod
     def get_default(cls) -> AbstractRenderer:
         """
-        Get global renderer instance (`SgrRenderer`, or the one provided with
+        Get global renderer instance (`SgrRenderer`, or the one provided earlier with
         `set_default()`).
         """
         return cls._default
-
-    @classmethod
-    def set_default_to_force_formatting(cls):
-        """deprecated"""
-        cls.set_default_format_always()
-
-    @classmethod
-    def set_default_to_disable_formatting(cls):
-        """deprecated"""
-        cls.set_default_format_never()
 
     @classmethod
     def set_default_format_always(cls):
@@ -130,7 +126,8 @@ class AbstractRenderer(metaclass=ABCMeta):
     @abstractmethod
     def is_format_allowed(self) -> bool:
         """
-        :return:
+        :return: *True* if renderer is set up to use the formatting and will do
+                 it on invocation, and *False* otherwise.
         """
 
     @abstractmethod
@@ -154,6 +151,11 @@ class AbstractRenderer(metaclass=ABCMeta):
             )
 
     def clone(self: T, *args: t.Any, **kwargs: t.Any) -> T:
+        """
+        Make a copy of the renderer with the same setup.
+
+        :rtype: self
+        """
         return self.__class__(*args, **kwargs)
 
     def __repr__(self):
@@ -194,9 +196,6 @@ class OutputMode(enum.Enum):
 
 class SgrRenderer(AbstractRenderer):
     """
-    .. todo ::
-        make render() protected (?)
-
     Default renderer invoked by `Text.render()`. Transforms `Color` instances
     defined in ``style`` into ANSI control sequence bytes and merges them with
     input string. Type of resulting `SequenceSGR` depends on type of `Color`
@@ -341,7 +340,10 @@ class SgrRenderer(AbstractRenderer):
 
 class TmuxRenderer(AbstractRenderer):
     """
-    tmux
+    Translates `Styles <Style>` attributes into
+    `tmux-compatible <https://man7.org/linux/man-pages/man1/tmux.1.html#STYLES>`_
+    markup. `tmux <https://github.com/tmux/tmux>`_ is a commonly used terminal
+    multiplexer.
 
     >>> TmuxRenderer().render('text',  Style(fg='blue', bold=True))
     '#[fg=blue bold]text#[fg=default nobold]'
@@ -363,6 +365,11 @@ class TmuxRenderer(AbstractRenderer):
 
     @property
     def is_format_allowed(self) -> bool:
+        """
+        :returns: Always *True*, because tmux markup can be used without regard
+                  to the type of output device and its capabilities -- all the
+                  dirty work will be done by the multiplexer itself.
+        """
         return True
 
     def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
@@ -406,8 +413,8 @@ class TmuxRenderer(AbstractRenderer):
 class NoOpRenderer(AbstractRenderer):
     """
     Special renderer type that does nothing with the input string and just
-    returns it as is. That's true only when it _is_ a str beforehand;
-    otherwise argument will be casted to str and then returned.
+    returns it as is. Often used as a default argument value (along with similar
+    "NoOps" like `NOOP_STYLE`, `NOOP_COLOR` etc.)
 
     >>> NoOpRenderer().render('text', Style(fg='green', bold=True))
     'text'
@@ -415,15 +422,28 @@ class NoOpRenderer(AbstractRenderer):
 
     @property
     def is_format_allowed(self) -> bool:
+        """
+        :returns: Nothing to apply |rarr| nothing to allow, thus the returned value
+                  is always *False*.
+        """
         return False
 
     def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
+        """
+        Return the `string` argument untouched, don't mind the `fmt`.
+
+        :param string: String to :strike:`format` ignore.
+        :param fmt:    Style or color to :strike:`appl`  discard.
+        """
         return string
 
 
 class HtmlRenderer(AbstractRenderer):
     """
-    html
+    Translate `Styles <Style>` attributes into a rudimentary HTML markup.
+    All the formatting is inlined into ``style`` attribute of the ``<span>``
+    elements. Can be optimized by extracting the common styles as CSS classes
+    and referencing them by DOM elements instead.
 
     >>> HtmlRenderer().render('text', Style(fg='red', bold=True))
     '<span style="color: #800000; font-weight: 700">text</span>'
@@ -441,6 +461,10 @@ class HtmlRenderer(AbstractRenderer):
 
     @property
     def is_format_allowed(self) -> bool:
+        """
+        :returns: Always *True*, because the capabilities of the terminal have
+                  nothing to do with HTML markup meant for web-browsers.
+        """
         return True
 
     def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
@@ -497,10 +521,16 @@ class HtmlRenderer(AbstractRenderer):
 
 class SgrRendererDebugger(SgrRenderer):
     """
-    SgrRendererDebugger
+    Subclass of regular `SgrRenderer` with two differences -- instead of rendering the
+    proper ANSI escape sequences it renders them with ``ESC`` character replaced by "ǝ",
+    and encloses the whole sequence into '()' for visual separation.
+
+    Can be used for debugging of assembled sequences, because such a transformation
+    reliably converts a control sequence into a harmless piece of bytes completely ignored
+    by the terminals.
 
     >>> SgrRendererDebugger(OutputMode.XTERM_16).render('text', Style(fg='red', bold=True))
-    '|ǝ1;31|text|ǝ22;39|'
+    '(ǝ[1;31m)text(ǝ[22;39m)'
     """
 
     def __init__(self, output_mode: OutputMode = OutputMode.AUTO):
@@ -514,7 +544,7 @@ class SgrRendererDebugger(SgrRenderer):
         return super().is_format_allowed
 
     def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
-        return SgrStringReplacer(r"|ǝ\3|").apply(super().render(string, fmt))
+        return SgrStringReplacer(r"(ǝ\2\3\4)").apply(super().render(string, fmt))
 
     def clone(self) -> SgrRendererDebugger:
         cloned = SgrRendererDebugger(self._output_mode)
@@ -522,12 +552,22 @@ class SgrRendererDebugger(SgrRenderer):
         return cloned
 
     def set_format_always(self):
+        """
+        Force all control sequences to be present in the output.
+        """
         self._format_override = True
 
     def set_format_auto(self):
+        """
+        Reset the force formatting flag and let the renderer decide by itself (see
+        `SgrRenderer` docs for the details).
+        """
         self._format_override = None
 
     def set_format_never(self):
+        """
+        Force disabling of all output formatting.
+        """
         self._format_override = False
 
 

@@ -1,7 +1,7 @@
-.. _guide.formatters:
+.. _guide.num-formatters:
 
 =======================================
-Formatters and Filters
+Number formatters
 =======================================
 
 .. todo ::
@@ -28,14 +28,3 @@ Time delta formatter
    :align: center
    :class: no-scaled-link
 
-
-String filters
-=====================
-
-
-Standard Library extensions
-===========================
-
-.. todo ::
-
-   @TODO

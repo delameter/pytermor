@@ -5,3 +5,4 @@ renderer
 ========================
 
 .. automodule:: pytermor.renderer
+   :inherited-members:

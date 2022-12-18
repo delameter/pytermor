@@ -47,7 +47,8 @@ pre, .pre, kbd,
 .py a.reference.internal,
 .xterm-palette,
 .field-list dd.field-odd strong,
-.field-list dd.field-odd em {
+.field-list dd.field-odd em,
+.entity {
     font-family: "Iose7ka Terminal", monospace;
 }
 pre, .pre, kbd,
@@ -67,6 +68,15 @@ abbr, abbr[title] {
 }
 th abbr {
     font-size: var(--font-size--small);
+}
+
+.strike {
+    text-decoration: 1px line-through solid;
+}
+section .date {
+    font-size: .7em;
+    float: right;
+    font-weight: normal;
 }
 
 

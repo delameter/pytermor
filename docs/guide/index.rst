@@ -10,6 +10,8 @@ Guide
    high-level
    low-level
    presets
-   color-palette
-   formatters
+   xterm-color-palette
+   named-colors
+   str-filters
+   num-formatters
    guidelines

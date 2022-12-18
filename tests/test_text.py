@@ -11,7 +11,7 @@ from pytermor.style import Style
 
 class TestText(unittest.TestCase):
     def setUp(self) -> None:
-        pt.RendererManager.set_default_to_force_formatting()
+        pt.RendererManager.set_default_format_always()
 
     def test_style_applying_works(self):
         text = pt.Text("123", Style(fg="red"))
@@ -78,7 +78,7 @@ class TestText(unittest.TestCase):
 
 class TestTextFormatting(unittest.TestCase):
     def setUp(self) -> None:
-        pt.RendererManager.set_default_to_force_formatting()
+        pt.RendererManager.set_default_format_always()
 
         self.text = pt.Text()
         self.text.append("123")

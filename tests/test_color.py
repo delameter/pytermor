@@ -5,13 +5,12 @@
 import logging
 import unittest
 
+import pytermor
 from pytermor.common import LogicError
 
-import pytermor.cval
-from pytermor import NOOP_SEQ, Style, SequenceSGR, IntCode
+from pytermor import NOOP_SEQ, Style, SequenceSGR, IntCode, color
 from pytermor.color import (
     NOOP_COLOR,
-    Color,
     Color16,
     Color256,
     ColorRGB,
@@ -36,7 +35,7 @@ class TestStatic(unittest.TestCase):
         ):
             subtest_msg = f'"#{input_num:06x}" -> "{expected_output}"'
             with self.subTest(msg=subtest_msg):
-                actual_output = Color.hex_to_hsv(input_num)
+                actual_output = color.hex_to_hsv(input_num)
                 logging.debug(subtest_msg + f' => "{actual_output}"')
                 for idx in range(0, len(expected_output)):
                     self.assertAlmostEqual(
@@ -58,7 +57,7 @@ class TestStatic(unittest.TestCase):
         ):
             subtest_msg = f'"#{input_num:06x}" -> "{expected_output}"'
             with self.subTest(msg=subtest_msg):
-                actual_output = Color.hex_to_rgb(input_num)
+                actual_output = color.hex_to_rgb(input_num)
                 logging.debug(subtest_msg + f' => "{actual_output}"')
                 self.assertEqual(expected_output, actual_output)
 
@@ -76,15 +75,15 @@ class TestStatic(unittest.TestCase):
         ):
             subtest_msg = f'"{input_channels}" -> "#{expected_num:06x}"'
             with self.subTest(msg=subtest_msg):
-                actual_output = Color.rgb_to_hex(*input_channels)
+                actual_output = color.rgb_to_hex(*input_channels)
                 logging.debug(subtest_msg + f' => "{actual_output}"')
                 self.assertEqual(expected_num, actual_output)
 
     def test_hex_to_hsv_with_invalid_arg_fails(self):
-        self.assertRaises(TypeError, Color.hex_to_hsv, "1")
+        self.assertRaises(TypeError, color.hex_to_hsv, "1")
 
     def test_hex_to_rgb_with_invalid_arg_fails(self):
-        self.assertRaises(TypeError, Color.hex_to_rgb, "1")
+        self.assertRaises(TypeError, color.hex_to_rgb, "1")
 
 
 class TestColorRegistry(unittest.TestCase):
@@ -96,7 +95,7 @@ class TestColorRegistry(unittest.TestCase):
         col = ColorRGB(0x2, "test 2", register=True)
 
         self.assertEqual(map_length_start + 1, len(ColorRGB._registry))
-        self.assertIs(col, ColorRGB.resolve("test 2"))
+        self.assertIs(col, color.resolve("test 2", ColorRGB))
 
     def test_registering_of_duplicate_doesnt_change_map_length(self):
         ColorRGB(0x3, "test 3", register=True)
@@ -110,25 +109,25 @@ class TestColorRegistry(unittest.TestCase):
         self.assertRaises(ColorNameConflictError, ColorRGB, 0x3, "test 4", register=True)
 
     def test_resolving_of_non_existing_color_fails(self):
-        self.assertRaises(LookupError, Color256.resolve, "non-existing-color")
+        self.assertRaises(LookupError, color.resolve, "non-existing-color", Color256)
 
     def test_resolving_of_ambiguous_color_works_upon_abstract_color(self):
-        col = Color.resolve("green")
+        col = color.resolve("green")
         self.assertEqual(col.hex_value, 0x008000)
         self.assertEqual(type(col), Color16)
 
     def test_resolving_of_ambiguous_color_works_upon_color_16(self):
-        col = Color16.resolve("green")
+        col = color.resolve("green", Color16)
         self.assertEqual(col.hex_value, 0x008000)
         self.assertEqual(type(col), Color16)
 
     def test_resolving_of_ambiguous_color_works_upon_color_256(self):
-        col = Color256.resolve("green")
+        col = color.resolve("green", Color256)
         self.assertEqual(col.hex_value, 0x008000)
         self.assertEqual(type(col), Color256)
 
     def test_resolving_of_ambiguous_color_works_upon_color_rgb(self):
-        col = ColorRGB.resolve("green")
+        col = color.resolve("green", ColorRGB)
         self.assertEqual(col.hex_value, 0x1CAC78)
         self.assertEqual(type(col), ColorRGB)
 
@@ -140,7 +139,7 @@ class TestColorRegistry(unittest.TestCase):
 
         self.assertIs(vari.base, col)
         self.assertEqual(vari.name, "2")
-        self.assertIs(ColorRGB.resolve("test 5 2"), vari)
+        self.assertIs(color.resolve("test 5 2", ColorRGB), vari)
 
     def test_creating_color_without_name_works(self):
         col = Color256(0x6, code=256, register=True)
@@ -173,39 +172,53 @@ class TestColorIndex(unittest.TestCase):
 
 
 class TestColor(unittest.TestCase):
-    def test_class_method_get_by_code_fails(self):
-        self.assertRaises(RuntimeError, Color.get_by_code, 1)
-
-    def test_class_method_resolve_works(self):
+    def test_module_method_resolve_works(self):
         col = ColorRGB(0x1, "test 1", register=True)
-        self.assertIs(col, Color.resolve("test-1"))
+        self.assertIs(col, color.resolve("test-1"))
 
-    def test_class_method_resolve_of_non_existing_color_fails(self):
-        self.assertRaises(LookupError, Color.resolve, "non-existing-color")
+    def test_module_method_resolve_of_non_existing_color_fails(self):
+        self.assertRaises(LookupError, color.resolve, "non-existing-color")
 
-    def test_class_method_find_closest_works_as_256(self):
-        self.assertIs(pytermor.cval.AQUAMARINE_1, Color.find_closest(0x87FFD7))
+    def test_module_method_find_closest_works_as_256_by_default(self):
+        self.assertIs(pytermor.cv.AQUAMARINE_1, color.find_closest(0x87FFD7))
 
-    def test_class_method_approximate_works_as_256(self):
-        self.assertIs(pytermor.cval.AQUAMARINE_1, Color.approximate(0x87FFD7)[0].color)
+    def test_module_method_find_closest_works_for_16(self):
+        self.assertIs(pytermor.cv.WHITE, color.find_closest(0x87FFD7, Color16))
+
+    def test_module_method_find_closest_works_for_rgb(self):
+        self.assertIs(
+            color.resolve("aquamarine", ColorRGB), color.find_closest(0x87FFD7, ColorRGB)
+        )
+
+    def test_module_method_approximate_works_as_256_by_default(self):
+        self.assertIs(pytermor.cv.AQUAMARINE_1, color.approximate(0x87FFD7)[0].color)
+
+    def test_module_method_approximate_works_for_16(self):
+        self.assertIs(pytermor.cv.WHITE, color.approximate(0x87FFD7, Color16)[0].color)
+
+    def test_module_method_approximate_works_for_rgb(self):
+        self.assertIs(
+            color.resolve("aquamarine", ColorRGB),
+            color.approximate(0x87FFD7, ColorRGB)[0].color,
+        )
 
 
 class TestApproximation(unittest.TestCase):
     def test_find_closest_works_for_16(self):
-        self.assertIs(pytermor.cval.WHITE, Color16.find_closest(0x87FFD7))
+        self.assertIs(pytermor.cv.WHITE, Color16.find_closest(0x87FFD7))
 
     def test_find_closest_works_for_256(self):
-        self.assertIs(pytermor.cval.AQUAMARINE_1, Color256.find_closest(0x87FFD7))
+        self.assertIs(pytermor.cv.AQUAMARINE_1, Color256.find_closest(0x87FFD7))
 
     def test_find_closest_works_for_rgb(self):
         self.assertEqual(0x7FFFD4, ColorRGB.find_closest(0x87FFD7).hex_value)
 
     def test_approximate_works_for_16(self):
-        self.assertIs(pytermor.cval.WHITE, Color16.approximate(0x87FFD7)[0].color)
+        self.assertIs(pytermor.cv.WHITE, Color16.approximate(0x87FFD7)[0].color)
 
     def test_approximate_works_for_256(self):
         self.assertIs(
-            pytermor.cval.AQUAMARINE_1, Color256.approximate(0x87FFD7)[0].color
+            pytermor.cv.AQUAMARINE_1, Color256.approximate(0x87FFD7)[0].color
         )
 
     def test_approximate_works_for_rgb(self):

@@ -305,7 +305,7 @@ class SequenceSGR(SequenceCSI):
         return "SGR"
 
 
-class CurlyUnderlinedSequenceSGR(SequenceSGR):
+class UnderlinedCurlySequenceSGR(SequenceSGR):
     """
     Registered as a separate class, because this is the one and only SGR in the
     package, which is identified by "4:3" string (in contrast with all the other
@@ -355,7 +355,6 @@ class IntCode(enum.IntEnum):
         """
 
         :param name:
-        :return:
         """
         name_norm = name.upper()
         try:

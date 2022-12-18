@@ -24,7 +24,6 @@ import yaml
 # logger.setLevel('DEBUG')
 
 import pytermor as pt
-import pytermor.cval
 import pytermor.utilstr
 import pytermor.utilmisc
 
@@ -35,7 +34,7 @@ def sort_by_name(cdef: IColorRGB) -> str:
 
 def sort_by_hue(cdef: IColorRGB) -> t.Tuple[float, ...]:
     # partitioning by hue, sat and val, grayscale group first:
-    h, s, v = pt.Color.hex_to_hsv(cdef.hex_value)
+    h, s, v = pt.hex_to_hsv(cdef.hex_value)
     result = (h // 18 if s > 0 else -v), h // 18, s * 5 // 1, v * 20 // 1
     return result
 
@@ -130,8 +129,8 @@ class RgbListPrinter:
     def print(self, colors: t.List[IColorRGB]):
         for idx, c in enumerate(sorted(colors, key=sort_by_name)):
             pad = "".ljust(2)
-            vari_style = pt.Style(fg=pt.cval.GRAY_42)
-            orig_style = pt.Style(fg=pt.cval.GRAY_30)
+            vari_style = pt.Style(fg=pt.cv.GRAY_42)
+            orig_style = pt.Style(fg=pt.cv.GRAY_30)
 
             style = pt.Style(bg=pt.ColorRGB(c.hex_value)).autopick_fg()
             style2 = pt.Style(fg=style.bg)
@@ -252,7 +251,7 @@ if __name__ == "__main__":
     _colors = [
         ColorRGBOriginAdapter(v, k) for k, v in pt.ColorRGB._registry._map.items()
     ]
-    pt.RendererManager.set_default_to_force_formatting()
+    pt.RendererManager.set_default_format_always()
 
     RgbListPrinter().print(_colors)
     print()

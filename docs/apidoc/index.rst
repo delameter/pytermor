@@ -5,6 +5,7 @@ API reference
 ===================
 
 .. toctree::
+   :maxdepth: 2
 
    ansi
    color

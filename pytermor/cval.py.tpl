@@ -11,7 +11,7 @@ from .color import Color16, Color256, ColorRGB
 from .ansi import IntCode
 
 
-class CV:
+class CVAL:
     """
 
     """
