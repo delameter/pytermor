@@ -382,8 +382,8 @@ class TestColorRGB(unittest.TestCase):
 
     def test_to_tmux(self):
         col = ColorRGB(0xFF00FF)
-        self.assertEqual("#FF00FF", col.to_tmux(False))
-        self.assertEqual("#FF00FF", col.to_tmux(True))
+        self.assertEqual("#ff00ff", col.to_tmux(False))
+        self.assertEqual("#ff00ff", col.to_tmux(True))
 
     def test_format_value(self):
         self.assertEqual("0xFF00FF", ColorRGB(0xFF00FF).format_value())

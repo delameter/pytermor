@@ -548,8 +548,8 @@ class ColorRGB(Color):
 
         return Color256.find_closest(self._hex_value).to_sgr(bg, upper_bound)
 
-    def to_tmux(self, bg: bool) -> str:
-        return self.format_value("#")
+    def to_tmux(self, bg: bool) -> str:  # rgb hex format should be lower cased!
+        return self.format_value("#").lower()
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, self.__class__):
