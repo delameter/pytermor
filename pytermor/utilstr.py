@@ -217,6 +217,8 @@ RT = Union[OT, t.Callable[[t.Match[OT]], OT]]  # replacer type
 MT = t.Dict[int, IT]  # map
 AT = Union["OmniFilter", t.Type["OmniFilter"]]
 
+_dump_printers_cache: t.Dict[t.Type['GenericPrinter'], 'GenericPrinter'] = dict()
+
 
 class GenericFilter(t.Generic[IT, OT], ABC):
     """
@@ -563,7 +565,7 @@ class GenericPrinter(GenericFilter[IT, str], ABC):
             self._state.offset += self._char_per_line
 
         header = self._format_line_separator("_", f"{extra.label}" if extra else "")
-        footer = self._format_line_separator("-", "(" + str(self._state.inp_size) + ")")
+        footer = self._format_line_separator("-", "(" + self._format_offset(self._state.inp_size) + ")")
 
         result = header + "\n"
         result += "\n".join(self._render_rows())
@@ -624,14 +626,14 @@ class BytesHexPrinter(GenericPrinter[bytes]):
         return [
             " ",
             self._format_offset(),
-            "  " + self._get_vert_sep_char(),
+            " " + self._get_vert_sep_char() + "  ",
             *self._format_main(part),
         ]
 
     def _format_offset(self, override: int = None) -> str:
         offset = override or self._state.offset
         size_len = 2 * ceil(self._state.inp_size_len / 2)
-        return f"0x{offset:0{size_len}X}"
+        return f"{offset:0{size_len}X}"
 
     def _format_main(self, part: bytes) -> t.Iterable[str]:
         for c in chunk(part, self.GROUP_SIZE):
@@ -639,10 +641,11 @@ class BytesHexPrinter(GenericPrinter[bytes]):
 
     @classmethod
     def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
-        sep_len = 3
+        space_len = 4
+        sep_len = 1
         offset_len = len(str(inp_size))
-        main_len = 3 * char_per_line * cls.GROUP_SIZE + char_per_line // cls.GROUP_SIZE
-        return sep_len + offset_len + main_len
+        main_len = (3 * char_per_line * cls.GROUP_SIZE) + (char_per_line // cls.GROUP_SIZE)
+        return space_len + sep_len + offset_len + main_len
 
 
 class GenericStringPrinter(GenericPrinter[str], ABC):
@@ -691,11 +694,12 @@ class StringHexPrinter(GenericStringPrinter):
 
     @classmethod
     def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
+        space_len = 3
         sep_len = 6
         prefix_len = 2
         offset_len = len(str(inp_size))
         main_len = (8 + 1) * char_per_line
-        return sep_len + prefix_len + offset_len + main_len
+        return space_len + sep_len + prefix_len + offset_len + main_len
 
 
 class StringUcpPrinter(GenericStringPrinter):
@@ -739,11 +743,12 @@ class StringUcpPrinter(GenericStringPrinter):
 
     @classmethod
     def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
-        sep_len = 6
+        space_len = 3
+        sep_len = 2
         prefix_len = 2
         offset_len = len(str(inp_size))
         main_len = (5 + 1) * char_per_line
-        return sep_len + prefix_len + offset_len + main_len
+        return space_len + sep_len + prefix_len + offset_len + main_len
 
 
 # -----------------------------------------------------------------------------
@@ -773,15 +778,27 @@ def apply_filters(string: IT, *args: AT) -> OT:
     return reduce(lambda s, f: instantiate(f)(s), args, string)
 
 
-def dump(data: t.Any, label: str = None, adjust_for_tty: bool = False) -> str | None:
+def dump(data: t.Any, label: str = None, max_len_shift: int = None) -> str | None:
+    """
+    .. todo ::
+        - format selection
+        - special handling of one-line input
+        - squash repeating lines
+    """
     printer_t = StringUcpPrinter
-    printer = printer_t(32)
-    if adjust_for_tty:
-        max_len = get_terminal_width()
+    printer = _dump_printers_cache.get(printer_t, None)
+
+    if not printer and max_len_shift is not None:
+        max_len = get_terminal_width() + max_len_shift
         for chars_per_line in [8, 12, 16, 20, 24, 32, 40, 48, 64]:
             est_len = printer_t.estimate_line_len(chars_per_line, len(data))
             if est_len < max_len:
                 printer = printer_t(chars_per_line)
                 continue
             break
+
+    if not printer:
+        printer = printer_t()
+    _dump_printers_cache[printer_t] = printer
+
     return printer.apply(data, PrinterExtra(label))
