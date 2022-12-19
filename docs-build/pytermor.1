@@ -27,9 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "TODO" "1" "Dec 18, 2022" "2.23.1-dev1" "pytermor"
+.TH "TODO" "1" "Dec 19, 2022" "2.24.0-dev1" "pytermor"
 .SH NAME
-Todo \- pytermor 2.23.1-dev1
+Todo \- pytermor 2.24.0-dev1
 .sp
 \fI(yet another)\fP Python library designed for formatting terminal output using ANSI escape codes. Implements automatic \fI\%\(dqsoft\(dq\fP format termination. Provides a registry of low\-level SGR \fI\%sequences\fP and formatting \fBspans\fP (or combined sequences). Also includes a set of formatters for pretty output.
 .sp
@@ -5928,7 +5928,7 @@ opening SequenceSGR instance:
 .nf
 .ft C
 >>> SequenceSGR(IntCode.BOLD, IntCode.RED).assemble()
-\(aq\ex1b[1;31m\(aq
+\(aq[1;31m\(aq
 .ft P
 .fi
 .sp
@@ -6301,7 +6301,7 @@ change cursor position, erase screen and more.
 .nf
 .ft C
 >>> make_erase_in_line().assemble()
-\(aq\ex1b[0K\(aq
+\(aq[0K\(aq
 .ft P
 .fi
 .INDENT 7.0
@@ -6707,9 +6707,9 @@ returns empty list.
 .sp
 .nf
 .ft C
->>> pt.NOOP_SEQ.assemble()
+>>> NOOP_SEQ.assemble()
 \(aq\(aq
->>> pt.NOOP_SEQ.params
+>>> NOOP_SEQ.params
 []
 .ft P
 .fi
@@ -7679,6 +7679,13 @@ Bases: \fBException\fP
 .TP
 .B exception  pytermor.common.UserCancel
 Bases: \fBException\fP
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.common.Align(value)
+Bases: \fBstr\fP, \fBEnum\fP
+.sp
+An enumeration.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -8779,7 +8786,7 @@ this:
 >>> from pytermor import render, RendererManager, Styles
 >>> RendererManager.set_default_format_always()
 >>> render(\(aqWarning: AAAA\(aq, Styles.WARNING)
-\(aq\ex1b[33mWarning: AAAA\ex1b[39m\(aq
+\(aq[33mWarning: AAAA[39m\(aq
 .ft P
 .fi
 .INDENT 0.0
@@ -9077,7 +9084,7 @@ See \fI\%OutputMode\fP documentation for exact mappings.
 .nf
 .ft C
 >>> SgrRenderer(OutputMode.XTERM_256).render(\(aqtext\(aq, Styles.WARNING_LABEL)
-\(aq\ex1b[1;33mtext\ex1b[22;39m\(aq
+\(aq[1;33mtext[22;39m\(aq
 >>> SgrRenderer(OutputMode.NO_ANSI).render(\(aqtext\(aq, Styles.WARNING_LABEL)
 \(aqtext\(aq
 .ft P
@@ -9440,7 +9447,12 @@ Special style passing the text through without any modifications.
 .SS text
 .INDENT 0.0
 .TP
-.B class  pytermor.text.FrozenText(string=\(aq\(aq, fmt=<Style[NOP]>, close_this=True, close_prev=False, frozen=False)
+.B class  pytermor.text.FixedString(string=\(aq\(aq, fmt=<Style[NOP]>, align=Align.LEFT, width=0, pad_left=0, pad_right=0, overflow_char=None)
+Bases: \fI\%String\fP
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.text.FrozenText(string=\(aq\(aq, fmt=<Style[NOP]>, close_this=True, close_prev=False)
 Bases: \fI\%Renderable\fP
 .UNINDENT
 .INDENT 0.0
@@ -9453,7 +9465,12 @@ overlaps resolution mechanism implemented in \fI\%Text\fP is not good enough.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.text.Text(string=\(aq\(aq, fmt=<Style[NOP]>, close_this=True, close_prev=False, frozen=False)
+.B class  pytermor.text.String(string=\(aq\(aq, fmt=<Style[NOP]>)
+Bases: \fI\%Renderable\fP
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.text.Text(string=\(aq\(aq, fmt=<Style[NOP]>, close_this=True, close_prev=False)
 Bases: \fI\%FrozenText\fP
 .UNINDENT
 .INDENT 0.0
@@ -9643,7 +9660,7 @@ t.AnyStr | None
 .SS utilnum
 .INDENT 0.0
 .TP
-.B class  pytermor.utilnum.PrefixedUnitFormatter(max_value_len, truncate_frac=False, unit=None, unit_separator=None, mcoef=1000.0, prefixes=None, prefix_zero_idx=None)
+.B class  pytermor.utilnum.PrefixedUnitFormatter(max_value_len, truncate_frac=None, unit=None, unit_separator=None, mcoef=None, prefixes=None, prefix_zero_idx=None, parent=None)
 Formats \fBvalue\fP using settings passed to constructor. The main idea of this class
 is to fit into specified string length as much significant digits as it\(aqs
 theoretically possible by using multipliers and unit prefixes to
@@ -9671,6 +9688,8 @@ which will invoke predefined formatters and doesn\(aqt require setting up.
 \fBprefixes\fP (\fIList\fP\fI[\fP\fIstr\fP\fI | \fP\fINone\fP\fI]\fP) \-\- 
 .IP \(bu 2
 \fBprefix_zero_idx\fP (\fIint\fP) \-\- Index of prefix which will be used as default, i.e. without multiplying coefficients.
+.IP \(bu 2
+\fBparent\fP (\fI\%PrefixedUnitFormatter\fP) \-\- 
 .UNINDENT
 .UNINDENT
 .sp
@@ -10207,7 +10226,7 @@ but this behaviour can be disabled with \fBkeep_newlines\fP = \fIFalse\fP\&.
 .ft C
 >>> NonPrintablesStringVisualizer().apply(\(aqA  B  C\(aq)
 \(aqA␣␣B␣␣C\(aq
->>> apply_filters(\(aq1. D\en2. L \(aq, NonPrintablesStringVisualizer(keep_newlines=False))
+>>> apply_filters(\(aq1. D\(aq+os.linesep+\(aq2. L \(aq, NonPrintablesStringVisualizer(keep_newlines=False))
 \(aq1.␣D↵2.␣L␣\(aq
 .ft P
 .fi
@@ -10424,7 +10443,8 @@ thus make SGR params visible):
 .sp
 .nf
 .ft C
->>> apply_filters(f\(aq{SeqIndex.RED}test{SeqIndex.COLOR_OFF}\(aq, SgrStringReplacer(r\(aqE\e2\e3\e4\(aq))
+>>> from pytermor import SeqIndex
+>>> apply_filters(f\(aq{SeqIndex.RED}test{SeqIndex.COLOR_OFF}\(aq, SgrStringReplacer(r\(aqE\(aq))
 \(aqE[31mtestE[39m\(aq
 .ft P
 .fi
@@ -10568,7 +10588,6 @@ str
 .UNINDENT
 .UNINDENT
 .SH CHANGELOG
-.SS pytermor 2
 .SS v2.23
 .INDENT 0.0
 .IP \(bu 2
@@ -10604,6 +10623,8 @@ Add missing \fI\%hsv_to_rgb\fP function.
 \fI\%cval\fP autobuild.
 .UNINDENT
 .SS v2.17
+.sp
+Dec 22
 .INDENT 0.0
 .IP \(bu 2
 \fBArgCountError\fP migrated from \fBes7s/core\fP\&.
@@ -10660,6 +10681,8 @@ Tests for \fI\%color\fP module.
 RGB and variations full support.
 .UNINDENT
 .SS v2.6
+.sp
+Nov 22
 .INDENT 0.0
 .IP \(bu 2
 Got rid of \fBSpan\fP class.
@@ -10684,6 +10707,8 @@ Changes in \fBConfigurableRenderer.force_styles\fP logic.
 Package reorganizing.
 .UNINDENT
 .SS v2.2
+.sp
+Oct 22
 .INDENT 0.0
 .IP \(bu 2
 Named colors list.
@@ -10704,6 +10729,8 @@ Color presets.
 More unit tests for formatters.
 .UNINDENT
 .SS v2.0
+.sp
+Jun 22
 .INDENT 0.0
 .IP \(bu 2
 Complete library rewrite.
@@ -10716,7 +10743,6 @@ Unit tests for formatters and new modules.
 .IP \(bu 2
 \fBsphinx\fP and \fBreadthedocs\fP integraton.
 .UNINDENT
-.SS pytermor
 .SS v1.8
 .INDENT 0.0
 .IP \(bu 2
@@ -10805,6 +10831,8 @@ Interface revisioning.
 \fBopening_seq\fP and \fBclosing_seq\fP properties for \fBSpan\fP class.
 .UNINDENT
 .SS v1.2
+.sp
+Apr 22
 .INDENT 0.0
 .IP \(bu 2
 \fBEmptySequenceSGR\fP and \fBEmptyFormat\fP classes.
@@ -10818,6 +10846,13 @@ Autoformat feature.
 .INDENT 0.0
 .IP \(bu 2
 First public version.
+.UNINDENT
+.SS v0.90
+.sp
+Mar 22
+.INDENT 0.0
+.IP \(bu 2
+First commit.
 .UNINDENT
 
 .sp

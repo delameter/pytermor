@@ -4,6 +4,7 @@
 # -----------------------------------------------------------------------------
 from ._version import __version__ as __version__
 from .common import logger as logger
+from .common import Align as Align
 from .common import ArgCountError as ArgCountError
 from .common import ArgTypeError as ArgTypeError
 from .common import ConflictError as ConflictError
@@ -41,8 +42,9 @@ from .renderer import OutputMode as OutputMode
 from .renderer import RendererManager as RendererManager
 from .renderer import SgrRenderer as SgrRenderer
 from .text import Renderable as Renderable
-from .text import StyledString as StyledString
+from .text import FixedString as FixedString
 from .text import FrozenText as FrozenText
+from .text import String as String
 from .text import Text as Text
 from .text import TemplateEngine as TemplateEngine
 from .text import echo as echo
@@ -84,6 +86,8 @@ from .utilstr import StringHexPrinter as StringHexPrinter
 from .utilstr import StringMapper as StringMapper
 from .utilstr import StringReplacer as StringReplacer
 from .utilstr import StringUcpPrinter as StringUcpPrinter
+from .utilstr import pad as pad
+from .utilstr import padv as padv
 from .utilstr import distribute_padded as distribute_padded
 from .utilstr import ljust_sgr as ljust_sgr
 from .utilstr import rjust_sgr as rjust_sgr

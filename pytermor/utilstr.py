@@ -7,17 +7,12 @@ Package containing a set of formatters for prettier output, as well as utility c
 for removing some of the boilerplate code when dealing with escape sequences. Also
 includes several Python Standard Library methods rewritten for correct work with
 strings containing control sequences.
-
-.. testsetup:: *
-
-    from pytermor.utilstr import *
-    from pytermor.ansi import SeqIndex
-
 """
 from __future__ import annotations
 
 import codecs
 import math
+import os
 import re
 import textwrap
 import typing as t
@@ -32,6 +27,14 @@ from .common import StrType
 from .utilmisc import chunk, get_terminal_width
 
 _PRIVATE_REPLACER = "\U000E5750"
+
+
+def pad(n: int) -> str:
+    return ' '*n
+
+
+def padv(n: int) -> str:
+    return '\n'*n
 
 
 def distribute_padded(
@@ -64,7 +67,7 @@ def distribute_padded(
     result = ""
     for value_idx, value in enumerate(values):
         gape_len = spaces_amount // (gapes_amount or 1)  # for last value
-        result += value + " " * gape_len
+        result += value + pad(gape_len)
         gapes_amount -= 1
         spaces_amount -= gape_len
 
@@ -454,7 +457,7 @@ class NonPrintablesStringVisualizer(StringMapper):
 
     >>> NonPrintablesStringVisualizer().apply('A  B  C')
     'A␣␣B␣␣C'
-    >>> apply_filters('1. D\\n2. L ', NonPrintablesStringVisualizer(keep_newlines=False))
+    >>> apply_filters('1. D'+os.linesep+'2. L ', NonPrintablesStringVisualizer(keep_newlines=False))
     '1.␣D↵2.␣L␣'
 
     :param keep_newlines: When *True*, transform newline characters into "↵\\\\n", or
@@ -756,7 +759,8 @@ def apply_filters(string: IT, *args: AT) -> OT:
     Example (will replace all ``ESC`` control characters to ``E`` and
     thus make SGR params visible):
 
-    >>> apply_filters(f'{SeqIndex.RED}test{SeqIndex.COLOR_OFF}', SgrStringReplacer(r'E\\2\\3\\4'))
+    >>> from pytermor import SeqIndex
+    >>> apply_filters(f'{SeqIndex.RED}test{SeqIndex.COLOR_OFF}', SgrStringReplacer(r'E\2\3\4'))
     'E[31mtestE[39m'
 
     Note that type of ``s`` argument must be same as ``StringFilter`` parameterized

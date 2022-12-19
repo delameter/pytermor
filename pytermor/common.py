@@ -4,6 +4,7 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
+import enum
 import inspect
 from typing import Type, Callable, TypeVar, Union
 import logging
@@ -87,3 +88,9 @@ class ArgCountError(Exception):
         expected_str = ", ".join(str(e) for e in expected)
         msg = f"Invalid arguments amount, expected one of: ({expected_str}), got: {actual}"
         super().__init__(msg)
+
+
+class Align(str, enum.Enum):
+    LEFT = "<"
+    RIGHT = ">"
+    CENTER = "^"

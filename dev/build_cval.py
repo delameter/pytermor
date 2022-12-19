@@ -16,12 +16,13 @@ from os.path import join
 import yaml
 
 from common import PROJECT_ROOT, CONFIG_PATH, TaskRunner
+from pytermor import pad
 
 
 class IndexBuilder(TaskRunner):
     OUTPUT_TPL_PATH = join(PROJECT_ROOT, "pytermor", "cval.py.tpl")
     OUTPUT_DEST_PATH = join(PROJECT_ROOT, "pytermor", "cval.py")
-    INDENT = " " * 4
+    INDENT = pad(4)
 
     MODE_TO_SORTER_MAP: t.Dict[str, t.Callable] = {
         "xterm_16": lambda _: 0,
@@ -136,7 +137,7 @@ class IndexBuilder(TaskRunner):
 
     def _map_variations(self, variations: t.List[t.Dict]) -> str:
         return ", \n".join(
-            f"{self.INDENT}{'':9s}0x{v.get('value'):06x}:{'':3s}\"{v.get('name')}\""
+            f"{self.INDENT}{pad(9)}0x{v.get('value'):06x}:{pad(3)}\"{v.get('name')}\""
             for v in variations
         )
 

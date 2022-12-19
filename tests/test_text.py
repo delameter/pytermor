@@ -2,11 +2,100 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
+import copy
 import unittest
+import typing as t
+
+import pytest
 
 import pytermor as pt
 import pytermor.utilstr
 from pytermor.style import Style
+from pytermor.common import Align as A
+
+
+class TestString(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        pt.RendererManager.set_default_format_always()
+
+    def setUp(self) -> None:
+        self.style = Style(fg="red")
+        self.string = pt.String("123", self.style)
+
+    def test_style_applying_works(self):
+        self.assertEqual("\x1b[31m" "123" "\x1b[39m", self.string.render())
+
+    def test_fragment_is_accessible(self):
+        self.assertEqual(len(self.string.fragments), 1)
+        self.assertIsInstance(self.string.fragments[0], pt.text._Fragment)
+
+    def test_style_is_accessible(self):
+        self.assertIs(self.string.style, self.style)
+
+    def test_length_is_correct(self):
+        self.assertEqual(len(self.string), 3)
+
+
+class TestFixedString:
+    @classmethod
+    def setup_class(cls) -> None:
+        pt.RendererManager.set_default_format_always()
+
+    def setup_method(self) -> None:
+        self.style = Style(fg="blue")
+        self.string = pt.FixedString("123", self.style)
+
+    def test_style_applying_works(self):
+        assert "\x1b[34m" "123" "\x1b[39m" == self.string.render()
+
+    def test_fragment_is_accessible(self):
+        assert len(self.string.fragments) == 1
+        assert isinstance(self.string.fragments[0], pt.text._Fragment)
+
+    def test_style_is_accessible(self):
+        assert self.string.style is self.style
+
+    def test_origin_is_accessible(self):
+        assert len(self.string.origin) == 3
+
+    def test_length_is_correct(self):
+        assert len(self.string) == 3
+
+    @pytest.mark.parametrize("pad_left, pad_right", [(2, 0), (0, 2), (2, 2)])
+    @pytest.mark.xfail(raises=ValueError)
+    def test_init_with_invalid_width_fails(self, pad_left: int, pad_right: int):
+        pt.FixedString("1234567", width=1, pad_left=pad_left, pad_right=pad_right)
+
+    @pytest.mark.xfail(raises=ValueError)
+    def test_init_with_invalid_align_fails(self):
+        pt.FixedString("1234567", align='FUFLO')
+
+    @pytest.mark.parametrize(
+        "initial, expected, width, args",
+        [
+            ("1234567", "123", 3, {"align": A.LEFT}),
+            ("1234567", "345", 3, {"align": A.CENTER}),
+            ("1234567", "567", 3, {"align": A.RIGHT}),
+            ("123", "123  ", 5, {"align": A.LEFT}),
+            ("123", " 123 ", 5, {"align": A.LEFT, "pad_left": 1}),
+            ("123", "123  ", 5, {"align": A.LEFT, "pad_right": 1}),
+            ("123", " 123 ", 5, {"align": A.CENTER}),
+            ("123", "  123", 5, {"align": A.CENTER, "pad_left": 2}),
+            ("123", "123  ", 5, {"align": A.CENTER, "pad_right": 2}),
+            ("123", "  123", 5, {"align": A.RIGHT}),
+            ("123", "  123", 5, {"align": A.RIGHT, "pad_left": 1}),
+            ("123", " 123 ", 5, {"align": A.RIGHT, "pad_right": 1}),
+            ("123", "  1  ", 5, {"align": A.LEFT, "pad_left": 2, "pad_right": 2}),
+            ("123", "  2  ", 5, {"align": A.CENTER, "pad_left": 2, "pad_right": 2}),
+            ("123", " 12  ", 5, {"align": A.CENTER, "pad_left": 1, "pad_right": 2}),
+            ("123", "  3  ", 5, {"align": A.RIGHT, "pad_left": 2, "pad_right": 2}),
+        ],
+    )
+    def test_padding_alignment_cropping(
+        self, initial: str, expected: str, width: int, args: dict
+    ):
+        assert expected == pt.FixedString(initial, width=width, **args).raw
 
 
 class TestText(unittest.TestCase):
@@ -88,7 +177,7 @@ class TestTextFormatting(unittest.TestCase):
     def _test_format(self, expected: str, template: str):
         expected_no_sgr = pytermor.utilstr.SgrStringReplacer().apply(expected)
         self.assertEqual(expected, template.format(self.text))
-        self.assertEqual(expected_no_sgr, template.format(self.text.raw()))
+        self.assertEqual(expected_no_sgr, template.format(self.text.raw))
 
     def test_default_format_works(self):
         self._test_format("123" "\x1b[31m" "456" "\x1b[39m" "789", "{:}")

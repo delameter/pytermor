@@ -11,6 +11,7 @@
 """
 from __future__ import annotations
 
+import math
 import re
 import sys
 import typing as t
@@ -19,59 +20,16 @@ import dataclasses
 from abc import ABCMeta, abstractmethod
 from typing import Union
 
-from .common import LogicError, ArgTypeError, StrType
+from .common import LogicError, ArgTypeError, StrType, Align
 from .color import Color, NOOP_COLOR
-from .utilstr import ljust_sgr, rjust_sgr, center_sgr, wrap_sgr
+from .utilstr import ljust_sgr, rjust_sgr, center_sgr, wrap_sgr, pad
 from .utilmisc import get_preferable_wrap_width
 from .style import Style, NOOP_STYLE
 from .renderer import AbstractRenderer, RendererManager
 
 
-class Renderable(t.Sized, metaclass=ABCMeta):
-    """
-    Renderable abstract class. Can be inherited when the default style
-    overlaps resolution mechanism implemented in `Text` is not good enough.
-    """
-
-    def render(self, renderer: AbstractRenderer|t.Type[AbstractRenderer] = None) -> str:
-        if isinstance(renderer, type):
-            renderer = renderer()
-        return self._render_using(renderer or RendererManager.get_default())
-
-    @abstractmethod
-    def _render_using(self, renderer: AbstractRenderer) -> str:
-        raise NotImplementedError
-
-    @abstractmethod
-    def raw(self) -> str:
-        raise NotImplementedError
-
-    @abstractmethod
-    def __len__(self) -> int:
-        raise NotImplementedError
-
-
-class StyledString(Renderable):
-    def __init__(self, string: str = "", fmt: Color|Style = NOOP_STYLE):
-        self._fragment = _TextFragment(string, fmt)
-        self._fragments = [self._fragment]
-
-    def __len__(self) -> int:
-        return len(self._fragment)
-
-    def raw(self) -> str:
-        return self._fragment.string
-
-    @property
-    def style(self) -> pt.Style:
-        return self._fragment.style
-
-    def _render_using(self, renderer: AbstractRenderer) -> str:
-        return renderer.render(self._fragment.string, self._fragment.style)
-
-
 @dataclasses.dataclass
-class _TextFragment(t.Sized):
+class _Fragment(t.Sized):
     string: str = ""
     fmt: Color | Style = NOOP_STYLE
     close_this: bool = True
@@ -99,6 +57,120 @@ class _TextFragment(t.Sized):
         return f"<{self.__class__.__qualname__}>[" + ", ".join(props_set) + "]"
 
 
+class Renderable(t.Sized, metaclass=ABCMeta):
+    """
+    Renderable abstract class. Can be inherited when the default style
+    overlaps resolution mechanism implemented in `Text` is not good enough.
+    """
+
+    def render(
+        self, renderer: AbstractRenderer | t.Type[AbstractRenderer] = None
+    ) -> str:
+        if isinstance(renderer, type):
+            renderer = renderer()
+        return self._render_using(renderer or RendererManager.get_default())
+
+    @abstractmethod
+    def __len__(self) -> int:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _render_using(self, renderer: AbstractRenderer) -> str:
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def raw(self) -> str:
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def fragments(self) -> t.Sequence[_Fragment]:
+        raise NotImplementedError
+
+
+class String(Renderable):
+    def __init__(self, string: str = "", fmt: Color | Style = NOOP_STYLE):
+        self._fragment = _Fragment(string, fmt)
+
+    def __len__(self) -> int:
+        return len(self._fragment)
+
+    @property
+    def raw(self) -> str:
+        return self._fragment.string
+
+    @property
+    def style(self) -> Style:
+        return self._fragment.style
+
+    @property
+    def fragments(self) -> t.Sequence[_Fragment]:
+        return [self._fragment]
+
+    def _render_using(self, renderer: AbstractRenderer) -> str:
+        return renderer.render(self.raw, self._fragment.style)
+
+
+class FixedString(String):
+    def __init__(
+        self,
+        string: str = "",
+        fmt: Color | Style = NOOP_STYLE,
+        align: Align = Align.LEFT,
+        width: int = 0,
+        pad_left: int = 0,
+        pad_right: int = 0,
+        overflow_char: str = None,
+    ):
+        super().__init__(string, fmt)
+        self._align = align
+        self._width = max(0, width) or len(string)
+        self._pad_left = max(0, pad_left)
+        self._pad_right = max(0, pad_right)
+
+        if not isinstance(self._align, Align):
+            raise ValueError(f"Invalid align value: {self._align}")
+        if self.max_width < 0:
+            raise ValueError("Resulting width should be >= 0")
+
+    def __len__(self) -> int:
+        return self._width
+
+    @property
+    def max_width(self) -> int:
+        return self._width - (self._pad_left + self._pad_right)
+
+    @property
+    def origin(self) -> str:
+        return self._fragment.string
+
+    @property
+    def raw(self) -> str:
+        string = self._fragment.string
+        aligned = f"{string:{self._align.value}{self._width}s}"
+        cropped = self._crop(aligned)
+        return pad(self._pad_left) + cropped + pad(self._pad_right)
+
+    def _crop(self, aligned: str) -> str:
+        max_width = self.max_width
+        if (overflow := len(aligned) - max_width) <= 0:
+            return aligned
+
+        if self._align is Align.LEFT:
+            return aligned[:max_width]
+
+        if self._align is Align.RIGHT:
+            return aligned[-max_width:]
+
+        if overflow % 2 == 1:
+            right_overflow = math.ceil(overflow / 2)
+        else:
+            right_overflow = math.floor(overflow / 2)
+        left_overflow = overflow - right_overflow
+        return aligned[left_overflow:-right_overflow]
+
+
 class FrozenText(Renderable):
     _WIDTH_MAX_LEN_REGEXP = re.compile(r"[\d.]+$")
     _ALIGN_LEFT = "<"
@@ -118,7 +190,7 @@ class FrozenText(Renderable):
         close_this: bool = True,
         close_prev: bool = False,
     ):
-        self._fragments: t.Deque[_TextFragment] = collections.deque(
+        self._fragments: t.Deque[_Fragment] = collections.deque(
             self._init_fragments(string, fmt, close_this, close_prev)
         )
 
@@ -128,13 +200,13 @@ class FrozenText(Renderable):
         fmt: Color | Style = NOOP_STYLE,
         close_this: bool = True,
         close_prev: bool = False,
-    ) -> t.Sequence[_TextFragment]:
+    ) -> t.Sequence[_Fragment]:
         if isinstance(string, str):
-            return [_TextFragment(string, fmt, close_this, close_prev)]
-        elif isinstance(string, (StyledString, FrozenText, Text)):
+            return [_Fragment(string, fmt, close_this, close_prev)]
+        elif isinstance(string, Renderable):
             if fmt != NOOP_STYLE and fmt != NOOP_COLOR:
-                return [_TextFragment("", fmt, close_this, close_prev)]
-            return string._fragments
+                return [_Fragment("", fmt, close_this, close_prev)]
+            return string.fragments
         raise ArgTypeError(type(string), "string", fn=self._init_fragments)
 
     def _render_using(self, renderer: AbstractRenderer) -> str:
@@ -168,8 +240,13 @@ class FrozenText(Renderable):
 
         return result
 
+    @property
     def raw(self) -> str:
         return "".join(frag.string for frag in self._fragments)
+
+    @property
+    def fragments(self) -> t.Sequence[_Fragment]:
+        return self._fragments
 
     def __len__(self) -> int:
         return sum(len(frag) for frag in self._fragments)
@@ -186,6 +263,8 @@ class FrozenText(Renderable):
 
     def __format__(self, format_spec: str) -> str:
         """
+        Adds a support of formatting the instances using f-strings.
+        The text
         ``:s`` mode is required.
         Supported features:
           - length;
@@ -283,7 +362,9 @@ class Text(FrozenText):
         close_this: bool = True,
         close_prev: bool = False,
     ) -> Text:
-        self._fragments.extendleft(self._init_fragments(string, fmt, close_this, close_prev))
+        self._fragments.extendleft(
+            self._init_fragments(string, fmt, close_this, close_prev)
+        )
         return self
 
     def __add__(self, other: str | Text) -> Text:

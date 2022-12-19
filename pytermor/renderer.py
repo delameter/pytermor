@@ -33,12 +33,7 @@ this:
     >>> from pytermor import render, RendererManager, Styles
     >>> RendererManager.set_default_format_always()
     >>> render('Warning: AAAA', Styles.WARNING)
-    '\\x1b[33mWarning: AAAA\\x1b[39m'
-
-.. testsetup:: *
-
-    from pytermor.renderer import *
-    from pytermor import render
+    '\x1b[33mWarning: AAAA\x1b[39m'
 
 """
 from __future__ import annotations
@@ -216,7 +211,7 @@ class SgrRenderer(AbstractRenderer):
     See `OutputMode` documentation for exact mappings.
 
     >>> SgrRenderer(OutputMode.XTERM_256).render('text', Styles.WARNING_LABEL)
-    '\\x1b[1;33mtext\\x1b[22;39m'
+    '\x1b[1;33mtext\x1b[22;39m'
     >>> SgrRenderer(OutputMode.NO_ANSI).render('text', Styles.WARNING_LABEL)
     'text'
 
@@ -347,6 +342,7 @@ class TmuxRenderer(AbstractRenderer):
 
     >>> TmuxRenderer().render('text',  Style(fg='blue', bold=True))
     '#[fg=blue bold]text#[fg=default nobold]'
+
     """
 
     STYLE_ATTR_TO_TMUX_MAP = {
@@ -418,6 +414,7 @@ class NoOpRenderer(AbstractRenderer):
 
     >>> NoOpRenderer().render('text', Style(fg='green', bold=True))
     'text'
+
     """
 
     @property
@@ -447,6 +444,7 @@ class HtmlRenderer(AbstractRenderer):
 
     >>> HtmlRenderer().render('text', Style(fg='red', bold=True))
     '<span style="color: #800000; font-weight: 700">text</span>'
+
     """
 
     DEFAULT_ATTRS = [
@@ -531,6 +529,7 @@ class SgrRendererDebugger(SgrRenderer):
 
     >>> SgrRendererDebugger(OutputMode.XTERM_16).render('text', Style(fg='red', bold=True))
     '(ǝ[1;31m)text(ǝ[22;39m)'
+
     """
 
     def __init__(self, output_mode: OutputMode = OutputMode.AUTO):

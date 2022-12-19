@@ -1,114 +1,50 @@
-v2.23
--------
+v2.23-dev
+------------------
 
 - Extracted `resolve`, `approximate`, `find_closest` from `Color` class to module-level.
 - As well as color transform functions.
 - Add missing `hsv_to_rgb` function.
-
-v2.22
--------
-
 - `GenericPrniter` and `OmniMapper`.
-
-v2.21
--------
-
 - `StringHexPrinter` and `StringUcpPrinter`.
-
-v2.20
--------
-
 - `SgrRenderer` support for custom I/O streams.
-
-v2.19
--------
-
 - `FrozenText` class.
 
-v2.18
--------
+v2.18-dev
+------------------
 
 - `cval` autobuild.
-
-v2.17
---------
-:date:`Dec 22`
-
 - `ArgCountError` migrated from `es7s/core`.
 - `black` code style.
-
-v2.16
--------
-
 - Add `OmniHexPrinter` and `chunk()` helper.
-
-v2.15
--------
-
 - Typehinting.
 - Disabled automatic rendering of `echo()` and `render()`.
 
-v2.14
--------
+v2.14-dev
+-----------------
+:date:`Dec 22`
 
 - `confirm()` helper command.
-
-v2.13
--------
-
 - `EscapeSequenceStringReplacer` filter.
-
-v2.12
--------
-
 - `examples/terminal_benchmark` script.
-
-v2.11
---------
-
 - `StringFilter` and `OmniFilter` classes.
-
-v2.10
--------
-
 - Docs design fixes.
 - Minor core improvements.
-
-v2.9
--------
-
 - Tests for `color` module.
-
-v2.7
--------
-
 - RGB and variations full support.
 
-v2.6
--------
+v2.6-dev
+---------------
 :date:`Nov 22`
 
 - Got rid of `Span` class.
 - Rewrite of `color` module.
-
-v2.5
--------
-
 - Changes in `ConfigurableRenderer.force_styles` logic.
-
-v2.4
-------
-
 - `Text` nesting.
 - `TemplateEngine` implementation.
-
-v2.3
-------
-
 - Package reorganizing.
 
-v2.2
--------
+v2.2-dev
+---------
 :date:`Oct 22`
 
 - Named colors list.
@@ -117,15 +53,16 @@ v2.2
 - `TmuxRenderer`
 - `wait_key()` input helper.
 
-v2.1
-------
+v2.1-dev
+--------
+:date:`Aug 22`
 
 - Color presets.
 - More unit tests for formatters.
 
-v2.0
--------
-:date:`Jun 22`
+v2.0-dev
+---------
+:date:`Jul 22`
 
 - Complete library rewrite.
 - High-level abstractions `Color`, `Renderer <SgrRenderer>` and `Style`.
@@ -136,6 +73,7 @@ v2.0
 
 v1.8
 ------
+:date:`Jun 22`
 
 - ``format_prefixed_unit`` extended for working with decimal and binary metric prefixes.
 - `format_time_delta` extended with new settings.
@@ -152,6 +90,7 @@ v1.7.4
 
 v1.7.3
 ------
+:date:`May 22`
 
 - Added ``span.BG_BLACK`` format.
 
@@ -212,12 +151,12 @@ v1.2.1
 
 v1.2
 -------
-:date:`Apr 22`
 
 - ``EmptySequenceSGR`` and ``EmptyFormat`` classes.
 
 v1.1
 ------
+:date:`Apr 22`
 
 - Autoformat feature.
 

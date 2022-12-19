@@ -35,8 +35,8 @@ help:   ## Show this help
 
 
 all:   ## Prepare, run tests, generate docs and reports, build module
-all: reinit-venv prepare-pdf auto-all test doctest coverage docs-all build
-# CI (on push into master): prepare prepare-pdf set-version set-tag auto-all test doctest coverage docs-all build upload upload-doc?
+all: reinit-venv prepare-pdf auto-all test coverage docs-all build
+# CI (on push into master): prepare prepare-pdf set-version set-tag auto-all test coverage docs-all build upload upload-doc?
 
 reinit-venv:  ## Prepare environment for module building
 	rm -vrf ${VENV_PATH}
@@ -96,20 +96,17 @@ set-version: ## Set new package version
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
 
 test: ## Run pytest
-	${VENV_PATH}/bin/python -m pytest tests
+	${VENV_PATH}/bin/pytest
 
 test-verbose: ## Run pytest with detailed output
-	${VENV_PATH}/bin/python -m pytest tests -v
+	${VENV_PATH}/bin/pytest -v
 
 test-debug: ## Run pytest with VERY detailed output
-	${VENV_PATH}/bin/python -m pytest tests -v --log-cli-level=DEBUG
-
-doctest: ## Run doctest
-	@${VENV_PATH}/bin/sphinx-build docs docs/_build -b doctest -Eq && echo "Doctest ${GREEN}OK${RESET}"
+	${VENV_PATH}/bin/pytest -v --log-cli-level=DEBUG
 
 coverage: ## Run coverage and make a report
 	rm -v coverage-report/*
-	${VENV_PATH}/bin/coverage run tests -vv
+	${VENV_PATH}/bin/coverage run -m pytest -vv
 	${VENV_PATH}/bin/coverage report
 	${VENV_PATH}/bin/coverage html
 	if [ -d ${LOCALHOST_WRITE_PATH} ] ; then \

@@ -20,7 +20,7 @@ ones merged together, e.g. ``Style(fg='red', bold=True)`` produces only one
 opening SequenceSGR instance:
 
 >>> SequenceSGR(IntCode.BOLD, IntCode.RED).assemble()
-'\\x1b[1;31m'
+'\x1b[1;31m'
 
 ...although generally speaking it is two of them (``ESC [1m`` and
 ``ESC [31m``). However, the module can automatically match terminating
@@ -160,7 +160,8 @@ class SequenceCSI(SequenceFe):
     change cursor position, erase screen and more.
 
     >>> make_erase_in_line().assemble()
-    '\\x1b[0K'
+    '\x1b[0K'
+
     """
 
     _INTRODUCER = "["
@@ -330,10 +331,11 @@ not want any control sequences to be actually included in the output.
 ``NOOP_SEQ.assemble()`` returns empty string, ``NOOP_SEQ.params`` 
 returns empty list.
 
->>> pt.NOOP_SEQ.assemble()
+>>> NOOP_SEQ.assemble()
 ''
->>> pt.NOOP_SEQ.params
+>>> NOOP_SEQ.params
 []
+
 """
 
 

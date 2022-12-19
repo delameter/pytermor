@@ -296,14 +296,12 @@ class PrefixedUnitFormatter:
         self._prefixes: List[str | None] = prefixes
         self._prefix_zero_idx: int = prefix_zero_idx
 
-        if parent:
-            for attr_name, default in self._attribute_defaults.items():
-                if getattr(self, attr_name) is None:
-                    parent_attr = getattr(parent, attr_name)
-                    if parent_attr is None:
-                        setattr(self, attr_name, default)
-                        continue
+        for attr_name, default in self._attribute_defaults.items():
+            if getattr(self, attr_name) is None:
+                if (parent_attr := getattr(parent, attr_name, None)) is not None:
                     setattr(self, attr_name, parent_attr)
+                    continue
+                setattr(self, attr_name, default)
 
     @property
     def max_len(self) -> int:
