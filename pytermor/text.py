@@ -33,8 +33,13 @@ class Renderable(t.Sized, metaclass=ABCMeta):
     overlaps resolution mechanism implemented in `Text` is not good enough.
     """
 
+    def render(self, renderer: AbstractRenderer|t.Type[AbstractRenderer] = None) -> str:
+        if isinstance(renderer, type):
+            renderer = renderer()
+        return self._render_using(renderer or RendererManager.get_default())
+
     @abstractmethod
-    def render(self, renderer=None) -> str:
+    def _render_using(self, renderer: AbstractRenderer) -> str:
         raise NotImplementedError
 
     @abstractmethod
@@ -44,6 +49,25 @@ class Renderable(t.Sized, metaclass=ABCMeta):
     @abstractmethod
     def __len__(self) -> int:
         raise NotImplementedError
+
+
+class StyledString(Renderable):
+    def __init__(self, string: str = "", fmt: Color|Style = NOOP_STYLE):
+        self._fragment = _TextFragment(string, fmt)
+        self._fragments = [self._fragment]
+
+    def __len__(self) -> int:
+        return len(self._fragment)
+
+    def raw(self) -> str:
+        return self._fragment.string
+
+    @property
+    def style(self) -> pt.Style:
+        return self._fragment.style
+
+    def _render_using(self, renderer: AbstractRenderer) -> str:
+        return renderer.render(self._fragment.string, self._fragment.style)
 
 
 @dataclasses.dataclass
@@ -93,9 +117,7 @@ class FrozenText(Renderable):
         fmt: Color | Style = NOOP_STYLE,
         close_this: bool = True,
         close_prev: bool = False,
-        frozen: bool = False,
     ):
-        self._frozen = frozen
         self._fragments: t.Deque[_TextFragment] = collections.deque(
             self._init_fragments(string, fmt, close_this, close_prev)
         )
@@ -109,18 +131,11 @@ class FrozenText(Renderable):
     ) -> t.Sequence[_TextFragment]:
         if isinstance(string, str):
             return [_TextFragment(string, fmt, close_this, close_prev)]
-        elif isinstance(string, (FrozenText, Text)):
+        elif isinstance(string, (StyledString, FrozenText, Text)):
             if fmt != NOOP_STYLE and fmt != NOOP_COLOR:
                 return [_TextFragment("", fmt, close_this, close_prev)]
             return string._fragments
         raise ArgTypeError(type(string), "string", fn=self._init_fragments)
-
-    def render(
-        self, renderer: AbstractRenderer | t.Type[AbstractRenderer] = None
-    ) -> str:
-        if isinstance(renderer, type):
-            renderer = renderer()
-        return self._render_using(renderer or RendererManager.get_default())
 
     def _render_using(self, renderer: AbstractRenderer) -> str:
         result = ""

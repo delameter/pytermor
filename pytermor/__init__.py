@@ -41,9 +41,10 @@ from .renderer import OutputMode as OutputMode
 from .renderer import RendererManager as RendererManager
 from .renderer import SgrRenderer as SgrRenderer
 from .text import Renderable as Renderable
-from .text import TemplateEngine as TemplateEngine
+from .text import StyledString as StyledString
 from .text import FrozenText as FrozenText
 from .text import Text as Text
+from .text import TemplateEngine as TemplateEngine
 from .text import echo as echo
 from .text import render as render
 from .utilmisc import confirm as confirm
