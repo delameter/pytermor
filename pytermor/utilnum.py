@@ -263,27 +263,47 @@ class PrefixedUnitFormatter:
     :param prefixes:
     :param prefix_zero_idx:
             Index of prefix which will be used as default, i.e. without multiplying coefficients.
+    :param parent:
 
     .. versionadded:: 1.7
     """
 
+    _attribute_defaults = {
+        '_truncate_frac': False,
+        '_unit': "",
+        '_unit_separator': "",
+        '_mcoef': 1000,
+        '_prefixes': [],
+        '_prefix_zero_idx': 0,
+    }
+
     def __init__(
         self,
         max_value_len: int,
-        truncate_frac: bool = False,
+        truncate_frac: bool = None,
         unit: str = None,
         unit_separator: str = None,
-        mcoef: float = 1000.0,
+        mcoef: float = None,
         prefixes: List[str | None] = None,
         prefix_zero_idx: int = None,
+        parent: PrefixedUnitFormatter = None,
     ):
         self._max_value_len: int = max_value_len
         self._truncate_frac: bool = truncate_frac
-        self._unit: str = unit or ""
-        self._unit_separator: str = unit_separator or ""
+        self._unit: str = unit
+        self._unit_separator: str = unit_separator
         self._mcoef: float = mcoef
-        self._prefixes: List[str | None] = prefixes or []
-        self._prefix_zero_idx: int = prefix_zero_idx or 0
+        self._prefixes: List[str | None] = prefixes
+        self._prefix_zero_idx: int = prefix_zero_idx
+
+        if parent:
+            for attr_name, default in self._attribute_defaults.items():
+                if getattr(self, attr_name) is None:
+                    parent_attr = getattr(parent, attr_name)
+                    if parent_attr is None:
+                        setattr(self, attr_name, default)
+                        continue
+                    setattr(self, attr_name, parent_attr)
 
     @property
     def max_len(self) -> int:
