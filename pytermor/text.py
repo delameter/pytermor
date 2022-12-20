@@ -556,23 +556,23 @@ def render(
         return render(string, fmt, renderer, parse_template=False)
 
     if isinstance(string, t.Sequence) and not isinstance(string, str):
-        logging.debug(f"Rendering as iterable ({len(string)}:d)")
+        logger.debug(f"Rendering as iterable ({len(string)}:d)")
         return [render(s, fmt, renderer, parse_template) for s in string]
 
     if isinstance(string, Renderable):
         if fmt == NOOP_STYLE:
-            logging.debug(f"Invoking instance's render method ({type(string)})")
+            logger.debug(f"Invoking instance's render method ({string.__class__.__name__})")
             return string.render(renderer)
 
-        logging.debug(f"Composing new Text due to nonempty fmt ({fmt!r})")
+        logger.debug(f"Composing new Text due to nonempty fmt ({fmt!r})")
         return Text(fmt=fmt).append(string).render(renderer)
 
     if isinstance(string, str):
         if fmt == NOOP_STYLE:
-            logging.debug(f"Omitting the rendering ({type(s)}, {fmt!r})")
+            logger.debug(f"Omitting the rendering ({type(s)}, {fmt!r})")
             return string
 
-        logging.debug(f"Composing new String due to nonempty fmt ({fmt!r})")
+        logger.debug(f"Composing new String due to nonempty fmt ({fmt!r})")
         return String(string, fmt).render(renderer)
 
     raise ArgTypeError(type(string), "string", fn=render)

@@ -177,7 +177,6 @@ class AbstractRenderer(ABC):
         return self.__class__.__qualname__ + "[]"
 
     def _digest(self, fingerprint: str) -> int:
-        logger.debug(f"Renderer's fingerprint: {fingerprint}")
         return int.from_bytes(md5(fingerprint.encode()).digest(), "big")
 
     def _ensure_not_renderable(self, string: t.Any):
