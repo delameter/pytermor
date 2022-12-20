@@ -2,16 +2,16 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
-import copy
-import unittest
 import typing as t
+import unittest
 
 import pytest
 
 import pytermor as pt
 import pytermor.utilstr
-from pytermor.style import Style
+from pytermor import RendererManager
 from pytermor.common import Align as A
+from pytermor.style import Style
 
 
 class TestString(unittest.TestCase):
@@ -69,7 +69,7 @@ class TestFixedString:
 
     @pytest.mark.xfail(raises=ValueError)
     def test_init_with_invalid_align_fails(self):
-        pt.FixedString("1234567", align='FUFLO')
+        pt.FixedString("1234567", align="FUFLO")  # noqa
 
     @pytest.mark.parametrize(
         "initial, expected, width, args",
@@ -221,3 +221,34 @@ class TestTextFormatting(unittest.TestCase):
     def test_invalid_type_format_fails(self):
         for fmt in "bcdoxXneEfFgGn%":
             self.assertRaises(ValueError, lambda text=self.text: f"{text:{fmt}}")
+
+
+class TestCache:
+    immutable_renderables = [pt.String, pt.FixedString, pt.FrozenText]
+
+    @pytest.mark.parametrize("renderable_class", immutable_renderables)
+    def test_cache_works(self, renderable_class: t.Type):
+        string = renderable_class("12345", pt.Style(bg="yellow"))
+        renderer = RendererManager.get_default()
+        rendered = string.render(renderer)
+        assert renderer in string._renders_cache.keys()
+        assert rendered is string._renders_cache.get(renderer)
+
+    @pytest.mark.parametrize("renderable_class", immutable_renderables)
+    def test_cache_with_another_renderer_is_different(self, renderable_class: t.Type):
+        string = renderable_class("12345", pt.Style(bg="yellow"))
+        renderer_sgr = RendererManager.get_default()
+        renderer_html = pt.HtmlRenderer()
+        rendered_sgr = string.render(renderer_sgr)
+        rendered_html = string.render(renderer_html)
+        assert rendered_sgr != rendered_html
+        assert len(string._renders_cache) == 2
+        assert renderer_sgr in string._renders_cache.keys()
+        assert renderer_html in string._renders_cache.keys()
+
+    @pytest.mark.parametrize("renderable_class", [pt.Text])
+    def test_cache_is_disabled_for_mutable_renderables(self, renderable_class: t.Type):
+        string = renderable_class("12345", pt.Style(bg="yellow"))
+        renderer = RendererManager.get_default()
+        string.render(renderer)
+        assert len(string._renders_cache) == 0

@@ -27,9 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "TODO" "1" "Dec 19, 2022" "2.24.0-dev1" "pytermor"
+.TH "TODO" "1" "Dec 20, 2022" "2.25.0-dev1" "pytermor"
 .SH NAME
-Todo \- pytermor 2.24.0-dev1
+Todo \- pytermor 2.25.0-dev1
 .sp
 \fI(yet another)\fP Python library designed for formatting terminal output using ANSI escape codes. Implements automatic \fI\%\(dqsoft\(dq\fP format termination. Provides a registry of low\-level SGR \fI\%sequences\fP and formatting \fBspans\fP (or combined sequences). Also includes a set of formatters for pretty output.
 .sp
@@ -8792,6 +8792,8 @@ this:
 .INDENT 0.0
 .TP
 .B class  pytermor.renderer.AbstractRenderer
+Bases: \fBABC\fP
+.sp
 Renderer interface.
 .INDENT 7.0
 .TP
@@ -8826,6 +8828,16 @@ renderer settings.
 .TP
 .B Return type
 str
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  is_caching_allowed:  bool
+.INDENT 7.0
+.TP
+.B Returns
+\fITrue\fP if caching of renderer\(aqs results makes any sense and \fIFalse\fP
+otherwise.
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
@@ -8892,6 +8904,16 @@ str
 .UNINDENT
 .INDENT 7.0
 .TP
+.B property  is_caching_allowed:  bool
+.INDENT 7.0
+.TP
+.B Returns
+\fITrue\fP if caching of renderer\(aqs results makes any sense and \fIFalse\fP
+otherwise.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
 .B property  is_format_allowed:  bool
 .INDENT 7.0
 .TP
@@ -8942,6 +8964,16 @@ Return the \fBstring\fP argument untouched, don\(aqt mind the \fBfmt\fP\&.
 .TP
 .B Return type
 str
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  is_caching_allowed:  bool
+.INDENT 7.0
+.TP
+.B Returns
+\fITrue\fP if caching of renderer\(aqs results makes any sense and \fIFalse\fP
+otherwise.
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
@@ -9155,6 +9187,16 @@ str
 .UNINDENT
 .INDENT 7.0
 .TP
+.B property  is_caching_allowed:  bool
+.INDENT 7.0
+.TP
+.B Returns
+\fITrue\fP if caching of renderer\(aqs results makes any sense and \fIFalse\fP
+otherwise.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
 .B property  is_format_allowed:  bool
 .INDENT 7.0
 .TP
@@ -9238,6 +9280,16 @@ Force disabling of all output formatting.
 .UNINDENT
 .INDENT 7.0
 .TP
+.B property  is_caching_allowed:  bool
+.INDENT 7.0
+.TP
+.B Returns
+\fITrue\fP if caching of renderer\(aqs results makes any sense and \fIFalse\fP
+otherwise.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
 .B property  is_format_allowed:  bool
 .INDENT 7.0
 .TP
@@ -9296,6 +9348,16 @@ renderer settings.
 .TP
 .B Return type
 str
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B property  is_caching_allowed:  bool
+.INDENT 7.0
+.TP
+.B Returns
+\fITrue\fP if caching of renderer\(aqs results makes any sense and \fIFalse\fP
+otherwise.
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
@@ -9457,8 +9519,8 @@ Bases: \fI\%Renderable\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.text.Renderable(*args, **kwds)
-Bases: \fBSized\fP
+.B class  pytermor.text.Renderable
+Bases: \fBSized\fP, \fBABC\fP
 .sp
 Renderable abstract class. Can be inherited when the default style
 overlaps resolution mechanism implemented in \fI\%Text\fP is not good enough.
@@ -10588,7 +10650,7 @@ str
 .UNINDENT
 .UNINDENT
 .SH CHANGELOG
-.SS v2.23
+.SS v2.23\-dev
 .INDENT 0.0
 .IP \(bu 2
 Extracted \fI\%resolve\fP, \fI\%approximate\fP, \fI\%find_closest\fP from \fBColor\fP class to module\-level.
@@ -10596,91 +10658,52 @@ Extracted \fI\%resolve\fP, \fI\%approximate\fP, \fI\%find_closest\fP from \fBCol
 As well as color transform functions.
 .IP \(bu 2
 Add missing \fI\%hsv_to_rgb\fP function.
-.UNINDENT
-.SS v2.22
-.INDENT 0.0
 .IP \(bu 2
 \fBGenericPrniter\fP and \fI\%OmniMapper\fP\&.
-.UNINDENT
-.SS v2.21
-.INDENT 0.0
 .IP \(bu 2
 \fI\%StringHexPrinter\fP and \fI\%StringUcpPrinter\fP\&.
-.UNINDENT
-.SS v2.20
-.INDENT 0.0
 .IP \(bu 2
 \fI\%SgrRenderer\fP support for custom I/O streams.
-.UNINDENT
-.SS v2.19
-.INDENT 0.0
 .IP \(bu 2
 \fI\%FrozenText\fP class.
 .UNINDENT
-.SS v2.18
+.SS v2.18\-dev
 .INDENT 0.0
 .IP \(bu 2
 \fI\%cval\fP autobuild.
-.UNINDENT
-.SS v2.17
-.sp
-Dec 22
-.INDENT 0.0
 .IP \(bu 2
 \fBArgCountError\fP migrated from \fBes7s/core\fP\&.
 .IP \(bu 2
 \fBblack\fP code style.
-.UNINDENT
-.SS v2.16
-.INDENT 0.0
 .IP \(bu 2
 Add \fBOmniHexPrinter\fP and \fBchunk()\fP helper.
-.UNINDENT
-.SS v2.15
-.INDENT 0.0
 .IP \(bu 2
 Typehinting.
 .IP \(bu 2
 Disabled automatic rendering of \fI\%echo()\fP and \fI\%render()\fP\&.
 .UNINDENT
-.SS v2.14
+.SS v2.14\-dev
+.sp
+Dec 22
 .INDENT 0.0
 .IP \(bu 2
 \fI\%confirm()\fP helper command.
-.UNINDENT
-.SS v2.13
-.INDENT 0.0
 .IP \(bu 2
 \fBEscapeSequenceStringReplacer\fP filter.
-.UNINDENT
-.SS v2.12
-.INDENT 0.0
 .IP \(bu 2
 \fBexamples/terminal_benchmark\fP script.
-.UNINDENT
-.SS v2.11
-.INDENT 0.0
 .IP \(bu 2
 \fBStringFilter\fP and \fBOmniFilter\fP classes.
-.UNINDENT
-.SS v2.10
-.INDENT 0.0
 .IP \(bu 2
 Docs design fixes.
 .IP \(bu 2
 Minor core improvements.
-.UNINDENT
-.SS v2.9
-.INDENT 0.0
 .IP \(bu 2
 Tests for \fI\%color\fP module.
-.UNINDENT
-.SS v2.7
-.INDENT 0.0
 .IP \(bu 2
 RGB and variations full support.
 .UNINDENT
-.SS v2.6
+.SS v2.6\-dev
 .sp
 Nov 22
 .INDENT 0.0
@@ -10688,25 +10711,16 @@ Nov 22
 Got rid of \fBSpan\fP class.
 .IP \(bu 2
 Rewrite of \fI\%color\fP module.
-.UNINDENT
-.SS v2.5
-.INDENT 0.0
 .IP \(bu 2
 Changes in \fBConfigurableRenderer.force_styles\fP logic.
-.UNINDENT
-.SS v2.4
-.INDENT 0.0
 .IP \(bu 2
 \fI\%Text\fP nesting.
 .IP \(bu 2
 \fBTemplateEngine\fP implementation.
-.UNINDENT
-.SS v2.3
-.INDENT 0.0
 .IP \(bu 2
 Package reorganizing.
 .UNINDENT
-.SS v2.2
+.SS v2.2\-dev
 .sp
 Oct 22
 .INDENT 0.0
@@ -10721,16 +10735,18 @@ Color config.
 .IP \(bu 2
 \fI\%wait_key()\fP input helper.
 .UNINDENT
-.SS v2.1
+.SS v2.1\-dev
+.sp
+Aug 22
 .INDENT 0.0
 .IP \(bu 2
 Color presets.
 .IP \(bu 2
 More unit tests for formatters.
 .UNINDENT
-.SS v2.0
+.SS v2.0\-dev
 .sp
-Jun 22
+Jul 22
 .INDENT 0.0
 .IP \(bu 2
 Complete library rewrite.
@@ -10744,6 +10760,8 @@ Unit tests for formatters and new modules.
 \fBsphinx\fP and \fBreadthedocs\fP integraton.
 .UNINDENT
 .SS v1.8
+.sp
+Jun 22
 .INDENT 0.0
 .IP \(bu 2
 \fBformat_prefixed_unit\fP extended for working with decimal and binary metric prefixes.
@@ -10766,6 +10784,8 @@ Max decimal points for \fBauto_float\fP extended from (2) to (max\-2).
 Added 3 formatters: \fBformat_prefixed_unit\fP, \fI\%format_time_delta\fP, \fI\%format_auto_float\fP\&.
 .UNINDENT
 .SS v1.7.3
+.sp
+May 22
 .INDENT 0.0
 .IP \(bu 2
 Added \fBspan.BG_BLACK\fP format.
@@ -10831,13 +10851,13 @@ Interface revisioning.
 \fBopening_seq\fP and \fBclosing_seq\fP properties for \fBSpan\fP class.
 .UNINDENT
 .SS v1.2
-.sp
-Apr 22
 .INDENT 0.0
 .IP \(bu 2
 \fBEmptySequenceSGR\fP and \fBEmptyFormat\fP classes.
 .UNINDENT
 .SS v1.1
+.sp
+Apr 22
 .INDENT 0.0
 .IP \(bu 2
 Autoformat feature.

@@ -51,6 +51,9 @@ prepare-pdf:  ## Prepare environment for pdf rendering
 					 texlive-latex-extra \
 					 latexmk
 
+cli: ## Launch python interpreter  <venv>
+	PYTHONPATH=1 ${VENV_PATH}/bin/python -u -X importtime -c "import pytermor"
+
 ##
 ## Examples
 

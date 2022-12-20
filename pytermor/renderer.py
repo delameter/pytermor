@@ -42,8 +42,9 @@ import enum
 import os
 import sys
 import typing as t
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from functools import reduce
+from hashlib import md5
 
 from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose
 from .color import Color, Color16, Color256, ColorRGB, NOOP_COLOR
@@ -60,6 +61,7 @@ class RendererManager:
     """
     Class for global renderer setup.
     """
+
     _default: AbstractRenderer = None
 
     @classmethod
@@ -114,8 +116,32 @@ class RendererManager:
         cls.set_default(SgrRenderer(OutputMode.NO_ANSI))
 
 
-class AbstractRenderer(metaclass=ABCMeta):
+class AbstractRenderer(ABC):
     """Renderer interface."""
+
+    def __hash__(self) -> int:
+        """
+        Method returning a unique number reflecting current renderer's state. Used for
+        rendered strings caching. Two renderers of the same class and with the same
+        settings should have equal hashes, so that cached strings could be reused.
+        When the internal state of the renderer changes, this number should change as
+        well, in order to invalidate the caches.
+
+        `NotImplementedError` indicates that caching for this renderer should be
+        disabled as irrelevant (e.g., for `NoOpRenderer`). More convenient way
+        is to check `is_caching_allowed` property.
+        """
+        raise NotImplementedError
+
+    @property
+    def is_caching_allowed(self) -> bool:
+        """
+        Class-level property.
+
+        :return: *True* if caching of renderer's results makes any sense and *False*
+                 otherwise.
+        """
+        return False
 
     @property
     @abstractmethod
@@ -139,12 +165,6 @@ class AbstractRenderer(metaclass=ABCMeta):
                  renderer settings.
         """
 
-    def _ensure_not_renderable(self, string: t.Any):
-        if not isinstance(string, type("Renderable")):
-            raise TypeError(
-                "Renderers are not supposed to work with Renderables directly."
-            )
-
     def clone(self: T, *args: t.Any, **kwargs: t.Any) -> T:
         """
         Make a copy of the renderer with the same setup.
@@ -155,6 +175,16 @@ class AbstractRenderer(metaclass=ABCMeta):
 
     def __repr__(self):
         return self.__class__.__qualname__ + "[]"
+
+    def _digest(self, fingerprint: str) -> int:
+        logger.debug(f"Renderer's fingerprint: {fingerprint}")
+        return int.from_bytes(md5(fingerprint.encode()).digest(), "big")
+
+    def _ensure_not_renderable(self, string: t.Any):
+        if not isinstance(string, type("Renderable")):
+            raise TypeError(
+                "Renderers are not supposed to work with Renderables directly."
+            )
 
 
 class OutputMode(enum.Enum):
@@ -237,19 +267,28 @@ class SgrRenderer(AbstractRenderer):
         OutputMode.XTERM_256: Color256,
         OutputMode.TRUE_COLOR: ColorRGB,
     }
-    _color_upper_bound: t.Type[Color | None] = None
-
-    _output_mode: OutputMode = OutputMode.AUTO
 
     def __init__(self, output_mode: OutputMode = OutputMode.AUTO, io: t.IO = sys.stdout):
-        self._output_mode = self._determine_output_mode(output_mode, io)
-        self._color_upper_bound = self._COLOR_UPPER_BOUNDS.get(self._output_mode, None)
+        self._output_mode: OutputMode = self._determine_output_mode(output_mode, io)
+        self._color_upper_bound: t.Type[Color] | None = self._COLOR_UPPER_BOUNDS.get(
+            self._output_mode, None
+        )
 
         logger.debug(
             f"Instantiated {self.__class__.__qualname__}"
             f"[{self._output_mode.name} <- {output_mode.name}, "
             f"upper bound {get_qname(self._color_upper_bound)}]"
         )
+
+    def __hash__(self) -> int:
+        # although this renderer is immutable, its state can be set up differently
+        # on initialization. ``_color_upper_bound`` is a derived variable from
+        # ``_output_mode`` with one-to-one mapping, thus it can be omitted.
+        return self._digest(self.__class__.__qualname__ + "." + self._output_mode.value)
+
+    @property
+    def is_caching_allowed(self) -> bool:
+        return True
 
     @property
     def is_format_allowed(self) -> bool:
@@ -359,6 +398,13 @@ class TmuxRenderer(AbstractRenderer):
         "underlined": "underscore",
     }
 
+    def __hash__(self) -> int:  # stateless
+        return self._digest(self.__class__.__qualname__)
+
+    @property
+    def is_caching_allowed(self) -> bool:
+        return True
+
     @property
     def is_format_allowed(self) -> bool:
         """
@@ -418,6 +464,10 @@ class NoOpRenderer(AbstractRenderer):
     """
 
     @property
+    def is_caching_allowed(self) -> bool:
+        return False
+
+    @property
     def is_format_allowed(self) -> bool:
         """
         :returns: Nothing to apply |rarr| nothing to allow, thus the returned value
@@ -456,6 +506,13 @@ class HtmlRenderer(AbstractRenderer):
         "border",
         "filter",
     ]
+
+    def __hash__(self) -> int:  # stateless
+        return self._digest(self.__class__.__qualname__)
+
+    @property
+    def is_caching_allowed(self) -> bool:
+        return True
 
     @property
     def is_format_allowed(self) -> bool:
@@ -535,6 +592,28 @@ class SgrRendererDebugger(SgrRenderer):
     def __init__(self, output_mode: OutputMode = OutputMode.AUTO):
         super().__init__(output_mode)
         self._format_override: bool | None = None
+
+    def __hash__(self) -> int:
+        # build the hash from instance's state as well as ancestor's state -- that way it will
+        # reflect the changes in either of configurations. actually, sometimes the hashes will
+        # be different, but the results would have been the same; e.g., `SgrRendererDebugger`
+        # with ``_format_override`` set to *False* and `SgrRendererDebugger` without the override,
+        # but with `NO_ANSI` output mode produce the outputs indistinguishable from each other, but
+        # their hashes differ. although, this can be disregarded, as it is not worth the efforts to
+        # implement an advanced logic and correct state computation when it comes to a debug renderer.
+        return self._digest(
+            ".".join(
+                [
+                    self.__class__.__qualname__,
+                    str(self._format_override),
+                    str(super().__hash__()),
+                ]
+            )
+        )
+
+    @property
+    def is_caching_allowed(self) -> bool:
+        return True
 
     @property
     def is_format_allowed(self) -> bool:
