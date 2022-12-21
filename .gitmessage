@@ -12,6 +12,7 @@
 #💡 RESEARCH: 
 #💥 REWORK: 
 #🔨 SQUASH: [00] 
+#🆙 UPDATE: 
 #⏫ UPGRADE: 
 #🧪 TESTS: 
 
@@ -19,7 +20,7 @@
 
 
 ##-----------------------##----------------------------------------------------
-## es7s/gitmessage   v12 ## es7s projects commit normalizer
+## es7s/gitmessage   v13 ## es7s projects commit normalizer
 ## Oct-2022              ## A. Shavykin <0.delameter@gmail.com>
 
 # Run this command to make git use new commit template:

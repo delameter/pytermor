@@ -7,7 +7,7 @@
 PROJECT_NAME = pytermor
 PROJECT_NAME_PUBLIC = ${PROJECT_NAME}
 PROJECT_NAME_PRIVATE = ${PROJECT_NAME}-delameter
-DEPENDS_PATH = scripts/diagrams
+DEPENDS_PATH = misc/depends
 LOCALHOST_URL = http://localhost/pytermor
 LOCALHOST_WRITE_PATH = localhost
 

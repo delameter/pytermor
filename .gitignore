@@ -9,3 +9,4 @@ venv
 .coverage
 docs/_build
 temp
+misc/depends
