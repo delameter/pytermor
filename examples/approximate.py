@@ -81,7 +81,7 @@ class Main:
     def run(self, sample_val: int | None, color_type: str):
         if sample_val is None:
             random_rgb = (random.randint(40, 255) for _ in range(3))
-            sample_val = pt.Color.rgb_to_hex(*random_rgb)
+            sample_val = pt.color.rgb_to_hex(*random_rgb)
 
         sample = pt.ColorRGB(sample_val)
         direct_renderer = pt.SgrRenderer(pt.OutputMode.TRUE_COLOR)

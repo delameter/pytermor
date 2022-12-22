@@ -23,7 +23,7 @@ from math import ceil
 from typing import Union
 
 from . import ArgTypeError
-from .common import StrType
+from .common import ST
 from .utilmisc import chunk, get_terminal_width
 
 _PRIVATE_REPLACER = "\U000E5750"
@@ -38,11 +38,11 @@ def padv(n: int) -> str:
 
 
 def distribute_padded(
-    values: t.List[StrType],
+    values: t.List[ST],
     max_len: int,
     pad_before: bool = False,
     pad_after: bool = False,
-) -> StrType:
+) -> ST:
     """
     .. todo ::
         todo
@@ -564,7 +564,7 @@ class GenericPrinter(GenericFilter[IT, str], ABC):
             self._state.offset += self._char_per_line
 
         header = self._format_line_separator("_", f"{extra.label}" if extra else "")
-        footer = self._format_line_separator("-", "(" + self._format_offset(self._state.inp_size) + ")")
+        footer = self._format_line_separator("-", label_right="(" + self._format_offset(self._state.inp_size) + ")")
 
         result = header + "\n"
         result += "\n".join(self._render_rows())
@@ -575,8 +575,8 @@ class GenericPrinter(GenericFilter[IT, str], ABC):
         offset = override or self._state.offset
         return str(offset).rjust(self._state.inp_size_len)
 
-    def _format_line_separator(self, fill: str, label: str) -> str:
-        return label + fill * (self._get_output_line_len() - len(label))
+    def _format_line_separator(self, fill: str, label_left: str = '', label_right: str = '') -> str:
+        return label_left + fill * (self._get_output_line_len() - len(label_left) - len(label_right)) + label_right
 
     def _render_rows(self) -> t.Iterable[str]:
         for row in self._state.rows:

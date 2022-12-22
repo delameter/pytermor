@@ -98,6 +98,9 @@ blockquote {
 .hidden {
     visibility: hidden;
 }
+div.graphviz {
+    text-align: center;
+}
 
 /** Code **/
 
@@ -162,6 +165,10 @@ a.image-reference img {
 }
 .bottom-of-page .icons {
     gap: 0.75rem;
+}
+
+body[data-theme="dark"] div.graphviz > img {
+    filter: invert(1);
 }
 
 

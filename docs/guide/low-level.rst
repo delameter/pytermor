@@ -122,6 +122,17 @@ One instance of `SequenceSGR` can be added to another. This will result in a new
    :linenos:
 
 
+Class hierarchy
+=================
+
+.. inheritance-diagram::  pytermor.ansi.SequenceOSC
+                          pytermor.ansi.SequenceST
+                          pytermor.ansi.UnderlinedCurlySequenceSGR
+   :parts: 2
+   :top-classes:          pytermor.ansi.Sequence,
+                          pytermor.ansi.SequenceFe
+
+
 Core API
 ========
 

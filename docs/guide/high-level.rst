@@ -30,7 +30,25 @@ Color mode fallbacks
       Color approximations for indexed modes
 
 
-Core API
-========
+Class hierarchy
+=================
 
-@EXAMPLES
+.. inheritance-diagram::
+                  pytermor.color.Color16
+                  pytermor.color.Color256
+                  pytermor.color.ColorRGB
+   :top-classes:  pytermor.color.Color
+   :parts: 2
+
+.. inheritance-diagram::
+                  pytermor.text.Text
+                  pytermor.text.FixedString
+   :top-classes:  pytermor.text.Renderable
+   :caption:      High-level components inheritance
+   :parts: 2
+
+
+
+Core API
+=============
+

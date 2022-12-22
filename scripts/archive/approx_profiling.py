@@ -8,25 +8,25 @@ import typing as t
 from math import trunc
 
 import pytermor as pt
-from pytermor.util import system, PrefixedUnitFormatter
+from pytermor.utilnum import PrefixedUnitFormatter
 
 puf = PrefixedUnitFormatter(
     4,
     True,
-    prefixes=pt.util.prefixed_unit.PREFIXES_SI,
-    prefix_zero_idx=pt.util.prefixed_unit.PREFIX_ZERO_SI,
+    prefixes=pt.utilnum.PREFIXES_SI,
+    prefix_zero_idx=pt.utilnum.PREFIX_ZERO_SI,
 )
 
 
 def mem():
     for c in [pt.ColorRGB]:  # pt.Color.__subclasses__()
-        out(c, len(c._map), system.total_size(c._map, verbose=False))
-        out(c, len(c._map), system.total_size(c._approx_query_cache, verbose=False))
+        out(c, len(c._map), system.total_size(c._index, verbose=False))
+        out(c, len(c._map), system.total_size(c._approx_cache, verbose=False))
     out(
         pt.Color,
-        len(pt.Color.index._name_index),
+        len(pt.Color._index._map),
         system.total_size(
-            pt.Color.index, {pt.color.Index: lambda i: i._name_index}, verbose=False
+            pt.Color._index, verbose=False
         ),
     )
     print("-" * 50)
@@ -64,7 +64,7 @@ def hook(origin):
     return fn
 
 
-pt.ColorRGB.index.register = hook(pt.ColorRGB.index.register)
+pt.ColorRGB._index.add = hook(pt.ColorRGB._index.add)
 
 idx = 0
 
@@ -84,7 +84,7 @@ def instantiate():
 
 def instantiate_and_map():
     global idx
-    pt.ColorRGB(idx := idx + 1, (str(idx) + ":" + str(idx)), add_to_map=True)
+    pt.ColorRGB(idx := idx + 1, (str(idx) + ":" + str(idx)), register=True)
 
 
 def resolve():

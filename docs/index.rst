@@ -13,7 +13,7 @@ Key feature of this library is providing necessary abstractions for building com
 No dependencies besides Python Standard Library are required *(there are some for testing and docs building, though).*
 
 
-.. only :: html
+.. only:: html
 
    .. grid:: 3
       :gutter: 1
@@ -27,7 +27,7 @@ No dependencies besides Python Standard Library are required *(there are some fo
 
       .. grid-item-card::
 
-         :ref:`API docs <apidoc.index>`
+         :ref:`API docs <apidoc>`
 
          *complete API reference*
 
@@ -67,10 +67,9 @@ No dependencies besides Python Standard Library are required *(there are some fo
 
 
 .. toctree::
-   :maxdepth: 3
    :hidden:
 
    guide/index
-   apidoc/index
+   apidoc
    changes
    license

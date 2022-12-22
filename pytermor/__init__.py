@@ -3,6 +3,7 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 from ._version import __version__ as __version__
+from .common import ST as ST
 from .common import logger as logger
 from .common import Align as Align
 from .common import ArgCountError as ArgCountError

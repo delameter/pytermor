@@ -1,11 +1,13 @@
-.. _apidoc.index:
+.. _apidoc:
 
 ===================
 API reference
 ===================
 
-.. toctree::
-   :maxdepth: 2
+.. currentmodule:: pytermor
+
+.. autosummary::
+   :toctree:    apidoc
 
    ansi
    color

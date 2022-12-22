@@ -21,17 +21,15 @@ logger.addHandler(logging.NullHandler())
 # logger.setLevel('DEBUG')
 ########
 
-T = TypeVar("T")
-""" `t.Any` """
-
-StrType = TypeVar("StrType", bound=Union[str, "Renderable"])
+ST = TypeVar("ST", bound=Union[str, "Renderable"])
 """ 
-`StrType` in a method signature usually means that regular strings as well as 
+`ST` in a method signature usually means that regular strings as well as 
 `Renderable` implementations are supported, can be intermixed, and:
 
-    - return type will be *str* if and only if type of all arguments is *str*;
-    - otherwise return type will be `Renderable` -- *str* arguments, if any, will
-      be transformed into `Renderable` and concatenated.
+    - return type will be *str* if and only if the type of all arguments is *str*;
+    - otherwise return type will be `Text` -- *str* arguments, if any, will
+      be transformed into `Renderable` and concatenated. `Text` type is used because
+      it's the only `Renderable` that is mutable.
 
 """
 
@@ -91,6 +89,13 @@ class ArgCountError(Exception):
 
 
 class Align(str, enum.Enum):
+    """
+    Align type for `FixedString` enum.
+    """
+
     LEFT = "<"
+    """ """
     RIGHT = ">"
+    """ """
     CENTER = "^"
+    """ """

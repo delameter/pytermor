@@ -179,18 +179,16 @@ latex_logo = "_static/logo-96.png"
 autodoc_default_options = {
     "members": True,
     #'undoc-members': True,
-    #'inherited-members': True,
+    "inherited-members": True,
     #'private-members': True,
     "show-inheritance": True,
-    "special-members": "__call__",
-    #"member-order": "bysource",
-    'member-order': 'groupwise',
+    # "special-members": "__call__",
+    "member-order": "bysource",
+    #'member-order': 'groupwise',
 }
 
 # class pytermor.Colors.Color(hex_value.. -> class Color(..
 # add_module_names = False
-
-autosummary_generate = True
 
 # include signature in the class desc or document __init__ separately
 autodoc_class_signature = "mixed"  # 'separated'
@@ -214,7 +212,7 @@ autodoc_typehints_description_target = "documented_params"
 # autodoc_inherit_docstrings =
 
 autodoc_type_aliases = {
-    #"CT": "pytermor.color.CT",
+    # "CT": "pytermor.color.CT",
 }
 
 keep_warnings = True
@@ -222,6 +220,11 @@ keep_warnings = True
 #                   ('py:class', 'InitVar'),
 #                   ('py:class', 'pytermor.common.T'),
 #                   ('py:class', 'pytermor.color.TypeColor')]
+
+# -- autosummary ------------------------------------------------------------------
+
+autosummary_generate = True
+
 
 # -- doctest ------------------------------------------------------------------
 
@@ -231,6 +234,19 @@ import pytermor.color as col
 pt.RendererManager.set_default_format_always()
 """
 
+# -- Inheritance graph --------------------------------------------------------
+
+inheritance_graph_attrs = dict(
+    rankdir="LR", size='"6.0, 8.0"', fontsize=14, ratio="compress"
+)
+inheritance_node_attrs = dict(
+    fontname='"Iose7ka Terminal"'
+)
+inheritance_edge_attrs = dict(
+    arrowsize=0.5, style='"setlinewidth(0.5)"', fillcolor="white"
+)
+
+
 # -- Misc ---------------------------------------------------------------------
 
 # modindex_common_prefix = ['pytermor']
@@ -238,6 +254,7 @@ pt.RendererManager.set_default_format_always()
 todo_include_todos = True
 # todo_emit_warnings = True
 # .. todolist:: ## todo_link_only = True/FALSE
+
 
 # -- Hide "bases: object" elements --------------------------------------------
 

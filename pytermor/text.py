@@ -3,17 +3,14 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-
-.. testsetup:: *
-
-    from pytermor.text import *
-
+"Front-end" module of the library. Contains classes supporting high-level
+operations such as nesting-aware style application, concatenating and cropping
+of styled strings before the rendering, text alignment and wrapping, etc.
 """
 from __future__ import annotations
 
 import collections
 import dataclasses
-import logging
 import math
 import re
 import sys
@@ -23,12 +20,12 @@ from abc import abstractmethod, ABC
 from typing import Union
 
 from .color import Color, NOOP_COLOR
-from .common import LogicError, ArgTypeError, StrType, Align, logger
+from .common import LogicError, ArgTypeError, ST, Align, logger
 from .renderer import AbstractRenderer, RendererManager
 from .style import Style, NOOP_STYLE
 from .utilmisc import get_preferable_wrap_width
 from .utilnum import format_si_metric
-from .utilstr import ljust_sgr, rjust_sgr, center_sgr, wrap_sgr, pad
+from .utilstr import ljust_sgr, rjust_sgr, center_sgr, wrap_sgr, pad, dump
 
 
 @dataclasses.dataclass
@@ -42,6 +39,16 @@ class _Fragment(t.Sized):
         if self.close_prev:
             self.close_this = True
         self._style = Style.make(self.fmt)
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, type(self)):
+            return False
+        return (
+            self.string == o.string
+            and self.fmt == o.fmt
+            and self.close_this == o.close_this
+            and self.close_prev == o.close_prev
+        )
 
     @property
     def style(self) -> Style:
@@ -71,14 +78,16 @@ class Renderable(t.Sized, ABC):
         self._renders_cache: t.Dict[AbstractRenderer, str] = dict()
 
     def render(
-        self, renderer: AbstractRenderer | t.Type[AbstractRenderer] = None
+        self, renderer: AbstractRenderer | t.Type[AbstractRenderer] = None, stderr: bool = False
     ) -> str:
         if isinstance(renderer, type):
             renderer = renderer()
-        before_s = time.time_ns()/1e9
+        before_s = time.time_ns() / 1e9
         rendered = self._render(renderer or RendererManager.get_default())
-        after_s = time.time_ns()/1e9
-        logger.debug(f"Rendered in {format_si_metric((after_s-before_s), 's')}")
+        after_s = time.time_ns() / 1e9
+        if not stderr:
+            logger.debug(f"Rendered in {format_si_metric((after_s-before_s), 's')}")
+            logger.log(level=5, msg=dump(rendered, 'Dump'))
         return rendered
 
     def _render(self, renderer: AbstractRenderer) -> str:
@@ -93,6 +102,10 @@ class Renderable(t.Sized, ABC):
 
     @abstractmethod
     def __len__(self) -> int:
+        raise NotImplementedError
+
+    @abstractmethod
+    def __eq__(self, o: Renderable) -> bool:
         raise NotImplementedError
 
     @abstractmethod
@@ -118,6 +131,11 @@ class String(Renderable):
 
     def __len__(self) -> int:
         return len(self._fragment)
+
+    def __eq__(self, o: String) -> bool:
+        if not isinstance(o, type(self)):
+            return False
+        return self._fragment == o._fragment
 
     @property
     def raw(self) -> str:
@@ -160,6 +178,17 @@ class FixedString(String):
 
     def __len__(self) -> int:
         return self._width
+
+    def __eq__(self, o: String) -> bool:
+        if not isinstance(o, type(self)):
+            return False
+        return (
+            self._fragment == o._fragment
+            and self._align == o._align
+            and self._width == o._width
+            and self._pad_left == o._pad_left
+            and self._pad_right == o._pad_right
+        )
 
     @property
     def max_width(self) -> int:
@@ -219,6 +248,11 @@ class FrozenText(Renderable):
         self._fragments: t.Deque[_Fragment] = collections.deque(
             self._make_fragments(string, fmt, close_this, close_prev)
         )
+
+    def __eq__(self, o: Renderable) -> bool:
+        if not isinstance(o, type(self)):
+            return False
+        return self._fragments == o._fragments
 
     def _make_fragments(
         self,
@@ -381,6 +415,11 @@ class Text(FrozenText):
         super().__init__(string, fmt, close_this, close_prev)
         self._is_frozen = False
 
+    def __eq__(self, o: Renderable) -> bool:
+        if not isinstance(o, type(self)):
+            return False
+        return self._fragments == o._fragments
+
     def append(
         self,
         string: str | Renderable,
@@ -398,9 +437,7 @@ class Text(FrozenText):
         close_this: bool = True,
         close_prev: bool = False,
     ) -> Text:
-        self._fragments.extendleft(
-            self._make_fragments(string, fmt, close_this, close_prev)
-        )
+        self._fragments.extendleft(self._make_fragments(string, fmt, close_this, close_prev))
         return self
 
     def __add__(self, other: str | Text) -> Text:
@@ -511,9 +548,7 @@ class TemplateEngine:
         for style_attr in tag.style.split(" "):
             if style_attr in self._custom_styles.keys():
                 if base_style != NOOP_STYLE:
-                    raise LogicError(
-                        f"Only one custom style per tag is allowed: ({tag.style})"
-                    )
+                    raise LogicError(f"Only one custom style per tag is allowed: ({tag.style})")
                 base_style = self._custom_styles[style_attr]
                 continue
             if style_attr.startswith("fg=") or style_attr.startswith("bg="):
@@ -530,10 +565,11 @@ _template_engine = TemplateEngine()
 
 
 def render(
-    string: StrType | t.Iterable[StrType] = "",
+    string: ST | t.Iterable[ST] = "",
     fmt: Color | Style = NOOP_STYLE,
     renderer: AbstractRenderer = None,
     parse_template: bool = False,
+    stderr: bool = False,
 ) -> str | t.List[str]:
     """
     .
@@ -541,10 +577,13 @@ def render(
     :param fmt:
     :param renderer:
     :param parse_template:
+    :param stderr:
     :return:
     """
     if string == "" and fmt == NOOP_STYLE:
         return ""
+    debug = lambda msg: logger.debug(msg) if not stderr else None
+    sclass = string.__class__.__name__
 
     if parse_template:
         if not isinstance(string, str):
@@ -553,33 +592,33 @@ def render(
             string = _template_engine.parse(string)
         except Union[ValueError, LogicError] as e:
             string += f" [pytermor] Template parsing failed with {e}"
-        return render(string, fmt, renderer, parse_template=False)
+        return render(string, fmt, renderer, parse_template=False, stderr=stderr)
 
     if isinstance(string, t.Sequence) and not isinstance(string, str):
-        logger.debug(f"Rendering as iterable ({len(string)}:d)")
-        return [render(s, fmt, renderer, parse_template) for s in string]
+        debug(f"Rendering as iterable ({len(string)}:d)")
+        return [render(s, fmt, renderer, parse_template, stderr) for s in string]
 
     if isinstance(string, Renderable):
         if fmt == NOOP_STYLE:
-            logger.debug(f"Invoking instance's render method ({string.__class__.__name__})")
-            return string.render(renderer)
+            debug(f"Invoking instance's render method ({sclass}, {fmt!r})")
+            return string.render(renderer, stderr)
 
-        logger.debug(f"Composing new Text due to nonempty fmt ({fmt!r})")
-        return Text(fmt=fmt).append(string).render(renderer)
+        debug(f"Composing new Text due to nonempty fmt ({fmt!r})")
+        return Text(fmt=fmt).append(string).render(renderer, stderr)
 
     if isinstance(string, str):
         if fmt == NOOP_STYLE:
-            logger.debug(f"Omitting the rendering ({type(s)}, {fmt!r})")
+            debug(f"Omitting the rendering ({sclass}, {fmt!r})")
             return string
 
-        logger.debug(f"Composing new String due to nonempty fmt ({fmt!r})")
-        return String(string, fmt).render(renderer)
+        debug(f"Composing new String due to nonempty fmt ({sclass}, {fmt!r})")
+        return String(string, fmt).render(renderer, stderr)
 
     raise ArgTypeError(type(string), "string", fn=render)
 
 
 def echo(
-    string: StrType | t.Iterable[StrType] = "",
+    string: ST | t.Iterable[ST] = "",
     fmt: Color | Style = NOOP_STYLE,
     renderer: AbstractRenderer = None,
     parse_template: bool = False,
@@ -591,6 +630,7 @@ def echo(
     indent_subseq: int = 0,
 ):
     """
+    .
 
     :param string:
     :param fmt:
