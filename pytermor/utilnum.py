@@ -12,9 +12,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import floor, log10, trunc, log, isclose
+from math import floor, log10, trunc, log, isclose, ceil
 from typing import List, Dict, Tuple
 
+from .common import LogicError
 from .utilstr import rjust_sgr
 
 _OVERFLOW_CHAR = "!"
@@ -36,6 +37,9 @@ def format_thousand_sep(value: int | float, separator: str = " ") -> str:
     return f"{value:_}".replace("_", separator)
 
 
+# -----------------------------------------------------------------------------
+
+
 def format_auto_float(
     value: float, req_len: int, allow_exponent_notation: bool = True
 ) -> str:
@@ -45,39 +49,39 @@ def format_auto_float(
     digits as possible, and keep the output length
     strictly equal to `req_len`  at the same time.
 
-    >>> format_auto_float(0.016789, 5)
-    '0.017'
-    >>> format_auto_float(0.167891, 5)
-    '0.168'
-    >>> format_auto_float(1.567891, 5)
-    '1.568'
-    >>> format_auto_float(12.56789, 5)
-    '12.57'
-    >>> format_auto_float(123.5678, 5)
-    '123.6'
-    >>> format_auto_float(1234.567, 5)
+    For values impossible to fit into a string of required length and rounding doesn't
+    help (e.g. 12 500 000 and 5 chars) algorithm switches to scientific notation
+    and the result looks like '1.2e7', unless this feature is explicitly disabled
+    with ``allow_exponent_notation`` = False. Then there are two options:
+
+        1) if absolute value is less than 1, zeros will be displayed ('0.0000');
+        2) in case of big numbers (like 10\ :sup:`9`) *ValueError* will be
+           raised instead.
+
+    >>> format_auto_float(0.012345678, 5)
+    '0.012'
+    >>> format_auto_float(0.123456789, 5)
+    '0.123'
+    >>> format_auto_float(1.234567891, 5)
+    '1.235'
+    >>> format_auto_float(12.34567891, 5)
+    '12.35'
+    >>> format_auto_float(123.4567891, 5)
+    '123.5'
+    >>> format_auto_float(1234.567891, 5)
     ' 1235'
-    >>> format_auto_float(12345.67, 5)
+    >>> format_auto_float(12345.67891, 5)
     '12346'
-
-    For cases when it's impossible to fit a number in the required length
-    and rounding doesn't help (e.g. 12 500 000 and 5 chars) algorithm
-    switches to scientific notation and the result looks like '1.2e7'.
-
-    When exponent form is disabled, there are two options for value that cannot
-    fit into required length:
-
-    1) if absolute value is less than 1, zeros will be displayed ('0.0000');
-    2) in case of big numbers (like 10\ :sup:`9`) ValueError will be raised instead.
 
     :param value:   Value to format
     :param req_len: Required output string length
     :param allow_exponent_notation:
-                    Enable/disable exponent form.
-    :return:        Formatted string of required length
-    :except ValueError:
-
-    .. versionadded:: 1.7
+                    Enable/disable the possibility to use an exponent form, when
+                    there is no other way of fitting the value into string of
+                    requested length.
+    :raises ValueError:
+                    If value is too big to fit into ``req_len`` digits and
+                    ``allow_exponent_notation`` is set to False.
     """
     if req_len < -1:
         raise ValueError(f"Required length should be >= 0 (got {req_len})")
@@ -185,62 +189,7 @@ def format_auto_float(
     return f"{sign}{abs_value:{req_len}{dot_str}f}"
 
 
-def format_si_metric(
-    value: float, unit: str = "m", join: bool = True
-) -> str | Tuple[str, str, str]:
-    """
-    Format ``value`` as meters with SI-prefixes, max result length is
-    7 chars: 4 for value plus 3 for default unit, prefix and
-    separator. Base is 1000. Unit can be customized.
-    Suitable for formatting any SI unit with values
-    from approximately 10^-27 to 10^27.
-
-    >>> format_si_metric(1010, 'm²')
-    '1.01 km²'
-    >>> format_si_metric(0.0319, 'g')
-    '31.9 mg'
-    >>> format_si_metric(1213531546, 'W')  # great scott
-    '1.21 GW'
-    >>> format_si_metric(1.26e-9, 'eV')
-    '1.26 neV'
-
-    :param value: Input value (unitless).
-    :param unit:  Value unit, printed right after the prefix.
-    :param join:  Return the result as a string if set to *True*,
-                  or as a (num, sep, unit) tuple otherwise.
-    :return:      Formatted string with SI-prefix if necessary.
-
-    .. versionadded:: 2.0
-    """
-    return _formatter_si_metric.format(value, unit, join)
-
-
-def format_si_binary(
-    value: float, unit: str = "b", join: bool = True
-) -> str | Tuple[str, str, str]:
-    """
-    Format ``value`` as binary size (bytes, kbytes, Mbytes), max
-    result length is 8 chars: 5 for value plus 3 for default unit,
-    prefix and separator. Base is 1024. Unit can be customized.
-
-    >>> format_si_binary(1010)  # 1010 b < 1 kb
-    '1010 b'
-    >>> format_si_binary(1080)
-    '1 kb'
-    >>> format_si_binary(45200)
-    '44 kb'
-    >>> format_si_binary(1.258 * pow(10, 6), 'bps')
-    '1 Mbps'
-
-    :param value: Input value in bytes.
-    :param unit:  Value unit, printed right after the prefix.
-    :param join:  Return the result as a string if set to *True*,
-                  or as a (num, sep, unit) tuple otherwise.
-    :return:      Formatted string with SI-prefix if necessary.
-
-    .. versionadded:: 2.0
-    """
-    return _formatter_si_binary.format(value, unit, join)
+# -----------------------------------------------------------------------------
 
 
 class PrefixedUnitFormatter:
@@ -255,46 +204,89 @@ class PrefixedUnitFormatter:
     methods :meth:`format_si_metric()` and :meth:`format_si_binary()`,
     which will invoke predefined formatters and doesn't require setting up.
 
-    :param max_value_len:
+    ``max_value_len`` must be at least **3**, because it's a
+    minimum requirement for formatting values from 0 to 999.
+    Next number to 999 is 1000, which will be formatted as "1k".
+
+    Setting ``allow_negative`` to *True* increases lower bound of ``max_value_len``
+    to **4** because the values now can be less than 0, and minus sign also occupies
+    one char of the output.
+
+    Setting ``mcoef`` to anything other than 1000.0 also increases the minimum
+    of ``max_value_len`` argument by 1, to **5**. The reason is that non-decimal
+    coefficients like 1024 require additional char to render as switching
+    to the next prefix happens later: 999 b, 1000 b, 1001 b ... 1023 b, 1 Kb.
+
+    :param max_value_len:  Target string length. As mentioned above, must be at
+                           least 3-5, depending on other options.
+    :param allow_negative:
     :param truncate_frac:
     :param unit:
     :param unit_separator:
     :param mcoef:
     :param prefixes:
-    :param prefix_zero_idx:
-            Index of prefix which will be used as default, i.e. without multiplying coefficients.
+    :param prefix_zero_idx: Index of prefix which will be used as default, i.e. without
+                            multiplying coefficients.
+    :param legacy_rounding:
+    :param always_max_len:
     :param parent:
+    """
 
-    .. versionadded:: 1.7
+    # fmt: off
+    PREFIXES_SI = [
+        'y', 'z', 'a', 'f', 'p', 'n', 'μ', 'm',
+        None,
+        'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y',
+    ]
+    """
+    Prefix presets used by default module formatters. Can be
+    useful if you are building your own formatter.
+    """
+    # fmt: on
+
+    PREFIX_ZERO_SI = 8
+    """
+    Index of prefix which will be used as default, i.e. without 
+    multiplying coefficients.
     """
 
     _attribute_defaults = {
-        '_truncate_frac': False,
-        '_unit': "",
-        '_unit_separator': "",
-        '_mcoef': 1000,
-        '_prefixes': [],
-        '_prefix_zero_idx': 0,
+        "_max_value_len": 5,
+        "_truncate_frac": False,
+        "_allow_negative": False,
+        "_unit": "",
+        "_unit_separator": "",
+        "_mcoef": 1000,
+        "_prefixes": PREFIXES_SI,
+        "_prefix_zero_idx": PREFIX_ZERO_SI,
+        "_legacy_rounding": False,
+        "_always_max_len": False,
     }
 
     def __init__(
         self,
-        max_value_len: int,
+        max_value_len: int = None,
         truncate_frac: bool = None,
+        allow_negative: bool = None,
         unit: str = None,
         unit_separator: str = None,
         mcoef: float = None,
         prefixes: List[str | None] = None,
         prefix_zero_idx: int = None,
+        legacy_rounding: bool = None,
+        always_max_len: bool = None,
         parent: PrefixedUnitFormatter = None,
     ):
         self._max_value_len: int = max_value_len
         self._truncate_frac: bool = truncate_frac
+        self._allow_negative: bool = allow_negative
         self._unit: str = unit
         self._unit_separator: str = unit_separator
         self._mcoef: float = mcoef
         self._prefixes: List[str | None] = prefixes
         self._prefix_zero_idx: int = prefix_zero_idx
+        self._legacy_rounding: bool = legacy_rounding
+        self._always_max_len: bool = always_max_len
 
         for attr_name, default in self._attribute_defaults.items():
             if getattr(self, attr_name) is None:
@@ -302,6 +294,12 @@ class PrefixedUnitFormatter:
                     setattr(self, attr_name, parent_attr)
                     continue
                 setattr(self, attr_name, default)
+
+        if self._max_value_len < self.get_max_len_lower_bound:
+            raise ValueError(
+                f"Impossible to display all decimal numbers as "
+                f"{self._max_value_len}-char length."
+            )
 
     @property
     def max_len(self) -> int:
@@ -315,6 +313,19 @@ class PrefixedUnitFormatter:
         result += max([len(p) for p in self._prefixes if p])
         return result
 
+    @property
+    def get_max_len_lower_bound(self) -> int:
+        result = 3
+        if self._allow_negative:
+            result += 1
+        if not self.is_decimal:
+            result += 1
+        return result
+
+    @property
+    def is_decimal(self) -> bool:
+        return self._mcoef == 1000.0
+
     def format(
         self, value: float, unit: str = None, join: bool = True
     ) -> str | Tuple[str, str, str]:
@@ -323,8 +334,18 @@ class PrefixedUnitFormatter:
         :param unit:   Unit override
         :param join:   Return the result as a string if set to *True*,
                        or as a (num, sep, unit) tuple otherwise.
-        :return:       Formatted value
         """
+        is_decimal = self._mcoef == 1000.0
+        min_value_len = (
+            3 + (1 if self._allow_negative else 0) + (1 if not is_decimal else 0)
+        )
+        if self._max_value_len < min_value_len:
+            raise ValueError(
+                f"Impossible to display all decimal numbers as {self._max_value_len}-char length."
+            )
+
+        if not self._allow_negative:
+            value = max(0.0, value)
         if self._truncate_frac:
             value = trunc(value)
         if unit is None:
@@ -335,11 +356,9 @@ class PrefixedUnitFormatter:
         if abs_value == 0.0:
             prefix_shift = 0
         else:
-            exponent = floor(log(abs_value, power_base))
-            if exponent > 0:
-                prefix_shift = floor(exponent / 3)
-            else:
-                prefix_shift = round(exponent / 3)
+            exponent = floor(round(log(abs_value, power_base), 3))
+            exp_shift = 0 if self._legacy_rounding else -1  # "0.18s" --> "180ms"
+            prefix_shift = round((exponent + exp_shift) / 3)
 
         value /= power_base ** (prefix_shift * 3)
         unit_idx = self._prefix_zero_idx + prefix_shift
@@ -355,71 +374,62 @@ class PrefixedUnitFormatter:
         if self._truncate_frac:
             num_str = f"{trunc(value)!s:.{self._max_value_len}s}"
         else:
-            num_str = format_auto_float(
-                value, self._max_value_len, allow_exponent_notation=False
-            )
+            # drop excessive digits first, or get weird results for values near float
+            # precision limit for 64-bit systems, e.g. for 10 - e-15 (=9.999999999999998)
+            eff_value = round(value, self._max_value_len - 2)
+            num_str = format_auto_float(eff_value, self._max_value_len, False)
 
         result = num_str.strip(), unit_separator, unit_full.strip()
+        pad_len = len(result) - self.max_len if self._always_max_len else 0
         if join:
-            return "".join(result)
-        return result
+            result_str = "".join(result)
+        else:
+            result_str = result
+        return result_str.rjust(len(result_str) + pad_len)
 
     def __repr__(self) -> str:
         return self.__class__.__qualname__
 
 
-# fmt: off
-PREFIXES_SI = [
-    'y', 'z', 'a', 'f', 'p', 'n', 'μ', 'm',
-    None,
-    'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y',
-]
-"""
-Prefix presets used by default module formatters. Can be
-useful if you are building your own formatter.
-"""
-# fmt: on
-
-PREFIX_ZERO_SI = 8
-"""
-Index of prefix which will be used as default, i.e. without 
-multiplying coefficients.
-"""
-
-_formatter_si_metric = PrefixedUnitFormatter(
-    max_value_len=4,
-    truncate_frac=False,
-    unit="",
-    unit_separator=" ",
-    mcoef=1000.0,
-    prefixes=PREFIXES_SI,
-    prefix_zero_idx=PREFIX_ZERO_SI,
+formatter_si_metric = PrefixedUnitFormatter(
+    max_value_len=4, allow_negative=True, unit_separator=" ", unit="m"
 )
 """
-Configuration example, used by `format_si_binary`.
+Format ``value`` as meters with SI-prefixes. Base is 1000. 
+Unit can be changed at `format()` invocation. Suitable for formatting 
+any SI unit with values from approximately 10^-27 to 10^27.
 
-``max_value_len`` must be at least 4, because it's a
-minimum requirement for formatting values from 999 to -999.
-Next number to 999 is 1000, which will be formatted as "1k".
+:usage:
 
-Total maximum length is ``max_value_len + 3``, which is 7
-(+3 is from separator, unit and prefix, assuming all of them
-have 1-char width). Without unit (default) it's 6.
+    .. code-block :: 
+        
+        # either of: 
+        formatter_si_metric.format(<value>, ...)
+        format_si_metric(<value>, ...)
+    
+:max len: 
+  
+    Total maximum length is ``max_value_len + 3``, which is **7**
+    (+3 is from separator, unit and prefix, assuming all of them
+    have 1-char width).
+
+:see: `format_si_metric()`
+
 """
 
-_formatter_si_binary = PrefixedUnitFormatter(
-    max_value_len=5,
+formatter_si_binary = PrefixedUnitFormatter(
+    max_value_len=4,
     truncate_frac=True,
+    allow_negative=False,
     unit="b",
     unit_separator=" ",
     mcoef=1024.0,
-    prefixes=PREFIXES_SI,
-    prefix_zero_idx=PREFIX_ZERO_SI,
 )
 """
-Configuration example, used by `format_si_metric`.
+Format ``value`` as binary size (bytes, kbytes, Mbytes) with base 
+= 1024. Unit can be customized.
 
-While being similar to `_formatter_si_metric`, this formatter 
+While being similar to `formatter_si_metric`, this formatter 
 differs in one aspect.  Given a variable with default value = 995,
 formatting it's value results in "995 b". After increasing it
 by 20 we'll have 1015, but it's still not enough to become
@@ -427,21 +437,79 @@ a kilobyte -- so returned value will be "1015 b". Only after one
 more increase (at 1024 and more) the value will be in a form
 of "1.00 kb".
 
-So, in this case ``max_value_len`` must be at least 5 (not 4),
-because it's a minimum requirement for formatting values from 1023
-to -1023.
+:usage:
 
-Total maximum length is ``max_value_len + 3`` = 8 (+3 is from separator,
-unit and prefix, assuming all of them have 1-char width).
+    .. code-block :: 
+        
+        # either of: 
+        formatter_si_binary.format(<value>, ...)
+        format_si_binary(<value>, ...)
+    
+:max len: 
+  
+    So, in this case ``max_value_len`` must be at least 5 (not 4),
+    because it's a minimum requirement for formatting values from 1023
+    to -1023.
+    
+    The negative values for this formatter are disabled by default and thus 
+    will be rounded as 0, which decreases the ``max_value_len`` minimum value 
+    by 1 (to 4).
+    
+    Total maximum length is ``max_value_len + 3`` = 7 (+3 is from separator,
+    unit and prefix, assuming all of them have 1-char width).
+
+:see: `format_si_binary()`
+
 """
 
-"""
-.. note ::
-    Module for time difference formatting (e.g. "4 days 15 hours", "8h 59m").
 
-    Supports several output lengths and can be customized even more.
+def format_si_metric(
+    value: float, unit: str = None, join: bool = True
+) -> str | Tuple[str, str, str]:
+    """
+    Wrapper for `formatter_si_metric.format()<formatter_si_metric>`.
 
-"""
+    >>> format_si_metric(1010, 'm²')
+    '1.01 km²'
+    >>> format_si_metric(0.0319, 'g')
+    '31.9 mg'
+    >>> format_si_metric(1213531546, 'W')  # great scott
+    '1.21 GW'
+    >>> format_si_metric(1.26e-9, 'eV')
+    '1.26 neV'
+
+    :param value: Input value (unitless).
+    :param unit:  Value unit, printed right after the prefix.
+    :param join:  Return the result as a string if set to *True*,
+                  or as a (num, sep, unit) tuple otherwise.
+    """
+    return formatter_si_metric.format(value, unit, join)
+
+
+def format_si_binary(
+    value: float, unit: str = None, join: bool = True
+) -> str | Tuple[str, str, str]:
+    """
+    Wrapper for `formatter_si_binary.format()<formatter_si_binary>`.
+
+    >>> format_si_binary(1010)  # 1010 b < 1 kb
+    '1010 b'
+    >>> format_si_binary(1080)
+    '1 kb'
+    >>> format_si_binary(45200)
+    '44 kb'
+    >>> format_si_binary(1.258 * pow(10, 6), 'bps')
+    '1 Mbps'
+
+    :param value: Input value in bytes.
+    :param unit:  Value unit, printed right after the prefix.
+    :param join:  Return the result as a string if set to *True*,
+                      or as a (num, sep, unit) tuple otherwise.
+    """
+    return formatter_si_binary.format(value, unit, join)
+
+
+# -----------------------------------------------------------------------------
 
 
 def format_time_delta(seconds: float, max_len: int = None) -> str:
@@ -468,7 +536,6 @@ def format_time_delta(seconds: float, max_len: int = None) -> str:
 
     :param seconds: Value to format
     :param max_len: Maximum output string length (total)
-    :return:        Formatted string
     """
     if max_len is None:
         formatter = registry.get_longest()
@@ -531,15 +598,15 @@ class TimeDeltaFormatter:
 
     def format(self, seconds: float, always_max_len: bool = False) -> str:
         """
-        Pretty-print difference between two moments in time.
+        Pretty-print difference between two moments in time. If input
+        value is too big for the current formatter to handle, return "OVERFLOW"
+        string (or a part of it, depending on ``max_len``).
 
         :param seconds: Input value.
         :param always_max_len:
-                         If result string is less than `max_len` it will be returned
-                         as is, unless this flag is set to *True*. In that case output
-                         string will be padded with spaces on the left side so that
-                         resulting length would be always equal to maximum length.
-        :return:  Formatted string.
+                        Set to *True* to pad the value with spaces on the left side
+                        and ensure it's length is equal to `max_len`, or to *False*
+                        to allow shorter result strings.
         """
         result = self.format_raw(seconds)
         if result is None:
@@ -552,12 +619,10 @@ class TimeDeltaFormatter:
 
     def format_raw(self, seconds: float) -> str | None:
         """
-        Pretty-print difference between two moments in time, do not replace
-        the output with "OVERFLOW" warning message.
+        Pretty-print difference between two moments in time. If input
+        value is too big for the current formatter to handle, return *None*.
 
         :param seconds: Input value.
-        :return:        Formatted string or *None* on overflow (if input
-                        value is too big for the current formatter to handle).
         """
         num = abs(seconds)
         unit_idx = 0
@@ -739,4 +804,3 @@ registry.register(
         plural_suffix="s",
     ),
 )
-

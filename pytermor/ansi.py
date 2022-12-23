@@ -40,7 +40,7 @@ sequences for any form of input SGRs and translate it to specified format.
 """
 from __future__ import annotations
 
-from abc import abstractmethod, ABC
+from abc import abstractmethod, ABCMeta, ABC
 from copy import copy
 import enum
 import typing as t
@@ -48,7 +48,7 @@ import typing as t
 from .common import ConflictError
 
 
-class Sequence(t.Sized, ABC):
+class Sequence(t.Sized, metaclass=ABCMeta):
     """
     Abstract ancestor of all escape sequences.
     """

@@ -16,7 +16,7 @@ import os
 import re
 import textwrap
 import typing as t
-from abc import ABC
+from abc import ABCMeta
 from dataclasses import dataclass, field
 from functools import reduce
 from math import ceil
@@ -216,10 +216,10 @@ RT = Union[OT, t.Callable[[t.Match[OT]], OT]]  # replacer type
 MT = t.Dict[int, IT]  # map
 AT = Union["OmniFilter", t.Type["OmniFilter"]]
 
-_dump_printers_cache: t.Dict[t.Type['GenericPrinter'], 'GenericPrinter'] = dict()
+_dump_printers_cache: t.Dict[t.Type['GenericDumper'], 'GenericDumper'] = dict()
 
 
-class GenericFilter(t.Generic[IT, OT], ABC):
+class GenericFilter(t.Generic[IT, OT], metaclass=ABCMeta):
     """
     Main idea is to provide a common interface for string filtering, that can make
     possible working with filters like with objects rather than with functions/lambdas.
@@ -294,7 +294,7 @@ class StringReplacer(GenericFilter[str, str]):
         return self._pattern.sub(self._repl, inp)
 
 
-class EscapeSequenceStringReplacer(StringReplacer):
+class EscSeqStringReplacer(StringReplacer):
     """ """
 
     def __init__(self, repl: RT[str] = ""):
@@ -349,7 +349,7 @@ class OmniMapper(GenericFilter[IT, IT]):
 
     :param override: a dictionary with mappings: keys must be *ints*, values must be
                      either a single-char *strs* or *bytes*, or None.
-    :see: `NonPrintablesOmniVisualizer`
+    :see: `NonPrintsOmniVisualizer`
     """
 
     def __init__(self, override: MT = None):
@@ -437,7 +437,7 @@ class StringMapper(OmniMapper[str]):
         return super().apply(inp, extra)
 
 
-class NonPrintablesOmniVisualizer(OmniMapper):
+class NonPrintsOmniVisualizer(OmniMapper):
     """
     Input type: *str*, *bytes*. Replace every whitespace character with ``.``.
     """
@@ -449,15 +449,15 @@ class NonPrintablesOmniVisualizer(OmniMapper):
         return b"."
 
 
-class NonPrintablesStringVisualizer(StringMapper):
+class NonPrintsStringVisualizer(StringMapper):
     """
     Input type: *str*. Replace every whitespace character with "·", except
     newlines. Newlines are kept and get prepneded with same char by default,
     but this behaviour can be disabled with ``keep_newlines`` = *False*.
 
-    >>> NonPrintablesStringVisualizer().apply('A  B  C')
+    >>> NonPrintsStringVisualizer().apply('A  B  C')
     'A␣␣B␣␣C'
-    >>> apply_filters('1. D'+os.linesep+'2. L ', NonPrintablesStringVisualizer(keep_newlines=False))
+    >>> apply_filters('1. D'+os.linesep+'2. L ', NonPrintsStringVisualizer(keep_newlines=False))
     '1.␣D↵2.␣L␣'
 
     :param keep_newlines: When *True*, transform newline characters into "↵\\\\n", or
@@ -543,7 +543,7 @@ class _PrinterState:
         self.rows.append(row)
 
 
-class GenericPrinter(GenericFilter[IT, str], ABC):
+class GenericDumper(GenericFilter[IT, str], metaclass=ABCMeta):
     def __init__(self, char_per_line: int):
         super().__init__()
         self._char_per_line = char_per_line
@@ -602,7 +602,7 @@ class GenericPrinter(GenericFilter[IT, str], ABC):
         raise NotImplementedError
 
 
-class BytesHexPrinter(GenericPrinter[bytes]):
+class BytesDumper(GenericDumper[bytes]):
     """
     str/bytes as byte hex codes, grouped by 4
 
@@ -647,14 +647,14 @@ class BytesHexPrinter(GenericPrinter[bytes]):
         return space_len + sep_len + offset_len + main_len
 
 
-class GenericStringPrinter(GenericPrinter[str], ABC):
-    OUTPUT_FILTERS = [NonPrintablesStringVisualizer(keep_newlines=False)]
+class GenericStringDumper(GenericDumper[str], metaclass=ABCMeta):
+    OUTPUT_FILTERS = [NonPrintsStringVisualizer(keep_newlines=False)]
 
     def _format_output_text(self, text: str) -> str:
         return apply_filters(text, *self.OUTPUT_FILTERS).ljust(self._char_per_line)
 
 
-class StringHexPrinter(GenericStringPrinter):
+class StringDumper(GenericStringDumper):
     """
     str as byte hex codes (UTF-8), grouped by characters
 
@@ -701,7 +701,7 @@ class StringHexPrinter(GenericStringPrinter):
         return space_len + sep_len + prefix_len + offset_len + main_len
 
 
-class StringUcpPrinter(GenericStringPrinter):
+class StringUcpDumper(GenericStringDumper):
     """
     str as Unicode codepoints
 
@@ -785,7 +785,7 @@ def dump(data: t.Any, label: str = None, max_len_shift: int = None) -> str | Non
         - special handling of one-line input
         - squash repeating lines
     """
-    printer_t = StringUcpPrinter
+    printer_t = StringUcpDumper
     printer = _dump_printers_cache.get(printer_t, None)
 
     if not printer and max_len_shift is not None:

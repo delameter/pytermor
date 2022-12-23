@@ -9,8 +9,8 @@
 
    .. autosummary::
    
-      PREFIXES_SI
-      PREFIX_ZERO_SI
+      formatter_si_metric
+      formatter_si_binary
    
    
 

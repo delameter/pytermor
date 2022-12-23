@@ -129,10 +129,10 @@ def confirm(
     :param required:  If set to *True*, raise `UserCancel` or `UserAbort` when
                       user rejects to confirm current action. If set to *False*,
                       do not raise any exceptions, just return *False*.
+    :raises:          UserAbort
+    :raises:          UserCancel
     :returns:         *True* if there was a confirmation by user's input or
                       automatically, *False* otherwise.
-    :raises: UserAbort
-    :raises: UserCancel
     """
 
     def check_required(v: bool, exc: t.Type = UserCancel):

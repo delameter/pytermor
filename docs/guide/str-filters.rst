@@ -8,23 +8,23 @@ String (and bytes) filters
 Class hierarchy
 =====================
 
-.. inheritance-diagram::   pytermor.utilstr.BytesHexPrinter
+.. inheritance-diagram::   pytermor.utilstr.BytesDumper
                            pytermor.utilstr.CsiStringReplacer
                            pytermor.utilstr.GenericFilter
-                           pytermor.utilstr.GenericPrinter
-                           pytermor.utilstr.GenericStringPrinter
-                           pytermor.utilstr.EscapeSequenceStringReplacer
-                           pytermor.utilstr.NonPrintablesOmniVisualizer
-                           pytermor.utilstr.NonPrintablesStringVisualizer
+                           pytermor.utilstr.GenericDumper
+                           pytermor.utilstr.GenericStringDumper
+                           pytermor.utilstr.EscSeqStringReplacer
+                           pytermor.utilstr.NonPrintsOmniVisualizer
+                           pytermor.utilstr.NonPrintsStringVisualizer
                            pytermor.utilstr.NoopFilter
                            pytermor.utilstr.OmniDecoder
                            pytermor.utilstr.OmniEncoder
                            pytermor.utilstr.OmniMapper
                            pytermor.utilstr.OmniSanitizer
                            pytermor.utilstr.SgrStringReplacer
-                           pytermor.utilstr.StringHexPrinter
+                           pytermor.utilstr.StringDumper
                            pytermor.utilstr.StringMapper
                            pytermor.utilstr.StringReplacer
-                           pytermor.utilstr.StringUcpPrinter
+                           pytermor.utilstr.StringUcpDumper
    :parts: 1
    :top-classes:           pytermor.utilstr.GenericFilter

@@ -5,7 +5,7 @@ v2.23-dev
 - As well as color transform functions.
 - Add missing `hsv_to_rgb` function.
 - `GenericPrniter` and `OmniMapper`.
-- `StringHexPrinter` and `StringUcpPrinter`.
+- `StringDumper` and `StringUcpDumper`.
 - `SgrRenderer` support for custom I/O streams.
 - `FrozenText` class.
 

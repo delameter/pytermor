@@ -127,10 +127,10 @@ Class hierarchy
 
 .. inheritance-diagram::  pytermor.ansi.SequenceOSC
                           pytermor.ansi.SequenceST
+                          pytermor.ansi.Sequence
                           pytermor.ansi.UnderlinedCurlySequenceSGR
    :parts: 2
-   :top-classes:          pytermor.ansi.Sequence,
-                          pytermor.ansi.SequenceFe
+   :top-classes:          pytermor.ansi.Sequence
 
 
 Core API

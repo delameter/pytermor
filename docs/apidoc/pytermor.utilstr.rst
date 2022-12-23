@@ -31,14 +31,14 @@
 
    .. autosummary::
    
-      BytesHexPrinter
+      BytesDumper
       CsiStringReplacer
-      EscapeSequenceStringReplacer
+      EscSeqStringReplacer
+      GenericDumper
       GenericFilter
-      GenericPrinter
-      GenericStringPrinter
-      NonPrintablesOmniVisualizer
-      NonPrintablesStringVisualizer
+      GenericStringDumper
+      NonPrintsOmniVisualizer
+      NonPrintsStringVisualizer
       NoopFilter
       OmniDecoder
       OmniEncoder
@@ -46,10 +46,10 @@
       OmniSanitizer
       PrinterExtra
       SgrStringReplacer
-      StringHexPrinter
+      StringDumper
       StringMapper
       StringReplacer
-      StringUcpPrinter
+      StringUcpDumper
    
    
 
