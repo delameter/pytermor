@@ -12,6 +12,7 @@ Guide
    presets
    xterm-color-palette
    named-colors
+   renderers
    str-filters
    num-formatters
    guidelines

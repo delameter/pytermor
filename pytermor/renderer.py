@@ -42,7 +42,7 @@ import enum
 import os
 import sys
 import typing as t
-from abc import ABC, abstractmethod
+from abc import abstractmethod, ABCMeta
 from functools import reduce
 from hashlib import md5
 
@@ -54,18 +54,23 @@ from .utilmisc import get_qname
 from .utilstr import SgrStringReplacer
 
 
-T = t.TypeVar("T", bound="AbstractRenderer")
+T = t.TypeVar("T", bound="IRenderer")
+
+
+def _digest(fingerprint: str) -> int:
+    return int.from_bytes(md5(fingerprint.encode()).digest(), "big")
 
 
 class RendererManager:
     """
-    Class for global renderer setup.
-    """
+        Class for global renderer setup.
+        """
 
-    _default: AbstractRenderer = None
+    _default: IRenderer = None
 
     @classmethod
-    def set_default(cls, renderer: AbstractRenderer | t.Type[AbstractRenderer] = None):
+    def set_default(cls, renderer: IRenderer|t.Type[IRenderer] = None):
+        # noinspection PyUnresolvedReferences
         """
         Select a global renderer.
 
@@ -89,7 +94,7 @@ class RendererManager:
         cls._default = renderer or SgrRenderer()
 
     @classmethod
-    def get_default(cls) -> AbstractRenderer:
+    def get_default(cls) -> IRenderer:
         """
         Get global renderer instance (`SgrRenderer`, or the one provided earlier with
         `set_default()`).
@@ -116,7 +121,7 @@ class RendererManager:
         cls.set_default(SgrRenderer(OutputMode.NO_ANSI))
 
 
-class AbstractRenderer(ABC):
+class IRenderer(metaclass=ABCMeta):
     """Renderer interface."""
 
     def __hash__(self) -> int:
@@ -131,9 +136,9 @@ class AbstractRenderer(ABC):
         disabled as irrelevant (e.g., for `NoOpRenderer`). More convenient way
         is to check `is_caching_allowed` property.
         """
-        raise NotImplementedError
 
     @property
+    @abstractmethod
     def is_caching_allowed(self) -> bool:
         """
         Class-level property.
@@ -141,7 +146,6 @@ class AbstractRenderer(ABC):
         :return: *True* if caching of renderer's results makes any sense and *False*
                  otherwise.
         """
-        return False
 
     @property
     @abstractmethod
@@ -165,25 +169,16 @@ class AbstractRenderer(ABC):
                  renderer settings.
         """
 
+    @abstractmethod
     def clone(self: T, *args: t.Any, **kwargs: t.Any) -> T:
         """
         Make a copy of the renderer with the same setup.
 
         :rtype: self
         """
-        return self.__class__(*args, **kwargs)
 
     def __repr__(self):
         return self.__class__.__qualname__ + "[]"
-
-    def _digest(self, fingerprint: str) -> int:
-        return int.from_bytes(md5(fingerprint.encode()).digest(), "big")
-
-    def _ensure_not_renderable(self, string: t.Any):
-        if not isinstance(string, type("Renderable")):
-            raise TypeError(
-                "Renderers are not supposed to work with Renderables directly."
-            )
 
 
 class OutputMode(enum.Enum):
@@ -218,7 +213,7 @@ class OutputMode(enum.Enum):
     """
 
 
-class SgrRenderer(AbstractRenderer):
+class SgrRenderer(IRenderer):
     """
     Default renderer invoked by `Text.render()`. Transforms `Color` instances
     defined in ``style`` into ANSI control sequence bytes and merges them with
@@ -283,7 +278,7 @@ class SgrRenderer(AbstractRenderer):
         # although this renderer is immutable, its state can be set up differently
         # on initialization. ``_color_upper_bound`` is a derived variable from
         # ``_output_mode`` with one-to-one mapping, thus it can be omitted.
-        return self._digest(self.__class__.__qualname__ + "." + self._output_mode.value)
+        return _digest(self.__class__.__qualname__ + "." + self._output_mode.value)
 
     @property
     def is_caching_allowed(self) -> bool:
@@ -371,7 +366,7 @@ class SgrRenderer(AbstractRenderer):
         return color.to_sgr(bg, self._color_upper_bound)
 
 
-class TmuxRenderer(AbstractRenderer):
+class TmuxRenderer(IRenderer):
     """
     Translates `Styles <Style>` attributes into
     `tmux-compatible <https://man7.org/linux/man-pages/man1/tmux.1.html#STYLES>`_
@@ -398,7 +393,7 @@ class TmuxRenderer(AbstractRenderer):
     }
 
     def __hash__(self) -> int:  # stateless
-        return self._digest(self.__class__.__qualname__)
+        return _digest(self.__class__.__qualname__)
 
     @property
     def is_caching_allowed(self) -> bool:
@@ -420,6 +415,9 @@ class TmuxRenderer(AbstractRenderer):
         for line in string.splitlines(keepends=True):
             rendered_text += command_open + line + command_close
         return rendered_text
+
+    def clone(self) -> TmuxRenderer:
+        return TmuxRenderer()
 
     def _render_attributes(self, style: Style) -> t.Tuple[str, ...]:
         cmd_open: t.List[t.Tuple[str, str]] = []
@@ -451,7 +449,7 @@ class TmuxRenderer(AbstractRenderer):
         return "#[" + (" ".join(f"{k}{v}" for k, v in kv)) + "]"
 
 
-class NoOpRenderer(AbstractRenderer):
+class NoOpRenderer(IRenderer):
     """
     Special renderer type that does nothing with the input string and just
     returns it as is. Often used as a default argument value (along with similar
@@ -483,8 +481,11 @@ class NoOpRenderer(AbstractRenderer):
         """
         return string
 
+    def clone(self) -> NoOpRenderer:
+        return NoOpRenderer()
 
-class HtmlRenderer(AbstractRenderer):
+
+class HtmlRenderer(IRenderer):
     """
     Translate `Styles <Style>` attributes into a rudimentary HTML markup.
     All the formatting is inlined into ``style`` attribute of the ``<span>``
@@ -507,7 +508,7 @@ class HtmlRenderer(AbstractRenderer):
     ]
 
     def __hash__(self) -> int:  # stateless
-        return self._digest(self.__class__.__qualname__)
+        return _digest(self.__class__.__qualname__)
 
     @property
     def is_caching_allowed(self) -> bool:
@@ -525,6 +526,9 @@ class HtmlRenderer(AbstractRenderer):
         style = Style.make(fmt)
         opening_tag, closing_tag = self._render_attributes(style)
         return f"{opening_tag}{string}{closing_tag}"  # @TODO  # attribues
+
+    def clone(self) -> HtmlRenderer:
+        return HtmlRenderer()
 
     def _render_attributes(self, style: Style = NOOP_STYLE) -> t.Tuple[str, str]:
         if style == NOOP_STYLE:
@@ -600,7 +604,7 @@ class SgrRendererDebugger(SgrRenderer):
         # but with `NO_ANSI` output mode produce the outputs indistinguishable from each other, but
         # their hashes differ. although, this can be disregarded, as it is not worth the efforts to
         # implement an advanced logic and correct state computation when it comes to a debug renderer.
-        return self._digest(
+        return _digest(
             ".".join(
                 [
                     self.__class__.__qualname__,

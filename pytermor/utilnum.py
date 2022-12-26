@@ -228,7 +228,7 @@ class PrefixedUnitFormatter:
     :param prefix_zero_idx: Index of prefix which will be used as default, i.e. without
                             multiplying coefficients.
     :param legacy_rounding:
-    :param always_max_len:
+    :param pad:
     :param parent:
     """
 
@@ -260,7 +260,7 @@ class PrefixedUnitFormatter:
         "_prefixes": PREFIXES_SI,
         "_prefix_zero_idx": PREFIX_ZERO_SI,
         "_legacy_rounding": False,
-        "_always_max_len": False,
+        "_pad": False,
     }
 
     def __init__(
@@ -274,7 +274,7 @@ class PrefixedUnitFormatter:
         prefixes: List[str | None] = None,
         prefix_zero_idx: int = None,
         legacy_rounding: bool = None,
-        always_max_len: bool = None,
+        pad: bool = None,
         parent: PrefixedUnitFormatter = None,
     ):
         self._max_value_len: int = max_value_len
@@ -286,7 +286,7 @@ class PrefixedUnitFormatter:
         self._prefixes: List[str | None] = prefixes
         self._prefix_zero_idx: int = prefix_zero_idx
         self._legacy_rounding: bool = legacy_rounding
-        self._always_max_len: bool = always_max_len
+        self._pad: bool = pad
 
         for attr_name, default in self._attribute_defaults.items():
             if getattr(self, attr_name) is None:
@@ -379,13 +379,21 @@ class PrefixedUnitFormatter:
             eff_value = round(value, self._max_value_len - 2)
             num_str = format_auto_float(eff_value, self._max_value_len, False)
 
-        result = num_str.strip(), unit_separator, unit_full.strip()
-        pad_len = len(result) - self.max_len if self._always_max_len else 0
+        result_num, result_sep, result_unit = (
+            num_str.strip(),
+            unit_separator,
+            unit_full.strip(),
+        )
+        result_joined = "".join((result_num, result_sep, result_unit))
+        pad = ""
+
+        if self._pad:
+            pad_len = max(0, self.max_len - len(result_joined))
+            pad = "".ljust(pad_len)
+
         if join:
-            result_str = "".join(result)
-        else:
-            result_str = result
-        return result_str.rjust(len(result_str) + pad_len)
+            return pad + result_joined
+        return pad + result_num, result_sep, result_unit
 
     def __repr__(self) -> str:
         return self.__class__.__qualname__
@@ -538,9 +546,9 @@ def format_time_delta(seconds: float, max_len: int = None) -> str:
     :param max_len: Maximum output string length (total)
     """
     if max_len is None:
-        formatter = registry.get_longest()
+        formatter = tdf_registry.get_longest()
     else:
-        formatter = registry.find_matching(max_len)
+        formatter = tdf_registry.find_matching(max_len)
 
     if formatter is None:
         raise ValueError(f"No settings defined for max length = {max_len} (or less)")
@@ -565,6 +573,7 @@ class TimeDeltaFormatter:
 
     :param units:
     :param allow_negative:
+    :param allow_subsecond:
     :param unit_separator:
     :param plural_suffix:
     :param overflow_msg:
@@ -573,18 +582,27 @@ class TimeDeltaFormatter:
     def __init__(
         self,
         units: List[TimeUnit],
-        allow_negative: bool,
+        allow_negative: bool = False,
+        allow_subsecond: bool = True,
         unit_separator: str = None,
         plural_suffix: str = None,
         overflow_msg: str = "OVERFLOW",
     ):
         self._units = units
         self._allow_negative = allow_negative
+        self._allow_subsecond = allow_subsecond
         self._unit_separator = unit_separator
         self._plural_suffix = plural_suffix
         self._overflow_msg = overflow_msg
 
         self._max_len = self._compute_max_len()
+        self._subsecond_formatter = PrefixedUnitFormatter(
+            max_value_len=4,
+            allow_negative=True,
+            unit="s",
+            unit_separator="",
+            pad=False,
+        )
 
     @property
     def max_len(self) -> int:
@@ -596,23 +614,22 @@ class TimeDeltaFormatter:
         """
         return self._max_len
 
-    def format(self, seconds: float, always_max_len: bool = False) -> str:
+    def format(self, seconds: float, pad: bool = False) -> str:
         """
         Pretty-print difference between two moments in time. If input
         value is too big for the current formatter to handle, return "OVERFLOW"
         string (or a part of it, depending on ``max_len``).
 
         :param seconds: Input value.
-        :param always_max_len:
-                        Set to *True* to pad the value with spaces on the left side
-                        and ensure it's length is equal to `max_len`, or to *False*
-                        to allow shorter result strings.
+        :param pad:  Set to *True* to pad the value with spaces on the left side
+                     and ensure it's length is equal to `max_len`, or to *False*
+                     to allow shorter result strings.
         """
         result = self.format_raw(seconds)
         if result is None:
             result = self._overflow_msg[: self.max_len]
 
-        if always_max_len:
+        if pad:
             result = rjust_sgr(result, self._max_len)
 
         return result
@@ -631,6 +648,11 @@ class TimeDeltaFormatter:
         negative = self._allow_negative and seconds < 0
         sign = "-" if negative else ""
         result = None
+
+        if self._allow_subsecond and num < 1:
+            if len(result := self._subsecond_formatter.format(seconds)) > self._max_len:
+                # e.g. 500ms doesn't fit in shortest possible delta string, which is 3
+                result = None
 
         while result is None and unit_idx < len(self._units):
             unit = self._units[unit_idx]
@@ -712,7 +734,7 @@ class TimeUnit:
 
 class _TimeDeltaFormatterRegistry:
     """
-    Simple registry for storing formatters and selecting
+    Simple tdf_registry for storing formatters and selecting
     the suitable one by max output length.
     """
 
@@ -747,10 +769,10 @@ class _TimeDeltaFormatterRegistry:
         return self._formatters.get(max(self._formatters.keys() or [None]))
 
 
-registry = _TimeDeltaFormatterRegistry()
+tdf_registry = _TimeDeltaFormatterRegistry()
 
 
-registry.register(
+tdf_registry.register(
     TimeDeltaFormatter(
         [
             TimeUnit("s", 60),
@@ -759,6 +781,7 @@ registry.register(
             TimeUnit("d", overflow_afer=99),
         ],
         allow_negative=False,
+        allow_subsecond=True,
         unit_separator=None,
         plural_suffix=None,
         overflow_msg="ERR",
@@ -773,6 +796,7 @@ registry.register(
             TimeUnit("y", overflow_afer=99),
         ],
         allow_negative=False,
+        allow_subsecond=True,
         unit_separator=" ",
         plural_suffix=None,
         overflow_msg="ERRO",
@@ -787,6 +811,7 @@ registry.register(
             TimeUnit("yr", overflow_afer=99),
         ],
         allow_negative=False,
+        allow_subsecond=True,
         unit_separator=" ",
         plural_suffix=None,
     ),
@@ -800,6 +825,7 @@ registry.register(
             TimeUnit("year", overflow_afer=999),
         ],
         allow_negative=True,
+        allow_subsecond=True,
         unit_separator=" ",
         plural_suffix="s",
     ),

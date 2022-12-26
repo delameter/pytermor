@@ -15,3 +15,8 @@ Class hierarchy
                           pytermor.renderer.HtmlRenderer
    :parts: 2
    :top-classes:          pytermor.renderer.AbstractRenderer
+
+
+.. todo ::
+
+   Win32Renderer ?

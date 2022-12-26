@@ -14,16 +14,16 @@ import codecs
 import math
 import os
 import re
+import string
 import textwrap
 import typing as t
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from functools import reduce
 from math import ceil
 from typing import Union
 
-from . import ArgTypeError
-from .common import ST
+from .common import ST, ArgTypeError, Align
 from .utilmisc import chunk, get_terminal_width
 
 _PRIVATE_REPLACER = "\U000E5750"
@@ -216,22 +216,21 @@ RT = Union[OT, t.Callable[[t.Match[OT]], OT]]  # replacer type
 MT = t.Dict[int, IT]  # map
 AT = Union["OmniFilter", t.Type["OmniFilter"]]
 
-_dump_printers_cache: t.Dict[t.Type['GenericDumper'], 'GenericDumper'] = dict()
+_dump_printers_cache: t.Dict[t.Type['ADumper'], 'ADumper'] = dict()
 
 
-class GenericFilter(t.Generic[IT, OT], metaclass=ABCMeta):
+
+class AFilter(t.Generic[IT, OT], metaclass=ABCMeta):
     """
     Main idea is to provide a common interface for string filtering, that can make
     possible working with filters like with objects rather than with functions/lambdas.
     """
 
-    def __init__(self):
-        pass
-
     def __call__(self, s: IT) -> OT:
         """Can be used instead of `apply()`"""
         return self.apply(s)
 
+    @abstractmethod
     def apply(self, inp: IT, extra: t.Any = None) -> OT:
         """
         Apply the filter to input *str* or *bytes*.
@@ -249,38 +248,312 @@ class GenericFilter(t.Generic[IT, OT], metaclass=ABCMeta):
         return inp.encode() if isinstance(inp, str) else inp.decode()
 
 
-class NoopFilter(GenericFilter[IT, OT]):
+class NoopFilter(AFilter[IT, OT]):
     """ """
 
     def apply(self, inp: IT, extra: t.Any = None) -> OT:
         return inp
 
 
-class OmniDecoder(GenericFilter[IT, str]):
+class OmniDecoder(AFilter[IT, str]):
     """ """
 
     def apply(self, inp: IT, extra: t.Any = None) -> str:
         return inp.decode() if isinstance(inp, bytes) else inp
 
 
-class OmniEncoder(GenericFilter[IT, bytes]):
+class OmniEncoder(AFilter[IT, bytes]):
     """ """
 
     def apply(self, inp: IT, extra: t.Any = None) -> bytes:
         return inp.encode() if isinstance(inp, str) else inp
 
 
+class StringAligner(AFilter[str, str]):
+    _ALIGN_FNS = {
+        Align.LEFT:     ljust_sgr,
+        Align.CENTER:   center_sgr,
+        Align.RIGHT:    rjust_sgr,
+    }
+    _ALIGN_FNS_RAW = {
+        Align.LEFT:     str.ljust,
+        Align.CENTER:   str.center,
+        Align.RIGHT:    str.rjust,
+    }
+
+    def __init__(self, align: Align):
+        self._align = align
+
+    def apply(self, inp: str, raw_mode: bool = False) -> str:
+        pass
+
+    def _get_align_fn(self, raw_mode: bool = False):
+        if raw_mode:
+            return self._ALIGN_FNS_RAW.get(self._align)
+        return self._ALIGN_FNS.get(self._align)
+
+
+# -----------------------------------------------------------------------------
+# Filters[Dumpers]
+
+
+class ADumper(AFilter[IT, str], metaclass=ABCMeta):
+    def __init__(self, char_per_line: int):
+        self._char_per_line = char_per_line
+        self._state: _DumperState = _DumperState()
+
+    def apply(self, inp: IT, extra: DumperExtra = None) -> str:
+        if len(inp) == 0:
+            return "\n"
+
+        self._state.reset(inp)
+        self._state.inp_size_len = len(str(self._state.inp_size))
+        self._state.offset_len = len(self._format_offset(self._state.inp_size))
+
+        while len(inp) > 0:
+            inp, part = inp[self._char_per_line :], inp[: self._char_per_line]
+            self._process(part)
+            self._state.lineno += 1
+            self._state.offset += self._char_per_line
+
+        header = self._format_line_separator("_", f"{extra.label}" if extra else "")
+        footer = self._format_line_separator("-", label_right="(" + self._format_offset(self._state.inp_size) + ")")
+
+        result = header + "\n"
+        result += "\n".join(self._render_rows())
+        result += "\n" + footer + "\n"
+        return result
+
+    def _format_offset(self, override: int = None) -> str:
+        offset = override or self._state.offset
+        return str(offset).rjust(self._state.inp_size_len)
+
+    def _format_line_separator(self, fill: str, label_left: str = '', label_right: str = '') -> str:
+        return label_left + fill * (self._get_output_line_len() - len(label_left) - len(label_right)) + label_right
+
+    def _render_rows(self) -> t.Iterable[str]:
+        for row in self._state.rows:
+            row_str = ""
+            for col_idx, col_val in enumerate(row):
+                row_str += col_val.rjust(self._state.cols_max_len[col_idx])
+            yield row_str
+
+    def _get_vert_sep_char(self):
+        return "|"
+
+    def _get_output_line_len(self) -> int:
+        # useless before processing
+        if self._state.cols_max_len is None:
+            return 0
+        return sum(l for l in self._state.cols_max_len)
+
+    @abstractmethod
+    def _process(self, part: IT) -> str:
+        raise NotImplementedError
+
+    @classmethod
+    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
+        raise NotImplementedError
+
+
+class BytesDumper(ADumper[bytes]):
+    """
+    str/bytes as byte hex codes, grouped by 4
+
+    .. code-block:: hexdump
+       :caption: Example output
+
+        0000  0A 20 32 31 36 20 20 20  E2 94 82 20 20 75 70 6C  |a
+        0010  20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20  |a
+    """
+
+    GROUP_SIZE = 4
+
+    def __init__(self, char_per_line: int = 32):
+        super().__init__(self.GROUP_SIZE * ceil(char_per_line / self.GROUP_SIZE))
+
+    def _process(self, part: IT):
+        self._state.add_row(self._make_row(part))
+
+    def _make_row(self, part: IT) -> t.List[str]:
+        return [
+            " ",
+            self._format_offset(),
+            " " + self._get_vert_sep_char() + "  ",
+            *self._format_main(part),
+        ]
+
+    def _format_offset(self, override: int = None) -> str:
+        offset = override or self._state.offset
+        size_len = 2 * ceil(self._state.inp_size_len / 2)
+        return f"{offset:0{size_len}X}"
+
+    def _format_main(self, part: bytes) -> t.Iterable[str]:
+        for c in chunk(part, self.GROUP_SIZE):
+            yield (" ".join([f"{b:02X}" for b in (*c,)])).ljust(3 * self.GROUP_SIZE + 1)
+
+    @classmethod
+    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
+        space_len = 4
+        sep_len = 1
+        offset_len = len(str(inp_size))
+        main_len = (3 * char_per_line * cls.GROUP_SIZE) + (char_per_line // cls.GROUP_SIZE)
+        return space_len + sep_len + offset_len + main_len
+
+
+class AStringDumper(ADumper[str], metaclass=ABCMeta):
+    def __init__(self, char_per_line: int):
+        self._output_filters: t.List[AFilter] = []
+        super().__init__(char_per_line)
+
+    def _format_output_text(self, text: str) -> str:
+        return apply_filters(text, *self._output_filters).ljust(self._char_per_line)
+
+
+class StringDumper(AStringDumper):
+    """
+    str as byte hex codes (UTF-8), grouped by characters
+
+    .. code-block:: hexdump
+       :caption: Example output
+
+       0056  45 4D 20 43 50 55     20     4F 56 48 20 4E   45 3E 0A 20  |E|
+       0072  20 20 20 20 20 20 E29482     20 20 20 20 20   20 20 20 20  |␣|
+       0088  20 20 20 20 37 20     2B     30 20 20 20 20 CE94 20 32 68  |␣|
+       0104  20 33 33 6D 20 20     20 EFAA8F 20 2D 35 20 C2B0 43 20 20  |␣|
+    """
+
+    def __init__(self, char_per_line: int = 16):
+        super().__init__(char_per_line)
+        self._output_filters = [NonPrintsStringVisualizer(keep_newlines=False)]
+
+    def _process(self, part: IT):
+        self._state.add_row(self._make_row(part))
+
+    def _make_row(self, part: str) -> t.List[str]:
+        return [
+            " ",
+            self._format_offset(),
+            " " + self._get_vert_sep_char(),
+            "0x",
+            " ",
+            *self._format_main(part),
+            self._get_vert_sep_char(),
+            self._format_output_text(part),
+        ]
+
+    def _format_main(self, part: str) -> t.Iterable[str]:
+        for s in part:
+            yield "".join(f"{b:02X}" for b in s.encode())
+            yield " "
+        yield from [""] * 2 * (self._char_per_line - len(part))
+
+    @classmethod
+    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
+        space_len = 3
+        sep_len = 6
+        prefix_len = 2
+        offset_len = len(str(inp_size))
+        main_len = (8 + 1) * char_per_line
+        return space_len + sep_len + prefix_len + offset_len + main_len
+
+
+class StringUcpDumper(AStringDumper):
+    """
+    str as Unicode codepoints
+
+    .. todo::
+        venv/lib/python3.8/site-packages/pygments/lexers/hexdump.py
+
+    .. code-block:: bash
+       :caption: Example output
+
+        56 |U+ 45 4d 20 43 50 55   20   4f 56 48 20 4e  45 3e 0a 20 | EM␣CPU␣OVH␣NE>↵␣
+        72 |U+ 20 20 20 20 20 20 2502   20 20 20 20 20  20 20 20 20 | ␣␣␣␣␣␣│␣␣␣␣␣␣␣␣␣
+        88 |U+ 20 20 20 20 37 20   2b   30 20 20 20 20 394 20 32 68 | ␣␣␣␣7␣+0␣␣␣␣Δ␣2h
+       104 |U+ 20 33 33 6d 20 20   20 fa8f 20 2d 35 20  b0 43 20 20 | ␣33m␣␣␣摒␣-5␣°C␣␣
+    """
+
+    def __init__(self, char_per_line: int = 16):
+        super().__init__(char_per_line)
+        self._output_filters = [NonPrintsStringVisualizer(keep_newlines=False)]
+
+    def _process(self, part: IT):
+        self._state.add_row(self._make_row(part))
+
+    def _make_row(self, part: str) -> t.List[str]:
+        return [
+            " ",
+            self._format_offset(),
+            " " + self._get_vert_sep_char(),
+            "U+",
+            " ",
+            *self._format_main(part),
+            self._get_vert_sep_char(),
+            self._format_output_text(part),
+        ]
+
+    def _format_main(self, part: str) -> t.Iterable[str]:
+        for s in part:
+            yield from [f"{ord(s):>02x}", " "]
+        yield from [""] * 2 * (self._char_per_line - len(part))
+
+    @classmethod
+    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
+        space_len = 3
+        sep_len = 2
+        prefix_len = 2
+        offset_len = len(str(inp_size))
+        main_len = (5 + 1) * char_per_line
+        return space_len + sep_len + prefix_len + offset_len + main_len
+
+
+@dataclass
+class DumperExtra:
+    label: str
+
+
+@dataclass
+class _DumperState:
+    inp_size: int = field(init=False, default=None)
+    lineno: int = field(init=False, default=None)
+    offset: int = field(init=False, default=None)
+
+    inp_size_len: int = field(init=False, default=None)
+    offset_len: int = field(init=False, default=None)
+
+    rows: t.List[t.List[str]] = field(init=False, default=None)
+    cols_max_len: t.List[int] | None = field(init=False, default=None)
+
+    def reset(self, inp: IT):
+        self.inp_size = len(inp)
+        self.lineno = 0
+        self.offset = 0
+
+        self.inp_size_len = 0
+        self.offset_len = 0
+
+        self.rows = []
+        self.cols_max_len = None
+
+    def add_row(self, row: t.List):
+        if self.cols_max_len is None:
+            self.cols_max_len = [0] * len(row)
+        for col_idx, col_val in enumerate(row):
+            self.cols_max_len[col_idx] = max(self.cols_max_len[col_idx], len(col_val))
+        self.rows.append(row)
+
+
 # -----------------------------------------------------------------------------
 # Filters[Replacers]
 
 
-class StringReplacer(GenericFilter[str, str]):
+class StringReplacer(AFilter[str, str]):
     """
     .
     """
 
     def __init__(self, pattern: PT[str], repl: RT[str]):
-        super().__init__()
         if isinstance(pattern, str):
             self._pattern: t.Pattern[str] = re.compile(pattern)
         else:
@@ -332,7 +605,7 @@ class CsiStringReplacer(StringReplacer):
 # Filters[Mappers]
 
 
-class OmniMapper(GenericFilter[IT, IT]):
+class OmniMapper(AFilter[IT, IT]):
     """
     Input type: *str*, *bytes*. Abstract mapper. Replaces every character found in
     map keys to corresponding map value. Map should be a dictionary of this type:
@@ -353,7 +626,6 @@ class OmniMapper(GenericFilter[IT, IT]):
     """
 
     def __init__(self, override: MT = None):
-        super().__init__()
         self._make_maps(override)
 
     def _get_default_keys(self) -> t.List[int]:
@@ -504,253 +776,6 @@ class OmniSanitizer(OmniMapper):
 
 
 # -----------------------------------------------------------------------------
-# Filters[Printers]
-
-
-@dataclass
-class PrinterExtra:
-    label: str
-
-
-@dataclass
-class _PrinterState:
-    inp_size: int = field(init=False, default=None)
-    lineno: int = field(init=False, default=None)
-    offset: int = field(init=False, default=None)
-
-    inp_size_len: int = field(init=False, default=None)
-    offset_len: int = field(init=False, default=None)
-
-    rows: t.List[t.List[str]] = field(init=False, default=None)
-    cols_max_len: t.List[int] | None = field(init=False, default=None)
-
-    def reset(self, inp: IT):
-        self.inp_size = len(inp)
-        self.lineno = 0
-        self.offset = 0
-
-        self.inp_size_len = 0
-        self.offset_len = 0
-
-        self.rows = []
-        self.cols_max_len = None
-
-    def add_row(self, row: t.List):
-        if self.cols_max_len is None:
-            self.cols_max_len = [0] * len(row)
-        for col_idx, col_val in enumerate(row):
-            self.cols_max_len[col_idx] = max(self.cols_max_len[col_idx], len(col_val))
-        self.rows.append(row)
-
-
-class GenericDumper(GenericFilter[IT, str], metaclass=ABCMeta):
-    def __init__(self, char_per_line: int):
-        super().__init__()
-        self._char_per_line = char_per_line
-        self._state: _PrinterState = _PrinterState()
-
-    def apply(self, inp: IT, extra: PrinterExtra = None) -> str:
-        if len(inp) == 0:
-            return "\n"
-
-        self._state.reset(inp)
-        self._state.inp_size_len = len(str(self._state.inp_size))
-        self._state.offset_len = len(self._format_offset(self._state.inp_size))
-
-        while len(inp) > 0:
-            inp, part = inp[self._char_per_line :], inp[: self._char_per_line]
-            self._process(part)
-            self._state.lineno += 1
-            self._state.offset += self._char_per_line
-
-        header = self._format_line_separator("_", f"{extra.label}" if extra else "")
-        footer = self._format_line_separator("-", label_right="(" + self._format_offset(self._state.inp_size) + ")")
-
-        result = header + "\n"
-        result += "\n".join(self._render_rows())
-        result += "\n" + footer + "\n"
-        return result
-
-    def _format_offset(self, override: int = None) -> str:
-        offset = override or self._state.offset
-        return str(offset).rjust(self._state.inp_size_len)
-
-    def _format_line_separator(self, fill: str, label_left: str = '', label_right: str = '') -> str:
-        return label_left + fill * (self._get_output_line_len() - len(label_left) - len(label_right)) + label_right
-
-    def _render_rows(self) -> t.Iterable[str]:
-        for row in self._state.rows:
-            row_str = ""
-            for col_idx, col_val in enumerate(row):
-                row_str += col_val.rjust(self._state.cols_max_len[col_idx])
-            yield row_str
-
-    def _get_vert_sep_char(self):
-        return "|"
-
-    def _get_output_line_len(self) -> int:
-        # useless before processing
-        if self._state.cols_max_len is None:
-            return 0
-        return sum(l for l in self._state.cols_max_len)
-
-    def _process(self, part: IT) -> str:
-        raise NotImplementedError
-
-    @classmethod
-    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
-        raise NotImplementedError
-
-
-class BytesDumper(GenericDumper[bytes]):
-    """
-    str/bytes as byte hex codes, grouped by 4
-
-    .. code-block:: hexdump
-       :caption: Example output
-
-        0000  0A 20 32 31 36 20 20 20  E2 94 82 20 20 75 70 6C  |a
-        0010  20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20  |a
-    """
-
-    GROUP_SIZE = 4
-
-    def __init__(self, char_per_line: int = 32):
-        super().__init__(self.GROUP_SIZE * ceil(char_per_line / self.GROUP_SIZE))
-
-    def _process(self, part: IT):
-        self._state.add_row(self._make_row(part))
-
-    def _make_row(self, part: IT) -> t.List[str]:
-        return [
-            " ",
-            self._format_offset(),
-            " " + self._get_vert_sep_char() + "  ",
-            *self._format_main(part),
-        ]
-
-    def _format_offset(self, override: int = None) -> str:
-        offset = override or self._state.offset
-        size_len = 2 * ceil(self._state.inp_size_len / 2)
-        return f"{offset:0{size_len}X}"
-
-    def _format_main(self, part: bytes) -> t.Iterable[str]:
-        for c in chunk(part, self.GROUP_SIZE):
-            yield (" ".join([f"{b:02X}" for b in (*c,)])).ljust(3 * self.GROUP_SIZE + 1)
-
-    @classmethod
-    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
-        space_len = 4
-        sep_len = 1
-        offset_len = len(str(inp_size))
-        main_len = (3 * char_per_line * cls.GROUP_SIZE) + (char_per_line // cls.GROUP_SIZE)
-        return space_len + sep_len + offset_len + main_len
-
-
-class GenericStringDumper(GenericDumper[str], metaclass=ABCMeta):
-    OUTPUT_FILTERS = [NonPrintsStringVisualizer(keep_newlines=False)]
-
-    def _format_output_text(self, text: str) -> str:
-        return apply_filters(text, *self.OUTPUT_FILTERS).ljust(self._char_per_line)
-
-
-class StringDumper(GenericStringDumper):
-    """
-    str as byte hex codes (UTF-8), grouped by characters
-
-    .. code-block:: hexdump
-       :caption: Example output
-
-       0056  45 4D 20 43 50 55     20     4F 56 48 20 4E   45 3E 0A 20  |E|
-       0072  20 20 20 20 20 20 E29482     20 20 20 20 20   20 20 20 20  |␣|
-       0088  20 20 20 20 37 20     2B     30 20 20 20 20 CE94 20 32 68  |␣|
-       0104  20 33 33 6D 20 20     20 EFAA8F 20 2D 35 20 C2B0 43 20 20  |␣|
-    """
-
-    def __init__(self, char_per_line: int = 16):
-        super().__init__(char_per_line)
-
-    def _process(self, part: IT):
-        self._state.add_row(self._make_row(part))
-
-    def _make_row(self, part: str) -> t.List[str]:
-        return [
-            " ",
-            self._format_offset(),
-            " " + self._get_vert_sep_char(),
-            "0x",
-            " ",
-            *self._format_main(part),
-            self._get_vert_sep_char(),
-            self._format_output_text(part),
-        ]
-
-    def _format_main(self, part: str) -> t.Iterable[str]:
-        for s in part:
-            yield "".join(f"{b:02X}" for b in s.encode())
-            yield " "
-        yield from [""] * 2 * (self._char_per_line - len(part))
-
-    @classmethod
-    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
-        space_len = 3
-        sep_len = 6
-        prefix_len = 2
-        offset_len = len(str(inp_size))
-        main_len = (8 + 1) * char_per_line
-        return space_len + sep_len + prefix_len + offset_len + main_len
-
-
-class StringUcpDumper(GenericStringDumper):
-    """
-    str as Unicode codepoints
-
-    .. todo::
-        venv/lib/python3.8/site-packages/pygments/lexers/hexdump.py
-
-    .. code-block:: bash
-       :caption: Example output
-
-        56 |U+ 45 4d 20 43 50 55   20   4f 56 48 20 4e  45 3e 0a 20 | EM␣CPU␣OVH␣NE>↵␣
-        72 |U+ 20 20 20 20 20 20 2502   20 20 20 20 20  20 20 20 20 | ␣␣␣␣␣␣│␣␣␣␣␣␣␣␣␣
-        88 |U+ 20 20 20 20 37 20   2b   30 20 20 20 20 394 20 32 68 | ␣␣␣␣7␣+0␣␣␣␣Δ␣2h
-       104 |U+ 20 33 33 6d 20 20   20 fa8f 20 2d 35 20  b0 43 20 20 | ␣33m␣␣␣摒␣-5␣°C␣␣
-    """
-
-    def __init__(self, char_per_line: int = 16):
-        super().__init__(char_per_line)
-
-    def _process(self, part: IT):
-        self._state.add_row(self._make_row(part))
-
-    def _make_row(self, part: str) -> t.List[str]:
-        return [
-            " ",
-            self._format_offset(),
-            " " + self._get_vert_sep_char(),
-            "U+",
-            " ",
-            *self._format_main(part),
-            self._get_vert_sep_char(),
-            self._format_output_text(part),
-        ]
-
-    def _format_main(self, part: str) -> t.Iterable[str]:
-        for s in part:
-            yield from [f"{ord(s):>02x}", " "]
-        yield from [""] * 2 * (self._char_per_line - len(part))
-
-    @classmethod
-    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
-        space_len = 3
-        sep_len = 2
-        prefix_len = 2
-        offset_len = len(str(inp_size))
-        main_len = (5 + 1) * char_per_line
-        return space_len + sep_len + prefix_len + offset_len + main_len
-
-
-# -----------------------------------------------------------------------------
 
 
 def apply_filters(string: IT, *args: AT) -> OT:
@@ -801,4 +826,4 @@ def dump(data: t.Any, label: str = None, max_len_shift: int = None) -> str | Non
         printer = printer_t()
     _dump_printers_cache[printer_t] = printer
 
-    return printer.apply(data, PrinterExtra(label))
+    return printer.apply(data, DumperExtra(label))

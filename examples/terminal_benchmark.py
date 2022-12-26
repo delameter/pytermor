@@ -65,7 +65,7 @@ class PrefixedNumericsHighlighter:
     # fmt: on
 
     @classmethod
-    def format(cls, string: str, renderer: pt.AbstractRenderer) -> str:
+    def format(cls, string: str, renderer: pt.IRenderer) -> str:
         def replace(m: re.Match) -> str:
             return renderer.render(cls._colorize_match(m))
 

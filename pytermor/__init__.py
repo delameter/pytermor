@@ -37,7 +37,7 @@ from .cval import CVAL as cv
 from .style import NOOP_STYLE as NOOP_STYLE
 from .style import Style as Style
 from .style import Styles as Styles
-from .renderer import AbstractRenderer as AbstractRenderer
+from .renderer import IRenderer as AbstractRenderer
 from .renderer import HtmlRenderer as HtmlRenderer
 from .renderer import OutputMode as OutputMode
 from .renderer import RendererManager as RendererManager
@@ -71,9 +71,6 @@ from .utilstr import NON_ASCII_CHARS as NON_ASCII_CHARS
 from .utilstr import BytesDumper as BytesHexPrinter
 from .utilstr import CsiStringReplacer as CsiStringReplacer
 from .utilstr import EscSeqStringReplacer as EscSeqStringReplacer
-from .utilstr import GenericFilter as GenericFilter
-from .utilstr import GenericDumper as GenericPrinter
-from .utilstr import GenericStringDumper as GenericStringPrinter
 from .utilstr import NonPrintsOmniVisualizer as NonPrintsOmniVisualizer
 from .utilstr import NonPrintsStringVisualizer as NonPrintsStringVisualizer
 from .utilstr import NoopFilter as NoopFilter
@@ -81,7 +78,7 @@ from .utilstr import OmniDecoder as OmniDecoder
 from .utilstr import OmniEncoder as OmniEncoder
 from .utilstr import OmniMapper as OmniMapper
 from .utilstr import OmniSanitizer as OmniSanitizer
-from .utilstr import PrinterExtra as PrinterExtra
+from .utilstr import DumperExtra as PrinterExtra
 from .utilstr import SgrStringReplacer as SgrStringReplacer
 from .utilstr import StringDumper as StringHexPrinter
 from .utilstr import StringMapper as StringMapper

@@ -17,8 +17,8 @@
 
    .. autosummary::
    
-      AbstractRenderer
       HtmlRenderer
+      IRenderer
       NoOpRenderer
       OutputMode
       RendererManager

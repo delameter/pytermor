@@ -304,7 +304,7 @@ dl.method > dt.sig:target {
 .sig-prename { /** pytermor.renderer. **/
     color: var(--color-api-keyword);
 }
-.sig-name { /** AbstractRenderer **/
+.sig-name { /** IRenderer **/
     font-weight: bold;
     color: var(--color-api-keyword);
 }

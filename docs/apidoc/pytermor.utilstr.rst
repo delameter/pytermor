@@ -31,12 +31,13 @@
 
    .. autosummary::
    
+      ADumper
+      AFilter
+      AStringDumper
       BytesDumper
       CsiStringReplacer
+      DumperExtra
       EscSeqStringReplacer
-      GenericDumper
-      GenericFilter
-      GenericStringDumper
       NonPrintsOmniVisualizer
       NonPrintsStringVisualizer
       NoopFilter
@@ -44,8 +45,8 @@
       OmniEncoder
       OmniMapper
       OmniSanitizer
-      PrinterExtra
       SgrStringReplacer
+      StringAligner
       StringDumper
       StringMapper
       StringReplacer

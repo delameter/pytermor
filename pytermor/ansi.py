@@ -40,7 +40,7 @@ sequences for any form of input SGRs and translate it to specified format.
 """
 from __future__ import annotations
 
-from abc import abstractmethod, ABCMeta, ABC
+from abc import abstractmethod, ABCMeta
 from copy import copy
 import enum
 import typing as t
@@ -109,7 +109,7 @@ class Sequence(t.Sized, metaclass=ABCMeta):
         return f"<{self._short_class_name()}[{params}]>"
 
 
-class SequenceFe(Sequence, ABC):
+class SequenceFe(Sequence, metaclass=ABCMeta):
     """
     Wide range of sequence types that includes `CSI <SequenceCSI>`,
     `OSC <SequenceOSC>` and more.

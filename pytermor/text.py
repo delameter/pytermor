@@ -21,7 +21,7 @@ from typing import Union
 
 from .color import Color, NOOP_COLOR
 from .common import LogicError, ArgTypeError, ST, Align, logger
-from .renderer import AbstractRenderer, RendererManager
+from .renderer import IRenderer, RendererManager
 from .style import Style, NOOP_STYLE
 from .utilmisc import get_preferable_wrap_width
 from .utilnum import format_si_metric
@@ -75,10 +75,10 @@ class Renderable(t.Sized, ABC):
 
     def __init__(self):
         self._is_frozen: bool = False
-        self._renders_cache: t.Dict[AbstractRenderer, str] = dict()
+        self._renders_cache: t.Dict[IRenderer, str] = dict()
 
     def render(
-        self, renderer: AbstractRenderer | t.Type[AbstractRenderer] = None, stderr: bool = False
+        self, renderer: IRenderer|t.Type[IRenderer] = None, stderr: bool = False
     ) -> str:
         if isinstance(renderer, type):
             renderer = renderer()
@@ -90,7 +90,7 @@ class Renderable(t.Sized, ABC):
             logger.log(level=5, msg=dump(rendered, 'Dump'))
         return rendered
 
-    def _render(self, renderer: AbstractRenderer) -> str:
+    def _render(self, renderer: IRenderer) -> str:
         use_cache = renderer.is_caching_allowed and self._is_frozen
         if use_cache and (cached := self._renders_cache.get(renderer, None)):
             return cached
@@ -109,7 +109,7 @@ class Renderable(t.Sized, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _render_using(self, renderer: AbstractRenderer) -> str:
+    def _render_using(self, renderer: IRenderer) -> str:
         raise NotImplementedError
 
     @property
@@ -149,7 +149,7 @@ class String(Renderable):
     def fragments(self) -> t.Sequence[_Fragment]:
         return [self._fragment]
 
-    def _render_using(self, renderer: AbstractRenderer) -> str:
+    def _render_using(self, renderer: IRenderer) -> str:
         return renderer.render(self.raw, self._fragment.style)
 
 
@@ -269,7 +269,7 @@ class FrozenText(Renderable):
             return string.fragments
         raise ArgTypeError(type(string), "string", fn=self._make_fragments)
 
-    def _render_using(self, renderer: AbstractRenderer) -> str:
+    def _render_using(self, renderer: IRenderer) -> str:
         result = ""
         attrs_stack: t.Dict[str, t.List[bool | Color | None]] = {
             attr: [None] for attr in Style.renderable_attributes
@@ -567,7 +567,7 @@ _template_engine = TemplateEngine()
 def render(
     string: ST | t.Iterable[ST] = "",
     fmt: Color | Style = NOOP_STYLE,
-    renderer: AbstractRenderer = None,
+    renderer: IRenderer = None,
     parse_template: bool = False,
     stderr: bool = False,
 ) -> str | t.List[str]:
@@ -620,7 +620,7 @@ def render(
 def echo(
     string: ST | t.Iterable[ST] = "",
     fmt: Color | Style = NOOP_STYLE,
-    renderer: AbstractRenderer = None,
+    renderer: IRenderer = None,
     parse_template: bool = False,
     nl: bool = True,
     file: t.IO = sys.stdout,
