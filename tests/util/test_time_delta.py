@@ -36,12 +36,12 @@ TIMEDELTA_TEST_SET = [
     ["-13h 30min", timedelta(days=-1, hours=10, minutes=30)],
     ["-45 mins", timedelta(hours=-1, minutes=15)],
     ["-5 mins", timedelta(minutes=-5)],
-    ["-2 secs", timedelta(seconds=-2.01)],
-    ["-2 secs", timedelta(seconds=-2)],
-    ["-1 sec", timedelta(seconds=-2, microseconds=1)],
-    ["-1 sec", timedelta(seconds=-1.9)],
-    ["-1 sec", timedelta(seconds=-1.1)],
-    ["-1 sec", timedelta(seconds=-1.0)],
+    ["-2.0s", timedelta(seconds=-2.01)],
+    ["-2.0s", timedelta(seconds=-2)],
+    ["-2.0s", timedelta(seconds=-2, microseconds=1)],
+    ["-1.9s", timedelta(seconds=-1.9)],
+    ["-1.1s", timedelta(seconds=-1.1)],
+    ["-1.0s", timedelta(seconds=-1.0)],
     ["-500ms", timedelta(seconds=-0.5)],
     ["- 50ms", timedelta(milliseconds=-50)],
     ["-100μs", timedelta(microseconds=-100)],
@@ -51,15 +51,15 @@ TIMEDELTA_TEST_SET = [
     ["25.0ms", timedelta(milliseconds=25)],
     ["100ms", timedelta(seconds=0.1)],
     ["900ms", timedelta(seconds=0.9)],
-    ["1 sec", timedelta(seconds=1)],
-    ["1 sec", timedelta(seconds=1.0)],
-    ["1 sec", timedelta(seconds=1.1)],
-    ["1 sec", timedelta(seconds=1.9)],
-    ["1 sec", timedelta(seconds=2, microseconds=-1)],
-    ["2 secs", timedelta(seconds=2)],
-    ["2 secs", timedelta(seconds=2.0)],
-    ["2 secs", timedelta(seconds=2.5)],
-    ["10 secs", timedelta(seconds=10)],
+    ["1.00s", timedelta(seconds=1)],
+    ["1.00s", timedelta(seconds=1.0)],
+    ["1.10s", timedelta(seconds=1.1)],
+    ["1.90s", timedelta(seconds=1.9)],
+    ["2.00s", timedelta(seconds=2, microseconds=-1)],
+    ["2.00s", timedelta(seconds=2)],
+    ["2.00s", timedelta(seconds=2.0)],
+    ["2.50s", timedelta(seconds=2.5)],
+    ["10.0s", timedelta(seconds=10)],
     ["1 min", timedelta(minutes=1)],
     ["5 mins", timedelta(minutes=5)],
     ["15 mins", timedelta(minutes=15)],
@@ -94,7 +94,7 @@ TIMEDELTA_TEST_SET = [
 @pytest.mark.parametrize("expected,delta", TIMEDELTA_TEST_SET, ids=deltastr)
 def test_output_has_expected_format_for_max_len(expected: str, delta: timedelta):
     longest = tdf_registry.get_longest().max_len
-    assert expected == format_time_delta(delta.total_seconds(), longest)
+    assert format_time_delta(delta.total_seconds(), longest) == expected
 
 
 @pytest.mark.parametrize("_,delta", TIMEDELTA_TEST_SET, ids=deltastr)

@@ -39,10 +39,10 @@
    .. autosummary::
    
       ApxResult
+      Color
       Color16
       Color256
       ColorRGB
-      IColor
    
    
 

@@ -27,9 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "TODO" "1" "Dec 23, 2022" "2.25.3-dev1" "pytermor"
+.TH "TODO" "1" "Dec 27, 2022" "2.28.0-dev1" "pytermor"
 .SH NAME
-Todo \- pytermor 2.25.3-dev1
+Todo \- pytermor 2.28.0-dev1
 .sp
 \fI(yet another)\fP Python library designed for formatting terminal output using ANSI escape codes. Implements automatic \fI\%\(dqsoft\(dq\fP format termination. Provides a registry of low\-level SGR \fI\%sequences\fP and formatting \fBspans\fP (or combined sequences). Also includes a set of formatters for pretty output.
 .sp
@@ -284,17 +284,20 @@ String and number formatters
 @TODOTODO
 .UNINDENT
 .UNINDENT
-.SS High\-level abstractions
+.SS High\-level API
 .SS ColorIndex and Styles
 .SS Output format control
 .SS Color mode fallbacks
 .SS Class hierarchy
 .INDENT 0.0
 .INDENT 2.5
-High\-level components inheritance.UNINDENT
+\fI\%color\fP core API.UNINDENT
 .UNINDENT
-.SS Core API
-.SS Low\-level abstractions
+.INDENT 0.0
+.INDENT 2.5
+\fI\%text\fP core API.UNINDENT
+.UNINDENT
+.SS Low\-level API
 .sp
 So, what\(aqs happening under the hood?
 .SS Format soft reset
@@ -457,6 +460,10 @@ print(f\(aq{combined}combined{SeqIndex.RESET}\(aq, str(combined).assemble())
 .UNINDENT
 .UNINDENT
 .SS Class hierarchy
+.INDENT 0.0
+.INDENT 2.5
+\fI\%ansi\fP core API.UNINDENT
+.UNINDENT
 .SS Core API
 .SS Preset list
 .sp
@@ -5817,8 +5824,25 @@ Sources
 @TODO
 .UNINDENT
 .UNINDENT
+.SS Renderers
+.SS Class hierarchy
+.INDENT 0.0
+.INDENT 2.5
+\fI\%renderer\fP core API.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.SS Todo
+.sp
+Win32Renderer ?
+.UNINDENT
+.UNINDENT
 .SS String (and bytes) filters
 .SS Class hierarchy
+.INDENT 0.0
+.INDENT 2.5
+\fI\%utilstr\fP helper API.UNINDENT
+.UNINDENT
 .SS Number formatters
 .INDENT 0.0
 .INDENT 3.5
@@ -5843,12 +5867,12 @@ seconds_list = [2, 10, 60, 2700, 32340, 273600, 4752000, 864000000]
 max_len_list = [3, 6, 10]
 
 for max_len in max_len_list:
-    formatter = pytermor.utilnum.registry.find_matching(max_len)
+    formatter = pytermor.utilnum.tdf_registry.find_matching(max_len)
 
 RendererManager.set_default(SgrRenderer)
 for seconds in seconds_list:
     for max_len in max_len_list:
-        formatter = pytermor.utilnum.registry.get_by_max_len(max_len)
+        formatter = pytermor.utilnum.tdf_registry.get_by_max_len(max_len)
         print(formatter.format(seconds, True), end=\(aq \(aq)
     print()
 
@@ -5938,6 +5962,7 @@ _
 T{
 \fI\%utilmisc\fP
 T}	T{
+A
 T}
 _
 T{
@@ -6029,6 +6054,12 @@ T}	T{
 T}
 _
 T{
+\fI\%decompose_request_cursor_position\fP(string)
+T}	T{
+Parse RCP sequence that generally comes from a terminal as a response to \fI\%QCP\fP sequence and contains a cursor\(aqs current row and column.
+T}
+_
+T{
 \fI\%enclose\fP(opening_seq, string)
 T}	T{
 .INDENT 0.0
@@ -6074,6 +6105,12 @@ T}	T{
 T}
 _
 T{
+\fI\%make_query_cursor_position\fP()
+T}	T{
+Create QCP sequence that requests an output device to respond with a structure containing current cursor coordinates (\fI\%RCP\fP).
+T}
+_
+T{
 \fI\%make_set_cursor_x_abs\fP([x])
 T}	T{
 Create CHA sequence that sets cursor horizontal position, or column, to \fBx\fP\&.
@@ -6085,6 +6122,18 @@ Classes
 .TS
 center;
 |l|l|.
+_
+T{
+\fI\%ISequence\fP(*params)
+T}	T{
+Abstract ancestor of all escape sequences.
+T}
+_
+T{
+\fI\%ISequenceFe\fP(*params)
+T}	T{
+Wide range of sequence types that includes \fI\%CSI\fP, \fI\%OSC\fP and more.
+T}
 _
 T{
 \fI\%IntCode\fP(value)
@@ -6099,21 +6148,9 @@ Registry of static sequence presets.
 T}
 _
 T{
-\fI\%Sequence\fP(*params)
-T}	T{
-Abstract ancestor of all escape sequences.
-T}
-_
-T{
 \fI\%SequenceCSI\fP(terminator, short_name, *params)
 T}	T{
 Class representing CSI\-type ANSI escape sequence.
-T}
-_
-T{
-\fI\%SequenceFe\fP(*params)
-T}	T{
-Wide range of sequence types that includes \fI\%CSI\fP, \fI\%OSC\fP and more.
 T}
 _
 T{
@@ -6134,16 +6171,10 @@ T}	T{
 String Terminator sequence (ST).
 T}
 _
-T{
-\fI\%UnderlinedCurlySequenceSGR\fP()
-T}	T{
-Registered as a separate class, because this is the one and only SGR in the package, which is identified by \(dq4:3\(dq string (in contrast with all the other sequences entirely made of digits and semicolon separators).
-T}
-_
 .TE
 .INDENT 0.0
 .TP
-.B class  pytermor.ansi.Sequence(*params)
+.B class  pytermor.ansi.ISequence(*params)
 Bases: \fBSized\fP
 .sp
 Abstract ancestor of all escape sequences.
@@ -6166,8 +6197,8 @@ Return internal params as array.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.ansi.SequenceFe(*params)
-Bases: \fI\%Sequence\fP
+.B class  pytermor.ansi.ISequenceFe(*params)
+Bases: \fI\%ISequence\fP
 .sp
 Wide range of sequence types that includes \fI\%CSI\fP,
 \fI\%OSC\fP and more.
@@ -6195,7 +6226,7 @@ Return internal params as array.
 .INDENT 0.0
 .TP
 .B class  pytermor.ansi.SequenceST(*params)
-Bases: \fI\%SequenceFe\fP
+Bases: \fI\%ISequenceFe\fP
 .sp
 String Terminator sequence (ST). Terminates strings in other control
 sequences. Encoded as \fBESC \e\fP (\fB0x1B\fP \fB0x5C\fP).
@@ -6219,7 +6250,7 @@ Return internal params as array.
 .INDENT 0.0
 .TP
 .B class  pytermor.ansi.SequenceOSC(*params)
-Bases: \fI\%SequenceFe\fP
+Bases: \fI\%ISequenceFe\fP
 .sp
 OSC\-type sequence. Starts a control
 string for the operating system to use. Encoded as \fBESC ]\fP, plus params
@@ -6244,7 +6275,7 @@ Return internal params as array.
 .INDENT 0.0
 .TP
 .B class  pytermor.ansi.SequenceCSI(terminator, short_name, *params)
-Bases: \fI\%SequenceFe\fP
+Bases: \fI\%ISequenceFe\fP
 .sp
 Class representing CSI\-type ANSI
 escape sequence. All subtypes of this sequence start with \fBESC [\fP\&.
@@ -6370,26 +6401,6 @@ str
 .TP
 .B Returns
 Sequence params as integers or \fI\%IntCode\fP instances.
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B class  pytermor.ansi.UnderlinedCurlySequenceSGR
-Bases: \fI\%SequenceSGR\fP
-.sp
-Registered as a separate class, because this is the one and only SGR in the
-package, which is identified by “4:3” string (in contrast with all the other
-sequences entirely made of digits and semicolon separators).
-.INDENT 7.0
-.TP
-.B assemble()
-Build up actual byte sequence and return
-as an ASCII\-encoded string.
-.INDENT 7.0
-.TP
-.B Return type
-str
 .UNINDENT
 .UNINDENT
 .UNINDENT
@@ -6817,6 +6828,63 @@ If set to 2, clear the entire line.
 .UNINDENT
 .INDENT 0.0
 .TP
+.B pytermor.ansi.make_query_cursor_position()
+Create QCP sequence that requests an output
+device to respond with a structure containing current cursor coordinates
+(\fI\%RCP\fP).
+.sp
+\fBWARNING:\fP
+.INDENT 7.0
+.INDENT 3.5
+Sending this sequence to the terminal may \fBblock\fP infinitely. Consider
+using a thread or set a timeout for the main thread using a signal.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Example
+\fBESC [6n\fP
+.TP
+.B Return type
+\fI\%SequenceCSI\fP
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.ansi.decompose_request_cursor_position(string)
+Parse RCP sequence that generally comes from
+a terminal as a response to \fI\%QCP\fP sequence and
+contains a cursor’s current row and column.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+As the library in general provides sequence assembling methods, but not
+the disassembling ones, there is no dedicated class for RCP sequences yet.
+.UNINDENT
+.UNINDENT
+.sp
+.nf
+.ft C
+>>> decompose_request_cursor_position(\(aq[18;2R\(aq)
+(18, 2)
+.ft P
+.fi
+.INDENT 7.0
+.TP
+.B Parameters
+\fBstring\fP (\fIstr\fP) – Terminal response with a sequence.
+.TP
+.B Returns
+Current row and column if the expected sequence exists
+in \fBstring\fP, \fINone\fP otherwise.
+.TP
+.B Return type
+t.Tuple[int, int] | None
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
 .B pytermor.ansi.make_color_256(code, bg=False)
 Wrapper for creation of \fI\%SequenceSGR\fP that sets foreground
 (or background) to one of 256\-color palette value.
@@ -7006,12 +7074,6 @@ Approximation result.
 T}
 _
 T{
-\fBColor\fP(*args, **kwargs)
-T}	T{
-Abstract superclass for other \fBColors\fP\&.
-T}
-_
-T{
 \fI\%Color16\fP(*args, **kwargs)
 T}	T{
 This variant of a \fBColor\fP operates within the most basic color set \-\- \fBXterm\-16\fP\&.
@@ -7027,6 +7089,12 @@ T{
 \fI\%ColorRGB\fP(*args, **kwargs)
 T}	T{
 This variant of a \fBColor\fP operates within \fBPytermor Named Colors\fP, unique collection of colors compiled from several known sources after careful selection (see \fI\%Named Colors collection\fP).
+T}
+_
+T{
+\fBIColor\fP(*args, **kwargs)
+T}	T{
+Abstract superclass for other \fBColors\fP\&.
 T}
 _
 .TE
@@ -7085,7 +7153,7 @@ distance_{real} = \esqrt{distance}
 .INDENT 0.0
 .TP
 .B class  pytermor.color.Color16(*args, **kwargs)
-Bases: \fBColor\fP
+Bases: \fBIColor\fP
 .sp
 This variant of a \fBColor\fP operates within the most basic color set
 – \fBXterm\-16\fP\&. Represents basic color\-setting SGRs with primary codes
@@ -7151,7 +7219,7 @@ Make an \fI\%SGR sequence\fP out of \fBColor\fP\&. Used by \fI\%SgrRenderer\fP\&
 \fBbg\fP (\fIbool\fP) – Set to \fITrue\fP if required SGR should change the background color, or
 \fIFalse\fP for the foreground (=text) color.
 .IP \(bu 2
-\fBupper_bound\fP (\fIOptional\fP\fI[\fP\fIType\fP\fI[\fP\fIColor\fP\fI]\fP\fI]\fP) – Required result \fBColor\fP type upper boundary, i.e., the
+\fBupper_bound\fP (\fIOptional\fP\fI[\fP\fIType\fP\fI[\fP\fIIColor\fP\fI]\fP\fI]\fP) – Required result \fBColor\fP type upper boundary, i.e., the
 maximum acceptable color class, which will be the basis for
 SGR being made. See \fI\%Color256.to_sgr()\fP for the details.
 .UNINDENT
@@ -7281,7 +7349,7 @@ to_rgb() for the details
 .INDENT 0.0
 .TP
 .B class  pytermor.color.Color256(*args, **kwargs)
-Bases: \fBColor\fP
+Bases: \fBIColor\fP
 .sp
 This variant of a \fBColor\fP operates within relatively modern \fBXterm\-256\fP
 indexed color table. Represents SGR complex codes \fB38;5;*\fP and \fB48;5;*\fP
@@ -7333,7 +7401,7 @@ behaviour by overriding the renderers’ output mode. See \fI\%SgrRenderer\fP an
 \fBbg\fP (\fIbool\fP) – Set to \fITrue\fP if required SGR should change the background color, or
 \fIFalse\fP for the foreground (=text) color.
 .IP \(bu 2
-\fBupper_bound\fP (\fIOptional\fP\fI[\fP\fIType\fP\fI[\fP\fIColor\fP\fI]\fP\fI]\fP) – Required result \fBColor\fP type upper boundary, i.e., the
+\fBupper_bound\fP (\fIOptional\fP\fI[\fP\fIType\fP\fI[\fP\fIIColor\fP\fI]\fP\fI]\fP) – Required result \fBColor\fP type upper boundary, i.e., the
 maximum acceptable color class, which will be the basis for
 SGR being made.
 .UNINDENT
@@ -7484,7 +7552,7 @@ to_rgb() for the details
 .INDENT 0.0
 .TP
 .B class  pytermor.color.ColorRGB(*args, **kwargs)
-Bases: \fBColor\fP
+Bases: \fBIColor\fP
 .sp
 This variant of a \fBColor\fP operates within \fBPytermor Named Colors\fP,
 unique collection of colors compiled from several known sources after careful
@@ -7521,7 +7589,7 @@ Make an \fI\%SGR sequence\fP out of \fBColor\fP\&. Used by \fI\%SgrRenderer\fP\&
 \fBbg\fP (\fIbool\fP) – Set to \fITrue\fP if required SGR should change the background color, or
 \fIFalse\fP for the foreground (=text) color.
 .IP \(bu 2
-\fBupper_bound\fP (\fIOptional\fP\fI[\fP\fIType\fP\fI[\fP\fIColor\fP\fI]\fP\fI]\fP) – Required result \fBColor\fP type upper boundary, i.e., the
+\fBupper_bound\fP (\fIOptional\fP\fI[\fP\fIType\fP\fI[\fP\fIIColor\fP\fI]\fP\fI]\fP) – Required result \fBColor\fP type upper boundary, i.e., the
 maximum acceptable color class, which will be the basis for
 SGR being made. See \fI\%Color256.to_sgr()\fP for the details.
 .UNINDENT
@@ -8013,7 +8081,7 @@ _
 T{
 \fI\%ST\fP
 T}	T{
-\fI\%ST\fP in a method signature usually means that regular strings as well as  \fI\%Renderable\fP implementations are supported, can be intermixed, and:
+\fI\%ST\fP in a method signature usually means that regular strings as well as  IRenderable\(ga implementations are supported, can be intermixed, and:
 T}
 _
 .TE
@@ -8071,7 +8139,7 @@ _
 .TP
 .B pytermor.common.ST
 \fI\%ST\fP in a method signature usually means that regular strings as well as 
-\fI\%Renderable\fP implementations are supported, can be intermixed, and:
+IRenderable\(ga implementations are supported, can be intermixed, and:
 .INDENT 7.0
 .INDENT 3.5
 .INDENT 0.0
@@ -8079,13 +8147,13 @@ _
 return type will be \fIstr\fP if and only if the type of all arguments is \fIstr\fP;
 .IP \(bu 2
 otherwise return type will be \fI\%Text\fP – \fIstr\fP arguments, if any, will
-be transformed into \fI\%Renderable\fP and concatenated. \fI\%Text\fP type is used because
-it’s the only \fI\%Renderable\fP that is mutable.
+be transformed into IRenderable\(ga and concatenated. \fI\%Text\fP type is used because
+it’s the only IRenderable\(ga that is mutable.
 .UNINDENT
 .UNINDENT
 .UNINDENT
 .sp
-alias of TypeVar(‘ST’, bound=\fBUnion\fP[\fBstr\fP, \fBRenderable\fP])
+alias of TypeVar(‘ST’, bound=\fBUnion\fP[\fBstr\fP, \fBIRenderable\fP])
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -8221,15 +8289,15 @@ center;
 |l|l|.
 _
 T{
-\fI\%AbstractRenderer\fP()
-T}	T{
-Renderer interface.
-T}
-_
-T{
 \fI\%HtmlRenderer\fP()
 T}	T{
 Translate \fI\%Styles\fP attributes into a rudimentary HTML markup.
+T}
+_
+T{
+\fI\%IRenderer\fP()
+T}	T{
+Renderer interface.
 T}
 _
 T{
@@ -8288,7 +8356,7 @@ Select a global renderer.
 .INDENT 7.0
 .TP
 .B Parameters
-\fBrenderer\fP (\fI\%AbstractRenderer\fP\fI | \fP\fIt.Type\fP\fI[\fP\fI\%AbstractRenderer\fP\fI]\fP) – 
+\fBrenderer\fP (\fI\%IRenderer\fP\fI | \fP\fIt.Type\fP\fI[\fP\fI\%IRenderer\fP\fI]\fP) – 
 .sp
 Default renderer to use globally. Calling this method without arguments
 will result in library default renderer \fI\%SgrRenderer\fP being set as default.
@@ -8310,7 +8378,7 @@ Get global renderer instance (\fI\%SgrRenderer\fP, or the one provided earlier w
 .INDENT 7.0
 .TP
 .B Return type
-\fI\%AbstractRenderer\fP
+\fI\%IRenderer\fP
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
@@ -8331,13 +8399,11 @@ Shortcut for disabling all output formatting of a global renderer.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.renderer.AbstractRenderer
-Bases: \fBABC\fP
-.sp
+.B class  pytermor.renderer.IRenderer
 Renderer interface.
 .INDENT 7.0
 .TP
-.B property  is_caching_allowed:  bool
+.B abstract  property  is_caching_allowed:  bool
 Class\-level property.
 .INDENT 7.0
 .TP
@@ -8369,7 +8435,7 @@ class, which defines the implementation.
 .IP \(bu 2
 \fBstring\fP (\fIstr\fP) – String to format.
 .IP \(bu 2
-\fBfmt\fP (\fIColor\fP\fI | \fP\fI\%Style\fP) – Style or color to apply. If \fBfmt\fP is a \fBColor\fP instance,
+\fBfmt\fP (\fIIColor\fP\fI | \fP\fI\%Style\fP) – Style or color to apply. If \fBfmt\fP is a \fBColor\fP instance,
 it is assumed to be a foreground color.
 .UNINDENT
 .TP
@@ -8383,7 +8449,7 @@ str
 .UNINDENT
 .INDENT 7.0
 .TP
-.B clone(*args, **kwargs)
+.B abstract  clone(*args, **kwargs)
 Make a copy of the renderer with the same setup.
 .INDENT 7.0
 .TP
@@ -8432,7 +8498,7 @@ See \fI\%SgrRenderer\fP constructor documentation for the details.
 .INDENT 0.0
 .TP
 .B class  pytermor.renderer.SgrRenderer(output_mode=OutputMode.AUTO, io=<_io.TextIOWrapper name=\(aq<stdout>\(aq mode=\(aqw\(aq encoding=\(aqutf\-8\(aq>)
-Bases: \fI\%AbstractRenderer\fP
+Bases: \fI\%IRenderer\fP
 .sp
 Default renderer invoked by \fBText.render()\fP\&. Transforms \fBColor\fP instances
 defined in \fBstyle\fP into ANSI control sequence bytes and merges them with
@@ -8529,7 +8595,7 @@ class, which defines the implementation.
 .IP \(bu 2
 \fBstring\fP (\fIstr\fP) – String to format.
 .IP \(bu 2
-\fBfmt\fP (\fIColor\fP\fI | \fP\fI\%Style\fP) – Style or color to apply. If \fBfmt\fP is a \fBColor\fP instance,
+\fBfmt\fP (\fIIColor\fP\fI | \fP\fI\%Style\fP) – Style or color to apply. If \fBfmt\fP is a \fBColor\fP instance,
 it is assumed to be a foreground color.
 .UNINDENT
 .TP
@@ -8555,7 +8621,7 @@ self
 .INDENT 0.0
 .TP
 .B class  pytermor.renderer.TmuxRenderer
-Bases: \fI\%AbstractRenderer\fP
+Bases: \fI\%IRenderer\fP
 .sp
 Translates \fI\%Styles\fP attributes into
 \fI\%tmux\-compatible\fP
@@ -8603,7 +8669,7 @@ class, which defines the implementation.
 .IP \(bu 2
 \fBstring\fP (\fIstr\fP) – String to format.
 .IP \(bu 2
-\fBfmt\fP (\fIColor\fP\fI | \fP\fI\%Style\fP) – Style or color to apply. If \fBfmt\fP is a \fBColor\fP instance,
+\fBfmt\fP (\fIIColor\fP\fI | \fP\fI\%Style\fP) – Style or color to apply. If \fBfmt\fP is a \fBColor\fP instance,
 it is assumed to be a foreground color.
 .UNINDENT
 .TP
@@ -8617,7 +8683,7 @@ str
 .UNINDENT
 .INDENT 7.0
 .TP
-.B clone(*args, **kwargs)
+.B clone()
 Make a copy of the renderer with the same setup.
 .INDENT 7.0
 .TP
@@ -8629,7 +8695,7 @@ self
 .INDENT 0.0
 .TP
 .B class  pytermor.renderer.NoOpRenderer
-Bases: \fI\%AbstractRenderer\fP
+Bases: \fI\%IRenderer\fP
 .sp
 Special renderer type that does nothing with the input string and just
 returns it as is. Often used as a default argument value (along with similar
@@ -8673,7 +8739,7 @@ Return the \fBstring\fP argument untouched, don’t mind the \fBfmt\fP\&.
 .IP \(bu 2
 \fBstring\fP (\fIstr\fP) – String to format ignore.
 .IP \(bu 2
-\fBfmt\fP (\fIColor\fP\fI | \fP\fI\%Style\fP) – Style or color to appl  discard.
+\fBfmt\fP (\fIIColor\fP\fI | \fP\fI\%Style\fP) – Style or color to appl  discard.
 .UNINDENT
 .TP
 .B Return type
@@ -8682,7 +8748,7 @@ str
 .UNINDENT
 .INDENT 7.0
 .TP
-.B clone(*args, **kwargs)
+.B clone()
 Make a copy of the renderer with the same setup.
 .INDENT 7.0
 .TP
@@ -8694,7 +8760,7 @@ self
 .INDENT 0.0
 .TP
 .B class  pytermor.renderer.HtmlRenderer
-Bases: \fI\%AbstractRenderer\fP
+Bases: \fI\%IRenderer\fP
 .sp
 Translate \fI\%Styles\fP attributes into a rudimentary HTML markup.
 All the formatting is inlined into \fBstyle\fP attribute of the \fB<span>\fP
@@ -8741,7 +8807,7 @@ class, which defines the implementation.
 .IP \(bu 2
 \fBstring\fP (\fIstr\fP) – String to format.
 .IP \(bu 2
-\fBfmt\fP (\fIColor\fP\fI | \fP\fI\%Style\fP) – Style or color to apply. If \fBfmt\fP is a \fBColor\fP instance,
+\fBfmt\fP (\fIIColor\fP\fI | \fP\fI\%Style\fP) – Style or color to apply. If \fBfmt\fP is a \fBColor\fP instance,
 it is assumed to be a foreground color.
 .UNINDENT
 .TP
@@ -8755,7 +8821,7 @@ str
 .UNINDENT
 .INDENT 7.0
 .TP
-.B clone(*args, **kwargs)
+.B clone()
 Make a copy of the renderer with the same setup.
 .INDENT 7.0
 .TP
@@ -8819,7 +8885,7 @@ class, which defines the implementation.
 .IP \(bu 2
 \fBstring\fP (\fIstr\fP) – String to format.
 .IP \(bu 2
-\fBfmt\fP (\fIColor\fP\fI | \fP\fI\%Style\fP) – Style or color to apply. If \fBfmt\fP is a \fBColor\fP instance,
+\fBfmt\fP (\fIIColor\fP\fI | \fP\fI\%Style\fP) – Style or color to apply. If \fBfmt\fP is a \fBColor\fP instance,
 it is assumed to be a foreground color.
 .UNINDENT
 .TP
@@ -8953,9 +9019,9 @@ with nullable color\-type variables.
 .IP \(bu 2
 \fBparent\fP (\fI\%Style\fP) – Style to copy attributes without value from.
 .IP \(bu 2
-\fBfg\fP (\fIColor\fP\fI | \fP\fIint\fP\fI | \fP\fIstr\fP) – Foreground (i.e., text) color.
+\fBfg\fP (\fIIColor\fP\fI | \fP\fIint\fP\fI | \fP\fIstr\fP) – Foreground (i.e., text) color.
 .IP \(bu 2
-\fBbg\fP (\fIColor\fP\fI | \fP\fIint\fP\fI | \fP\fIstr\fP) – Background color.
+\fBbg\fP (\fIIColor\fP\fI | \fP\fIint\fP\fI | \fP\fIstr\fP) – Background color.
 .IP \(bu 2
 \fBblink\fP (\fIbool\fP) – Blinking effect; \fIsupported by limited amount of Renderers\fP\&.
 .IP \(bu 2
@@ -9065,7 +9131,7 @@ T}	T{
 T}
 _
 T{
-\fI\%Renderable\fP()
+\fI\%IRenderable\fP()
 T}	T{
 Renderable abstract class.
 T}
@@ -9088,7 +9154,7 @@ _
 .TE
 .INDENT 0.0
 .TP
-.B class  pytermor.text.Renderable
+.B class  pytermor.text.IRenderable
 Bases: \fBSized\fP, \fBABC\fP
 .sp
 Renderable abstract class. Can be inherited when the default style
@@ -9097,7 +9163,7 @@ overlaps resolution mechanism implemented in \fI\%Text\fP is not good enough.
 .INDENT 0.0
 .TP
 .B class  pytermor.text.String(string=\(aq\(aq, fmt=<Style[NOP]>)
-Bases: \fI\%Renderable\fP
+Bases: \fI\%IRenderable\fP
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -9107,7 +9173,7 @@ Bases: \fI\%String\fP
 .INDENT 0.0
 .TP
 .B class  pytermor.text.FrozenText(string=\(aq\(aq, fmt=<Style[NOP]>, close_this=True, close_prev=False)
-Bases: \fI\%Renderable\fP
+Bases: \fI\%IRenderable\fP
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -9141,9 +9207,9 @@ str | t.List[str]
 .IP \(bu 2
 \fBstring\fP (\fIST\fP\fI | \fP\fIt.Iterable\fP\fI[\fP\fIST\fP\fI]\fP) – 
 .IP \(bu 2
-\fBfmt\fP (\fIColor\fP\fI | \fP\fI\%Style\fP) – 
+\fBfmt\fP (\fIIColor\fP\fI | \fP\fI\%Style\fP) – 
 .IP \(bu 2
-\fBrenderer\fP (\fI\%AbstractRenderer\fP) – 
+\fBrenderer\fP (\fI\%IRenderer\fP) – 
 .IP \(bu 2
 \fBparse_template\fP (\fIbool\fP) – 
 .IP \(bu 2
@@ -9163,14 +9229,17 @@ str | t.List[str]
 .UNINDENT
 .SS pytermor.utilmisc
 .sp
+A
+.sp
 Functions
 .TS
 center;
 |l|l|.
 _
 T{
-\fBchunk\fP(arr_range, arr_size)
+\fI\%chunk\fP(items, size)
 T}	T{
+Split item list into chunks of size \fBsize\fP and return these chunks as \fItuples\fP\&.
 T}
 _
 T{
@@ -9180,26 +9249,45 @@ Ensure the next action is manually confirmed by user.
 T}
 _
 T{
-\fI\%get_preferable_wrap_width\fP([force_width])
+\fI\%get_char_width\fP(char, wait)
 T}	T{
-Return preferable terminal width for comfort reading of wrapped text.
+General\-purpose method for getting width of a character in terminal columns.
 T}
 _
 T{
-\fBget_qname\fP(obj)
+\fI\%get_preferable_wrap_width\fP([force_width])
 T}	T{
+Return preferable terminal width for comfort reading of wrapped text (max=120).
+T}
+_
+T{
+\fI\%get_qname\fP(obj)
+T}	T{
+Convenient method for getting a class name for class instances as well as for the classes themselves.
 T}
 _
 T{
 \fI\%get_terminal_width\fP([default, padding])
 T}	T{
-Return current terminal width with an optional \(dqsafety buffer\(dq.
+Return current terminal width with an optional \(dqsafety buffer\(dq, which ensures that no unwanted line wrapping will happen.
+T}
+_
+T{
+\fI\%guess_char_width\fP(c)
+T}	T{
+Determine how many columns are needed to display a character in a terminal.
+T}
+_
+T{
+\fI\%measure_char_width\fP(char[, clear_after, legacy])
+T}	T{
+Low\-level function that returns the exact character width in terminal columns.
 T}
 _
 T{
 \fI\%total_size\fP(o[, handlers, verbose])
 T}	T{
-Returns the approximate memory footprint of an object and all of its contents.
+Return the approximate memory footprint of an object and all of its contents.
 T}
 _
 T{
@@ -9211,8 +9299,61 @@ _
 .TE
 .INDENT 0.0
 .TP
+.B pytermor.utilmisc.get_qname(obj)
+Convenient method for getting a class name for class instances
+as well as for the classes themselves. Suitable for debug output in
+\fB__repr__\fP methods, for example.
+.sp
+.nf
+.ft C
+>>> get_qname(\(dqaaa\(dq)
+\(aqstr\(aq
+>>> get_qname(make_query_cursor_position())
+\(aqSequenceCSI\(aq
+>>> get_qname(threading.Thread)
+\(aqThread\(aq
+.ft P
+.fi
+.INDENT 7.0
+.TP
+.B Return type
+str
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.utilmisc.chunk(items, size)
+Split item list into chunks of size \fBsize\fP and return these
+chunks as \fItuples\fP\&.
+.sp
+.nf
+.ft C
+>>> for c in chunk(range(5), 2):
+\&...     print(c)
+(0, 1)
+(2, 3)
+(4,)
+.ft P
+.fi
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBitems\fP (\fIIterable\fP\fI[\fP\fIT\fP\fI]\fP) – Input elements.
+.IP \(bu 2
+\fBsize\fP (\fIint\fP) – Chunk size.
+.UNINDENT
+.TP
+.B Return type
+\fIIterator\fP[\fITuple\fP[\fIT\fP, …]]
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
 .B pytermor.utilmisc.get_terminal_width(default=80, padding=2)
-Return current terminal width with an optional “safety buffer”.
+Return current terminal width with an optional “safety buffer”, which
+ensures that no unwanted line wrapping will happen.
 .INDENT 7.0
 .TP
 .B Return type
@@ -9222,8 +9363,11 @@ int
 .INDENT 0.0
 .TP
 .B pytermor.utilmisc.get_preferable_wrap_width(force_width=None)
-Return preferable terminal width for comfort reading of wrapped text.
+Return preferable terminal width for comfort reading of wrapped text (max=120).
 .INDENT 7.0
+.TP
+.B Parameters
+\fBforce_width\fP (\fIOptional\fP\fI[\fP\fIint\fP\fI]\fP) – Ignore current terminal width and use this value as a result.
 .TP
 .B Return type
 int
@@ -9236,7 +9380,7 @@ Wait for a key press on the console and return it.
 .INDENT 7.0
 .TP
 .B Raises
-EOFError
+\fBEOFError\fP – 
 .TP
 .B Return type
 t.AnyStr | None
@@ -9300,10 +9444,12 @@ do not raise any exceptions, just return \fIFalse\fP\&.
 .UNINDENT
 .TP
 .B Raises
-UserAbort
-.TP
-.B Raises
-UserCancel
+.INDENT 7.0
+.IP \(bu 2
+\fI\%UserAbort\fP – On corresponding event, if \fBrequired\fP is \fITrue\fP\&.
+.IP \(bu 2
+\fI\%UserCancel\fP – On corresponding event, if \fBrequired\fP is \fITrue\fP\&.
+.UNINDENT
 .TP
 .B Returns
 \fITrue\fP if there was a confirmation by user’s input or
@@ -9315,24 +9461,134 @@ bool
 .UNINDENT
 .INDENT 0.0
 .TP
+.B pytermor.utilmisc.get_char_width(char, wait)
+General\-purpose method for getting width of a character in terminal columns.
+.sp
+Uses \fI\%guess_char_width()\fP method based on \fBunicodedata\fP package,
+or/and QCP\-RCP ANSI control sequence communication protocol.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBchar\fP (\fIstr\fP) – Input char.
+.IP \(bu 2
+\fBwait\fP (\fIbool\fP) – Set to \fITrue\fP if you prefer slow, but 100% accurate
+\fI\%measuring\fP (which \fBblocks\fP and
+requires an output tty), or \fIFalse\fP to invoke device\-independent,
+deterministic and non\-blocking \fI\%guessing\fP,
+which works most of the time, although there could be rare
+cases when it is not accurate.
+.UNINDENT
+.TP
+.B Return type
+int
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.utilmisc.measure_char_width(char, clear_after=True, legacy=False)
+Low\-level function that returns the exact character width in terminal columns.
+.sp
+The main idea is to reset a cursor position to 1st column, print the required
+character and \fI\%QCP\fP control sequence; after that
+wait for the response and \fI\%parse\fP it.
+Normally it contains the cursor coordinates, which can tell the exact width of a
+character in question.
+.sp
+After reading the response clear it from the screen and reset the cursor to
+column 1 again.
+.sp
+\fBIMPORTANT:\fP
+.INDENT 7.0
+.INDENT 3.5
+The \fBstdout\fP must be a tty. If it is not, consider using
+\fI\%guess_char_width()\fP instead, or \fBIOError\fP will be raised.
+.UNINDENT
+.UNINDENT
+.sp
+\fBWARNING:\fP
+.INDENT 7.0
+.INDENT 3.5
+Invoking this method produces a bit of garbage in the output stream,
+which looks like this: \fB⠁[3;2R\fP\&. By default, it is hidden using
+screen line clearing (see \fBclear_after\fP).
+.UNINDENT
+.UNINDENT
+.sp
+\fBWARNING:\fP
+.INDENT 7.0
+.INDENT 3.5
+Invoking this method may \fBblock\fP infinitely. Consider using a thread
+or set a timeout for the main thread using a signal if that is unwanted.
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBchar\fP (\fIstr\fP) – Input char.
+.IP \(bu 2
+\fBclear_after\fP (\fIbool\fP) – Send \fI\%EL\fP control sequence after the
+terminal response to hide excessive utility information from
+the output if set to \fITrue\fP, or leave it be otherwise.
+.IP \(bu 2
+\fBlegacy\fP (\fIbool\fP) – For some terminal and interpreter configurations the method
+can put the application into an endless wait cycle, unless
+a newline character appears in \fBstdin\fP (for example, when
+the python debugger is attached). For these cases it is
+recommended to set this parameter to \fITrue\fP to switch the
+internal input reading mode, which helps to avoid this.
+.UNINDENT
+.TP
+.B Raises
+\fBIOError\fP – If \fBstdout\fP is not a terminal emulator.
+.TP
+.B Return type
+int
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B pytermor.utilmisc.guess_char_width(c)
+Determine how many columns are needed to display a character in a terminal.
+.sp
+Returns \-1 if the character is not printable.
+Returns 0, 1 or 2 for other characters.
+.sp
+Utilizes \fBunicodedata\fP table. A terminal emulator is unnecessary.
+.INDENT 7.0
+.TP
+.B Origin
+\fI\%_pytest._io.wcwidth\fP
+.TP
+.B Return type
+int
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
 .B pytermor.utilmisc.total_size(o, handlers=None, verbose=False)
-Returns the approximate memory footprint of an object and all of its contents.
+Return the approximate memory footprint of an object and all of its contents.
 .sp
 Automatically finds the contents of the following builtin containers and
-their subclasses:  tuple, list, deque, dict, set and frozenset.
+their subclasses: \fItuple, list, deque, dict, set\fP and \fIfrozenset\fP\&.
 To search other containers, add handlers to iterate over their contents:
 .INDENT 7.0
 .INDENT 3.5
 .sp
 .nf
 .ft C
-handlers = {SomeContainerClass: iter,
-            OtherContainerClass: OtherContainerClass.get_elements}
+handlers = {ContainerClass: iter, ContainerClass2: ContainerClass2.get_elements}
 .ft P
 .fi
 .UNINDENT
 .UNINDENT
 .INDENT 7.0
+.TP
+.B Origin
+\fI\%https://code.activestate.com/recipes/577504/\fP
 .TP
 .B Return type
 int
@@ -9408,7 +9664,7 @@ Formats \fBvalue\fP using settings passed to constructor.
 T}
 _
 T{
-\fI\%TimeDeltaFormatter\fP(units, allow_negative[, ...])
+\fI\%TimeDeltaFormatter\fP(units[, allow_negative, ...])
 T}	T{
 Formatter for time intervals.
 T}
@@ -9513,7 +9769,7 @@ str
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.utilnum.PrefixedUnitFormatter(max_value_len=None, truncate_frac=None, allow_negative=None, unit=None, unit_separator=None, mcoef=None, prefixes=None, prefix_zero_idx=None, legacy_rounding=None, always_max_len=None, parent=None)
+.B class  pytermor.utilnum.PrefixedUnitFormatter(max_value_len=None, truncate_frac=None, allow_negative=None, unit=None, unit_separator=None, mcoef=None, prefixes=None, prefix_zero_idx=None, legacy_rounding=None, pad=None, parent=None)
 Formats \fBvalue\fP using settings passed to constructor. The main idea of this class
 is to fit into specified string length as much significant digits as it’s
 theoretically possible by using multipliers and unit prefixes to
@@ -9561,7 +9817,7 @@ multiplying coefficients.
 .IP \(bu 2
 \fBlegacy_rounding\fP (\fIbool\fP) – 
 .IP \(bu 2
-\fBalways_max_len\fP (\fIbool\fP) – 
+\fBpad\fP (\fIbool\fP) – 
 .IP \(bu 2
 \fBparent\fP (\fI\%PrefixedUnitFormatter\fP) – 
 .UNINDENT
@@ -9772,7 +10028,7 @@ omitted, longest registred formatter will be used.
 >>> format_time_delta(10, 3)
 \(aq10s\(aq
 >>> format_time_delta(10, 6)
-\(aq10 sec\(aq
+\(aq10.0s\(aq
 >>> format_time_delta(15350, 4)
 \(aq4 h\(aq
 >>> format_time_delta(15350)
@@ -9795,7 +10051,7 @@ str
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.utilnum.TimeDeltaFormatter(units, allow_negative, unit_separator=None, plural_suffix=None, overflow_msg=\(aqOVERFLOW\(aq)
+.B class  pytermor.utilnum.TimeDeltaFormatter(units, allow_negative=False, allow_subsecond=True, unit_separator=None, plural_suffix=None, overflow_msg=\(aqOVERFLOW\(aq)
 Formatter for time intervals. Key feature of this formatter is
 ability to combine two units and display them simultaneously,
 e.g. return “3h 48min” instead of “228 mins” or “3 hours”, etc.
@@ -9825,6 +10081,8 @@ Example output:
 .IP \(bu 2
 \fBallow_negative\fP (\fIbool\fP) – 
 .IP \(bu 2
+\fBallow_subsecond\fP (\fIbool\fP) – 
+.IP \(bu 2
 \fBunit_separator\fP (\fIstr\fP) – 
 .IP \(bu 2
 \fBplural_suffix\fP (\fIstr\fP) – 
@@ -9845,7 +10103,7 @@ Maximum possible output string length.
 .UNINDENT
 .INDENT 7.0
 .TP
-.B format(seconds, always_max_len=False)
+.B format(seconds, pad=False)
 Pretty\-print difference between two moments in time. If input
 value is too big for the current formatter to handle, return “OVERFLOW”
 string (or a part of it, depending on \fBmax_len\fP).
@@ -9856,7 +10114,7 @@ string (or a part of it, depending on \fBmax_len\fP).
 .IP \(bu 2
 \fBseconds\fP (\fIfloat\fP) – Input value.
 .IP \(bu 2
-\fBalways_max_len\fP (\fIbool\fP) – Set to \fITrue\fP to pad the value with spaces on the left side
+\fBpad\fP (\fIbool\fP) – Set to \fITrue\fP to pad the value with spaces on the left side
 and ensure it’s length is equal to \fI\%max_len\fP, or to \fIFalse\fP
 to allow shorter result strings.
 .UNINDENT
@@ -9956,6 +10214,16 @@ center;
 |l|l|.
 _
 T{
+\fI\%AbstractDumper\fP(char_per_line)
+T}	T{
+T}
+_
+T{
+\fI\%AbstractStringDumper\fP(char_per_line)
+T}	T{
+T}
+_
+T{
 \fI\%BytesDumper\fP([char_per_line])
 T}	T{
 str/bytes as byte hex codes, grouped by 4
@@ -9968,24 +10236,19 @@ Find all CSI seqs (i.e.
 T}
 _
 T{
+\fI\%DumperExtra\fP(label)
+T}	T{
+T}
+_
+T{
 \fBEscSeqStringReplacer\fP([repl])
 T}	T{
 T}
 _
 T{
-\fI\%GenericDumper\fP(char_per_line)
-T}	T{
-T}
-_
-T{
-\fI\%GenericFilter\fP()
+\fI\%IFilter\fP(*args, **kwds)
 T}	T{
 Main idea is to provide a common interface for string filtering, that can make possible working with filters like with objects rather than with functions/lambdas.
-T}
-_
-T{
-\fI\%GenericStringDumper\fP(char_per_line)
-T}	T{
 T}
 _
 T{
@@ -10001,17 +10264,17 @@ Input type: \fIstr\fP\&.
 T}
 _
 T{
-\fBNoopFilter\fP()
+\fBNoopFilter\fP(*args, **kwds)
 T}	T{
 T}
 _
 T{
-\fBOmniDecoder\fP()
+\fBOmniDecoder\fP(*args, **kwds)
 T}	T{
 T}
 _
 T{
-\fBOmniEncoder\fP()
+\fBOmniEncoder\fP(*args, **kwds)
 T}	T{
 T}
 _
@@ -10028,14 +10291,14 @@ Input type: \fIstr\fP, \fIbytes\fP\&.
 T}
 _
 T{
-\fI\%PrinterExtra\fP(label)
-T}	T{
-T}
-_
-T{
 \fI\%SgrStringReplacer\fP([repl])
 T}	T{
 Find all SGR seqs (e.g.
+T}
+_
+T{
+\fI\%StringAligner\fP(align)
+T}	T{
 T}
 _
 T{
@@ -10161,14 +10424,14 @@ str
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.utilstr.GenericFilter
+.B class  pytermor.utilstr.IFilter(*args, **kwds)
 Bases: \fBGeneric\fP[\fBIT\fP, \fBOT\fP]
 .sp
 Main idea is to provide a common interface for string filtering, that can make
 possible working with filters like with objects rather than with functions/lambdas.
 .INDENT 7.0
 .TP
-.B apply(inp, extra=None)
+.B abstract  apply(inp, extra=None)
 Apply the filter to input \fIstr\fP or \fIbytes\fP\&.
 .INDENT 7.0
 .TP
@@ -10191,8 +10454,232 @@ as well as be different – that depends on filter type.
 .UNINDENT
 .INDENT 0.0
 .TP
+.B class  pytermor.utilstr.StringAligner(align)
+Bases: \fI\%IFilter\fP[\fBstr\fP, \fBstr\fP]
+.INDENT 7.0
+.TP
+.B apply(inp, raw_mode=False)
+Apply the filter to input \fIstr\fP or \fIbytes\fP\&.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBinp\fP (\fIstr\fP) – input string
+.IP \(bu 2
+\fBextra\fP – additional options
+.UNINDENT
+.TP
+.B Returns
+transformed string; the type can match the input type,
+as well as be different – that depends on filter type.
+.TP
+.B Return type
+str
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.utilstr.AbstractDumper(char_per_line)
+Bases: \fI\%IFilter\fP[\fBIT\fP, \fBstr\fP]
+.INDENT 7.0
+.TP
+.B apply(inp, extra=None)
+Apply the filter to input \fIstr\fP or \fIbytes\fP\&.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBinp\fP (\fIIT\fP) – input string
+.IP \(bu 2
+\fBextra\fP (\fIOptional\fP\fI[\fP\fI\%DumperExtra\fP\fI]\fP) – additional options
+.UNINDENT
+.TP
+.B Returns
+transformed string; the type can match the input type,
+as well as be different – that depends on filter type.
+.TP
+.B Return type
+str
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.utilstr.BytesDumper(char_per_line=32)
+Bases: \fI\%AbstractDumper\fP[\fBbytes\fP]
+.sp
+str/bytes as byte hex codes, grouped by 4
+.sp
+Example output
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+ 0000  0A 20 32 31 36 20 20 20  E2 94 82 20 20 75 70 6C  |a
+ 0010  20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20  |a
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B apply(inp, extra=None)
+Apply the filter to input \fIstr\fP or \fIbytes\fP\&.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBinp\fP (\fIIT\fP) – input string
+.IP \(bu 2
+\fBextra\fP (\fIOptional\fP\fI[\fP\fI\%DumperExtra\fP\fI]\fP) – additional options
+.UNINDENT
+.TP
+.B Returns
+transformed string; the type can match the input type,
+as well as be different – that depends on filter type.
+.TP
+.B Return type
+str
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.utilstr.AbstractStringDumper(char_per_line)
+Bases: \fI\%AbstractDumper\fP[\fBstr\fP]
+.INDENT 7.0
+.TP
+.B apply(inp, extra=None)
+Apply the filter to input \fIstr\fP or \fIbytes\fP\&.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBinp\fP (\fIIT\fP) – input string
+.IP \(bu 2
+\fBextra\fP (\fIOptional\fP\fI[\fP\fI\%DumperExtra\fP\fI]\fP) – additional options
+.UNINDENT
+.TP
+.B Returns
+transformed string; the type can match the input type,
+as well as be different – that depends on filter type.
+.TP
+.B Return type
+str
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.utilstr.StringDumper(char_per_line=16)
+Bases: \fI\%AbstractStringDumper\fP
+.sp
+str as byte hex codes (UTF\-8), grouped by characters
+.sp
+Example output
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+0056  45 4D 20 43 50 55     20     4F 56 48 20 4E   45 3E 0A 20  |E|
+0072  20 20 20 20 20 20 E29482     20 20 20 20 20   20 20 20 20  |␣|
+0088  20 20 20 20 37 20     2B     30 20 20 20 20 CE94 20 32 68  |␣|
+0104  20 33 33 6D 20 20     20 EFAA8F 20 2D 35 20 C2B0 43 20 20  |␣|
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B apply(inp, extra=None)
+Apply the filter to input \fIstr\fP or \fIbytes\fP\&.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBinp\fP (\fIIT\fP) – input string
+.IP \(bu 2
+\fBextra\fP (\fIOptional\fP\fI[\fP\fI\%DumperExtra\fP\fI]\fP) – additional options
+.UNINDENT
+.TP
+.B Returns
+transformed string; the type can match the input type,
+as well as be different – that depends on filter type.
+.TP
+.B Return type
+str
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.utilstr.StringUcpDumper(char_per_line=16)
+Bases: \fI\%AbstractStringDumper\fP
+.sp
+str as Unicode codepoints
+.INDENT 7.0
+.INDENT 3.5
+.SS Todo
+.sp
+venv/lib/python3.8/site\-packages/pygments/lexers/hexdump.py
+.UNINDENT
+.UNINDENT
+.sp
+Example output
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+ 56 |U+ 45 4d 20 43 50 55   20   4f 56 48 20 4e  45 3e 0a 20 | EM␣CPU␣OVH␣NE>↵␣
+ 72 |U+ 20 20 20 20 20 20 2502   20 20 20 20 20  20 20 20 20 | ␣␣␣␣␣␣│␣␣␣␣␣␣␣␣␣
+ 88 |U+ 20 20 20 20 37 20   2b   30 20 20 20 20 394 20 32 68 | ␣␣␣␣7␣+0␣␣␣␣Δ␣2h
+104 |U+ 20 33 33 6d 20 20   20 fa8f 20 2d 35 20  b0 43 20 20 | ␣33m␣␣␣摒␣\-5␣°C␣␣
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B apply(inp, extra=None)
+Apply the filter to input \fIstr\fP or \fIbytes\fP\&.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBinp\fP (\fIIT\fP) – input string
+.IP \(bu 2
+\fBextra\fP (\fIOptional\fP\fI[\fP\fI\%DumperExtra\fP\fI]\fP) – additional options
+.UNINDENT
+.TP
+.B Returns
+transformed string; the type can match the input type,
+as well as be different – that depends on filter type.
+.TP
+.B Return type
+str
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class  pytermor.utilstr.DumperExtra(label:  \(aqstr\(aq)
+.INDENT 7.0
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
 .B class  pytermor.utilstr.StringReplacer(pattern, repl)
-Bases: \fI\%GenericFilter\fP[\fBstr\fP, \fBstr\fP]
+Bases: \fI\%IFilter\fP[\fBstr\fP, \fBstr\fP]
 .sp
 \&.
 .INDENT 7.0
@@ -10292,7 +10779,7 @@ str
 .INDENT 0.0
 .TP
 .B class  pytermor.utilstr.OmniMapper(override=None)
-Bases: \fI\%GenericFilter\fP[\fBIT\fP, \fBIT\fP]
+Bases: \fI\%IFilter\fP[\fBIT\fP, \fBIT\fP]
 .sp
 Input type: \fIstr\fP, \fIbytes\fP\&. Abstract mapper. Replaces every character found in
 map keys to corresponding map value. Map should be a dictionary of this type:
@@ -10486,203 +10973,6 @@ as well as be different – that depends on filter type.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B class  pytermor.utilstr.PrinterExtra(label:  \(aqstr\(aq)
-.INDENT 7.0
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B class  pytermor.utilstr.GenericDumper(char_per_line)
-Bases: \fI\%GenericFilter\fP[\fBIT\fP, \fBstr\fP]
-.INDENT 7.0
-.TP
-.B apply(inp, extra=None)
-Apply the filter to input \fIstr\fP or \fIbytes\fP\&.
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBinp\fP (\fIIT\fP) – input string
-.IP \(bu 2
-\fBextra\fP (\fIOptional\fP\fI[\fP\fI\%PrinterExtra\fP\fI]\fP) – additional options
-.UNINDENT
-.TP
-.B Returns
-transformed string; the type can match the input type,
-as well as be different – that depends on filter type.
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B class  pytermor.utilstr.BytesDumper(char_per_line=32)
-Bases: \fI\%GenericDumper\fP[\fBbytes\fP]
-.sp
-str/bytes as byte hex codes, grouped by 4
-.sp
-Example output
-.INDENT 7.0
-.INDENT 3.5
-.sp
-.nf
-.ft C
- 0000  0A 20 32 31 36 20 20 20  E2 94 82 20 20 75 70 6C  |a
- 0010  20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20  |a
-.ft P
-.fi
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B apply(inp, extra=None)
-Apply the filter to input \fIstr\fP or \fIbytes\fP\&.
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBinp\fP (\fIIT\fP) – input string
-.IP \(bu 2
-\fBextra\fP (\fIOptional\fP\fI[\fP\fI\%PrinterExtra\fP\fI]\fP) – additional options
-.UNINDENT
-.TP
-.B Returns
-transformed string; the type can match the input type,
-as well as be different – that depends on filter type.
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B class  pytermor.utilstr.GenericStringDumper(char_per_line)
-Bases: \fI\%GenericDumper\fP[\fBstr\fP]
-.INDENT 7.0
-.TP
-.B apply(inp, extra=None)
-Apply the filter to input \fIstr\fP or \fIbytes\fP\&.
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBinp\fP (\fIIT\fP) – input string
-.IP \(bu 2
-\fBextra\fP (\fIOptional\fP\fI[\fP\fI\%PrinterExtra\fP\fI]\fP) – additional options
-.UNINDENT
-.TP
-.B Returns
-transformed string; the type can match the input type,
-as well as be different – that depends on filter type.
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B class  pytermor.utilstr.StringDumper(char_per_line=16)
-Bases: \fI\%GenericStringDumper\fP
-.sp
-str as byte hex codes (UTF\-8), grouped by characters
-.sp
-Example output
-.INDENT 7.0
-.INDENT 3.5
-.sp
-.nf
-.ft C
-0056  45 4D 20 43 50 55     20     4F 56 48 20 4E   45 3E 0A 20  |E|
-0072  20 20 20 20 20 20 E29482     20 20 20 20 20   20 20 20 20  |␣|
-0088  20 20 20 20 37 20     2B     30 20 20 20 20 CE94 20 32 68  |␣|
-0104  20 33 33 6D 20 20     20 EFAA8F 20 2D 35 20 C2B0 43 20 20  |␣|
-.ft P
-.fi
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B apply(inp, extra=None)
-Apply the filter to input \fIstr\fP or \fIbytes\fP\&.
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBinp\fP (\fIIT\fP) – input string
-.IP \(bu 2
-\fBextra\fP (\fIOptional\fP\fI[\fP\fI\%PrinterExtra\fP\fI]\fP) – additional options
-.UNINDENT
-.TP
-.B Returns
-transformed string; the type can match the input type,
-as well as be different – that depends on filter type.
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
-.B class  pytermor.utilstr.StringUcpDumper(char_per_line=16)
-Bases: \fI\%GenericStringDumper\fP
-.sp
-str as Unicode codepoints
-.INDENT 7.0
-.INDENT 3.5
-.SS Todo
-.sp
-venv/lib/python3.8/site\-packages/pygments/lexers/hexdump.py
-.UNINDENT
-.UNINDENT
-.sp
-Example output
-.INDENT 7.0
-.INDENT 3.5
-.sp
-.nf
-.ft C
- 56 |U+ 45 4d 20 43 50 55   20   4f 56 48 20 4e  45 3e 0a 20 | EM␣CPU␣OVH␣NE>↵␣
- 72 |U+ 20 20 20 20 20 20 2502   20 20 20 20 20  20 20 20 20 | ␣␣␣␣␣␣│␣␣␣␣␣␣␣␣␣
- 88 |U+ 20 20 20 20 37 20   2b   30 20 20 20 20 394 20 32 68 | ␣␣␣␣7␣+0␣␣␣␣Δ␣2h
-104 |U+ 20 33 33 6d 20 20   20 fa8f 20 2d 35 20  b0 43 20 20 | ␣33m␣␣␣摒␣\-5␣°C␣␣
-.ft P
-.fi
-.UNINDENT
-.UNINDENT
-.INDENT 7.0
-.TP
-.B apply(inp, extra=None)
-Apply the filter to input \fIstr\fP or \fIbytes\fP\&.
-.INDENT 7.0
-.TP
-.B Parameters
-.INDENT 7.0
-.IP \(bu 2
-\fBinp\fP (\fIIT\fP) – input string
-.IP \(bu 2
-\fBextra\fP (\fIOptional\fP\fI[\fP\fI\%PrinterExtra\fP\fI]\fP) – additional options
-.UNINDENT
-.TP
-.B Returns
-transformed string; the type can match the input type,
-as well as be different – that depends on filter type.
-.TP
-.B Return type
-str
-.UNINDENT
-.UNINDENT
-.UNINDENT
-.INDENT 0.0
-.TP
 .B pytermor.utilstr.apply_filters(string, *args)
 Method for applying dynamic filter list to a target string/bytes.
 Example (will replace all \fBESC\fP control characters to \fBE\fP and
@@ -10765,7 +11055,7 @@ Add missing \fI\%hsv_to_rgb\fP function.
 .IP \(bu 2
 \fBblack\fP code style.
 .IP \(bu 2
-Add \fBOmniHexPrinter\fP and \fBchunk()\fP helper.
+Add \fBOmniHexPrinter\fP and \fI\%chunk()\fP helper.
 .IP \(bu 2
 Typehinting.
 .IP \(bu 2
@@ -10816,7 +11106,7 @@ Oct 22
 .IP \(bu 2
 Named colors list.
 .IP \(bu 2
-\fI\%Renderable\fP interface.
+IRenderable\(ga interface.
 .IP \(bu 2
 Color config.
 .IP \(bu 2

@@ -1,7 +1,7 @@
 .. _guide.high-level:
 
 ==========================
-High-level abstractions
+High-level API
 ==========================
 
 :mono:`ColorIndex` and :mono:`Styles`
@@ -33,22 +33,13 @@ Color mode fallbacks
 Class hierarchy
 =================
 
-.. inheritance-diagram::
-                  pytermor.color.Color16
-                  pytermor.color.Color256
-                  pytermor.color.ColorRGB
-   :top-classes:  pytermor.color.Color
-   :parts: 2
+.. inheritance-diagram:: pytermor.color
+   :top-classes:         pytermor.color.IColor
+   :caption:             `color` core API
+   :parts: 1
 
-.. inheritance-diagram::
-                  pytermor.text.Text
-                  pytermor.text.FixedString
-   :top-classes:  pytermor.text.Renderable
-   :caption:      High-level components inheritance
-   :parts: 2
-
-
-
-Core API
-=============
+.. inheritance-diagram:: pytermor.text
+   :top-classes:         pytermor.text.IRenderable
+   :caption:             `text` core API
+   :parts: 1
 

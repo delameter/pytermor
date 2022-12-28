@@ -19,7 +19,7 @@ import typing as t
 from abc import abstractmethod, ABC
 from typing import Union
 
-from .color import Color, NOOP_COLOR
+from .color import IColor, NOOP_COLOR
 from .common import LogicError, ArgTypeError, ST, Align, logger
 from .renderer import IRenderer, RendererManager
 from .style import Style, NOOP_STYLE
@@ -31,7 +31,7 @@ from .utilstr import ljust_sgr, rjust_sgr, center_sgr, wrap_sgr, pad, dump
 @dataclasses.dataclass
 class _Fragment(t.Sized):
     string: str = ""
-    fmt: Color | Style = NOOP_STYLE
+    fmt: IColor|Style = NOOP_STYLE
     close_this: bool = True
     close_prev: bool = False
 
@@ -67,7 +67,7 @@ class _Fragment(t.Sized):
         return f"<{self.__class__.__qualname__}>[" + ", ".join(props_set) + "]"
 
 
-class Renderable(t.Sized, ABC):
+class IRenderable(t.Sized, ABC):
     """
     Renderable abstract class. Can be inherited when the default style
     overlaps resolution mechanism implemented in `Text` is not good enough.
@@ -105,7 +105,7 @@ class Renderable(t.Sized, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def __eq__(self, o: Renderable) -> bool:
+    def __eq__(self, o: IRenderable) -> bool:
         raise NotImplementedError
 
     @abstractmethod
@@ -123,8 +123,8 @@ class Renderable(t.Sized, ABC):
         raise NotImplementedError
 
 
-class String(Renderable):
-    def __init__(self, string: str = "", fmt: Color | Style = NOOP_STYLE):
+class String(IRenderable):
+    def __init__(self, string: str = "", fmt: IColor|Style = NOOP_STYLE):
         super().__init__()
         self._fragment = _Fragment(string, fmt)
         self._is_frozen = True
@@ -157,7 +157,7 @@ class FixedString(String):
     def __init__(
         self,
         string: str = "",
-        fmt: Color | Style = NOOP_STYLE,
+        fmt: IColor|Style = NOOP_STYLE,
         align: Align = Align.LEFT,
         width: int = 0,
         pad_left: int = 0,
@@ -224,7 +224,7 @@ class FixedString(String):
         return aligned[left_overflow:-right_overflow]
 
 
-class FrozenText(Renderable):
+class FrozenText(IRenderable):
     _WIDTH_MAX_LEN_REGEXP = re.compile(r"[\d.]+$")
     _ALIGN_LEFT = "<"
     _ALIGN_RIGHT = ">"
@@ -238,8 +238,8 @@ class FrozenText(Renderable):
 
     def __init__(
         self,
-        string: str | Renderable = "",
-        fmt: Color | Style = NOOP_STYLE,
+        string: str|IRenderable = "",
+        fmt: IColor|Style = NOOP_STYLE,
         close_this: bool = True,
         close_prev: bool = False,
     ):
@@ -249,21 +249,21 @@ class FrozenText(Renderable):
             self._make_fragments(string, fmt, close_this, close_prev)
         )
 
-    def __eq__(self, o: Renderable) -> bool:
+    def __eq__(self, o: IRenderable) -> bool:
         if not isinstance(o, type(self)):
             return False
         return self._fragments == o._fragments
 
     def _make_fragments(
         self,
-        string: str | Renderable,
-        fmt: Color | Style = NOOP_STYLE,
+        string: str|IRenderable,
+        fmt: IColor|Style = NOOP_STYLE,
         close_this: bool = True,
         close_prev: bool = False,
     ) -> t.Sequence[_Fragment]:
         if isinstance(string, str):
             return [_Fragment(string, fmt, close_this, close_prev)]
-        elif isinstance(string, Renderable):
+        elif isinstance(string, IRenderable):
             if fmt != NOOP_STYLE and fmt != NOOP_COLOR:
                 return [_Fragment("", fmt, close_this, close_prev)]
             return string.fragments
@@ -271,7 +271,7 @@ class FrozenText(Renderable):
 
     def _render_using(self, renderer: IRenderer) -> str:
         result = ""
-        attrs_stack: t.Dict[str, t.List[bool | Color | None]] = {
+        attrs_stack: t.Dict[str, t.List[bool|IColor|None]] = {
             attr: [None] for attr in Style.renderable_attributes
         }
         for frag in self._fragments:
@@ -407,23 +407,23 @@ class FrozenText(Renderable):
 class Text(FrozenText):
     def __init__(
         self,
-        string: str | Renderable = "",
-        fmt: Color | Style = NOOP_STYLE,
+        string: str|IRenderable = "",
+        fmt: IColor|Style = NOOP_STYLE,
         close_this: bool = True,
         close_prev: bool = False,
     ):
         super().__init__(string, fmt, close_this, close_prev)
         self._is_frozen = False
 
-    def __eq__(self, o: Renderable) -> bool:
+    def __eq__(self, o: IRenderable) -> bool:
         if not isinstance(o, type(self)):
             return False
         return self._fragments == o._fragments
 
     def append(
         self,
-        string: str | Renderable,
-        fmt: Color | Style = NOOP_STYLE,
+        string: str|IRenderable,
+        fmt: IColor|Style = NOOP_STYLE,
         close_this: bool = True,
         close_prev: bool = False,
     ) -> Text:
@@ -433,7 +433,7 @@ class Text(FrozenText):
     def prepend(
         self,
         string: str | Text,
-        fmt: Color | Style = NOOP_STYLE,
+        fmt: IColor|Style = NOOP_STYLE,
         close_this: bool = True,
         close_prev: bool = False,
     ) -> Text:
@@ -451,6 +451,8 @@ class Text(FrozenText):
     def __radd__(self, other: str | Text) -> Text:
         self.prepend(other)
         return self
+
+# -----------------------------------------------------------------------------
 
 
 class _TemplateTag:
@@ -566,7 +568,7 @@ _template_engine = TemplateEngine()
 
 def render(
     string: ST | t.Iterable[ST] = "",
-    fmt: Color | Style = NOOP_STYLE,
+    fmt: IColor|Style = NOOP_STYLE,
     renderer: IRenderer = None,
     parse_template: bool = False,
     stderr: bool = False,
@@ -598,7 +600,7 @@ def render(
         debug(f"Rendering as iterable ({len(string)}:d)")
         return [render(s, fmt, renderer, parse_template, stderr) for s in string]
 
-    if isinstance(string, Renderable):
+    if isinstance(string, IRenderable):
         if fmt == NOOP_STYLE:
             debug(f"Invoking instance's render method ({sclass}, {fmt!r})")
             return string.render(renderer, stderr)
@@ -619,7 +621,7 @@ def render(
 
 def echo(
     string: ST | t.Iterable[ST] = "",
-    fmt: Color | Style = NOOP_STYLE,
+    fmt: IColor|Style = NOOP_STYLE,
     renderer: IRenderer = None,
     parse_template: bool = False,
     nl: bool = True,

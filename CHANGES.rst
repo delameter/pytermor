@@ -48,7 +48,7 @@ v2.2-dev
 :date:`Oct 22`
 
 - Named colors list.
-- `Renderable` interface.
+- IRenderable` interface.
 - Color config.
 - `TmuxRenderer`
 - `wait_key()` input helper.

@@ -10,4 +10,5 @@ Class hierarchy
 
 .. inheritance-diagram::   pytermor.utilstr
    :parts: 1
-   :top-classes:           pytermor.utilstr.AFilter
+   :top-classes:           pytermor.utilstr.IFilter
+   :caption:               `utilstr` helper API

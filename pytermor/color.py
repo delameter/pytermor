@@ -132,7 +132,7 @@ class ApxResult(t.Generic[CT]):
         return math.sqrt(self.distance)
 
 
-class Color(ABC):
+class IColor(ABC):
     """
     Abstract superclass for other ``Colors``.
 
@@ -236,7 +236,7 @@ class Color(ABC):
         return hex_to_rgb(self._hex_value)
 
     @abstractmethod
-    def to_sgr(self, bg: bool, upper_bound: t.Type[Color] = None) -> SequenceSGR:
+    def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
         """
         Make an `SGR sequence<SequenceSGR>` out of `Color`. Used by `SgrRenderer`.
 
@@ -327,7 +327,7 @@ class Color(ABC):
         return sorted(result, key=lambda r: r.distance)
 
 
-class Color16(Color):
+class Color16(IColor):
     """
     This variant of a `Color` operates within the most basic color set
     -- **Xterm-16**. Represents basic color-setting SGRs with primary codes
@@ -401,7 +401,7 @@ class Color16(Color):
         value = f"{self.format_value('')}?"
         return self._repr(code, value, self._name)
 
-    def to_sgr(self, bg: bool, upper_bound: t.Type[Color] = None) -> SequenceSGR:
+    def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
         if bg:
             return SequenceSGR(self._code_bg)
         return SequenceSGR(self._code_fg)
@@ -415,7 +415,7 @@ class Color16(Color):
         return tmux_name
 
 
-class Color256(Color):
+class Color256(IColor):
     """
     This variant of a `Color` operates within relatively modern **Xterm-256**
     indexed color table. Represents SGR complex codes ``38;5;*`` and ``48;5;*``
@@ -447,7 +447,7 @@ class Color256(Color):
             self._color16_equiv = Color16.get_by_code(color16_equiv.code_fg)
         self._post_init(self._code, register, index, aliases)
 
-    def to_sgr(self, bg: bool, upper_bound: t.Type[Color] = None) -> SequenceSGR:
+    def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
         """
         Make an `SGR sequence<SequenceSGR>` out of `Color`. Used by `SgrRenderer`.
 
@@ -511,7 +511,7 @@ class Color256(Color):
         return self._repr(code, self.format_value(""), self._name)
 
 
-class ColorRGB(Color):
+class ColorRGB(IColor):
     """
     This variant of a `Color` operates within **Pytermor Named Colors**,
     unique collection of colors compiled from several known sources after careful
@@ -542,7 +542,7 @@ class ColorRGB(Color):
         self._make_variations(variation_map)
         self._post_init(None, register, index, aliases)
 
-    def to_sgr(self, bg: bool, upper_bound: t.Type[Color] = None) -> SequenceSGR:
+    def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
         if upper_bound is ColorRGB or upper_bound is None:
             return make_color_rgb(*self.to_rgb(), bg)
 
@@ -576,11 +576,11 @@ class ColorRGB(Color):
         return self._variations
 
 
-class _NoopColor(Color):
+class _NoopColor(IColor):
     def __init__(self):
         super().__init__(0)
 
-    def to_sgr(self, bg: bool, upper_bound: t.Type[Color] = None) -> SequenceSGR:
+    def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
         return NOOP_SEQ
 
     def to_tmux(self, bg: bool) -> str:

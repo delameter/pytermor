@@ -26,7 +26,7 @@
    
       FixedString
       FrozenText
-      IRenderable
+     IRenderable
       String
       TemplateEngine
       Text

@@ -16,7 +16,7 @@ PROJECT_ROOT = abspath(join(dirname(__file__), ".."))
 CONFIG_PATH = join(PROJECT_ROOT, "config")
 
 
-def error(string: str | pt.Renderable):
+def error(string: str | pt.IRenderable):
     print(pt.render("[ERROR] ", pt.Styles.ERROR_LABEL) + string)
     exit(1)
 

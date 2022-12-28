@@ -9,13 +9,10 @@ Class hierarchy
 =====================
 
 
-.. inheritance-diagram::  pytermor.renderer.SgrRendererDebugger
-                          pytermor.renderer.TmuxRenderer
-                          pytermor.renderer.NoOpRenderer
-                          pytermor.renderer.HtmlRenderer
-   :parts: 2
-   :top-classes:          pytermor.renderer.AbstractRenderer
-
+.. inheritance-diagram::  pytermor.renderer
+   :parts: 1
+   :top-classes:          pytermor.renderer.IRenderer
+   :caption:             `renderer` core API
 
 .. todo ::
 

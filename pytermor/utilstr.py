@@ -216,11 +216,10 @@ RT = Union[OT, t.Callable[[t.Match[OT]], OT]]  # replacer type
 MT = t.Dict[int, IT]  # map
 AT = Union["OmniFilter", t.Type["OmniFilter"]]
 
-_dump_printers_cache: t.Dict[t.Type['ADumper'], 'ADumper'] = dict()
+_dump_printers_cache: t.Dict[t.Type['AbstractDumper'], 'AbstractDumper'] = dict()
 
 
-
-class AFilter(t.Generic[IT, OT], metaclass=ABCMeta):
+class IFilter(t.Generic[IT, OT], metaclass=ABCMeta):
     """
     Main idea is to provide a common interface for string filtering, that can make
     possible working with filters like with objects rather than with functions/lambdas.
@@ -242,34 +241,29 @@ class AFilter(t.Generic[IT, OT], metaclass=ABCMeta):
         """
         raise NotImplementedError
 
-    def _transcode(self, inp: IT, target: t.Type[RT]) -> RT:
-        if isinstance(inp, target):
-            return inp
-        return inp.encode() if isinstance(inp, str) else inp.decode()
 
-
-class NoopFilter(AFilter[IT, OT]):
+class NoopFilter(IFilter[IT, OT]):
     """ """
 
     def apply(self, inp: IT, extra: t.Any = None) -> OT:
         return inp
 
 
-class OmniDecoder(AFilter[IT, str]):
+class OmniDecoder(IFilter[IT, str]):
     """ """
 
     def apply(self, inp: IT, extra: t.Any = None) -> str:
         return inp.decode() if isinstance(inp, bytes) else inp
 
 
-class OmniEncoder(AFilter[IT, bytes]):
+class OmniEncoder(IFilter[IT, bytes]):
     """ """
 
     def apply(self, inp: IT, extra: t.Any = None) -> bytes:
         return inp.encode() if isinstance(inp, str) else inp
 
 
-class StringAligner(AFilter[str, str]):
+class StringAligner(IFilter[str, str]):
     _ALIGN_FNS = {
         Align.LEFT:     ljust_sgr,
         Align.CENTER:   center_sgr,
@@ -297,7 +291,7 @@ class StringAligner(AFilter[str, str]):
 # Filters[Dumpers]
 
 
-class ADumper(AFilter[IT, str], metaclass=ABCMeta):
+class AbstractDumper(IFilter[IT, str], metaclass=ABCMeta):
     def __init__(self, char_per_line: int):
         self._char_per_line = char_per_line
         self._state: _DumperState = _DumperState()
@@ -356,7 +350,7 @@ class ADumper(AFilter[IT, str], metaclass=ABCMeta):
         raise NotImplementedError
 
 
-class BytesDumper(ADumper[bytes]):
+class BytesDumper(AbstractDumper[bytes]):
     """
     str/bytes as byte hex codes, grouped by 4
 
@@ -401,16 +395,16 @@ class BytesDumper(ADumper[bytes]):
         return space_len + sep_len + offset_len + main_len
 
 
-class AStringDumper(ADumper[str], metaclass=ABCMeta):
+class AbstractStringDumper(AbstractDumper[str], metaclass=ABCMeta):
     def __init__(self, char_per_line: int):
-        self._output_filters: t.List[AFilter] = []
+        self._output_filters: t.List[IFilter] = []
         super().__init__(char_per_line)
 
     def _format_output_text(self, text: str) -> str:
         return apply_filters(text, *self._output_filters).ljust(self._char_per_line)
 
 
-class StringDumper(AStringDumper):
+class StringDumper(AbstractStringDumper):
     """
     str as byte hex codes (UTF-8), grouped by characters
 
@@ -458,7 +452,7 @@ class StringDumper(AStringDumper):
         return space_len + sep_len + prefix_len + offset_len + main_len
 
 
-class StringUcpDumper(AStringDumper):
+class StringUcpDumper(AbstractStringDumper):
     """
     str as Unicode codepoints
 
@@ -548,7 +542,7 @@ class _DumperState:
 # Filters[Replacers]
 
 
-class StringReplacer(AFilter[str, str]):
+class StringReplacer(IFilter[str, str]):
     """
     .
     """
@@ -605,7 +599,7 @@ class CsiStringReplacer(StringReplacer):
 # Filters[Mappers]
 
 
-class OmniMapper(AFilter[IT, IT]):
+class OmniMapper(IFilter[IT, IT]):
     """
     Input type: *str*, *bytes*. Abstract mapper. Replaces every character found in
     map keys to corresponding map value. Map should be a dictionary of this type:
@@ -693,6 +687,11 @@ class OmniMapper(AFilter[IT, IT]):
 
     def apply(self, inp: IT, extra: t.Any = None) -> IT:
         return inp.translate(self._maps[type(inp)])
+
+    def _transcode(self, inp: IT, target: t.Type[RT]) -> RT:
+        if isinstance(inp, target):
+            return inp
+        return inp.encode() if isinstance(inp, str) else inp.decode()
 
 
 class StringMapper(OmniMapper[str]):

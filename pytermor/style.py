@@ -13,7 +13,7 @@ import typing as t
 from dataclasses import dataclass, field
 
 from . import cv, color
-from .color import Color, NOOP_COLOR, ColorRGB
+from .color import IColor, NOOP_COLOR, ColorRGB
 from .common import ArgTypeError
 
 
@@ -21,8 +21,8 @@ from .common import ArgTypeError
 class Style:
     """ style """
 
-    _fg: Color = field(default=None, init=False)
-    _bg: Color = field(default=None, init=False)
+    _fg: IColor = field(default=None, init=False)
+    _bg: IColor = field(default=None, init=False)
 
     renderable_attributes = frozenset(
         [
@@ -45,10 +45,10 @@ class Style:
         return frozenset(list(self.__dict__.keys()) + ["_fg", "_bg"])
 
     @staticmethod
-    def make(fmt: Color | Style | None) -> Style:
+    def make(fmt: IColor|Style|None) -> Style:
         if not fmt:
             return NOOP_STYLE
-        if isinstance(fmt, Color):
+        if isinstance(fmt, IColor):
             if fmt == NOOP_COLOR:
                 return NOOP_STYLE
             return Style(fg=fmt)
@@ -59,8 +59,8 @@ class Style:
     def __init__(
         self,
         parent: Style = None,
-        fg: Color | int | str = None,
-        bg: Color | int | str = None,
+        fg: IColor|int|str = None,
+        bg: IColor|int|str = None,
         blink: bool = None,
         bold: bool = None,
         crosslined: bool = None,
@@ -180,10 +180,10 @@ class Style:
             if self_val is None and parent_val is not None:
                 setattr(self, attr, parent_val)
 
-    def _resolve_color(self, arg: str | int | Color | None) -> Color | None:
+    def _resolve_color(self, arg: str|int|IColor|None) -> IColor|None:
         if arg is None:
             return NOOP_COLOR
-        if isinstance(arg, Color):
+        if isinstance(arg, IColor):
             return arg
         if isinstance(arg, int):
             return ColorRGB(arg)
@@ -211,20 +211,20 @@ class Style:
         return f"<{self.__class__.__name__}[{','.join(props_set)}]>"
 
     @property
-    def fg(self) -> Color:
+    def fg(self) -> IColor:
         return self._fg
 
     @property
-    def bg(self) -> Color:
+    def bg(self) -> IColor:
         return self._bg
 
     @fg.setter
-    def fg(self, val: str | int | Color | None):
-        self._fg: Color = self._resolve_color(val)
+    def fg(self, val: str|int|IColor|None):
+        self._fg: IColor = self._resolve_color(val)
 
     @bg.setter
-    def bg(self, val: str | int | Color | None):
-        self._bg: Color = self._resolve_color(val)
+    def bg(self, val: str|int|IColor|None):
+        self._bg: IColor = self._resolve_color(val)
 
 
 NOOP_STYLE = Style()

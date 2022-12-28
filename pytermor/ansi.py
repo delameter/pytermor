@@ -48,7 +48,7 @@ import typing as t
 from .common import ConflictError
 
 
-class Sequence(t.Sized, metaclass=ABCMeta):
+class ISequence(t.Sized, metaclass=ABCMeta):
     """
     Abstract ancestor of all escape sequences.
     """
@@ -99,7 +99,7 @@ class Sequence(t.Sized, metaclass=ABCMeta):
     def __len__(self) -> int:
         return 0
 
-    def __eq__(self, other: Sequence):
+    def __eq__(self, other: ISequence):
         if type(self) != type(other):
             return False
         return self._params == other._params
@@ -109,7 +109,7 @@ class Sequence(t.Sized, metaclass=ABCMeta):
         return f"<{self._short_class_name()}[{params}]>"
 
 
-class SequenceFe(Sequence, metaclass=ABCMeta):
+class ISequenceFe(ISequence, metaclass=ABCMeta):
     """
     Wide range of sequence types that includes `CSI <SequenceCSI>`,
     `OSC <SequenceOSC>` and more.
@@ -120,7 +120,7 @@ class SequenceFe(Sequence, metaclass=ABCMeta):
     """
 
 
-class SequenceST(SequenceFe):
+class SequenceST(ISequenceFe):
     """
     String Terminator sequence (ST). Terminates strings in other control
     sequences. Encoded as ``ESC \\`` (``0x1B`` ``0x5C``).
@@ -136,7 +136,7 @@ class SequenceST(SequenceFe):
         return "ST"
 
 
-class SequenceOSC(SequenceFe):
+class SequenceOSC(ISequenceFe):
     """
     :abbr:`OSC (Operating System Command)`-type sequence. Starts a control
     string for the operating system to use. Encoded as ``ESC ]``, plus params
@@ -151,7 +151,7 @@ class SequenceOSC(SequenceFe):
         return "OSC"
 
 
-class SequenceCSI(SequenceFe):
+class SequenceCSI(ISequenceFe):
     """
     Class representing :abbr:`CSI (Control Sequence Introducer)`-type ANSI
     escape sequence. All subtypes of this sequence start with ``ESC [``.
@@ -306,22 +306,22 @@ class SequenceSGR(SequenceCSI):
         return "SGR"
 
 
-class UnderlinedCurlySequenceSGR(SequenceSGR):
-    """
-    Registered as a separate class, because this is the one and only SGR in the
-    package, which is identified by "4:3" string (in contrast with all the other
-    sequences entirely made of digits and semicolon separators).
-    """
-
-    def __init__(self):
-        """ """
-        super().__init__()
-        self._params = [f"{IntCode.UNDERLINED}:3"]
-
-    @property
-    def params(self) -> t.List[str]:
-        """ """
-        return self._params
+# class UnderlinedCurlySequenceSGR(SequenceSGR):
+#     """
+#     Registered as a separate class, because this is the one and only SGR in the
+#     package, which is identified by "4:3" string (in contrast with all the other
+#     sequences entirely made of digits and semicolon separators).
+#     """
+#
+#     def __init__(self):
+#         """ """
+#         super().__init__()
+#         self._params = [f"{IntCode.UNDERLINED}:3"]
+#
+#     @property
+#     def params(self) -> t.List[str]:
+#         """ """
+#         return self._params
 
 
 NOOP_SEQ = SequenceSGR()
@@ -784,6 +784,54 @@ def make_erase_in_line(mode: int = 0) -> SequenceCSI:
     if not (0 <= mode <= 2):
         raise ValueError(f"Invalid mode: {mode}, expected [0;2]")
     return SequenceCSI("K", "EL", mode)
+
+
+def make_query_cursor_position() -> SequenceCSI:
+    """
+    Create :abbr:`QCP (Query Cursor Position)` sequence that requests an output
+    device to respond with a structure containing current cursor coordinates
+    (`RCP <decompose_request_cursor_position()>`).
+
+    .. warning ::
+
+        Sending this sequence to the terminal may **block** infinitely. Consider
+        using a thread or set a timeout for the main thread using a signal.
+
+    :example:   ``ESC [6n``
+    """
+
+    return SequenceCSI("n", "QCP", 6)
+
+
+def decompose_request_cursor_position(string: str) -> t.Tuple[int, int]|None:
+    """
+    Parse :abbr:`RCP (Report Cursor Position)` sequence that generally comes from
+    a terminal as a response to `QCP <make_query_cursor_position>` sequence and
+    contains a cursor's current row and column.
+
+    .. note ::
+
+        As the library in general provides sequence assembling methods, but not
+        the disassembling ones, there is no dedicated class for RCP sequences yet.
+
+    >>> decompose_request_cursor_position('\x1b[18;2R')
+    (18, 2)
+
+    :param string:  Terminal response with a sequence.
+    :return:        Current row and column if the expected sequence exists
+                    in ``string``, *None* otherwise.
+    """
+    if not all(c in string for c in "\x1b[;R"):
+        return None  # input does not contain a valid RCP sequence
+
+    start_idx = string.rfind("\x1b[")
+    seq = string[start_idx + 2: string.rfind("R") - start_idx]
+    y, x = seq.split(";", 2)
+
+    try:
+        return int(y), int(x)
+    except ValueError:
+        return None  # unexpected results
 
 
 def make_color_256(code: int, bg: bool = False) -> SequenceSGR:

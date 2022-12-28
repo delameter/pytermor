@@ -1,7 +1,7 @@
 .. _guide.low-level:
 
 ==========================
-Low-level abstractions
+Low-level API
 ==========================
 
 So, what's happening under the hood?
@@ -125,12 +125,10 @@ One instance of `SequenceSGR` can be added to another. This will result in a new
 Class hierarchy
 =================
 
-.. inheritance-diagram::  pytermor.ansi.SequenceOSC
-                          pytermor.ansi.SequenceST
-                          pytermor.ansi.Sequence
-                          pytermor.ansi.UnderlinedCurlySequenceSGR
-   :parts: 2
-   :top-classes:          pytermor.ansi.Sequence
+.. inheritance-diagram::  pytermor.ansi
+   :parts: 1
+   :top-classes:          pytermor.ansi.ISequence
+   :caption:              `ansi` core API
 
 
 Core API

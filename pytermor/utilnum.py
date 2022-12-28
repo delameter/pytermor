@@ -536,7 +536,7 @@ def format_time_delta(seconds: float, max_len: int = None) -> str:
     >>> format_time_delta(10, 3)
     '10s'
     >>> format_time_delta(10, 6)
-    '10 sec'
+    '10.0s'
     >>> format_time_delta(15350, 4)
     '4 h'
     >>> format_time_delta(15350)
@@ -595,7 +595,6 @@ class TimeDeltaFormatter:
         self._plural_suffix = plural_suffix
         self._overflow_msg = overflow_msg
 
-        self._max_len = self._compute_max_len()
         self._subsecond_formatter = PrefixedUnitFormatter(
             max_value_len=4,
             allow_negative=True,
@@ -603,6 +602,8 @@ class TimeDeltaFormatter:
             unit_separator="",
             pad=False,
         )
+        self._max_len = None
+        self._compute_max_len()
 
     @property
     def max_len(self) -> int:
@@ -649,10 +650,12 @@ class TimeDeltaFormatter:
         sign = "-" if negative else ""
         result = None
 
-        if self._allow_subsecond and num < 1:
-            if len(result := self._subsecond_formatter.format(seconds)) > self._max_len:
-                # e.g. 500ms doesn't fit in shortest possible delta string, which is 3
-                result = None
+        if self._allow_subsecond and num < 60:
+            if self._max_len is not None:
+                if len(result := self._subsecond_formatter.format(seconds)) > self._max_len:
+                    # for example, 500ms doesn't fit in the shortest possible
+                    # delta string (which is 3 chars), so "<1s" will be returned
+                    result = None
 
         while result is None and unit_idx < len(self._units):
             unit = self._units[unit_idx]
@@ -698,7 +701,7 @@ class TimeDeltaFormatter:
 
         return result or ""
 
-    def _compute_max_len(self) -> int:
+    def _compute_max_len(self):
         max_len = 0
         coef = 1.00
 
@@ -720,7 +723,7 @@ class TimeDeltaFormatter:
             max_len = max(max_len, len(max_len_unit))
             coef *= unit.in_next or unit.overflow_afer
 
-        return max_len
+        self._max_len = max_len
 
 
 @dataclass(frozen=True)

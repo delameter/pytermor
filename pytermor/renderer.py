@@ -47,7 +47,7 @@ from functools import reduce
 from hashlib import md5
 
 from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose
-from .color import Color, Color16, Color256, ColorRGB, NOOP_COLOR
+from .color import IColor, Color16, Color256, ColorRGB, NOOP_COLOR
 from .common import logger
 from .style import Style, NOOP_STYLE, Styles
 from .utilmisc import get_qname
@@ -156,7 +156,7 @@ class IRenderer(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
+    def render(self, string: str, fmt: IColor|Style = NOOP_STYLE) -> str:
         """
         Apply colors and attributes described in ``fmt`` argument to
         ``string`` and return the result. Output format depends on renderer's
@@ -256,7 +256,7 @@ class SgrRenderer(IRenderer):
         `OutputMode.TRUE_COLOR` will be used.
     """
 
-    _COLOR_UPPER_BOUNDS: t.Dict[OutputMode, t.Type[Color]] = {
+    _COLOR_UPPER_BOUNDS: t.Dict[OutputMode, t.Type[IColor]] = {
         OutputMode.XTERM_16: Color16,
         OutputMode.XTERM_256: Color256,
         OutputMode.TRUE_COLOR: ColorRGB,
@@ -264,7 +264,7 @@ class SgrRenderer(IRenderer):
 
     def __init__(self, output_mode: OutputMode = OutputMode.AUTO, io: t.IO = sys.stdout):
         self._output_mode: OutputMode = self._determine_output_mode(output_mode, io)
-        self._color_upper_bound: t.Type[Color] | None = self._COLOR_UPPER_BOUNDS.get(
+        self._color_upper_bound: t.Type[IColor]|None = self._COLOR_UPPER_BOUNDS.get(
             self._output_mode, None
         )
 
@@ -288,7 +288,7 @@ class SgrRenderer(IRenderer):
     def is_format_allowed(self) -> bool:
         return self._output_mode is not OutputMode.NO_ANSI
 
-    def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
+    def render(self, string: str, fmt: IColor|Style = NOOP_STYLE) -> str:
         style = Style.make(fmt)
         opening_seq = (
             self._render_attributes(style, squash=True)
@@ -360,7 +360,7 @@ class SgrRenderer(IRenderer):
             return reduce(lambda p, c: p + c, result, NOOP_SEQ)
         return result
 
-    def _render_color(self, color: Color, bg: bool) -> SequenceSGR:
+    def _render_color(self, color: IColor, bg: bool) -> SequenceSGR:
         if not self.is_format_allowed or color == NOOP_COLOR:
             return NOOP_SEQ
         return color.to_sgr(bg, self._color_upper_bound)
@@ -408,7 +408,7 @@ class TmuxRenderer(IRenderer):
         """
         return True
 
-    def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
+    def render(self, string: str, fmt: IColor|Style = NOOP_STYLE) -> str:
         style = Style.make(fmt)
         command_open, command_close = self._render_attributes(style)
         rendered_text = ""
@@ -427,7 +427,7 @@ class TmuxRenderer(IRenderer):
             attr_val = getattr(style, attr_name)
             if attr_val is None:
                 continue
-            if isinstance(attr_val, Color):
+            if isinstance(attr_val, IColor):
                 if attr_val == NOOP_COLOR:
                     continue
                 cmd_open.append((tmux_name + "=", attr_val.to_tmux(attr_name == "bg")))
@@ -472,7 +472,7 @@ class NoOpRenderer(IRenderer):
         """
         return False
 
-    def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
+    def render(self, string: str, fmt: IColor|Style = NOOP_STYLE) -> str:
         """
         Return the `string` argument untouched, don't mind the `fmt`.
 
@@ -522,7 +522,7 @@ class HtmlRenderer(IRenderer):
         """
         return True
 
-    def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
+    def render(self, string: str, fmt: IColor|Style = NOOP_STYLE) -> str:
         style = Style.make(fmt)
         opening_tag, closing_tag = self._render_attributes(style)
         return f"{opening_tag}{string}{closing_tag}"  # @TODO  # attribues
@@ -624,7 +624,7 @@ class SgrRendererDebugger(SgrRenderer):
             return self._format_override
         return super().is_format_allowed
 
-    def render(self, string: str, fmt: Color | Style = NOOP_STYLE) -> str:
+    def render(self, string: str, fmt: IColor|Style = NOOP_STYLE) -> str:
         return SgrStringReplacer(r"(ǝ\2\3\4)").apply(super().render(string, fmt))
 
     def clone(self) -> SgrRendererDebugger:
