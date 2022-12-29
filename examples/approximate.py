@@ -32,16 +32,17 @@ class Main:
                         continue
                     raise ValueError(f"Invalid option {arg}")
 
-                val = int(arg, 16)
-                if not 0 <= val < 16777216:
-                    raise ValueError(f"Argument is not valid RGB value: 0x{val:X}")
-                input_values.append(val)
+                try:
+                    input_color = pt.resolve(f"#{arg}")
+                except LookupError:
+                    raise ValueError(f"Argument is not valid RGB value: 0x{arg}")
+                input_values.append(input_color)
             except ValueError as e:
                 pt.echo("USAGE:")
                 pt.echo(
                     [
                         *usage,
-                        "Expected COLOR format: '(0x)?[0-9a-f]{1,6}', i.e. a hexadecimal "
+                        "Expected COLOR format: '(0x)?[\da-f]{6}', i.e. a hexadecimal "
                         "integer X, where 0 <= X <= 0xFFFFFF.",
                     ],
                     wrap=True,
@@ -72,18 +73,17 @@ class Main:
                 "a string 1-6 characters long representing an integer(s) in a hexadecimal "
                 "form: 'FFFFFF' (case insensitive):",
                 "",
-                f"  python {sys.argv[0]} 3AEBA1 0bceeb 6",
+                f"  python {sys.argv[0]} 3AEBA1 0bceeb 666",
             ],
             wrap=True,
             indent_first=2,
         )
 
-    def run(self, sample_val: int | None, color_type: str):
-        if sample_val is None:
+    def run(self, sample: pt.ColorRGB | None, color_type: str):
+        if sample is None:
             random_rgb = (random.randint(40, 255) for _ in range(3))
-            sample_val = pt.color.rgb_to_hex(*random_rgb)
+            sample = pt.resolve(pt.color.rgb_to_hex(*random_rgb))
 
-        sample = pt.ColorRGB(sample_val)
         direct_renderer = pt.SgrRenderer(pt.OutputMode.TRUE_COLOR)
 
         pt.echo()
@@ -153,3 +153,4 @@ if __name__ == "__main__":
         Main(sys.argv[1:])
     except Exception as e:
         pt.echo(f"[ERROR] {type(e).__qualname__}: {e}\n", fmt=pt.Styles.ERROR)
+        raise e

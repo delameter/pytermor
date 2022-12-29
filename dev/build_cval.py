@@ -66,7 +66,7 @@ class IndexBuilder(TaskRunner):
             color["var_name"] = color.get("name").upper().replace("-", "_")
             self._validate_names(color)
 
-        longest_name_len = 1 + max(
+        longest_name_len = 2 + max(
             len(color.get("var_name")) for color in config.get("colors")
         )
 
@@ -80,8 +80,11 @@ class IndexBuilder(TaskRunner):
                 color16_equiv = color.get("color16_equiv")
 
             col_var_name = None
-            if mode != "rgb" and not color16_equiv:
-                col_var_name = f"{var_name}".ljust(longest_name_len) + "= "
+            if mode != "rgb":
+                if color16_equiv:
+                    col_var_name = f"__256A_16_{color16_equiv}".ljust(longest_name_len) + "= "
+                else:
+                    col_var_name = f"{var_name}".ljust(longest_name_len) + "= "
 
             col_value = "0x{:06x}, ".format(color.get("value"))
 
@@ -92,22 +95,22 @@ class IndexBuilder(TaskRunner):
             col_color16_eq = None
             if mode == "xterm_16":
                 cols_code = [
-                    "IntCode." + (code + ",").ljust(longest_name_len + 2),
-                    "IntCode.BG_" + (code + ",").ljust(longest_name_len + 2),
+                    "IntCode." + (code + ",").ljust(longest_name_len + 1),
+                    "IntCode.BG_" + (code + ",").ljust(longest_name_len + 1),
                 ]
             if mode == "xterm_256":
                 cols_code = [(code + ",").ljust(5)]
                 if color16_equiv:
-                    col_color16_eq = f"color16_equiv={color16_equiv},"
+                    col_color16_eq = f"color16_equiv={color16_equiv}, "
 
             col_aliases = None
             if aliases := color.get("aliases"):
-                col_aliases = f"aliases={aliases},"
+                col_aliases = f"aliases={aliases}, "
 
             col_variations = ""
             if variations := color.get("variations"):
                 variation_map = self._map_variations(variations)
-                col_variations = f"variation_map={{\n{variation_map} }},"
+                col_variations = f"variation_map={{\n{variation_map} }}, "
 
             columns = [
                 col_var_name,
@@ -115,10 +118,10 @@ class IndexBuilder(TaskRunner):
                 col_value,
                 *cols_code,
                 col_name,
-                "True, ",
-                "True, ",
-                col_color16_eq,
+                "register=True, ",
+                "index=True, ",
                 col_aliases,
+                col_color16_eq,
                 col_variations,
             ]
             yield self.INDENT + "".join(filter(None, columns)).rstrip(", ") + ")"

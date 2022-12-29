@@ -203,10 +203,10 @@ def test_format_si_metric_with_unit(expected: str, value: float):
 )
 def test_legacy_rounding_works(value: float, legacy_rounding: bool, expected: str):
     formatter = PrefixedUnitFormatter(
-        4,
+        formatter_si_metric,
+        max_value_len=4,
         unit_separator="",
         unit="",
-        parent=formatter_si_metric,
         legacy_rounding=legacy_rounding,
     )
     assert formatter.format(value) == expected

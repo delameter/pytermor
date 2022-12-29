@@ -217,6 +217,9 @@ class PrefixedUnitFormatter:
     coefficients like 1024 require additional char to render as switching
     to the next prefix happens later: 999 b, 1000 b, 1001 b ... 1023 b, 1 Kb.
 
+    All arguments except ``parent`` are *kwonly*\ -type arguments.
+
+    :param parent:
     :param max_value_len:  Target string length. As mentioned above, must be at
                            least 3-5, depending on other options.
     :param allow_negative:
@@ -224,12 +227,9 @@ class PrefixedUnitFormatter:
     :param unit:
     :param unit_separator:
     :param mcoef:
-    :param prefixes:
-    :param prefix_zero_idx: Index of prefix which will be used as default, i.e. without
-                            multiplying coefficients.
     :param legacy_rounding:
     :param pad:
-    :param parent:
+    :param prefixes:
     """
 
     # fmt: off
@@ -244,12 +244,6 @@ class PrefixedUnitFormatter:
     """
     # fmt: on
 
-    PREFIX_ZERO_SI = 8
-    """
-    Index of prefix which will be used as default, i.e. without 
-    multiplying coefficients.
-    """
-
     _attribute_defaults = {
         "_max_value_len": 5,
         "_truncate_frac": False,
@@ -257,25 +251,26 @@ class PrefixedUnitFormatter:
         "_unit": "",
         "_unit_separator": "",
         "_mcoef": 1000,
-        "_prefixes": PREFIXES_SI,
-        "_prefix_zero_idx": PREFIX_ZERO_SI,
         "_legacy_rounding": False,
         "_pad": False,
+        "_prefixes": PREFIXES_SI,
+        "_prefix_refpoint_shift": 0,
     }
 
     def __init__(
         self,
+        parent: PrefixedUnitFormatter = None,
+        *,
         max_value_len: int = None,
         truncate_frac: bool = None,
         allow_negative: bool = None,
         unit: str = None,
         unit_separator: str = None,
         mcoef: float = None,
-        prefixes: List[str | None] = None,
-        prefix_zero_idx: int = None,
         legacy_rounding: bool = None,
         pad: bool = None,
-        parent: PrefixedUnitFormatter = None,
+        prefixes: List[str | None] = None,
+        prefix_refpoint_shift: int = None,
     ):
         self._max_value_len: int = max_value_len
         self._truncate_frac: bool = truncate_frac
@@ -283,10 +278,10 @@ class PrefixedUnitFormatter:
         self._unit: str = unit
         self._unit_separator: str = unit_separator
         self._mcoef: float = mcoef
-        self._prefixes: List[str | None] = prefixes
-        self._prefix_zero_idx: int = prefix_zero_idx
         self._legacy_rounding: bool = legacy_rounding
         self._pad: bool = pad
+        self._prefixes: List[str | None] = prefixes
+        self._prefix_refpoint_shift: int = prefix_refpoint_shift
 
         for attr_name, default in self._attribute_defaults.items():
             if getattr(self, attr_name) is None:
@@ -295,11 +290,22 @@ class PrefixedUnitFormatter:
                     continue
                 setattr(self, attr_name, default)
 
-        if self._max_value_len < self.get_max_len_lower_bound:
+        if self._max_value_len < self.max_len_lower_bound:
             raise ValueError(
                 f"Impossible to display all decimal numbers as "
                 f"{self._max_value_len}-char length."
             )
+
+        try:
+            self._prefix_refpoint_idx: int = self._prefixes.index(None)
+        except ValueError:
+            raise ValueError(
+                "At least one of the prefixes should be None, as it indicates "
+                "the reference point with multiplying coefficient is 1.00."
+            )
+        self._prefix_refpoint_idx += self._prefix_refpoint_shift
+        if not (0 <= self._prefix_refpoint_idx < len(self._prefixes)):
+            raise ValueError("Shifted prefix reference point is out of bounds")
 
     @property
     def max_len(self) -> int:
@@ -314,7 +320,7 @@ class PrefixedUnitFormatter:
         return result
 
     @property
-    def get_max_len_lower_bound(self) -> int:
+    def max_len_lower_bound(self) -> int:
         result = 3
         if self._allow_negative:
             result += 1
@@ -330,8 +336,8 @@ class PrefixedUnitFormatter:
         self, value: float, unit: str = None, join: bool = True
     ) -> str | Tuple[str, str, str]:
         """
-        :param value:  Input value
-        :param unit:   Unit override
+        :param value:  Input value.
+        :param unit:   Unit override.
         :param join:   Return the result as a string if set to *True*,
                        or as a (num, sep, unit) tuple otherwise.
         """
@@ -361,7 +367,7 @@ class PrefixedUnitFormatter:
             prefix_shift = round((exponent + exp_shift) / 3)
 
         value /= power_base ** (prefix_shift * 3)
-        unit_idx = self._prefix_zero_idx + prefix_shift
+        unit_idx = self._prefix_refpoint_idx + prefix_shift
         if 0 <= unit_idx < len(self._prefixes):
             unit_full = (self._prefixes[unit_idx] or "") + unit
         else:
@@ -596,11 +602,7 @@ class TimeDeltaFormatter:
         self._overflow_msg = overflow_msg
 
         self._subsecond_formatter = PrefixedUnitFormatter(
-            max_value_len=4,
-            allow_negative=True,
-            unit="s",
-            unit_separator="",
-            pad=False,
+            max_value_len=4, allow_negative=True, unit="s", unit_separator="", pad=False
         )
         self._max_len = None
         self._compute_max_len()
@@ -652,7 +654,10 @@ class TimeDeltaFormatter:
 
         if self._allow_subsecond and num < 60:
             if self._max_len is not None:
-                if len(result := self._subsecond_formatter.format(seconds)) > self._max_len:
+                if (
+                    len(result := self._subsecond_formatter.format(seconds))
+                    > self._max_len
+                ):
                     # for example, 500ms doesn't fit in the shortest possible
                     # delta string (which is 3 chars), so "<1s" will be returned
                     result = None

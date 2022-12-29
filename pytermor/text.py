@@ -31,7 +31,7 @@ from .utilstr import ljust_sgr, rjust_sgr, center_sgr, wrap_sgr, pad, dump
 @dataclasses.dataclass
 class _Fragment(t.Sized):
     string: str = ""
-    fmt: IColor|Style = NOOP_STYLE
+    fmt: IColor | Style = NOOP_STYLE
     close_this: bool = True
     close_prev: bool = False
 
@@ -78,7 +78,7 @@ class IRenderable(t.Sized, ABC):
         self._renders_cache: t.Dict[IRenderer, str] = dict()
 
     def render(
-        self, renderer: IRenderer|t.Type[IRenderer] = None, stderr: bool = False
+        self, renderer: IRenderer | t.Type[IRenderer] = None, stderr: bool = False
     ) -> str:
         if isinstance(renderer, type):
             renderer = renderer()
@@ -87,7 +87,7 @@ class IRenderable(t.Sized, ABC):
         after_s = time.time_ns() / 1e9
         if not stderr:
             logger.debug(f"Rendered in {format_si_metric((after_s-before_s), 's')}")
-            logger.log(level=5, msg=dump(rendered, 'Dump'))
+            logger.log(level=5, msg=dump(rendered, "Dump"))
         return rendered
 
     def _render(self, renderer: IRenderer) -> str:
@@ -124,7 +124,7 @@ class IRenderable(t.Sized, ABC):
 
 
 class String(IRenderable):
-    def __init__(self, string: str = "", fmt: IColor|Style = NOOP_STYLE):
+    def __init__(self, string: str = "", fmt: IColor | Style = NOOP_STYLE):
         super().__init__()
         self._fragment = _Fragment(string, fmt)
         self._is_frozen = True
@@ -154,11 +154,19 @@ class String(IRenderable):
 
 
 class FixedString(String):
+    """
+    .. todo ::
+
+       store already formatted string right after initialization, and provide
+       it as `raw` when joining several Renderables, or else width limit, padding
+       and aligning simply do not work.
+    """
     def __init__(
         self,
         string: str = "",
-        fmt: IColor|Style = NOOP_STYLE,
+        fmt: IColor | Style = NOOP_STYLE,
         align: Align = Align.LEFT,
+        *,
         width: int = 0,
         pad_left: int = 0,
         pad_right: int = 0,
@@ -238,8 +246,9 @@ class FrozenText(IRenderable):
 
     def __init__(
         self,
-        string: str|IRenderable = "",
-        fmt: IColor|Style = NOOP_STYLE,
+        string: str | IRenderable = "",
+        fmt: IColor | Style = NOOP_STYLE,
+        *,
         close_this: bool = True,
         close_prev: bool = False,
     ):
@@ -256,8 +265,8 @@ class FrozenText(IRenderable):
 
     def _make_fragments(
         self,
-        string: str|IRenderable,
-        fmt: IColor|Style = NOOP_STYLE,
+        string: str | IRenderable,
+        fmt: IColor | Style = NOOP_STYLE,
         close_this: bool = True,
         close_prev: bool = False,
     ) -> t.Sequence[_Fragment]:
@@ -271,7 +280,7 @@ class FrozenText(IRenderable):
 
     def _render_using(self, renderer: IRenderer) -> str:
         result = ""
-        attrs_stack: t.Dict[str, t.List[bool|IColor|None]] = {
+        attrs_stack: t.Dict[str, t.List[bool | IColor | None]] = {
             attr: [None] for attr in Style.renderable_attributes
         }
         for frag in self._fragments:
@@ -407,12 +416,13 @@ class FrozenText(IRenderable):
 class Text(FrozenText):
     def __init__(
         self,
-        string: str|IRenderable = "",
-        fmt: IColor|Style = NOOP_STYLE,
+        string: str | IRenderable = "",
+        fmt: IColor | Style = NOOP_STYLE,
+        *,
         close_this: bool = True,
         close_prev: bool = False,
     ):
-        super().__init__(string, fmt, close_this, close_prev)
+        super().__init__(string, fmt, close_this=close_this, close_prev=close_prev)
         self._is_frozen = False
 
     def __eq__(self, o: IRenderable) -> bool:
@@ -422,8 +432,9 @@ class Text(FrozenText):
 
     def append(
         self,
-        string: str|IRenderable,
-        fmt: IColor|Style = NOOP_STYLE,
+        string: str | IRenderable = "",
+        fmt: IColor | Style = NOOP_STYLE,
+        *,
         close_this: bool = True,
         close_prev: bool = False,
     ) -> Text:
@@ -432,12 +443,15 @@ class Text(FrozenText):
 
     def prepend(
         self,
-        string: str | Text,
-        fmt: IColor|Style = NOOP_STYLE,
+        string: str | Text = "",
+        fmt: IColor | Style = NOOP_STYLE,
+        *,
         close_this: bool = True,
         close_prev: bool = False,
     ) -> Text:
-        self._fragments.extendleft(self._make_fragments(string, fmt, close_this, close_prev))
+        self._fragments.extendleft(
+            self._make_fragments(string, fmt, close_this, close_prev)
+        )
         return self
 
     def __add__(self, other: str | Text) -> Text:
@@ -451,6 +465,7 @@ class Text(FrozenText):
     def __radd__(self, other: str | Text) -> Text:
         self.prepend(other)
         return self
+
 
 # -----------------------------------------------------------------------------
 
@@ -550,7 +565,9 @@ class TemplateEngine:
         for style_attr in tag.style.split(" "):
             if style_attr in self._custom_styles.keys():
                 if base_style != NOOP_STYLE:
-                    raise LogicError(f"Only one custom style per tag is allowed: ({tag.style})")
+                    raise LogicError(
+                        f"Only one custom style per tag is allowed: ({tag.style})"
+                    )
                 base_style = self._custom_styles[style_attr]
                 continue
             if style_attr.startswith("fg=") or style_attr.startswith("bg="):
@@ -568,13 +585,15 @@ _template_engine = TemplateEngine()
 
 def render(
     string: ST | t.Iterable[ST] = "",
-    fmt: IColor|Style = NOOP_STYLE,
+    fmt: IColor | Style = NOOP_STYLE,
     renderer: IRenderer = None,
     parse_template: bool = False,
+    *,
     stderr: bool = False,
 ) -> str | t.List[str]:
     """
     .
+
     :param string:
     :param fmt:
     :param renderer:
@@ -598,7 +617,7 @@ def render(
 
     if isinstance(string, t.Sequence) and not isinstance(string, str):
         debug(f"Rendering as iterable ({len(string)}:d)")
-        return [render(s, fmt, renderer, parse_template, stderr) for s in string]
+        return [render(s, fmt, renderer, parse_template, stderr=stderr) for s in string]
 
     if isinstance(string, IRenderable):
         if fmt == NOOP_STYLE:
@@ -621,9 +640,10 @@ def render(
 
 def echo(
     string: ST | t.Iterable[ST] = "",
-    fmt: IColor|Style = NOOP_STYLE,
+    fmt: IColor | Style = NOOP_STYLE,
     renderer: IRenderer = None,
     parse_template: bool = False,
+    *,
     nl: bool = True,
     file: t.IO = sys.stdout,
     flush: bool = True,
@@ -646,7 +666,7 @@ def echo(
     :param indent_subseq:
     """
     end = "\n" if nl else ""
-    result = render(string, fmt, renderer, parse_template)
+    result = render(string, fmt, renderer, parse_template=parse_template)
 
     if wrap or indent_first or indent_subseq:
         force_width = wrap if isinstance(wrap, int) else None

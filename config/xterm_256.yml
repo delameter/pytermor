@@ -2,1122 +2,1890 @@ class: Color256
 colors:
   - code: 0
     name: "black"
+    aliases:
+      - "color0"
+      - "colour0"
     value: 0x000000
     color16_equiv: BLACK
 
   - code: 1
     name: "maroon"
+    aliases:
+      - "color1"
+      - "colour1"
     value: 0x800000
     color16_equiv: RED
 
   - code: 2
     name: "green"
+    aliases:
+      - "color2"
+      - "colour2"
     value: 0x008000
     color16_equiv: GREEN
 
   - code: 3
     name: "olive"
+    aliases:
+      - "color3"
+      - "colour3"
     value: 0x808000
     color16_equiv: YELLOW
 
   - code: 4
     name: "navy"
+    aliases:
+      - "color4"
+      - "colour4"
     value: 0x000080
     color16_equiv: BLUE
 
   - code: 5
     name: "purple-5"
     original_name: "purple"
+    aliases:
+      - "color5"
+      - "colour5"
     value: 0x800080
     color16_equiv: MAGENTA
 
   - code: 6
     name: "teal"
+    aliases:
+      - "color6"
+      - "colour6"
     value: 0x008080
     color16_equiv: CYAN
 
   - code: 7
     name: "silver"
+    aliases:
+      - "color7"
+      - "colour7"
     value: 0xc0c0c0
     color16_equiv: WHITE
 
   - code: 8
     name: "gray"
+    aliases:
+      - "color8"
+      - "colour8"
     value: 0x808080
     color16_equiv: GRAY
 
   - code: 9
     name: "red"
+    aliases:
+      - "color9"
+      - "colour9"
     value: 0xff0000
     color16_equiv: HI_RED
 
   - code: 10
     name: "lime"
+    aliases:
+      - "color10"
+      - "colour10"
     value: 0x00ff00
     color16_equiv: HI_GREEN
 
   - code: 11
     name: "yellow"
+    aliases:
+      - "color11"
+      - "colour11"
     value: 0xffff00
     color16_equiv: HI_YELLOW
 
   - code: 12
     name: "blue"
+    aliases:
+      - "color12"
+      - "colour12"
     value: 0x0000ff
     color16_equiv: HI_BLUE
 
   - code: 13
     name: "fuchsia"
+    aliases:
+      - "color13"
+      - "colour13"
     value: 0xff00ff
     color16_equiv: HI_MAGENTA
 
   - code: 14
     name: "aqua"
+    aliases:
+      - "color14"
+      - "colour14"
     value: 0x00ffff
     color16_equiv: HI_CYAN
 
   - code: 15
     name: "white"
+    aliases:
+      - "color15"
+      - "colour15"
     value: 0xffffff
     color16_equiv: HI_WHITE
 
   - code: 16
     name: "gray-0"
+    aliases:
+      - "color16"
+      - "colour16"
     value: 0x000000
 
   - code: 17
     name: "navy-blue"
+    aliases:
+      - "color17"
+      - "colour17"
     value: 0x00005f
 
   - code: 18
     name: "dark-blue"
+    aliases:
+      - "color18"
+      - "colour18"
     value: 0x000087
 
   - code: 19
     name: "blue-3"
+    aliases:
+      - "color19"
+      - "colour19"
     value: 0x0000af
 
   - code: 20
     name: "blue-2"
     original_name: "blue-3"
+    aliases:
+      - "color20"
+      - "colour20"
     value: 0x0000d7
 
   - code: 21
     name: "blue-1"
+    aliases:
+      - "color21"
+      - "colour21"
     value: 0x0000ff
 
   - code: 22
     name: "dark-green"
+    aliases:
+      - "color22"
+      - "colour22"
     value: 0x005f00
 
   - code: 23
     name: "deep-sky-blue-7"
     original_name: "deep-sky-blue-4"
+    aliases:
+      - "color23"
+      - "colour23"
     value: 0x005f5f
 
   - code: 24
     name: "deep-sky-blue-6"
     original_name: "deep-sky-blue-4"
+    aliases:
+      - "color24"
+      - "colour24"
     value: 0x005f87
 
   - code: 25
     name: "deep-sky-blue-5"
     original_name: "deep-sky-blue-4"
+    aliases:
+      - "color25"
+      - "colour25"
     value: 0x005faf
 
   - code: 26
     name: "dodger-blue-3"
+    aliases:
+      - "color26"
+      - "colour26"
     value: 0x005fd7
 
   - code: 27
     name: "dodger-blue-2"
+    aliases:
+      - "color27"
+      - "colour27"
     value: 0x005fff
 
   - code: 28
     name: "green-5"
     original_name: "green-4"
+    aliases:
+      - "color28"
+      - "colour28"
     value: 0x008700
 
   - code: 29
     name: "spring-green-4"
+    aliases:
+      - "color29"
+      - "colour29"
     value: 0x00875f
 
   - code: 30
     name: "turquoise-4"
+    aliases:
+      - "color30"
+      - "colour30"
     value: 0x008787
 
   - code: 31
     name: "deep-sky-blue-4"
     original_name: "deep-sky-blue-3"
+    aliases:
+      - "color31"
+      - "colour31"
     value: 0x0087af
 
   - code: 32
     name: "deep-sky-blue-3"
+    aliases:
+      - "color32"
+      - "colour32"
     value: 0x0087d7
 
   - code: 33
     name: "dodger-blue-1"
+    aliases:
+      - "color33"
+      - "colour33"
     value: 0x0087ff
 
   - code: 34
     name: "green-4"
     original_name: "green-3"
+    aliases:
+      - "color34"
+      - "colour34"
     value: 0x00af00
 
   - code: 35
     name: "spring-green-5"
     original_name: "spring-green-3"
+    aliases:
+      - "color35"
+      - "colour35"
     value: 0x00af5f
 
   - code: 36
     name: "dark-cyan"
+    aliases:
+      - "color36"
+      - "colour36"
     value: 0x00af87
 
   - code: 37
     name: "light-sea-green"
+    aliases:
+      - "color37"
+      - "colour37"
     value: 0x00afaf
 
   - code: 38
     name: "deep-sky-blue-2"
+    aliases:
+      - "color38"
+      - "colour38"
     value: 0x00afd7
 
   - code: 39
     name: "deep-sky-blue-1"
+    aliases:
+      - "color39"
+      - "colour39"
     value: 0x00afff
 
   - code: 40
     name: "green-3"
+    aliases:
+      - "color40"
+      - "colour40"
     value: 0x00d700
 
   - code: 41
     name: "spring-green-3"
+    aliases:
+      - "color41"
+      - "colour41"
     value: 0x00d75f
 
   - code: 42
     name: "spring-green-6"
     original_name: "spring-green-2"
+    aliases:
+      - "color42"
+      - "colour42"
     value: 0x00d787
 
   - code: 43
     name: "cyan-3"
+    aliases:
+      - "color43"
+      - "colour43"
     value: 0x00d7af
 
   - code: 44
     name: "dark-turquoise"
+    aliases:
+      - "color44"
+      - "colour44"
     value: 0x00d7d7
 
   - code: 45
     name: "turquoise-2"
+    aliases:
+      - "color45"
+      - "colour45"
     value: 0x00d7ff
 
   - code: 46
     name: "green-2"
     original_name: "green-1"
+    aliases:
+      - "color46"
+      - "colour46"
     value: 0x00ff00
 
   - code: 47
     name: "spring-green-2"
+    aliases:
+      - "color47"
+      - "colour47"
     value: 0x00ff5f
 
   - code: 48
     name: "spring-green-1"
+    aliases:
+      - "color48"
+      - "colour48"
     value: 0x00ff87
 
   - code: 49
     name: "medium-spring-green"
+    aliases:
+      - "color49"
+      - "colour49"
     value: 0x00ffaf
 
   - code: 50
     name: "cyan-2"
+    aliases:
+      - "color50"
+      - "colour50"
     value: 0x00ffd7
 
   - code: 51
     name: "cyan-1"
+    aliases:
+      - "color51"
+      - "colour51"
     value: 0x00ffff
 
   - code: 52
     name: "dark-red-2"
     original_name: "dark-red"
+    aliases:
+      - "color52"
+      - "colour52"
     value: 0x5f0000
 
   - code: 53
     name: "deep-pink-8"
     original_name: "deep-pink-4"
+    aliases:
+      - "color53"
+      - "colour53"
     value: 0x5f005f
 
   - code: 54
     name: "purple-6"
     original_name: "purple-4"
+    aliases:
+      - "color54"
+      - "colour54"
     value: 0x5f0087
 
   - code: 55
     name: "purple-4"
+    aliases:
+      - "color55"
+      - "colour55"
     value: 0x5f00af
 
   - code: 56
     name: "purple-3"
+    aliases:
+      - "color56"
+      - "colour56"
     value: 0x5f00d7
 
   - code: 57
     name: "blue-violet"
+    aliases:
+      - "color57"
+      - "colour57"
     value: 0x5f00ff
 
   - code: 58
     name: "orange-4"
+    aliases:
+      - "color58"
+      - "colour58"
     value: 0x5f5f00
 
   - code: 59
     name: "gray-37"
+    aliases:
+      - "color59"
+      - "colour59"
     value: 0x5f5f5f
 
   - code: 60
     name: "medium-purple-7"
     original_name: "medium-purple-4"
+    aliases:
+      - "color60"
+      - "colour60"
     value: 0x5f5f87
 
   - code: 61
     name: "slate-blue-3"
+    aliases:
+      - "color61"
+      - "colour61"
     value: 0x5f5faf
 
   - code: 62
     name: "slate-blue-2"
     original_name: "slate-blue-3"
+    aliases:
+      - "color62"
+      - "colour62"
     value: 0x5f5fd7
 
   - code: 63
     name: "royal-blue-1"
+    aliases:
+      - "color63"
+      - "colour63"
     value: 0x5f5fff
 
   - code: 64
     name: "chartreuse-6"
     original_name: "chartreuse-4"
+    aliases:
+      - "color64"
+      - "colour64"
     value: 0x5f8700
 
   - code: 65
     name: "dark-sea-green-9"
     original_name: "dark-sea-green-4"
+    aliases:
+      - "color65"
+      - "colour65"
     value: 0x5f875f
 
   - code: 66
     name: "pale-turquoise-4"
+    aliases:
+      - "color66"
+      - "colour66"
     value: 0x5f8787
 
   - code: 67
     name: "steel-blue"
+    aliases:
+      - "color67"
+      - "colour67"
     value: 0x5f87af
 
   - code: 68
     name: "steel-blue-3"
+    aliases:
+      - "color68"
+      - "colour68"
     value: 0x5f87d7
 
   - code: 69
     name: "cornflower-blue"
+    aliases:
+      - "color69"
+      - "colour69"
     value: 0x5f87ff
 
   - code: 70
     name: "chartreuse-5"
     original_name: "chartreuse-3"
+    aliases:
+      - "color70"
+      - "colour70"
     value: 0x5faf00
 
   - code: 71
     name: "dark-sea-green-8"
     original_name: "dark-sea-green-4"
+    aliases:
+      - "color71"
+      - "colour71"
     value: 0x5faf5f
 
   - code: 72
     name: "cadet-blue-2"
     original_name: "cadet-blue"
+    aliases:
+      - "color72"
+      - "colour72"
     value: 0x5faf87
 
   - code: 73
     name: "cadet-blue"
+    aliases:
+      - "color73"
+      - "colour73"
     value: 0x5fafaf
 
   - code: 74
     name: "sky-blue-3"
+    aliases:
+      - "color74"
+      - "colour74"
     value: 0x5fafd7
 
   - code: 75
     name: "steel-blue-2"
     original_name: "steel-blue-1"
+    aliases:
+      - "color75"
+      - "colour75"
     value: 0x5fafff
 
   - code: 76
     name: "chartreuse-4"
     original_name: "chartreuse-3"
+    aliases:
+      - "color76"
+      - "colour76"
     value: 0x5fd700
 
   - code: 77
     name: "pale-green-4"
     original_name: "pale-green-3"
+    aliases:
+      - "color77"
+      - "colour77"
     value: 0x5fd75f
 
   - code: 78
     name: "sea-green-3"
+    aliases:
+      - "color78"
+      - "colour78"
     value: 0x5fd787
 
   - code: 79
     name: "aquamarine-3"
+    aliases:
+      - "color79"
+      - "colour79"
     value: 0x5fd7af
 
   - code: 80
     name: "medium-turquoise"
+    aliases:
+      - "color80"
+      - "colour80"
     value: 0x5fd7d7
 
   - code: 81
     name: "steel-blue-1"
+    aliases:
+      - "color81"
+      - "colour81"
     value: 0x5fd7ff
 
   - code: 82
     name: "chartreuse-2"
+    aliases:
+      - "color82"
+      - "colour82"
     value: 0x5fff00
 
   - code: 83
     name: "sea-green-4"
     original_name: "sea-green-2"
+    aliases:
+      - "color83"
+      - "colour83"
     value: 0x5fff5f
 
   - code: 84
     name: "sea-green-2"
     original_name: "sea-green-1"
+    aliases:
+      - "color84"
+      - "colour84"
     value: 0x5fff87
 
   - code: 85
     name: "sea-green-1"
+    aliases:
+      - "color85"
+      - "colour85"
     value: 0x5fffaf
 
   - code: 86
     name: "aquamarine-2"
     original_name: "aquamarine-1"
+    aliases:
+      - "color86"
+      - "colour86"
     value: 0x5fffd7
 
   - code: 87
     name: "dark-slate-gray-2"
+    aliases:
+      - "color87"
+      - "colour87"
     value: 0x5fffff
 
   - code: 88
     name: "dark-red"
+    aliases:
+      - "color88"
+      - "colour88"
     value: 0x870000
 
   - code: 89
     name: "deep-pink-7"
     original_name: "deep-pink-4"
+    aliases:
+      - "color89"
+      - "colour89"
     value: 0x87005f
 
   - code: 90
     name: "dark-magenta-2"
     original_name: "dark-magenta"
+    aliases:
+      - "color90"
+      - "colour90"
     value: 0x870087
 
   - code: 91
     name: "dark-magenta"
+    aliases:
+      - "color91"
+      - "colour91"
     value: 0x8700af
 
   - code: 92
     name: "dark-violet-2"
     original_name: "dark-violet"
+    aliases:
+      - "color92"
+      - "colour92"
     value: 0x8700d7
 
   - code: 93
     name: "purple-2"
     original_name: "purple"
+    aliases:
+      - "color93"
+      - "colour93"
     value: 0x8700ff
 
   - code: 94
     name: "orange-3"
     original_name: "orange-4"
+    aliases:
+      - "color94"
+      - "colour94"
     value: 0x875f00
 
   - code: 95
     name: "light-pink-3"
     original_name: "light-pink-4"
+    aliases:
+      - "color95"
+      - "colour95"
     value: 0x875f5f
 
   - code: 96
     name: "plum-4"
+    aliases:
+      - "color96"
+      - "colour96"
     value: 0x875f87
 
   - code: 97
     name: "medium-purple-6"
     original_name: "medium-purple-3"
+    aliases:
+      - "color97"
+      - "colour97"
     value: 0x875faf
 
   - code: 98
     name: "medium-purple-5"
     original_name: "medium-purple-3"
+    aliases:
+      - "color98"
+      - "colour98"
     value: 0x875fd7
 
   - code: 99
     name: "slate-blue-1"
+    aliases:
+      - "color99"
+      - "colour99"
     value: 0x875fff
 
   - code: 100
     name: "yellow-6"
     original_name: "yellow-4"
+    aliases:
+      - "color100"
+      - "colour100"
     value: 0x878700
 
   - code: 101
     name: "wheat-4"
+    aliases:
+      - "color101"
+      - "colour101"
     value: 0x87875f
 
   - code: 102
     name: "gray-53"
+    aliases:
+      - "color102"
+      - "colour102"
     value: 0x878787
 
   - code: 103
     name: "light-slate-gray"
+    aliases:
+      - "color103"
+      - "colour103"
     value: 0x8787af
 
   - code: 104
     name: "medium-purple-4"
     original_name: "medium-purple"
+    aliases:
+      - "color104"
+      - "colour104"
     value: 0x8787d7
 
   - code: 105
     name: "light-slate-blue"
+    aliases:
+      - "color105"
+      - "colour105"
     value: 0x8787ff
 
   - code: 106
     name: "yellow-4"
+    aliases:
+      - "color106"
+      - "colour106"
     value: 0x87af00
 
   - code: 107
     name: "dark-olive-green-6"
     original_name: "dark-olive-green-3"
+    aliases:
+      - "color107"
+      - "colour107"
     value: 0x87af5f
 
   - code: 108
     name: "dark-sea-green-7"
     original_name: "dark-sea-green"
+    aliases:
+      - "color108"
+      - "colour108"
     value: 0x87af87
 
   - code: 109
     name: "light-sky-blue-3"
+    aliases:
+      - "color109"
+      - "colour109"
     value: 0x87afaf
 
   - code: 110
     name: "light-sky-blue-2"
     original_name: "light-sky-blue-3"
+    aliases:
+      - "color110"
+      - "colour110"
     value: 0x87afd7
 
   - code: 111
     name: "sky-blue-2"
+    aliases:
+      - "color111"
+      - "colour111"
     value: 0x87afff
 
   - code: 112
     name: "chartreuse-3"
     original_name: "chartreuse-2"
+    aliases:
+      - "color112"
+      - "colour112"
     value: 0x87d700
 
   - code: 113
     name: "dark-olive-green-4"
     original_name: "dark-olive-green-3"
+    aliases:
+      - "color113"
+      - "colour113"
     value: 0x87d75f
 
   - code: 114
     name: "pale-green-3"
+    aliases:
+      - "color114"
+      - "colour114"
     value: 0x87d787
 
   - code: 115
     name: "dark-sea-green-5"
     original_name: "dark-sea-green-3"
+    aliases:
+      - "color115"
+      - "colour115"
     value: 0x87d7af
 
   - code: 116
     name: "dark-slate-gray-3"
+    aliases:
+      - "color116"
+      - "colour116"
     value: 0x87d7d7
 
   - code: 117
     name: "sky-blue-1"
+    aliases:
+      - "color117"
+      - "colour117"
     value: 0x87d7ff
 
   - code: 118
     name: "chartreuse-1"
+    aliases:
+      - "color118"
+      - "colour118"
     value: 0x87ff00
 
   - code: 119
     name: "light-green-2"
     original_name: "light-green"
+    aliases:
+      - "color119"
+      - "colour119"
     value: 0x87ff5f
 
   - code: 120
     name: "light-green"
+    aliases:
+      - "color120"
+      - "colour120"
     value: 0x87ff87
 
   - code: 121
     name: "pale-green-1"
+    aliases:
+      - "color121"
+      - "colour121"
     value: 0x87ffaf
 
   - code: 122
     name: "aquamarine-1"
+    aliases:
+      - "color122"
+      - "colour122"
     value: 0x87ffd7
 
   - code: 123
     name: "dark-slate-gray-1"
+    aliases:
+      - "color123"
+      - "colour123"
     value: 0x87ffff
 
   - code: 124
     name: "red-4"
     original_name: "red-3"
+    aliases:
+      - "color124"
+      - "colour124"
     value: 0xaf0000
 
   - code: 125
     name: "deep-pink-6"
     original_name: "deep-pink-4"
+    aliases:
+      - "color125"
+      - "colour125"
     value: 0xaf005f
 
   - code: 126
     name: "medium-violet-red"
+    aliases:
+      - "color126"
+      - "colour126"
     value: 0xaf0087
 
   - code: 127
     name: "magenta-6"
     original_name: "magenta-3"
+    aliases:
+      - "color127"
+      - "colour127"
     value: 0xaf00af
 
   - code: 128
     name: "dark-violet"
+    aliases:
+      - "color128"
+      - "colour128"
     value: 0xaf00d7
 
   - code: 129
     name: "purple"
+    aliases:
+      - "color129"
+      - "colour129"
     value: 0xaf00ff
 
   - code: 130
     name: "dark-orange-3"
+    aliases:
+      - "color130"
+      - "colour130"
     value: 0xaf5f00
 
   - code: 131
     name: "indian-red-4"
     original_name: "indian-red"
+    aliases:
+      - "color131"
+      - "colour131"
     value: 0xaf5f5f
 
   - code: 132
     name: "hot-pink-5"
     original_name: "hot-pink-3"
+    aliases:
+      - "color132"
+      - "colour132"
     value: 0xaf5f87
 
   - code: 133
     name: "medium-orchid-4"
     original_name: "medium-orchid-3"
+    aliases:
+      - "color133"
+      - "colour133"
     value: 0xaf5faf
 
   - code: 134
     name: "medium-orchid-3"
     original_name: "medium-orchid"
+    aliases:
+      - "color134"
+      - "colour134"
     value: 0xaf5fd7
 
   - code: 135
     name: "medium-purple-2"
+    aliases:
+      - "color135"
+      - "colour135"
     value: 0xaf5fff
 
   - code: 136
     name: "dark-goldenrod"
+    aliases:
+      - "color136"
+      - "colour136"
     value: 0xaf8700
 
   - code: 137
     name: "light-salmon-3"
+    aliases:
+      - "color137"
+      - "colour137"
     value: 0xaf875f
 
   - code: 138
     name: "rosy-brown"
+    aliases:
+      - "color138"
+      - "colour138"
     value: 0xaf8787
 
   - code: 139
     name: "gray-63"
+    aliases:
+      - "color139"
+      - "colour139"
     value: 0xaf87af
 
   - code: 140
     name: "medium-purple-3"
     original_name: "medium-purple-2"
+    aliases:
+      - "color140"
+      - "colour140"
     value: 0xaf87d7
 
   - code: 141
     name: "medium-purple-1"
+    aliases:
+      - "color141"
+      - "colour141"
     value: 0xaf87ff
 
   - code: 142
     name: "gold-3"
+    aliases:
+      - "color142"
+      - "colour142"
     value: 0xafaf00
 
   - code: 143
     name: "dark-khaki"
+    aliases:
+      - "color143"
+      - "colour143"
     value: 0xafaf5f
 
   - code: 144
     name: "navajo-white-3"
+    aliases:
+      - "color144"
+      - "colour144"
     value: 0xafaf87
 
   - code: 145
     name: "gray-69"
+    aliases:
+      - "color145"
+      - "colour145"
     value: 0xafafaf
 
   - code: 146
     name: "light-steel-blue-3"
+    aliases:
+      - "color146"
+      - "colour146"
     value: 0xafafd7
 
   - code: 147
     name: "light-steel-blue-2"
     original_name: "light-steel-blue"
+    aliases:
+      - "color147"
+      - "colour147"
     value: 0xafafff
 
   - code: 148
     name: "yellow-5"
     original_name: "yellow-3"
+    aliases:
+      - "color148"
+      - "colour148"
     value: 0xafd700
 
   - code: 149
     name: "dark-olive-green-5"
     original_name: "dark-olive-green-3"
+    aliases:
+      - "color149"
+      - "colour149"
     value: 0xafd75f
 
   - code: 150
     name: "dark-sea-green-6"
     original_name: "dark-sea-green-3"
+    aliases:
+      - "color150"
+      - "colour150"
     value: 0xafd787
 
   - code: 151
     name: "dark-sea-green-4"
     original_name: "dark-sea-green-2"
+    aliases:
+      - "color151"
+      - "colour151"
     value: 0xafd7af
 
   - code: 152
     name: "light-cyan-3"
+    aliases:
+      - "color152"
+      - "colour152"
     value: 0xafd7d7
 
   - code: 153
     name: "light-sky-blue-1"
+    aliases:
+      - "color153"
+      - "colour153"
     value: 0xafd7ff
 
   - code: 154
     name: "green-yellow"
+    aliases:
+      - "color154"
+      - "colour154"
     value: 0xafff00
 
   - code: 155
     name: "dark-olive-green-3"
     original_name: "dark-olive-green-2"
+    aliases:
+      - "color155"
+      - "colour155"
     value: 0xafff5f
 
   - code: 156
     name: "pale-green-2"
     original_name: "pale-green-1"
+    aliases:
+      - "color156"
+      - "colour156"
     value: 0xafff87
 
   - code: 157
     name: "dark-sea-green-3"
     original_name: "dark-sea-green-2"
+    aliases:
+      - "color157"
+      - "colour157"
     value: 0xafffaf
 
   - code: 158
     name: "dark-sea-green-1"
+    aliases:
+      - "color158"
+      - "colour158"
     value: 0xafffd7
 
   - code: 159
     name: "pale-turquoise-1"
+    aliases:
+      - "color159"
+      - "colour159"
     value: 0xafffff
 
   - code: 160
     name: "red-3"
+    aliases:
+      - "color160"
+      - "colour160"
     value: 0xd70000
 
   - code: 161
     name: "deep-pink-5"
     original_name: "deep-pink-3"
+    aliases:
+      - "color161"
+      - "colour161"
     value: 0xd7005f
 
   - code: 162
     name: "deep-pink-3"
+    aliases:
+      - "color162"
+      - "colour162"
     value: 0xd70087
 
   - code: 163
     name: "magenta-3"
+    aliases:
+      - "color163"
+      - "colour163"
     value: 0xd700af
 
   - code: 164
     name: "magenta-5"
     original_name: "magenta-3"
+    aliases:
+      - "color164"
+      - "colour164"
     value: 0xd700d7
 
   - code: 165
     name: "magenta-4"
     original_name: "magenta-2"
+    aliases:
+      - "color165"
+      - "colour165"
     value: 0xd700ff
 
   - code: 166
     name: "dark-orange-2"
     original_name: "dark-orange-3"
+    aliases:
+      - "color166"
+      - "colour166"
     value: 0xd75f00
 
   - code: 167
     name: "indian-red-3"
     original_name: "indian-red"
+    aliases:
+      - "color167"
+      - "colour167"
     value: 0xd75f5f
 
   - code: 168
     name: "hot-pink-4"
     original_name: "hot-pink-3"
+    aliases:
+      - "color168"
+      - "colour168"
     value: 0xd75f87
 
   - code: 169
     name: "hot-pink-3"
     original_name: "hot-pink-2"
+    aliases:
+      - "color169"
+      - "colour169"
     value: 0xd75faf
 
   - code: 170
     name: "orchid-3"
     original_name: "orchid"
+    aliases:
+      - "color170"
+      - "colour170"
     value: 0xd75fd7
 
   - code: 171
     name: "medium-orchid-2"
     original_name: "medium-orchid-1"
+    aliases:
+      - "color171"
+      - "colour171"
     value: 0xd75fff
 
   - code: 172
     name: "orange-2"
     original_name: "orange-3"
+    aliases:
+      - "color172"
+      - "colour172"
     value: 0xd78700
 
   - code: 173
     name: "light-salmon-2"
     original_name: "light-salmon-3"
+    aliases:
+      - "color173"
+      - "colour173"
     value: 0xd7875f
 
   - code: 174
     name: "light-pink-2"
     original_name: "light-pink-3"
+    aliases:
+      - "color174"
+      - "colour174"
     value: 0xd78787
 
   - code: 175
     name: "pink-3"
+    aliases:
+      - "color175"
+      - "colour175"
     value: 0xd787af
 
   - code: 176
     name: "plum-3"
+    aliases:
+      - "color176"
+      - "colour176"
     value: 0xd787d7
 
   - code: 177
     name: "violet"
+    aliases:
+      - "color177"
+      - "colour177"
     value: 0xd787ff
 
   - code: 178
     name: "gold-2"
     original_name: "gold-3"
+    aliases:
+      - "color178"
+      - "colour178"
     value: 0xd7af00
 
   - code: 179
     name: "light-goldenrod-5"
     original_name: "light-goldenrod-3"
+    aliases:
+      - "color179"
+      - "colour179"
     value: 0xd7af5f
 
   - code: 180
     name: "tan"
+    aliases:
+      - "color180"
+      - "colour180"
     value: 0xd7af87
 
   - code: 181
     name: "misty-rose-3"
+    aliases:
+      - "color181"
+      - "colour181"
     value: 0xd7afaf
 
   - code: 182
     name: "thistle-3"
+    aliases:
+      - "color182"
+      - "colour182"
     value: 0xd7afd7
 
   - code: 183
     name: "plum-2"
+    aliases:
+      - "color183"
+      - "colour183"
     value: 0xd7afff
 
   - code: 184
     name: "yellow-3"
+    aliases:
+      - "color184"
+      - "colour184"
     value: 0xd7d700
 
   - code: 185
     name: "khaki-3"
+    aliases:
+      - "color185"
+      - "colour185"
     value: 0xd7d75f
 
   - code: 186
     name: "light-goldenrod-3"
     original_name: "light-goldenrod-2"
+    aliases:
+      - "color186"
+      - "colour186"
     value: 0xd7d787
 
   - code: 187
     name: "light-yellow-3"
+    aliases:
+      - "color187"
+      - "colour187"
     value: 0xd7d7af
 
   - code: 188
     name: "gray-84"
+    aliases:
+      - "color188"
+      - "colour188"
     value: 0xd7d7d7
 
   - code: 189
     name: "light-steel-blue-1"
+    aliases:
+      - "color189"
+      - "colour189"
     value: 0xd7d7ff
 
   - code: 190
     name: "yellow-2"
+    aliases:
+      - "color190"
+      - "colour190"
     value: 0xd7ff00
 
   - code: 191
     name: "dark-olive-green-2"
     original_name: "dark-olive-green-1"
+    aliases:
+      - "color191"
+      - "colour191"
     value: 0xd7ff5f
 
   - code: 192
     name: "dark-olive-green-1"
+    aliases:
+      - "color192"
+      - "colour192"
     value: 0xd7ff87
 
   - code: 193
     name: "dark-sea-green-2"
     original_name: "dark-sea-green-1"
+    aliases:
+      - "color193"
+      - "colour193"
     value: 0xd7ffaf
 
   - code: 194
     name: "honeydew-2"
+    aliases:
+      - "color194"
+      - "colour194"
     value: 0xd7ffd7
 
   - code: 195
     name: "light-cyan-1"
+    aliases:
+      - "color195"
+      - "colour195"
     value: 0xd7ffff
 
   - code: 196
     name: "red-1"
+    aliases:
+      - "color196"
+      - "colour196"
     value: 0xff0000
 
   - code: 197
     name: "deep-pink-4"
     original_name: "deep-pink-2"
+    aliases:
+      - "color197"
+      - "colour197"
     value: 0xff005f
 
   - code: 198
     name: "deep-pink-2"
     original_name: "deep-pink-1"
+    aliases:
+      - "color198"
+      - "colour198"
     value: 0xff0087
 
   - code: 199
     name: "deep-pink-1"
+    aliases:
+      - "color199"
+      - "colour199"
     value: 0xff00af
 
   - code: 200
     name: "magenta-2"
+    aliases:
+      - "color200"
+      - "colour200"
     value: 0xff00d7
 
   - code: 201
     name: "magenta-1"
+    aliases:
+      - "color201"
+      - "colour201"
     value: 0xff00ff
 
   - code: 202
     name: "orange-red-1"
+    aliases:
+      - "color202"
+      - "colour202"
     value: 0xff5f00
 
   - code: 203
     name: "indian-red-1"
+    aliases:
+      - "color203"
+      - "colour203"
     value: 0xff5f5f
 
   - code: 204
     name: "indian-red-2"
     original_name: "indian-red-1"
+    aliases:
+      - "color204"
+      - "colour204"
     value: 0xff5f87
 
   - code: 205
     name: "hot-pink-2"
     original_name: "hot-pink"
+    aliases:
+      - "color205"
+      - "colour205"
     value: 0xff5faf
 
   - code: 206
     name: "hot-pink"
+    aliases:
+      - "color206"
+      - "colour206"
     value: 0xff5fd7
 
   - code: 207
     name: "medium-orchid-1"
+    aliases:
+      - "color207"
+      - "colour207"
     value: 0xff5fff
 
   - code: 208
     name: "dark-orange"
+    aliases:
+      - "color208"
+      - "colour208"
     value: 0xff8700
 
   - code: 209
     name: "salmon-1"
+    aliases:
+      - "color209"
+      - "colour209"
     value: 0xff875f
 
   - code: 210
     name: "light-coral"
+    aliases:
+      - "color210"
+      - "colour210"
     value: 0xff8787
 
   - code: 211
     name: "pale-violet-red-1"
+    aliases:
+      - "color211"
+      - "colour211"
     value: 0xff87af
 
   - code: 212
     name: "orchid-2"
+    aliases:
+      - "color212"
+      - "colour212"
     value: 0xff87d7
 
   - code: 213
     name: "orchid-1"
+    aliases:
+      - "color213"
+      - "colour213"
     value: 0xff87ff
 
   - code: 214
     name: "orange-1"
+    aliases:
+      - "color214"
+      - "colour214"
     value: 0xffaf00
 
   - code: 215
     name: "sandy-brown"
+    aliases:
+      - "color215"
+      - "colour215"
     value: 0xffaf5f
 
   - code: 216
     name: "light-salmon-1"
+    aliases:
+      - "color216"
+      - "colour216"
     value: 0xffaf87
 
   - code: 217
     name: "light-pink-1"
+    aliases:
+      - "color217"
+      - "colour217"
     value: 0xffafaf
 
   - code: 218
     name: "pink-1"
+    aliases:
+      - "color218"
+      - "colour218"
     value: 0xffafd7
 
   - code: 219
     name: "plum-1"
+    aliases:
+      - "color219"
+      - "colour219"
     value: 0xffafff
 
   - code: 220
     name: "gold-1"
+    aliases:
+      - "color220"
+      - "colour220"
     value: 0xffd700
 
   - code: 221
     name: "light-goldenrod-4"
     original_name: "light-goldenrod-2"
+    aliases:
+      - "color221"
+      - "colour221"
     value: 0xffd75f
 
   - code: 222
     name: "light-goldenrod-2"
+    aliases:
+      - "color222"
+      - "colour222"
     value: 0xffd787
 
   - code: 223
     name: "navajo-white-1"
+    aliases:
+      - "color223"
+      - "colour223"
     value: 0xffd7af
 
   - code: 224
     name: "misty-rose-1"
+    aliases:
+      - "color224"
+      - "colour224"
     value: 0xffd7d7
 
   - code: 225
     name: "thistle-1"
+    aliases:
+      - "color225"
+      - "colour225"
     value: 0xffd7ff
 
   - code: 226
     name: "yellow-1"
+    aliases:
+      - "color226"
+      - "colour226"
     value: 0xffff00
 
   - code: 227
     name: "light-goldenrod-1"
+    aliases:
+      - "color227"
+      - "colour227"
     value: 0xffff5f
 
   - code: 228
     name: "khaki-1"
+    aliases:
+      - "color228"
+      - "colour228"
     value: 0xffff87
 
   - code: 229
     name: "wheat-1"
+    aliases:
+      - "color229"
+      - "colour229"
     value: 0xffffaf
 
   - code: 230
     name: "cornsilk-1"
+    aliases:
+      - "color230"
+      - "colour230"
     value: 0xffffd7
 
   - code: 231
     name: "gray-100"
+    aliases:
+      - "color231"
+      - "colour231"
     value: 0xffffff
 
   - code: 232
     name: "gray-3"
+    aliases:
+      - "color232"
+      - "colour232"
     value: 0x080808
 
   - code: 233
     name: "gray-7"
+    aliases:
+      - "color233"
+      - "colour233"
     value: 0x121212
 
   - code: 234
     name: "gray-11"
+    aliases:
+      - "color234"
+      - "colour234"
     value: 0x1c1c1c
 
   - code: 235
     name: "gray-15"
+    aliases:
+      - "color235"
+      - "colour235"
     value: 0x262626
 
   - code: 236
     name: "gray-19"
+    aliases:
+      - "color236"
+      - "colour236"
     value: 0x303030
 
   - code: 237
     name: "gray-23"
+    aliases:
+      - "color237"
+      - "colour237"
     value: 0x3a3a3a
 
   - code: 238
     name: "gray-27"
+    aliases:
+      - "color238"
+      - "colour238"
     value: 0x444444
 
   - code: 239
     name: "gray-30"
+    aliases:
+      - "color239"
+      - "colour239"
     value: 0x4e4e4e
 
   - code: 240
     name: "gray-35"
+    aliases:
+      - "color240"
+      - "colour240"
     value: 0x585858
 
   - code: 241
     name: "gray-39"
+    aliases:
+      - "color241"
+      - "colour241"
     value: 0x626262
 
   - code: 242
     name: "gray-42"
+    aliases:
+      - "color242"
+      - "colour242"
     value: 0x6c6c6c
 
   - code: 243
     name: "gray-46"
+    aliases:
+      - "color243"
+      - "colour243"
     value: 0x767676
 
   - code: 244
     name: "gray-50"
+    aliases:
+      - "color244"
+      - "colour244"
     value: 0x808080
 
   - code: 245
     name: "gray-54"
+    aliases:
+      - "color245"
+      - "colour245"
     value: 0x8a8a8a
 
   - code: 246
     name: "gray-58"
+    aliases:
+      - "color246"
+      - "colour246"
     value: 0x949494
 
   - code: 247
     name: "gray-62"
+    aliases:
+      - "color247"
+      - "colour247"
     value: 0x9e9e9e
 
   - code: 248
     name: "gray-66"
+    aliases:
+      - "color248"
+      - "colour248"
     value: 0xa8a8a8
 
   - code: 249
     name: "gray-70"
+    aliases:
+      - "color249"
+      - "colour249"
     value: 0xb2b2b2
 
   - code: 250
     name: "gray-74"
+    aliases:
+      - "color250"
+      - "colour250"
     value: 0xbcbcbc
 
   - code: 251
     name: "gray-78"
+    aliases:
+      - "color251"
+      - "colour251"
     value: 0xc6c6c6
 
   - code: 252
     name: "gray-82"
+    aliases:
+      - "color252"
+      - "colour252"
     value: 0xd0d0d0
 
   - code: 253
     name: "gray-85"
+    aliases:
+      - "color253"
+      - "colour253"
     value: 0xdadada
 
   - code: 254
     name: "gray-89"
+    aliases:
+      - "color254"
+      - "colour254"
     value: 0xe4e4e4
 
   - code: 255
     name: "gray-93"
+    aliases:
+      - "color255"
+      - "colour255"
     value: 0xeeeeee

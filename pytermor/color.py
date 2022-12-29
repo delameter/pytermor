@@ -146,6 +146,8 @@ class IColor(ABC):
 
     @classmethod
     def __new__(cls, *args, **kwargs):
+        # @TODO find a way to provide a correct constructor signature
+        #       for Color256 etc. instead of this one (for sphinx)
         # fmt: off
         if not hasattr(cls, "_registry"):     cls._registry = _ColorRegistry[cls]()
         if not hasattr(cls, "_index"):        cls._index = _ColorIndex[cls]()
@@ -154,15 +156,13 @@ class IColor(ABC):
         # fmt: on
 
     def __init__(self, hex_value: int, name: str = None):
+        if hex_value < 0 or hex_value > 0xFFFFFF:
+            raise ValueError(f"Out of bounds hex value {hex_value:06X}, should be: 0x0 <= hex_value <= 0xFFFFFF")
         self._hex_value: int = hex_value
         self._name: str | None = name
 
     def _post_init(
-        self: CT,
-        code: int | None,
-        register: bool,
-        index: bool,
-        aliases: t.List[str],
+        self: CT, code: int | None, register: bool, index: bool, aliases: t.List[str]
     ):
         if register:
             self._register_names(aliases)
@@ -207,12 +207,12 @@ class IColor(ABC):
 
     @property
     def hex_value(self) -> int:
-        """ Color value, e.g. 0x3AEB0C. """
+        """Color value, e.g. 0x3AEB0C."""
         return self._hex_value
 
     @property
     def name(self) -> str | None:
-        """ Color name, e.g. "navy-blue". """
+        """Color name, e.g. "navy-blue"."""
         return self._name
 
     def _repr(self, *params: t.Any) -> str:  # pragma: no cover
@@ -268,7 +268,9 @@ class IColor(ABC):
         :param name:  `Color` name to search for.
         """
         if not hasattr(cls, "_registry"):
-            raise LogicError("Registry is empty. Did you call an abstract class' method?")
+            raise LogicError(
+                "Registry is empty. Did you call an abstract class' method?"
+            )
         return cls._registry.resolve(name)
 
     @classmethod
@@ -332,6 +334,11 @@ class Color16(IColor):
     This variant of a `Color` operates within the most basic color set
     -- **Xterm-16**. Represents basic color-setting SGRs with primary codes
     30-37, 40-47, 90-97 and 100-107 (see `guide.presets.color16`).
+    
+    .. note ::
+
+        Arguments ``register``, ``index`` and ``aliases``
+        are *kwonly*\ -type args.
 
     :param hex_value: Color RGB value, e.g. 0x800000.
     :param code_fg:   Int code for a foreground color setup, e.g. 30.
@@ -348,6 +355,7 @@ class Color16(IColor):
         code_fg: int,
         code_bg: int,
         name: str = None,
+        *,
         register: bool = False,
         index: bool = False,
         aliases: t.List[str] = None,
@@ -359,12 +367,12 @@ class Color16(IColor):
 
     @property
     def code_fg(self) -> int:
-        """ Int code for a foreground color setup, e.g. 30. """
+        """Int code for a foreground color setup, e.g. 30."""
         return self._code_fg
 
     @property
     def code_bg(self) -> int:
-        """ Int code for a background color setup. e.g. 40. """
+        """Int code for a background color setup. e.g. 40."""
         return self._code_bg
 
     @classmethod
@@ -421,13 +429,19 @@ class Color256(IColor):
     indexed color table. Represents SGR complex codes ``38;5;*`` and ``48;5;*``
     (see `guide.presets.color256`).
 
+    .. note ::
+
+        Arguments ``register``, ``index``, ``aliases`` and ``color16_equiv``
+        are *kwonly*\ -type args.
+
     :param hex_value: Color RGB value, e.g. 0x5f0000.
     :param code:      Int code for a color setup, e.g. 52.
     :param name:      Name of the color, e.g. "dark-red".
     :param register:  If *True*, add color to registry for resolving by name.
     :param index:     If *True*, add color to approximation index.
-    :param color16_equiv:  `Color16` counterpart (applies only to codes 0-15).
     :param aliases:   Alternative color names (used in `resolve()`).
+    :param color16_equiv:
+                      `Color16` counterpart (applies only to codes 0-15).
     """
 
     def __init__(
@@ -435,10 +449,11 @@ class Color256(IColor):
         hex_value: int,
         code: int,
         name: str = None,
+        *,
         register: bool = False,
         index: bool = False,
-        color16_equiv: Color16 = None,
         aliases: t.List[str] = None,
+        color16_equiv: Color16 = None,
     ):
         super().__init__(hex_value, name)
         self._code: int | None = code
@@ -488,7 +503,7 @@ class Color256(IColor):
 
     @property
     def code(self) -> int:
-        """ Int code for a color setup, e.g. 52. """
+        """Int code for a color setup, e.g. 52."""
         return self._code
 
     @classmethod
@@ -518,19 +533,26 @@ class ColorRGB(IColor):
     selection (see `guide.named-colors`). However, it's not limited to aforementioned
     color list and can be easily extended.
 
+    .. note ::
+
+        Arguments ``register``, ``index``, ``aliases`` and ``variation_map``
+        are *kwonly*\ -type args.
+
+
     :param hex_value: Color RGB value, e.g. 0x73a9c2.
     :param name:      Name of the color, e.g. "moonstone-blue".
     :param register:  If *True*, add color to registry for resolving by name.
     :param index:     If *True*, add color to approximation index.
     :param aliases:   Alternative color names (used in `resolve()`).
-    :param variation_map: Mapping {*int*: *str*}, where keys are hex values, and
-                          values are variation names.
+    :param variation_map: Mapping {*int*: *str*}, where keys are hex values,
+                          and values are variation names.
     """
 
     def __init__(
         self,
         hex_value: int,
         name: str = None,
+        *,
         register: bool = False,
         index: bool = False,
         aliases: t.List[str] = None,
@@ -561,7 +583,7 @@ class ColorRGB(IColor):
 
     @property
     def base(self) -> CT | None:
-        """ Parent color for color variations. Empty for regular colors.  """
+        """Parent color for color variations. Empty for regular colors."""
         return self._base
 
     @property
@@ -603,46 +625,73 @@ Special `Color` instance always rendering into empty string.
 """
 
 
-def resolve(name: str, color_type: t.Type[CT] = None) -> CT:
+def resolve(subject: str | int, color_type: t.Type[CT] = None) -> CT:
     """
     Case-insensitive search through registry contents. Search is performed for
-    `Color` instance of specified ``color_type``, or in all three available registries
-    if argument is omitted: first it will be performed in the registry of `Color16`
-    class, then -- in `Color256`, and, if previous two were unsuccessful, in the
-    largest `ColorRGB` registry. Therefore, the return value could be any of these types.
+    `Color` instance named as specified in ``subject`` argument, and of specified
+    ``color_type``, or for any type if argument is omitted: first it will be performed
+    in the registry of `Color16` class, then -- in `Color256`, and, if previous two
+    were unsuccessful, in the largest `ColorRGB` registry. Therefore, the return value
+    could be any of these types:
 
-    Color names stored in registries as tokens, which allows to use any form of
-    input and get the correct result regardless:
+        >>> resolve('red')
+        <Color16[#31,800000?,red]>
 
-    >>> resolve('deep-sky-blue-7')
-    <Color256[#23,005F5F,deep-sky-blue-7]>
-    >>> resolve('DEEP_SKY_BLUE_7')
-    <Color256[#23,005F5F,deep-sky-blue-7]>
-    >>> resolve('DeepSkyBlue7')
-    <Color256[#23,005F5F,deep-sky-blue-7]>
+    If ``color_type`` is `ColorRGB` or if it is omitted, there is one more way
+    to specify a color: in form of a hexadecimal value "#RRGGBB" (or in short form, as
+    "#RGB"), as well as just use an *int* in [0x0; 0xFFFFFF] range. In this case no
+    actual searching is performed, and a new nameless instance of `ColorRGB` is
+    created and returned.
 
-    The only requirement is to split the words in any matter, so that tokenizer
-    could distinguish the words from each other:
+        >>> resolve("#333")
+        <ColorRGB[333333]>
+        >>> resolve(0xfafef0)
+        <ColorRGB[FAFEF0]>
 
-    >>> try:
-    ...     resolve('deepskyblue7')
-    ... except LookupError as e:
-    ...     print(e)
-    Color 'deepskyblue7' was not found in any of registries
+    Color names are stored in registries as tokens, which allows to use any form of
+    input and get the correct result regardless. The only requirement is to split the
+    words in any matter, so that tokenizer could distinguish the words from each other:
 
-    :param name:         `Color` name to search for.
+        >>> resolve('deep-sky-blue-7')
+        <Color256[#23,005F5F,deep-sky-blue-7]>
+        >>> resolve('DEEP_SKY_BLUE_7')
+        <Color256[#23,005F5F,deep-sky-blue-7]>
+        >>> resolve('DeepSkyBlue7')
+        <Color256[#23,005F5F,deep-sky-blue-7]>
+
+        >>> resolve('deepskyblue7')
+        Traceback (most recent call last):
+        LookupError: Color 'deepskyblue7' was not found in any of registries
+
+    :param subject:      `Color` name or hex value to search for.
     :param color_type:   Target color type (`Color16`, `Color256` or `ColorRGB`).
     :raises LookupError: If nothing was found in either of registries.
-    :return:             `Color` instance with specified name.
+    :return:             `Color` instance with specified name or value.
     """
-    color_types = [color_type] if color_type else [Color16, Color256, ColorRGB]
+    def subject_as_hex():
+        nonlocal subject
+        if isinstance(subject, int):
+            return subject
+        elif re.fullmatch(r"#[\da-f]{3}([\da-f]{3})?", subject, flags=re.IGNORECASE):
+            subject = subject[1:]
+            if len(subject) == 3:
+                # 3-digit hex notation, basically #RGB -> #RRGGBB
+                # https://www.quackit.com/css/color/values/css_hex_color_notation_3_digits.cfm
+                subject = "".join(2*c for c in subject)
+            return int(subject, 16)
+        return None
 
+    if (hex_value := subject_as_hex()) is not None:
+        if color_type is None or color_type == ColorRGB:
+            return ColorRGB(hex_value)
+
+    color_types = [color_type] if color_type else [Color16, Color256, ColorRGB]
     for color_cls in color_types:
         try:
-            return color_cls.resolve(name)
+            return color_cls.resolve(str(subject))
         except LookupError:
             continue
-    raise LookupError(f"Color '{name}' was not found in any of registries")
+    raise LookupError(f"Color '{subject}' was not found in any of registries")
 
 
 def find_closest(hex_value: int, color_type: t.Type[CT] = None) -> CT:
@@ -669,7 +718,9 @@ def find_closest(hex_value: int, color_type: t.Type[CT] = None) -> CT:
     return (color_type or Color256).find_closest(hex_value)
 
 
-def approximate(hex_value: int, color_type: t.Type[CT] = None, max_results: int = 1) -> t.List[ApxResult[CT]]:
+def approximate(
+    hex_value: int, color_type: t.Type[CT] = None, max_results: int = 1
+) -> t.List[ApxResult[CT]]:
     """
     Search for nearest to ``hex_value`` colors of specified ``color_type`` and
     return the first ``max_results`` of them. If `color_type` is omitted, search
@@ -700,8 +751,8 @@ def hex_to_rgb(hex_value: int) -> t.Tuple[int, int, int]:
     integers corresponding to **red**, **blue** and **green** channel value
     respectively. Values are within [0; 255] range.
 
-    >>> hex_to_rgb(0x80ff80)
-    (128, 255, 128)
+        >>> hex_to_rgb(0x80ff80)
+        (128, 255, 128)
 
     :param hex_value: RGB value.
     :returns: R, G, B channel values correspondingly.
@@ -717,8 +768,8 @@ def rgb_to_hex(r: int, g: int, b: int) -> int:
     Transforms RGB value in a three-integers form ([0; 255], [0; 255], [0; 255])
     to an one-integer form 0xFFFFFF.
 
-    >>> hex(rgb_to_hex(0, 128, 0))
-    '0x8000'
+        >>> hex(rgb_to_hex(0, 128, 0))
+        '0x8000'
 
     :param r: value of red channel.
     :param g: value of green channel.
@@ -733,32 +784,32 @@ def hsv_to_rgb(h: float, s: float, v: float) -> t.Tuple[int, int, int]:
     Transforms HSV value in three-floats form (where 0 <= h < 360, 0 <= s <= 1,
     and 0 <= v <= 1) into RGB three-integer form ([0; 255], [0; 255], [0; 255]).
 
-    >>> hsv_to_rgb(270, 2/3, 0.75)
-    (128, 64, 192)
+        >>> hsv_to_rgb(270, 2/3, 0.75)
+        (128, 64, 192)
 
     :param h: hue channel value.
     :param s: saturation channel value.
     :param v: value channel value.
     :return: R, G, B channel values correspondingly.
     """
-    h = .0 if h == 360. else h/60.
+    h = 0.0 if h == 360.0 else h / 60.0
     fract = h - math.floor(h)
 
-    p = v * (1. - s)
-    q = v * (1. - s * fract)
-    t = v * (1. - s * (1. - fract))
+    p = v * (1.0 - s)
+    q = v * (1.0 - s * fract)
+    t = v * (1.0 - s * (1.0 - fract))
 
-    if 0. <= h < 1.:
+    if 0.0 <= h < 1.0:
         r, g, b = v, t, p
-    elif 1. <= h < 2.:
+    elif 1.0 <= h < 2.0:
         r, g, b = q, v, p
-    elif 2. <= h < 3.:
+    elif 2.0 <= h < 3.0:
         r, g, b = p, v, t
-    elif 3. <= h < 4.:
+    elif 3.0 <= h < 4.0:
         r, g, b = p, q, v
-    elif 4. <= h < 5.:
+    elif 4.0 <= h < 5.0:
         r, g, b = t, p, v
-    elif 5. <= h < 6.:
+    elif 5.0 <= h < 6.0:
         r, g, b = v, p, q
     else:
         r, g, b = 0, 0, 0
@@ -772,8 +823,8 @@ def rgb_to_hsv(r: int, g: int, b: int) -> t.Tuple[float, float, float]:
     Transforms RGB value in a three-integers form ([0; 255], [0; 255], [0; 255]) to an
     HSV in three-floats form such as (0 <= h < 360, 0 <= s <= 1, and 0 <= v <= 1).
 
-    >>> rgb_to_hsv(0, 0, 255)
-    (240.0, 1.0, 1.0)
+        >>> rgb_to_hsv(0, 0, 255)
+        (240.0, 1.0, 1.0)
 
     :param r: value of red channel.
     :param g: value of green channel.
@@ -810,8 +861,8 @@ def hex_to_hsv(hex_value: int) -> t.Tuple[float, float, float]:
     corresponding to **hue**, **saturation** and **value** channel values respectively.
     Hue is within [0, 359] range, both saturation and value are within [0; 1] range.
 
-    >>> hex_to_hsv(0x999999)
-    (0, 0.0, 0.6)
+        >>> hex_to_hsv(0x999999)
+        (0, 0.0, 0.6)
 
     :param hex_value: RGB value.
     :returns: H, S, V channel values correspondingly.
@@ -824,8 +875,8 @@ def hsv_to_hex(h: float, s: float, v: float) -> int:
     Transforms HSV value in three-floats form (where 0 <= h < 360, 0 <= s <= 1,
     and 0 <= v <= 1) into an one-integer form 0xFFFFFF.
 
-    >>> hex(hsv_to_hex(90, 0.5, 0.5))
-    '0x608040'
+        >>> hex(hsv_to_hex(90, 0.5, 0.5))
+        '0x608040'
 
     :param h: hue channel value.
     :param s: saturation channel value.

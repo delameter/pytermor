@@ -13,7 +13,7 @@ import typing as t
 from dataclasses import dataclass, field
 
 from . import cv, color
-from .color import IColor, NOOP_COLOR, ColorRGB
+from .color import IColor, NOOP_COLOR
 from .common import ArgTypeError
 
 
@@ -61,6 +61,7 @@ class Style:
         parent: Style = None,
         fg: IColor|int|str = None,
         bg: IColor|int|str = None,
+        *,
         blink: bool = None,
         bold: bool = None,
         crosslined: bool = None,
@@ -91,6 +92,8 @@ class Style:
             will be replaced with special constant `NOOP_COLOR`, which behaves like
             there was no color defined, and at the same time makes it safer to work
             with nullable color-type variables.
+
+        All arguments except ``parent``, ``fg`` and ``bg`` are *kwonly*\ -type args.
 
         >>> Style(fg='green', bold=True)
         <Style[fg=<Color16[#32,008000?,green]>,bg=<_NoopColor[NOP]>,bold]>
@@ -185,9 +188,7 @@ class Style:
             return NOOP_COLOR
         if isinstance(arg, IColor):
             return arg
-        if isinstance(arg, int):
-            return ColorRGB(arg)
-        if isinstance(arg, str):
+        if isinstance(arg, (str, int)):
             return color.resolve(arg)
         raise ArgTypeError(type(arg), "arg", fn=self._resolve_color)
 
