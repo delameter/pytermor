@@ -445,7 +445,7 @@ class Text(FrozenText):
 
     def prepend(
         self,
-        string: str | Text = "",
+        string: str | IRenderable = "",
         fmt: IColor | Style = NOOP_STYLE,
         *,
         close_this: bool = True,
