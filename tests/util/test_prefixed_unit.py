@@ -223,7 +223,7 @@ def test_default_si_metric_result_len_is_le_than_6(value: float):
 @pytest.mark.parametrize("value", VALUES)
 def test_si_with_unit_result_len_is_le_than_6(value: float):
     formatter = PrefixedUnitFormatter(
-        max_value_len=4, truncate_frac=False, mcoef=1000.0, unit="m", unit_separator=None
+        max_value_len=4, allow_fractional=False, mcoef=1000.0, unit="m", unit_separator=None
     )
     assert len(formatter.format(value)) <= 6
 
@@ -232,7 +232,7 @@ def test_si_with_unit_result_len_is_le_than_6(value: float):
 def test_si_with_unit_result_len_is_le_than_10(value: float):
     formatter = PrefixedUnitFormatter(
         max_value_len=9,
-        truncate_frac=False,
+        allow_fractional=False,
         mcoef=1000.0,
         unit=None,
         unit_separator=None,

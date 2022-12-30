@@ -12,5 +12,5 @@ RendererManager.set_default(SgrRenderer)
 for seconds in seconds_list:
     for max_len in max_len_list:
         formatter = pytermor.utilnum.tdf_registry.get_by_max_len(max_len)
-        print(formatter.format(seconds, True), end=' ')
+        print(formatter.format(seconds), end=' ')
     print()

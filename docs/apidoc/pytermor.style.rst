@@ -15,6 +15,12 @@
 
    
    
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      make_style
+   
    
 
    

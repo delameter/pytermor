@@ -207,29 +207,27 @@ class TestRunner:
 class Printer:
     FPS_MAX = 12
     PREFIXES_SI_UPPER_WUNIT = list(
-        map(lambda s: s.upper() if s else "b", pt.utilnum.PREFIXES_SI)
+        map(lambda s: s.upper() if s else "b", pt.utilnum.PrefixedUnitFormatter.PREFIXES_SI)
     )
     PREFIXES_SI_UPPER = list(
-        map(lambda s: s.upper() if s else None, pt.utilnum.PREFIXES_SI)
+        map(lambda s: s.upper() if s else None, pt.utilnum.PrefixedUnitFormatter.PREFIXES_SI)
     )
     PROGBAR_WIDTH = 15
     TABLE_WIDTH = 100
 
     size_formatter = pt.utilnum.PrefixedUnitFormatter(  # @TODO implement inheritance
         max_value_len=4,
-        truncate_frac=True,
+        allow_fractional=False,
         mcoef=1024.0,
         prefixes=PREFIXES_SI_UPPER_WUNIT,
-        prefix_zero_idx=pt.utilnum.PREFIX_ZERO_SI,
     )
     total_size_formatter = pt.utilnum.PrefixedUnitFormatter(
         max_value_len=4,
-        truncate_frac=False,
+        allow_fractional=True,
         unit="b",
         unit_separator=" ",
         mcoef=1024.0,
         prefixes=PREFIXES_SI_UPPER,
-        prefix_zero_idx=pt.utilnum.PREFIX_ZERO_SI,
     )
     speed_formatter = pt.utilnum.PrefixedUnitFormatter(
         max_value_len=5,
@@ -237,13 +235,11 @@ class Printer:
         unit_separator=" ",
         mcoef=1024.0,
         prefixes=PREFIXES_SI_UPPER,
-        prefix_zero_idx=pt.utilnum.PREFIX_ZERO_SI,
     )
     int_formatter = pt.utilnum.PrefixedUnitFormatter(
         max_value_len=3,
-        truncate_frac=True,
+        allow_fractional=False,
         prefixes=[None, "K", "M", "G"],
-        prefix_zero_idx=0,
     )
 
     def __init__(self):

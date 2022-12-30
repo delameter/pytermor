@@ -48,8 +48,8 @@ from hashlib import md5
 
 from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose
 from .color import IColor, Color16, Color256, ColorRGB, NOOP_COLOR
-from .common import logger
-from .style import Style, NOOP_STYLE, Styles
+from .common import logger, FT
+from .style import Style, NOOP_STYLE, Styles, make_style
 from .utilmisc import get_qname
 from .utilstr import SgrStringReplacer
 
@@ -63,13 +63,13 @@ def _digest(fingerprint: str) -> int:
 
 class RendererManager:
     """
-        Class for global renderer setup.
-        """
+    Class for global renderer setup.
+    """
 
     _default: IRenderer = None
 
     @classmethod
-    def set_default(cls, renderer: IRenderer|t.Type[IRenderer] = None):
+    def set_default(cls, renderer: IRenderer | t.Type[IRenderer] = None):
         # noinspection PyUnresolvedReferences
         """
         Select a global renderer.
@@ -156,7 +156,7 @@ class IRenderer(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def render(self, string: str, fmt: IColor|Style = NOOP_STYLE) -> str:
+    def render(self, string: str, fmt: FT = None) -> str:
         """
         Apply colors and attributes described in ``fmt`` argument to
         ``string`` and return the result. Output format depends on renderer's
@@ -164,7 +164,7 @@ class IRenderer(metaclass=ABCMeta):
 
         :param string: String to format.
         :param fmt:    Style or color to apply. If ``fmt`` is a `Color` instance,
-                       it is assumed to be a foreground color.
+                       it is assumed to be a foreground color. See `FT`.
         :return: String with formatting applied, or without it, depending on
                  renderer settings.
         """
@@ -264,7 +264,7 @@ class SgrRenderer(IRenderer):
 
     def __init__(self, output_mode: OutputMode = OutputMode.AUTO, io: t.IO = sys.stdout):
         self._output_mode: OutputMode = self._determine_output_mode(output_mode, io)
-        self._color_upper_bound: t.Type[IColor]|None = self._COLOR_UPPER_BOUNDS.get(
+        self._color_upper_bound: t.Type[IColor] | None = self._COLOR_UPPER_BOUNDS.get(
             self._output_mode, None
         )
 
@@ -288,8 +288,8 @@ class SgrRenderer(IRenderer):
     def is_format_allowed(self) -> bool:
         return self._output_mode is not OutputMode.NO_ANSI
 
-    def render(self, string: str, fmt: IColor|Style = NOOP_STYLE) -> str:
-        style = Style.make(fmt)
+    def render(self, string: str, fmt: FT = None) -> str:
+        style = make_style(fmt)
         opening_seq = (
             self._render_attributes(style, squash=True)
             + self._render_color(style.fg, False)
@@ -408,8 +408,8 @@ class TmuxRenderer(IRenderer):
         """
         return True
 
-    def render(self, string: str, fmt: IColor|Style = NOOP_STYLE) -> str:
-        style = Style.make(fmt)
+    def render(self, string: str, fmt: FT = None) -> str:
+        style = make_style(fmt)
         command_open, command_close = self._render_attributes(style)
         rendered_text = ""
         for line in string.splitlines(keepends=True):
@@ -472,7 +472,7 @@ class NoOpRenderer(IRenderer):
         """
         return False
 
-    def render(self, string: str, fmt: IColor|Style = NOOP_STYLE) -> str:
+    def render(self, string: str, fmt: FT = None) -> str:
         """
         Return the `string` argument untouched, don't mind the `fmt`.
 
@@ -522,8 +522,8 @@ class HtmlRenderer(IRenderer):
         """
         return True
 
-    def render(self, string: str, fmt: IColor|Style = NOOP_STYLE) -> str:
-        style = Style.make(fmt)
+    def render(self, string: str, fmt: FT = None) -> str:
+        style = make_style(fmt)
         opening_tag, closing_tag = self._render_attributes(style)
         return f"{opening_tag}{string}{closing_tag}"  # @TODO  # attribues
 
@@ -624,7 +624,7 @@ class SgrRendererDebugger(SgrRenderer):
             return self._format_override
         return super().is_format_allowed
 
-    def render(self, string: str, fmt: IColor|Style = NOOP_STYLE) -> str:
+    def render(self, string: str, fmt: FT = None) -> str:
         return SgrStringReplacer(r"(ǝ\2\3\4)").apply(super().render(string, fmt))
 
     def clone(self) -> SgrRendererDebugger:

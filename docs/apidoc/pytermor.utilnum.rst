@@ -34,6 +34,7 @@
 
    .. autosummary::
    
+      NumHighlighter
       PrefixedUnitFormatter
       TimeDeltaFormatter
       TimeUnit

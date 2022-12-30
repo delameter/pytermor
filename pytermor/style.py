@@ -13,13 +13,58 @@ import typing as t
 from dataclasses import dataclass, field
 
 from . import cv, color
-from .color import IColor, NOOP_COLOR
-from .common import ArgTypeError
+from .color import IColor, NOOP_COLOR, resolve
+from .common import ArgTypeError, FT
 
 
 @dataclass()
 class Style:
-    """ style """
+    """
+    Create a new ``Style()``. Both ``fg`` and ``bg`` can be specified as:
+
+        1. :class:`.Color` instance or library preset;
+        2. `*str*` -- name of any of these presets, case-insensitive;
+        3. `*int*` -- color value in hexadecimal RGB format;
+        4. *None* -- the color will be unset.
+
+    Inheritance ``parent`` -> ``child`` works this way:
+
+        - If an argument in child's constructor is empty (*None*), take value from
+          ``parent``'s corresponding attribute.
+        - If an argument in child's constructor is *not* empty (``True``,
+          ``False``, `Color` etc.), use it as child's attribute.
+
+    .. note ::
+        Both empty (i.e., *None*) attributes of type `Color` after initialization
+        will be replaced with special constant `NOOP_COLOR`, which behaves like
+        there was no color defined, and at the same time makes it safer to work
+        with nullable color-type variables.
+
+    All arguments except ``parent``, ``fg`` and ``bg`` are *kwonly*\ -type args.
+
+    >>> Style(fg='green', bold=True)
+    <Style[fg=<Color16[#32,008000?,green]>,bg=<_NoopColor[NOP]>,bold]>
+    >>> Style(bg=0x0000ff)
+    <Style[fg=<_NoopColor[NOP]>,bg=<ColorRGB[0000FF]>]>
+    >>> Style(fg='DeepSkyBlue1', bg='gray3')
+    <Style[fg=<Color256[#39,00AFFF,deep-sky-blue-1]>,bg=<Color256[#232,080808,gray-3]>]>
+
+    :param parent:      Style to copy attributes without value from.
+    :param fg:          Foreground (i.e., text) color.
+    :param bg:          Background color.
+    :param blink:       Blinking effect; *supported by limited amount of Renderers*.
+    :param bold:        Bold or increased intensity.
+    :param crosslined:  Strikethrough.
+    :param dim:         Faint, decreased intensity.
+    :param double_underlined:
+                        Faint, decreased intensity.
+    :param inversed:    Swap foreground and background colors.
+    :param italic:      Italic.
+    :param overlined:   Overline.
+    :param underlined:  Underline.
+    :param class_name:  Arbitary string used by some _get_renderers, e.g. by
+                        ``HtmlRenderer``.
+    """
 
     _fg: IColor = field(default=None, init=False)
     _bg: IColor = field(default=None, init=False)
@@ -44,23 +89,11 @@ class Style:
     def _attributes(self) -> t.FrozenSet:
         return frozenset(list(self.__dict__.keys()) + ["_fg", "_bg"])
 
-    @staticmethod
-    def make(fmt: IColor|Style|None) -> Style:
-        if not fmt:
-            return NOOP_STYLE
-        if isinstance(fmt, IColor):
-            if fmt == NOOP_COLOR:
-                return NOOP_STYLE
-            return Style(fg=fmt)
-        if isinstance(fmt, Style):
-            return fmt
-        raise ArgTypeError(type(fmt), "fmt", fn=Style.make)
-
     def __init__(
         self,
         parent: Style = None,
-        fg: IColor|int|str = None,
-        bg: IColor|int|str = None,
+        fg: IColor | int | str = None,
+        bg: IColor | int | str = None,
         *,
         blink: bool = None,
         bold: bool = None,
@@ -73,51 +106,6 @@ class Style:
         underlined: bool = None,
         class_name: str = None,
     ):
-        """Create a new ``Style()``. Both ``fg`` and ``bg`` can be specified as:
-
-            1. :class:`.Color` instance or library preset;
-            2. `*str*` -- name of any of these presets, case-insensitive;
-            3. `*int*` -- color value in hexadecimal RGB format;
-            4. *None* -- the color will be unset.
-
-        Inheritance ``parent`` -> ``child`` works this way:
-
-            - If an argument in child's constructor is empty (*None*), take value from
-              ``parent``'s corresponding attribute.
-            - If an argument in child's constructor is *not* empty (``True``,
-              ``False``, `Color` etc.), use it as child's attribute.
-
-        .. note ::
-            Both empty (i.e., *None*) attributes of type `Color` after initialization
-            will be replaced with special constant `NOOP_COLOR`, which behaves like
-            there was no color defined, and at the same time makes it safer to work
-            with nullable color-type variables.
-
-        All arguments except ``parent``, ``fg`` and ``bg`` are *kwonly*\ -type args.
-
-        >>> Style(fg='green', bold=True)
-        <Style[fg=<Color16[#32,008000?,green]>,bg=<_NoopColor[NOP]>,bold]>
-        >>> Style(bg=0x0000ff)
-        <Style[fg=<_NoopColor[NOP]>,bg=<ColorRGB[0000FF]>]>
-        >>> Style(fg='DeepSkyBlue1', bg='gray3')
-        <Style[fg=<Color256[#39,00AFFF,deep-sky-blue-1]>,bg=<Color256[#232,080808,gray-3]>]>
-
-        :param parent:      Style to copy attributes without value from.
-        :param fg:          Foreground (i.e., text) color.
-        :param bg:          Background color.
-        :param blink:       Blinking effect; *supported by limited amount of Renderers*.
-        :param bold:        Bold or increased intensity.
-        :param crosslined:  Strikethrough.
-        :param dim:         Faint, decreased intensity.
-        :param double_underlined:
-                            Faint, decreased intensity.
-        :param inversed:    Swap foreground and background colors.
-        :param italic:      Italic.
-        :param overlined:   Overline.
-        :param underlined:  Underline.
-        :param class_name:  Arbitary string used by some _get_renderers, e.g. by
-                            ``HtmlRenderer``.
-        """
         if fg is not None:
             self._fg = self._resolve_color(fg)
         if bg is not None:
@@ -183,7 +171,7 @@ class Style:
             if self_val is None and parent_val is not None:
                 setattr(self, attr, parent_val)
 
-    def _resolve_color(self, arg: str|int|IColor|None) -> IColor|None:
+    def _resolve_color(self, arg: str | int | IColor | None) -> IColor | None:
         if arg is None:
             return NOOP_COLOR
         if isinstance(arg, IColor):
@@ -220,11 +208,11 @@ class Style:
         return self._bg
 
     @fg.setter
-    def fg(self, val: str|int|IColor|None):
+    def fg(self, val: str | int | IColor | None):
         self._fg: IColor = self._resolve_color(val)
 
     @bg.setter
-    def bg(self, val: str|int|IColor|None):
+    def bg(self, val: str | int | IColor | None):
         self._bg: IColor = self._resolve_color(val)
 
 
@@ -248,3 +236,22 @@ class Styles:
     CRITICAL = Style(bg=cv.RED, fg=cv.HI_WHITE)
     CRITICAL_LABEL = Style(CRITICAL, bg=cv.HI_RED, bold=True)
     CRITICAL_ACCENT = Style(CRITICAL_LABEL, blink=True)
+
+
+def make_style(fmt: FT = None) -> Style:
+    """
+    General `Style` constructor
+
+    :param fmt: See `FT`.
+    """
+    if fmt is None:
+        return NOOP_STYLE
+    if isinstance(fmt, Style):
+        return fmt
+    if isinstance(fmt, (str, int, IColor)):
+        if not isinstance(fmt, IColor):
+            fmt = resolve(fmt)
+        if fmt == NOOP_COLOR:
+            return NOOP_STYLE
+        return Style(fg=fmt)
+    raise ArgTypeError(type(fmt), "fmt", fn=make_style)

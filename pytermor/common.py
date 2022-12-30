@@ -21,10 +21,20 @@ logger.addHandler(logging.NullHandler())
 # logger.setLevel('DEBUG')
 ########
 
-ST = TypeVar("ST", bound=Union[str, "IRenderable"])
+FT = TypeVar("FT", int, str, "IColor", "Style", None)
+"""
+F
+"""
+
+RT = TypeVar("RT", str, "IRenderable")
+"""
+E
+"""
+
+CRT = TypeVar("CRT", bound=Union[str, "IRenderable"])
 """ 
-`ST` in a method signature usually means that regular strings as well as 
-IRenderable` implementations are supported, can be intermixed, and:
+`CRT` in a method signature usually means that regular strings as well as 
+`IRenderable` implementations are supported, can be intermixed, and:
 
     - return type will be *str* if and only if the type of all arguments is *str*;
     - otherwise return type will be `Text` -- *str* arguments, if any, will

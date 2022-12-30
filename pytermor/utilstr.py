@@ -14,7 +14,6 @@ import codecs
 import math
 import os
 import re
-import string
 import textwrap
 import typing as t
 from abc import ABCMeta, abstractmethod
@@ -23,26 +22,23 @@ from functools import reduce
 from math import ceil
 from typing import Union
 
-from .common import ST, ArgTypeError, Align
+from .common import CRT, ArgTypeError, Align
 from .utilmisc import chunk, get_terminal_width
 
 _PRIVATE_REPLACER = "\U000E5750"
 
 
 def pad(n: int) -> str:
-    return ' '*n
+    return " " * n
 
 
 def padv(n: int) -> str:
-    return '\n'*n
+    return "\n" * n
 
 
 def distribute_padded(
-    values: t.List[ST],
-    max_len: int,
-    pad_before: bool = False,
-    pad_after: bool = False,
-) -> ST:
+    values: t.List[CRT], max_len: int, pad_before: bool = False, pad_after: bool = False
+) -> CRT:
     """
     .. todo ::
         todo
@@ -216,7 +212,7 @@ RT = Union[OT, t.Callable[[t.Match[OT]], OT]]  # replacer type
 MT = t.Dict[int, IT]  # map
 AT = Union["OmniFilter", t.Type["OmniFilter"]]
 
-_dump_printers_cache: t.Dict[t.Type['AbstractDumper'], 'AbstractDumper'] = dict()
+_dump_printers_cache: t.Dict[t.Type["AbstractDumper"], "AbstractDumper"] = dict()
 
 
 class IFilter(t.Generic[IT, OT], metaclass=ABCMeta):
@@ -264,15 +260,15 @@ class OmniEncoder(IFilter[IT, bytes]):
 
 
 class StringAligner(IFilter[str, str]):
-    _ALIGN_FNS = {
-        Align.LEFT:     ljust_sgr,
-        Align.CENTER:   center_sgr,
-        Align.RIGHT:    rjust_sgr,
+    _ALIGN_FUNCS_SGR = {
+        Align.LEFT: ljust_sgr,
+        Align.CENTER: center_sgr,
+        Align.RIGHT: rjust_sgr,
     }
-    _ALIGN_FNS_RAW = {
-        Align.LEFT:     str.ljust,
-        Align.CENTER:   str.center,
-        Align.RIGHT:    str.rjust,
+    _ALIGN_FUNCS_RAW = {
+        Align.LEFT: str.ljust,
+        Align.CENTER: str.center,
+        Align.RIGHT: str.rjust,
     }
 
     def __init__(self, align: Align):
@@ -283,8 +279,8 @@ class StringAligner(IFilter[str, str]):
 
     def _get_align_fn(self, raw_mode: bool = False):
         if raw_mode:
-            return self._ALIGN_FNS_RAW.get(self._align)
-        return self._ALIGN_FNS.get(self._align)
+            return self._ALIGN_FUNCS_RAW.get(self._align)
+        return self._ALIGN_FUNCS_SGR.get(self._align)
 
 
 # -----------------------------------------------------------------------------
@@ -311,7 +307,9 @@ class AbstractDumper(IFilter[IT, str], metaclass=ABCMeta):
             self._state.offset += self._char_per_line
 
         header = self._format_line_separator("_", f"{extra.label}" if extra else "")
-        footer = self._format_line_separator("-", label_right="(" + self._format_offset(self._state.inp_size) + ")")
+        footer = self._format_line_separator(
+            "-", label_right="(" + self._format_offset(self._state.inp_size) + ")"
+        )
 
         result = header + "\n"
         result += "\n".join(self._render_rows())
@@ -322,8 +320,14 @@ class AbstractDumper(IFilter[IT, str], metaclass=ABCMeta):
         offset = override or self._state.offset
         return str(offset).rjust(self._state.inp_size_len)
 
-    def _format_line_separator(self, fill: str, label_left: str = '', label_right: str = '') -> str:
-        return label_left + fill * (self._get_output_line_len() - len(label_left) - len(label_right)) + label_right
+    def _format_line_separator(
+        self, fill: str, label_left: str = "", label_right: str = ""
+    ) -> str:
+        return (
+            label_left
+            + fill * (self._get_output_line_len() - len(label_left) - len(label_right))
+            + label_right
+        )
 
     def _render_rows(self) -> t.Iterable[str]:
         for row in self._state.rows:
@@ -391,7 +395,9 @@ class BytesDumper(AbstractDumper[bytes]):
         space_len = 4
         sep_len = 1
         offset_len = len(str(inp_size))
-        main_len = (3 * char_per_line * cls.GROUP_SIZE) + (char_per_line // cls.GROUP_SIZE)
+        main_len = (3 * char_per_line * cls.GROUP_SIZE) + (
+            char_per_line // cls.GROUP_SIZE
+        )
         return space_len + sep_len + offset_len + main_len
 
 
@@ -663,9 +669,7 @@ class OmniMapper(IFilter[IT, IT]):
 
         if not all(isinstance(k, int) and 0 <= k <= 255 for k in override.keys()):
             raise TypeError("Mapper keys should be ints such as: 0 <= key <= 255")
-        if not all(
-            isinstance(v, (str, bytes)) or v is None for v in override.values()
-        ):
+        if not all(isinstance(v, (str, bytes)) or v is None for v in override.values()):
             raise TypeError(
                 "Each map value should be either a single char in 'str' or 'bytes' form, or None"
             )
@@ -763,6 +767,7 @@ class OmniSanitizer(OmniMapper):
     :param repl: Value to replace control/non-ascii characters with. Should be strictly 1
                  character long.
     """
+
     def __init__(self, repl: IT = b"."):
         self._override_replacer = repl
         super().__init__()

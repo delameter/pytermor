@@ -3,7 +3,9 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 from ._version import __version__ as __version__
-from .common import ST as ST
+from .common import FT as FT
+from .common import RT as RT
+from .common import CRT as CRT
 from .common import logger as logger
 from .common import Align as Align
 from .common import ArgCountError as ArgCountError
@@ -38,6 +40,7 @@ from .cval import CVAL as cv
 from .style import NOOP_STYLE as NOOP_STYLE
 from .style import Style as Style
 from .style import Styles as Styles
+from .style import make_style as make_style
 from .renderer import IRenderer as IRenderer
 from .renderer import HtmlRenderer as HtmlRenderer
 from .renderer import RendererManager as RendererManager
@@ -61,6 +64,10 @@ from .utilmisc import guess_char_width as guess_char_width
 from .utilmisc import measure_char_width as measure_char_width
 from .utilmisc import total_size as total_size
 from .utilmisc import wait_key as wait_key
+from .utilnum import NumHighlighter as NumHighlighter
+from .utilnum import PrefixedUnitFormatter as PrefixedUnitFormatter
+from .utilnum import TimeDeltaFormatter as TimeDeltaFormatter
+from .utilnum import TimeUnit as TimeUnit
 from .utilnum import format_auto_float as format_auto_float
 from .utilnum import format_thousand_sep as format_thousand_sep
 from .utilnum import format_si_binary as format_si_binary

@@ -20,25 +20,24 @@ from abc import abstractmethod, ABC
 from typing import Union
 
 from .color import IColor, NOOP_COLOR
-from .common import LogicError, ArgTypeError, ST, Align, logger
+from .common import LogicError, ArgTypeError, FT, RT, Align, logger
 from .renderer import IRenderer, RendererManager
-from .style import Style, NOOP_STYLE
+from .style import Style, NOOP_STYLE, make_style
 from .utilmisc import get_preferable_wrap_width
-from .utilnum import format_si_metric
 from .utilstr import ljust_sgr, rjust_sgr, center_sgr, wrap_sgr, pad, dump
 
 
 @dataclasses.dataclass
 class _Fragment(t.Sized):
     string: str = ""
-    fmt: IColor | Style = NOOP_STYLE
+    fmt: FT = None
     close_this: bool = True
     close_prev: bool = False
 
     def __post_init__(self):
         if self.close_prev:
             self.close_this = True
-        self._style = Style.make(self.fmt)
+        self._style = make_style(self.fmt)
 
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, type(self)):
@@ -86,6 +85,8 @@ class IRenderable(t.Sized, ABC):
         rendered = self._render(renderer or RendererManager.get_default())
         after_s = time.time_ns() / 1e9
         if not stderr:
+            from .utilnum import format_si_metric
+
             logger.debug(f"Rendered in {format_si_metric((after_s-before_s), 's')}")
             logger.log(level=5, msg=dump(rendered, "Dump"))
         return rendered
@@ -161,6 +162,7 @@ class FixedString(String):
        it as `raw` when joining several Renderables, or else width limit, padding
        and aligning simply do not work.
     """
+
     def __init__(
         self,
         string: str = "",
@@ -584,7 +586,7 @@ _template_engine = TemplateEngine()
 
 
 def render(
-    string: ST | t.Iterable[ST] = "",
+    string: RT | t.Iterable[RT] = "",
     fmt: IColor | Style = NOOP_STYLE,
     renderer: IRenderer = None,
     parse_template: bool = False,
@@ -639,7 +641,7 @@ def render(
 
 
 def echo(
-    string: ST | t.Iterable[ST] = "",
+    string: RT | t.Iterable[RT] = "",
     fmt: IColor | Style = NOOP_STYLE,
     renderer: IRenderer = None,
     parse_template: bool = False,
