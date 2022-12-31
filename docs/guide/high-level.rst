@@ -35,11 +35,11 @@ Class hierarchy
 
 .. inheritance-diagram:: pytermor.color
    :top-classes:         pytermor.color.IColor
-   :caption:             `color` core API
+   :caption:             `IColor` inheritance tree
    :parts: 1
 
 .. inheritance-diagram:: pytermor.text
    :top-classes:         pytermor.text.IRenderable
-   :caption:             `text` core API
+   :caption:             `IRenderable` inheritance tree
    :parts: 1
 

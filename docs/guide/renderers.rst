@@ -12,7 +12,7 @@ Class hierarchy
 .. inheritance-diagram::  pytermor.renderer
    :parts: 1
    :top-classes:          pytermor.renderer.IRenderer
-   :caption:             `renderer` core API
+   :caption:             `IRenderer` inheritance tree
 
 .. todo ::
 

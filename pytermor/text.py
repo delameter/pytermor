@@ -160,11 +160,7 @@ class String(IRenderable):
 
 class FixedString(String):
     """
-    .. todo ::
-
-       store already formatted string right after initialization, and provide
-       it as `raw` when joining several Renderables, or else width limit, padding
-       and aligning simply do not work.
+    A
     """
 
     def __init__(
@@ -176,7 +172,7 @@ class FixedString(String):
         *,
         pad_left: int = 0,
         pad_right: int = 0,
-        overflow_char: str = None,  # @TODO
+        overflow_char: str = None,
     ):
         """
 
@@ -186,10 +182,11 @@ class FixedString(String):
         :param align:
         :param pad_left:
         :param pad_right:
-        :param overflow_char:
+        :param overflow_char: # @TODO
         """
-        super().__init__(string, fmt)
         self._is_frozen = True
+        self._string_origin = string
+
         self._width = max(0, width) or len(string)
         self._align = align
         self._pad_left = max(0, pad_left)
@@ -199,6 +196,9 @@ class FixedString(String):
             raise ValueError(f"Invalid align value: {self._align}")
         if self.max_width < 0:
             raise ValueError("Resulting width should be >= 0")
+
+        string_processed = self._apply_attrs(string)
+        super().__init__(string_processed, fmt)
 
     def __len__(self) -> int:
         return self._width
@@ -220,11 +220,13 @@ class FixedString(String):
 
     @property
     def origin(self) -> str:
-        return self._fragment.string
+        return self._string_origin
 
     @property
     def raw(self) -> str:
-        string = self._fragment.string
+        return self._fragment.string
+
+    def _apply_attrs(self, string: str) -> str:
         aligned = f"{string:{self._align.value}{self._width}s}"
         cropped = self._crop(aligned)
         return pad(self._pad_left) + cropped + pad(self._pad_right)

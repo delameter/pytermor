@@ -32,11 +32,6 @@ sequences for any form of input SGRs and translate it to specified format.
 **ECMA-48 specification**
     https://www.ecma-international.org/publications-and-standards/standards/ecma-48/
 
-.. testsetup:: *
-
-    import typing as t
-    from pytermor.ansi import *
-
 """
 from __future__ import annotations
 

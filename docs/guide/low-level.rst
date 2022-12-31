@@ -128,7 +128,7 @@ Class hierarchy
 .. inheritance-diagram::  pytermor.ansi
    :parts: 1
    :top-classes:          pytermor.ansi.ISequence
-   :caption:              `ansi` core API
+   :caption:              `ISequence` inheritance tree
 
 
 Core API

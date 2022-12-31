@@ -34,6 +34,9 @@ class Style:
         - If an argument in child's constructor is *not* empty (``True``,
           ``False``, `Color` etc.), use it as child's attribute.
 
+    See `merge_fallback()` and `merge_overwrite()` methods and take the
+    differences into account. A first merge method is used in constructor.
+
     .. note ::
         Both empty (i.e., *None*) attributes of type `Color` after initialization
         will be replaced with special constant `NOOP_COLOR`, which behaves like
@@ -123,7 +126,7 @@ class Style:
         self.class_name = class_name
 
         if parent is not None:
-            self.inherit_from(parent)
+            self.merge_fallback(parent)
 
         if self._fg is None:
             self._fg = NOOP_COLOR
@@ -156,24 +159,100 @@ class Style:
     def flip(self) -> Style:
         """
         Swap foreground color and background color.
+
         :return: self
         """
         self._fg, self._bg = self._bg, self._fg
         return self
 
     def clone(self) -> Style:
+        """
+
+        :return: self
+        """
         return Style(self)
 
-    def inherit_from(self, parent: Style):
-        for attr in self.renderable_attributes:
-            if getattr(self, attr) is None:
-                if (parent_val := getattr(parent, attr)) is not None:
-                    setattr(self, attr, parent_val)
+    def merge_fallback(self, fallback: Style) -> Style:
+        """
+        Merge current style with specified ``fallback`` `style <Style>`, following
+        the rules:
 
-    def overwrite_from(self, overwriter: Style):
+            1. ``self`` attribute value is in priority, i.e. when both ``self`` and
+               ``fallback`` attributes are defined, keep ``self`` value.
+            2. If ``self`` attribute is *None*, take the value from ``parent``\ 's
+               corresponding attribute, and vice versa.
+            3. If both attribute values are *None*, keep the *None*.
+
+        All attributes corresponding to constructor arguments except ``parent``
+        are subject to merging. `NOOP_COLOR` is treated like *None* (default for `fg`
+        and `bg`).
+
+        .. code-block ::
+            :caption: Merging different values in fallback mode
+
+                     FALLBACK   BASE(SELF)   RESULT
+                     ┌───────┐   ┌──────┐   ┌──────┐
+            ATTR-1   │ False ──Ø │ True ═══>│ True │  BASE val is in priority
+            ATTR-2   │ True ─────│ None │──>│ True │  no BASE val, taking FALLBACK val
+            ATTR-3   │ None  │   │ True ═══>│ True │  BASE val is in priority
+            ATTR-4   │ None  │   │ None │   │ None │  no vals, keeping unset
+                     └───────┘   └──────┘   └──────┘
+
+        .. seealso ::
+            `merge_styles` for the examples.
+
+        :param fallback: Style to merge the attributes with.
+        :return: self
+        """
         for attr in self.renderable_attributes:
-            if (overwriter_val := getattr(overwriter, attr)) is not None:
-                setattr(self, attr, overwriter_val)
+            self_val = getattr(self, attr)
+            if self_val is None or self_val == NOOP_COLOR:
+                # @TODO refactor? maybe usage of NOOP instances is not as good as
+                #       it seemed to be in the beginning
+                fallback_val = getattr(fallback, attr)
+                if fallback_val is not None and fallback_val != NOOP_COLOR:
+                    setattr(self, attr, fallback_val)
+        return self
+
+    def merge_overwrite(self, overwrite: Style):
+        """
+        Merge current style with specified ``overwrite`` `style <Style>`, following
+        the rules:
+
+            1. ``overwrite`` attribute value is in priority, i.e. when both ``self``
+               and ``overwrite`` attributes are defined, replace ``self`` value with
+               ``overwrite`` one (in contrast to `merge_fallback()`, which works the
+               opposite way).
+            2. If ``self`` attribute is *None*, take the value from ``overwrite``\ 's
+               corresponding attribute, and vice versa.
+            3. If both attribute values are *None*, keep the *None*.
+
+        All attributes corresponding to constructor arguments except ``parent``
+        are subject to merging. `NOOP_COLOR` is treated like *None* (default for `fg`
+        and `bg`).
+
+        .. code-block ::
+            :caption: Merging different values in overwrite mode
+
+                    BASE(SELF)  OVERWRITE    RESULT
+                     ┌──────┐   ┌───────┐   ┌───────┐
+            ATTR-1   │ True ══Ø │ False ───>│ False │  OVERWRITE val is in priority
+            ATTR-2   │ None │   │ True ────>│ True  │  OVERWRITE val is in priority
+            ATTR-3   │ True ════│ None  │══>│ True  │  no OVERWRITE val, keeping BASE val
+            ATTR-4   │ None │   │ None  │   │ None  │  no vals, keeping unset
+                     └──────┘   └───────┘   └───────┘
+
+        .. seealso ::
+            `merge_styles` for the examples.
+
+        :param overwrite:  Style to merge the attributes with.
+        :return: self
+        """
+        for attr in self.renderable_attributes:
+            overwrite_val = getattr(overwrite, attr)
+            if overwrite_val is not None and overwrite_val != NOOP_COLOR:
+                setattr(self, attr, overwrite_val)
+        return self
 
     def _resolve_color(self, arg: str | int | IColor | None) -> IColor | None:
         if arg is None:
@@ -229,19 +308,29 @@ NOOP_STYLE = Style()
 class Styles:
     """
     Some ready-to-use styles. Can be used as examples.
+
     """
 
     WARNING = Style(fg=cv.YELLOW)
+    """ """
     WARNING_LABEL = Style(WARNING, bold=True)
+    """ """
     WARNING_ACCENT = Style(fg=cv.HI_YELLOW)
+    """ """
 
     ERROR = Style(fg=cv.RED)
+    """ """
     ERROR_LABEL = Style(ERROR, bold=True)
+    """ """
     ERROR_ACCENT = Style(fg=cv.HI_RED)
+    """ """
 
     CRITICAL = Style(bg=cv.RED, fg=cv.HI_WHITE)
+    """ """
     CRITICAL_LABEL = Style(CRITICAL, bg=cv.HI_RED, bold=True)
+    """ """
     CRITICAL_ACCENT = Style(CRITICAL_LABEL, blink=True)
+    """ """
 
 
 def make_style(fmt: FT = None) -> Style:
@@ -266,12 +355,89 @@ def make_style(fmt: FT = None) -> Style:
 def merge_styles(
     base: Style = NOOP_STYLE,
     *,
-    parents: t.Iterable[Style] = (),
+    fallbacks: t.Iterable[Style] = (),
     overwrites: t.Iterable[Style] = (),
-):
+) -> Style:
+    """
+    Bulk style merging method. First merge `fallbacks` `styles <Style>` with the
+    ``base`` in the same order they are iterated, using `merge_fallback()` algorithm;
+    then do the same for `overwrites` styles, but using `merge_overwrite()` merge
+    method. The original `base` is left untouched, as all the operations are performed on
+    its clone.
+
+    .. code-block :: vim
+       :caption: Dual mode merge diagram
+
+                            (B) update ╔═══╗                                   ┏━━━━━┓
+            ┌───>┌───>┌────>┌───>┌────>║───╟──────────────────────────────────>┃     ┃
+        ╭╌╌╌╌╌╌╌╌FALLBACKS╌╌╌╌╌╌╌╌╮    ║   ║  ╭╌╌╌╌╌╌╌╌╌OVERWRITES╌╌╌╌╌╌╌╌╌╌╌╮ ┃  R  ┃
+        ┊┌─┐│ ┌─┐│ ┌─┐│ ... │ ┌─┐┘┊    ║ B ╠══┊>Ø  ┌─┐  ┌─┐  ┌─┐  ...   ┌─┐  ┊ ┃  E  ┃
+        ┊[0]┼>[1]┼>[2]┼ ... ┴>[n]─┊─>Ø ║ A ╠══┊>Ø  [0]┬>[1]┬>[2]┬ ... ┬>[n]┐ ┊ ┃  S  ┃
+        ┊└─┘│ └─┘│ └─┘└ ... ──└─┘─┊─>Ø ║ S ╠══┊>Ø  └─┘│ └─┘│ └─┘│ ... │ └─┘│ ┊ ┃  U  ┃
+        ┊   │    └───>─ ... ──────┊─>Ø ║ E ║ (C)╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯ ┃  L  ┃
+        ┊   └───>────── ... ──────┊─>Ø ║   ║ drop     └─(D)└update───>└───>└──>┃  T  ┃
+        ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌(A)  ║   ╠══════════════(E)═keep════════════>┃     ┃
+                                  drop ╚═══╝                                   ┗━━━━━┛
+
+    The key actions are marked with (**A**) to (**E**) letters. In reality the algorithm
+    works in slightly different order, but the exact scheme would be less illustrative.
+
+    :(A),(B):
+        Iterate ``fallback`` styles one by one; discard all the attributes of a
+        current ``fallback`` style, that are already set in ``base`` style
+        (i.e., that are not *Nones*). Update all ``base`` style empty attributes
+        with corresponding ``fallback`` values, if they exist and are not empty.
+        Repeat these steps for the next ``fallback`` in the list, until the list
+        is empty.
+
+        .. code-block :: python
+            :caption: Fallback merge algorithm example
+
+            >>> base = Style(fg='red')
+            >>> fallbacks = [Style(fg='blue'), Style(bold=True), Style(bold=False)]
+            >>> merge_styles(base, fallbacks=fallbacks)
+            <Style[fg=<Color16[#31,800000?,red]>,bg=<_NoopColor[NOP]>,bold]>
+
+        In the example above:
+
+            - the first fallback will be ignored, as `fg` is already set;
+            - the second fallback will be applied (``base`` style will now have `bold`
+              set to *True*;
+            - which will make the handler ignore third fallback completely; if third
+              fallback was encountered earlier than the 2nd one, ``base`` `bold` attribute
+              would have been set to *False*, but alas.
+
+    :(C),(D),(E):
+        Iterate ``overwrite`` styles one by one; discard all the attributes of a ``base``
+        style that have a non-empty counterpart in ``overwrite`` style, and put
+        corresponding ``overwrite`` attribute values instead of them. Keep ``base``
+        attribute values that have no counterpart in current ``overwrite`` style (i.e.,
+        if attribute value is *None*). Then pick next ``overwrite`` style from the input
+        list and repeat all these steps.
+
+        .. code-block :: python
+            :caption: Overwrite merge algorithm example
+
+            >>> base = Style(fg='red')
+            >>> overwrites = [Style(fg='blue'), Style(bold=True), Style(bold=False)]
+            >>> merge_styles(base, overwrites=overwrites)
+            <Style[fg=<Color16[#34,000080?,blue]>,bg=<_NoopColor[NOP]>]>
+
+        In the example above all the ``overwrites`` will be applied in order they were
+        put into *list*, and the result attribute values are equal to the last
+        encountered non-empty values in ``overwrites`` list.
+
+    :param base:       Basis style instance.
+    :param fallbacks:  List of styles to be used as a backup attribute storage, when
+                       there is no value set for the attribute in question. Uses
+                       `merge_fallback()` merging strategy.
+    :param overwrites: List of styles to be used as attribute storage force override
+                       regardless of actual `base` attribute valuse.
+    :return:           Clone of ``base`` style with all specified styles merged into.
+    """
     result = base.clone()
-    for parent in parents:
-        result.inherit_from(parent)
+    for fallback in fallbacks:
+        result.merge_fallback(fallback)
     for overwrite in overwrites:
-        result.overwrite_from(overwrite)
+        result.merge_overwrite(overwrite)
     return result
