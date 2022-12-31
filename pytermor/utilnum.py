@@ -276,10 +276,7 @@ class NumHighlighter:
         frac_st = Style(int_st, dim=True)
         unit_st = Style(int_st, dim=True, bold=False)
         return (
-            Text(intp, int_st)
-            + Text(frac, frac_st)
-            + sep
-            + Text(prefix + unit, unit_st)
+            Text(intp, int_st) + Text(frac, frac_st) + sep + Text(prefix + unit, unit_st)
         )
 
 
@@ -297,43 +294,6 @@ class PrefixedUnitFormatter:
     output and customization. If that's not the case, there are facade
     methods :meth:`format_si_metric()` and :meth:`format_si_binary()`,
     which will invoke predefined formatters and doesn't require setting up.
-
-    ``max_value_len`` must be at least **3**, because it's a
-    minimum requirement for formatting values from 0 to 999.
-    Next number to 999 is 1000, which will be formatted as "1k".
-
-    Setting ``allow_negative`` to *True* increases lower bound of ``max_value_len``
-    to **4** because the values now can be less than 0, and minus sign also occupies
-    one char of the output.
-
-    Setting ``mcoef`` to anything other than 1000.0 also increases the minimum
-    of ``max_value_len`` argument by 1, to **5**. The reason is that non-decimal
-    coefficients like 1024 require additional char to render as switching
-    to the next prefix happens later: 999 b, 1000 b, 1001 b ... 1023 b, 1 Kb.
-
-    .. note ::
-
-        All arguments except ``parent`` are *kwonly*\ -type arguments.
-
-    :param parent:
-    :param max_value_len:  Target string length. As mentioned above, must be at
-                           least 3-5, depending on other options.
-    :param color:
-    :param allow_fractional:
-    :param allow_negative:
-    :param unit:
-    :param unit_separator:
-    :param mcoef:
-    :param pad:
-    :param legacy_rounding:
-    :param prefixes:
-    :param prefix_refpoint_shift:
-                      Should be set to a non-zero number if input represents
-                      already prefixed value; e.g. to correctly format a variable,
-                      which stores the frequency in MHz, set prefix shift to 2;
-                      the formatter then will render 2333 as "2.33 GHz" instead of
-                      incorrect "2.33 kHz".
-    :param value_mapping: @TODO
     """
 
     # fmt: off
@@ -383,6 +343,45 @@ class PrefixedUnitFormatter:
         prefix_refpoint_shift: int = None,
         value_mapping: t.Dict[float, RT] | t.Callable[[float], RT] = None,  # @TODO
     ):
+        """
+        ``max_value_len`` must be at least **3**, because it's a
+        minimum requirement for formatting values from 0 to 999.
+        Next number to 999 is 1000, which will be formatted as "1k".
+
+        Setting ``allow_negative`` to *True* increases lower bound of ``max_value_len``
+        to **4** because the values now can be less than 0, and minus sign also occupies
+        one char of the output.
+
+        Setting ``mcoef`` to anything other than 1000.0 also increases the minimum
+        of ``max_value_len`` argument by 1, to **5**. The reason is that non-decimal
+        coefficients like 1024 require additional char to render as switching
+        to the next prefix happens later: 999 b, 1000 b, 1001 b ... 1023 b, 1 Kb.
+
+        .. note ::
+
+            All arguments except ``parent`` are *kwonly*\ -type arguments.
+
+        :param parent:
+        :param int max_value_len[=5]: Target string length. As mentioned above, must be at
+                                      least 3-5, depending on other options.
+        :param bool  color=[False]:
+        :param bool  allow_negative=[False]:
+        :param bool  allow_fractional=[True]:
+        :param str   unit=[""]:
+        :param str   unit_separator=[""]:
+        :param float mcoef[=1000]:
+        :param bool  pad=[False]:
+        :param bool  legacy_rounding=[False]:
+        :param list[str|None] prefixes[=PREFIXES_SI]: 
+                        sasa
+        :param int prefix_refpoint_shift[=0]:
+                        Should be set to a non-zero number if input represents
+                        already prefixed value; e.g. to correctly format a variable,
+                        which stores the frequency in MHz, set prefix shift to 2;
+                        the formatter then will render 2333 as "2.33 GHz" instead of
+                        incorrect "2.33 kHz".
+        :param value_mapping: @TODO
+        """
         self._max_value_len: int = max_value_len
         self._color: bool = color
         self._allow_negative: bool = allow_negative
@@ -876,6 +875,14 @@ class TimeDeltaFormatter:
 
 @dataclass(frozen=True)
 class TimeUnit:
+    """
+    :param name:
+    :param in_next:
+    :param custom_short:
+    :param collapsible_after:
+    :param overflow_afer:
+    """
+
     name: str
     in_next: int = None  # how many current units equal to the (one) next unit
     custom_short: str = None

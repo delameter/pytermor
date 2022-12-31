@@ -2,4 +2,4 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
-__version__ = '2.30.0-dev1'
+__version__ = '2.31.0-dev1'

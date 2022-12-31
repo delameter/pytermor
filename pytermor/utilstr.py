@@ -212,7 +212,7 @@ RT = Union[OT, t.Callable[[t.Match[OT]], OT]]  # replacer type
 MT = t.Dict[int, IT]  # map
 AT = Union["OmniFilter", t.Type["OmniFilter"]]
 
-_dump_printers_cache: t.Dict[t.Type["AbstractDumper"], "AbstractDumper"] = dict()
+_dump_printers_cache: t.Dict[t.Type["AbstractTracer"], "AbstractTracer"] = dict()
 
 
 class IFilter(t.Generic[IT, OT], metaclass=ABCMeta):
@@ -284,15 +284,15 @@ class StringAligner(IFilter[str, str]):
 
 
 # -----------------------------------------------------------------------------
-# Filters[Dumpers]
+# Filters[Tracers]
 
 
-class AbstractDumper(IFilter[IT, str], metaclass=ABCMeta):
+class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
     def __init__(self, char_per_line: int):
         self._char_per_line = char_per_line
-        self._state: _DumperState = _DumperState()
+        self._state: _TracerState = _TracerState()
 
-    def apply(self, inp: IT, extra: DumperExtra = None) -> str:
+    def apply(self, inp: IT, extra: TracerExtra = None) -> str:
         if len(inp) == 0:
             return "\n"
 
@@ -354,7 +354,7 @@ class AbstractDumper(IFilter[IT, str], metaclass=ABCMeta):
         raise NotImplementedError
 
 
-class BytesDumper(AbstractDumper[bytes]):
+class BytesTracer(AbstractTracer[bytes]):
     """
     str/bytes as byte hex codes, grouped by 4
 
@@ -401,7 +401,7 @@ class BytesDumper(AbstractDumper[bytes]):
         return space_len + sep_len + offset_len + main_len
 
 
-class AbstractStringDumper(AbstractDumper[str], metaclass=ABCMeta):
+class AbstractStringTracer(AbstractTracer[str], metaclass=ABCMeta):
     def __init__(self, char_per_line: int):
         self._output_filters: t.List[IFilter] = []
         super().__init__(char_per_line)
@@ -410,7 +410,7 @@ class AbstractStringDumper(AbstractDumper[str], metaclass=ABCMeta):
         return apply_filters(text, *self._output_filters).ljust(self._char_per_line)
 
 
-class StringDumper(AbstractStringDumper):
+class StringTracer(AbstractStringTracer):
     """
     str as byte hex codes (UTF-8), grouped by characters
 
@@ -458,7 +458,7 @@ class StringDumper(AbstractStringDumper):
         return space_len + sep_len + prefix_len + offset_len + main_len
 
 
-class StringUcpDumper(AbstractStringDumper):
+class StringUcpTracer(AbstractStringTracer):
     """
     str as Unicode codepoints
 
@@ -509,12 +509,12 @@ class StringUcpDumper(AbstractStringDumper):
 
 
 @dataclass
-class DumperExtra:
+class TracerExtra:
     label: str
 
 
 @dataclass
-class _DumperState:
+class _TracerState:
     inp_size: int = field(init=False, default=None)
     lineno: int = field(init=False, default=None)
     offset: int = field(init=False, default=None)
@@ -814,7 +814,7 @@ def dump(data: t.Any, label: str = None, max_len_shift: int = None) -> str | Non
         - special handling of one-line input
         - squash repeating lines
     """
-    printer_t = StringUcpDumper
+    printer_t = StringUcpTracer
     printer = _dump_printers_cache.get(printer_t, None)
 
     if not printer and max_len_shift is not None:
@@ -830,4 +830,4 @@ def dump(data: t.Any, label: str = None, max_len_shift: int = None) -> str | Non
         printer = printer_t()
     _dump_printers_cache[printer_t] = printer
 
-    return printer.apply(data, DumperExtra(label))
+    return printer.apply(data, TracerExtra(label))

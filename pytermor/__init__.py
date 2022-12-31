@@ -81,7 +81,7 @@ from .utilstr import WHITESPACE_CHARS as WHITESPACE_CHARS
 from .utilstr import PRINTABLE_CHARS as PRINTABLE_CHARS
 from .utilstr import NON_ASCII_CHARS as NON_ASCII_CHARS
 from .utilstr import IFilter as IFilter
-from .utilstr import BytesDumper as BytesHexPrinter
+from .utilstr import BytesTracer as BytesTracer
 from .utilstr import CsiStringReplacer as CsiStringReplacer
 from .utilstr import EscSeqStringReplacer as EscSeqStringReplacer
 from .utilstr import NonPrintsOmniVisualizer as NonPrintsOmniVisualizer
@@ -92,11 +92,11 @@ from .utilstr import OmniEncoder as OmniEncoder
 from .utilstr import OmniMapper as OmniMapper
 from .utilstr import OmniSanitizer as OmniSanitizer
 from .utilstr import SgrStringReplacer as SgrStringReplacer
-from .utilstr import StringDumper as StringHexPrinter
+from .utilstr import StringTracer as StringTracer
 from .utilstr import StringMapper as StringMapper
 from .utilstr import StringReplacer as StringReplacer
-from .utilstr import StringUcpDumper as StringUcpPrinter
-from .utilstr import DumperExtra as DumperExtra
+from .utilstr import StringUcpTracer as StringUcpTracer
+from .utilstr import TracerExtra as TracerExtra
 from .utilstr import pad as pad
 from .utilstr import padv as padv
 from .utilstr import distribute_padded as distribute_padded

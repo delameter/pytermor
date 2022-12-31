@@ -39,7 +39,7 @@ class _Fragment(t.Sized):
             self.close_this = True
         self._style = make_style(self.fmt)
 
-    def __eq__(self, o: object) -> bool:
+    def __eq__(self, o: t.Any) -> bool:
         if not isinstance(o, type(self)):
             return False
         return (
@@ -67,12 +67,11 @@ class _Fragment(t.Sized):
 
 
 class IRenderable(t.Sized, ABC):
-    """
-    Renderable abstract class. Can be inherited when the default style
-    overlaps resolution mechanism implemented in `Text` is not good enough.
-    """
-
     def __init__(self):
+        """
+        Renderable abstract class. Can be inherited when the default style
+        overlaps resolution mechanism implemented in `Text` is not good enough.
+        """
         self._is_frozen: bool = False
         self._renders_cache: t.Dict[IRenderer, str] = dict()
 
@@ -106,7 +105,7 @@ class IRenderable(t.Sized, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def __eq__(self, o: IRenderable) -> bool:
+    def __eq__(self, o: t.Any) -> bool:
         raise NotImplementedError
 
     @abstractmethod
@@ -125,7 +124,12 @@ class IRenderable(t.Sized, ABC):
 
 
 class String(IRenderable):
-    def __init__(self, string: str = "", fmt: IColor | Style = NOOP_STYLE):
+    def __init__(self, string: str = "", fmt: FT = None):
+        """
+
+        :param string:
+        :param fmt:
+        """
         super().__init__()
         self._fragment = _Fragment(string, fmt)
         self._is_frozen = True
@@ -166,18 +170,28 @@ class FixedString(String):
     def __init__(
         self,
         string: str = "",
-        fmt: IColor | Style = NOOP_STYLE,
+        fmt: FT = None,
+        width: int = 0,
         align: Align = Align.LEFT,
         *,
-        width: int = 0,
         pad_left: int = 0,
         pad_right: int = 0,
         overflow_char: str = None,  # @TODO
     ):
+        """
+
+        :param string:
+        :param fmt:
+        :param width:
+        :param align:
+        :param pad_left:
+        :param pad_right:
+        :param overflow_char:
+        """
         super().__init__(string, fmt)
         self._is_frozen = True
-        self._align = align
         self._width = max(0, width) or len(string)
+        self._align = align
         self._pad_left = max(0, pad_left)
         self._pad_right = max(0, pad_right)
 
@@ -189,7 +203,7 @@ class FixedString(String):
     def __len__(self) -> int:
         return self._width
 
-    def __eq__(self, o: String) -> bool:
+    def __eq__(self, o: t.Any) -> bool:
         if not isinstance(o, type(self)):
             return False
         return (
@@ -248,34 +262,41 @@ class FrozenText(IRenderable):
 
     def __init__(
         self,
-        string: str | IRenderable = "",
-        fmt: IColor | Style = NOOP_STYLE,
+        string: RT = "",
+        fmt: FT = None,
         *,
         close_this: bool = True,
         close_prev: bool = False,
     ):
+        """
+
+        :param string:
+        :param fmt:
+        :param close_this:
+        :param close_prev:
+        """
         super().__init__()
         self._is_frozen = True
         self._fragments: t.Deque[_Fragment] = collections.deque(
             self._make_fragments(string, fmt, close_this, close_prev)
         )
 
-    def __eq__(self, o: IRenderable) -> bool:
+    def __eq__(self, o: t.Any) -> bool:
         if not isinstance(o, type(self)):
             return False
         return self._fragments == o._fragments
 
     def _make_fragments(
         self,
-        string: str | IRenderable,
-        fmt: IColor | Style = NOOP_STYLE,
+        string: RT,
+        fmt: FT = None,
         close_this: bool = True,
         close_prev: bool = False,
     ) -> t.Sequence[_Fragment]:
         if isinstance(string, str):
             return [_Fragment(string, fmt, close_this, close_prev)]
         elif isinstance(string, IRenderable):
-            if fmt != NOOP_STYLE and fmt != NOOP_COLOR:
+            if fmt is not None and fmt != NOOP_STYLE and fmt != NOOP_COLOR:
                 return [_Fragment("", fmt, close_this, close_prev)]
             return string.fragments
         raise ArgTypeError(type(string), "string", fn=self._make_fragments)
@@ -418,35 +439,37 @@ class FrozenText(IRenderable):
 class Text(FrozenText):
     def __init__(
         self,
-        string: str | IRenderable = "",
-        fmt: IColor | Style = NOOP_STYLE,
+        string: RT = "",
+        fmt: FT = None,
         *,
         close_this: bool = True,
         close_prev: bool = False,
     ):
+        """
+
+        :param string:
+        :param fmt:
+        :param close_this:
+        :param close_prev:
+        """
         super().__init__(string, fmt, close_this=close_this, close_prev=close_prev)
         self._is_frozen = False
 
-    def __eq__(self, o: IRenderable) -> bool:
+    def __eq__(self, o: t.Any) -> bool:
         if not isinstance(o, type(self)):
             return False
         return self._fragments == o._fragments
 
     def append(
-        self,
-        string: str | IRenderable = "",
-        fmt: IColor | Style = NOOP_STYLE,
-        *,
-        close_this: bool = True,
-        close_prev: bool = False,
+        self, string: RT = "", fmt: FT = None, *, close_this=True, close_prev=False
     ) -> Text:
         self._fragments.extend(self._make_fragments(string, fmt, close_this, close_prev))
         return self
 
     def prepend(
         self,
-        string: str | IRenderable = "",
-        fmt: IColor | Style = NOOP_STYLE,
+        string: RT = "",
+        fmt: FT = None,
         *,
         close_this: bool = True,
         close_prev: bool = False,
@@ -456,15 +479,15 @@ class Text(FrozenText):
         )
         return self
 
-    def __add__(self, other: str | Text) -> Text:
+    def __add__(self, other: RT) -> Text:
         self.append(other)
         return self
 
-    def __iadd__(self, other: str | Text) -> Text:
+    def __iadd__(self, other: RT) -> Text:
         self.append(other)
         return self
 
-    def __radd__(self, other: str | Text) -> Text:
+    def __radd__(self, other: RT) -> Text:
         self.prepend(other)
         return self
 

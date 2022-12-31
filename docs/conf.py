@@ -194,7 +194,7 @@ autodoc_default_options = {
 # include signature in the class desc or document __init__ separately
 autodoc_class_signature = "mixed"  # 'separated'
 
-autoclass_content = "both"
+autoclass_content = "both"  # "class" "init"
 
 # doctest_test_doctest_blocks = 'True'
 
@@ -213,7 +213,7 @@ autodoc_typehints_description_target = "documented_params"
 # autodoc_inherit_docstrings =
 
 autodoc_type_aliases = {
-    # "CT": "pytermor.color.CT",
+    "RT": "pytermor.common.RT",
 }
 
 keep_warnings = True

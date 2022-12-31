@@ -59,6 +59,10 @@ class ISequence(t.Sized, metaclass=ABCMeta):
     _TERMINATOR: str
 
     def __init__(self, *params: int | str):
+        """
+        :param  \*params:  Sequence internal parameters, existnce and
+                           valid amount depends on sequence type.
+        """
         self._params: t.List[int | str] = []
 
         for param in params:

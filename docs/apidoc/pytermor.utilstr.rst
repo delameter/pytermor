@@ -31,11 +31,10 @@
 
    .. autosummary::
    
-      AbstractDumper
-      AbstractStringDumper
-      BytesDumper
+      AbstractStringTracer
+      AbstractTracer
+      BytesTracer
       CsiStringReplacer
-      DumperExtra
       EscSeqStringReplacer
       IFilter
       NonPrintsOmniVisualizer
@@ -47,10 +46,11 @@
       OmniSanitizer
       SgrStringReplacer
       StringAligner
-      StringDumper
       StringMapper
       StringReplacer
-      StringUcpDumper
+      StringTracer
+      StringUcpTracer
+      TracerExtra
    
    
 

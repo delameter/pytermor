@@ -180,12 +180,14 @@ class Style:
             return color.resolve(arg)
         raise ArgTypeError(type(arg), "arg", fn=self._resolve_color)
 
-    def __eq__(self, other: Style):
+    def __eq__(self, other: Style) -> bool:
+        if not isinstance(other, Style):
+            return False
         return all(
             getattr(self, attr) == getattr(other, attr) for attr in self._attributes
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self == NOOP_STYLE:
             props_set = ["NOP"]
         elif self._fg is None or self._bg is None:
