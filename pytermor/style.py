@@ -123,7 +123,7 @@ class Style:
         self.class_name = class_name
 
         if parent is not None:
-            self._clone_from(parent)
+            self.inherit_from(parent)
 
         if self._fg is None:
             self._fg = NOOP_COLOR
@@ -164,12 +164,16 @@ class Style:
     def clone(self) -> Style:
         return Style(self)
 
-    def _clone_from(self, parent: Style):
+    def inherit_from(self, parent: Style):
         for attr in self.renderable_attributes:
-            self_val = getattr(self, attr)
-            parent_val = getattr(parent, attr)
-            if self_val is None and parent_val is not None:
-                setattr(self, attr, parent_val)
+            if getattr(self, attr) is None:
+                if (parent_val := getattr(parent, attr)) is not None:
+                    setattr(self, attr, parent_val)
+
+    def overwrite_from(self, overwriter: Style):
+        for attr in self.renderable_attributes:
+            if (overwriter_val := getattr(overwriter, attr)) is not None:
+                setattr(self, attr, overwriter_val)
 
     def _resolve_color(self, arg: str | int | IColor | None) -> IColor | None:
         if arg is None:
@@ -257,3 +261,17 @@ def make_style(fmt: FT = None) -> Style:
             return NOOP_STYLE
         return Style(fg=fmt)
     raise ArgTypeError(type(fmt), "fmt", fn=make_style)
+
+
+def merge_styles(
+    base: Style = NOOP_STYLE,
+    *,
+    parents: t.Iterable[Style] = (),
+    overwrites: t.Iterable[Style] = (),
+):
+    result = base.clone()
+    for parent in parents:
+        result.inherit_from(parent)
+    for overwrite in overwrites:
+        result.overwrite_from(overwrite)
+    return result

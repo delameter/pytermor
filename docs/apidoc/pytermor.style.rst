@@ -20,6 +20,7 @@
    .. autosummary::
    
       make_style
+      merge_styles
    
    
 

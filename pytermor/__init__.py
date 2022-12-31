@@ -41,6 +41,7 @@ from .style import NOOP_STYLE as NOOP_STYLE
 from .style import Style as Style
 from .style import Styles as Styles
 from .style import make_style as make_style
+from .style import merge_styles as merge_styles
 from .renderer import IRenderer as IRenderer
 from .renderer import HtmlRenderer as HtmlRenderer
 from .renderer import RendererManager as RendererManager
