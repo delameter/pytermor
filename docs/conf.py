@@ -59,11 +59,47 @@ rst_prolog = """
 .. role:: date
     :class: date
 
+.. role:: mono
+    :class: entity
+
+.. role:: strike
+    :class: strike
+
+.. role:: date
+    :class: date
+
 .. default-role:: any
 .. include:: <isonum.txt>
 
 .. |nbspt| unicode:: 0xA0
    :trim:
+
+.. role:: badge
+    :class: badge
+    
+.. role:: badge-new
+    :class: hidden, badge, badge-new
+    
+.. role:: badge-fix
+    :class: hidden, badge, badge-fix
+
+.. role:: badge-doc
+    :class: hidden, badge, badge-doc
+    
+.. role:: badge-test
+    :class: hidden, badge, badge-test
+
+.. role:: badge-refactor
+    :class: hidden, badge, badge-refactor
+
+.. |[]| replace:: :badge:`\\ `
+.. |NEW| replace:: :badge-new:`[NEW]`
+.. |FIX| replace:: :badge-fix:`[FIX]`
+.. |DOCS| replace:: :badge-doc:`[DOCS]`
+.. |TESTS| replace:: :badge-test:`[TESTS]`
+.. |REFACTOR| replace:: :badge-refactor:`[REFACTOR]`
+    
+    
 """
 
 # -- HTML ---------------------------------------------------------------------
@@ -81,7 +117,6 @@ html_css_files = ["custom.css", "custom-furo.css"]
 html_js_files = ["custom.js"]
 html_favicon = "_static/logo-96.svg"
 html_logo = "_static/logo-96.svg"
-
 html_theme_options = {
     "footer_icons": [
         {
@@ -127,6 +162,10 @@ html_theme_options = {
         "color-pt-method-border": "hsl(45, 3%, 74%)",
         "color-pt-highlight-target-border": "hsl(50, 75%, 60%)",
         "color-pt-highlight-target-foreground": "var(--color-api-keyword)",
+        "color-pt-badge-border": "none",
+        "color-pt-badge-background": "none",
+        "color-pt-badge-foreground": "inherit",
+        "color-pt-badge-text-shadow": "inherit",
     },
     "dark_css_variables": {
         "color-brand-primary": "#2b8cee",
@@ -151,8 +190,13 @@ html_theme_options = {
         "color-pt-method-border": "hsla(45, 20%, 65%, 0.5)",
         "color-pt-highlight-target-border": "hsl(50, 75%, 60%)",
         "color-pt-highlight-target-foreground": "hsla(50, 100%, 50%, 75%)",
+        "color-pt-badge-border": "inherit",
+        "color-pt-badge-background": "black",
+        "color-pt-badge-foreground": "inherit",
+        "color-pt-badge-text-shadow": "none",
     },
 }
+
 
 pygments_style = "tango"
 pygments_dark_style = "github-dark"

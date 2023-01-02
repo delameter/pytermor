@@ -4,10 +4,18 @@
 /*---------------------------------------------------------------------------*/
 
 $(document).ready(function () {
-    $('a.external, a.internal.image-reference, .icons a').attr('target', '_blank');
-
-    handleEscCharLabels()
+    setExternalHrefOpenMethodToBlank();
+    handleEscCharLabels();
+    removeBadgeBrackets();
 });
+
+function setExternalHrefOpenMethodToBlank() {
+    for (let el of $('a.external, a.internal.image-reference, .icons a')) {
+        if (!el) continue;
+        if (el.attributes.href.value.charAt(0) === '#') continue;
+        el.setAttribute('target', '_blank');
+    }
+}
 
 function handleEscCharLabels() {
     let affectedNodes = new Set();
@@ -29,4 +37,23 @@ function handleEscCharLabels() {
 function removeSpacesBetweenTags(el) {
     if (!el) return;
     el.innerHTML = el.innerHTML.replace(/>\s+</g, "><");
+}
+
+let badgeContentMap = {
+    "": "•",
+    "[NEW]": "+",
+    "[FIX]": "*",
+    "[DOCS]": "#",
+    "[TESTS]": "»",
+    "[REFACTOR]": "=",
+}
+
+function removeBadgeBrackets() {
+    for (let el of $('span.badge')) {
+        let t = el.textContent;
+        if (/^$|^\[[A-Z]*\]$/.test(t)) {
+            el.textContent = badgeContentMap[t];
+            el.classList.remove("hidden");
+        }
+    }
 }

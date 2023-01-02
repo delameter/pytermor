@@ -410,6 +410,48 @@ table.core-api-refs td {
     padding: 1rem;
 }
 
+/** Changelog **/
+
+#changelog li {
+    list-style: none;
+}
+
+/** Badges **/
+
+span.badge {
+    padding: 2px 5px;
+    width: 10px;
+    text-align: center;
+    font-family: 'ASM-Bold';
+    font-weight: 700;
+    vertical-align: middle;
+    border: thin outset var(--color-pt-badge-border, #333);;
+    border-radius: 5px;
+    color: #666;
+    font-size: 95%;
+    text-shadow: 1px 1px 0px var(--color-pt-badge-text-shadow, black);
+}
+span.badge-new {
+    background: var(--color-pt-badge-background, #7fff7f40);
+    color: var(--color-pt-badge-foreground, #7fff7f);
+}
+span.badge-fix {
+    background: var(--color-pt-badge-background, #FF7F7F40);
+    color: var(--color-pt-badge-foreground, #FF7F7F);
+}
+span.badge-doc {
+    background: var(--color-pt-badge-background, #ffaf5f40);
+    color: var(--color-pt-badge-foreground, #ffaf5f);
+}
+span.badge-test {
+    background: var(--color-pt-badge-background, #be79ff40);
+    color: var(--color-pt-badge-foreground, #be79ff);
+}
+span.badge-refactor {
+    background: var(--color-pt-badge-background, #5f7fff40);
+    color: var(--color-pt-badge-foreground, #5f7fff);
+}
+
 
 /** Presets table **/
 
