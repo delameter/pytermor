@@ -335,9 +335,9 @@ class Styles:
     ERROR_ACCENT = Style(fg=cv.HI_RED)
     """ """
 
-    CRITICAL = Style(bg=cv.RED, fg=cv.HI_WHITE)
+    CRITICAL = Style(bg=cv.RED_3, fg=cv.HI_WHITE)
     """ """
-    CRITICAL_LABEL = Style(CRITICAL, bg=cv.HI_RED, bold=True)
+    CRITICAL_LABEL = Style(CRITICAL, bold=True)
     """ """
     CRITICAL_ACCENT = Style(CRITICAL_LABEL, blink=True)
     """ """

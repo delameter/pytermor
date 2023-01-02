@@ -229,6 +229,7 @@ class NumHighlighter:
         'P': STYLE_PET,
     }
     TIME_UNIT_MAP = {
+        '%': STYLE_PRC,
         's': STYLE_PRC, 'sec': STYLE_PRC, 'second': STYLE_PRC,
         'm': STYLE_KIL, 'min': STYLE_KIL, 'minute': STYLE_KIL,
         'h': STYLE_MEG,  'hr': STYLE_MEG,   'hour': STYLE_MEG,
@@ -309,8 +310,8 @@ class StaticBaseFormatter:
 
     PREFIXES_SI_BIN = [None, 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi', 'Yi', 'Ri', 'Qi']
     """
-    Prefix preset used by `format_si_binary()`. Covers values from 0 to
-     :math:`10^{32}`. 
+    Prefix preset used by `format_si_binary()`. Covers values from :math:`0` to 
+    :math:`10^{32}`. 
     """
     # fmt: on
 
@@ -359,23 +360,26 @@ class StaticBaseFormatter:
             minimum requirement for formatting values from 0 to 999.
             Next number to 999 is 1000, which will be formatted as "1k".
 
-            Setting ``allow_negative`` to *True* increases lower bound to **5** because
-            the values now can be less than 0, and minus sign also occupies
-            one char of the output.
+            Setting ``allow_negative`` to *True* increases lower bound to **4** because
+            the values now can be less than 0, and minus sign also occupies one char in
+            the output.
 
             Setting ``mcoef`` to anything other than 1000.0 also increases the minimum
-            by 1, to **6**. The reason is that non-decimal coefficients like 1024 require
+            by 1, to **5**. The reason is that non-decimal coefficients like 1024 require
             additional char to render as switching to the next prefix happens later:
             "999 b", "1000 b", "1001 b", ..."1023 b", "1 Kb".
 
         :param bool  color: [default: *False*]
-        :param bool  allow_negative: [default: *True*]
+        :param bool  allow_negative:
+            [default: *True*] Allow negative numbers handling, or (if set to *False*)
+            ignore the sign and round all of them to 0.0. This option effectively
+            increases lower limit of ``max_value_len`` by 1.
         :param bool  allow_fractional:
             [default: *True*] Allows the usage of fractional values in the output. If
             set to *False*, the results will be rounded.
         :param bool  discrete_input:
-            [default: *False*] If set to *True*, truncate the fractional part of the
-            input and do not use floating-point format for base output, i.e., without
+            [default: *False*] If set to *True*, truncate the fractional part off the
+            input and do not use floating-point format for *base output*, i.e., without
             prefix and multiplying coefficient. Useful when the values are originally
             discrete (e.g., bytes). Note that the same effect could be achieved by
             setting ``allow_fractional`` to *False*, except that it will influence
