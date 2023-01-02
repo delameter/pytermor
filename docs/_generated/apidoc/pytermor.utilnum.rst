@@ -22,7 +22,7 @@
    
       format_auto_float
       format_si_binary
-      format_si_metric
+      format_si
       format_thousand_sep
       format_time_delta
    
@@ -34,9 +34,9 @@
 
    .. autosummary::
    
-      PrefixedUnitFormatter
-      TimeDeltaFormatter
-      TimeUnit
+      StaticBaseFormatter
+      DynamicBaseFormatter
+      CustomBaseUnit
    
    
 

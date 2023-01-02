@@ -24,11 +24,11 @@ from .ansi import (
     make_color_256,
     make_color_rgb,
 )
-from .common import LogicError
+from .common import LogicError, CDT
 
-CT = t.TypeVar("CT", "Color16", "Color256", "ColorRGB")
+CT = t.TypeVar("CT", bound="IColor")
 """ 
-Any non-abstract `Color` type.
+Any non-abstract `IColor` type.
 
 :meta public:
  """
@@ -116,7 +116,7 @@ class ApxResult(t.Generic[CT]):
     """
 
     color: CT
-    """ Found `Color` instance. """
+    """ Found `IColor` instance. """
     distance: int
     """ Squared sRGB distance from this instance to the approximation target. """
 
@@ -125,9 +125,7 @@ class ApxResult(t.Generic[CT]):
         """
         Actual distance from instance to target:
 
-        .. math ::
-
-            distance_{real} = \sqrt{distance}
+            :math:`distance_{real} = \\sqrt{distance}`
         """
         return math.sqrt(self.distance)
 
@@ -135,8 +133,6 @@ class ApxResult(t.Generic[CT]):
 class IColor(ABC):
     """
     Abstract superclass for other ``Colors``.
-
-    :meta private:
     """
 
     # class vars #
@@ -215,9 +211,12 @@ class IColor(ABC):
         """Color name, e.g. "navy-blue"."""
         return self._name
 
-    def _repr(self, *params: t.Any) -> str:  # pragma: no cover
-        params_str = ",".join(str(s) for s in filter(None, params))
-        return f"<{self.__class__.__name__}[{params_str}]>"
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}[{self.repr_attrs()}]>"
+
+    @abstractmethod
+    def repr_attrs(self, verbose: bool = True) -> str:
+        raise NotImplementedError
 
     def to_hsv(self) -> t.Tuple[float, float, float]:
         """
@@ -238,11 +237,11 @@ class IColor(ABC):
     @abstractmethod
     def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
         """
-        Make an `SGR sequence<SequenceSGR>` out of `Color`. Used by `SgrRenderer`.
+        Make an `SGR sequence<SequenceSGR>` out of `IColor`. Used by `SgrRenderer`.
 
         :param bg: Set to *True* if required SGR should change the background color, or
                    *False* for the foreground (=text) color.
-        :param upper_bound: Required result `Color` type upper boundary, i.e., the
+        :param upper_bound: Required result `IColor` type upper boundary, i.e., the
                             maximum acceptable color class, which will be the basis for
                             SGR being made. See `Color256.to_sgr()` for the details.
         """
@@ -264,8 +263,8 @@ class IColor(ABC):
         """
         Case-insensitive search through registry contents.
 
-        :see: `color.resolve()` for the details
-        :param name:  `Color` name to search for.
+        :see: `resolve_color()` for the details
+        :param name:  `IColor` name to search for.
         """
         if not hasattr(cls, "_registry"):
             raise LogicError(
@@ -331,14 +330,14 @@ class IColor(ABC):
 
 class Color16(IColor):
     """
-    This variant of a `Color` operates within the most basic color set
+    Variant of a `IColor` operating within the most basic color set
     -- **Xterm-16**. Represents basic color-setting SGRs with primary codes
     30-37, 40-47, 90-97 and 100-107 (see `guide.presets.color16`).
     
     .. note ::
 
         Arguments ``register``, ``index`` and ``aliases``
-        are *kwonly*\ -type args.
+        are *kwonly*-type args.
 
     :param hex_value: Color RGB value, e.g. 0x800000.
     :param code_fg:   Int code for a foreground color setup, e.g. 30.
@@ -346,7 +345,7 @@ class Color16(IColor):
     :param name:      Name of the color, e.g. "red".
     :param register:  If *True*, add color to registry for resolving by name.
     :param index:     If *True*, add color to approximation index.
-    :param aliases:   Alternative color names (used in `resolve()`).
+    :param aliases:   Alternative color names (used in `resolve_color()`).
     """
 
     def __init__(
@@ -397,7 +396,7 @@ class Color16(IColor):
             and self._code_fg == other._code_fg
         )
 
-    def __repr__(self):
+    def repr_attrs(self, verbose: bool = True) -> str:
         # question mark after color value indicates that we cannot be 100% sure
         # about the exact value of xterm-16 colors, as they are configurable and
         # depend on terminal theme and settings. that's not the case for xterm-256,
@@ -407,7 +406,11 @@ class Color16(IColor):
         # that's not something that you'd expect from a regular user, anyway.
         code = f"#{self._code_fg}"
         value = f"{self.format_value('')}?"
-        return self._repr(code, value, self._name)
+
+        params = [self._name]
+        if verbose:
+            params = [code, value] + params
+        return ",".join(str(s) for s in filter(None, params))
 
     def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
         if bg:
@@ -425,21 +428,21 @@ class Color16(IColor):
 
 class Color256(IColor):
     """
-    This variant of a `Color` operates within relatively modern **Xterm-256**
+    Variant of a `IColor` operating within relatively modern **Xterm-256**
     indexed color table. Represents SGR complex codes ``38;5;*`` and ``48;5;*``
     (see `guide.presets.color256`).
 
     .. note ::
 
         Arguments ``register``, ``index``, ``aliases`` and ``color16_equiv``
-        are *kwonly*\ -type args.
+        are *kwonly*-type args.
 
     :param hex_value: Color RGB value, e.g. 0x5f0000.
     :param code:      Int code for a color setup, e.g. 52.
     :param name:      Name of the color, e.g. "dark-red".
     :param register:  If *True*, add color to registry for resolving by name.
     :param index:     If *True*, add color to approximation index.
-    :param aliases:   Alternative color names (used in `resolve()`).
+    :param aliases:   Alternative color names (used in `resolve_color()`).
     :param color16_equiv:
                       `Color16` counterpart (applies only to codes 0-15).
     """
@@ -464,9 +467,9 @@ class Color256(IColor):
 
     def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
         """
-        Make an `SGR sequence<SequenceSGR>` out of `Color`. Used by `SgrRenderer`.
+        Make an `SGR sequence<SequenceSGR>` out of `IColor`. Used by `SgrRenderer`.
 
-        Each `Color` type represents one SGR type in the context of colors. For
+        Each `IColor` type represents one SGR type in the context of colors. For
         example, if ``upper_bound`` is set to `Color16`, the resulting SGR will always
         be one of 16-color index table, even if the original color was of different
         type -- it will be approximated just before the SGR assembling.
@@ -483,7 +486,7 @@ class Color256(IColor):
 
         :param bg: Set to *True* if required SGR should change the background color, or
                    *False* for the foreground (=text) color.
-        :param upper_bound: Required result `Color` type upper boundary, i.e., the
+        :param upper_bound: Required result `IColor` type upper boundary, i.e., the
                             maximum acceptable color class, which will be the basis for
                             SGR being made.
         """
@@ -521,29 +524,34 @@ class Color256(IColor):
             return False
         return self._hex_value == other._hex_value and self._code == other._code
 
-    def __repr__(self):
-        code = f"#{self._code}"
-        return self._repr(code, self.format_value(""), self._name)
+    def repr_attrs(self, verbose: bool = True) -> str:
+        code = f"X{self._code}"
+        value = self.format_value("")
+
+        params = [code+f"[{value}]"]
+        if verbose:
+            params = [code, value, self._name]
+        return ",".join(str(s) for s in filter(None, params))
 
 
 class ColorRGB(IColor):
     """
-    This variant of a `Color` operates within **Pytermor Named Colors**,
-    unique collection of colors compiled from several known sources after careful
-    selection (see `guide.named-colors`). However, it's not limited to aforementioned
-    color list and can be easily extended.
+    Variant of a `IColor` operating within RGB color space. Presets include
+    `es7s named colors <guide.es7s-colors>`, a unique collection of colors
+    compiled from several known sources after careful selection. However,
+    it's not limited to aforementioned color list and can be easily extended.
 
     .. note ::
 
         Arguments ``register``, ``index``, ``aliases`` and ``variation_map``
-        are *kwonly*\ -type args.
+        are *kwonly*-type args.
 
 
     :param hex_value: Color RGB value, e.g. 0x73a9c2.
     :param name:      Name of the color, e.g. "moonstone-blue".
     :param register:  If *True*, add color to registry for resolving by name.
     :param index:     If *True*, add color to approximation index.
-    :param aliases:   Alternative color names (used in `resolve()`).
+    :param aliases:   Alternative color names (used in `resolve_color()`).
     :param variation_map: Mapping {*int*: *str*}, where keys are hex values,
                           and values are variation names.
     """
@@ -578,8 +586,13 @@ class ColorRGB(IColor):
             return False
         return self._hex_value == other._hex_value
 
-    def __repr__(self):
-        return self._repr(self.format_value(""), self._name)
+    def repr_attrs(self, verbose: bool = True) -> str:
+        value = self.format_value("")
+
+        params = [value]
+        if verbose:
+            params += [self.name]
+        return ",".join(str(s) for s in filter(None, params))
 
     @property
     def base(self) -> CT | None:
@@ -615,26 +628,26 @@ class _NoopColor(IColor):
     def format_value(self, prefix: str = "0x") -> str:
         return (prefix if "=" in prefix else "") + "NOP"
 
-    def __repr__(self):
-        return self._repr(self.format_value())
+    def repr_attrs(self, verbose: bool = True) -> str:
+        return self.format_value()
 
 
 NOOP_COLOR = _NoopColor()
 """
-Special `Color` instance always rendering into empty string.
+Special `IColor` instance always rendering into empty string.
 """
 
 
-def resolve(subject: str | int, color_type: t.Type[CT] = None) -> CT:
+def resolve_color(subject: CDT, color_type: t.Type[CT] = None) -> CT:
     """
     Case-insensitive search through registry contents. Search is performed for
-    `Color` instance named as specified in ``subject`` argument, and of specified
+    `IColor` instance named as specified in ``subject`` argument, and of specified
     ``color_type``, or for any type if argument is omitted: first it will be performed
     in the registry of `Color16` class, then -- in `Color256`, and, if previous two
     were unsuccessful, in the largest `ColorRGB` registry. Therefore, the return value
     could be any of these types:
 
-        >>> resolve('red')
+        >>> resolve_color('red')
         <Color16[#31,800000?,red]>
 
     If ``color_type`` is `ColorRGB` or if it is omitted, there is one more way
@@ -643,30 +656,31 @@ def resolve(subject: str | int, color_type: t.Type[CT] = None) -> CT:
     actual searching is performed, and a new nameless instance of `ColorRGB` is
     created and returned.
 
-        >>> resolve("#333")
+        >>> resolve_color("#333")
         <ColorRGB[333333]>
-        >>> resolve(0xfafef0)
+        >>> resolve_color(0xfafef0)
         <ColorRGB[FAFEF0]>
 
     Color names are stored in registries as tokens, which allows to use any form of
     input and get the correct result regardless. The only requirement is to split the
     words in any matter, so that tokenizer could distinguish the words from each other:
 
-        >>> resolve('deep-sky-blue-7')
-        <Color256[#23,005F5F,deep-sky-blue-7]>
-        >>> resolve('DEEP_SKY_BLUE_7')
-        <Color256[#23,005F5F,deep-sky-blue-7]>
-        >>> resolve('DeepSkyBlue7')
-        <Color256[#23,005F5F,deep-sky-blue-7]>
+        >>> resolve_color('deep-sky-blue-7')
+        <Color256[X23,005F5F,deep-sky-blue-7]>
+        >>> resolve_color('DEEP_SKY_BLUE_7')
+        <Color256[X23,005F5F,deep-sky-blue-7]>
+        >>> resolve_color('DeepSkyBlue7')
+        <Color256[X23,005F5F,deep-sky-blue-7]>
 
-        >>> resolve('deepskyblue7')
+        >>> resolve_color('deepskyblue7')
         Traceback (most recent call last):
         LookupError: Color 'deepskyblue7' was not found in any of registries
 
-    :param subject:      `Color` name or hex value to search for.
+    :param str|int subject:
+            `IColor` name or hex value to search for. See `CDT`.
     :param color_type:   Target color type (`Color16`, `Color256` or `ColorRGB`).
     :raises LookupError: If nothing was found in either of registries.
-    :return:             `Color` instance with specified name or value.
+    :return:             `IColor` instance with specified name or value.
     """
     def subject_as_hex():
         nonlocal subject
@@ -728,7 +742,7 @@ def approximate(
     `find_closest()`, although they differ in some aspects:
 
         - `approximate()` can return more than one result;
-        - `approximate()` returns not just a `Color` instance(s), but also a
+        - `approximate()` returns not just a `IColor` instance(s), but also a
           number equal to squared distance to the target color for each of them;
         - `find_closest()` caches the results, while `approximate()` ignores
           the cache completely.
@@ -736,7 +750,7 @@ def approximate(
     :param hex_value:    Target color RGB value.
     :param color_type:   Target color type (`Color16`, `Color256` or `ColorRGB`).
     :param max_results:  Return no more than ``max_results`` items.
-    :return: Pairs of closest `Color` instance(s) found with their distances
+    :return: Pairs of closest `IColor` instance(s) found with their distances
              to the target color, sorted by distance descending, i.e., element
              at index 0 is the closest color found, paired with its distance
              to the target; element with index 1 is second-closest color
@@ -747,7 +761,7 @@ def approximate(
 
 def hex_to_rgb(hex_value: int) -> t.Tuple[int, int, int]:
     """
-    Transforms ``hex_value`` in 0xFFFFFF format into a tuple of three
+    Transforms ``hex_value`` in *int* format into a tuple of three
     integers corresponding to **red**, **blue** and **green** channel value
     respectively. Values are within [0; 255] range.
 
@@ -766,7 +780,7 @@ def hex_to_rgb(hex_value: int) -> t.Tuple[int, int, int]:
 def rgb_to_hex(r: int, g: int, b: int) -> int:
     """
     Transforms RGB value in a three-integers form ([0; 255], [0; 255], [0; 255])
-    to an one-integer form 0xFFFFFF.
+    to an one-integer form.
 
         >>> hex(rgb_to_hex(0, 128, 0))
         '0x8000'
@@ -857,7 +871,7 @@ def rgb_to_hsv(r: int, g: int, b: int) -> t.Tuple[float, float, float]:
 
 def hex_to_hsv(hex_value: int) -> t.Tuple[float, float, float]:
     """
-    Transforms ``hex_value`` in 0xFFFFFF format into a tuple of three numbers
+    Transforms ``hex_value`` in *int* form into a tuple of three numbers
     corresponding to **hue**, **saturation** and **value** channel values respectively.
     Hue is within [0, 359] range, both saturation and value are within [0; 1] range.
 
@@ -873,7 +887,7 @@ def hex_to_hsv(hex_value: int) -> t.Tuple[float, float, float]:
 def hsv_to_hex(h: float, s: float, v: float) -> int:
     """
     Transforms HSV value in three-floats form (where 0 <= h < 360, 0 <= s <= 1,
-    and 0 <= v <= 1) into an one-integer form 0xFFFFFF.
+    and 0 <= v <= 1) into an one-integer form.
 
         >>> hex(hsv_to_hex(90, 0.5, 0.5))
         '0x608040'

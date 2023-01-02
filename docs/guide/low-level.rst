@@ -1,10 +1,26 @@
 .. _guide.low-level:
 
+.. currentmodule:: pytermor
+
 ==========================
 Low-level API
 ==========================
 
 So, what's happening under the hood?
+
+Core methods
+================
+
+.. autosummary::
+
+   ansi.SequenceSGR
+   ansi.make_color_256
+   ansi.make_color_rgb
+
+.. inheritance-diagram::  pytermor.ansi
+   :parts: 1
+   :top-classes:          pytermor.ansi.ISequence
+   :caption:              `ISequence` inheritance tree
 
 
 Format soft reset
@@ -122,35 +138,10 @@ One instance of `SequenceSGR` can be added to another. This will result in a new
    :linenos:
 
 
-Class hierarchy
-=================
+Sources
+==============
 
-.. inheritance-diagram::  pytermor.ansi
-   :parts: 1
-   :top-classes:          pytermor.ansi.ISequence
-   :caption:              `ISequence` inheritance tree
+1. `XTerm Control Sequences <https://invisible-island.net/xterm/ctlseqs/ctlseqs.html>`_
+2. `ECMA-48 specification <https://www.ecma-international.org/publications-and-standards/standards/ecma-48/>`_
 
 
-Core API
-========
-
-.. only :: html
-
-   .. table::
-      :class: core-api-refs
-
-      =================================== ======================
-      `SequenceSGR` constructor           `Span` constructor
-      `ansi.make_color_256()`             `Span.init_explicit()`
-      `ansi.make_color_rgb()`
-      =================================== ======================
-
-.. only :: latex
-
-   .. todo ::
-
-      * `SequenceSGR` constructor
-      * `SequenceSGR.make_color_256()`
-      * `SequenceSGR.make_color_rgb()`
-      * `Span` constructor
-      * `Span.init_explicit()`

@@ -12,7 +12,7 @@ import typing as t
 from dataclasses import dataclass
 from math import floor, log10, trunc, log, isclose
 
-from .common import RT
+from .common import RT, logger
 from .cval import CVAL as cv
 from .style import NOOP_STYLE, Style, Styles
 from .text import Text
@@ -52,7 +52,7 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
     with ``allow_exp_form`` = *False*; in that case:
 
         1) if absolute value is less than 1, zeros will be displayed ('0.0000');
-        2) if value is a big number (like 10\ :sup:`9`), *ValueError* will be
+        2) if value is a big number (like :math:`10^9`), *ValueError* will be
            raised instead.
 
     >>> format_auto_float(0.012345678, 5)
@@ -72,11 +72,10 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
 
     :param val:             Value to format.
     :param req_len:         Required output string length.
-    :param allow_exp_form:  Enable/disable the possibility to use an exponent form, when
-                            there is no other way of fitting the value into string of
-                            requested length.
+    :param allow_exp_form:  Allow scientific notation usage when no other way
+                            of fitting the value into a string of required length.
     :raises ValueError:     If value is too big to fit into ``req_len`` digits and
-                            ``allow_exponent_notation`` is set to False.
+                            ``allow_exp_form`` is set to False.
     """
     if req_len < -1:
         raise ValueError(f"Required length should be >= 0 (got {req_len})")
@@ -97,19 +96,19 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
     if val == 0.0:
         return f"{sign}{0:{req_len}.0f}"
 
-    exponent = floor(log10(abs_value))
+    oom = floor(log10(abs_value))  # order of magnitude
     exp_threshold_left = -2
     exp_threshold_right = req_len - 1
 
-    # exponential mode threshold depends
-    # on req length on the right, and is
+    # oom threshold depends on req
+    # length on the right, and is
     # fixed to -2 on the left:
 
     #   req |    3     4     5     6 |
     #  thld | -2,2  -2,3  -2,4  -2,5 |
 
-    # it determines exponent values to
-    # enable exponent notation for:
+    # it determines oom values to
+    # enable scientific notation for:
 
     #  value exp req thld cnd result |
     # ------ --- --- ---- --- ------ |
@@ -124,27 +123,28 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
     #  10000   4   4 -2,3   t    1e4 | - greater than threshold
 
     if not allow_exp_form:
-        # if exponent mode is disabled, we will try as best
-        # as we can to display at least something significant;
-        # this can work for some of the values around the zero
-        # (and result in like '0.00001'), but not for very big ones.
+        # if exponent mode is disabled, the formatter will try as best
+        # as he can to display at least something meaningful; although
+        # this can work for the values with the order of magnitude < 0
+        # (and result in something like '0.001'), the method will fail
+        # on the large input values.
         exp_threshold_left = None
 
-    required_exponent = (
-        exp_threshold_left is not None and exponent < exp_threshold_left
-    ) or exponent > exp_threshold_right
+    require_exp_form = (
+        exp_threshold_left is not None and oom < exp_threshold_left
+    ) or oom > exp_threshold_right
 
-    if required_exponent:
+    if require_exp_form:
         if not allow_exp_form:  # oh well...
             msg = f"Failed to fit {val:.2f} into {req_len} chars without exp notation"
             raise ValueError(msg)
 
-        exponent_len = len(str(exponent)) + 1  # 'e'
+        exponent_len = len(str(oom)) + 1  # 'e'
         if req_len < exponent_len:
             # there is no place even for exponent
             return _OVERFLOW_CHAR * (len(sign) + req_len)
 
-        significand = abs_value / pow(10, exponent)
+        significand = abs_value / pow(10, oom)
         max_significand_len = req_len - exponent_len
         try:
             # max_significand_len can be 0, in that case significand_str will be empty; that
@@ -155,11 +155,11 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
             )
 
         except ValueError:
-            return f"{sign}e{exponent}".rjust(req_len)
+            return f"{sign}e{oom}".rjust(req_len)
 
-        return f"{sign}{significand_str}e{exponent}"
+        return f"{sign}{significand_str}e{oom}"
 
-    integer_len = max(1, exponent + 1)
+    integer_len = max(1, oom + 1)
     if integer_len == req_len:
         # special case when rounding
         # can change the result length
@@ -283,57 +283,62 @@ class NumHighlighter:
 # -----------------------------------------------------------------------------
 
 
-class PrefixedUnitFormatter:
+class StaticBaseFormatter:
     """
-    Formats ``value`` using settings passed to constructor. The main idea of this class
+    Format ``value`` using settings passed to constructor. The purpose of this class
     is to fit into specified string length as much significant digits as it's
-    theoretically possible by using multipliers and unit prefixes to
-    indicate them.
+    theoretically possible by using multipliers and unit prefixes. Designed
+    for metric systems with bases 1000 or 1024.
 
     You can create your own formatters if you need fine tuning of the
     output and customization. If that's not the case, there are facade
-    methods :meth:`format_si_metric()` and :meth:`format_si_binary()`,
+    methods :meth:`format_si()` and :meth:`format_si_binary()`,
     which will invoke predefined formatters and doesn't require setting up.
     """
 
     # fmt: off
-    PREFIXES_SI = [
-        'y', 'z', 'a', 'f', 'p', 'n', 'μ', 'm',
+    PREFIXES_SI_DEC = [
+        'q', 'r', 'y', 'z', 'a', 'f', 'p', 'n', 'μ', 'm',
         None,
-        'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y',
+        'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'R', 'Q',
     ]
     """
-    Prefix presets used by default module formatters. Can be
-    useful if you are building your own formatter.
+    Prefix preset used by `format_si()`. Covers values from :math:`10^{-30}` to 
+    :math:`10^{32}`. 
+    """
+
+    PREFIXES_SI_BIN = [None, 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi', 'Yi', 'Ri', 'Qi']
+    """
+    Prefix preset used by `format_si_binary()`. Covers values from 0 to
+     :math:`10^{32}`. 
     """
     # fmt: on
 
-    _attribute_defaults = {
-        "_max_value_len": 5,
-        "_color": False,
-        "_allow_negative": False,
-        "_allow_fractional": True,
-        "_unit": "",
-        "_unit_separator": "",
-        "_mcoef": 1000,
-        "_pad": False,
-        "_legacy_rounding": False,
-        "_prefixes": PREFIXES_SI,
-        "_prefix_refpoint_shift": 0,
-        "_value_mapping": dict(),
-    }
-    """
-    :meta public:
-    """
+    _attribute_defaults = dict(
+        _max_value_len=4,
+        _color=False,
+        _allow_negative=True,
+        _allow_fractional=True,
+        _discrete_input=False,
+        _unit="",
+        _unit_separator=" ",
+        _mcoef=1000.0,
+        _pad=False,
+        _legacy_rounding=False,
+        _prefixes=PREFIXES_SI_DEC,
+        _prefix_refpoint_shift=0,
+        _value_mapping=dict(),
+    )
 
     def __init__(
         self,
-        parent: PrefixedUnitFormatter = None,
+        fallback: StaticBaseFormatter = None,
         *,
         max_value_len: int = None,
         color: bool = None,
         allow_negative: bool = None,
         allow_fractional: bool = None,
+        discrete_input: bool = None,
         unit: str = None,
         unit_separator: str = None,
         mcoef: float = None,
@@ -344,48 +349,87 @@ class PrefixedUnitFormatter:
         value_mapping: t.Dict[float, RT] | t.Callable[[float], RT] = None,  # @TODO
     ):
         """
-        ``max_value_len`` must be at least **3**, because it's a
-        minimum requirement for formatting values from 0 to 999.
-        Next number to 999 is 1000, which will be formatted as "1k".
-
-        Setting ``allow_negative`` to *True* increases lower bound of ``max_value_len``
-        to **4** because the values now can be less than 0, and minus sign also occupies
-        one char of the output.
-
-        Setting ``mcoef`` to anything other than 1000.0 also increases the minimum
-        of ``max_value_len`` argument by 1, to **5**. The reason is that non-decimal
-        coefficients like 1024 require additional char to render as switching
-        to the next prefix happens later: 999 b, 1000 b, 1001 b ... 1023 b, 1 Kb.
-
         .. note ::
 
-            All arguments except ``parent`` are *kwonly*\ -type arguments.
+            All arguments except ``fallback`` are *kwonly*-type arguments.
 
-        :param parent:
-        :param int max_value_len[=5]: Target string length. As mentioned above, must be at
-                                      least 3-5, depending on other options.
-        :param bool  color=[False]:
-        :param bool  allow_negative=[False]:
-        :param bool  allow_fractional=[True]:
-        :param str   unit=[""]:
-        :param str   unit_separator=[""]:
-        :param float mcoef[=1000]:
-        :param bool  pad=[False]:
-        :param bool  legacy_rounding=[False]:
-        :param list[str|None] prefixes[=PREFIXES_SI]: 
-                        sasa
-        :param int prefix_refpoint_shift[=0]:
-                        Should be set to a non-zero number if input represents
-                        already prefixed value; e.g. to correctly format a variable,
-                        which stores the frequency in MHz, set prefix shift to 2;
-                        the formatter then will render 2333 as "2.33 GHz" instead of
-                        incorrect "2.33 kHz".
+        :param fallback: Take missing (i.e., *None*) attribute values from this instance.
+        :param int max_value_len:
+            [default: 4] Target string length. Must be at least **3**, because it's a
+            minimum requirement for formatting values from 0 to 999.
+            Next number to 999 is 1000, which will be formatted as "1k".
+
+            Setting ``allow_negative`` to *True* increases lower bound to **5** because
+            the values now can be less than 0, and minus sign also occupies
+            one char of the output.
+
+            Setting ``mcoef`` to anything other than 1000.0 also increases the minimum
+            by 1, to **6**. The reason is that non-decimal coefficients like 1024 require
+            additional char to render as switching to the next prefix happens later:
+            "999 b", "1000 b", "1001 b", ..."1023 b", "1 Kb".
+
+        :param bool  color: [default: *False*]
+        :param bool  allow_negative: [default: *True*]
+        :param bool  allow_fractional:
+            [default: *True*] Allows the usage of fractional values in the output. If
+            set to *False*, the results will be rounded.
+        :param bool  discrete_input:
+            [default: *False*] If set to *True*, truncate the fractional part of the
+            input and do not use floating-point format for base output, i.e., without
+            prefix and multiplying coefficient. Useful when the values are originally
+            discrete (e.g., bytes). Note that the same effect could be achieved by
+            setting ``allow_fractional`` to *False*, except that it will influence
+            prefixed output as well ("1.08 kB" -> "1kB").
+        :param str   unit:
+            [default: empty *str*] Unit to apply prefix to (e.g., "m", 'B").
+            Can be empty.
+        :param str   unit_separator:
+            [default: a space] String to place in between the value and the
+            (prefixed) unit. Can be empty.
+        :param float mcoef:
+            [default: 1000.0] Multiplying coefficient applied to the value:
+
+            .. math ::
+
+                V_{out} = V_{in} * b^{(-m/3)},
+
+            where: :math:`V_{in}` is an input value, :math:`V_{out}` is a numeric part
+            of the output, :math:`b` is ``mcoef`` (base), and :math:`m` is the order of
+            magnitude corresponding to a selected unit prefix. For example, in case
+            of default (decimal) formatter and input value equal to 17345989 the selected
+            prefix will be "M" with the order of magnitude = 6:
+
+            .. math ::
+
+                V_{out} = 17345989*1000^{(-6/3)} = 17345989*10^{-6} = 17.346 .
+
+        :param bool  pad: [default: *False*]
+        :param bool  legacy_rounding: [default: *False*]
+        :param list[str|None] prefixes:
+            [default: `PREFIXES_SI_DEC`] Prefix list from min power to max. Reference
+            point (with zero-power multiplier, or 1.0) is determined by searching
+            for *None* in the list provided, therefore it's a requirement for the
+            argument to have at least one *None* value. Prefix list for a formatter
+            without fractional values support could look like this::
+
+                [None, "k", 'M", "G", "T"]
+
+            Prefix step is fixed to :math:`log_{10} 1000 = 3`, as specified for
+            metric prefixes.
+
+        :param int prefix_refpoint_shift:
+            [default: 0] Should be set to a non-zero number if input represents
+            already prefixed value; e.g. to correctly format a variable,
+            which stores the frequency in MHz, set prefix shift to 2;
+            the formatter then will render 2333 as "2.33 GHz" instead of
+            incorrect "2.33 kHz".
         :param value_mapping: @TODO
         """
         self._max_value_len: int = max_value_len
         self._color: bool = color
         self._allow_negative: bool = allow_negative
         self._allow_fractional: bool = allow_fractional
+        self._discrete_input: bool = discrete_input
         self._unit: str = unit
         self._unit_separator: str = unit_separator
         self._mcoef: float = mcoef
@@ -397,8 +441,8 @@ class PrefixedUnitFormatter:
 
         for attr_name, default in self._attribute_defaults.items():
             if getattr(self, attr_name) is None:
-                if (parent_attr := getattr(parent, attr_name, None)) is not None:
-                    setattr(self, attr_name, parent_attr)
+                if (fallback_attr := getattr(fallback, attr_name, None)) is not None:
+                    setattr(self, attr_name, fallback_attr)
                     continue
                 setattr(self, attr_name, default)
 
@@ -413,7 +457,7 @@ class PrefixedUnitFormatter:
         except ValueError:
             raise ValueError(
                 "At least one of the prefixes should be None, as it indicates "
-                "the reference point with multiplying coefficient is 1.00."
+                "the reference point with multiplying coefficient 1.00."
             )
         self._prefix_refpoint_idx += self._prefix_refpoint_shift
         if not (0 <= self._prefix_refpoint_idx < len(self._prefixes)):
@@ -452,50 +496,61 @@ class PrefixedUnitFormatter:
                           colorizing, *None* to use formatters' setting value.
         :return: Formatted value, *Text* if colorizing is on, *str* otherwise.
         """
-        is_decimal = self._mcoef == 1000.0
-        min_value_len = (
-            3 + (1 if self._allow_negative else 0) + (1 if not is_decimal else 0)
-        )
-        if self._max_value_len < min_value_len:
-            raise ValueError(
-                f"Impossible to display all decimal numbers as {self._max_value_len}-char length."
-            )
-
-        if not self._allow_negative:
-            val = max(0.0, val)
-        if not self._allow_fractional:
-            val = trunc(val)
+        origin_val = val
         if unit_ov is None:
             unit_ov = self._unit
+        if not self._allow_negative:
+            val = max(0.0, val)
+        if self._discrete_input and self._prefix_refpoint_shift == 0:
+            val = trunc(val)
 
         abs_value = abs(val)
         power_base = self._mcoef ** (1 / 3)  # =10 for metric, ~10.079 for binary
         if abs_value == 0.0:
             prefix_shift = 0
         else:
-            exponent = floor(round(log(abs_value, power_base), 3))
-            exp_shift = 0 if self._legacy_rounding else -1  # "0.18s" --> "180ms"
-            prefix_shift = round((exponent + exp_shift) / 3)
+            # order of magnitude:
+            oom = floor(round(log(abs_value, power_base), 6))
+            # rounding is required because cumulative floating point error can lead to:
+            # 1024^9 = 1099511600000.0 -> "1024 GiB" (expected "1.00 TiB"),
+            # 1023 -> "1.00 KiB" (expected "1023 B").
 
+            oom_shift = 0 if self._legacy_rounding else -1  # "0.18s" --> "180ms"
+            prefix_shift = round((oom + oom_shift) / 3)
+
+        base_output = prefix_shift == 0
         val /= power_base ** (prefix_shift * 3)
         unit_idx = self._prefix_refpoint_idx + prefix_shift
         if 0 <= unit_idx < len(self._prefixes):
             prefix = self._prefixes[unit_idx] or ""
         else:
-            prefix = "?" * max([len(p) for p in self._prefixes if p])
+            prefix = "?" * self._get_max_prefix_len()
 
         sep = self._unit_separator
+        fractional_output = self._allow_fractional and not (
+            base_output and self._discrete_input
+        )
 
-        if self._allow_fractional:
-            # drop excessive digits first, or get weird results for values near float
-            # precision limit for 64-bit systems, e.g. for 10 - e-15 (=9.999999999999998)
-            eff_val = round(val, self._max_value_len - 2)
+        # drop excessive digits first, or get excessive zeros for the values near float
+        # precision limit for 64-bit systems, e.g. for 10 - e-15 (=9.999999999999998) and
+        # max_value_len=3 the result would be "10.0" instead of "10".
+        eff_val = round(val, self._max_value_len - 1)
+
+        # @TODO here i started to feel that there should be an easier way to do all the
+        #       math; more specifically, to avoid one or two redundant transformations,
+        #       but it's impossible to prove or reject it without an investigation. the
+        #       reason for this is existence of three rounding operations in a row.
+        if fractional_output:
             val_str = format_auto_float(eff_val, self._max_value_len, False)
         else:
-            val_str = f"{trunc(val)!s:.{self._max_value_len}s}"
+            val_str = f"{trunc(eff_val):d}"
+        if len(val_str) > self._max_value_len:
+            logger.warning(
+                "Inconsistent result -- max val length %d exceeded (%d): '%s' <- %f"
+                % (self._max_value_len, len(val_str), val_str, origin_val)
+            )
 
         result = self._colorize(color_ov, val_str, sep, prefix, unit_ov)
-
         if self._pad:
             pad_len = max(0, self.max_len - len(result))
             result = pad(pad_len) + result
@@ -519,55 +574,57 @@ class PrefixedUnitFormatter:
             return color_ov
         return self._color
 
+    def _get_max_prefix_len(self) -> int:
+        return max([len(p) for p in self._prefixes if p])
+
     def __repr__(self) -> str:
         return self.__class__.__qualname__
 
 
-formatter_si_metric = PrefixedUnitFormatter(
-    max_value_len=4, allow_negative=True, unit_separator=" ", unit="m"
-)
+formatter_si = StaticBaseFormatter()
 """
-Format ``value`` as meters with SI-prefixes. Base is 1000. 
-Unit can be changed at `format()` invocation. Suitable for formatting 
-any SI unit with values from approximately 10^-27 to 10^27.
+Decimal SI formatter, formats ``value`` as a unitless value with SI-prefixes;
+a unit can be provided as an argument of `format()` method. Suitable for 
+formatting any SI unit with values from :math:`10^{-30}` to :math:`10^{32}`.
 
 :usage:
 
     .. code-block :: 
         
         # either of: 
-        formatter_si_metric.format(<value>, ...)
-        format_si_metric(<value>, ...)
+        formatter_si.format(<value>, ...)
+        format_si(<value>, ...)
     
 :max len: 
   
-    Total maximum length is ``max_value_len + 3``, which is **7**
-    (base + 3 from separator, unit and prefix, assuming all of them
-    have 1-char width).
+    Total maximum length is ``max_value_len + 2``, which is **6**
+    by default (4 from value + 1 from separator and + 1 from prefix).
+    If the unit is defined and is a non-empty string, the maximum output 
+    length increases by length of that unit.
 
-:see: `format_si_metric()`
+:see: `format_si()`
 
 """
 
-formatter_si_binary = PrefixedUnitFormatter(
-    max_value_len=4,
-    allow_fractional=False,
+formatter_si_binary = StaticBaseFormatter(
     allow_negative=False,
-    unit="b",
+    discrete_input=True,
+    unit="B",
     unit_separator=" ",
     mcoef=1024.0,
+    prefixes=StaticBaseFormatter.PREFIXES_SI_BIN,
 )
 """
-Format ``value`` as binary size (bytes, kbytes, Mbytes) with base 
-= 1024. Unit can be customized.
+Binary SI formatter, formats ``value`` as binary size ("KiB", "MiB") 
+with base = 1024. Unit can be customized.
 
-While being similar to `formatter_si_metric`, this formatter 
+While being similar to `formatter_si`, this formatter 
 differs in one aspect.  Given a variable with default value = 995,
-formatting it's value results in "995 b". After increasing it
+formatting its value results in "995 B". After increasing it
 by 20 we'll have 1015, but it's still not enough to become
-a kilobyte -- so returned value will be "1015 b". Only after one
+a kilobyte -- so returned value will be "1015 B". Only after one
 more increase (at 1024 and more) the value will be in a form
-of "1.00 kb".
+of "1.00 KiB".
 
 :usage:
 
@@ -579,42 +636,42 @@ of "1.00 kb".
     
 :max len: 
   
-    So, in this case ``max_value_len`` must be at least 5 (not 4),
-    because it's a minimum requirement for formatting values from 1023
-    to -1023.
+    First things first, the initial ``max_value_len`` must be at least 5 (not 4),
+    because it is a minimum requirement for formatting values from 1023 to -1023.
     
     The negative values for this formatter are disabled by default and thus 
     will be rounded to 0, which decreases the ``max_value_len`` minimum value 
     by 1 (to 4).
     
-    Total maximum length is ``max_value_len + 3`` = 7 (base + 3 from separator,
-    unit and prefix, assuming all of them have 1-char width).
+    Total maximum length is ``max_value_len + 4`` = **8** (base + 1 from separator,
+    1 from unit and 2 from prefix, assuming all of them have default values 
+    defined in `formatter_si_binary`).
 
 :see: `format_si_binary()`
 
 """
 
 
-def format_si_metric(val: float, unit: str = None, color: bool = None) -> RT:
+def format_si(val: float, unit: str = None, color: bool = None) -> RT:
     """
-    Wrapper for `formatter_si_metric.format()<formatter_si_metric>`.
+    Wrapper for `formatter_si.format()<formatter_si>`.
 
-    >>> format_si_metric(1010, 'm²')
+    >>> format_si(1010, 'm²')
     '1.01 km²'
-    >>> format_si_metric(0.0319, 'g')
-    '31.9 mg'
-    >>> format_si_metric(1213531546, 'W')  # great scott
+    >>> format_si(0.223, 'g')
+    '223 mg'
+    >>> format_si(1213531546, 'W')  # great scott
     '1.21 GW'
-    >>> format_si_metric(1.26e-9, 'eV')
-    '1.26 neV'
+    >>> format_si(1.22e28, 'eV')  # the Planck energy
+    '12.2 ReV'
 
     :param val:    Input value (unitless).
-    :param unit:   A unit override [default unit is "m"].
+    :param unit:   A unit override [default unit is an empty string].
     :param color:  If *True*, the result will be colorized depending
                    on prefix type.
     :return: Formatted value, *Text* if colorizing is on, *str* otherwise.
     """
-    return formatter_si_metric.format(val, unit, color)
+    return formatter_si.format(val, unit, color)
 
 
 def format_si_binary(val: float, unit: str = None, color: bool = False) -> RT:
@@ -622,16 +679,16 @@ def format_si_binary(val: float, unit: str = None, color: bool = False) -> RT:
     Wrapper for `formatter_si_binary.format()<formatter_si_binary>`.
 
     >>> format_si_binary(1010)  # 1010 b < 1 kb
-    '1010 b'
+    '1010 B'
     >>> format_si_binary(1080)
-    '1 kb'
+    '1.05 KiB'
     >>> format_si_binary(45200)
-    '44 kb'
-    >>> format_si_binary(1.258 * pow(10, 6), 'bps')
-    '1 Mbps'
+    '44.1 KiB'
+    >>> format_si_binary(1.258 * pow(10, 6), 'b')
+    '1.20 Mib'
 
     :param val:    Input value in bytes.
-    :param unit:   A unit override [default unit is "b"].
+    :param unit:   A unit override [default unit is "B"].
     :param color:  If *True*, the result will be colorized depending
                    on prefix type.
     :return: Formatted value, *Text* if colorizing is on, *str* otherwise.
@@ -649,8 +706,8 @@ def format_time_delta(val_sec: float, max_len: int = None, color_ov: bool = None
     ability to combine two units and display them simultaneously,
     e.g. return "3h 48min" instead of "228 mins" or "3 hours",
 
-    There are predefined formatters with output length of 3, 4,
-    6 and 10 characters. Therefore, you can pass in any value
+    There are predefined formatters with output length of **3, 4,
+    6** and **10** characters. Therefore, you can pass in any value
     from 3 inclusive and it's guarenteed that result's length
     will be less or equal to required length. If `max_len` is
     omitted, longest registred formatter will be used.
@@ -681,16 +738,15 @@ def format_time_delta(val_sec: float, max_len: int = None, color_ov: bool = None
     return formatter.format(val_sec, color_ov)
 
 
-class TimeDeltaFormatter:
+class DynamicBaseFormatter:
     """
-    Formatter for time intervals. Key feature of this formatter is
+    Formatter designed for time intervals. Key feature of this formatter is
     ability to combine two units and display them simultaneously,
     e.g. return "3h 48min" instead of "228 mins" or "3 hours", etc.
 
-    You can create your own formatters if you need fine tuning of the
-    output and customization. If that's not the case, there is a
-    facade method :meth:`format_time_delta()` which will select appropriate
-    formatter automatically.
+    It is possible to create custom formatters if fine tuning of the output and
+    customization is necessary; otherwise use a facade method `format_time_delta()`,
+    which selects appropriate formatter by specified max length from a preset list.
 
     Example output::
 
@@ -710,7 +766,8 @@ class TimeDeltaFormatter:
 
     def __init__(
         self,
-        units: t.List[TimeUnit],
+        units: t.List[CustomBaseUnit],
+        *,
         color: bool = False,
         allow_negative: bool = False,
         allow_fractional: bool = True,
@@ -728,8 +785,12 @@ class TimeDeltaFormatter:
         self._plural_suffix = plural_suffix
         self._overflow_msg = overflow_msg
 
-        self._fractional_formatter = PrefixedUnitFormatter(
-            max_value_len=4, unit="s", allow_negative=True, allow_fractional=True
+        self._fractional_formatter = StaticBaseFormatter(
+            max_value_len=4,
+            unit="s",
+            unit_separator="",
+            allow_negative=True,
+            allow_fractional=True,
         )
         self._max_len = None
         self._compute_max_len()
@@ -744,18 +805,18 @@ class TimeDeltaFormatter:
         """
         return self._max_len
 
-    def format(self, val_sec: float, color_ov: bool = None) -> RT:
+    def format(self, val: float, color_ov: bool = None) -> RT:
         """
         Pretty-print difference between two moments in time. If input
         value is too big for the current formatter to handle, return "OVERFLOW"
         string (or a part of it, depending on ``max_len``).
 
-        :param val_sec: Input value.
+        :param val: Input value.
         :param color_ov:  Color mode override, *bool* to enable/disable
                           colorizing, *None* to use formatters' setting value.
         :return: Formatted time delta, *Text* if colorizing is on, *str* otherwise.
         """
-        result = self.format_base(val_sec, color_ov)
+        result = self.format_base(val, color_ov)
         if result is None:
             result = self._overflow_msg[: self.max_len]
             if self._get_color_effective(color_ov):
@@ -766,27 +827,29 @@ class TimeDeltaFormatter:
 
         return result
 
-    def format_base(self, val_sec: float, color_ov: bool = None) -> RT | None:
+    # @TODO naming?
+    def format_base(self, val: float, color_ov: bool = None) -> RT | None:
         """
         Pretty-print difference between two moments in time. If input
         value is too big for the current formatter to handle, return *None*.
 
-        :param val_sec: Input value.
+        :param val:   Input value.
         :param color_ov:  Color mode override, *bool* to enable/disable
                           colorizing, *None* to use formatters' setting value.
-        :return: Formatted time delta, *Text* if colorizing is on, *str* otherwise.
+        :return: Formatted value as *Text* if colorizing is on; as *str*
+                 otherwise. Returns *None* on overflow.
         """
-        num = abs(val_sec)
+        num = abs(val)
         unit_idx = 0
         result_sub = ""
 
-        negative = self._allow_negative and val_sec < 0
+        negative = self._allow_negative and val < 0
         sign = "-" if negative else ""
         result = None
 
-        if self._allow_fractional and num < 60:
+        if self._allow_fractional and num < self._units[0].in_next:
             if self._max_len is not None:
-                result = self._fractional_formatter.format(val_sec, color_ov=color_ov)
+                result = self._fractional_formatter.format(val, color_ov=color_ov)
                 if len(result) > self._max_len:
                     # for example, 500ms doesn't fit in the shortest possible
                     # delta string (which is 3 chars), so "<1s" will be returned
@@ -794,7 +857,7 @@ class TimeDeltaFormatter:
 
         while result is None and unit_idx < len(self._units):
             unit = self._units[unit_idx]
-            if unit.overflow_afer and num > unit.overflow_afer:
+            if unit.overflow_after and num > unit.overflow_after:
                 if not self._max_len:  # max len is being computed now
                     raise RecursionError()
                 return None
@@ -857,7 +920,7 @@ class TimeDeltaFormatter:
         for unit in self._units:
             test_val = unit.in_next
             if not test_val:
-                test_val = unit.overflow_afer
+                test_val = unit.overflow_after
             if not test_val:
                 continue
             test_val_sec = coef * (test_val - 1) * (-1 if self._allow_negative else 1)
@@ -868,26 +931,45 @@ class TimeDeltaFormatter:
                 continue
 
             max_len = max(max_len, len(max_len_unit))
-            coef *= unit.in_next or unit.overflow_afer
+            coef *= unit.in_next or unit.overflow_after
 
         self._max_len = max_len
 
 
 @dataclass(frozen=True)
-class TimeUnit:
+class CustomBaseUnit:
     """
-    :param name:
+    TU
+
+    .. important ::
+
+        ``in_next`` and `overflow_after` are mutually exclusive, and either of
+        them is required.
+
+    :param name: A unit name to display.
     :param in_next:
-    :param custom_short:
-    :param collapsible_after:
-    :param overflow_afer:
+        The base -- how many current units the next (single) unit contains,
+        e.g., for an hour in context of days::
+
+            CustomBaseUnit("hour", 24)
+
+    :param overflow_after:     Value upper limit.
+    :param custom_short:       Use specified short form instead of first letter
+                               of ``name`` when operating in double-value mode.
+    :param collapsible_after:  Min threshold for double output to become a regular one.
     """
 
     name: str
-    in_next: int = None  # how many current units equal to the (one) next unit
+    in_next: int = None
+    overflow_after: int = None
     custom_short: str = None
-    collapsible_after: int = None  # min threshold for double-delta to become regular
-    overflow_afer: int = None  # max threshold
+    collapsible_after: int = None
+
+    def __post_init__(self):
+        if not self.in_next and not self.overflow_after:
+            raise ValueError("Either in_next or overflow_after is required.")
+        if self.in_next and self.overflow_after:
+            raise ValueError("Mutually exclusive attributes: in_next, overflow_after.")
 
 
 class _TimeDeltaFormatterRegistry:
@@ -897,13 +979,13 @@ class _TimeDeltaFormatterRegistry:
     """
 
     def __init__(self):
-        self._formatters: t.Dict[int, TimeDeltaFormatter] = dict()
+        self._formatters: t.Dict[int, DynamicBaseFormatter] = dict()
 
-    def register(self, *formatters: TimeDeltaFormatter):
+    def register(self, *formatters: DynamicBaseFormatter):
         for formatter in formatters:
             self._formatters[formatter.max_len] = formatter
 
-    def find_matching(self, max_len: int) -> TimeDeltaFormatter | None:
+    def find_matching(self, max_len: int) -> DynamicBaseFormatter | None:
         exact_match = self.get_by_max_len(max_len)
         if exact_match is not None:
             return exact_match
@@ -917,7 +999,7 @@ class _TimeDeltaFormatterRegistry:
             return None
         return self.get_by_max_len(suitable_max_len_list[0])
 
-    def get_by_max_len(self, max_len: int) -> TimeDeltaFormatter | None:
+    def get_by_max_len(self, max_len: int) -> DynamicBaseFormatter | None:
         return self._formatters.get(max_len, None)
 
     def get_shortest(self) -> _TimeDeltaFormatterRegistry | None:
@@ -931,12 +1013,12 @@ tdf_registry = _TimeDeltaFormatterRegistry()
 
 
 tdf_registry.register(
-    TimeDeltaFormatter(
+    DynamicBaseFormatter(
         [
-            TimeUnit("s", 60),
-            TimeUnit("m", 60),
-            TimeUnit("h", 24),
-            TimeUnit("d", overflow_afer=99),
+            CustomBaseUnit("s", 60),
+            CustomBaseUnit("m", 60),
+            CustomBaseUnit("h", 24),
+            CustomBaseUnit("d", overflow_after=99),
         ],
         allow_negative=False,
         allow_fractional=True,
@@ -944,14 +1026,14 @@ tdf_registry.register(
         plural_suffix=None,
         overflow_msg="ERR",
     ),
-    TimeDeltaFormatter(
+    DynamicBaseFormatter(
         [
-            TimeUnit("s", 60),
-            TimeUnit("m", 60),
-            TimeUnit("h", 24),
-            TimeUnit("d", 30),
-            TimeUnit("M", 12),
-            TimeUnit("y", overflow_afer=99),
+            CustomBaseUnit("s", 60),
+            CustomBaseUnit("m", 60),
+            CustomBaseUnit("h", 24),
+            CustomBaseUnit("d", 30),
+            CustomBaseUnit("M", 12),
+            CustomBaseUnit("y", overflow_after=99),
         ],
         allow_negative=False,
         allow_fractional=True,
@@ -959,28 +1041,28 @@ tdf_registry.register(
         plural_suffix=None,
         overflow_msg="ERRO",
     ),
-    TimeDeltaFormatter(
+    DynamicBaseFormatter(
         [
-            TimeUnit("sec", 60),
-            TimeUnit("min", 60),
-            TimeUnit("hr", 24, collapsible_after=10),
-            TimeUnit("day", 30, collapsible_after=10),
-            TimeUnit("mon", 12),
-            TimeUnit("yr", overflow_afer=99),
+            CustomBaseUnit("sec", 60),
+            CustomBaseUnit("min", 60),
+            CustomBaseUnit("hr", 24, collapsible_after=10),
+            CustomBaseUnit("day", 30, collapsible_after=10),
+            CustomBaseUnit("mon", 12),
+            CustomBaseUnit("yr", overflow_after=99),
         ],
         allow_negative=False,
         allow_fractional=True,
         unit_separator=" ",
         plural_suffix=None,
     ),
-    TimeDeltaFormatter(
+    DynamicBaseFormatter(
         [
-            TimeUnit("sec", 60),
-            TimeUnit("min", 60, custom_short="min"),
-            TimeUnit("hour", 24, collapsible_after=24),
-            TimeUnit("day", 30, collapsible_after=10),
-            TimeUnit("month", 12),
-            TimeUnit("year", overflow_afer=999),
+            CustomBaseUnit("sec", 60),
+            CustomBaseUnit("min", 60, custom_short="min"),
+            CustomBaseUnit("hour", 24, collapsible_after=24),
+            CustomBaseUnit("day", 30, collapsible_after=10),
+            CustomBaseUnit("month", 12),
+            CustomBaseUnit("year", overflow_after=999),
         ],
         allow_negative=True,
         allow_fractional=True,

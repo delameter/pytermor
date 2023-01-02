@@ -15,23 +15,6 @@ Can be used for creating a variety of sequences including:
 .. important ::
     blah-blah-blah low-level @TODO
 
-The module doesn't distinguish "single-instruction" sequences from several
-ones merged together, e.g. ``Style(fg='red', bold=True)`` produces only one
-opening SequenceSGR instance:
-
->>> SequenceSGR(IntCode.BOLD, IntCode.RED).assemble()
-'\x1b[1;31m'
-
-...although generally speaking it is two of them (``ESC [1m`` and
-``ESC [31m``). However, the module can automatically match terminating
-sequences for any form of input SGRs and translate it to specified format.
-
-**XTerm Control Sequences**
-    https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
-
-**ECMA-48 specification**
-    https://www.ecma-international.org/publications-and-standards/standards/ecma-48/
-
 """
 from __future__ import annotations
 
@@ -213,6 +196,18 @@ class SequenceSGR(SequenceCSI):
         made sense, but also would be entangling, as this sequence is the equivalent
         of ``ESC [0m`` -- hard reset sequence. The empty-string-sequence is
         predefined at module level as `NOOP_SEQ`.
+
+    .. note ::
+        The module doesn't distinguish "single-instruction" sequences from several
+        ones merged together, e.g. ``Style(fg='red', bold=True)`` produces only one
+        opening SequenceSGR instance:
+
+        >>> SequenceSGR(IntCode.BOLD, IntCode.RED).assemble()
+        '\x1b[1;31m'
+
+        ...although generally speaking it is two of them (``ESC [1m`` and
+        ``ESC [31m``). However, the module can automatically match terminating
+        sequences for any form of input SGRs and translate it to specified format.
 
     >>> SequenceSGR(IntCode.HI_CYAN, 'underlined', 1)
     <SGR[96,4,1]>

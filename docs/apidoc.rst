@@ -1,10 +1,10 @@
 .. _apidoc:
 
+.. currentmodule:: pytermor
+
 ===================
 API reference
 ===================
-
-.. currentmodule:: pytermor
 
 .. autosummary::
    :toctree:    apidoc

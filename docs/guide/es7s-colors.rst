@@ -1,7 +1,7 @@
-.. _guide.named-colors:
+.. _guide.es7s-colors:
 
 =======================================
-Named Colors collection
+es7s color collection
 =======================================
 
 

@@ -127,6 +127,7 @@ button.copybtn {
 
 a.reference {
     text-decoration: none;
+    word-spacing: -2px;
 }
 a.reference:hover {
     text-decoration: 1px underline solid;
@@ -200,6 +201,19 @@ figcaption {
     border-bottom: var(--color-table-border) 1px solid;
 }
 
+/** Inheritance diagrams **/
+
+.inheritance-columns .sd-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.inheritance-columns .sd-col figure {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
 
 /** API reference **/
 
@@ -208,13 +222,6 @@ article[role=main] dl.py {
 }
 article[role=main] dt.sig {
     border-radius: 0;
-    margin-bottom: 0.5rem;
-}
-
-dl.class p.rubric {
-    font-weight: normal;
-    font-size: var(--font-size--small--2) !important;
-    text-transform: uppercase;
     margin-bottom: 0.5rem;
 }
 

@@ -28,3 +28,9 @@ Documentation guidelines
    ````ESC [31m ESC [m```` |rarr| ``ESC [31m ESC [m``
 
   On the top of that, ESC control char should be padded with spaces for better readability. This also triggers automatic application of custom style for even more visual difference.
+
+- Any formula should be formatted using LaTeX syntax (``:math:`` role or
+  ``.. math::`` directive):
+
+   .. math::
+      d_{min} = 350*10^{-3}

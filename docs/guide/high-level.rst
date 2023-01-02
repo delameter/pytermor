@@ -1,11 +1,46 @@
 .. _guide.high-level:
 
+.. currentmodule:: pytermor
+
 ==========================
 High-level API
 ==========================
 
-:mono:`ColorIndex` and :mono:`Styles`
-=======================================
+Core methods
+================
+
+.. autosummary::
+
+   text.render
+   text.echo
+   color.resolve_color
+   style.make_style
+   style.merge_styles
+
+
+.. grid:: 2
+   :class-container: inheritance-columns
+
+   .. grid-item::
+
+      .. inheritance-diagram:: pytermor.color
+         :top-classes:         pytermor.color.IColor
+         :caption:             `IColor` inheritance tree
+         :parts: 1
+
+   .. grid-item::
+
+      .. inheritance-diagram:: pytermor.text
+         :top-classes:         pytermor.text.IRenderable
+         :caption:             `IRenderable` inheritance tree
+         :parts: 1
+
+
+Colors
+================
+
+Styles
+================
 
 Output format control
 =====================
@@ -28,18 +63,4 @@ Color mode fallbacks
       :align: center
 
       Color approximations for indexed modes
-
-
-Class hierarchy
-=================
-
-.. inheritance-diagram:: pytermor.color
-   :top-classes:         pytermor.color.IColor
-   :caption:             `IColor` inheritance tree
-   :parts: 1
-
-.. inheritance-diagram:: pytermor.text
-   :top-classes:         pytermor.text.IRenderable
-   :caption:             `IRenderable` inheritance tree
-   :parts: 1
 

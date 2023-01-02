@@ -1,3 +1,50 @@
+v2.32-dev
+------------------
+:date:`Jan 23`
+
+- 🐞 FIX: `TmuxRenderer` RGB output
+
+- 🌱 NEW:  `PrefixedUnitFormatter` inheritance
+
+- 🌱 NEW: `StyledString`
+
+- 🌱 NEW:  `pad`, `padv` helpers
+- 🌱 NEW:  `String` and `FixedString` base renderables
+- 🧪 TESTS: integrated in-code doctests into pytest
+
+- 🌱 NEW:  `IRenderable` result caching
+
+- 🔧 MAINTAIN: debug logging
+
+- ⌛ DRAFT:  add example ci scripts
+
+- 🌱 NEW: `Renderable` __eq__ methods
+
+- 🐞 FIX:  `format_prefixed` and `format_auto_float` inaccuracies
+- 📙 DOCS:  `utilnum` update
+- 🧪 TESTS:  `utilnum` update
+
+- 🌱 NEW: subsecond delta support for `TimeDeltaFormatter`
+
+- 🌱 NEW: `utilmisc` get_char_width(),  guess_char_width(), measure_char_width()
+
+- 🌱 NEW:  `Color256` aliases "colorNN"
+- 🌱 NEW:  `prefix_refpoint_shift` argument of PrefixedUnitFormatter
+
+- 🌱 NEW:  `NumHighlighter` from `es7s`, colorizing options of `utilnum` helpers
+
+- 🐞 FIX: `Text.prepend` typing
+
+- 📙 DOCS:  docstrings, typing
+
+- 🌱 NEW:  `style.merge_styles()`
+
+- 🌱 NEW: style merging strategies: `merge_fallback()`, `merge_overwrite`
+
+- 💎 REFACTOR: `distribute_padded` overloads
+- 📙 DOCS: `utilnum` module
+
+
 v2.23-dev
 ------------------
 

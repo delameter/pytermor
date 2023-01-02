@@ -33,7 +33,7 @@ class Main:
                     raise ValueError(f"Invalid option {arg}")
 
                 try:
-                    input_color = pt.resolve(f"#{arg}")
+                    input_color = pt.resolve_color(f"#{arg}")
                 except LookupError:
                     raise ValueError(f"Argument is not valid RGB value: 0x{arg}")
                 input_values.append(input_color)
@@ -82,7 +82,7 @@ class Main:
     def run(self, sample: pt.ColorRGB | None, color_type: str):
         if sample is None:
             random_rgb = (random.randint(40, 255) for _ in range(3))
-            sample = pt.resolve(pt.color.rgb_to_hex(*random_rgb))
+            sample = pt.resolve_color(pt.color.rgb_to_hex(*random_rgb))
 
         direct_renderer = pt.SgrRenderer(pt.OutputMode.TRUE_COLOR)
 

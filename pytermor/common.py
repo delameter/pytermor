@@ -14,33 +14,38 @@ logger.addHandler(logging.NullHandler())
 
 ### catching library logs "from the outside":
 # logger = logging.getLogger('pytermor')
-# handler = logging.StreamHandler(sys.stderr)
-# formatter = logging.Formatter('[%(levelname)5.5s][%(name)s][%(module)s] %(message)s')
-# handler.setFormatter(formatter)
+# handler = logging.StreamHandler()
+# fmt = '[%(levelname)5.5s][%(name)s.%(module)s] %(message)s'
+# handler.setFormatter(logging.Formatter(fmt))
 # logger.addHandler(handler)
-# logger.setLevel('DEBUG')
+# logger.setLevel(logging.WARNING)
 ########
+
+
+CDT = TypeVar("CDT", int, str)
+"""
+:abbr:`CDT (Color descriptor type)` represents a RGB color value. Primary handler 
+is `resolve_color()`. Valid values include:
+
+    - *str* with a color name in any form distinguishable by the color resolver;
+      the color lists can be found at: `guide.ansi-presets` and `guide.es7s-colors`;
+    - *str* starting with a "#" and consisting of 6 more hexadecimal characters, case
+      insensitive (RGB regular form), e.g.: "#0B0CCA";
+    - *str* starting with a "#" and consisting of 3 more hexadecimal characters, case
+      insensitive (RGB short form), e.g.: "#666";
+    - *int* in a [0; 0xFFFFFF] range.
+"""
 
 FT = TypeVar("FT", int, str, "IColor", "Style", None)
 """
-F
+:abbr:`FT (Format type)` is a style descriptor. Used as a shortcut precursor for actual 
+styles. Primary handler is `make_style()`.
 """
 
 RT = TypeVar("RT", str, "IRenderable")
 """
-E
-"""
-
-CRT = TypeVar("CRT", bound=Union[str, "IRenderable"])
-""" 
-`CRT` in a method signature usually means that regular strings as well as 
-`IRenderable` implementations are supported, can be intermixed, and:
-
-    - return type will be *str* if and only if the type of all arguments is *str*;
-    - otherwise return type will be `Text` -- *str* arguments, if any, will
-      be transformed into IRenderable` and concatenated. `Text` type is used because
-      it's the only IRenderable` that is mutable.
-
+:abbr:`RT (Renderable type)` includes regular *str*\\ s as well as `IRenderable` 
+implementations.
 """
 
 

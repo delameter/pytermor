@@ -15,7 +15,6 @@
    
       apply_filters
       center_sgr
-      distribute_padded
       dump
       ljust_sgr
       pad

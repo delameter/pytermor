@@ -8,7 +8,7 @@ import unittest
 import pytermor
 from pytermor.common import LogicError
 
-from pytermor import NOOP_SEQ, Style, SequenceSGR, IntCode, color
+from pytermor import NOOP_SEQ, Style, SequenceSGR, IntCode, color, resolve_color
 from pytermor.color import (
     NOOP_COLOR,
     Color16,
@@ -95,7 +95,7 @@ class TestColorRegistry(unittest.TestCase):
         col = ColorRGB(0x2, "test 2", register=True)
 
         self.assertEqual(map_length_start + 1, len(ColorRGB._registry))
-        self.assertIs(col, color.resolve("test 2", ColorRGB))
+        self.assertIs(col, resolve_color("test 2", ColorRGB))
 
     def test_registering_of_duplicate_doesnt_change_map_length(self):
         ColorRGB(0x3, "test 3", register=True)
@@ -109,25 +109,25 @@ class TestColorRegistry(unittest.TestCase):
         self.assertRaises(ColorNameConflictError, ColorRGB, 0x3, "test 4", register=True)
 
     def test_resolving_of_non_existing_color_fails(self):
-        self.assertRaises(LookupError, color.resolve, "non-existing-color", Color256)
+        self.assertRaises(LookupError, resolve_color, "non-existing-color", Color256)
 
     def test_resolving_of_ambiguous_color_works_upon_abstract_color(self):
-        col = color.resolve("green")
+        col = resolve_color("green")
         self.assertEqual(col.hex_value, 0x008000)
         self.assertEqual(type(col), Color16)
 
     def test_resolving_of_ambiguous_color_works_upon_color_16(self):
-        col = color.resolve("green", Color16)
+        col = resolve_color("green", Color16)
         self.assertEqual(col.hex_value, 0x008000)
         self.assertEqual(type(col), Color16)
 
     def test_resolving_of_ambiguous_color_works_upon_color_256(self):
-        col = color.resolve("green", Color256)
+        col = resolve_color("green", Color256)
         self.assertEqual(col.hex_value, 0x008000)
         self.assertEqual(type(col), Color256)
 
     def test_resolving_of_ambiguous_color_works_upon_color_rgb(self):
-        col = color.resolve("green", ColorRGB)
+        col = resolve_color("green", ColorRGB)
         self.assertEqual(col.hex_value, 0x1CAC78)
         self.assertEqual(type(col), ColorRGB)
 
@@ -139,7 +139,7 @@ class TestColorRegistry(unittest.TestCase):
 
         self.assertIs(vari.base, col)
         self.assertEqual(vari.name, "2")
-        self.assertIs(color.resolve("test 5 2", ColorRGB), vari)
+        self.assertIs(resolve_color("test 5 2", ColorRGB), vari)
 
     def test_creating_color_without_name_works(self):
         col = Color256(0x6, code=256, register=True)
@@ -174,10 +174,10 @@ class TestColorIndex(unittest.TestCase):
 class TestColor(unittest.TestCase):
     def test_module_method_resolve_works(self):
         col = ColorRGB(0x1, "test 1", register=True)
-        self.assertIs(col, color.resolve("test-1"))
+        self.assertIs(col, resolve_color("test-1"))
 
     def test_module_method_resolve_of_non_existing_color_fails(self):
-        self.assertRaises(LookupError, color.resolve, "non-existing-color")
+        self.assertRaises(LookupError, resolve_color, "non-existing-color")
 
     def test_module_method_find_closest_works_as_256_by_default(self):
         self.assertIs(pytermor.cv.AQUAMARINE_1, color.find_closest(0x87FFD7))
@@ -187,7 +187,7 @@ class TestColor(unittest.TestCase):
 
     def test_module_method_find_closest_works_for_rgb(self):
         self.assertIs(
-            color.resolve("aquamarine", ColorRGB), color.find_closest(0x87FFD7, ColorRGB)
+            resolve_color("aquamarine", ColorRGB), color.find_closest(0x87FFD7, ColorRGB)
         )
 
     def test_module_method_approximate_works_as_256_by_default(self):
@@ -198,7 +198,7 @@ class TestColor(unittest.TestCase):
 
     def test_module_method_approximate_works_for_rgb(self):
         self.assertIs(
-            color.resolve("aquamarine", ColorRGB),
+            resolve_color("aquamarine", ColorRGB),
             color.approximate(0x87FFD7, ColorRGB)[0].color,
         )
 

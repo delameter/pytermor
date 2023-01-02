@@ -22,7 +22,7 @@ from functools import reduce
 from math import ceil
 from typing import Union
 
-from .common import CRT, ArgTypeError, Align
+from .common import ArgTypeError, Align
 from .utilmisc import chunk, get_terminal_width
 
 _PRIVATE_REPLACER = "\U000E5750"
@@ -34,40 +34,6 @@ def pad(n: int) -> str:
 
 def padv(n: int) -> str:
     return "\n" * n
-
-
-def distribute_padded(
-    values: t.List[CRT], max_len: int, pad_before: bool = False, pad_after: bool = False
-) -> CRT:
-    """
-    .. todo ::
-        todo
-
-    :param values:
-    :param max_len:
-    :param pad_before:
-    :param pad_after:
-    """
-    if pad_before:
-        values.insert(0, "")
-    if pad_after:
-        values.append("")
-
-    values_amount = len(values)
-    gapes_amount = values_amount - 1
-    values_len = sum(len(v) for v in values)
-    spaces_amount = max_len - values_len
-    if spaces_amount < gapes_amount:
-        raise ValueError(f"There is not enough space for all values with padding")
-
-    result = ""
-    for value_idx, value in enumerate(values):
-        gape_len = spaces_amount // (gapes_amount or 1)  # for last value
-        result += value + pad(gape_len)
-        gapes_amount -= 1
-        spaces_amount -= gape_len
-
-    return result
 
 
 def ljust_sgr(s: str, width: int, fillchar: str = " ", actual_len: int = None) -> str:
@@ -576,7 +542,7 @@ class EscSeqStringReplacer(StringReplacer):
 
 class SgrStringReplacer(StringReplacer):
     """
-    Find all SGR seqs (e.g. |e|\ ``[1;4m``) and replace with given string. More
+    Find all `SGR <SequenceSGR>` seqs (e.g., ``ESC [1;4m``) and replace with given string. More
     specific version of :class:`CsiReplacer`.
 
     :param repl:
@@ -589,9 +555,9 @@ class SgrStringReplacer(StringReplacer):
 
 class CsiStringReplacer(StringReplacer):
     """
-    Find all CSI seqs (i.e. starting with |e|\ ``[``) and replace with given
-    string. Less specific version of :class:`SgrReplacer`, as CSI consists of SGR
-    and many other sequence subtypes.
+    Find all `CSI <SequenceCSI>` seqs (i.e., starting with ``ESC [``) and replace
+    with given string. Less specific version of :class:`SgrReplacer`, as CSI
+    consists of SGR and many other sequence subtypes.
 
     :param repl:
         Replacement, can contain regexp groups (see :meth:`apply_filters()`).

@@ -3,38 +3,7 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-Module with output formatters. Default global renderer type is `SgrRenderer`.
-
-Setting up a rendering mode can be accomplished in several ways:
-
-    a. By using general-purpose functions `text.render()` and `text.echo()` --
-       both have an argument ``renderer`` (preferrable; introduced in `pytermor 2.x`).
-    b. Method `RendererManager.set_default()` sets the default renderer globally.
-       After that calling `text.render()` will automatically invoke a said renderer
-       and apply the required formatting (that is, if ``renderer`` argument is
-       left empty).
-    c. Alternatively, you can use renderer's own instance method ``render()``
-       directly and avoid messing up with the manager: `HtmlRenderer.render()`
-       (not recommended and possibly will be deprecated in future versions).
-
-Generally speaking, if you need to invoke a custom renderer just once, it's
-convenient to use the first method for this matter, and use the second one
-in all the other cases.
-
-On the contrary, if there is a necessity to use more than one renderer
-alternatingly, it's better to avoid using the global one at all, and just
-instantiate and invoke both renderers independently.
-
-.. rubric :: TL;DR
-
-To unconditionally print formatted message to standard output, do something like
-this:
-
-    >>> from pytermor import render, RendererManager, Styles
-    >>> RendererManager.set_default_format_always()
-    >>> render('Warning: AAAA', Styles.WARNING)
-    '\x1b[33mWarning: AAAA\x1b[39m'
-
+Output formatters. Default global renderer type is `SgrRenderer`.
 """
 from __future__ import annotations
 
@@ -63,7 +32,38 @@ def _digest(fingerprint: str) -> int:
 
 class RendererManager:
     """
-    Class for global renderer setup.
+    Class for global rendering mode setup.
+
+    Selecting the renderer can be accomplished in several ways:
+
+        a. By using general-purpose functions `text.render()` and `text.echo()` --
+           both have an argument ``renderer`` (preferrable; introduced in `pytermor 2.x`).
+        b. Method `RendererManager.set_default()` sets the default renderer globally.
+           After that calling `text.render()` will automatically invoke a said renderer
+           and apply the required formatting (that is, if ``renderer`` argument is
+           left empty).
+        c. Alternatively, you can use renderer's instance method
+           `render() <IRenderer.render>` directly and avoid messing up with the manager,
+           but that's not recommended and possibly will be deprecated in future versions).
+
+    Generally speaking, if you need to invoke a custom renderer just once, it's
+    convenient to use the first method for this matter, and use the second one
+    in all the other cases.
+
+    On the contrary, if there is a necessity to use more than one renderer
+    alternatingly, it's better to avoid using the global one at all, and just
+    instantiate and invoke both renderers independently.
+
+    .. rubric :: TL;DR
+
+    To unconditionally print formatted message to standard output, do something like
+    this:
+
+        >>> from pytermor import render, RendererManager, Styles
+        >>> RendererManager.set_default_format_always()
+        >>> render('Warning: AAAA', Styles.WARNING)
+        '\x1b[33mWarning: AAAA\x1b[39m'
+
     """
 
     _default: IRenderer = None
@@ -163,7 +163,7 @@ class IRenderer(metaclass=ABCMeta):
         class, which defines the implementation.
 
         :param string: String to format.
-        :param fmt:    Style or color to apply. If ``fmt`` is a `Color` instance,
+        :param fmt:    Style or color to apply. If ``fmt`` is a `IColor` instance,
                        it is assumed to be a foreground color. See `FT`.
         :return: String with formatting applied, or without it, depending on
                  renderer settings.
@@ -215,9 +215,9 @@ class OutputMode(enum.Enum):
 
 class SgrRenderer(IRenderer):
     """
-    Default renderer invoked by `Text.render()`. Transforms `Color` instances
+    Default renderer invoked by `Text.render()`. Transforms `IColor` instances
     defined in ``style`` into ANSI control sequence bytes and merges them with
-    input string. Type of resulting `SequenceSGR` depends on type of `Color`
+    input string. Type of resulting `SequenceSGR` depends on type of `IColor`
     instances in ``style`` argument and current output mode of the renderer.
 
     1. `ColorRGB` can be rendered as True Color sequence, 256-color sequence
@@ -597,13 +597,14 @@ class SgrRendererDebugger(SgrRenderer):
         self._format_override: bool | None = None
 
     def __hash__(self) -> int:
-        # build the hash from instance's state as well as ancestor's state -- that way it will
-        # reflect the changes in either of configurations. actually, sometimes the hashes will
-        # be different, but the results would have been the same; e.g., `SgrRendererDebugger`
-        # with ``_format_override`` set to *False* and `SgrRendererDebugger` without the override,
-        # but with `NO_ANSI` output mode produce the outputs indistinguishable from each other, but
-        # their hashes differ. although, this can be disregarded, as it is not worth the efforts to
-        # implement an advanced logic and correct state computation when it comes to a debug renderer.
+        # build the hash from instance's state as well as ancestor's state -- that way
+        # it will reflect the changes in either of configurations. actually, sometimes
+        # the hashes will be different, but the results would have been the same;
+        # e.g., `SgrRendererDebugger` with ``_format_override`` set to *False* and
+        # `SgrRendererDebugger` without the override and with `NO_ANSI` output mode
+        # has different hashes, but produce exactly the same outputs. however,
+        # this can be disregarded, as it is not worth the efforts to implement an
+        # advanced logic and correct state computation when it comes to debug renderer.
         return _digest(
             ".".join(
                 [

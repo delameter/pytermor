@@ -17,7 +17,7 @@ import sys
 import time
 import typing as t
 from abc import abstractmethod, ABC
-from typing import Union
+from typing import Union, overload
 
 from .color import IColor, NOOP_COLOR
 from .common import LogicError, ArgTypeError, FT, RT, Align, logger
@@ -84,9 +84,9 @@ class IRenderable(t.Sized, ABC):
         rendered = self._render(renderer or RendererManager.get_default())
         after_s = time.time_ns() / 1e9
         if not stderr:
-            from .utilnum import format_si_metric
+            from .utilnum import format_si
 
-            logger.debug(f"Rendered in {format_si_metric((after_s-before_s), 's')}")
+            logger.debug(f"Rendered in {format_si((after_s - before_s), 's')}")
             logger.log(level=5, msg=dump(rendered, "Dump"))
         return rendered
 
@@ -698,6 +698,48 @@ def echo(
     if wrap or indent_first or indent_subseq:
         force_width = wrap if isinstance(wrap, int) else None
         width = get_preferable_wrap_width(force_width)
-        result = wrap_sgr(result, width, indent_first, indent_subseq)
+        result = wrap_sgr(result, width, indent_first, indent_subseq).rstrip("\n")
 
     print(result, end=end, file=file, flush=flush)
+
+
+# fmt: off
+@overload
+def distribute_padded(max_len: int, *values: str, pad_left: int = 0, pad_right: int = 0) -> str:
+    ...
+@overload
+def distribute_padded(max_len: int, *values: str|Text, pad_left: int = 0, pad_right: int = 0) -> Text:
+    ...
+# fmt: on
+def distribute_padded(
+    max_len: int, *values: str|Text, pad_left: int = 0, pad_right: int = 0
+) -> str | Text:
+    """
+
+    :param max_len:
+    :param values:
+    :param pad_left:
+    :param pad_right:
+    :return:
+    """
+    val_list = list(values)
+    if pad_left:
+        val_list.insert(0, "")
+    if pad_right:
+        val_list.append("")
+
+    values_amount = len(val_list)
+    gapes_amount = values_amount - 1
+    values_len = sum(len(v) for v in val_list)
+    spaces_amount = max_len - values_len
+    if spaces_amount < gapes_amount:
+        raise ValueError(f"There is not enough space for all values with padding")
+
+    result = ""
+    for value_idx, value in enumerate(val_list):
+        gape_len = spaces_amount // (gapes_amount or 1)  # for last value
+        result += value + pad(gape_len)
+        gapes_amount -= 1
+        spaces_amount -= gape_len
+
+    return result

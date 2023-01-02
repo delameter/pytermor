@@ -1061,8 +1061,7 @@
   value: 0xe5ccc9
 - name: "Dutch white"
   value: 0xefdfbb
-- name: "Dyestalk red (lit. the color from dying with the stalk of the beni plant)\
-    \ (Bengara-iro)"
+- name: "Dyestalk red (lit. the color from dying with the stalk of the beni plant) (Bengara-iro)"
   value: 0x913225
 - name: "Earth yellow"
   value: 0xe1a95f

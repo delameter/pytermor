@@ -6,10 +6,10 @@
 import pytest
 
 from pytermor.utilnum import (
-    format_si_metric,
+    format_si,
     format_si_binary,
-    PrefixedUnitFormatter,
-    formatter_si_metric,
+    StaticBaseFormatter,
+    formatter_si,
 )
 
 
@@ -17,39 +17,47 @@ from pytermor.utilnum import (
 @pytest.mark.parametrize(
     "expected,value",
     [
-        [   "0 b", -.01],
-        [   "0 b",  -.1],
-        [   "0 b",  -.0],
-        [   "0 b",   -0],
-        [   "0 b",    0],
-        [   "0 b",   .0],
-        [   "0 b",   .1],
-        [   "0 b",  .01],
-        [   "1 b",    1],
-        [  "10 b",   10],
-        [  "43 b",   43],
-        [ "180 b",  180],
-        [ "631 b",  631],
-        ["1010 b", 1010],
-        [  "1 kb", 1024],
-        [  "1 kb", 1080],
-        [  "6 kb", 6230],
-        [ "14 kb",      15000],
-        [ "44 kb",      45200],
-        ["130 kb",     133300],
-        [  "1 Mb",    1257800],
-        [ "41 Mb",   43106100],
-        ["668 Mb",  700500000],
-        [  "2 Gb", 2501234567],
-        [ "13 Gb",     14.53041e9],
-        ["142 Tb",  156.530231e12],
-        [  "1 Pb",    1.602989e15],
-        [  "1 Eb", 1.641669584e18],
-        [  "1 Zb",   1.8719334e21],
-        [  "1 Yb", 1.921267334e24],
-        ["191 Yb",  2.31487598e26],
-        [ "20 ?b", 2.543258343e28],
-
+        [   "0 B", -.01],
+        [   "0 B",  -.1],
+        [   "0 B",  -.0],
+        [   "0 B",   -0],
+        [   "0 B",    0],
+        [   "0 B",   .0],
+        [   "0 B",   .1],
+        [   "0 B",  .01],
+        [   "1 B",    1],
+        [  "10 B",   10],
+        [  "43 B",   43],
+        [ "180 B",  180],
+        [ "631 B",  631],
+        ["1010 B", 1010],
+        ["1023 B", 1023],
+        ["1.00 KiB",    1024],
+        ["1.05 KiB",    1080],
+        ["6.08 KiB",    6230],
+        ["14.6 KiB",   15000],
+        ["44.1 KiB",   45200],
+        [ "130 KiB",  133300],
+        ["1.00 MiB",  1024**2-1],
+        ["1.00 GiB",  1024**3-1],
+        ["1.00 TiB",  1024**4-1],
+        ["1.00 PiB",  1024**5-1],
+        ["1.00 EiB",  1024**6-1],
+        ["1.00 ZiB",  1024**7-1],
+        ["1.00 YiB",  1024**8-1],
+        ["1.00 RiB",  1024**9-1],
+        ["1.00 QiB", 1024**10-1],
+        ["1.00 ??B", 1024**11-1],
+        ["1.00 MiB",  1024**2],
+        ["1.00 GiB",  1024**3],
+        ["1.00 TiB",  1024**4],
+        ["1.00 PiB",  1024**5],
+        ["1.00 EiB",  1024**6],
+        ["1.00 ZiB",  1024**7],
+        ["1.00 YiB",  1024**8],
+        ["1.00 RiB",  1024**9],
+        ["1.00 QiB", 1024**10],
+        ["1.00 ??B", 1024**11],
     ],
 )
 # fmt: on
@@ -61,63 +69,79 @@ def test_format_si_binary(expected: str, value: float):
 @pytest.mark.parametrize(
     "expected,value",
     [
-        ["12.3 ?", 1.23456789e28],
+        ["12.3 ?", 1.23456789e34],
+        ["12.3 Q", 1.23456789e31],
+        ["12.3 R", 1.23456789e28],
         ["12.3 Y", 1.23456789e25],
         ["12.3 Z", 1.23456789e22],
         ["12.3 E", 1.23456789e19],
-        ["1.23 E", 1.23456789e18],
+        ["1.24 E", 1.23456789e18],
         [ "123 P", 1.23456789e17],
         ["12.3 P", 1.23456789e16],
-        ["1.23 P", 1.23456789e15],
+        ["1.24 P", 1.23456789e15],
         [ "123 T", 1.23456789e14],
         ["12.3 T", 1.23456789e13],
-        ["1.23 T", 1.23456789e12],
+        ["1.24 T", 1.23456789e12],
         [ "123 G", 1.23456789e11],
         ["12.3 G", 1.23456789e10],
-        ["1.23 G", 1.23456789e9],
+        ["1.24 G", 1.23456789e9],
         [ "123 M", 1.23456789e8],
         ["12.3 M", 1.23456789e7],
-        ["1.23 M", 1.23456789e6],
+        ["1.24 M", 1.23456789e6],
         [ "123 k", 1.23456789e5],
         ["12.3 k", 1.23456789e4],
-        ["1.23 k", 1.23456789e3],
+        ["1.24 k", 1.23456789e3],
         [   "123", 1.23456789e2],
         [  "12.3", 1.23456789e1],
-        [  "1.23", 1.23456789],
+        [  "1.24", 1.23456789],
         [ "123 m", 0.123456789],
         ["12.3 m", 1.23456789e-2],
-        ["1.23 m", 1.23456789e-3],
+        ["1.24 m", 1.23456789e-3],
         [ "123 μ", 1.23456789e-4],
         ["12.3 μ", 1.23456789e-5],
-        ["1.23 μ", 1.23456789e-6],
+        ["1.24 μ", 1.23456789e-6],
         [ "123 n", 1.23456789e-7],
         ["12.3 n", 1.23456789e-8],
-        ["1.23 n", 1.23456789e-9],
+        ["1.24 n", 1.23456789e-9],
         [ "123 p", 1.23456789e-10],
         ["12.3 p", 1.23456789e-11],
-        ["1.23 p", 1.23456789e-12],
+        ["1.24 p", 1.23456789e-12],
         [ "123 f", 1.23456789e-13],
         ["12.3 f", 1.23456789e-14],
-        ["1.23 f", 1.23456789e-15],
+        ["1.24 f", 1.23456789e-15],
         [ "123 a", 1.23456789e-16],
         ["12.3 a", 1.23456789e-17],
-        ["1.23 a", 1.23456789e-18],
+        ["1.24 a", 1.23456789e-18],
         [ "123 z", 1.23456789e-19],
         [ "123 y", 1.23456789e-22],
-        [ "123 ?", 1.23456789e-25],
-        [ "123 ?", 1.23456789e-28],
+        [ "123 r", 1.23456789e-25],
+        [ "123 q", 1.23456789e-28],
+        [ "123 ?", 1.23456789e-31],
 
     ],
 )
 # fmt: on
-def test_format_si_metric_no_unit(expected: str, value: float):
-    assert format_si_metric(value, unit="") == expected
+def test_format_si_no_unit(expected: str, value: float):
+    assert format_si(value) == expected
 
 
 # fmt: off
 @pytest.mark.parametrize(
     "expected,value",
     [
+        [ "100 ?m",  1e-31],
+        ["1.00 qm",  1e-30],
+        ["10.0 qm",  1e-29],
+        [ "100 qm",  1e-28],
+        ["1.00 rm",  1e-27],
+        ["10.0 rm",  1e-26],
+        [ "100 rm",  1e-25],
+        ["1.00 ym",  1e-24],
+        ["10.0 ym",  1e-23],
+        [ "100 ym",  1e-22],
+        ["1.00 zm",  1e-21],
+        ["10.0 zm",  1e-20],
+        [ "100 zm",  1e-19],
         ["1.00 am",  1e-18],
         ["10.0 am",  1e-17],
         [ "100 am",  1e-16],
@@ -186,14 +210,18 @@ def test_format_si_metric_no_unit(expected: str, value: float):
         ["1.00 YV",   1e24],
         ["10.0 YV",   1e25],
         [ "100 YV",   1e26],
-        ["1.00 ?V",   1e27],
-        ["10.0 ?V",   1e28],
-        [ "100 ?V",   1e29],
+        ["1.00 RV",   1e27],
+        ["10.0 RV",   1e28],
+        [ "100 RV",   1e29],
+        ["1.00 QV",   1e30],
+        ["10.0 QV",   1e31],
+        [ "100 QV",   1e32],
+        ["1.00 ?V",   1e33],
     ],
 )
 # fmt: on
-def test_format_si_metric_with_unit(expected: str, value: float):
-    assert format_si_metric(value, unit="m" if abs(value) <= 1 else "V") == expected
+def test_format_si_with_unit(expected: str, value: float):
+    assert format_si(value, unit="m" if abs(value) <= 1 else "V") == expected
 
 
 @pytest.mark.parametrize(
@@ -202,14 +230,17 @@ def test_format_si_metric_with_unit(expected: str, value: float):
     ids=["legacy OFF", "legacy ON"],
 )
 def test_legacy_rounding_works(value: float, legacy_rounding: bool, expected: str):
-    formatter = PrefixedUnitFormatter(
-        formatter_si_metric,
-        max_value_len=4,
-        unit_separator="",
-        unit="",
-        legacy_rounding=legacy_rounding,
+    formatter = StaticBaseFormatter(
+        formatter_si, unit_separator="", legacy_rounding=legacy_rounding
     )
     assert formatter.format(value) == expected
+
+
+@pytest.mark.parametrize(
+    "value,expected", [(10 - 1e-15, "10.0")]  # on the 64-bit float precision limit
+)
+def test_edge_cases(value: float, expected: str):
+    assert format_si(value) == expected
 
 
 VALUES = [0.076 * pow(11, x) * (1 - 2 * (x % 2)) for x in range(-20, 20)]
@@ -217,24 +248,19 @@ VALUES = [0.076 * pow(11, x) * (1 - 2 * (x % 2)) for x in range(-20, 20)]
 
 @pytest.mark.parametrize("value", VALUES)
 def test_default_si_metric_result_len_is_le_than_6(value: float):
-    assert len(format_si_metric(value, unit="")) <= 6
+    assert len(format_si(value, unit="")) <= 6
 
 
 @pytest.mark.parametrize("value", VALUES)
 def test_si_with_unit_result_len_is_le_than_6(value: float):
-    formatter = PrefixedUnitFormatter(
-        max_value_len=4, allow_fractional=False, mcoef=1000.0, unit="m", unit_separator=None
+    formatter = StaticBaseFormatter(
+        max_value_len=4, allow_fractional=False, allow_negative=False, unit="m"
     )
-    assert len(formatter.format(value)) <= 6
+    result = formatter.format(value)
+    assert len(result) <= 6, f"Expected len <= 6, got {len(result)} for '{result}'"
 
 
 @pytest.mark.parametrize("value", VALUES)
 def test_si_with_unit_result_len_is_le_than_10(value: float):
-    formatter = PrefixedUnitFormatter(
-        max_value_len=9,
-        allow_fractional=False,
-        mcoef=1000.0,
-        unit=None,
-        unit_separator=None,
-    )
+    formatter = StaticBaseFormatter(max_value_len=9, allow_fractional=False)
     assert len(formatter.format(value)) <= 10

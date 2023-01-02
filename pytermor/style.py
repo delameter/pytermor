@@ -3,56 +3,55 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-.. testsetup:: *
-
-   from pytermor.style import *
+S
 """
 from __future__ import annotations
 
 import typing as t
 from dataclasses import dataclass, field
 
-from . import cv, color
-from .color import IColor, NOOP_COLOR, resolve
-from .common import ArgTypeError, FT
+from . import cv
+from .color import IColor, NOOP_COLOR, resolve_color
+from .common import ArgTypeError, FT, CDT
 
 
 @dataclass()
 class Style:
     """
-    Create a new ``Style()``. Both ``fg`` and ``bg`` can be specified as:
+    Create new text render descriptior.
 
-        1. :class:`.Color` instance or library preset;
-        2. `*str*` -- name of any of these presets, case-insensitive;
-        3. `*int*` -- color value in hexadecimal RGB format;
-        4. *None* -- the color will be unset.
+    Both ``fg`` and ``bg`` can be specified as existing `IColor` instance as well
+    as plain *str* or *int* (for the details see `resolve_color()`).
 
-    Inheritance ``parent`` -> ``child`` works this way:
+        >>> Style(fg='green', bold=True)
+        <Style[green,bold]>
+        >>> Style(bg=0x0000ff)
+        <Style[bg=0000FF]>
+        >>> Style(fg='DeepSkyBlue1', bg='gray3')
+        <Style[X39[00AFFF],bg=X232[080808]]>
 
-        - If an argument in child's constructor is empty (*None*), take value from
-          ``parent``'s corresponding attribute.
-        - If an argument in child's constructor is *not* empty (``True``,
-          ``False``, `Color` etc.), use it as child's attribute.
+    Attribute merging from ``fallback`` works this way:
+
+        - If constructor argument is *not* empty (``True``, ``False``, `IColor`
+          etc.), keep it as attribute value.
+        - If constructor argument is empty (*None*), take the value from
+          ``fallback``'s corresponding attribute.
 
     See `merge_fallback()` and `merge_overwrite()` methods and take the
-    differences into account. A first merge method is used in constructor.
+    differences into account. The method used in the constructor is the first one.
 
     .. note ::
-        Both empty (i.e., *None*) attributes of type `Color` after initialization
+        Both empty (i.e., *None*) attributes of type `IColor` after initialization
         will be replaced with special constant `NOOP_COLOR`, which behaves like
         there was no color defined, and at the same time makes it safer to work
-        with nullable color-type variables.
+        with nullable color-type variables. Merge methods are aware of this and
+        trear `NOOP_COLOR` as *None*.
 
-    All arguments except ``parent``, ``fg`` and ``bg`` are *kwonly*\ -type args.
+    .. note ::
+        All arguments except ``fallback``, ``fg`` and ``bg`` are *kwonly*-type args.
 
-    >>> Style(fg='green', bold=True)
-    <Style[fg=<Color16[#32,008000?,green]>,bg=<_NoopColor[NOP]>,bold]>
-    >>> Style(bg=0x0000ff)
-    <Style[fg=<_NoopColor[NOP]>,bg=<ColorRGB[0000FF]>]>
-    >>> Style(fg='DeepSkyBlue1', bg='gray3')
-    <Style[fg=<Color256[#39,00AFFF,deep-sky-blue-1]>,bg=<Color256[#232,080808,gray-3]>]>
-
-    :param parent:      Style to copy attributes without value from.
+    :param fallback:    Copy unset attributes from speicifed fallback style.
+                        See `merge_fallback()`.
     :param fg:          Foreground (i.e., text) color.
     :param bg:          Background color.
     :param blink:       Blinking effect; *supported by limited amount of Renderers*.
@@ -94,9 +93,9 @@ class Style:
 
     def __init__(
         self,
-        parent: Style = None,
-        fg: IColor | int | str = None,
-        bg: IColor | int | str = None,
+        fallback: Style = None,
+        fg: CDT | IColor = None,
+        bg: CDT | IColor = None,
         *,
         blink: bool = None,
         bold: bool = None,
@@ -125,8 +124,8 @@ class Style:
         self.underlined = underlined
         self.class_name = class_name
 
-        if parent is not None:
-            self.merge_fallback(parent)
+        if fallback is not None:
+            self.merge_fallback(fallback)
 
         if self._fg is None:
             self._fg = NOOP_COLOR
@@ -179,11 +178,11 @@ class Style:
 
             1. ``self`` attribute value is in priority, i.e. when both ``self`` and
                ``fallback`` attributes are defined, keep ``self`` value.
-            2. If ``self`` attribute is *None*, take the value from ``parent``\ 's
+            2. If ``self`` attribute is *None*, take the value from ``fallback``'s
                corresponding attribute, and vice versa.
             3. If both attribute values are *None*, keep the *None*.
 
-        All attributes corresponding to constructor arguments except ``parent``
+        All attributes corresponding to constructor arguments except ``fallback``
         are subject to merging. `NOOP_COLOR` is treated like *None* (default for `fg`
         and `bg`).
 
@@ -191,12 +190,12 @@ class Style:
             :caption: Merging different values in fallback mode
 
                      FALLBACK   BASE(SELF)   RESULT
-                     ┌───────┐   ┌──────┐   ┌──────┐
-            ATTR-1   │ False ──Ø │ True ═══>│ True │  BASE val is in priority
-            ATTR-2   │ True ─────│ None │──>│ True │  no BASE val, taking FALLBACK val
-            ATTR-3   │ None  │   │ True ═══>│ True │  BASE val is in priority
-            ATTR-4   │ None  │   │ None │   │ None │  no vals, keeping unset
-                     └───────┘   └──────┘   └──────┘
+                     +-------+   +------+   +------+
+            ATTR-1   | False --Ø | True ===>| True |  BASE val is in priority
+            ATTR-2   | True -----| None |-->| True |  no BASE val, taking FALLBACK val
+            ATTR-3   | None  |   | True ===>| True |  BASE val is in priority
+            ATTR-4   | None  |   | None |   | None |  no vals, keeping unset
+                     +-------+   +------+   +------+
 
         .. seealso ::
             `merge_styles` for the examples.
@@ -223,11 +222,11 @@ class Style:
                and ``overwrite`` attributes are defined, replace ``self`` value with
                ``overwrite`` one (in contrast to `merge_fallback()`, which works the
                opposite way).
-            2. If ``self`` attribute is *None*, take the value from ``overwrite``\ 's
+            2. If ``self`` attribute is *None*, take the value from ``overwrite``'s
                corresponding attribute, and vice versa.
             3. If both attribute values are *None*, keep the *None*.
 
-        All attributes corresponding to constructor arguments except ``parent``
+        All attributes corresponding to constructor arguments except ``fallback``
         are subject to merging. `NOOP_COLOR` is treated like *None* (default for `fg`
         and `bg`).
 
@@ -235,12 +234,12 @@ class Style:
             :caption: Merging different values in overwrite mode
 
                     BASE(SELF)  OVERWRITE    RESULT
-                     ┌──────┐   ┌───────┐   ┌───────┐
-            ATTR-1   │ True ══Ø │ False ───>│ False │  OVERWRITE val is in priority
-            ATTR-2   │ None │   │ True ────>│ True  │  OVERWRITE val is in priority
-            ATTR-3   │ True ════│ None  │══>│ True  │  no OVERWRITE val, keeping BASE val
-            ATTR-4   │ None │   │ None  │   │ None  │  no vals, keeping unset
-                     └──────┘   └───────┘   └───────┘
+                     +------+   +-------+   +-------+
+            ATTR-1   | True ==Ø | False --->| False |  OVERWRITE val is in priority
+            ATTR-2   | None |   | True ---->| True  |  OVERWRITE val is in priority
+            ATTR-3   | True ====| None  |==>| True  |  no OVERWRITE val, keeping BASE val
+            ATTR-4   | None |   | None  |   | None  |  no vals, keeping unset
+                     +------+   +-------+   +-------+
 
         .. seealso ::
             `merge_styles` for the examples.
@@ -260,7 +259,7 @@ class Style:
         if isinstance(arg, IColor):
             return arg
         if isinstance(arg, (str, int)):
-            return color.resolve(arg)
+            return resolve_color(arg)
         raise ArgTypeError(type(arg), "arg", fn=self._resolve_color)
 
     def __eq__(self, other: Style) -> bool:
@@ -271,18 +270,29 @@ class Style:
         )
 
     def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}[{self.repr_attrs(False)}]>"
+
+    def repr_attrs(self, verbose: bool) -> str:
         if self == NOOP_STYLE:
             props_set = ["NOP"]
         elif self._fg is None or self._bg is None:
             props_set = ["uninitialized"]
         else:
-            props_set = [f"fg={self.fg!r}", f"bg={self.bg!r}"]
-            for attr_name in self.renderable_attributes:
-                attr = getattr(self, attr_name)
-                if isinstance(attr, bool) and attr is True:
-                    props_set.append(attr_name)
+            props_set = []
+            for attr_name in ("fg", "bg"):
+                val: IColor = getattr(self, attr_name)
+                if val == NOOP_COLOR:
+                    continue
+                props_set.append(
+                    (f"{attr_name}=" if attr_name != "fg" else "")
+                    + val.repr_attrs(verbose)
+                )
 
-        return f"<{self.__class__.__name__}[{','.join(props_set)}]>"
+        for attr_name in self.renderable_attributes:
+            attr = getattr(self, attr_name)
+            if isinstance(attr, bool) and attr is True:
+                props_set.append(attr_name)
+        return ",".join(props_set)
 
     @property
     def fg(self) -> IColor:
@@ -335,19 +345,26 @@ class Styles:
 
 def make_style(fmt: FT = None) -> Style:
     """
-    General `Style` constructor
+    General `Style` constructor. Accepts a variety of argument types:
 
-    :param fmt: See `FT`.
+        - `CDT` (*str* or *int*)
+            This argument type implies the creation of basic `Style` with
+            the only attribute set being `fg` (i.e., text color). For the
+            details on color resolving see `resolve_color()`.
+
+        - `Style`
+            Existing style instance. Return it as is.
+
+        - *None*
+            Return `NOOP_STYLE`.
+
+    :param FT fmt: See `FT`.
     """
     if fmt is None:
         return NOOP_STYLE
     if isinstance(fmt, Style):
         return fmt
     if isinstance(fmt, (str, int, IColor)):
-        if not isinstance(fmt, IColor):
-            fmt = resolve(fmt)
-        if fmt == NOOP_COLOR:
-            return NOOP_STYLE
         return Style(fg=fmt)
     raise ArgTypeError(type(fmt), "fmt", fn=make_style)
 
@@ -365,19 +382,19 @@ def merge_styles(
     method. The original `base` is left untouched, as all the operations are performed on
     its clone.
 
-    .. code-block :: vim
+    .. code-block ::
        :caption: Dual mode merge diagram
 
-                            (B) update ╔═══╗                                   ┏━━━━━┓
-            ┌───>┌───>┌────>┌───>┌────>║───╟──────────────────────────────────>┃     ┃
-        ╭╌╌╌╌╌╌╌╌FALLBACKS╌╌╌╌╌╌╌╌╮    ║   ║  ╭╌╌╌╌╌╌╌╌╌OVERWRITES╌╌╌╌╌╌╌╌╌╌╌╮ ┃  R  ┃
-        ┊┌─┐│ ┌─┐│ ┌─┐│ ... │ ┌─┐┘┊    ║ B ╠══┊>Ø  ┌─┐  ┌─┐  ┌─┐  ...   ┌─┐  ┊ ┃  E  ┃
-        ┊[0]┼>[1]┼>[2]┼ ... ┴>[n]─┊─>Ø ║ A ╠══┊>Ø  [0]┬>[1]┬>[2]┬ ... ┬>[n]┐ ┊ ┃  S  ┃
-        ┊└─┘│ └─┘│ └─┘└ ... ──└─┘─┊─>Ø ║ S ╠══┊>Ø  └─┘│ └─┘│ └─┘│ ... │ └─┘│ ┊ ┃  U  ┃
-        ┊   │    └───>─ ... ──────┊─>Ø ║ E ║ (C)╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯ ┃  L  ┃
-        ┊   └───>────── ... ──────┊─>Ø ║   ║ drop     └─(D)└update───>└───>└──>┃  T  ┃
-        ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌(A)  ║   ╠══════════════(E)═keep════════════>┃     ┃
-                                  drop ╚═══╝                                   ┗━━━━━┛
+                                       +-----+                                 +-----+
+          >---->---->----->---->------->     >-------(B)-update---------------->     |
+          |    |    |     |    |       |     |                                 |  R  |
+          |    |    |     |    |       |  B  >=>Ø    [0]>-[1]>-[2]> .. -[n]>   |  E  |
+       [0]>-[1]>-[2]>- .. >-[n]>->Ø    |  A  >=>Ø       |    |    |        |   |  S  |
+          |    |    >- .. ------->Ø    |  S  >=>Ø       >---(D)-update----->--->  U  |
+          |    >-----  .. ------->Ø    |  E  | (C) drop                        |  L  |
+          >----------  .. ------->Ø    |     |=================(E)=keep========>  T  |
+                                (A)    |     |                                 |     |
+                  FALLBACKS    drop    +-----+            OVERWRITES           +-----+
 
     The key actions are marked with (**A**) to (**E**) letters. In reality the algorithm
     works in slightly different order, but the exact scheme would be less illustrative.
@@ -396,7 +413,7 @@ def merge_styles(
             >>> base = Style(fg='red')
             >>> fallbacks = [Style(fg='blue'), Style(bold=True), Style(bold=False)]
             >>> merge_styles(base, fallbacks=fallbacks)
-            <Style[fg=<Color16[#31,800000?,red]>,bg=<_NoopColor[NOP]>,bold]>
+            <Style[red,bold]>
 
         In the example above:
 
@@ -421,7 +438,7 @@ def merge_styles(
             >>> base = Style(fg='red')
             >>> overwrites = [Style(fg='blue'), Style(bold=True), Style(bold=False)]
             >>> merge_styles(base, overwrites=overwrites)
-            <Style[fg=<Color16[#34,000080?,blue]>,bg=<_NoopColor[NOP]>]>
+            <Style[blue]>
 
         In the example above all the ``overwrites`` will be applied in order they were
         put into *list*, and the result attribute values are equal to the last

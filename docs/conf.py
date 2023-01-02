@@ -62,8 +62,6 @@ rst_prolog = """
 .. default-role:: any
 .. include:: <isonum.txt>
 
-.. |e| replace:: :kbd:`ESC`
-
 .. |nbspt| unicode:: 0xA0
    :trim:
 """
@@ -213,7 +211,8 @@ autodoc_typehints_description_target = "documented_params"
 # autodoc_inherit_docstrings =
 
 autodoc_type_aliases = {
-    "RT": "pytermor.common.RT",
+    "CT": "CT",
+    "RT": "RT",
 }
 
 keep_warnings = True

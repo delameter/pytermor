@@ -99,7 +99,7 @@ set-version: ## Set new package version
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
 
 test: ## Run pytest
-	${VENV_PATH}/bin/pytest
+	${VENV_PATH}/bin/pytest --tb=no
 
 test-verbose: ## Run pytest with detailed output
 	${VENV_PATH}/bin/pytest -v
@@ -177,6 +177,7 @@ docs-all: demolish-docs docs docs-pdf docs-man
 
 ##
 ## Building / Packaging
+### *
 
 freeze:  ## Actualize the requirements.txt file(s)  <venv>
 	${VENV_PATH}/bin/pip freeze -r requirements-dev.txt --all --exclude-editable > requirements-dev.txt.tmp

@@ -26,7 +26,7 @@
       hex_to_rgb
       hsv_to_hex
       hsv_to_rgb
-      resolve
+      resolve_color
       rgb_to_hex
       rgb_to_hsv
    

@@ -9,8 +9,9 @@ import pytest
 
 import pytermor as pt
 import pytermor.utilstr
-from pytermor import RendererManager
+from pytermor import RendererManager, TmuxRenderer
 from pytermor.common import Align as A
+from pytermor.renderer import NoOpRenderer, SgrRendererDebugger
 from pytermor.style import Style
 
 
@@ -252,3 +253,30 @@ class TestCache:
         renderer = RendererManager.get_default()
         string.render(renderer)
         assert len(string._renders_cache) == 0
+
+
+class TestMisc:
+    @pytest.mark.parametrize(
+        "expected,max_len,args,kwargs",
+        [
+            ("  1  2   3", 10, ("1", "2", "3"), {"pad_left": True}),
+            (
+                " 1 2 3 4  ",
+                10,
+                ("1", "2", "3", pt.Text("4", "red")),
+                {"pad_left": True, "pad_right": True},
+            ),
+            (
+                "555  666  ",
+                10,
+                (pt.Text("555", "red"), pt.Text("666", "blue")),
+                {"pad_right": True},
+            ),
+        ],
+    )
+    def test_distribute_padded(self, expected: str, max_len: int, args, kwargs):
+        result = pt.distribute_padded(max_len, *args, **kwargs)
+        result_rendered = pt.render(result, renderer=NoOpRenderer())
+        assert len(result) == max_len
+        assert len(result_rendered) == max_len
+        assert result_rendered == expected

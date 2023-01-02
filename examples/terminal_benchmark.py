@@ -4,9 +4,11 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
+import logging
 import math
 import os.path
 import re
+import sys
 import time
 import typing as t
 from dataclasses import dataclass
@@ -15,85 +17,9 @@ from time import perf_counter_ns
 from timeit import timeit
 
 import pytermor as pt
-from pytermor import SgrRenderer, wait_key
+from pytermor import SgrRenderer, wait_key, NumHighlighter
 from pytermor.utilmisc import confirm
 from pytermor.common import UserAbort, UserCancel
-
-
-# from es7s/core:
-class PrefixedNumericsHighlighter:
-    # fmt: off
-    PREFIX_UNIT_REGEX = re.compile(
-        r"(?:(?<!\x1b\[)(?<=[]()\s[-])\b|^)"
-        r"(\d+)([.,]\d+)?(\s?)"
-        r"([kmgtpuμµn%])?"
-        r"("
-        r"i?b[/ip]?t?s?|v|a|s(?:econd|ec|)s?|m(?:inute|in|onth|on|o|)s?|"
-        r"h(?:our|r|)s?|d(?:ay|)s?|w(?:eek|k|)s?|y(?:ear|r|)s?|hz"
-        r")?"
-        r"(?=[]\s\b()[]|$)",
-        flags=re.IGNORECASE,
-    )
-                                                                          # |_PW_|_G.MULT___G.DIV______TIME______
-    STYLE_DEFAULT = pt.NOOP_STYLE                                         # |    | misc.               second
-    STYLE_NUL = pt.Style(STYLE_DEFAULT, dim=True)                         # |  0 | zero
-    STYLE_PRC = pt.Style(STYLE_DEFAULT, fg=pt.cv.MAGENTA, bold=True)    # |  2 |          percent
-    STYLE_KIL = pt.Style(STYLE_DEFAULT, fg=pt.cv.BLUE, bold=True)       # |  3 | Kilo-    milli-     minute
-    STYLE_MEG = pt.Style(STYLE_DEFAULT, fg=pt.cv.CYAN, bold=True)       # |  6 | Mega-    micro-     hour
-    STYLE_GIG = pt.Style(STYLE_DEFAULT, fg=pt.cv.GREEN, bold=True)      # |  9 | Giga-    nano-      day
-    STYLE_TER = pt.Style(STYLE_DEFAULT, fg=pt.cv.YELLOW, bold=True)     # | 12 | Tera-    pico-      week
-    STYLE_MON = pt.Style(STYLE_DEFAULT, fg=pt.cv.HI_YELLOW, bold=True)  # |    |                     month
-    STYLE_PET = pt.Style(STYLE_DEFAULT, fg=pt.cv.RED, bold=True)        # | 15 | Peta-               year
-
-    PREFIX_MAP = {
-        '%': STYLE_PRC,
-        'K': STYLE_KIL, 'k': STYLE_KIL, 'm': STYLE_KIL,
-        'M': STYLE_MEG, 'μ': STYLE_MEG, 'µ': STYLE_MEG,
-        'G': STYLE_GIG, 'g': STYLE_GIG, 'n': STYLE_GIG,
-        'T': STYLE_TER, 'p': STYLE_TER,
-        'P': STYLE_PET,
-    }
-    UNIT_MAP = {
-        's': STYLE_PRC, 'sec': STYLE_PRC, 'second': STYLE_PRC,
-        'm': STYLE_KIL, 'min': STYLE_KIL, 'minute': STYLE_KIL,
-        'h': STYLE_MEG,  'hr': STYLE_MEG,   'hour': STYLE_MEG,
-        'd': STYLE_GIG, 'day': STYLE_GIG,
-        'w': STYLE_TER,  'wk': STYLE_TER, 'week': STYLE_TER,
-        'M': STYLE_MON,  'mo': STYLE_MON,  'mon': STYLE_MON, 'month': STYLE_MON,
-        'y': STYLE_PET,  'yr': STYLE_PET, 'year': STYLE_PET,
-    }
-    # fmt: on
-
-    @classmethod
-    def format(cls, string: str, renderer: pt.IRenderer) -> str:
-        def replace(m: re.Match) -> str:
-            return renderer.render(cls._colorize_match(m))
-
-        return cls.PREFIX_UNIT_REGEX.sub(replace, string)
-
-    @classmethod
-    def _colorize_match(cls, m: re.Match) -> pt.Text:
-        intp, floatp, sep, pref, unit = m.groups("")
-        unitn = unit.rstrip("s").strip()
-
-        style_i = cls.STYLE_DEFAULT
-        if pref:
-            style_i = cls.PREFIX_MAP.get(pref, cls.STYLE_DEFAULT)
-        elif unitn:
-            style_i = cls.UNIT_MAP.get(unitn, cls.STYLE_DEFAULT)
-
-        digits = intp + floatp[1:]
-        if digits.count("0") == len(digits):
-            style_i = cls.STYLE_NUL
-
-        style_f = pt.Style(style_i, dim=True)
-        style_un = pt.Style(style_i, dim=True, bold=False)
-        return (
-            pt.Text(intp, style_i)
-            + pt.Text(floatp, style_f)
-            + sep
-            + pt.Text(pref + unit, style_un)
-        )
 
 
 @dataclass
@@ -126,7 +52,11 @@ class TestSet:
     def read(self, fr: t.TextIO | t.BinaryIO):
         self.last_data_sample = b"" if self.mode_binary else ""
         while len(self.last_data_sample) < self.limit:
-            self.last_data_sample += fr.read(self.buf_size)
+            if d := fr.read(self.buf_size):
+                self.last_data_sample += d
+                continue
+            raise RuntimeError("Unexpected end of file. "
+                               "File should be able to provide ~1.5 Gb of data to read.")
 
     def write(self, fw: t.TextIO | t.BinaryIO):
         total = 0
@@ -152,12 +82,17 @@ class TestRunner:
     LIMITS = (4000, 9000, 16000)
     BUF_SIZES = (40, 200, 400, 900, 2000, 4000)
 
-    def __init__(self, mode_read: bool, mode_binary: bool):
-        self.mode_read = mode_read
-        self.mode_binary = mode_binary
-        self.dev = get_test_device(self.mode_read)
+    def __init__(self):
+        try:
+            self.mode_read = get_mode_read()
+            self.mode_binary = get_mode_binary()
+            self.dev = get_test_device(self.mode_read)
+        except (EOFError, KeyboardInterrupt, UserAbort, UserCancel):
+            print("\nTerminating")
+            raise SystemExit(126)
+
         self.test_sets: t.List[TestSet] = [
-            TestSet(mode_read, mode_binary, l, b, (l, b))
+            TestSet(self.mode_read, self.mode_binary, l, b, (l, b))
             for l in self.LIMITS
             for b in self.BUF_SIZES
             if b <= l and (l / b <= 100)
@@ -203,43 +138,56 @@ class TestRunner:
         if runner.RUNS >= 30:
             printer.print_nl()
 
+    def _truncate_file(self):
+        if self.mode_read or not os.path.isfile(self.dev):
+            return
+        pt.echo()
+        pt.echo(
+            f"NOTICE: The application will now truncate the test "
+            f"file '{self.dev}' to zero size. Continue?",
+            pt.Styles.WARNING,
+            wrap=True,
+        )
+
+        try:
+            confirm(required=True)
+        except UserCancel:
+            print("\nCancelled")
+            return
+        except (EOFError, UserAbort):
+            print("\nTerminating")
+            raise SystemExit(126)
+
+        os.truncate(self.dev, 0)
+        pt.echo("Done")
+
 
 class Printer:
     FPS_MAX = 12
-    PREFIXES_SI_UPPER_WUNIT = list(
-        map(lambda s: s.upper() if s else "b", pt.utilnum.PrefixedUnitFormatter.PREFIXES_SI)
-    )
     PREFIXES_SI_UPPER = list(
-        map(lambda s: s.upper() if s else None, pt.utilnum.PrefixedUnitFormatter.PREFIXES_SI)
+        map(
+            lambda s: s.upper() if s else None,
+            pt.utilnum.StaticBaseFormatter.PREFIXES_SI_DEC,
+        )
     )
     PROGBAR_WIDTH = 15
     TABLE_WIDTH = 100
 
-    size_formatter = pt.utilnum.PrefixedUnitFormatter(  # @TODO implement inheritance
-        max_value_len=4,
-        allow_fractional=False,
-        mcoef=1024.0,
-        prefixes=PREFIXES_SI_UPPER_WUNIT,
+    size_formatter = pt.utilnum.StaticBaseFormatter(
+        max_value_len=4, allow_fractional=False
     )
-    total_size_formatter = pt.utilnum.PrefixedUnitFormatter(
+    total_size_formatter = pt.utilnum.StaticBaseFormatter(
         max_value_len=4,
         allow_fractional=True,
         unit="b",
         unit_separator=" ",
-        mcoef=1024.0,
         prefixes=PREFIXES_SI_UPPER,
     )
-    speed_formatter = pt.utilnum.PrefixedUnitFormatter(
-        max_value_len=5,
-        unit="b/s",
-        unit_separator=" ",
-        mcoef=1024.0,
-        prefixes=PREFIXES_SI_UPPER,
+    speed_formatter = pt.utilnum.StaticBaseFormatter(
+        max_value_len=4, unit="b/s", unit_separator=" ", prefixes=PREFIXES_SI_UPPER
     )
-    int_formatter = pt.utilnum.PrefixedUnitFormatter(
-        max_value_len=3,
-        allow_fractional=False,
-        prefixes=[None, "K", "M", "G"],
+    int_formatter = pt.utilnum.StaticBaseFormatter(
+        max_value_len=4, allow_fractional=False, prefixes=[None, "K", "M", "G"], unit_separator=""
     )
 
     def __init__(self):
@@ -264,10 +212,10 @@ class Printer:
             f"CYCLES: {runner.REPEATS}",
             f"BUFFER SIZES: {len(runner.test_sets)}",
             f"{'BINARY' if runner.mode_binary else 'TEXT'}"
-            + f" {'READ from' if runner.mode_read else 'WRITE to'}"
+            + f" {'READ <-' if runner.mode_read else 'WRITE ->'}"
             + f" {runner.dev or 'FD ' + str(fd.name):>.32s} ",
         ]
-        print(pt.distribute_padded(header, self.TABLE_WIDTH), flush=True)
+        print(pt.distribute_padded(self.TABLE_WIDTH, *header), flush=True)
         self.print_hr()
 
     def format_data_sample(self, test_set: TestSet, max_size: int = 4) -> str:
@@ -319,8 +267,8 @@ class Printer:
         status += f" │ {self.format_data_sample(test_set, 4)} "
         status += " "
 
-        status = PrefixedNumericsHighlighter().format(status, self.renderer)
-        print(status, end="", flush=True)
+        status = NumHighlighter().format(status)
+        pt.echo(status, nl=False)
 
     def print_results(self, test_sets: t.List[TestSet]):
         self.print_nl()
@@ -341,7 +289,7 @@ class Printer:
             limit_str += f"{self.int_formatter.format(TestRunner.RUNS):>3s}x "
             limit_str += f"{self.int_formatter.format(TestRunner.REPEATS):>3s}x "
             limit_str += "["
-            limit_str += self.size_formatter.format(test_set.limit).rjust(4)
+            limit_str += self.int_formatter.format(test_set.limit).rjust(4)
             limit_str += "]"
             limit_str += " <─ " if runner.mode_read else " ─> "
             limit_str = limit_str.ljust(20)
@@ -369,18 +317,16 @@ class Printer:
                 result_drel_str = pt.render(result_drel_str, result_drel_st)
 
             op_num = math.ceil(test_set.limit / test_set.buf_size)
-            s = PrefixedNumericsHighlighter.format(
+            s = NumHighlighter().format(
                 limit_str
                 + f"[{self.int_formatter.format(op_num):>3s}x"
-                + f"{self.size_formatter.format(test_set.buf_size):>5s}]"
+                + f"{self.int_formatter.format(test_set.buf_size):>5s}]"
                 + f" │ {result_total} {result_drel_str}"
                 + f" │{self.format_time_ns(result_avg_ns, False):>11s}"
                 + f" {self.speed_formatter.format(test_set.speed_avg):>11s}"
-                + f" │ {self.format_data_sample(test_set)}",
-                self.renderer,
-            ).replace("±> ", "±")
-
-            print(s, flush=True)
+                + f" │ {self.format_data_sample(test_set)}"
+            )
+            pt.echo(pt.render(s, renderer=self.renderer).replace("±> ", "±"))
         self.print_hr()
 
     @staticmethod
@@ -454,44 +400,56 @@ def get_test_device(mode_read) -> str:
     # default = f'use "{dev}"' if mode_read else "automatically allocate a pseudo-terminal"
 
     prompt = f"Enter name of test file/device or leave empty to {default}: "
-    try:
-        devstr = input(prompt)
-        if not devstr:
-            return dev
+    devstr = input(prompt)
+    if not devstr:
+        return dev
 
-        if not mode_read and not devstr.startswith("/dev"):
+    if not mode_read and not devstr.startswith("/dev"):
+        pt.echo(
+            f"NOTICE: The application will write around 4.15 Gb of data in order to "
+            f"measure speed using various buffer sizes. The file will be truncated to "
+            f"zero size after the measurements.",
+            pt.Styles.WARNING,
+            wrap=True,
+        )
+        confirm(required=True)
+
+    if not mode_read and os.path.isfile(devstr):
+        if not os.getenv("FORCE_OVERWRITE", None):
             pt.echo(
-                f"NOTICE: The application will write around 4.15 Gb of data in order to "
-                f"measure speed using various buffer sizes. After the measurements the "
-                f"file then will be truncated to zero size.",
+                f"NOTICE: For security reasons writing to existing regular files is "
+                f"disabled. If you are OK with the fact that all the data from specified "
+                f'file "{devstr}" will be lost forever and REALLY know what you are '
+                f"doing, set the environment variable FORCE_OVERWRITE to a non-empty "
+                f"string and restart the application. For now writing will be performed "
+                f'into "/dev/null" instead.',
                 pt.Styles.WARNING,
                 wrap=True,
             )
+            devstr = "/dev/null"
             confirm(required=True)
-
-        if not mode_read and os.path.isfile(devstr):
-            if not os.getenv("FORCE_OVERWRITE", None):
-                pt.echo(
-                    f"NOTICE: For security reasons writing to existing regular files is "
-                    f"disabled. If you are OK with the fact that all the data from specified "
-                    f'file "{devstr}" will be lost forever and REALLY know what you are '
-                    f"doing, set the environment variable FORCE_OVERWRITE to a non-empty "
-                    f"string and restart the application. For now writing will be performed "
-                    f'into "/dev/null" instead.',
-                    pt.Styles.WARNING,
-                    wrap=True,
-                )
-                devstr = "/dev/null"
-                confirm(required=True)
         return devstr
 
-    except (EOFError, KeyboardInterrupt, UserAbort, UserCancel):
-        print("\nTerminating")
-        raise SystemExit(126)
+    if mode_read and not os.path.isfile(devstr):
+        pt.echo(f"ERROR: File not found: '{devstr}'", pt.Styles.ERROR)
+        raise SystemExit(127)
+
+    return devstr
+
+
+def init_logging():
+    logger = logging.getLogger('pytermor')
+    handler = logging.StreamHandler()
+    fmt = '[%(levelname)5.5s][%(name)s.%(module)s] %(message)s'
+    handler.setFormatter(logging.Formatter(fmt))
+    logger.addHandler(handler)
+    logger.setLevel(logging.WARNING)
 
 
 if __name__ == "__main__":
-    runner = TestRunner(get_mode_read(), get_mode_binary())
+    init_logging()
+    runner = TestRunner()
     printer = Printer()
     runner.run()
     printer.print_results(runner.test_sets)
+    runner._truncate_file()

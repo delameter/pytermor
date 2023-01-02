@@ -5,10 +5,6 @@ Renderers
 =======================================
 
 
-Class hierarchy
-=====================
-
-
 .. inheritance-diagram::  pytermor.renderer
    :parts: 1
    :top-classes:          pytermor.renderer.IRenderer

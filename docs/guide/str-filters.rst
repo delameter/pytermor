@@ -1,14 +1,15 @@
 .. _guide.str-filters:
 
 =======================================
-String (and bytes) filters
+String filters
 =======================================
 
+.. grid:: 1
+   :class-container: inheritance-columns
 
-Class hierarchy
-=====================
+   .. grid-item::
 
-.. inheritance-diagram::   pytermor.utilstr
-   :parts: 1
-   :top-classes:           pytermor.utilstr.IFilter
-   :caption:               `IFilter` inheritance tree
+      .. inheritance-diagram::   pytermor.utilstr
+         :parts: 1
+         :top-classes:           pytermor.utilstr.IFilter
+         :caption:               `IFilter` inheritance tree

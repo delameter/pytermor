@@ -3,9 +3,9 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 from ._version import __version__ as __version__
+from .common import CDT as CDT
 from .common import FT as FT
 from .common import RT as RT
-from .common import CRT as CRT
 from .common import logger as logger
 from .common import Align as Align
 from .common import ArgCountError as ArgCountError
@@ -32,7 +32,7 @@ from .color import ColorRGB as ColorRGB
 from .color import ApxResult as ApxResult
 from .color import approximate as approximate
 from .color import find_closest as find_closest
-from .color import resolve as resolve
+from .color import resolve_color as resolve_color
 from .color import hex_to_rgb as hex_to_rgb
 from .color import hex_to_hsv as hex_to_hsv
 from .color import rgb_to_hex as rgb_to_hex
@@ -56,6 +56,7 @@ from .text import Text as Text
 from .text import TemplateEngine as TemplateEngine
 from .text import echo as echo
 from .text import render as render
+from .text import distribute_padded as distribute_padded
 from .utilmisc import confirm as confirm
 from .utilmisc import get_char_width as get_char_width
 from .utilmisc import get_preferable_wrap_width as get_preferable_wrap_width
@@ -66,13 +67,13 @@ from .utilmisc import measure_char_width as measure_char_width
 from .utilmisc import total_size as total_size
 from .utilmisc import wait_key as wait_key
 from .utilnum import NumHighlighter as NumHighlighter
-from .utilnum import PrefixedUnitFormatter as PrefixedUnitFormatter
-from .utilnum import TimeDeltaFormatter as TimeDeltaFormatter
-from .utilnum import TimeUnit as TimeUnit
+from .utilnum import StaticBaseFormatter as StaticBaseFormatter
+from .utilnum import DynamicBaseFormatter as DynamicBaseFormatter
+from .utilnum import CustomBaseUnit as CustomBaseUnit
 from .utilnum import format_auto_float as format_auto_float
 from .utilnum import format_thousand_sep as format_thousand_sep
+from .utilnum import format_si as format_si
 from .utilnum import format_si_binary as format_si_binary
-from .utilnum import format_si_metric as format_si_metric
 from .utilnum import format_time_delta as format_time_delta
 from .utilstr import ESCAPE_SEQ_REGEX as ESCAPE_SEQ_REGEX
 from .utilstr import SGR_SEQ_REGEX as SGR_SEQ_REGEX
@@ -100,7 +101,6 @@ from .utilstr import StringUcpTracer as StringUcpTracer
 from .utilstr import TracerExtra as TracerExtra
 from .utilstr import pad as pad
 from .utilstr import padv as padv
-from .utilstr import distribute_padded as distribute_padded
 from .utilstr import ljust_sgr as ljust_sgr
 from .utilstr import rjust_sgr as rjust_sgr
 from .utilstr import center_sgr as center_sgr

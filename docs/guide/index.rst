@@ -8,11 +8,11 @@ Guide
 
    install
    high-level
-   low-level
-   presets
-   xterm-color-palette
-   named-colors
    renderers
    str-filters
    num-formatters
+   es7s-colors
+   low-level
+   ansi-presets
+   xterm-color-palette
    guidelines

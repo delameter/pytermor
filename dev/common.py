@@ -29,7 +29,7 @@ class TaskRunner(metaclass=ABCMeta):
         if elapsed_sec > 1:
             print(f"Execution time: {pt.format_time_delta(elapsed_sec)}")
         else:
-            print(f"Execution time: {pt.format_si_metric(elapsed_sec, 's')}")
+            print(f"Execution time: {pt.format_si(elapsed_sec, 's')}")
         print()
 
     @abstractmethod
@@ -40,11 +40,11 @@ class TaskRunner(metaclass=ABCMeta):
         pass
 
     def _print_fin_result(self, fin: TextIO, filepath: str):
-        self.__print_file_result(fin, filepath, "Read", "<--", 'yellow')
+        self.__print_file_result(fin, filepath, "Read", "<-", 'yellow')
 
     def _print_fout_result(self, fout: TextIO, filepath: str):
-        self.__print_file_result(fout, filepath, "Wrote", "-->", 'green')
+        self.__print_file_result(fout, filepath, "Wrote", "->", 'green')
 
     def __print_file_result(self, f: TextIO, filepath: str, act: str, arr: str, sizecolor: str):
-        num, sep, unit = pt.utilnum.format_si_binary(f.tell(), join=False)
-        pt.echo(f"{act:<5s} :[fg={sizecolor}]{num}:[-fg]{sep}{unit} {arr} :[fg=blue]{filepath}:[-fg]", parse_template=True)
+        size = pt.format_si_binary(f.tell(), color=True)
+        pt.echo(f"{act:<5s} {size} {arr} :[fg=blue]{filepath}:[-fg]", parse_template=True)

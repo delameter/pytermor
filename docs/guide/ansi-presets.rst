@@ -1,7 +1,7 @@
-.. _guide.presets:
+.. _guide.ansi-presets:
 
 ======================================
-Preset list
+ANSI preset list
 ======================================
 
 Preset lists are omitted from API docs to avoid unnesessary duplication;

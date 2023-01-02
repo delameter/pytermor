@@ -2,20 +2,22 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
+from __future__ import annotations
+
 from datetime import timedelta
 
 import pytest
 
 from pytermor.utilnum import (
     format_time_delta,
-    TimeDeltaFormatter,
-    TimeUnit,
+    DynamicBaseFormatter,
+    CustomBaseUnit,
     tdf_registry,
 )
 
 
-def deltastr(val):
-    if isinstance(val, (timedelta,)):
+def delta_str(val) -> str|None:
+    if isinstance(val, timedelta):
         args = []
         if val.days:
             args += ["%dd" % val.days]
@@ -24,6 +26,7 @@ def deltastr(val):
         if val.microseconds:
             args += ["%dus" % val.microseconds]
         return "%s(%s)" % ("", ' '.join(args))
+    return None
 
 
 TIMEDELTA_TEST_SET = [
@@ -91,28 +94,28 @@ TIMEDELTA_TEST_SET = [
 ]
 
 
-@pytest.mark.parametrize("expected,delta", TIMEDELTA_TEST_SET, ids=deltastr)
+@pytest.mark.parametrize("expected,delta", TIMEDELTA_TEST_SET, ids=delta_str)
 def test_output_has_expected_format_for_max_len(expected: str, delta: timedelta):
     longest = tdf_registry.get_longest().max_len
     assert format_time_delta(delta.total_seconds(), longest) == expected
 
 
-@pytest.mark.parametrize("_,delta", TIMEDELTA_TEST_SET, ids=deltastr)
+@pytest.mark.parametrize("_,delta", TIMEDELTA_TEST_SET, ids=delta_str)
 @pytest.mark.parametrize("max_len", [3, 4, 6, 10, 9, 1000])
 def test_output_fits_in_required_length(max_len: int, _, delta: timedelta):
     actual_output = format_time_delta(delta.total_seconds(), max_len)
     assert len(actual_output) <= max_len
 
 
-@pytest.mark.parametrize("max_len", [-5, 0, 1, 2], ids=deltastr)
+@pytest.mark.parametrize("max_len", [-5, 0, 1, 2], ids=delta_str)
 @pytest.mark.xfail(raises=ValueError)
 def test_invalid_max_length_fails(max_len: int):
     format_time_delta(100, max_len)
 
 
 def test_formatter_registration():  # @TODO more
-    formatter = TimeDeltaFormatter(
-        units=[TimeUnit("s", 60), TimeUnit("m", 60), TimeUnit("h", 24)]
+    formatter = DynamicBaseFormatter(
+        units=[CustomBaseUnit("s", 60), CustomBaseUnit("m", 60), CustomBaseUnit("h", 24)]
     )
     tdf_registry.register(formatter)
 

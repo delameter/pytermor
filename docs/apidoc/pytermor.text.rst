@@ -13,6 +13,7 @@
 
    .. autosummary::
    
+      distribute_padded
       echo
       render
    
