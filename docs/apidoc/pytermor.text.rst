@@ -15,6 +15,7 @@
    
       distribute_padded
       echo
+      echoi
       render
    
    
@@ -28,6 +29,7 @@
       FixedString
       FrozenText
       IRenderable
+      SimpleTable
       String
       TemplateEngine
       Text

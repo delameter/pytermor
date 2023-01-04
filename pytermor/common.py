@@ -6,8 +6,10 @@ from __future__ import annotations
 
 import enum
 import inspect
-from typing import Type, Callable, TypeVar, Union
+import time
+import typing as t
 import logging
+from functools import update_wrapper
 
 logger = logging.getLogger(__package__)
 logger.addHandler(logging.NullHandler())
@@ -22,7 +24,7 @@ logger.addHandler(logging.NullHandler())
 ########
 
 
-CDT = TypeVar("CDT", int, str)
+CDT = t.TypeVar("CDT", int, str)
 """
 :abbr:`CDT (Color descriptor type)` represents a RGB color value. Primary handler 
 is `resolve_color()`. Valid values include:
@@ -36,17 +38,36 @@ is `resolve_color()`. Valid values include:
     - *int* in a [0; 0xFFFFFF] range.
 """
 
-FT = TypeVar("FT", int, str, "IColor", "Style", None)
+FT = t.TypeVar("FT", int, str, "IColor", "Style", None)
 """
 :abbr:`FT (Format type)` is a style descriptor. Used as a shortcut precursor for actual 
 styles. Primary handler is `make_style()`.
 """
 
-RT = TypeVar("RT", str, "IRenderable")
+RT = t.TypeVar("RT", str, "IRenderable")
 """
 :abbr:`RT (Renderable type)` includes regular *str*\\ s as well as `IRenderable` 
 implementations.
 """
+
+F = t.TypeVar("F", bound=t.Callable[..., t.Any])
+
+def measure(msg: str = "Done"):
+    def wrapper(origin: F) -> F:
+        def new_func(*args, **kwargs):
+            before_s = time.time_ns() / 1e9
+            result = origin(*args, **kwargs)
+            after_s = time.time_ns() / 1e9
+
+            from . import PYTERMOR_DEV
+            if PYTERMOR_DEV and not kwargs.get('no_log', False):
+                from . import format_si, dump, logger
+                logger.debug(msg + f" in {format_si((after_s - before_s), 's')}")
+                logger.log(level=5, msg=dump(result, "Dump"))
+
+            return result
+        return update_wrapper(t.cast(F, new_func), origin)
+    return wrapper
 
 
 class UserCancel(Exception):
@@ -68,7 +89,7 @@ class ConflictError(Exception):
 class ArgTypeError(Exception):
     """ """
 
-    def __init__(self, actual_type: Type, arg_name: str = None, fn: Callable = None):
+    def __init__(self, actual_type: t.Type, arg_name: str = None, fn: t.Callable = None):
         arg_name_str = f'"{arg_name}"' if arg_name else "argument"
         # @todo suggestion
         # f = inspect.currentframe()

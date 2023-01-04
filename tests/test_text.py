@@ -2,6 +2,8 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
+from __future__ import annotations
+
 import typing as t
 import unittest
 
@@ -9,10 +11,20 @@ import pytest
 
 import pytermor as pt
 import pytermor.utilstr
-from pytermor import RendererManager, TmuxRenderer
+from pytermor import RendererManager, TmuxRenderer, IRenderable
 from pytermor.common import Align as A
 from pytermor.renderer import NoOpRenderer, SgrRendererDebugger
 from pytermor.style import Style
+
+
+def rt_str(val) -> str | None:
+    if isinstance(val, str):
+        max_sl = 9
+        sample = val[:max_sl] + ("‥" * (len(val) > max_sl))
+        return f'<str>[({len(val)}, "{sample}")]'
+    if isinstance(val, IRenderable):
+        return repr(val)
+    return None
 
 
 class TestString(unittest.TestCase):
@@ -224,6 +236,32 @@ class TestTextFormatting(unittest.TestCase):
             self.assertRaises(ValueError, lambda text=self.text: f"{text:{fmt}}")
 
 
+class TestSimpleTable:
+    @classmethod
+    def setup_class(cls) -> None:
+        pt.RendererManager.set_default_format_always()
+
+    def setup_method(self) -> None:
+        self.style = Style(fg="yellow")
+        self.table = pt.SimpleTable(width=30, sep="|")
+
+    @pytest.mark.parametrize(
+        "cell",
+        [
+            "1",
+            pt.String("1"),
+            pt.FixedString("1"),
+            pt.FrozenText("1"),
+            pt.Text("1"),
+            pt.SimpleTable("1"),
+        ],
+        ids=rt_str,
+    )
+    def test_cell_types_accepted(self, cell: pt.RT):
+        self.table.add_row(cell)
+        assert self.table.row_count == 1
+
+
 class TestCache:
     immutable_renderables = [pt.String, pt.FixedString, pt.FrozenText]
 
@@ -263,13 +301,19 @@ class TestMisc:
             (
                 " 1 2 3 4  ",
                 10,
-                ("1", "2", "3", pt.Text("4", "red")),
+                ("1", "2", "3", pt.FrozenText("4", "red")),
                 {"pad_left": True, "pad_right": True},
             ),
             (
                 "555  666  ",
                 10,
-                (pt.Text("555", "red"), pt.Text("666", "blue")),
+                (pt.String("555", "red"), pt.Text("666", "blue")),
+                {"pad_right": True},
+            ),
+            (
+                "  1234 56 ",
+                10,
+                (pt.FixedString("1234", "red", 6, "right"), "56"),
                 {"pad_right": True},
             ),
         ],

@@ -467,16 +467,16 @@ class StaticBaseFormatter:
         if not (0 <= self._prefix_refpoint_idx < len(self._prefixes)):
             raise ValueError("Shifted prefix reference point is out of bounds")
 
-    @property
-    def max_len(self) -> int:
+    def get_max_len(self, unit_ov: str = None) -> int:
         """
-        :return: Maximum length of the result. Note that constructor argument
-                 is `max_value_len`, which is a different parameter.
+        :param unit_ov: Unit override. Set to *None* to use formatter's own unit.
+        :return:        Maximum length of the result. Note that constructor argument
+                        is `max_value_len`, which is a different parameter.
         """
         result = self._max_value_len
         result += len(self._unit_separator)
-        result += len(self._unit)
-        result += max([len(p) for p in self._prefixes if p])
+        result += len(self._get_unit_effective(unit_ov))
+        result += self._get_max_prefix_len()
         return result
 
     @property
@@ -495,14 +495,13 @@ class StaticBaseFormatter:
     def format(self, val: float, unit_ov: str = None, color_ov: bool = None) -> RT:
         """
         :param val:       Input value.
-        :param unit_ov:   Unit override.
+        :param unit_ov:   Unit override. Set to *None* to use formatter's own unit.
         :param color_ov:  Color mode override, *bool* to enable/disable
                           colorizing, *None* to use formatters' setting value.
         :return: Formatted value, *Text* if colorizing is on, *str* otherwise.
         """
         origin_val = val
-        if unit_ov is None:
-            unit_ov = self._unit
+        unit = self._get_unit_effective(unit_ov)
         if not self._allow_negative:
             val = max(0.0, val)
         if self._discrete_input and self._prefix_refpoint_shift == 0:
@@ -554,9 +553,9 @@ class StaticBaseFormatter:
                 % (self._max_value_len, len(val_str), val_str, origin_val)
             )
 
-        result = self._colorize(color_ov, val_str, sep, prefix, unit_ov)
+        result = self._colorize(color_ov, val_str, sep, prefix, unit)
         if self._pad:
-            pad_len = max(0, self.max_len - len(result))
+            pad_len = max(0, self.get_max_len(unit_ov) - len(result))
             result = pad(pad_len) + result
         return result
 
@@ -573,13 +572,18 @@ class StaticBaseFormatter:
         int_part, point, frac_part = val.strip().partition(".")
         return NumHighlighter.colorize(int_part, point + frac_part, sep, prefix, unit)
 
+    def _get_unit_effective(self, unit_ov: str) -> str:
+        if unit_ov is not None:
+            return unit_ov
+        return self._unit
+
     def _get_color_effective(self, color_ov: bool) -> bool:
         if color_ov is not None:
             return color_ov
         return self._color
 
     def _get_max_prefix_len(self) -> int:
-        return max([len(p) for p in self._prefixes if p])
+        return max([len(p) for p in self._prefixes if p is not None])
 
     def __repr__(self) -> str:
         return self.__class__.__qualname__
@@ -703,7 +707,7 @@ def format_si_binary(val: float, unit: str = None, color: bool = False) -> RT:
 # -----------------------------------------------------------------------------
 
 
-def format_time_delta(val_sec: float, max_len: int = None, color_ov: bool = None) -> str:
+def format_time_delta(val_sec: float, max_len: int = None, color_ov: bool = None) -> RT:
     """
     Format time delta using suitable format (which depends on
     ``max_len`` argument). Key feature of this formatter is

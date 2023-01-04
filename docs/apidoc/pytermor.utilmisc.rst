@@ -15,6 +15,8 @@
    
       chunk
       confirm
+      flatten
+      flatten1
       get_char_width
       get_preferable_wrap_width
       get_qname

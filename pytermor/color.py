@@ -133,6 +133,8 @@ class ApxResult(t.Generic[CT]):
 class IColor(ABC):
     """
     Abstract superclass for other ``Colors``.
+
+    :meta private:
     """
 
     # class vars #

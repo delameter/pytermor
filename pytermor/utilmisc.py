@@ -11,8 +11,8 @@ from __future__ import annotations
 import itertools
 import os
 import sys
-import time
 import threading
+import time
 import typing as t
 import unicodedata
 from collections import deque
@@ -20,8 +20,12 @@ from io import StringIO
 from itertools import chain
 from sys import getsizeof, stderr
 
-from .ansi import make_query_cursor_position, decompose_request_cursor_position, \
-    make_erase_in_line, make_set_cursor_x_abs
+from .ansi import (
+    make_query_cursor_position,
+    decompose_request_cursor_position,
+    make_erase_in_line,
+    make_set_cursor_x_abs,
+)
 from .common import UserAbort, UserCancel
 
 T = t.TypeVar("T")
@@ -66,17 +70,48 @@ def chunk(items: t.Iterable[T], size: int) -> t.Iterator[t.Tuple[T, ...]]:
     return iter(lambda: tuple(itertools.islice(arr_range, size)), ())
 
 
-def get_terminal_width(default: int = 80, padding: int = 2) -> int:
+def flatten1(items: t.Iterable[t.Iterable[T]]) -> t.List[T]:
+    """
+    Take a list of nested lists and unpack all nested elements one level up.
+
+    >>> flatten1([[1, 2, 3], [4, 5, 6], [[10, 11, 12]]])
+    [1, 2, 3, 4, 5, 6, [10, 11, 12]]
+
+    :param items:  Input lists.
+    """
+    return list(itertools.chain.from_iterable(items))
+
+
+def flatten(items: t.Iterable[t.Iterable[T]]) -> t.List[T]:
+    """
+    .. todo ::
+        recursrive
+    """
+
+# -----------------------------------------------------------------------------
+
+def get_terminal_width(fallback: int = 80, pad: int = 2) -> int:
     """
     Return current terminal width with an optional "safety buffer", which
     ensures that no unwanted line wrapping will happen.
+
+    :param fallback: Default value when shutil is unavailable and environment
+                     variable COLUMNS is unset.
+    :param pad:      Additional safety space to prevent unwanted line wrapping.
     """
     try:
         import shutil as _shutil
 
-        return _shutil.get_terminal_size().columns - padding
+        return _shutil.get_terminal_size().columns - pad
     except ImportError:
-        return int(os.environ.get("COLUMNS", default))
+        pass
+
+    try:
+        return int(os.environ.get("COLUMNS", fallback))
+    except ValueError:
+        pass
+
+    return fallback
 
 
 def get_preferable_wrap_width(force_width: int = None) -> int:

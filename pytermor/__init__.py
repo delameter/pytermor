@@ -2,6 +2,8 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
+import os
+
 from ._version import __version__ as __version__
 from .common import CDT as CDT
 from .common import FT as FT
@@ -51,6 +53,7 @@ from .renderer import OutputMode as OutputMode
 from .text import IRenderable as IRenderable
 from .text import FixedString as FixedString
 from .text import FrozenText as FrozenText
+from .text import SimpleTable as SimpleTable
 from .text import String as String
 from .text import Text as Text
 from .text import TemplateEngine as TemplateEngine
@@ -107,3 +110,5 @@ from .utilstr import center_sgr as center_sgr
 from .utilstr import wrap_sgr as wrap_sgr
 from .utilstr import apply_filters as apply_filters
 from .utilstr import dump as dump
+
+PYTERMOR_DEV = os.environ.get('PYTERMOR_DEV', False)
