@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+#------------------------------------------------------------------------------
+# pytermor [ANSI formatted terminal output toolset]                           -
+# (c) 2023. A. Shavykin <0.delameter@gmail.com>                               -
+#------------------------------------------------------------------------------
+
 build_deb() {
   # https://www.devdungeon.com/content/debian-package-tutorial-dpkgdeb
   # that was really easy actually

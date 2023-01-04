@@ -1,7 +1,7 @@
-#-------------------------------------------------------------------------------
-# es7s [setup/configuration/commons]
-# (c) 2021-2022 A. Shavykin <0.delameter@gmail.com>
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# pytermor [ANSI formatted terminal output toolset]                           -
+# (c) 2021-2023. A. Shavykin <0.delameter@gmail.com>                          -
+#------------------------------------------------------------------------------
 
 PROJECT_NAME="${1:?Project name required}"
 DEPENDS_PATH="${2:?Output path required}"

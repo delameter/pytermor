@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
 #  pytermor [ANSI formatted terminal output toolset]
-#  (c) 2022. A. Shavykin <0.delameter@gmail.com>
+#  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 # BUILD AUTOMATION SCRIPT. Fell free to look around if you'd like, though.
 # Makes library source file from color preset configs.
