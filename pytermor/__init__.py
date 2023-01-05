@@ -58,6 +58,7 @@ from .text import String as String
 from .text import Text as Text
 from .text import TemplateEngine as TemplateEngine
 from .text import echo as echo
+from .text import echoi as echoi
 from .text import render as render
 from .text import distribute_padded as distribute_padded
 from .utilmisc import confirm as confirm

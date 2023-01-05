@@ -311,7 +311,12 @@ class Style:
         self._bg: IColor = self._resolve_color(val)
 
 
-NOOP_STYLE = Style()
+class _NoOpStyle(Style):
+    def __bool__(self) -> bool:
+        return False
+
+
+NOOP_STYLE = _NoOpStyle()
 """ Special style passing the text through without any modifications. """
 
 

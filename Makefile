@@ -57,14 +57,20 @@ cli: ## Launch python interpreter  <venv>
 ##
 ## Examples
 
+ex-approximate:  ## Run "approximate color" example
+	${VENV_PATH}/bin/python examples/approximate.py
+
 ex-list-renderers:  ## Run "list renderers" example
 	${VENV_PATH}/bin/python examples/list_renderers.py
 
+ex-render-benchmark:  ## Run "render benchmark" example
+	${VENV_PATH}/bin/python examples/render_benchmark.py
+
+ex-terminal-benchmark:  ## Run "terminal benchmark" example
+	${VENV_PATH}/bin/python examples/terminal_benchmark.py
+
 ex-terminal-color-mode:  ## Run "terminal color mode" example
 	${VENV_PATH}/bin/python examples/terminal_color_mode.py
-
-ex-approximate:  ## Run "approximate color" example
-	${VENV_PATH}/bin/python examples/approximate.py
 
 ##
 ## Automation

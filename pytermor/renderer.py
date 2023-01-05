@@ -460,6 +460,9 @@ class NoOpRenderer(IRenderer):
 
     """
 
+    def __bool__(self) -> bool:
+        return False
+
     @property
     def is_caching_allowed(self) -> bool:
         return False

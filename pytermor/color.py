@@ -617,6 +617,9 @@ class _NoopColor(IColor):
     def __init__(self):
         super().__init__(0)
 
+    def __bool__(self) -> bool:
+        return False
+
     def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
         return NOOP_SEQ
 

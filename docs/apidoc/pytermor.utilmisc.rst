@@ -23,6 +23,8 @@
       get_terminal_width
       guess_char_width
       measure_char_width
+      median
+      percentile
       total_size
       wait_key
    

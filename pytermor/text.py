@@ -310,9 +310,9 @@ class FrozenText(IRenderable):
         if isinstance(string, str):
             return [_Fragment(string, fmt, close_this, close_prev)]
         elif isinstance(string, IRenderable):
-            if fmt is not None and fmt != NOOP_STYLE and fmt != NOOP_COLOR:
-                return [_Fragment("", fmt, close_this, close_prev)]
-            return string.fragments
+            if fmt is None or fmt == NOOP_STYLE or fmt == NOOP_COLOR:
+                return string.fragments
+            return [_Fragment("", fmt, close_this, close_prev), *string.fragments]
         raise ArgTypeError(type(string), "string", fn=self._make_fragments)
 
     def _render_using(self, renderer: IRenderer) -> str:
@@ -383,7 +383,12 @@ class FrozenText(IRenderable):
         return self.render_fixed(*self._parse_format_spec(format_spec))
 
     def render_fixed(
-        self, width: int, max_len: int, align: str, fill: str, renderer: IRenderer = None
+        self,
+        width: int = None,
+        max_len: int = None,
+        align: str = None,
+        fill: str = None,
+        renderer: IRenderer = None,
     ) -> str:
         renderer = renderer or RendererManager.get_default()
         if max_len is None:
@@ -588,10 +593,13 @@ class SimpleTable(IRenderable):
                 "all the others should be instances of FixedString."
             )
 
-        row = [*self._make_row(*cells)]
-        if self._sum_len(*cells, fixed_only=True) > self._max_width:
+        row = [*self._attach_separators(*cells)]
+        if self._sum_len(*row, fixed_only=True) > self._max_width:
             raise ValueError(f"Row is too long (>{self._max_width})")
         self._rows.append(row)
+
+    def pass_row(self, *cells: RT) -> str:
+        pass
 
     def __len__(self) -> int:
         raise NotImplementedError
@@ -608,7 +616,7 @@ class SimpleTable(IRenderable):
             return result % ""
         return result % (", " + repr(self.fragments[0]))
 
-    def _make_row(self, *cells: RT) -> t.Iterable[RT]:
+    def _attach_separators(self, *cells: RT) -> t.Iterable[RT]:
         yield self._column_sep
         for cell in cells:
             if not isinstance(cell, IRenderable):
@@ -617,16 +625,19 @@ class SimpleTable(IRenderable):
             yield self._column_sep
 
     def _render_using(self, renderer: IRenderer) -> str:
-        def render_row(*cells: RT) -> str:
-            fixed_len = self._sum_len(*cells, fixed_only=True)
-            free_len = self._max_width - fixed_len
-            for cell in cells:
-                if not isinstance(cell, FixedString):
-                    yield Text(cell).render_fixed(free_len, free_len, "^", " ", renderer)
-                    continue
-                yield render(cell, renderer=renderer)
+        return "\n".join(self._render_row(renderer, row) for row in self._rows)
 
-        return "\n".join("".join(render_row(*row)) for row in self._rows)
+    def _render_row(self, renderer: IRenderer, row: t.Iterable[RT]) -> str:
+        return "".join(self._render_cells(renderer, *row))
+
+    def _render_cells(self, renderer: IRenderer, *cells: RT) -> t.Iterable[str]:
+        fixed_len = self._sum_len(*cells, fixed_only=True)
+        free_len = self._max_width - fixed_len
+        for cell in cells:
+            if not isinstance(cell, FixedString):
+                yield Text(cell).render_fixed(free_len, free_len, "^", " ", renderer)
+                continue
+            yield render(cell, renderer=renderer)
 
     def _sum_len(self, *cells: RT, fixed_only: bool) -> int:
         return sum(len(c) for c in cells if not fixed_only or isinstance(c, FixedString))

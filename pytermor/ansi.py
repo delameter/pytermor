@@ -278,11 +278,6 @@ class SequenceSGR(SequenceCSI):
             return False
         return self._params == other._params
 
-    def __repr__(self) -> str:
-        if len(self._params) == 0:
-            return "<SGR[NOP]>"
-        return super().__repr__()
-
     @staticmethod
     def _ensure_sequence(subject: t.Any):
         if not isinstance(subject, SequenceSGR):
@@ -317,8 +312,23 @@ class SequenceSGR(SequenceCSI):
 #         """ """
 #         return self._params
 
+class _NoOpSequenceSGR(SequenceSGR):
+    def __init__(self):
+        super().__init__()
 
-NOOP_SEQ = SequenceSGR()
+    def __bool__(self) -> bool:
+        return False
+
+    def __eq__(self, other: SequenceSGR) -> bool:
+        if not isinstance(other, SequenceSGR):
+            return False
+        return self._params == other._params
+
+    def __repr__(self) -> str:
+        return f"<{self._short_class_name()}[NOP]>"
+
+
+NOOP_SEQ = _NoOpSequenceSGR()
 """
 Special sequence in case you *have to* provide one or another SGR, but do 
 not want any control sequences to be actually included in the output. 
