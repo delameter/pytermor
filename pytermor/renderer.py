@@ -131,10 +131,6 @@ class IRenderer(metaclass=ABCMeta):
         settings should have equal hashes, so that cached strings could be reused.
         When the internal state of the renderer changes, this number should change as
         well, in order to invalidate the caches.
-
-        `NotImplementedError` indicates that caching for this renderer should be
-        disabled as irrelevant (e.g., for `NoOpRenderer`). More convenient way
-        is to check `is_caching_allowed` property.
         """
 
     @property
@@ -462,6 +458,9 @@ class NoOpRenderer(IRenderer):
 
     def __bool__(self) -> bool:
         return False
+
+    def __hash__(self) -> int:  # stateless
+        return _digest(self.__class__.__qualname__)
 
     @property
     def is_caching_allowed(self) -> bool:

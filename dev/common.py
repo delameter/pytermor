@@ -10,7 +10,7 @@ from os.path import join, abspath, dirname
 from typing import TextIO
 
 import pytermor as pt
-
+from pytermor import Fragment, SimpleTable, Text
 
 PROJECT_ROOT = abspath(join(dirname(__file__), ".."))
 CONFIG_PATH = join(PROJECT_ROOT, "config")
@@ -46,5 +46,6 @@ class TaskRunner(metaclass=ABCMeta):
         self.__print_file_result(fout, filepath, "Wrote", "->", 'green')
 
     def __print_file_result(self, f: TextIO, filepath: str, act: str, arr: str, sizecolor: str):
-        size = pt.format_si_binary(f.tell(), color=True)
-        pt.echo(f"{act:<5s} {size} {arr} :[fg=blue]{filepath}:[-fg]", parse_template=True)
+        size = pt.format_si(f.tell(), unit="b", color=False)
+        size = Text(size, sizecolor, width=8)
+        pt.echo(SimpleTable(width=100).pass_row(f"{act:<5s}", size, arr, Fragment(filepath, "blue")))

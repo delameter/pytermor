@@ -9,353 +9,265 @@ of styled strings before the rendering, text alignment and wrapping, etc.
 """
 from __future__ import annotations
 
-import collections
-import dataclasses
 import math
 import re
 import sys
 import typing as t
 from abc import abstractmethod, ABC
-from typing import Union, overload
+from collections import deque
+from typing import overload
 
-from .color import IColor, NOOP_COLOR
-from .common import LogicError, ArgTypeError, FT, RT, Align, logger, measure
+from .color import IColor
+from .common import LogicError, FT, Align, RT, ArgTypeError, logger, measure
 from .renderer import IRenderer, RendererManager
-from .style import Style, NOOP_STYLE, make_style
-from .utilmisc import get_preferable_wrap_width, get_terminal_width
-from .utilstr import ljust_sgr, rjust_sgr, center_sgr, wrap_sgr, pad
-
-
-@dataclasses.dataclass
-class _Fragment(t.Sized):
-    string: str = ""
-    fmt: FT = None
-    close_this: bool = True
-    close_prev: bool = False
-
-    def __post_init__(self):
-        if self.close_prev:
-            self.close_this = True
-        self._style = make_style(self.fmt)
-
-    def __eq__(self, o: t.Any) -> bool:
-        if not isinstance(o, type(self)):
-            return False
-        return (
-            self.string == o.string
-            and self.fmt == o.fmt
-            and self.close_this == o.close_this
-            and self.close_prev == o.close_prev
-        )
-
-    @property
-    def style(self) -> Style:
-        return self._style
-
-    def __len__(self) -> int:
-        return len(self.string)
-
-    def __repr__(self):
-        max_sl = 9
-        sample = self.string[:max_sl] + ("‥" * (len(self.string) > max_sl))
-        props_set = [f'({len(self.string)}, "{sample}")', repr(self._style)]
-        flags = []
-        if self.close_this:
-            flags.append("+CT")
-        if self.close_prev:
-            flags.append("+CP")
-        props_set.append(" ".join(flags))
-
-        return f"<{self.__class__.__qualname__}>[" + ", ".join(props_set) + "]"
+from .style import Style, make_style, NOOP_STYLE
+from .utilmisc import get_terminal_width, flatten1, get_preferable_wrap_width
+from .utilstr import wrap_sgr, pad
 
 
 class IRenderable(t.Sized, ABC):
-    def __init__(self):
-        """
-        Renderable abstract class. Can be inherited when the default style
-        overlaps resolution mechanism implemented in `Text` is not good enough.
-        """
-        self._is_frozen: bool = False
-        self._renders_cache: t.Dict[IRenderer, str] = dict()
+    """
+    I
+    """
 
-    def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
-        if isinstance(renderer, type):
-            renderer = renderer()
-        if renderer is None:
-            renderer = RendererManager.get_default()
-
-        use_cache = renderer.is_caching_allowed and self._is_frozen
-        if use_cache and (cached := self._renders_cache.get(renderer, None)):
-            return cached
-
-        result = self._render_using(renderer)
-        if use_cache:
-            self._renders_cache.update({renderer: result})
-        return result
+    @staticmethod
+    def as_fragment(string: IRenderable) -> Fragment:
+        if isinstance(string, str):
+            return Fragment(string)
+        if isinstance(string, Fragment):
+            return string
+        if isinstance(string, (FrozenText, Text)):
+            raise TypeError(
+                f"{type(string)} cannot be represented as "
+                f"a fragment without partial data loss"
+            )
+        raise ArgTypeError(type(string), "string", IRenderable.as_fragment)
 
     @abstractmethod
     def __len__(self) -> int:
-        raise NotImplementedError
+        """raise NotImplementedError"""
 
     @abstractmethod
     def __eq__(self, o: t.Any) -> bool:
-        raise NotImplementedError
+        """raise NotImplementedError"""
 
     @abstractmethod
-    def _render_using(self, renderer: IRenderer) -> str:
-        raise NotImplementedError
+    def __add__(self, other: RT) -> IRenderable:
+        """raise NotImplementedError"""
+
+    @abstractmethod
+    def __iadd__(self, other: RT) -> IRenderable:
+        """:raise"""
+
+    @abstractmethod
+    def __radd__(self, other: RT) -> IRenderable:
+        """raise NotImplementedError"""
+
+    @abstractmethod
+    def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
+        """pass"""
+
+    @abstractmethod
+    def set_width(self, width: int):
+        """raise NotImplementedError"""
 
     @property
     @abstractmethod
-    def raw(self) -> str:
-        raise NotImplementedError
+    def has_width(self) -> bool:
+        """return self._width is not None"""
 
     @property
     @abstractmethod
-    def fragments(self) -> t.Sequence[_Fragment]:
-        raise NotImplementedError
+    def allows_width_setup(self) -> bool:
+        """return False"""
+
+    def _resolve_renderer(
+        self, renderer: IRenderer | t.Type[IRenderer] = None
+    ) -> IRenderer:
+        if isinstance(renderer, type):
+            return renderer()
+        if renderer is None:
+            return RendererManager.get_default()
+        return renderer
 
 
-class String(IRenderable):
-    def __init__(self, string: str = "", fmt: FT = None):
-        """
-
-        :param string:
-        :param fmt:
-        """
-        super().__init__()
-        self._fragment = _Fragment(string, fmt)
-        self._is_frozen = True
-
-    def __len__(self) -> int:
-        return len(self._fragment)
-
-    def __eq__(self, o: String) -> bool:
-        if not isinstance(o, type(self)):
-            return False
-        return self._fragment == o._fragment
-
-    def __repr__(self) -> str:
-        result = f"<{self.__class__.__qualname__}>[F=1, %s]"
-        return result % repr(self._fragment)
-
-    @property
-    def raw(self) -> str:
-        return self._fragment.string
-
-    @property
-    def style(self) -> Style:
-        return self._fragment.style
-
-    @property
-    def fragments(self) -> t.List[_Fragment]:
-        return [self._fragment]
-
-    def _render_using(self, renderer: IRenderer) -> str:
-        return renderer.render(self.raw, self._fragment.style)
-
-
-class FixedString(String):
+class Fragment(IRenderable):
     """
-    A
+    <Immutable>
+
+    Can be formatted with f-strings. The text ``:s`` mode is required.
+    Supported features:
+
+      - width [of the result];
+      - max length [of the content];
+      - alignment;
+      - filling.
+
+    >>> f"{Fragment('1234567890'):*^8.4s}"
+    '**1234**'
+
     """
 
     def __init__(
         self,
         string: str = "",
         fmt: FT = None,
-        width: int = 0,
-        align: Align | str = Align.LEFT,
         *,
-        pad_left: int = 0,
-        pad_right: int = 0,
-        overflow_char: str = None,
+        close_this: bool = True,
+        close_prev: bool = False,
     ):
-        """
-        .. note ::
-            All arguments except ``string``, ``fmt``, ``width`` and ``align``
-            are *kwonly*-type args.
-
-        :param string:
-        :param fmt:
-        :param width:
-        :param align:
-        :param pad_left:
-        :param pad_right:
-        :param overflow_char: # @TODO
-        """
-        self._is_frozen = True
-        self._string_origin = string
-
-        self._width = max(0, width) or len(string)
-        self._align = self._resolve_align(align)
-        self._pad_left = max(0, pad_left)
-        self._pad_right = max(0, pad_right)
-
-        if not isinstance(self._align, Align):
-            raise ValueError(f"Invalid align value: {self._align}")
-        if self.max_width < 0:
-            raise ValueError("Resulting width should be >= 0")
-
-        string_processed = self._apply_attrs(string)
-        super().__init__(string_processed, fmt)
-
-    def __len__(self) -> int:
-        return self._width
+        self._string = string
+        self._style = make_style(fmt)
+        self._close_this = close_this or close_prev
+        self._close_prev = close_prev
 
     def __eq__(self, o: t.Any) -> bool:
         if not isinstance(o, type(self)):
             return False
         return (
-            self._fragment == o._fragment
-            and self._align == o._align
-            and self._width == o._width
-            and self._pad_left == o._pad_left
-            and self._pad_right == o._pad_right
+            self._string == o._string
+            and self._style == o._style
+            and self._close_this == o._close_this
+            and self._close_prev == o._close_prev
         )
 
-    @property
-    def max_width(self) -> int:
-        return self._width - (self._pad_left + self._pad_right)
+    def __len__(self) -> int:
+        return len(self._string)
+
+    def __repr__(self):
+        max_sl = 9
+        sample = self._string[:max_sl] + ("‥" * (len(self._string) > max_sl))
+        props_set = [f'({len(self._string)}, "{sample}")', repr(self._style)]
+        flags = []
+        if self._close_this:
+            flags.append("+CT")
+        if self._close_prev:
+            flags.append("+CP")
+        props_set.append(" ".join(flags))
+
+        return f"<{self.__class__.__qualname__}>[" + ", ".join(props_set) + "]"
+
+    def __add__(self, other: str | Fragment) -> Fragment | Text:
+        if isinstance(other, str):
+            return Fragment(self._string + other, self._style)
+        return Text(self, other)
+
+    def __iadd__(self, other: str | Fragment) -> Fragment | Text:
+        return self.__add__(other)
+
+    def __radd__(self, other: str | Fragment) -> Fragment | Text:
+        if isinstance(other, str):
+            return Fragment(other + self._string, self._style)
+        return Text(other, self)
+
+    def __format__(self, format_spec: str) -> str:
+        formatted = self._string.__format__(format_spec)
+        return self._resolve_renderer().render(formatted, self._style)
 
     @property
-    def origin(self) -> str:
-        return self._string_origin
+    def string(self) -> str:
+        return self._string
 
     @property
-    def raw(self) -> str:
-        return self._fragment.string
+    def style(self) -> Style:
+        return self._style
 
-    def _resolve_align(self, align: str | Align) -> Align:
-        if isinstance(align, Align):
-            return align
-        try:
-            return Align[align.upper()]
-        except KeyError:
-            raise ValueError(f"Invalid align value: '{align}'")
+    @property
+    def close_this(self) -> bool:
+        return self._close_this
 
-    def _apply_attrs(self, string: str) -> str:
-        if not isinstance(string, str):
-            raise TypeError("FixedString accepts only raw strings as 'string' argument")
-        aligned = f"{string:{self._align.value}{self._width}s}"
-        cropped = self._crop(aligned)
-        return pad(self._pad_left) + cropped + pad(self._pad_right)
+    @property
+    def close_prev(self) -> bool:
+        return self._close_prev
 
-    def _crop(self, aligned: str) -> str:
-        max_width = self.max_width
-        if (overflow := len(aligned) - max_width) <= 0:
-            return aligned
+    @property
+    def has_width(self) -> bool:
+        return True
 
-        if self._align is Align.LEFT:
-            return aligned[:max_width]
+    @property
+    def allows_width_setup(self) -> bool:
+        return False
 
-        if self._align is Align.RIGHT:
-            return aligned[-max_width:]
+    def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
+        return self._resolve_renderer(renderer).render(self._string, self._style)
 
-        if overflow % 2 == 1:
-            right_overflow = math.ceil(overflow / 2)
-        else:
-            right_overflow = math.floor(overflow / 2)
-        left_overflow = overflow - right_overflow
-        return aligned[left_overflow:-right_overflow]
+    def set_width(self, width: int):
+        self._string = f"{self._string:{width}.{width}s}"
 
 
 class FrozenText(IRenderable):
-    _WIDTH_MAX_LEN_REGEXP = re.compile(r"[\d.]+$")
-    _ALIGN_LEFT = "<"  # @TODO effectively is a duplicate of common.Align enum
-    _ALIGN_RIGHT = ">"
-    _ALIGN_CENTER = "^"
-    _ALIGN_FUNC_MAP = {
-        None: ljust_sgr,
-        _ALIGN_LEFT: ljust_sgr,
-        _ALIGN_RIGHT: rjust_sgr,
-        _ALIGN_CENTER: center_sgr,
-    }
+    """
+    T
+    """
+
+    @overload
+    def __init__(
+        self,
+        string: str,
+        fmt: FT = NOOP_STYLE,
+        *,
+        width: int = None,
+        align: str | Align = None,
+        fill: str = " ",
+        overflow: str = "",
+        pad: int = 0,
+    ):
+        ...
+
+    @overload
+    def __init__(
+        self,
+        *fragments: Fragment,
+        width: int = None,
+        align: str | Align = None,
+        fill: str = " ",
+        overflow: str = "",
+        pad: int = 0,
+    ):
+        ...
 
     def __init__(
         self,
-        string: RT = "",
-        fmt: FT = None,
-        *,
-        close_this: bool = True,
-        close_prev: bool = False,
+        *args,
+        width: int = None,
+        align: str | Align = None,
+        fill: str = " ",
+        overflow: str = "",
+        pad: int = 0,
     ):
-        """
-        .. note ::
-            All arguments except ``string`` and ``fmt`` are *kwonly*-type args.
+        self._fragments = deque()
+        if len(args):
+            if isinstance(args[0], str):
+                self._fragments.append(Fragment(*args))
+            else:
+                for arg in args:
+                    if not isinstance(arg, Fragment):
+                        raise TypeError(f"Unexpected argument type: {type(arg)}")
+                self._fragments.extend(args)
 
-        :param string:
-        :param fmt:
-        :param close_this:
-        :param close_prev:
-        """
-        super().__init__()
-        self._is_frozen = True
-        self._fragments: t.Deque[_Fragment] = collections.deque(
-            self._make_fragments(string, fmt, close_this, close_prev)
-        )
+        self._width = width
+        self._align = Align.resolve(align)
+
+        self._fill = fill
+        if len(self._fill) != 1:
+            raise ValueError("Fill string should be 1-char long")
+
+        self._overflow = overflow
+        self._pad = pad
+
+    def __len__(self) -> int:
+        return self._width or sum(len(frag) for frag in self._fragments)
 
     def __eq__(self, o: t.Any) -> bool:
         if not isinstance(o, type(self)):
             return False
-        return self._fragments == o._fragments
-
-    def _make_fragments(
-        self,
-        string: RT,
-        fmt: FT = None,
-        close_this: bool = True,
-        close_prev: bool = False,
-    ) -> t.Sequence[_Fragment]:
-        if isinstance(string, str):
-            return [_Fragment(string, fmt, close_this, close_prev)]
-        elif isinstance(string, IRenderable):
-            if fmt is None or fmt == NOOP_STYLE or fmt == NOOP_COLOR:
-                return string.fragments
-            return [_Fragment("", fmt, close_this, close_prev), *string.fragments]
-        raise ArgTypeError(type(string), "string", fn=self._make_fragments)
-
-    def _render_using(self, renderer: IRenderer) -> str:
-        result = ""
-        attrs_stack: t.Dict[str, t.List[bool | IColor | None]] = {
-            attr: [None] for attr in Style.renderable_attributes
-        }
-        for frag in self._fragments:
-            for attr in Style.renderable_attributes:
-                frag_attr = getattr(frag.style, attr)
-                if frag_attr is not None and frag_attr != NOOP_COLOR:
-                    attrs_stack[attr].append(frag_attr)
-
-            result += renderer.render(
-                frag.string, Style(**{k: v[-1] for k, v in attrs_stack.items()})
-            )
-            if not frag.close_prev and not frag.close_this:
-                continue
-
-            for attr in Style.renderable_attributes:
-                frag_attr = getattr(frag.style, attr)
-                if frag_attr is not None and frag_attr != NOOP_COLOR:
-                    attrs_stack[attr].pop()  # close this
-                    if frag.close_prev:
-                        attrs_stack[attr].pop()
-                    if len(attrs_stack[attr]) == 0:
-                        raise LogicError(
-                            "There are more closing styles than opening ones, "
-                            f'cannot proceed (attribute "{attr}" in {frag})'
-                        )
-
-        return result
-
-    @property
-    def raw(self) -> str:
-        return "".join(frag.string for frag in self._fragments)
-
-    @property
-    def fragments(self) -> t.Deque[_Fragment]:
-        return self._fragments
-
-    def __len__(self) -> int:
-        return sum(len(frag) for frag in self._fragments)
+        return (
+            self._fragments == o._fragments
+            and self._width == o._width
+            and self._align == o._align
+            and self._fill == o._fill
+            and self._overflow == o._overflow
+        )
 
     def __str__(self) -> str:
         raise LogicError("Casting to str is prohibited, use render() instead.")
@@ -365,155 +277,120 @@ class FrozenText(IRenderable):
         result = f"<{self.__class__.__qualname__}>[F={frags}%s]"
         if frags == 0:
             return result % ""
-        return result % (", " + repr(self._fragments[0]))
+        return result % (", " + ", ".join([repr(f) for f in self._fragments]))
 
-    def __format__(self, format_spec: str) -> str:
-        """
-        Adds a support of formatting the instances using f-strings.
-        The text
-        ``:s`` mode is required.
-        Supported features:
-          - length;
-          - max length;
-          - alignment;
-          - filling.
+    def __add__(self, other: str | Fragment) -> FrozenText:
+        return self.append(self.as_fragment(other))
 
-        Example: ``{:A^12.5s}``
-        """
-        return self.render_fixed(*self._parse_format_spec(format_spec))
+    def __iadd__(self, other: str | Fragment) -> FrozenText:
+        raise LogicError("FrozenText is immutable")
 
-    def render_fixed(
-        self,
-        width: int = None,
-        max_len: int = None,
-        align: str = None,
-        fill: str = None,
-        renderer: IRenderer = None,
-    ) -> str:
-        renderer = renderer or RendererManager.get_default()
-        if max_len is None:
-            result = self._render_using(renderer)
-            cur_len = len(self)
+    def __radd__(self, other: str | Fragment) -> FrozenText:
+        return self.prepend(self.as_fragment(other))
+
+    @property
+    def allows_width_setup(self) -> bool:
+        return True
+
+    @property
+    def has_width(self) -> bool:
+        return self._width is not None
+
+    def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
+        max_len = len(self) + self._pad
+        if self._width is not None:
+            max_len = max(0, self._width - self._pad)
+
+        result = ""
+        cur_len = 0
+        cur_frag_idx = 0
+        overflow_buf = self._overflow[:max_len]
+        overflow_start = max_len - len(overflow_buf)
+        attrs_stack: t.Dict[str, t.List[bool | IColor | None]] = {
+            attr: [None] for attr in Style.renderable_attributes
+        }
+        renderer = self._resolve_renderer(renderer)
+
+        while cur_len < max_len and cur_frag_idx < len(self._fragments):
+            # cropping and overflow handling
+            max_frag_len = max_len - cur_len
+            frag = self._fragments[cur_frag_idx]
+            frag_part = frag.string[:max_frag_len]
+            next_len = cur_len + len(frag_part)
+            if next_len > overflow_start:
+                overflow_start_rel = overflow_start - next_len
+                overflow_frag_len = max_frag_len - overflow_start_rel
+
+                overflow_part = overflow_buf[:overflow_frag_len]
+                frag_part = frag_part[:overflow_start_rel] + overflow_part
+                overflow_buf = overflow_buf[overflow_frag_len:]
+
+            # attr open
+            for attr in Style.renderable_attributes:
+                if frag_attr := getattr(frag.style, attr):
+                    attrs_stack[attr].append(frag_attr)
+
+            cur_style = Style(**{k: v[-1] for k, v in attrs_stack.items()})
+            result += renderer.render(frag_part, cur_style)
+            cur_len += len(frag_part)
+            cur_frag_idx += 1
+            if not frag.close_prev and not frag.close_this:
+                continue
+
+            # attr closing
+            for attr in Style.renderable_attributes:
+                if getattr(frag.style, attr):
+                    attrs_stack[attr].pop()  # close this
+                    if frag.close_prev:
+                        attrs_stack[attr].pop()
+                    if len(attrs_stack[attr]) == 0:
+                        raise LogicError(
+                            "There are more closing styles than opening ones, "
+                            f'cannot proceed (attribute "{attr}" in {frag})'
+                        )
+
+        if (spare_len := (self._width or max_len) - cur_len) < 0:
+            return result
+
+        # aligning and filling
+        spare_left = 0
+        spare_right = 0
+        if self._align == Align.LEFT:
+            spare_right = spare_len
+        elif self._align == Align.RIGHT:
+            spare_left = spare_len
         else:
-            result = ""
-            cur_len = 0
-            cur_frag_idx = 0
-            while cur_len < max_len and cur_frag_idx < len(self._fragments):
-                allowed_len = max_len - cur_len
-                cur_frag = self._fragments[cur_frag_idx]
-                cur_frag_string = cur_frag.string[:allowed_len]
-                result += renderer.render(cur_frag_string, cur_frag.style)
-
-                cur_len += len(cur_frag_string)
-                cur_frag_idx += 1
-
-        if width is not None and width > cur_len:
-            align_func_args = (result, width, (fill or " "), cur_len)
-            align_func = self._ALIGN_FUNC_MAP.get(align)
-            return align_func(*align_func_args)
-        return result
-
-    @classmethod
-    def _parse_format_spec(
-        cls, format_spec_orig: str
-    ) -> t.Tuple[int | None, int | None, str | None, str | None]:
-        format_spec = format_spec_orig
-        if len(format_spec) == 0 or format_spec[-1] == "s":
-            format_spec = format_spec[:-1]
-        elif format_spec[-1] in "1234567890":
-            pass
-        else:
-            "".__format__(format_spec_orig)
-            raise LogicError(f"Unrecognized format spec: '{format_spec_orig}'")
-
-        width = None
-        max_len = None
-        if width_and_max_len_match := cls._WIDTH_MAX_LEN_REGEXP.search(format_spec):
-            width_max_len = width_and_max_len_match.group(0)
-            if "." in width_max_len:
-                if width_max_len.startswith("."):
-                    max_len = int(width_max_len.replace(".", ""))
-                else:
-                    width, max_len = (
-                        (int(val) if val else None) for val in width_max_len.split(".")
-                    )
+            if spare_len % 2 == 1:
+                spare_right = math.ceil(spare_len / 2)
             else:
-                width = int(width_max_len)
-            format_spec = cls._WIDTH_MAX_LEN_REGEXP.sub("", format_spec)
+                spare_right = math.floor(spare_len / 2)
+            spare_left = spare_len - spare_right
+        return (spare_left * self._fill) + result + (spare_right * self._fill)
 
-        align = None
-        if format_spec.endswith((cls._ALIGN_LEFT, cls._ALIGN_RIGHT, cls._ALIGN_CENTER)):
-            align = format_spec[-1]
-            format_spec = format_spec[:-1]
+    def append(self, *fragments: Fragment) -> FrozenText:
+        return FrozenText(*self._fragments, *fragments)
 
-        fill = None
-        if len(format_spec) > 0:
-            fill = format_spec[-1]
-            format_spec = format_spec[:-1]
+    def prepend(self, *fragments: Fragment) -> FrozenText:
+        return FrozenText(*fragments, *self._fragments)
 
-        if len(format_spec) > 0:
-            "".__format__(format_spec_orig)
-            raise LogicError(f"Unrecognized format spec: '{format_spec_orig}'")
-
-        return width, max_len, align, fill
+    def set_width(self, width: int):
+        raise LogicError("FrozenText is immutable")
 
 
 class Text(FrozenText):
-    def __init__(
-        self,
-        string: RT = "",
-        fmt: FT = None,
-        *,
-        close_this: bool = True,
-        close_prev: bool = False,
-    ):
-        """
-        .. note ::
-            All arguments except ``string`` and ``fmt`` are *kwonly*-type args.
+    def __iadd__(self, other: str | Fragment) -> FrozenText:
+        return self.append(self.as_fragment(other))
 
-        :param string:
-        :param fmt:
-        :param close_this:
-        :param close_prev:
-        """
-        super().__init__(string, fmt, close_this=close_this, close_prev=close_prev)
-        self._is_frozen = False
-
-    def __eq__(self, o: t.Any) -> bool:
-        if not isinstance(o, type(self)):
-            return False
-        return self._fragments == o._fragments
-
-    def append(
-        self, string: RT = "", fmt: FT = None, *, close_this=True, close_prev=False
-    ) -> Text:
-        self._fragments.extend(self._make_fragments(string, fmt, close_this, close_prev))
+    def append(self, *fragments: Fragment) -> Text:
+        self._fragments.extend(fragments)
         return self
 
-    def prepend(
-        self,
-        string: RT = "",
-        fmt: FT = None,
-        *,
-        close_this: bool = True,
-        close_prev: bool = False,
-    ) -> Text:
-        self._fragments.extendleft(
-            self._make_fragments(string, fmt, close_this, close_prev)
-        )
+    def prepend(self, *fragments: Fragment) -> Text:
+        self._fragments.extendleft(fragments)
         return self
 
-    def __add__(self, other: RT) -> Text:
-        self.append(other)
-        return self
-
-    def __iadd__(self, other: RT) -> Text:
-        self.append(other)
-        return self
-
-    def __radd__(self, other: RT) -> Text:
-        self.prepend(other)
-        return self
+    def set_width(self, width: int):
+        self._width = width
 
 
 class SimpleTable(IRenderable):
@@ -526,20 +403,20 @@ class SimpleTable(IRenderable):
     >>> echo(
     ...     SimpleTable(
     ...     [
-    ...         FixedString("1"),
-    ...         FixedString("word", width=6, align='center'),
-    ...         "smol string"
+    ...         Text("1", width=1),
+    ...         Text("word", width=6, align='center'),
+    ...         Text("smol string"),
     ...     ],
     ...     [
-    ...         FixedString("2"),
-    ...         FixedString("padded word", width=6, align='left', pad_left=1),
-    ...         "biiiiiiiiiiiiiiiiiiiiiiiiiiiiiiig string"
+    ...         Text("2", width=1),
+    ...         Text("padded word", width=6, align='center', pad=2),
+    ...         Text("biiiiiiiiiiiiiiiiiiiiiiiiiiiiiiig string"),
     ...     ],
     ...     width=30,
     ...     sep="|"
     ... ), file=sys.stdout)
-    |1| word |    smol string    |
-    |2| padde|biiiiiiiiiiiiiiiiii|
+    |1| word |smol string        |
+    |2| padd |biiiiiiiiiiiiiiiiii|
 
     """
 
@@ -562,11 +439,45 @@ class SimpleTable(IRenderable):
         :param border_st:
         """
         super().__init__()
-        self._max_width: int = width or get_terminal_width()
-        self._column_sep: FixedString = FixedString(sep, border_st)
+        self._width: int = width or get_terminal_width()
+        self._column_sep: Fragment = Fragment(sep, border_st)
         self._border_st = border_st
-        self._rows: list[list[RT]] = []
+        self._rows: list[list[IRenderable]] = []
         self.add_rows(rows)
+
+    def __len__(self) -> int:
+        return sum(flatten1((len(frag) for frag in row) for row in self._rows))
+
+    def __eq__(self, o: t.Any) -> bool:
+        if not isinstance(o, type(self)):
+            return False
+        return self._rows == o._rows
+
+    def __repr__(self) -> str:
+        frags = len(flatten1(self._rows))
+        result = f"<{self.__class__.__qualname__}>[R={len(self._rows)}, F={frags}]"
+        return result
+
+    def __add__(self, other: RT) -> IRenderable:
+        raise NotImplementedError
+
+    def __iadd__(self, other: RT) -> IRenderable:
+        raise NotImplementedError
+
+    def __radd__(self, other: RT) -> IRenderable:
+        raise NotImplementedError
+
+    @property
+    def allows_width_setup(self) -> bool:
+        return True
+
+    @property
+    def has_width(self) -> bool:
+        return True
+
+    @property
+    def row_count(self) -> int:
+        return len(self._rows)
 
     def add_header_row(self, *cells: RT):
         self.add_separator_row()
@@ -579,90 +490,59 @@ class SimpleTable(IRenderable):
         self.add_separator_row()
 
     def add_separator_row(self):
-        self._rows.append([String("-" * self._max_width, self._border_st)])
+        self._rows.append([Fragment("-" * self._width, self._border_st)])
 
     def add_rows(self, rows: t.Iterable[t.Iterable[RT]]):
         for row in rows:
             self.add_row(*row)
 
     def add_row(self, *cells: RT):
-        fixed_cell_count = sum(1 if isinstance(c, FixedString) else 0 for c in cells)
+        fixed_cell_count = sum(
+            int(c.has_width) if isinstance(c, IRenderable) else 1 for c in cells
+        )
         if fixed_cell_count < len(cells) - 1:
             raise TypeError(
                 "Row should have no more than one dynamic width cell, "
-                "all the others should be instances of FixedString."
+                "all the others should be Text instances with fixed width."
             )
 
-        row = [*self._attach_separators(*cells)]
-        if self._sum_len(*row, fixed_only=True) > self._max_width:
-            raise ValueError(f"Row is too long (>{self._max_width})")
+        row = [*self._make_row(*cells)]
+        if self._sum_len(*row, fixed_only=True) > self._width:
+            raise ValueError(f"Row is too long (>{self._width})")
         self._rows.append(row)
 
-    def pass_row(self, *cells: RT) -> str:
-        pass
+    def pass_row(self, *cells: RT, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
+        renderer = self._resolve_renderer(renderer)
+        return self._render_row(renderer, self._make_row(*cells))
 
-    def __len__(self) -> int:
-        raise NotImplementedError
+    def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
+        renderer = self._resolve_renderer(renderer)
+        return "\n".join(self._render_row(renderer, row) for row in self._rows)
 
-    def __eq__(self, o: t.Any) -> bool:
-        if not isinstance(o, type(self)):
-            return False
-        return self._rows == o._rows
+    def set_width(self, width: int):
+        self._width = width
 
-    def __repr__(self) -> str:
-        frags = len(self.fragments)
-        result = f"<{self.__class__.__qualname__}>[R={len(self._rows)}, F={frags}%s]"
-        if frags == 0:
-            return result % ""
-        return result % (", " + repr(self.fragments[0]))
-
-    def _attach_separators(self, *cells: RT) -> t.Iterable[RT]:
+    def _make_row(self, *cells: RT) -> t.Iterable[IRenderable]:
         yield self._column_sep
         for cell in cells:
             if not isinstance(cell, IRenderable):
-                cell = String(cell)
+                cell = Fragment(cell)
             yield cell
             yield self._column_sep
 
-    def _render_using(self, renderer: IRenderer) -> str:
-        return "\n".join(self._render_row(renderer, row) for row in self._rows)
-
-    def _render_row(self, renderer: IRenderer, row: t.Iterable[RT]) -> str:
+    def _render_row(self, renderer: IRenderer, row: t.Iterable[IRenderable]) -> str:
         return "".join(self._render_cells(renderer, *row))
 
-    def _render_cells(self, renderer: IRenderer, *cells: RT) -> t.Iterable[str]:
-        fixed_len = self._sum_len(*cells, fixed_only=True)
-        free_len = self._max_width - fixed_len
-        for cell in cells:
-            if not isinstance(cell, FixedString):
-                yield Text(cell).render_fixed(free_len, free_len, "^", " ", renderer)
-                continue
-            yield render(cell, renderer=renderer)
+    def _render_cells(self, renderer: IRenderer, *row: IRenderable) -> t.Iterable[str]:
+        fixed_len = self._sum_len(*row, fixed_only=True)
+        free_len = self._width - fixed_len
+        for cell in row:
+            if not cell.has_width and cell.allows_width_setup:
+                cell.set_width(free_len)
+            yield cell.render(renderer=renderer)
 
-    def _sum_len(self, *cells: RT, fixed_only: bool) -> int:
-        return sum(len(c) for c in cells if not fixed_only or isinstance(c, FixedString))
-
-    @property
-    def raw(self) -> str:
-        return "\n".join(
-            self._column_sep.raw.join(cell.raw for cell in row) for row in self._rows
-        )
-
-    @property
-    def row_count(self) -> int:
-        return len(self._rows)
-
-    @property
-    def fragments(self) -> t.List[_Fragment]:
-        def _iter_fragments():
-            for row in self._rows:
-                for cell in row:
-                    yield from cell.fragments
-
-        return [*_iter_fragments()]
-
-
-# -----------------------------------------------------------------------------
+    def _sum_len(self, *row: IRenderable, fixed_only: bool) -> int:
+        return sum(len(c) for c in row if not fixed_only or c.has_width)
 
 
 class _TemplateTag:
@@ -722,11 +602,11 @@ class TemplateEngine:
                 if split_style:
                     for tpl_chunk, sep in self._SPLIT_REGEXP.findall(tpl_part):
                         if len(tpl_chunk) > 0:
-                            result.append(tpl_chunk, style_buffer, close_this=True)
+                            result += Fragment(tpl_chunk, style_buffer, close_this=True)
                         result.append(sep)
                     # add open style for engine to properly handle the :[-closing] tag:
                     tpl_part = ""
-                result.append(tpl_part, style_buffer, close_this=False)
+                result += Fragment(tpl_part, style_buffer, close_this=False)
 
             tpl_cursor = span[1]
             style_buffer = NOOP_STYLE
@@ -738,7 +618,7 @@ class TemplateEngine:
                 self._custom_styles[tag.set] = style
             elif tag.add:
                 if tag.close:
-                    result.append("", style, close_prev=True)
+                    result += Fragment("", style, close_prev=True)
                 else:
                     style_buffer = style
                     split_style = tag.split
@@ -747,7 +627,7 @@ class TemplateEngine:
             else:
                 raise ValueError(f"Unknown tag operand: {_TemplateTag}")
 
-        result.append(tpl[tpl_cursor:])
+        result += tpl[tpl_cursor:]
         return result
 
     def _tag_to_style(self, tag: _TemplateTag) -> Style | None:
@@ -777,7 +657,6 @@ class TemplateEngine:
 
 _template_engine = TemplateEngine()
 
-
 @measure(msg="Rendering")
 def render(
     string: RT | t.Iterable[RT] = "",
@@ -790,45 +669,35 @@ def render(
     """
     .
 
-    :param string:
-    :param fmt:
-    :param renderer:
-    :param parse_template:
-    :param no_log:
+    :param string: 2
+    :param fmt: 2
+    :param renderer: 2
+    :param parse_template: 2
+    :param no_log: 2
     :return:
     """
-    if string == "" and fmt == NOOP_STYLE:
+    if string == "" and not fmt:
         return ""
-    sclass = string.__class__.__name__
 
     if parse_template:
         if not isinstance(string, str):
             raise ValueError("Template parsing is supported for raw strings only.")
         try:
             string = _template_engine.parse(string)
-        except Union[ValueError, LogicError] as e:
+        except t.Union[ValueError, LogicError] as e:
             string += f" [pytermor] Template parsing failed with {e}"
         return render(string, fmt, renderer, parse_template=False)
 
     if isinstance(string, t.Sequence) and not isinstance(string, str):
-        # debug(f"Rendering as iterable ({len(string)}:d)")
         return [render(s, fmt, renderer, parse_template) for s in string]
 
-    if isinstance(string, IRenderable):
-        if fmt == NOOP_STYLE:
-            # debug(f"Invoking instance's render method ({sclass}, {fmt!r})")
-            return string.render(renderer)
-
-        # debug(f"Composing new Text due to nonempty fmt ({fmt!r})")
-        return Text(fmt=fmt).append(string).render(renderer)
-
     if isinstance(string, str):
-        if fmt == NOOP_STYLE:
-            # debug(f"Omitting the rendering ({sclass}, {fmt!r})")
+        if not fmt:
             return string
+        return Fragment(string, fmt).render(renderer)
 
-        # debug(f"Composing new String due to nonempty fmt ({sclass}, {fmt!r})")
-        return String(string, fmt).render(renderer)
+    if isinstance(string, IRenderable):
+        return string.render(renderer)
 
     raise ArgTypeError(type(string), "string", fn=render)
 
@@ -909,12 +778,7 @@ def distribute_padded(max_len: int, *values, pad_left: int = 0, pad_right: int =
     :param pad_right:
     :return:
     """
-    val_list = []
-    for value in values:
-        if isinstance(value, IRenderable) and not isinstance(value, Text):
-            val_list.append(Text(value))
-            continue
-        val_list.append(value)
+    val_list = list(values)
     if pad_left:
         val_list.insert(0, "")
     if pad_right:

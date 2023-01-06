@@ -8,13 +8,11 @@ body {
 }
 
 /** Scrollbar **/
-
 /* Works on Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-foreground-secondary) var(--color-background-secondary);
 }
-
 /* Works on Chrome, Edge, and Safari */
 *::-webkit-scrollbar {
   width: 12px;
@@ -26,7 +24,6 @@ body {
   background-color: var(--color-background-item);
   border: 1px solid var(--color-background-border);
 }
-
 *::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-background-border);
 }
@@ -155,6 +152,11 @@ a.reference.internal:hover code,
 
 .toctree-wrapper code, .toc-tree code {
     font-weight: 300 !important;
+}
+
+.toc-drawer .toc-tree {
+    white-space: nowrap;
+    overflow-x: hidden;
 }
 
 

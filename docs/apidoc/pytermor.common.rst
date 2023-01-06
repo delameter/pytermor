@@ -32,6 +32,7 @@
    .. autosummary::
    
       Align
+      ExtendedEnum
    
    
 

@@ -15,7 +15,7 @@ from math import floor, log10, trunc, log, isclose
 from .common import RT, logger
 from .cval import CVAL as cv
 from .style import NOOP_STYLE, Style, Styles
-from .text import Text
+from .text import Text, Fragment
 from .utilstr import pad
 
 _OVERFLOW_CHAR = "!"
@@ -277,7 +277,10 @@ class NumHighlighter:
         frac_st = Style(int_st, dim=True)
         unit_st = Style(int_st, dim=True, bold=False)
         return (
-            Text(intp, int_st) + Text(frac, frac_st) + sep + Text(prefix + unit, unit_st)
+            Fragment(intp, int_st)
+            + Fragment(frac, frac_st)
+            + sep
+            + Fragment(prefix + unit, unit_st)
         )
 
 
@@ -912,9 +915,7 @@ class DynamicBaseFormatter:
         if not self._get_color_effective(color_ov):
             return "".join((extra, val, sep, unit))
 
-        result = NumHighlighter.colorize(val, "", sep, "", unit)
-        result.prepend(extra)
-        return result
+        return extra + NumHighlighter.colorize(val, "", sep, "", unit)
 
     def _get_color_effective(self, color_ov: bool) -> bool:
         if color_ov is not None:

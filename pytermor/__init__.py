@@ -51,10 +51,9 @@ from .renderer import SgrRenderer as SgrRenderer
 from .renderer import TmuxRenderer as TmuxRenderer
 from .renderer import OutputMode as OutputMode
 from .text import IRenderable as IRenderable
-from .text import FixedString as FixedString
+from .text import Fragment as Fragment
 from .text import FrozenText as FrozenText
 from .text import SimpleTable as SimpleTable
-from .text import String as String
 from .text import Text as Text
 from .text import TemplateEngine as TemplateEngine
 from .text import echo as echo

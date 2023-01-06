@@ -10,7 +10,8 @@ import time
 import typing as t
 
 import pytermor as pt
-from pytermor import NOOP_STYLE
+from pytermor import NOOP_STYLE, Fragment
+from pytermor.renderer import NoOpRenderer
 from pytermor.utilmisc import percentile
 
 
@@ -34,14 +35,14 @@ class RenderBemchmarker:
         src3 = pt.Text()
         for i in (random.randint(1, 255) for _ in range(2)):
             st = pt.Style(self.st, fg=f"color{i}")
-            src2.append(f"{i:03d}" * 50, st)
+            src2 += Fragment(f"{i:03d}" * 50, st)
         for i in (random.randint(1, 255) for _ in range(10)):
             st = pt.Style(self.st, fg=f"color{i}")
-            src3.append(f"{i:03d}" * 10, st)
+            src3 += Fragment(f"{i:03d}" * 10, st)
         self.sources = [
-            (src1, [pt.Text, pt.FrozenText, pt.FixedString, pt.String, str]),
-            (src2, [pt.Text, pt.FrozenText, str]),
-            (src3, [pt.Text, pt.FrozenText, str]),
+            (src1, [pt.Text, pt.FrozenText, pt.Fragment, str]),
+            (src2, [pt.Text, str]),
+            (src3, [pt.Text, str]),
         ]
 
         self.fmter = pt.StaticBaseFormatter(
@@ -112,18 +113,16 @@ class RenderBemchmarker:
 
         return _measure
 
-    def make_sample(self, src: str | pt.Text, dst: t.Type, preview: bool):
+    def make_sample(self, src: str | pt.Text, dst: t.Type):
+        if type(src) == dst:
+            return src
         if isinstance(src, str):
-            if preview:
-                src = src[: self.PREVIEW]
             if dst is str:
                 return src
             sample_ = dst(src, self.st)
         else:
             if dst is str:
-                return src.raw
-            if preview:
-                src = src.render_fixed(max_len=self.PREVIEW)
+                return pt.render(src, renderer=NoOpRenderer())
             sample_ = dst(src)
 
         sample_.render = self._render_wrapper(sample_.render)
@@ -132,26 +131,18 @@ class RenderBemchmarker:
     def run(self):
         for idx, (sample_src, classes) in enumerate(reversed(self.sources)):
             pt.echo(
-                pt.FixedString(
+                pt.Text(
                     f"Sample #{idx+1}/{len(self.sources)}",
                     width=pt.get_terminal_width(),
                     align="center",
-                ).raw.replace(" ", "-")
+                    fill='-'
+                )
             )
 
-            preview = self.make_sample(sample_src, classes[0], preview=True)
-            pt.echoi(pt.FixedString(f"Sample:", width=12))
-            pt.echoi(pt.render(preview))
-            pt.echo(f".. (+{len(sample_src) - self.PREVIEW} chars)")
+            pt.echoi(pt.Text(f"Sample:", width=12))
+            pt.echo(f"{len(sample_src)} chars")
 
-            pt.echoi(pt.FixedString(f"Fragments:", width=12))
-            pt.text.echo(
-                f"{len(sample_src.fragments)}"
-                if not isinstance(sample_src, str)
-                else "1"
-            )
-
-            pt.echoi(pt.FixedString(f"Repeats:", width=12))
+            pt.echoi(pt.Text(f"Repeats:", width=12))
             pt.echo(pt.format_thousand_sep(self.NUM))
             pt.echo()
 
@@ -163,7 +154,7 @@ class RenderBemchmarker:
             ]:
                 renderer = pt.SgrRenderer(om)
                 for class_ in classes:
-                    sample = self.make_sample(sample_src, class_, preview=False)
+                    sample = self.make_sample(sample_src, class_)
                     RenderBemchmarker.outer_times_sum = 0
                     RenderBemchmarker.outer_times = []
                     RenderBemchmarker.inner_times_sum = 0
@@ -183,14 +174,15 @@ class RenderBemchmarker:
                             or (end - self.prev_frame_ts) > 0.4 * 1e9
                         ):
                             add_st = NOOP_STYLE
-                            q = pt.Text(pt.get_qname(class_), pt.Style(bold=True))
+                            q = pt.Fragment(pt.get_qname(class_), pt.Style(bold=True))
                             if class_ is str:
                                 add_st = "gray50"
-                                q = pt.Text("[CONTROL] ", add_st) + q
+                                q = pt.Fragment("[CONTROL] ", add_st) + q
                             pt.echoi(pt.ansi.make_set_cursor_x_abs(1).assemble())
                             pt.echoi(pt.ansi.make_erase_in_line().assemble())
-                            pt.echoi(f"{q:>14s}")
-                            pt.echoi(pt.FixedString(f" ({om.value.upper()})", width=15))
+                            q.set_width(14)
+                            pt.echoi(q)
+                            pt.echoi(pt.Text(f" ({om.value.upper()})", width=15))
                             pt.echoi("|  ")
                             self.echo_meters(avg=(n == self.NUM), add_st=add_st)
                             if n != self.NUM:

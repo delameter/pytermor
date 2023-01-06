@@ -26,11 +26,10 @@
 
    .. autosummary::
    
-      FixedString
+      Fragment
       FrozenText
       IRenderable
       SimpleTable
-      String
       TemplateEngine
       Text
    

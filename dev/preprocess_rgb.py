@@ -53,7 +53,7 @@ class RgbPreprocessor(TaskRunner):
         return config.get("colors")
 
     def _run_callback(self, result: t.List[t.Dict]):
-        print(f"Definitions preprocessed: {len(result)}")
+        print(f"Definitions processed: {len(result)}")
 
     def _process_color_def(self, color_def: t.Dict):
         color_def_name = color_def.get("name")

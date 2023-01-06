@@ -108,10 +108,10 @@ test: ## Run pytest
 	${VENV_PATH}/bin/pytest --tb=no
 
 test-verbose: ## Run pytest with detailed output
-	${VENV_PATH}/bin/pytest -v
+	${VENV_PATH}/bin/pytest -v --exitfirst --failed-first
 
 test-debug: ## Run pytest with VERY detailed output
-	${VENV_PATH}/bin/pytest -v --log-cli-level=DEBUG
+	${VENV_PATH}/bin/pytest -v --exitfirst --failed-first --log-cli-level=DEBUG
 
 coverage: ## Run coverage and make a report
 	rm -v coverage-report/*

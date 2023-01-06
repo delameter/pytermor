@@ -81,13 +81,13 @@ class TestTmuxRenderer(unittest.TestCase):
         )
 
     def test_nested_render_works(self):
-        result = (
-            pt.Text("123", Style(fg="red"), close_this=False)
-            + pt.Text("456", Style(fg="blue"), close_this=False)
-            + pt.Text("789")
-            + pt.Text("0qw", Style(fg="blue"), close_prev=True)
-            + pt.Text("ert", Style(fg="red"), close_prev=True)
-            + "yui"
+        result = pt.Text(
+            pt.Fragment("123", Style(fg="red"), close_this=False),
+            pt.Fragment("456", Style(fg="blue"), close_this=False),
+            pt.Fragment("789"),
+            pt.Fragment("0qw", Style(fg="blue"), close_prev=True),
+            pt.Fragment("ert", Style(fg="red"), close_prev=True),
+            pt.Fragment("yui"),
         ).render(pt.renderer.TmuxRenderer)
 
         self.assertEqual(

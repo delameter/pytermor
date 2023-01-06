@@ -8,7 +8,6 @@ import logging
 import math
 import os.path
 import re
-import sys
 import time
 import typing as t
 from dataclasses import dataclass
@@ -244,31 +243,31 @@ class Printer:
 
         status = "\r" + pt.ansi.make_erase_in_line().assemble()
         status += f" RUN "
-        status += f"{self.int_formatter.format(run):<3s}" + " ["
+        status += pt.render(f"{self.int_formatter.format(run):<3s}" + " [")
         status += (
             f"{'|'*math.floor(self.PROGBAR_WIDTH * progress):<{self.PROGBAR_WIDTH}s}"
         )
         status += "] "
         status += (
-            f"{pt.format_auto_float(100 * progress, 3)+'%':>4s}"
+            pt.render(f"{pt.format_auto_float(100 * progress, 3)+'%':>4s}")
             if progress < 1
             else self.render("DONE", pt.Style(fg=pt.cv.HI_MAGENTA))
         )
 
         status += f"   I/O total:"
-        status += f"{Printer.total_size_formatter.format(total_data):>4s}".rjust(8)
+        status += pt.render(f"{Printer.total_size_formatter.format(total_data):>4s}".rjust(8))
         status += f"   Cycle avg: "
         status += (
-            Printer.format_time_ns(test_set.result_avg, True)
+            pt.render(Printer.format_time_ns(test_set.result_avg, True))
             if test_set.result_avg
             else "--"
         ).rjust(7)
-        status += f"  {self.speed_formatter.format(test_set.speed_avg):>9s}"
-        status += f" │ {self.format_data_sample(test_set, 4)} "
+        status += pt.render(f"  {self.speed_formatter.format(test_set.speed_avg):>9s}")
+        status += pt.render(f" │ {self.format_data_sample(test_set, 4)} ")
         status += " "
 
         status = NumHighlighter().format(status)
-        pt.echo(status, nl=False)
+        print(pt.render(status), end="")
 
     def print_results(self, test_sets: t.List[TestSet]):
         self.print_nl()

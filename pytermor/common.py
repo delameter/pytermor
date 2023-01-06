@@ -52,6 +52,7 @@ implementations.
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
+
 def measure(msg: str = "Done"):
     def wrapper(origin: F) -> F:
         def new_func(*args, **kwargs):
@@ -60,14 +61,56 @@ def measure(msg: str = "Done"):
             after_s = time.time_ns() / 1e9
 
             from . import PYTERMOR_DEV
-            if PYTERMOR_DEV and not kwargs.get('no_log', False):
+
+            if PYTERMOR_DEV and not kwargs.get("no_log", False):
                 from . import format_si, dump, logger
+
                 logger.debug(msg + f" in {format_si((after_s - before_s), 's')}")
                 logger.log(level=5, msg=dump(result, "Dump"))
 
             return result
+
         return update_wrapper(t.cast(F, new_func), origin)
+
     return wrapper
+
+
+class ExtendedEnum(enum.Enum):
+    @classmethod
+    def list(cls):
+        return list(map(lambda c: c.value, cls))
+
+    @classmethod
+    def dict(cls):
+        return dict(map(lambda c: (c, c.value), cls))
+
+
+class Align(str, ExtendedEnum):
+    """
+    Align type.
+    """
+
+    LEFT = "<"
+    """ """
+    RIGHT = ">"
+    """ """
+    CENTER = "^"
+    """ """
+
+    @classmethod
+    def resolve(cls, input: str | Align | None, fallback: Align = LEFT):
+        if input is None:
+            return fallback
+        if isinstance(input, cls):
+            return input
+        for k, v in cls.dict().items():
+            if v == input:
+                return k
+        try:
+            return cls[input.upper()]
+        except KeyError:
+            logger.warning(f"Invalid align name: {input}")
+            return fallback
 
 
 class UserCancel(Exception):
@@ -106,9 +149,15 @@ class ArgTypeError(Exception):
                 pass
 
         if fn is not None:
-            expected_type = inspect.getfullargspec(fn).annotations[arg_name]
+            signature = inspect.signature(fn)
+            param_desc = signature.parameters.get(arg_name, None)
+            expected_type = '?'
+            if param_desc:
+                expected_type = param_desc.annotation
             actual_type = actual_type.__qualname__
-            msg = f"Expected {arg_name_str} type: <{expected_type}>, got: <{actual_type}>"
+            msg = (
+                f"Expected {arg_name_str} type: <{expected_type}>, got: <{actual_type}>"
+            )
         else:
             msg = f"Unexpected {arg_name_str} type: <{actual_type}>"
 
@@ -120,20 +169,7 @@ class ArgCountError(Exception):
 
     def __init__(self, actual: int, *expected: int) -> None:
         expected_str = ", ".join(str(e) for e in expected)
-        msg = f"Invalid arguments amount, expected one of: ({expected_str}), got: {actual}"
+        msg = (
+            f"Invalid arguments amount, expected one of: ({expected_str}), got: {actual}"
+        )
         super().__init__(msg)
-
-
-class Align(str, enum.Enum):
-    """
-    Align type for `FixedString` enum.
-    """
-
-    LEFT = "<"
-    """ """
-    RIGHT = ">"
-    """ """
-    CENTER = "^"
-    """ """
-
-

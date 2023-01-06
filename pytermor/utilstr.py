@@ -171,6 +171,17 @@ WHITESPACE_CHARS = [*range(0x09, 0x0D + 1), 0x20]
 PRINTABLE_CHARS = [*range(0x21, 0x7E + 1)]
 NON_ASCII_CHARS = [*range(0x80, 0xFF + 1)]
 
+ALIGN_FUNCS_SGR = {
+    Align.LEFT: ljust_sgr,
+    Align.CENTER: center_sgr,
+    Align.RIGHT: rjust_sgr,
+}
+ALIGN_FUNCS_RAW = {
+    Align.LEFT: str.ljust,
+    Align.CENTER: str.center,
+    Align.RIGHT: str.rjust,
+}
+
 IT = t.TypeVar("IT", str, bytes)  # input-type
 OT = t.TypeVar("OT", str, bytes)  # output-type
 PT = Union[IT, t.Pattern[IT]]  # pattern type
@@ -226,17 +237,6 @@ class OmniEncoder(IFilter[IT, bytes]):
 
 
 class StringAligner(IFilter[str, str]):
-    _ALIGN_FUNCS_SGR = {
-        Align.LEFT: ljust_sgr,
-        Align.CENTER: center_sgr,
-        Align.RIGHT: rjust_sgr,
-    }
-    _ALIGN_FUNCS_RAW = {
-        Align.LEFT: str.ljust,
-        Align.CENTER: str.center,
-        Align.RIGHT: str.rjust,
-    }
-
     def __init__(self, align: Align):
         self._align = align
 
@@ -245,8 +245,8 @@ class StringAligner(IFilter[str, str]):
 
     def _get_align_fn(self, raw_mode: bool = False):
         if raw_mode:
-            return self._ALIGN_FUNCS_RAW.get(self._align)
-        return self._ALIGN_FUNCS_SGR.get(self._align)
+            return ALIGN_FUNCS_RAW.get(self._align)
+        return ALIGN_FUNCS_SGR.get(self._align)
 
 
 # -----------------------------------------------------------------------------

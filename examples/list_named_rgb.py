@@ -26,6 +26,7 @@ import yaml
 import pytermor as pt
 import pytermor.utilstr
 import pytermor.utilmisc
+from pytermor import Text
 
 
 def sort_by_name(cdef: IColorRGB) -> str:
@@ -135,8 +136,8 @@ class RgbListPrinter:
             style = pt.Style(bg=pt.ColorRGB(c.hex_value)).autopick_fg()
             style2 = pt.Style(fg=style.bg)
 
-            name = pt.Text(c.name) + pad + pt.Text(c.variation or "", vari_style)
-            orig_name = pt.Text(c.original_name or "", orig_style)
+            name = [pt.Fragment(c.name), pt.Fragment(pad), pt.Fragment(c.variation or "", vari_style)]
+            orig_name = pt.Fragment(c.original_name or "", orig_style)
 
             print(
                 pad
@@ -145,9 +146,9 @@ class RgbListPrinter:
                 + pt.render(f"0x{c.hex_value:06x}", style2)
                 + pad
                 + pad
-                + f"{name:<{self.MAX_NAME_L}.{self.MAX_NAME_L}s}"
+                + pt.render(Text(*name, width=self.MAX_NAME_L))
                 + pad
-                + f"{orig_name:>{self.MAX_ORIG_L}.{self.MAX_ORIG_L}s}"
+                + pt.render(Text(orig_name, width=self.MAX_ORIG_L))
             )
 
 

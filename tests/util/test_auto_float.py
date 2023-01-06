@@ -144,5 +144,5 @@ from pytermor.utilnum import format_auto_float
 )
 # fmt: on
 def test_int_tight_fit_has_expected_format(expected, value, max_len):
-    assert len(expected) == max_len
-    assert expected == format_auto_float(value, max_len)
+    assert max_len == len(expected)
+    assert format_auto_float(value, max_len) == expected
