@@ -12,10 +12,10 @@ import typing as t
 from dataclasses import dataclass
 from math import floor, log10, trunc, log, isclose
 
-from .common import RT, logger
+from .common import RT, logger, Align
 from .cval import CVAL as cv
 from .style import NOOP_STYLE, Style, Styles
-from .text import Text, Fragment
+from .text import Text, Fragment, IRenderable
 from .utilstr import pad
 
 _OVERFLOW_CHAR = "!"
@@ -255,14 +255,16 @@ class NumHighlighter:
         cursor = 0
         result = Text()
         for m in cls.PREFIX_UNIT_REGEX.finditer(string):
-            result.append(string[cursor : m.start()])
-            result.append(cls.colorize(**m.groupdict("")))
+            result += string[cursor : m.start()]
+            result.append(*cls.colorize(**m.groupdict("")))
             cursor = m.end()
-        result.append(string[cursor:])
+        result += string[cursor:]
         return result
 
     @classmethod
-    def colorize(cls, intp: str, frac: str, sep: str, prefix: str, unit: str) -> Text:
+    def colorize(
+        cls, intp: str, frac: str, sep: str, prefix: str, unit: str
+    ) -> t.List[Fragment]:
         unit_norm = unit.rstrip("s").strip()
         int_st = cls.STYLE_DEFAULT
         if prefix:
@@ -276,12 +278,12 @@ class NumHighlighter:
 
         frac_st = Style(int_st, dim=True)
         unit_st = Style(int_st, dim=True, bold=False)
-        return (
-            Fragment(intp, int_st)
-            + Fragment(frac, frac_st)
-            + sep
-            + Fragment(prefix + unit, unit_st)
-        )
+        return [
+            Fragment(intp, int_st),
+            Fragment(frac, frac_st),
+            Fragment(sep),
+            Fragment(prefix + unit, unit_st),
+        ]
 
 
 # -----------------------------------------------------------------------------
@@ -558,8 +560,11 @@ class StaticBaseFormatter:
 
         result = self._colorize(color_ov, val_str, sep, prefix, unit)
         if self._pad:
-            pad_len = max(0, self.get_max_len(unit_ov) - len(result))
+            max_len = self.get_max_len(unit_ov)
+            pad_len = max(0, max_len - len(result))
             result = pad(pad_len) + result
+            if isinstance(result, IRenderable):
+                result.set_width(max_len)
         return result
 
     def _colorize(
@@ -573,7 +578,8 @@ class StaticBaseFormatter:
             return "".join((val.strip(), sep, unit_full))
 
         int_part, point, frac_part = val.strip().partition(".")
-        return NumHighlighter.colorize(int_part, point + frac_part, sep, prefix, unit)
+        result = NumHighlighter.colorize(int_part, point + frac_part, sep, prefix, unit)
+        return Text(*result, align=Align.RIGHT)
 
     def _get_unit_effective(self, unit_ov: str) -> str:
         if unit_ov is not None:
@@ -834,7 +840,10 @@ class DynamicBaseFormatter:
                 result = Text(result, Styles.ERROR_LABEL)
 
         if self._pad:
-            result = pad(self._max_len) + result
+            pad_len = max(0, self._max_len - len(result))
+            result = pad(pad_len) + result
+            if isinstance(result, IRenderable):
+                result.set_width(self._max_len)
 
         return result
 
@@ -915,7 +924,11 @@ class DynamicBaseFormatter:
         if not self._get_color_effective(color_ov):
             return "".join((extra, val, sep, unit))
 
-        return extra + NumHighlighter.colorize(val, "", sep, "", unit)
+        return Text(
+            Fragment(extra),
+            *NumHighlighter.colorize(val, "", sep, "", unit),
+            align=Align.RIGHT,
+        )
 
     def _get_color_effective(self, color_ov: bool) -> bool:
         if color_ov is not None:
