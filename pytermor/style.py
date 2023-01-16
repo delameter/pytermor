@@ -3,17 +3,23 @@
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-S
+.. todo ::
+    S
 """
 from __future__ import annotations
 
 import typing as t
 from dataclasses import dataclass, field
 
-from . import cv
-from .color import IColor, NOOP_COLOR, resolve_color
-from .common import ArgTypeError, FT, CDT
+from .color import IColor, NOOP_COLOR, resolve_color, CDT
+from .cval import CVAL as cv
+from .common import ArgTypeError
 
+FT = t.TypeVar("FT", int, str, IColor, 'Style', None)
+"""
+:abbr:`FT (Format type)` is a style descriptor. Used as a shortcut precursor for actual 
+styles. Primary handler is `make_style()`.
+"""
 
 @dataclass()
 class Style:

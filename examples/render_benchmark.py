@@ -10,6 +10,8 @@ import time
 import typing as t
 
 import pytermor as pt
+import pytermor.color
+import pytermor.style
 from pytermor import NOOP_STYLE, Fragment
 from pytermor.renderer import NoOpRenderer
 from pytermor.utilmisc import percentile
@@ -54,7 +56,7 @@ class RenderBemchmarker:
             value_mapping={0.0: "--"},
         )
 
-    def echo_meters(self, avg: bool = True, add_st: pt.FT = NOOP_STYLE):
+    def echo_meters(self, avg: bool = True, add_st: pytermor.style.FT = NOOP_STYLE):
         self._echo_meters(
             "Outer",
             RenderBemchmarker.outer_times_sum,
@@ -79,7 +81,7 @@ class RenderBemchmarker:
         times_sum: float,
         times: t.List[float],
         avg: bool = True,
-        add_st: pt.FT = NOOP_STYLE,
+        add_st: pytermor.style.FT = NOOP_STYLE,
     ):
         self._echo_meter(f"{label} total ", add_st, times_sum, 2)
         if not avg:
@@ -95,7 +97,7 @@ class RenderBemchmarker:
         self._echo_meter("p50 ", add_st, exact_time_p50, 2)
         self._echo_meter("p99 ", add_st, exact_time_p99, 2)
 
-    def _echo_meter(self, label: str, add_st: pt.FT, val: float, pad: int):
+    def _echo_meter(self, label: str, add_st: pytermor.style.FT, val: float, pad: int):
         fmted = self.fmter.format(val, color_ov=not add_st)
         if not val:
             fmted = "--".center(self.fmter.get_max_len())

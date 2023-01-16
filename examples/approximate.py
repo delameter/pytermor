@@ -12,6 +12,7 @@ import typing
 
 
 import pytermor as pt
+import pytermor.utilmisc
 
 
 class Main:
@@ -82,7 +83,7 @@ class Main:
     def run(self, sample: pt.ColorRGB | None, color_type: str):
         if sample is None:
             random_rgb = (random.randint(40, 255) for _ in range(3))
-            sample = pt.resolve_color(pt.color.rgb_to_hex(*random_rgb))
+            sample = pt.resolve_color(pytermor.utilmisc.rgb_to_hex(*random_rgb))
 
         direct_renderer = pt.SgrRenderer(pt.OutputMode.TRUE_COLOR)
 

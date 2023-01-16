@@ -17,11 +17,10 @@ from hashlib import md5
 
 from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose
 from .color import IColor, Color16, Color256, ColorRGB, NOOP_COLOR
-from .common import logger, FT
-from .style import Style, NOOP_STYLE, Styles, make_style
+from .common import logger
+from .style import Style, NOOP_STYLE, Styles, make_style, FT
 from .utilmisc import get_qname
 from .utilstr import SgrStringReplacer
-
 
 T = t.TypeVar("T", bound="IRenderer")
 

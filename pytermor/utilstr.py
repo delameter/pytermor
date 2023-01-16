@@ -3,10 +3,9 @@
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-Package containing a set of formatters for prettier output, as well as utility classes
-for removing some of the boilerplate code when dealing with escape sequences. Also
-includes several Python Standard Library methods rewritten for correct work with
-strings containing control sequences.
+Formatters for prettier output and utility classes to avoid writing boilerplate
+code when dealing with escape sequences. Also includes several Python Standard
+Library methods rewritten for correct work with strings containing control sequences.
 """
 from __future__ import annotations
 
@@ -22,10 +21,14 @@ from functools import reduce
 from math import ceil
 from typing import Union
 
-from .common import ArgTypeError, Align
+from .common import ArgTypeError, Align, ALIGN_LEFT, ALIGN_RIGHT, ALIGN_CENTER
 from .utilmisc import chunk, get_terminal_width
 
+
 _PRIVATE_REPLACER = "\U000E5750"
+
+# =============================================================================
+# stdlib extensions
 
 
 def pad(n: int) -> str:
@@ -134,6 +137,7 @@ codecs.register_error("replace_with_qmark", lambda e: ("?", e.start + 1))
 # =============================================================================
 # Filters
 
+
 ESCAPE_SEQ_REGEX = re.compile(
     r"""
     (?P<escape_char>\x1b)
@@ -172,14 +176,14 @@ PRINTABLE_CHARS = [*range(0x21, 0x7E + 1)]
 NON_ASCII_CHARS = [*range(0x80, 0xFF + 1)]
 
 ALIGN_FUNCS_SGR = {
-    Align.LEFT: ljust_sgr,
-    Align.CENTER: center_sgr,
-    Align.RIGHT: rjust_sgr,
+    ALIGN_LEFT: ljust_sgr,
+    ALIGN_CENTER: center_sgr,
+    ALIGN_RIGHT: rjust_sgr,
 }
 ALIGN_FUNCS_RAW = {
-    Align.LEFT: str.ljust,
-    Align.CENTER: str.center,
-    Align.RIGHT: str.rjust,
+    ALIGN_LEFT: str.ljust,
+    ALIGN_CENTER: str.center,
+    ALIGN_RIGHT: str.rjust,
 }
 
 IT = t.TypeVar("IT", str, bytes)  # input-type
@@ -746,6 +750,7 @@ class OmniSanitizer(OmniMapper):
 
 
 # -----------------------------------------------------------------------------
+# misc
 
 
 def apply_filters(string: IT, *args: AT) -> OT:

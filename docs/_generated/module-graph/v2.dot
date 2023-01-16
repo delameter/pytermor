@@ -1,0 +1,60 @@
+
+digraph G {
+    concentrate = true;
+    compound=true;
+    rankdir = LR;
+    edge [penwidth=0.5 arrowhead=open];
+    node [colorscheme="pastel28" shape=box style="rounded,filled" color="gray" fontcolor="black" penwidth=1 fontname="ASM-Regular" fontsize=10];
+
+    node [group="main"];
+    ansi [fillcolor=5];
+    color [fillcolor=5];
+    renderer [fillcolor=3];
+    style [fillcolor=1];
+    text [fillcolor=3];
+
+    node [group="com"];
+    common [ fillcolor=6];
+    cval [fillcolor=6];
+
+    subgraph cluster_util {
+        node [group="util"];
+        utilmisc;
+        utilnum;
+        utilstr;
+
+        utilmisc -> utilnum;
+        utilstr -> utilnum;
+    }
+
+    ansi -> color;
+    ansi -> renderer;
+    color -> renderer;
+    color -> style;
+    color -> text;
+    common -> ansi;
+    common -> color;
+    common -> renderer;
+    common -> style;
+    common -> text;
+    renderer -> text;
+    style -> renderer;
+    style -> text;
+    edge [penwidth=1 style=dotted lhead="cluster_util"];
+    ansi -> cval;
+    cval -> style;
+
+    ansi -> utilnum;
+    text -> utilnum;
+
+
+    edge [ penwidth=1 style=dotted lhead="cluster_util"]
+    common -> utilnum [samehead="util"];
+    cval -> utilnum [samehead="util"];
+    color -> cval;
+    style -> utilnum [samehead="util"];
+    utilnum -> color;
+    utilnum -> renderer;
+    utilnum -> text [samehead="util"];
+}
+

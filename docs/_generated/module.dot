@@ -1,0 +1,49 @@
+
+digraph G {
+    concentrate = true;
+
+    rankdir = TB;
+    node [style=filled,fillcolor="#ffffff",fontcolor="#000000",fontname=Helvetica,fontsize=10];
+
+    ansi;
+    color;
+    common;
+    cval;
+    renderer;
+    style;
+    text;
+    utilmisc;
+    utilnum;
+    utilstr;
+    ansi -> color;
+    ansi -> cval;
+    ansi -> renderer;
+    ansi -> utilmisc;
+    color -> cval;
+    color -> renderer;
+    color -> style;
+    color -> text;
+    common -> ansi;
+    common -> color;
+    common -> renderer;
+    common -> style;
+    common -> text;
+    common -> utilmisc;
+    common -> utilnum;
+    common -> utilstr;
+    cval -> style;
+    cval -> utilnum;
+    renderer -> text;
+    style -> renderer;
+    style -> text;
+    style -> utilnum;
+    text -> utilnum;
+    utilmisc -> color;
+    utilmisc -> renderer;
+    utilmisc -> text;
+    utilmisc -> utilstr;
+    utilstr -> renderer;
+    utilstr -> text;
+    utilstr -> utilnum;
+}
+

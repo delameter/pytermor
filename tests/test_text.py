@@ -10,6 +10,7 @@ import unittest
 import pytest
 
 import pytermor as pt
+import pytermor.text
 from pytermor import Text, FrozenText, Fragment, IRenderable, Style
 from pytermor.renderer import NoOpRenderer
 
@@ -327,7 +328,7 @@ class TestSimpleTable:
         ],
         ids=rt_str,
     )
-    def test_cell_types_accepted(self, cell: pt.RT):
+    def test_cell_types_accepted(self, cell: pytermor.text.RT):
         self.table.add_row(cell)
         assert self.table.row_count == 1
 

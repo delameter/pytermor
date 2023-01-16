@@ -6,35 +6,45 @@
 PROJECT_NAME="${1:?Project name required}"
 DEPENDS_PATH="${2:?Output path required}"
 
-venv/bin/pydeps ${PROJECT_NAME} \
-    --rmprefix ${PROJECT_NAME}. \
+run() {
+    # args: [cmd-option]...
+    set -- venv/bin/pydeps "${PROJECT_NAME}" "$@"
+    echo "$*" >&2
+    "$@"
+}
+
+run --rmprefix ${PROJECT_NAME}. \
+    --only ${PROJECT_NAME} \
+    --no-output \
+    --rankdir LR \
+    --show-dot \
+    -xx pytermor pytermor._version \
+    | tee "${DOCS_IN_PATH}/_generated/module.dot"
+
+run --rmprefix ${PROJECT_NAME}. \
     --start-color 120 \
     --only ${PROJECT_NAME} \
     -o ${DEPENDS_PATH}/structure.svg
 
-venv/bin/pydeps ${PROJECT_NAME} \
-    --rmprefix ${PROJECT_NAME}. \
+run --rmprefix ${PROJECT_NAME}. \
     --start-color 120 \
     --show-cycle \
     -o ${DEPENDS_PATH}/cycles.svg
 
-venv/bin/pydeps ${PROJECT_NAME} \
-    --start-color 0 \
+run --start-color 0 \
     --max-bacon 3 \
     --max-mod 0 \
     --max-cluster 100 \
     --keep \
     -o ${DEPENDS_PATH}/imports-deep.svg
 
-#venv/bin/pydeps ${PROJECT_NAME} \
-#    --start-color 0 \
+#run --start-color 0 \
 #    --max-bacon 3 \
 #    --cluster \
 #    --collapse \
 #    -o ${DEPENDS_PATH}/imports-cross.svg
 #
-#venv/bin/pydeps ${PROJECT_NAME} \
-#    --start-color 0 \
+#run --start-color 0 \
 #    --max-bacon 12 \
 #    --max-mod 1 \
 #    --cluster \

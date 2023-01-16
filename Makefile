@@ -7,6 +7,8 @@
 PROJECT_NAME = pytermor
 PROJECT_NAME_PUBLIC = ${PROJECT_NAME}
 PROJECT_NAME_PRIVATE = ${PROJECT_NAME}-delameter
+DOCS_IN_PATH = docs
+DOCS_OUT_PATH = docs-build
 DEPENDS_PATH = misc/depends
 LOCALHOST_URL = http://localhost/pytermor
 LOCALHOST_WRITE_PATH = localhost
@@ -135,51 +137,52 @@ depends:  ## Build and display module dependency graph
 ##
 ## Documentation
 
-reinit-docs: ## Erase and reinit docs with auto table of contents
-	rm -v docs/*.rst
-	${VENV_PATH}/bin/sphinx-apidoc --force --separate --module-first --tocfile index --output-dir docs ${PROJECT_NAME}
+reinit-docs: ## Purge and recreate docs with auto table of contents
+	rm -rfv ${DOCS_IN_PATH}/*
+	${VENV_PATH}/bin/sphinx-apidoc --force --separate --module-first --tocfile index --output-dir ${DOCS_IN_PATH} ${PROJECT_NAME}
 
-demolish-docs:  ## Purge docs output folder
-	rm -rvf docs/_build
+demolish-docs:  ## Purge docs temp output folder
+	rm -rvf ${DOCS_IN_PATH}/_build
 
 open-docs-html:  ## Open HTML docs in browser
 	if [ -z "${DISPLAY}" ] ; then echo 'ERROR: No $$DISPLAY' && return 1 ; fi
-	if [ -d localhost ] ; then xdg-open ${LOCALHOST_URL}/docs ; else xdg-open docs/_build/index.html ; fi
+	if [ -d localhost ] ; then xdg-open ${LOCALHOST_URL}/docs ; else xdg-open ${DOCS_IN_PATH}/_build/index.html ; fi
 
 docs: ## (Re)build HTML documentation  <no cache>
 docs: demolish-docs docs-html
 
 docs-html: ## Build HTML documentation  <caching allowed>
 	mkdir -p docs-build
-	if ! ${VENV_PATH}/bin/sphinx-build docs docs/_build -b html -n ; then \
+	if ! ${VENV_PATH}/bin/sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b html -n ; then \
     	notify-send -i important pytermor 'HTML docs build failed ${NOW}' && \
     	return 1 ; \
     fi
 	if [ -d localhost ] ; then \
     	mkdir -p ${LOCALHOST_WRITE_PATH}/docs && \
-		cp -auv docs/_build/* ${LOCALHOST_WRITE_PATH}/docs/ ; \
+		cp -auv ${DOCS_IN_PATH}/_build/* ${LOCALHOST_WRITE_PATH}/docs/ ; \
     fi
 	#find docs/_build -type f -name '*.html' | sort | xargs -n1 grep -HnT ^ | sed s@^docs/_build/@@ > docs-build/${PROJECT_NAME}.html.dump
-	if command -v notify-send ; then notify-send -i ${PWD}/docs/_static_src/logo-white-bg.svg 'pytermor ${VERSION}' 'HTML docs updated ${NOW}' ; fi
+	if command -v notify-send ; then notify-send -i ${PWD}/${DOCS_IN_PATH}/_static_src/logo-white-bg.svg 'pytermor ${VERSION}' 'HTML docs updated ${NOW}' ; fi
 
 docs-pdf: ## Build PDF documentation  <caching allowed>
 	mkdir -p docs-build
-	yes "" | ${VENV_PATH}/bin/sphinx-build -M latexpdf docs docs/_build -n >/dev/null # twice for building pdf toc
-	yes "" | ${VENV_PATH}/bin/sphinx-build -M latexpdf docs docs/_build    >/dev/null # @FIXME broken unicode
-	mv docs/_build/latex/${PROJECT_NAME}.pdf docs-build/${PROJECT_NAME}.pdf
-	if [ -n "${DISPLAY}" ] ; then xdg-open docs-build/${PROJECT_NAME}.pdf ; fi
+	yes "" | ${VENV_PATH}/bin/sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -n >/dev/null # twice for building pdf toc
+	yes "" | ${VENV_PATH}/bin/sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build    >/dev/null # @FIXME broken unicode
+	mv ${DOCS_IN_PATH}/_build/latex/${PROJECT_NAME}.pdf ${DOCS_OUT_PATH}/${PROJECT_NAME}.pdf
+	if [ -n "${DISPLAY}" ] ; then xdg-open ${DOCS_OUT_PATH}/${PROJECT_NAME}.pdf ; fi
 
 docs-man: ## Build man pages  <caching allowed>
-	sed -i.bak -Ee 's/^.+<<<MAKE_DOCS_MAN<<</#&/' docs/conf.py
-	${VENV_PATH}/bin/sphinx-build docs docs/_build -b man -n || echo 'Generation failed'
-	mv docs/conf.py.bak docs/conf.py
-	mv docs/_build/${PROJECT_NAME}.1 docs-build/${PROJECT_NAME}.1
-	if command -v maf &>/dev/null; then maf docs-build/${PROJECT_NAME}.1; else man docs-build/${PROJECT_NAME}.1; fi
+	sed -i.bak -Ee 's/^.+<<<MAKE_DOCS_MAN<<</#&/' ${DOCS_IN_PATH}/conf.py
+	${VENV_PATH}/bin/sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b man -n || echo 'Generation failed'
+	mv ${DOCS_IN_PATH}/conf.py.bak ${DOCS_IN_PATH}/conf.py
+	mv ${DOCS_IN_PATH}/_build/${PROJECT_NAME}.1 ${DOCS_OUT_PATH}/${PROJECT_NAME}.1
+	man ${DOCS_OUT_PATH}/${PROJECT_NAME}.1 2>/dev/null | sed -Ee '/корректность/d' | lpr -p
+	if command -v maf &>/dev/null; then maf ${DOCS_OUT_PATH}/${PROJECT_NAME}.1; else man ${DOCS_OUT_PATH}/${PROJECT_NAME}.1; fi
 
 docs-all: ## (Re)build documentation in all formats  <no cache>
 docs-all: demolish-docs docs docs-pdf docs-man
 	@echo
-	@$(call log_success,$$(du -h docs-build/*)) | sed -E '1s/^(..).{7}/\1SUMMARY/'
+	@$(call log_success,$$(du -h ${DOCS_OUT_PATH}/*)) | sed -E '1s/^(..).{7}/\1SUMMARY/'
 
 ##
 ## Building / Packaging

@@ -3,7 +3,7 @@
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-Module contains definitions for low-level ANSI escape sequences building.
+Classes for working with ANSI sequences on lower level.
 Can be used for creating a variety of sequences including:
 
     - :abbr:`SGR (Select Graphic Rendition)` sequences (text and background

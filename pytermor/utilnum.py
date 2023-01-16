@@ -12,10 +12,10 @@ import typing as t
 from dataclasses import dataclass
 from math import floor, log10, trunc, log, isclose
 
-from .common import RT, logger, Align
+from .common import logger, Align
 from .cval import CVAL as cv
 from .style import NOOP_STYLE, Style, Styles
-from .text import Text, Fragment, IRenderable
+from .text import Text, Fragment, IRenderable, RT
 from .utilstr import pad
 
 _OVERFLOW_CHAR = "!"

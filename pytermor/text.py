@@ -18,12 +18,18 @@ from collections import deque
 from typing import overload
 
 from .color import IColor
-from .common import LogicError, FT, Align, RT, ArgTypeError, logger, measure
+from .common import LogicError, Align, ArgTypeError, logger, measure
 from .renderer import IRenderer, RendererManager
-from .style import Style, make_style, NOOP_STYLE
+from .style import Style, make_style, NOOP_STYLE, FT
 from .utilmisc import get_terminal_width, flatten1, get_preferable_wrap_width
 from .utilstr import wrap_sgr, pad
 
+
+RT = t.TypeVar("RT", str, "IRenderable")
+"""
+:abbr:`RT (Renderable type)` includes regular *str*\\ s as well as `IRenderable` 
+implementations.
+"""
 
 class IRenderable(t.Sized, ABC):
     """
@@ -106,6 +112,10 @@ class Fragment(IRenderable):
     >>> f"{Fragment('1234567890'):*^8.4s}"
     '**1234**'
 
+    :param str string:
+    :param FT fmt:
+    :param bool close_this:
+    :param bool close_prev:
     """
 
     def __init__(
@@ -660,7 +670,7 @@ _template_engine = TemplateEngine()
 @measure(msg="Rendering")
 def render(
     string: RT | t.Iterable[RT] = "",
-    fmt: IColor | Style = NOOP_STYLE,
+    fmt: FT = NOOP_STYLE,
     renderer: IRenderer = None,
     parse_template: bool = False,
     *,
@@ -704,7 +714,7 @@ def render(
 
 def echo(
     string: RT | t.Iterable[RT] = "",
-    fmt: IColor | Style = NOOP_STYLE,
+    fmt: FT = NOOP_STYLE,
     renderer: IRenderer = None,
     parse_template: bool = False,
     *,
@@ -742,7 +752,7 @@ def echo(
 
 def echoi(
     string: RT | t.Iterable[RT] = "",
-    fmt: IColor | Style = NOOP_STYLE,
+    fmt: FT = NOOP_STYLE,
     renderer: IRenderer = None,
     parse_template: bool = False,
     *,

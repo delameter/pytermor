@@ -2,6 +2,9 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
+"""
+Shared code suitable for the package as well as any other.
+"""
 from __future__ import annotations
 
 import enum
@@ -24,57 +27,6 @@ logger.addHandler(logging.NullHandler())
 ########
 
 
-CDT = t.TypeVar("CDT", int, str)
-"""
-:abbr:`CDT (Color descriptor type)` represents a RGB color value. Primary handler 
-is `resolve_color()`. Valid values include:
-
-    - *str* with a color name in any form distinguishable by the color resolver;
-      the color lists can be found at: `guide.ansi-presets` and `guide.es7s-colors`;
-    - *str* starting with a "#" and consisting of 6 more hexadecimal characters, case
-      insensitive (RGB regular form), e.g.: "#0B0CCA";
-    - *str* starting with a "#" and consisting of 3 more hexadecimal characters, case
-      insensitive (RGB short form), e.g.: "#666";
-    - *int* in a [0; 0xFFFFFF] range.
-"""
-
-FT = t.TypeVar("FT", int, str, "IColor", "Style", None)
-"""
-:abbr:`FT (Format type)` is a style descriptor. Used as a shortcut precursor for actual 
-styles. Primary handler is `make_style()`.
-"""
-
-RT = t.TypeVar("RT", str, "IRenderable")
-"""
-:abbr:`RT (Renderable type)` includes regular *str*\\ s as well as `IRenderable` 
-implementations.
-"""
-
-F = t.TypeVar("F", bound=t.Callable[..., t.Any])
-
-
-def measure(msg: str = "Done"):
-    def wrapper(origin: F) -> F:
-        def new_func(*args, **kwargs):
-            before_s = time.time_ns() / 1e9
-            result = origin(*args, **kwargs)
-            after_s = time.time_ns() / 1e9
-
-            from . import PYTERMOR_DEV
-
-            if PYTERMOR_DEV and not kwargs.get("no_log", False):
-                from . import format_si, dump, logger
-
-                logger.debug(msg + f" in {format_si((after_s - before_s), 's')}")
-                logger.log(level=5, msg=dump(result, "Dump"))
-
-            return result
-
-        return update_wrapper(t.cast(F, new_func), origin)
-
-    return wrapper
-
-
 class ExtendedEnum(enum.Enum):
     @classmethod
     def list(cls):
@@ -91,11 +43,8 @@ class Align(str, ExtendedEnum):
     """
 
     LEFT = "<"
-    """ """
     RIGHT = ">"
-    """ """
     CENTER = "^"
-    """ """
 
     @classmethod
     def resolve(cls, input: str | Align | None, fallback: Align = LEFT):
@@ -151,7 +100,7 @@ class ArgTypeError(Exception):
         if fn is not None:
             signature = inspect.signature(fn)
             param_desc = signature.parameters.get(arg_name, None)
-            expected_type = '?'
+            expected_type = "?"
             if param_desc:
                 expected_type = param_desc.annotation
             actual_type = actual_type.__qualname__
@@ -173,3 +122,35 @@ class ArgCountError(Exception):
             f"Invalid arguments amount, expected one of: ({expected_str}), got: {actual}"
         )
         super().__init__(msg)
+
+
+ALIGN_LEFT = Align.LEFT
+""" Left align (add padding on the right side, if necessary). """
+ALIGN_RIGHT = Align.RIGHT
+""" Right align (add padding on the left side, if necessary). """
+ALIGN_CENTER = Align.CENTER
+""" Center align (add paddings on both sides evenly, if necessary). """
+
+
+def measure(msg: str = "Done"):
+    F = t.TypeVar("F", bound=t.Callable[..., t.Any])
+
+    def wrapper(origin: F) -> F:
+        def new_func(*args, **kwargs):
+            before_s = time.time_ns() / 1e9
+            result = origin(*args, **kwargs)
+            after_s = time.time_ns() / 1e9
+
+            from . import PYTERMOR_DEV
+
+            if PYTERMOR_DEV and not kwargs.get("no_log", False):
+                from . import format_si, dump, logger
+
+                logger.debug(msg + f" in {format_si((after_s - before_s), 's')}")
+                logger.log(level=5, msg=dump(result, "Dump"))
+
+            return result
+
+        return update_wrapper(t.cast(F, new_func), origin)
+
+    return wrapper

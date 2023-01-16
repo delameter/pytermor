@@ -39,9 +39,16 @@ extensions = [
     "sphinx.ext.extlinks",
     "sphinx.ext.viewcode",
     "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.graphviz",
     "sphinx.ext.doctest",
     "sphinx_copybutton",
     "sphinx_design",  # <<<MAKE_DOCS_MAN<<<
+    # "sphinx_toolbox.more_autodoc.regex",
+    # "sphinx_toolbox.more_autodoc.overloads",
+    # "sphinx_toolbox.more_autodoc.generic_bases",
+    # "sphinx_toolbox.more_autodoc.typehints",
+    # "sphinx_toolbox.more_autodoc.typevars",
+
 ]
 # sphinx-design breaks building docs in man format, so `make` comments that
 # line before building it and uncomments it afterwards (yeah I know it's ugly)
@@ -252,11 +259,16 @@ autoclass_content = "both"  # "class" "init"
 # autodoc_typehints = 'signature'
 autodoc_typehints = "description"
 autodoc_typehints_description_target = "documented_params"
+#autodoc_typehints_description_target = "all"
 # autodoc_inherit_docstrings =
 
 autodoc_type_aliases = {
-    "CT": "CT",
-    "RT": "RT",
+    "IColor": "pytermor.color.IColor",
+    "CT": "pytermor.color.CT",
+    "RT": "pytermor.common.RT",
+    "FT": "pytermor.common.FT",
+    "IT": "pytermor.utilstr.IT",
+    "OT": "pytermor.utilstr.OT",
 }
 
 keep_warnings = True

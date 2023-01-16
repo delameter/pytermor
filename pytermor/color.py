@@ -3,10 +3,7 @@
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-.. testsetup:: *
-
-    from pytermor.color import *
-
+Color main classes and helper functions.
 """
 from __future__ import annotations
 
@@ -16,6 +13,7 @@ import re
 import typing as t
 from abc import abstractmethod, ABC
 
+from .utilmisc import hex_to_rgb, hex_to_hsv
 from .ansi import (
     SequenceSGR,
     NOOP_SEQ,
@@ -24,7 +22,22 @@ from .ansi import (
     make_color_256,
     make_color_rgb,
 )
-from .common import LogicError, CDT
+from .common import LogicError
+
+
+CDT = t.TypeVar("CDT", int, str)
+"""
+:abbr:`CDT (Color descriptor type)` represents a RGB color value. Primary handler 
+is `resolve_color()`. Valid values include:
+
+    - *str* with a color name in any form distinguishable by the color resolver;
+      the color lists can be found at: `guide.ansi-presets` and `guide.es7s-colors`;
+    - *str* starting with a "#" and consisting of 6 more hexadecimal characters, case
+      insensitive (RGB regular form), e.g.: "#0B0CCA";
+    - *str* starting with a "#" and consisting of 3 more hexadecimal characters, case
+      insensitive (RGB short form), e.g.: "#666";
+    - *int* in a [0; 0xFFFFFF] range.
+"""
 
 CT = t.TypeVar("CT", bound="IColor")
 """ 
@@ -341,13 +354,14 @@ class Color16(IColor):
         Arguments ``register``, ``index`` and ``aliases``
         are *kwonly*-type args.
 
-    :param hex_value: Color RGB value, e.g. 0x800000.
-    :param code_fg:   Int code for a foreground color setup, e.g. 30.
-    :param code_bg:   Int code for a background color setup. e.g. 40.
-    :param name:      Name of the color, e.g. "red".
-    :param register:  If *True*, add color to registry for resolving by name.
-    :param index:     If *True*, add color to approximation index.
-    :param aliases:   Alternative color names (used in `resolve_color()`).
+    :param int hex_value:  Color RGB value, e.g. 0x800000.
+    :param int code_fg:    Int code for a foreground color setup, e.g. 30.
+    :param int code_bg:    Int code for a background color setup. e.g. 40.
+    :param str name:       Name of the color, e.g. "red".
+    :param bool register:  If *True*, add color to registry for resolving by name.
+    :param bool index:     If *True*, add color to approximation index.
+    :param list[str] aliases:
+                            Alternative color names (used in `resolve_color()`).
     """
 
     def __init__(
@@ -762,147 +776,6 @@ def approximate(
              (if any) and corresponding distance value, etc.
     """
     return (color_type or Color256).approximate(hex_value, max_results)
-
-
-def hex_to_rgb(hex_value: int) -> t.Tuple[int, int, int]:
-    """
-    Transforms ``hex_value`` in *int* format into a tuple of three
-    integers corresponding to **red**, **blue** and **green** channel value
-    respectively. Values are within [0; 255] range.
-
-        >>> hex_to_rgb(0x80ff80)
-        (128, 255, 128)
-
-    :param hex_value: RGB value.
-    :returns: R, G, B channel values correspondingly.
-    """
-    if not isinstance(hex_value, int):
-        raise TypeError(f"Argument type should be 'int', got: {type(hex_value)}")
-
-    return ((hex_value & 0xFF0000) >> 16, (hex_value & 0xFF00) >> 8, (hex_value & 0xFF))
-
-
-def rgb_to_hex(r: int, g: int, b: int) -> int:
-    """
-    Transforms RGB value in a three-integers form ([0; 255], [0; 255], [0; 255])
-    to an one-integer form.
-
-        >>> hex(rgb_to_hex(0, 128, 0))
-        '0x8000'
-
-    :param r: value of red channel.
-    :param g: value of green channel.
-    :param b: value of blue channel.
-    :return: RGB value.
-    """
-    return (r << 16) + (g << 8) + b
-
-
-def hsv_to_rgb(h: float, s: float, v: float) -> t.Tuple[int, int, int]:
-    """
-    Transforms HSV value in three-floats form (where 0 <= h < 360, 0 <= s <= 1,
-    and 0 <= v <= 1) into RGB three-integer form ([0; 255], [0; 255], [0; 255]).
-
-        >>> hsv_to_rgb(270, 2/3, 0.75)
-        (128, 64, 192)
-
-    :param h: hue channel value.
-    :param s: saturation channel value.
-    :param v: value channel value.
-    :return: R, G, B channel values correspondingly.
-    """
-    h = 0.0 if h == 360.0 else h / 60.0
-    fract = h - math.floor(h)
-
-    p = v * (1.0 - s)
-    q = v * (1.0 - s * fract)
-    t = v * (1.0 - s * (1.0 - fract))
-
-    if 0.0 <= h < 1.0:
-        r, g, b = v, t, p
-    elif 1.0 <= h < 2.0:
-        r, g, b = q, v, p
-    elif 2.0 <= h < 3.0:
-        r, g, b = p, v, t
-    elif 3.0 <= h < 4.0:
-        r, g, b = p, q, v
-    elif 4.0 <= h < 5.0:
-        r, g, b = t, p, v
-    elif 5.0 <= h < 6.0:
-        r, g, b = v, p, q
-    else:
-        r, g, b = 0, 0, 0
-
-    r, g, b = (math.ceil(255 * c) for c in (r, g, b))
-    return r, g, b
-
-
-def rgb_to_hsv(r: int, g: int, b: int) -> t.Tuple[float, float, float]:
-    """
-    Transforms RGB value in a three-integers form ([0; 255], [0; 255], [0; 255]) to an
-    HSV in three-floats form such as (0 <= h < 360, 0 <= s <= 1, and 0 <= v <= 1).
-
-        >>> rgb_to_hsv(0, 0, 255)
-        (240.0, 1.0, 1.0)
-
-    :param r: value of red channel.
-    :param g: value of green channel.
-    :param b: value of blue channel.
-    :returns: H, S, V channel values correspondingly.
-    """
-    # fmt: off
-    # https://en.wikipedia.org/wiki/HSL_and_HSV#From_RGB
-
-    rn, gn, bn = r / 255, g / 255, b / 255
-    vmax = max(rn, gn, bn)
-    vmin = min(rn, gn, bn)
-    c = vmax - vmin
-    v = vmax
-
-    h = 0
-    if c == 0:     pass
-    elif v == rn:  h = 60 * (0 + (gn - bn) / c)
-    elif v == gn:  h = 60 * (2 + (bn - rn) / c)
-    elif v == bn:  h = 60 * (4 + (rn - gn) / c)
-
-    if v == 0:     s = 0
-    else:          s = c / v
-
-    if h < 0:      h += 360
-
-    return h, s, v
-    # fmt: on
-
-
-def hex_to_hsv(hex_value: int) -> t.Tuple[float, float, float]:
-    """
-    Transforms ``hex_value`` in *int* form into a tuple of three numbers
-    corresponding to **hue**, **saturation** and **value** channel values respectively.
-    Hue is within [0, 359] range, both saturation and value are within [0; 1] range.
-
-        >>> hex_to_hsv(0x999999)
-        (0, 0.0, 0.6)
-
-    :param hex_value: RGB value.
-    :returns: H, S, V channel values correspondingly.
-    """
-    return rgb_to_hsv(*hex_to_rgb(hex_value))
-
-
-def hsv_to_hex(h: float, s: float, v: float) -> int:
-    """
-    Transforms HSV value in three-floats form (where 0 <= h < 360, 0 <= s <= 1,
-    and 0 <= v <= 1) into an one-integer form.
-
-        >>> hex(hsv_to_hex(90, 0.5, 0.5))
-        '0x608040'
-
-    :param h: hue channel value.
-    :param s: saturation channel value.
-    :param v: value channel value.
-    :return: RGB value.
-    """
-    return rgb_to_hex(*hsv_to_rgb(h, s, v))
 
 
 class ColorNameConflictError(Exception):

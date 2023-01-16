@@ -9,6 +9,7 @@
 
    .. autosummary::
    
+      CDT
       CT
       NOOP_COLOR
    
@@ -22,13 +23,7 @@
    
       approximate
       find_closest
-      hex_to_hsv
-      hex_to_rgb
-      hsv_to_hex
-      hsv_to_rgb
       resolve_color
-      rgb_to_hex
-      rgb_to_hsv
    
    
 

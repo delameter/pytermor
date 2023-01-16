@@ -6,6 +6,10 @@
 API reference
 ===================
 
+.. automodule:: pytermor
+
+.. graphviz:: _generated/module.dot
+
 .. autosummary::
    :toctree:    apidoc
 

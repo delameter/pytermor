@@ -6,6 +6,7 @@ import logging
 import unittest
 
 import pytermor
+import pytermor.utilmisc
 from pytermor.common import LogicError
 
 from pytermor import NOOP_SEQ, Style, SequenceSGR, IntCode, color, resolve_color
@@ -35,7 +36,7 @@ class TestStatic(unittest.TestCase):
         ):
             subtest_msg = f'"#{input_num:06x}" -> "{expected_output}"'
             with self.subTest(msg=subtest_msg):
-                actual_output = color.hex_to_hsv(input_num)
+                actual_output = pytermor.utilmisc.hex_to_hsv(input_num)
                 logging.debug(subtest_msg + f' => "{actual_output}"')
                 for idx in range(0, len(expected_output)):
                     self.assertAlmostEqual(
@@ -57,7 +58,7 @@ class TestStatic(unittest.TestCase):
         ):
             subtest_msg = f'"#{input_num:06x}" -> "{expected_output}"'
             with self.subTest(msg=subtest_msg):
-                actual_output = color.hex_to_rgb(input_num)
+                actual_output = pytermor.utilmisc.hex_to_rgb(input_num)
                 logging.debug(subtest_msg + f' => "{actual_output}"')
                 self.assertEqual(expected_output, actual_output)
 
@@ -75,15 +76,15 @@ class TestStatic(unittest.TestCase):
         ):
             subtest_msg = f'"{input_channels}" -> "#{expected_num:06x}"'
             with self.subTest(msg=subtest_msg):
-                actual_output = color.rgb_to_hex(*input_channels)
+                actual_output = pytermor.utilmisc.rgb_to_hex(*input_channels)
                 logging.debug(subtest_msg + f' => "{actual_output}"')
                 self.assertEqual(expected_num, actual_output)
 
     def test_hex_to_hsv_with_invalid_arg_fails(self):
-        self.assertRaises(TypeError, color.hex_to_hsv, "1")
+        self.assertRaises(TypeError, pytermor.utilmisc.hex_to_hsv, "1")
 
     def test_hex_to_rgb_with_invalid_arg_fails(self):
-        self.assertRaises(TypeError, color.hex_to_rgb, "1")
+        self.assertRaises(TypeError, pytermor.utilmisc.hex_to_rgb, "1")
 
 
 class TestColorRegistry(unittest.TestCase):

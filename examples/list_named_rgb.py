@@ -35,7 +35,7 @@ def sort_by_name(cdef: IColorRGB) -> str:
 
 def sort_by_hue(cdef: IColorRGB) -> t.Tuple[float, ...]:
     # partitioning by hue, sat and val, grayscale group first:
-    h, s, v = pt.hex_to_hsv(cdef.hex_value)
+    h, s, v = pytermor.utilmisc.hex_to_hsv(cdef.hex_value)
     result = (h // 18 if s > 0 else -v), h // 18, s * 5 // 1, v * 20 // 1
     return result
 

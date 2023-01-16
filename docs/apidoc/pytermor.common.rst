@@ -9,9 +9,9 @@
 
    .. autosummary::
    
-      CDT
-      FT
-      RT
+      ALIGN_LEFT
+      ALIGN_RIGHT
+      ALIGN_CENTER
    
    
 
