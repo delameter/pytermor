@@ -6,6 +6,22 @@
    sed -Ee '/^\s*$/d; s/^(\s*)/- /; ' | \
    less
 
+pending
+------------------
+till `b22ccc`
+
+- |REFACTOR| `distribute_padded` overloads
+- |DOCS| `utilnum` module
+- |DOCS|  `changelog` update
+- |FIX| critical `Styles` color
+- |NEW|  `echoi`, `flatten`, `flatten1` methods;  `SimpleTable` class
+- |MAINTAIN| 2023 copytight update
+- |NEW| methods `percentile` and `median` ; `render_benchmark` example
+- |REFACTOR|  `IRenderable` rewrite
+- |FIX| `NumHighlighter`
+- |REFACTOR| moved color transformations and type vars from `_commons`
+
+
 v2.32-dev
 ------------------
 :date:`Jan 23`
