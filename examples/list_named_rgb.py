@@ -9,6 +9,7 @@ from __future__ import annotations
 import abc
 import os.path
 import shutil
+import sys
 import typing as t
 from abc import abstractmethod
 from os.path import abspath, join, dirname
@@ -16,17 +17,19 @@ from os.path import abspath, join, dirname
 import yaml
 
 
-# logger = logging.getLogger('pytermor')
-# handler = logging.StreamHandler(sys.stderr)
-# formatter = logging.Formatter('[%(levelname)5.5s][%(name)s][%(module)s] %(message)s')
-# handler.setFormatter(formatter)
-# logger.addHandler(handler)
-# logger.setLevel('DEBUG')
-
 import pytermor as pt
 import pytermor.utilstr
 import pytermor.utilmisc
 from pytermor import Text
+
+import logging
+logger = logging.getLogger('pytermor')
+handler = logging.StreamHandler(sys.stderr)
+formatter = logging.Formatter('[%(levelname)5.5s][%(name)s][%(module)s] %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(pt.common.LOGGING_TRACE)
+
 
 
 def sort_by_name(cdef: IColorRGB) -> str:

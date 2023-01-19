@@ -1,7 +1,5 @@
 .. _guide.high-level:
 
-.. currentmodule:: pytermor
-
 ==========================
 High-level API
 ==========================

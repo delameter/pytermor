@@ -10,6 +10,7 @@ AA
 import os
 
 from ._version import __version__ as __version__
+from .config import init_config as init_config
 from .common import logger as logger
 
 # exceptions
@@ -62,6 +63,7 @@ from .style import Style as Style
 from .style import Styles as Styles
 from .style import make_style as make_style
 from .style import merge_styles as merge_styles
+from .renderer import init_renderer as init_renderer
 from .renderer import HtmlRenderer as HtmlRenderer
 from .renderer import RendererManager as RendererManager
 from .renderer import SgrRenderer as SgrRenderer
@@ -133,7 +135,12 @@ from .utilstr import apply_filters as apply_filters
 from .utilstr import dump as dump
 
 # -----------------------------------------------------------------------------
-PYTERMOR_DEV = os.environ.get("PYTERMOR_DEV", False)
 
 cv = CVAL()
-""" cv """
+""" 
+cv
+:noindex: 
+"""
+
+init_config()
+init_renderer()

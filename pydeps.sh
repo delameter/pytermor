@@ -24,11 +24,13 @@ run --rmprefix ${PROJECT_NAME}. \
 run --rmprefix ${PROJECT_NAME}. \
     --start-color 120 \
     --only ${PROJECT_NAME} \
+     --no-show \
     -o ${DEPENDS_PATH}/structure.svg
 
 run --rmprefix ${PROJECT_NAME}. \
     --start-color 120 \
     --show-cycle \
+     --no-show \
     -o ${DEPENDS_PATH}/cycles.svg
 
 run --start-color 0 \
@@ -36,6 +38,7 @@ run --start-color 0 \
     --max-mod 0 \
     --max-cluster 100 \
     --keep \
+     --no-show \
     -o ${DEPENDS_PATH}/imports-deep.svg
 
 #run --start-color 0 \

@@ -26,12 +26,14 @@
       hex_to_rgb
       hsv_to_hex
       hsv_to_rgb
+      measure
       measure_char_width
       median
       percentile
       rgb_to_hex
       rgb_to_hsv
       total_size
+      trace
       wait_key
    
    

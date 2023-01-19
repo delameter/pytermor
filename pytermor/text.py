@@ -18,10 +18,12 @@ from collections import deque
 from typing import overload
 
 from .color import IColor
-from .common import LogicError, Align, ArgTypeError, logger, measure
+from .common import LogicError, Align, ArgTypeError, logger
+from .config import get_config
 from .renderer import IRenderer, RendererManager
 from .style import Style, make_style, NOOP_STYLE, FT
-from .utilmisc import get_terminal_width, flatten1, get_preferable_wrap_width
+from .utilmisc import get_terminal_width, flatten1, get_preferable_wrap_width, trace, \
+    measure
 from .utilstr import wrap_sgr, pad
 
 
@@ -667,7 +669,8 @@ class TemplateEngine:
 
 _template_engine = TemplateEngine()
 
-@measure(msg="Rendering")
+@trace(enabled=get_config().trace_renders)
+@measure(template="Rendered in %s")
 def render(
     string: RT | t.Iterable[RT] = "",
     fmt: FT = NOOP_STYLE,
@@ -748,7 +751,6 @@ def echo(
         result = wrap_sgr(result, width, indent_first, indent_subseq).rstrip("\n")
 
     print(result, end=end, file=file, flush=flush)
-
 
 def echoi(
     string: RT | t.Iterable[RT] = "",

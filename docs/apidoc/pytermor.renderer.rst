@@ -9,6 +9,12 @@
 
    
    
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      init_renderer
+   
    
 
    

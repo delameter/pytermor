@@ -5,6 +5,24 @@
 
    
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      ESCAPE_SEQ_REGEX
+      SGR_SEQ_REGEX
+      CSI_SEQ_REGEX
+      CONTROL_CHARS
+      WHITESPACE_CHARS
+      PRINTABLE_CHARS
+      NON_ASCII_CHARS
+      IT
+      OT
+      PT
+      RT
+      MT
+      AT
+   
    
 
    

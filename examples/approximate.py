@@ -10,9 +10,16 @@ import random
 import sys
 import typing
 
-
 import pytermor as pt
 import pytermor.utilmisc
+import logging
+#logger = logging.getLogger('pytermor')
+#handler = logging.StreamHandler(sys.stderr)
+#formatter = logging.Formatter('[%(levelname)5.5s][%(name)s][%(module)s] %(message)s')
+#handler.setFormatter(formatter)
+#handler.setLevel(pt.common.LOGGING_TRACE)
+#logger.addHandler(handler)
+#logger.setLevel(pt.common.LOGGING_TRACE)
 
 
 class Main:

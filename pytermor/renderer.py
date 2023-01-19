@@ -18,6 +18,7 @@ from hashlib import md5
 from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose
 from .color import IColor, Color16, Color256, ColorRGB, NOOP_COLOR
 from .common import logger
+from .config import get_config
 from .style import Style, NOOP_STYLE, Styles, make_style, FT
 from .utilmisc import get_qname
 from .utilstr import SgrStringReplacer
@@ -55,14 +56,8 @@ class RendererManager:
 
     .. rubric :: TL;DR
 
-    To unconditionally print formatted message to standard output, do something like
-    this:
-
-        >>> from pytermor import render, RendererManager, Styles
-        >>> RendererManager.set_default_format_always()
-        >>> render('Warning: AAAA', Styles.WARNING)
-        '\x1b[33mWarning: AAAA\x1b[39m'
-
+    To unconditionally print formatted message to standard output, use
+    `RendererManager.set_default_format_always()` and then `render()`.
     """
 
     _default: IRenderer = None
@@ -72,10 +67,6 @@ class RendererManager:
         # noinspection PyUnresolvedReferences
         """
         Select a global renderer.
-
-            >>> RendererManager.set_default(SgrRendererDebugger(OutputMode.XTERM_16))
-            >>> render('text', Style(fg='red'))
-            '(ǝ[31m)text(ǝ[39m)'
 
         :param renderer:
             Default renderer to use globally. Calling this method without arguments
@@ -90,7 +81,16 @@ class RendererManager:
         """
         if isinstance(renderer, type):
             renderer = renderer()
-        cls._default = renderer or SgrRenderer()
+        if renderer is not None:
+            cls._default = renderer
+            return
+
+        renderer_class: t.Type = getattr(__import__(__package__), get_config().renderer_class)
+        output_mode = OutputMode[get_config().output_mode]
+        if issubclass(renderer_class, SgrRenderer):
+            cls._default = renderer_class(output_mode)
+        else:
+            cls._default = renderer_class()
 
     @classmethod
     def get_default(cls) -> IRenderer:
@@ -216,7 +216,8 @@ class SgrRenderer(IRenderer):
     instances in ``style`` argument and current output mode of the renderer.
 
     1. `ColorRGB` can be rendered as True Color sequence, 256-color sequence
-       or 16-color sequence depending on specified `OutputMode`.
+       or 16-color sequence depending on specified `OutputMode` and config
+       variable `Config.prefer_rgb`.
     2. `Color256` can be rendered as 256-color sequence or 16-color
        sequence.
     3. `Color16` will be rendered as 16-color sequence.
@@ -654,4 +655,5 @@ class SgrRendererDebugger(SgrRenderer):
         self._format_override = False
 
 
-RendererManager.set_default()
+def init_renderer():
+    RendererManager.set_default()

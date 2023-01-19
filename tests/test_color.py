@@ -5,10 +5,11 @@
 import logging
 import unittest
 
-import pytermor
-import pytermor.utilmisc
-from pytermor.common import LogicError
+import pytest
 
+import pytermor
+import pytermor.config
+import pytermor.utilmisc
 from pytermor import NOOP_SEQ, Style, SequenceSGR, IntCode, color, resolve_color
 from pytermor.color import (
     NOOP_COLOR,
@@ -18,6 +19,7 @@ from pytermor.color import (
     ColorNameConflictError,
     ColorCodeConflictError,
 )
+from pytermor.common import LogicError
 
 
 class TestStatic(unittest.TestCase):
@@ -289,71 +291,79 @@ class TestColor16(unittest.TestCase):
         self.assertEqual(0, b)
 
 
-class TestColor256(unittest.TestCase):
+class TestColor256:
     def test_get_code(self):
         col = Color256(0xF00000, 257)
-        self.assertEqual(257, col.code)
+        assert 257 == col.code
 
     def test_to_sgr_without_upper_bound_results_in_sgr_256(self):
         col = Color256(0xFFCC01, 1)
-        self.assertEqual(SequenceSGR(38, 5, 1), col.to_sgr(False))
-        self.assertEqual(SequenceSGR(48, 5, 1), col.to_sgr(True))
+        assert SequenceSGR(38, 5, 1) == col.to_sgr(False)
+        assert SequenceSGR(48, 5, 1) == col.to_sgr(True)
 
     def test_to_sgr_with_rgb_upper_bound_results_in_sgr_256(self):
         col = Color256(0xFFCC01, 1)
+        expected_sgr_fg = SequenceSGR(38, 5, 1)
+        expected_sgr_bg = SequenceSGR(48, 5, 1)
+        assert expected_sgr_fg == col.to_sgr(False, upper_bound=ColorRGB)
+        assert expected_sgr_bg == col.to_sgr(True, upper_bound=ColorRGB)
+
+    @pytest.mark.setup(prefer_rgb=True)
+    def test_to_sgr_with_rgb_upper_bound_results_in_sgr_rgb_if_preferred(self):
+        col = Color256(0xFFCC01, 1)
         expected_sgr_fg = SequenceSGR(38, 2, 255, 204, 1)
         expected_sgr_bg = SequenceSGR(48, 2, 255, 204, 1)
-        self.assertEqual(expected_sgr_fg, col.to_sgr(False, upper_bound=ColorRGB))
-        self.assertEqual(expected_sgr_bg, col.to_sgr(True, upper_bound=ColorRGB))
+        assert col.to_sgr(False, upper_bound=ColorRGB) == expected_sgr_fg
+        assert col.to_sgr(True, upper_bound=ColorRGB) == expected_sgr_bg
 
     def test_to_sgr_with_256_upper_bound_results_in_sgr_256(self):
         col = Color256(0xFFCC01, 1)
-        self.assertEqual(SequenceSGR(38, 5, 1), col.to_sgr(False, upper_bound=Color256))
-        self.assertEqual(SequenceSGR(48, 5, 1), col.to_sgr(True, upper_bound=Color256))
+        assert SequenceSGR(38, 5, 1) == col.to_sgr(False, upper_bound=Color256)
+        assert SequenceSGR(48, 5, 1) == col.to_sgr(True, upper_bound=Color256)
 
     def test_to_sgr_with_16_upper_bound_results_in_sgr_16(self):
         col = Color256(0xFFCC01, 1)
-        self.assertEqual(SequenceSGR(93), col.to_sgr(False, upper_bound=Color16))
-        self.assertEqual(SequenceSGR(103), col.to_sgr(True, upper_bound=Color16))
+        assert SequenceSGR(93) == col.to_sgr(False, upper_bound=Color16)
+        assert SequenceSGR(103) == col.to_sgr(True, upper_bound=Color16)
 
     def test_to_sgr_with_16_upper_bound_results_in_sgr_16_equiv(self):
         col16 = Color16(0xFFCC00, 132, 142, index=True)
         col = Color256(0xFFCC01, 1, color16_equiv=col16)
-        self.assertEqual(col16.to_sgr(False), col.to_sgr(False, upper_bound=Color16))
-        self.assertEqual(col16.to_sgr(True), col.to_sgr(True, upper_bound=Color16))
+        assert col16.to_sgr(False) == col.to_sgr(False, upper_bound=Color16)
+        assert col16.to_sgr(True) == col.to_sgr(True, upper_bound=Color16)
 
     def test_to_tmux(self):
         col = Color256(0xFF00FF, 258)
-        self.assertEqual("colour258", col.to_tmux(False))
-        self.assertEqual("colour258", col.to_tmux(True))
+        assert "colour258" == col.to_tmux(False)
+        assert "colour258" == col.to_tmux(True)
 
     def test_format_value(self):
-        self.assertEqual("0xFF00FF", Color256(0xFF00FF, 259).format_value())
-        self.assertEqual("#FF00FF", Color256(0xFF00FF, 260).format_value("#"))
+        assert "0xFF00FF" == Color256(0xFF00FF, 259).format_value()
+        assert "#FF00FF" == Color256(0xFF00FF, 260).format_value("#")
 
     def test_equality(self):
-        self.assertTrue(Color256(0x010203, 11) == Color256(0x010203, 11))
+        assert Color256(0x010203, 11) == Color256(0x010203, 11)
 
     def test_not_equality(self):
-        self.assertFalse(Color256(0x010203, 11) == Color256(0x010203, 12))
-        self.assertFalse(Color256(0x010203, 11) == Color256(0x030201, 11))
-        self.assertFalse(Color256(0x010203, 11) == Color256(0xFFEE14, 88))
-        self.assertFalse(Color256(0x010203, 11) == Color16(0x010203, 11, 11))
-        self.assertFalse(Color256(0x010203, 11) == ColorRGB(0x010203))
+        assert Color256(0x010203, 11) != Color256(0x010203, 12)
+        assert Color256(0x010203, 11) != Color256(0x030201, 11)
+        assert Color256(0x010203, 11) != Color256(0xFFEE14, 88)
+        assert Color256(0x010203, 11) != Color16(0x010203, 11, 11)
+        assert Color256(0x010203, 11) != ColorRGB(0x010203)
 
     def test_to_hsv(self):
         col = Color256(0x808000, code=256)
         h, s, v = col.to_hsv()
-        self.assertAlmostEqual(60, h)
-        self.assertAlmostEqual(1, s)
-        self.assertAlmostEqual(0.50, v, delta=0.01)
+        assert 60 == pytest.approx(h)
+        assert 1 == pytest.approx(s)
+        assert 0.50 == pytest.approx(v, rel=0.01)
 
     def test_to_rgb(self):
         col = Color256(0x808000, code=256)
         r, g, b = col.to_rgb()
-        self.assertEqual(128, r)
-        self.assertEqual(128, g)
-        self.assertEqual(0, b)
+        assert 128 == pytest.approx(r)
+        assert 128 == pytest.approx(g)
+        assert 0 == pytest.approx(b)
 
 
 class TestColorRGB(unittest.TestCase):

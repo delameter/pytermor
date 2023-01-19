@@ -1,14 +1,15 @@
 .. _apidoc:
 
-.. currentmodule:: pytermor
-
 ===================
 API reference
 ===================
 
 .. automodule:: pytermor
 
-.. graphviz:: _generated/module.dot
+.. only:: latex
+
+   .. graphviz:: _generated/module.dot
+
 
 .. autosummary::
    :toctree:    apidoc
@@ -16,6 +17,7 @@ API reference
    ansi
    color
    common
+   config
    cval
    renderer
    style
@@ -23,3 +25,8 @@ API reference
    utilmisc
    utilnum
    utilstr
+
+
+.. only:: html
+
+   .. graphviz:: _generated/module.dot

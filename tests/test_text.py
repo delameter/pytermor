@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 import typing as t
-import unittest
 
 import pytest
 
@@ -33,11 +32,8 @@ def print_test_formatting_args(val) -> str | None:
     return None
 
 
-class TestText(unittest.TestCase):
-    @classmethod
-    def setup_class(cls) -> None:
-        pt.RendererManager.set_default_format_always()
-
+@pytest.mark.setup(output_mode='TRUE_COLOR')
+class TestText:
     def test_style_applying_works(self):
         assert Text("123", Style(fg="red")).render() == "\x1b[31m" "123" "\x1b[39m"
 
@@ -331,7 +327,6 @@ class TestSimpleTable:
     def test_cell_types_accepted(self, cell: pytermor.text.RT):
         self.table.add_row(cell)
         assert self.table.row_count == 1
-
 
 
 class TestMisc:

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 import random
+import sys
 import time
 import typing as t
 
@@ -18,7 +19,7 @@ from pytermor.utilmisc import percentile
 
 
 class RenderBemchmarker:
-    NUM = 16000
+    NUM = 1600
     STEPS = 16
     STEPN = NUM // STEPS
     PREVIEW = 64
@@ -83,7 +84,7 @@ class RenderBemchmarker:
         avg: bool = True,
         add_st: pytermor.style.FT = NOOP_STYLE,
     ):
-        self._echo_meter(f"{label} total ", add_st, times_sum, 2)
+        self._echo_meter(f"{label} ", add_st, times_sum, 2)
         if not avg:
             return
 
@@ -94,14 +95,14 @@ class RenderBemchmarker:
             exact_time_p50 = percentile(times, 0.50)
             exact_time_p99 = percentile(times, 0.99)
 
-        self._echo_meter("p50 ", add_st, exact_time_p50, 2)
-        self._echo_meter("p99 ", add_st, exact_time_p99, 2)
+        self._echo_meter("p501 ", add_st, exact_time_p50, 0)
+        self._echo_meter("p991 ", add_st, exact_time_p99, 0)
 
     def _echo_meter(self, label: str, add_st: pytermor.style.FT, val: float, pad: int):
         fmted = self.fmter.format(val, color_ov=not add_st)
         if not val:
             fmted = "--".center(self.fmter.get_max_len())
-        pt.echoi(label + fmted + pt.pad(pad), add_st)
+        pt.echoi(label + fmted + pt.pad(pad), fmt=add_st)
 
     @staticmethod
     def _render_wrapper(origin: t.Callable):
@@ -195,9 +196,9 @@ class RenderBemchmarker:
 
 
 if __name__ == "__main__":
-    lf = logging.getLogger("pytermor")
-    # lf.addHandler(logging.StreamHandler(sys.stderr))
-    # lf.addHandler(logging.FileHandler('/tmp/pt.log'))
-    # lf.setLevel(logging.DEBUG)
+#    lf = logging.getLogger("pytermor")
+#    lf.addHandler(logging.StreamHandler(sys.stderr))
+#    lf.addHandler(logging.FileHandler('/tmp/pt.log'))
+#    lf.setLevel(logging.DEBUG)
 
     RenderBemchmarker().run()

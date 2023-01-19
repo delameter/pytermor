@@ -1,7 +1,5 @@
 .. _guide.low-level:
 
-.. currentmodule:: pytermor
-
 ==========================
 Low-level API
 ==========================

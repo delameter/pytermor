@@ -17,12 +17,6 @@
 
    
    
-   .. rubric:: Functions
-
-   .. autosummary::
-   
-      measure
-   
    
 
    

@@ -15,4 +15,5 @@ Guide
    low-level
    ansi-presets
    xterm-color-palette
+   configuration
    guidelines

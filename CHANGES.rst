@@ -6,9 +6,8 @@
    sed -Ee '/^\s*$/d; s/^(\s*)/- /; ' | \
    less
 
-pending
+pending (v2.37-dev)
 ------------------
-till `b22ccc`
 
 - |REFACTOR| `distribute_padded` overloads
 - |DOCS| `utilnum` module
@@ -20,7 +19,7 @@ till `b22ccc`
 - |REFACTOR|  `IRenderable` rewrite
 - |FIX| `NumHighlighter`
 - |REFACTOR| moved color transformations and type vars from `_commons`
-
+- |NEW| `Config` class
 
 v2.32-dev
 ------------------

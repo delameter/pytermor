@@ -9,22 +9,24 @@ from __future__ import annotations
 
 import enum
 import inspect
-import time
 import typing as t
 import logging
-from functools import update_wrapper
+
+F = t.TypeVar("F", bound=t.Callable[..., t.Any])
+
+LOGGING_TRACE = 5
 
 logger = logging.getLogger(__package__)
 logger.addHandler(logging.NullHandler())
 
-### catching library logs "from the outside":
-# logger = logging.getLogger('pytermor')
-# handler = logging.StreamHandler()
-# fmt = '[%(levelname)5.5s][%(name)s.%(module)s] %(message)s'
-# handler.setFormatter(logging.Formatter(fmt))
-# logger.addHandler(handler)
-# logger.setLevel(logging.WARNING)
-########
+# _ catching library logs "from the outside" _______________________
+#    logger = logging.getLogger('pytermor')
+#    handler = logging.StreamHandler()
+#    fmt = '[%(levelname)5.5s][%(name)s.%(module)s] %(message)s'
+#    handler.setFormatter(logging.Formatter(fmt))
+#    logger.addHandler(handler)
+#    logger.setLevel(logging.WARNING)
+# __________________________________________________________________
 
 
 class ExtendedEnum(enum.Enum):
@@ -131,26 +133,3 @@ ALIGN_RIGHT = Align.RIGHT
 ALIGN_CENTER = Align.CENTER
 """ Center align (add paddings on both sides evenly, if necessary). """
 
-
-def measure(msg: str = "Done"):
-    F = t.TypeVar("F", bound=t.Callable[..., t.Any])
-
-    def wrapper(origin: F) -> F:
-        def new_func(*args, **kwargs):
-            before_s = time.time_ns() / 1e9
-            result = origin(*args, **kwargs)
-            after_s = time.time_ns() / 1e9
-
-            from . import PYTERMOR_DEV
-
-            if PYTERMOR_DEV and not kwargs.get("no_log", False):
-                from . import format_si, dump, logger
-
-                logger.debug(msg + f" in {format_si((after_s - before_s), 's')}")
-                logger.log(level=5, msg=dump(result, "Dump"))
-
-            return result
-
-        return update_wrapper(t.cast(F, new_func), origin)
-
-    return wrapper

@@ -1,5 +1,5 @@
 ## pytermor             ## ANSI formatted terminal output toolset
-## (c) 2022-2023        ## A. Shavykin <0.delameter@gmail.com>
+## (c) 2022-2023        ## A. Shavykin <<0.delameter@gmail.com>>
 ##----------------------##-------------------------------------------------------------
 .ONESHELL:
 .PHONY: help test docs
@@ -107,17 +107,20 @@ set-version: ## Set new package version
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
 
 test: ## Run pytest
-	${VENV_PATH}/bin/pytest --tb=no
+	${VENV_PATH}/bin/pytest --quiet --tb=no
 
 test-verbose: ## Run pytest with detailed output
-	${VENV_PATH}/bin/pytest -v --exitfirst --failed-first
+	${VENV_PATH}/bin/pytest -v --failed-first
 
-test-debug: ## Run pytest with VERY detailed output
-	${VENV_PATH}/bin/pytest -v --exitfirst --failed-first --log-cli-level=DEBUG
+test-trace: ## Run pytest with detailed output  <@last_test_trace.log>
+	PYTERMOR_TRACE_RENDERS=1 ${VENV_PATH}/bin/pytest -v \
+		--failed-first \
+		--log-file-level=1 \
+		--log-file=last_test_trace.log
 
 coverage: ## Run coverage and make a report
 	rm -v coverage-report/*
-	${VENV_PATH}/bin/coverage run -m pytest -vv
+	${VENV_PATH}/bin/coverage run -m pytest -q
 	${VENV_PATH}/bin/coverage report
 	${VENV_PATH}/bin/coverage html
 	if [ -d ${LOCALHOST_WRITE_PATH} ] ; then \
@@ -149,7 +152,7 @@ open-docs-html:  ## Open HTML docs in browser
 	if [ -d localhost ] ; then xdg-open ${LOCALHOST_URL}/docs ; else xdg-open ${DOCS_IN_PATH}/_build/index.html ; fi
 
 docs: ## (Re)build HTML documentation  <no cache>
-docs: demolish-docs docs-html
+docs: depends demolish-docs docs-html
 
 docs-html: ## Build HTML documentation  <caching allowed>
 	mkdir -p docs-build
@@ -180,7 +183,7 @@ docs-man: ## Build man pages  <caching allowed>
 	if command -v maf &>/dev/null; then maf ${DOCS_OUT_PATH}/${PROJECT_NAME}.1; else man ${DOCS_OUT_PATH}/${PROJECT_NAME}.1; fi
 
 docs-all: ## (Re)build documentation in all formats  <no cache>
-docs-all: demolish-docs docs docs-pdf docs-man
+docs-all: depends demolish-docs docs docs-pdf docs-man
 	@echo
 	@$(call log_success,$$(du -h ${DOCS_OUT_PATH}/*)) | sed -E '1s/^(..).{7}/\1SUMMARY/'
 

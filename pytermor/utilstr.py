@@ -165,33 +165,35 @@ ESCAPE_SEQ_REGEX = re.compile(
 """,
     flags=re.VERBOSE,
 )
+""" s """
 # https://ecma-international.org/wp-content/uploads/ECMA-35_6th_edition_december_1994.pdf
 
 SGR_SEQ_REGEX = re.compile(r"(\x1b)(\[)([0-9;]*)(m)")
+""" s """
 CSI_SEQ_REGEX = re.compile(r"(\x1b)(\[)(([0-9;:<=>?])*)([@A-Za-z])")
+""" :dfn:`sssss` """
 
 CONTROL_CHARS = [*range(0x00, 0x08 + 1), *range(0x0E, 0x1F + 1), 0x7F]
+""" s """
 WHITESPACE_CHARS = [*range(0x09, 0x0D + 1), 0x20]
+""" s """
 PRINTABLE_CHARS = [*range(0x21, 0x7E + 1)]
+""" s """
 NON_ASCII_CHARS = [*range(0x80, 0xFF + 1)]
+""" s """
 
-ALIGN_FUNCS_SGR = {
-    ALIGN_LEFT: ljust_sgr,
-    ALIGN_CENTER: center_sgr,
-    ALIGN_RIGHT: rjust_sgr,
-}
-ALIGN_FUNCS_RAW = {
-    ALIGN_LEFT: str.ljust,
-    ALIGN_CENTER: str.center,
-    ALIGN_RIGHT: str.rjust,
-}
-
-IT = t.TypeVar("IT", str, bytes)  # input-type
-OT = t.TypeVar("OT", str, bytes)  # output-type
-PT = Union[IT, t.Pattern[IT]]  # pattern type
-RT = Union[OT, t.Callable[[t.Match[OT]], OT]]  # replacer type
-MT = t.Dict[int, IT]  # map
+IT = t.TypeVar("IT", str, bytes)
+""" input-type """
+OT = t.TypeVar("OT", str, bytes)
+"""output-type"""
+PT = Union[IT, t.Pattern[IT]]
+""" pattern type """
+RT = Union[OT, t.Callable[[t.Match[OT]], OT]]
+""" replacer type """
+MT = t.Dict[int, IT]
+""" # map """
 AT = Union["OmniFilter", t.Type["OmniFilter"]]
+""" """
 
 _dump_printers_cache: t.Dict[t.Type["AbstractTracer"], "AbstractTracer"] = dict()
 
@@ -241,16 +243,39 @@ class OmniEncoder(IFilter[IT, bytes]):
 
 
 class StringAligner(IFilter[str, str]):
-    def __init__(self, align: Align):
-        self._align = align
+    """
+    .. note ::
+        ``sgr_aware`` is *kwonly*-type arg.
 
-    def apply(self, inp: str, raw_mode: bool = False) -> str:
-        pass
+    :param align:
+    :param width:
+    :param sgr_aware:
+    """
 
-    def _get_align_fn(self, raw_mode: bool = False):
-        if raw_mode:
-            return ALIGN_FUNCS_RAW.get(self._align)
-        return ALIGN_FUNCS_SGR.get(self._align)
+    ALIGN_FUNCS_SGR: t.Dict[Align, t.Callable[[str, int], str]] = {
+        ALIGN_LEFT: ljust_sgr,
+        ALIGN_CENTER: center_sgr,
+        ALIGN_RIGHT: rjust_sgr,
+    }
+    ALIGN_FUNCS_RAW: t.Dict[Align, t.Callable[[str, int], str]] = {
+        ALIGN_LEFT: lambda inp, w: inp.ljust(w),
+        ALIGN_CENTER: lambda inp, w: inp.center(w),
+        ALIGN_RIGHT: lambda inp, w: inp.rjust(w),
+    }
+
+    def __init__(self, align: Align, width: int, *, sgr_aware: bool = True):
+        self._align_fn = self._get_align_fn(align, sgr_aware)
+        self._width = width
+
+    def apply(self, inp: str, extra: t.Any = None) -> str:
+        return self._align_fn(inp, self._width)
+
+    def _get_align_fn(
+        self, align: Align, sgr_aware: bool
+    ) -> t.Callable[[str, int], str]:
+        if sgr_aware:
+            return self.ALIGN_FUNCS_SGR.get(align)
+        return self.ALIGN_FUNCS_SGR.get(align)
 
 
 # -----------------------------------------------------------------------------
@@ -263,7 +288,7 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
         self._state: _TracerState = _TracerState()
 
     def apply(self, inp: IT, extra: TracerExtra = None) -> str:
-        if len(inp) == 0:
+        if not inp or len(inp) == 0:
             return "\n"
 
         self._state.reset(inp)

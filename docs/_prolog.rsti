@@ -1,0 +1,42 @@
+.. currentmodule:: pytermor
+
+.. role:: mono
+    :class: entity
+
+.. role:: strike
+    :class: strike
+
+.. role:: date
+    :class: date
+
+.. default-role:: any
+.. include:: <isonum.txt>
+
+.. |nbspt| unicode:: 0xA0
+   :trim:
+
+.. role:: badge
+    :class: badge
+
+.. role:: badge-new
+    :class: hidden, badge, badge-new
+
+.. role:: badge-fix
+    :class: hidden, badge, badge-fix
+
+.. role:: badge-doc
+    :class: hidden, badge, badge-doc
+
+.. role:: badge-test
+    :class: hidden, badge, badge-test
+
+.. role:: badge-refactor
+    :class: hidden, badge, badge-refactor
+
+.. |[]| replace:: :badge:`\ `
+.. |NEW| replace:: :badge-new:`[NEW]`
+.. |FIX| replace:: :badge-fix:`[FIX]`
+.. |DOCS| replace:: :badge-doc:`[DOCS]`
+.. |TESTS| replace:: :badge-test:`[TESTS]`
+.. |REFACTOR| replace:: :badge-refactor:`[REFACTOR]`
+.. |MAINTAIN| replace:: :badge:`\ `

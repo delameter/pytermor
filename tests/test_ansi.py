@@ -2,8 +2,9 @@
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
-import logging
 import unittest
+
+import pytest
 
 from pytermor.ansi import (
     SequenceSGR,
@@ -135,9 +136,10 @@ class TestSequenceOSC(unittest.TestCase):
         self.assertIn("label", s)
 
 
-class TestSgrRegistry(unittest.TestCase):
-    def test_closing_seq(self):
-        for opening_seq, expected_closing_seq in [
+class TestSgrRegistry:
+    @pytest.mark.parametrize(
+        "opening,expected_closing",
+        [
             (NOOP_SEQ, NOOP_SEQ),
             (SeqIndex.WHITE, SeqIndex.COLOR_OFF),
             (SeqIndex.BG_HI_GREEN, SeqIndex.BG_COLOR_OFF),
@@ -149,12 +151,7 @@ class TestSgrRegistry(unittest.TestCase):
             (make_color_rgb(128, 0, 128, False), SeqIndex.COLOR_OFF),
             (make_color_rgb(128, 0, 128, True), SeqIndex.BG_COLOR_OFF),
             (make_erase_in_line(), NOOP_SEQ),
-        ]:
-            subtest_msg = f'"{opening_seq}" -> "{expected_closing_seq}"'
-            with self.subTest(msg=subtest_msg, opening_seq=opening_seq):
-                actual_output = _sgr_pairity_registry.get_closing_seq(opening_seq)
-                logging.debug(subtest_msg + f' => "{actual_output}"')
-                self.assertEqual(
-                    expected_closing_seq,
-                    _sgr_pairity_registry.get_closing_seq(opening_seq),
-                )
+        ],
+    )
+    def test_closing_seq(self, opening: SequenceSGR, expected_closing: SequenceSGR):
+        assert _sgr_pairity_registry.get_closing_seq(opening) == expected_closing

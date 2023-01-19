@@ -188,7 +188,7 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
 
 class NumHighlighter:
     # fmt: off
-    PREFIX_UNIT_REGEX = re.compile(
+    _PREFIX_UNIT_REGEX = re.compile(
         r"""
         (?: ^ | (?<!\x1b\[)(?<=[]()\s\[-])\b )
         (?P<intp>\d+)
@@ -220,7 +220,7 @@ class NumHighlighter:
     STYLE_MON = Style(STYLE_DEFAULT, fg=cv.HI_YELLOW, bold=True)  # |    |                     month
     STYLE_PET = Style(STYLE_DEFAULT, fg=cv.RED, bold=True)        # | 15 | Peta-               year
 
-    PREFIX_MAP = {
+    _PREFIX_MAP = {
         '%': STYLE_PRC,
         'K': STYLE_KIL, 'k': STYLE_KIL, 'm': STYLE_KIL,
         'M': STYLE_MEG, 'μ': STYLE_MEG, 'µ': STYLE_MEG,
@@ -228,7 +228,7 @@ class NumHighlighter:
         'T': STYLE_TER, 'p': STYLE_TER,
         'P': STYLE_PET,
     }
-    TIME_UNIT_MAP = {
+    _TIME_UNIT_MAP = {
         '%': STYLE_PRC,
         's': STYLE_PRC, 'sec': STYLE_PRC, 'second': STYLE_PRC,
         'm': STYLE_KIL, 'min': STYLE_KIL, 'minute': STYLE_KIL,
@@ -242,19 +242,17 @@ class NumHighlighter:
 
     @classmethod
     def get_prefix_style(cls, prefix: str) -> Style:
-        return cls.PREFIX_MAP.get(prefix, cls.STYLE_DEFAULT)
+        return cls._PREFIX_MAP.get(prefix, cls.STYLE_DEFAULT)
 
     @classmethod
     def get_time_unit_style(cls, time_unit: str) -> Style:
-        if len(time_unit) > 1:
-            time_unit = time_unit.removesuffix("s")
-        return cls.TIME_UNIT_MAP.get(time_unit, cls.STYLE_DEFAULT)
+        return cls._TIME_UNIT_MAP.get(time_unit, cls.STYLE_DEFAULT)
 
     @classmethod
     def format(cls, string: str) -> Text:
         cursor = 0
         result = Text()
-        for m in cls.PREFIX_UNIT_REGEX.finditer(string):
+        for m in cls._PREFIX_UNIT_REGEX.finditer(string):
             result += string[cursor : m.start()]
             result.append(*cls.colorize(**m.groupdict("")))
             cursor = m.end()
@@ -262,18 +260,16 @@ class NumHighlighter:
         return result
 
     @classmethod
-    def colorize(
-        cls, intp: str, frac: str, sep: str, prefix: str, unit: str
-    ) -> t.List[Fragment]:
-        unit_norm = unit.rstrip("s").strip()
+    def colorize(cls, intp: str, frac: str, sep: str, prefix: str, unit: str) -> t.List[Fragment]:
+        unit_norm = re.sub(r"^\s*(.)+s?\s*$", r"\1", unit)   # @TODO test this
         int_st = cls.STYLE_DEFAULT
         if prefix:
-            int_st = cls.PREFIX_MAP.get(prefix, cls.STYLE_DEFAULT)
+            int_st = cls.get_prefix_style(prefix)
         elif unit_norm:
-            int_st = cls.TIME_UNIT_MAP.get(unit_norm, cls.STYLE_DEFAULT)
+            int_st = cls.get_time_unit_style(unit_norm)
 
         digits = intp + frac[1:]
-        if digits.count("0") == len(digits):
+        if set(digits) == {'0'}:
             int_st = cls.STYLE_NUL
 
         frac_st = Style(int_st, dim=True)
@@ -716,45 +712,6 @@ def format_si_binary(val: float, unit: str = None, color: bool = False) -> RT:
 # -----------------------------------------------------------------------------
 
 
-def format_time_delta(val_sec: float, max_len: int = None, color_ov: bool = None) -> RT:
-    """
-    Format time delta using suitable format (which depends on
-    ``max_len`` argument). Key feature of this formatter is
-    ability to combine two units and display them simultaneously,
-    e.g. return "3h 48min" instead of "228 mins" or "3 hours",
-
-    There are predefined formatters with output length of **3, 4,
-    6** and **10** characters. Therefore, you can pass in any value
-    from 3 inclusive and it's guarenteed that result's length
-    will be less or equal to required length. If `max_len` is
-    omitted, longest registred formatter will be used.
-
-    >>> format_time_delta(10, 3)
-    '10s'
-    >>> format_time_delta(10, 6)
-    '10.0s'
-    >>> format_time_delta(15350, 4)
-    '4 h'
-    >>> format_time_delta(15350)
-    '4h 15min'
-
-    :param val_sec:   Value to format.
-    :param max_len:   Maximum output string length (total).
-    :param color_ov:  Color mode override, *bool* to enable/disable
-                      colorizing depending on unit type, *None* to use formatters'
-                      setting value.
-    """
-    if max_len is None:
-        formatter = tdf_registry.get_longest()
-    else:
-        formatter = tdf_registry.find_matching(max_len)
-
-    if formatter is None:
-        raise ValueError(f"No settings defined for max length = {max_len} (or less)")
-
-    return formatter.format(val_sec, color_ov)
-
-
 class DynamicBaseFormatter:
     """
     Formatter designed for time intervals. Key feature of this formatter is
@@ -1092,3 +1049,42 @@ tdf_registry.register(
         plural_suffix="s",
     ),
 )
+
+
+def format_time_delta(val_sec: float, max_len: int = None, color_ov: bool = None) -> RT:
+    """
+    Format time delta using suitable format (which depends on
+    ``max_len`` argument). Key feature of this formatter is
+    ability to combine two units and display them simultaneously,
+    e.g. return "3h 48min" instead of "228 mins" or "3 hours",
+
+    There are predefined formatters with output length of **3, 4,
+    6** and **10** characters. Therefore, you can pass in any value
+    from 3 inclusive and it's guarenteed that result's length
+    will be less or equal to required length. If `max_len` is
+    omitted, longest registred formatter will be used.
+
+    >>> format_time_delta(10, 3)
+    '10s'
+    >>> format_time_delta(10, 6)
+    '10.0s'
+    >>> format_time_delta(15350, 4)
+    '4 h'
+    >>> format_time_delta(15350)
+    '4h 15min'
+
+    :param val_sec:   Value to format.
+    :param max_len:   Maximum output string length (total).
+    :param color_ov:  Color mode override, *bool* to enable/disable
+                      colorizing depending on unit type, *None* to use formatters'
+                      setting value.
+    """
+    if max_len is None:
+        formatter = tdf_registry.get_longest()
+    else:
+        formatter = tdf_registry.find_matching(max_len)
+
+    if formatter is None:
+        raise ValueError(f"No settings defined for max length = {max_len} (or less)")
+
+    return formatter.format(val_sec, color_ov)

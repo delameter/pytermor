@@ -23,6 +23,7 @@ from .ansi import (
     make_color_rgb,
 )
 from .common import LogicError
+from .config import get_config
 
 
 CDT = t.TypeVar("CDT", int, str)
@@ -507,7 +508,9 @@ class Color256(IColor):
                             SGR being made.
         """
         if upper_bound is ColorRGB:
-            return make_color_rgb(*self.to_rgb(), bg)
+            if get_config().prefer_rgb:
+                return make_color_rgb(*self.to_rgb(), bg)
+            return make_color_256(self._code, bg)
 
         if upper_bound is Color256 or upper_bound is None:
             return make_color_256(self._code, bg)

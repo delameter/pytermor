@@ -5,41 +5,39 @@
 
 import io
 import sys
-import unittest
+
+import pytest
 
 import pytermor as pt
 from pytermor import SgrRenderer, OutputMode, Style
 
 
-class TestRendererConfiguration(unittest.TestCase):
+class TestRendererConfiguration:
     def test_force_color_enabling(self):
         renderer = SgrRenderer(OutputMode.TRUE_COLOR)
         sys.stdout = io.StringIO()
 
         result = pt.render("12345", Style(fg="red"), renderer)
-        self.assertEqual("\x1b[31m12345\x1b[39m", result)
+        assert result == "\x1b[31m12345\x1b[39m"
 
     def test_force_color_disabling(self):
         result = pt.render("12345", Style(fg="red"), SgrRenderer(OutputMode.NO_ANSI))
-        self.assertEqual("12345", result)
+        assert result == "12345"
 
     def test_force_color_default(self):
         result = pt.render("12345", Style(fg="red"), SgrRenderer(OutputMode.AUTO))
         if sys.stdout.isatty():
-            self.assertEqual("\x1b[31m12345\x1b[39m", result)
+            assert result == "\x1b[31m12345\x1b[39m"
         else:
-            self.assertEqual("12345", result)
+            assert result == "12345"
 
 
-class TestTmuxRenderer(unittest.TestCase):
-    def setUp(self) -> None:
-        self.maxDiff = 2000
-        pt.RendererManager.set_default(pt.renderer.TmuxRenderer)
-
+@pytest.mark.setup(renderer_class='TmuxRenderer')
+class TestTmuxRenderer:
     def test_basic_render_works(self):
         result = pt.render("12345", Style(fg="red", bg="black", bold=True))
-        self.assertEqual(
-            "#[fg=red bg=black bold]" "12345" "#[fg=default bg=default nobold]", result
+        assert result == (
+            "#[fg=red bg=black bold]" "12345" "#[fg=default bg=default nobold]"
         )
 
     def test_attribute_render_works(self):
@@ -57,28 +55,23 @@ class TestTmuxRenderer(unittest.TestCase):
                 underlined=True,
             ),
         )
-        self.assertEqual(
-            "#[blink bold strikethrough dim double-underscore reverse"
-            " italics overline underscore]"
+        assert result == (
+            "#[blink bold strikethrough dim double-underscore "
+            "reverse italics overline underscore]"
             "12345"
-            "#[noblink nobold nostrikethrough nodim nodouble-underscore"
-            " noreverse noitalics nooverline nounderscore]",
-            result,
+            "#[noblink nobold nostrikethrough nodim nodouble-underscore "
+            "noreverse noitalics nooverline nounderscore]"
         )
 
     def test_color256_render_works(self):
         result = pt.render("12345", Style(fg="NavyBlue", bg="DarkRed"))
-
-        self.assertEqual(
-            "#[fg=colour17 bg=colour88]" "12345" "#[fg=default bg=default]", result
-        )
+        expected = "#[fg=colour17 bg=colour88]" "12345" "#[fg=default bg=default]"
+        assert result == expected
 
     def test_color_rgb_render_works(self):
         result = pt.render("12345", Style(fg=0x3AEBA1, bg=0x3AC5A6))
-
-        self.assertEqual(
-            "#[fg=#3aeba1 bg=#3ac5a6]" "12345" "#[fg=default bg=default]", result
-        )
+        expected = "#[fg=#3aeba1 bg=#3ac5a6]" "12345" "#[fg=default bg=default]"
+        assert result == expected
 
     def test_nested_render_works(self):
         result = pt.Text(
@@ -90,7 +83,7 @@ class TestTmuxRenderer(unittest.TestCase):
             pt.Fragment("yui"),
         ).render(pt.renderer.TmuxRenderer)
 
-        self.assertEqual(
+        assert result == (
             "#[fg=red]"
             "123"
             "#[fg=default]"
@@ -106,8 +99,7 @@ class TestTmuxRenderer(unittest.TestCase):
             "#[fg=red]"
             "ert"
             "#[fg=default]"
-            "yui",
-            result,
+            "yui"
         )
 
     def test_renderers_has_equal_hashes(self):
@@ -144,7 +136,7 @@ class TestSgrRendererDebugger:
         renderer2 = pt.renderer.SgrRendererDebugger(pt.OutputMode.TRUE_COLOR)
         assert hash(renderer1) != hash(renderer2)
 
-    def test_renderer_afer_update_has_differing_hash(self):
+    def test_renderer_after_update_has_differing_hash(self):
         renderer = pt.renderer.SgrRendererDebugger(pt.OutputMode.TRUE_COLOR)
         hash_before = hash(renderer)
         renderer.set_format_never()

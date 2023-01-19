@@ -9,6 +9,7 @@ A
 from __future__ import annotations
 
 import itertools
+import logging
 import math
 import os
 import sys
@@ -17,6 +18,7 @@ import time
 import typing as t
 import unicodedata
 from collections import deque
+from functools import update_wrapper
 from io import StringIO
 from itertools import chain
 from sys import getsizeof, stderr
@@ -27,7 +29,7 @@ from .ansi import (
     make_erase_in_line,
     make_set_cursor_x_abs,
 )
-from .common import UserAbort, UserCancel
+from .common import UserAbort, UserCancel, LOGGING_TRACE, F, logger
 
 T = t.TypeVar("T")
 
@@ -122,6 +124,55 @@ def median(N: t.Sequence[float], key: t.Callable[[float], float] = lambda x: x) 
     :param key:  Optional key function to compute value from each element of N.
     """
     return percentile(N, percent=0.5, key=key)
+
+
+def trace(enabled: bool = True, level: int = LOGGING_TRACE, label: str = "Dump"):
+    """
+
+    :param enabled:
+    :param level:
+    :param label:
+    :return:
+    """
+
+    def wrapper(origin: F) -> F:
+        def new_func(*args, **kwargs):
+            from .utilstr import dump   # @FIXME cyclic dependency
+
+            result = origin(*args, **kwargs)
+
+            if enabled and not kwargs.get("no_log", False):
+                logger.log(level=level, msg=dump(result, label))
+            return result
+
+        return update_wrapper(t.cast(F, new_func), origin)
+
+    return wrapper
+
+
+def measure(level: int = logging.DEBUG, template: str = "Done in %s"):
+    """
+
+    :param level:
+    :param template:
+    :return:
+    """
+
+    def wrapper(origin: F) -> F:
+        def new_func(*args, **kwargs):
+            from .utilnum import format_si   # @FIXME cyclic dependency
+
+            before_s = time.time_ns() / 1e9
+            result = origin(*args, **kwargs)
+            after_s = time.time_ns() / 1e9
+
+            if not kwargs.get("no_log", False):
+                logger.log(level=level, msg=template % format_si(after_s - before_s))
+            return result
+
+        return update_wrapper(t.cast(F, new_func), origin)
+
+    return wrapper
 
 
 # -----------------------------------------------------------------------------
