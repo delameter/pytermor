@@ -13,7 +13,6 @@ import codecs
 import math
 import os
 import re
-import textwrap
 import typing as t
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
@@ -21,11 +20,16 @@ from functools import reduce
 from math import ceil
 from typing import Union
 
-from .common import ArgTypeError, Align, ALIGN_LEFT, ALIGN_RIGHT, ALIGN_CENTER
-from .utilmisc import chunk, get_terminal_width
+from .common import (
+    ArgTypeError,
+    Align,
+    ALIGN_LEFT,
+    ALIGN_RIGHT,
+    ALIGN_CENTER,
+    chunk,
+    get_terminal_width,
+)
 
-
-_PRIVATE_REPLACER = "\U000E5750"
 
 # =============================================================================
 # stdlib extensions
@@ -88,47 +92,6 @@ def center_sgr(s: str, width: int, fillchar: str = " ", actual_len: int = None) 
         right_fill_len = math.floor(fill_len / 2)
     left_fill_len = fill_len - right_fill_len
     return (fillchar * left_fill_len) + s + (fillchar * right_fill_len)
-
-
-def wrap_sgr(
-    raw_input: str | list[str], width: int, indent_first: int = 0, indent_subseq: int = 0
-) -> str:
-    """
-    A workaround to make standard library ``textwrap.wrap()`` more friendly
-    to an SGR-formatted strings.
-
-    The main idea is
-
-    :param raw_input:
-    :param width:
-    """
-    # initially was written as a part of es7s/core
-    # package, and transferred here later
-    sgrs: list[str] = []
-
-    def push(m: t.Match):
-        sgrs.append(m.group())
-        return _PRIVATE_REPLACER
-
-    if isinstance(raw_input, str):  # input can be just one paragraph
-        raw_input = [raw_input]
-
-    input = "\n\n".join(raw_input).split("\n\n")
-    result = ""
-    for raw_line in input:
-        # had an inspiration and wrote this; no idea how does it work exactly, it just does
-        replaced_line = re.sub(r"(\s?\S?)((\x1b\[([0-9;]*)m)+)", push, raw_line)
-        wrapped_line = f"\n".join(
-            textwrap.wrap(
-                replaced_line,
-                width=width,
-                initial_indent=(indent_first * " "),
-                subsequent_indent=(indent_subseq * " "),
-            )
-        )
-        final_line = re.sub(_PRIVATE_REPLACER, lambda _: sgrs.pop(0), wrapped_line)
-        result += final_line + "\n"
-    return result
 
 
 codecs.register_error("replace_with_qmark", lambda e: ("?", e.start + 1))

@@ -7,11 +7,10 @@ A
 AA
 """
 
-import os
-
 from ._version import __version__ as __version__
-from .config import init_config as init_config
 from .common import logger as logger
+from .config import init_config as init_config
+from .renderer import init_renderer as init_renderer
 
 # exceptions
 from .common import ArgCountError as ArgCountError
@@ -31,13 +30,15 @@ from .text import RT as RT
 from .common import ALIGN_CENTER as ALIGN_CENTER
 from .common import ALIGN_LEFT as ALIGN_LEFT
 from .common import ALIGN_RIGHT as ALIGN_RIGHT
+from .color import DEFAULT_COLOR as DEFAULT_COLOR
+from .cval import CVAL
 from .ansi import NOOP_SEQ as NOOP_SEQ
 from .color import NOOP_COLOR as NOOP_COLOR
-from .cval import CVAL
 from .style import NOOP_STYLE as NOOP_STYLE
 
 # interfaces
 from .ansi import ISequence as ISequence
+from .ansi import ISequenceFe as ISequenceFe
 from .color import IColor as IColor
 from .renderer import IRenderer as IRenderer
 from .text import IRenderable as IRenderable
@@ -46,11 +47,20 @@ from .utilstr import IFilter as IFilter
 # -----------------------------------------------------------------------------
 from .ansi import IntCode as IntCode
 from .ansi import SeqIndex as SeqIndex
+from .ansi import SequenceCSI as SequenceCSI
+from .ansi import SequenceOSC as SequenceOSC
 from .ansi import SequenceSGR as SequenceSGR
+from .ansi import SequenceST as SequenceST
+from .ansi import assemble_hyperlink as assemble_hyperlink
+from .ansi import decompose_request_cursor_position as decompose_request_cursor_position
 from .ansi import enclose as enclose
 from .ansi import get_closing_seq as get_closing_seq
 from .ansi import make_color_256 as make_color_256
 from .ansi import make_color_rgb as make_color_rgb
+from .ansi import make_erase_in_line as make_erase_in_line
+from .ansi import make_hyperlink_part as make_hyperlink_part
+from .ansi import make_query_cursor_position as make_query_cursor_position
+from .ansi import make_set_cursor_x_abs as make_set_cursor_x_abs
 from .color import Color16 as Color16
 from .color import Color256 as Color256
 from .color import ColorRGB as ColorRGB
@@ -58,12 +68,23 @@ from .color import ApxResult as ApxResult
 from .color import approximate as approximate
 from .color import find_closest as find_closest
 from .color import resolve_color as resolve_color
+from .config import Config as Config
+from .config import get_config as get_config
+from .config import replace_config as replace_config
 from .common import Align as Align
+from .common import chunk as chunk
+from .common import flatten1 as flatten1
+from .common import get_preferable_wrap_width as get_preferable_wrap_width
+from .common import get_qname as get_qname
+from .common import get_terminal_width as get_terminal_width
+from .common import measure as measure
+from .common import median as median
+from .common import percentile as percentile
+from .common import trace as trace
 from .style import Style as Style
 from .style import Styles as Styles
 from .style import make_style as make_style
 from .style import merge_styles as merge_styles
-from .renderer import init_renderer as init_renderer
 from .renderer import HtmlRenderer as HtmlRenderer
 from .renderer import RendererManager as RendererManager
 from .renderer import SgrRenderer as SgrRenderer
@@ -74,15 +95,13 @@ from .text import FrozenText as FrozenText
 from .text import SimpleTable as SimpleTable
 from .text import Text as Text
 from .text import TemplateEngine as TemplateEngine
+from .text import distribute_padded as distribute_padded
 from .text import echo as echo
 from .text import echoi as echoi
 from .text import render as render
-from .text import distribute_padded as distribute_padded
+from .text import wrap_sgr as wrap_sgr
 from .utilmisc import confirm as confirm
 from .utilmisc import get_char_width as get_char_width
-from .utilmisc import get_preferable_wrap_width as get_preferable_wrap_width
-from .utilmisc import get_qname as get_qname
-from .utilmisc import get_terminal_width as get_terminal_width
 from .utilmisc import guess_char_width as guess_char_width
 from .utilmisc import hex_to_hsv as hex_to_hsv
 from .utilmisc import hex_to_rgb as hex_to_rgb
@@ -98,9 +117,9 @@ from .utilnum import StaticBaseFormatter as StaticBaseFormatter
 from .utilnum import DynamicBaseFormatter as DynamicBaseFormatter
 from .utilnum import CustomBaseUnit as CustomBaseUnit
 from .utilnum import format_auto_float as format_auto_float
-from .utilnum import format_thousand_sep as format_thousand_sep
 from .utilnum import format_si as format_si
 from .utilnum import format_si_binary as format_si_binary
+from .utilnum import format_thousand_sep as format_thousand_sep
 from .utilnum import format_time_delta as format_time_delta
 from .utilstr import ESCAPE_SEQ_REGEX as ESCAPE_SEQ_REGEX
 from .utilstr import SGR_SEQ_REGEX as SGR_SEQ_REGEX
@@ -125,14 +144,13 @@ from .utilstr import StringMapper as StringMapper
 from .utilstr import StringReplacer as StringReplacer
 from .utilstr import StringUcpTracer as StringUcpTracer
 from .utilstr import TracerExtra as TracerExtra
+from .utilstr import apply_filters as apply_filters
+from .utilstr import center_sgr as center_sgr
+from .utilstr import dump as dump
+from .utilstr import ljust_sgr as ljust_sgr
 from .utilstr import pad as pad
 from .utilstr import padv as padv
-from .utilstr import ljust_sgr as ljust_sgr
 from .utilstr import rjust_sgr as rjust_sgr
-from .utilstr import center_sgr as center_sgr
-from .utilstr import wrap_sgr as wrap_sgr
-from .utilstr import apply_filters as apply_filters
-from .utilstr import dump as dump
 
 # -----------------------------------------------------------------------------
 

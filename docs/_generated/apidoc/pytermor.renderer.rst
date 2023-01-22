@@ -23,7 +23,7 @@
       OutputMode
       RendererManager
       SgrRenderer
-      SgrRendererDebugger
+      SgrDebugger
       TmuxRenderer
    
    

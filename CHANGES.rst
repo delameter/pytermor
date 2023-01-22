@@ -6,7 +6,7 @@
    sed -Ee '/^\s*$/d; s/^(\s*)/- /; ' | \
    less
 
-pending (v2.37-dev)
+pending (v2.38-dev)
 ------------------
 
 - |REFACTOR| `distribute_padded` overloads
@@ -20,6 +20,10 @@ pending (v2.37-dev)
 - |FIX| `NumHighlighter`
 - |REFACTOR| moved color transformations and type vars from `_commons`
 - |NEW| `Config` class
+- |NEW| add `es7s C45/Kalm` to rgb colors list
+- |REFACTOR| attempt to break cyclic dependency of `util.*` modules
+- |TESTS| additional coverage for `utilnum`
+
 
 v2.32-dev
 ------------------

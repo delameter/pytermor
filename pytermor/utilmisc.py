@@ -8,17 +8,13 @@ A
 
 from __future__ import annotations
 
-import itertools
-import logging
 import math
 import os
 import sys
-import threading
 import time
 import typing as t
 import unicodedata
 from collections import deque
-from functools import update_wrapper
 from io import StringIO
 from itertools import chain
 from sys import getsizeof, stderr
@@ -29,150 +25,7 @@ from .ansi import (
     make_erase_in_line,
     make_set_cursor_x_abs,
 )
-from .common import UserAbort, UserCancel, LOGGING_TRACE, F, logger
-
-T = t.TypeVar("T")
-
-
-def get_qname(obj: t.Any) -> str:
-    """
-    Convenient method for getting a class name for class instances
-    as well as for the classes themselves. Suitable for debug output in
-    ``__repr__`` methods, for example.
-
-    >>> get_qname("aaa")
-    'str'
-    >>> get_qname(make_query_cursor_position())
-    'SequenceCSI'
-    >>> get_qname(threading.Thread)
-    'Thread'
-
-    """
-    if isinstance(obj, type):
-        return obj.__qualname__
-    if isinstance(obj, object):
-        return obj.__class__.__qualname__
-    return str(obj)
-
-
-def chunk(items: t.Iterable[T], size: int) -> t.Iterator[t.Tuple[T, ...]]:
-    """
-    Split item list into chunks of size ``size`` and return these
-    chunks as *tuples*.
-
-    >>> for c in chunk(range(5), 2):
-    ...     print(c)
-    (0, 1)
-    (2, 3)
-    (4,)
-
-    :param items:  Input elements.
-    :param size:   Chunk size.
-    """
-    arr_range = iter(items)
-    return iter(lambda: tuple(itertools.islice(arr_range, size)), ())
-
-
-def flatten1(items: t.Iterable[t.Iterable[T]]) -> t.List[T]:
-    """
-    Take a list of nested lists and unpack all nested elements one level up.
-
-    >>> flatten1([[1, 2, 3], [4, 5, 6], [[10, 11, 12]]])
-    [1, 2, 3, 4, 5, 6, [10, 11, 12]]
-
-    :param items:  Input lists.
-    """
-    return list(itertools.chain.from_iterable(items))
-
-
-def flatten(items: t.Iterable[t.Iterable[T]]) -> t.List[T]:
-    """
-    .. todo ::
-        recursrive
-    """
-
-
-def percentile(
-    N: t.Sequence[float], percent: float, key: t.Callable[[float], float] = lambda x: x
-) -> float:
-    """
-    Find the percentile of a list of values.
-
-    :origin:         https://code.activestate.com/recipes/511478/
-    :param N:        List of values. MUST BE already sorted.
-    :param percent:  Float value from 0.0 to 1.0.
-    :param key:      Optional key function to compute value from each element of N.
-    """
-    if not N:
-        raise ValueError("N should be a non-empty sequence of floats")
-    k = (len(N) - 1) * percent
-    f = math.floor(k)
-    c = math.ceil(k)
-    if f == c:
-        return key(N[int(k)])
-    d0 = key(N[int(f)]) * (c - k)
-    d1 = key(N[int(c)]) * (k - f)
-    return d0 + d1
-
-
-def median(N: t.Sequence[float], key: t.Callable[[float], float] = lambda x: x) -> float:
-    """
-    Find the median of a list of values.
-    Wrapper around `percentile()` with fixed ``percent`` argument (=0.5).
-
-    :param N:    List of values. MUST BE already sorted.
-    :param key:  Optional key function to compute value from each element of N.
-    """
-    return percentile(N, percent=0.5, key=key)
-
-
-def trace(enabled: bool = True, level: int = LOGGING_TRACE, label: str = "Dump"):
-    """
-
-    :param enabled:
-    :param level:
-    :param label:
-    :return:
-    """
-
-    def wrapper(origin: F) -> F:
-        def new_func(*args, **kwargs):
-            from .utilstr import dump   # @FIXME cyclic dependency
-
-            result = origin(*args, **kwargs)
-
-            if enabled and not kwargs.get("no_log", False):
-                logger.log(level=level, msg=dump(result, label))
-            return result
-
-        return update_wrapper(t.cast(F, new_func), origin)
-
-    return wrapper
-
-
-def measure(level: int = logging.DEBUG, template: str = "Done in %s"):
-    """
-
-    :param level:
-    :param template:
-    :return:
-    """
-
-    def wrapper(origin: F) -> F:
-        def new_func(*args, **kwargs):
-            from .utilnum import format_si   # @FIXME cyclic dependency
-
-            before_s = time.time_ns() / 1e9
-            result = origin(*args, **kwargs)
-            after_s = time.time_ns() / 1e9
-
-            if not kwargs.get("no_log", False):
-                logger.log(level=level, msg=template % format_si(after_s - before_s))
-            return result
-
-        return update_wrapper(t.cast(F, new_func), origin)
-
-    return wrapper
+from .common import UserAbort, UserCancel
 
 
 # -----------------------------------------------------------------------------
@@ -320,42 +173,6 @@ def hsv_to_hex(h: float, s: float, v: float) -> int:
 
 
 # -----------------------------------------------------------------------------
-
-
-def get_terminal_width(fallback: int = 80, pad: int = 2) -> int:
-    """
-    Return current terminal width with an optional "safety buffer", which
-    ensures that no unwanted line wrapping will happen.
-
-    :param fallback: Default value when shutil is unavailable and environment
-                     variable COLUMNS is unset.
-    :param pad:      Additional safety space to prevent unwanted line wrapping.
-    """
-    try:
-        import shutil as _shutil
-
-        return _shutil.get_terminal_size().columns - pad
-    except ImportError:
-        pass
-
-    try:
-        return int(os.environ.get("COLUMNS", fallback))
-    except ValueError:
-        pass
-
-    return fallback
-
-
-def get_preferable_wrap_width(force_width: int = None) -> int:
-    """
-    Return preferable terminal width for comfort reading of wrapped text (max=120).
-
-    :param force_width:
-               Ignore current terminal width and use this value as a result.
-    """
-    if isinstance(force_width, int) and force_width > 1:
-        return force_width
-    return min(120, get_terminal_width())
 
 
 def wait_key() -> t.AnyStr | None:

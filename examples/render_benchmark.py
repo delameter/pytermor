@@ -12,10 +12,11 @@ import typing as t
 
 import pytermor as pt
 import pytermor.color
+import pytermor.common
 import pytermor.style
 from pytermor import NOOP_STYLE, Fragment
 from pytermor.renderer import NoOpRenderer
-from pytermor.utilmisc import percentile
+from pytermor.common import percentile
 
 
 class RenderBemchmarker:
@@ -136,7 +137,7 @@ class RenderBemchmarker:
             pt.echo(
                 pt.Text(
                     f"Sample #{idx+1}/{len(self.sources)}",
-                    width=pt.get_terminal_width(),
+                    width=pytermor.common.get_terminal_width(),
                     align="center",
                     fill='-'
                 )
@@ -177,7 +178,7 @@ class RenderBemchmarker:
                             or (end - self.prev_frame_ts) > 0.4 * 1e9
                         ):
                             add_st = NOOP_STYLE
-                            q = pt.Fragment(pt.get_qname(class_), pt.Style(bold=True))
+                            q = pt.Fragment(pytermor.common.get_qname(class_), pt.Style(bold=True))
                             if class_ is str:
                                 add_st = "gray50"
                                 q = pt.Fragment("[CONTROL] ", add_st) + q

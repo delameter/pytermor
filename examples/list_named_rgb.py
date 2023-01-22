@@ -18,6 +18,7 @@ import yaml
 
 
 import pytermor as pt
+import pytermor.common
 import pytermor.utilstr
 import pytermor.utilmisc
 from pytermor import Text
@@ -161,7 +162,7 @@ class RgbTablePrinter:
     def __init__(self, cell_size: int = None, cell_height: int = None):
         self._cell_padding_x = 2
         self._cell_padding_y = 2
-        self._term_width = pytermor.utilmisc.get_terminal_width()
+        self._term_width = pytermor.common.get_terminal_width()
         self._term_height = shutil.get_terminal_size().lines
 
         if not cell_size:

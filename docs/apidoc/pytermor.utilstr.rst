@@ -38,7 +38,6 @@
       pad
       padv
       rjust_sgr
-      wrap_sgr
    
    
 

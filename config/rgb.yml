@@ -395,6 +395,9 @@ colors:
   - name: black-coral
     original_name: Black coral
     value: 0x54626f
+  - name: black-kalm
+    original_name: Black kalm
+    value: 0x212328
   - name: black-kite
     original_name: Black kite (bird species) (Kurotobi)
     value: 0x351e1c
@@ -461,9 +464,6 @@ colors:
       - name: ryb
         original_name: Blue (RYB)
         value: 0x0247fe
-      - name: xterm
-        original_name: Blue (xterm)
-        value: 0x000080
   - name: blue-bell
     original_name: Blue bell
     value: 0xa2a2d0
@@ -492,6 +492,9 @@ colors:
   - name: blue-jeans
     original_name: Blue jeans
     value: 0x5dadec
+  - name: blue-kalm
+    original_name: Blue kalm
+    value: 0x5f819d
   - name: blue-lagoon
     original_name: Blue lagoon
     value: 0x4cb7a5
@@ -1169,10 +1172,6 @@ colors:
   - name: cyan
     original_name: Cyan (process)
     value: 0x00b7eb
-    variations:
-      - name: xterm
-        original_name: Cyan (xterm)
-        value: 0x008080
   - name: cyan-azure
     original_name: Cyan azure
     value: 0x4e82b4
@@ -1185,6 +1184,9 @@ colors:
   - name: cyan-cornflower-blue
     original_name: Cyan cornflower blue
     value: 0x188bc2
+  - name: cyan-kalm
+    original_name: Cyan kalm
+    value: 0x5e8d87
   - name: cyber-grape
     original_name: Cyber grape
     value: 0x58427c
@@ -2075,6 +2077,9 @@ colors:
   - name: gray-asparagus
     original_name: Gray-asparagus
     value: 0x465945
+  - name: gray-kalm
+    original_name: Gray kalm
+    value: 0x606670
   - name: grayed-red
     original_name: Grayed red (lit. silvered red) (Ginshu)
     value: 0xbc2d29
@@ -2106,9 +2111,6 @@ colors:
       - name: ryb
         original_name: Green (RYB)
         value: 0x66b032
-      - name: xterm
-        original_name: Green (xterm)
-        value: 0x008000
   - name: green-bamboo
     original_name: Green bamboo color (Aotake-iro)
     value: 0x006442
@@ -2125,6 +2127,9 @@ colors:
   - name: green-cyan
     original_name: Green-cyan
     value: 0x009966
+  - name: green-kalm
+    original_name: Green kalm
+    value: 0x769440
   - name: green-lizard
     original_name: Green Lizard
     value: 0xa7f432
@@ -2207,6 +2212,27 @@ colors:
   - name: heliotrope-magenta
     original_name: Heliotrope magenta
     value: 0xaa00bb
+  - name: hi-blue-kalm
+    original_name: Hi-Blue kalm
+    value: 0x81a2be
+  - name: hi-cyan-kalm
+    original_name: Hi-Cyan kalm
+    value: 0x8abeb7
+  - name: hi-green-kalm
+    original_name: Hi-Green kalm
+    value: 0xa4bd68
+  - name: hi-magenta-kalm
+    original_name: Hi-Magenta kalm
+    value: 0xb294bb
+  - name: hi-red-kalm
+    original_name: Hi-Red kalm
+    value: 0xcc6666
+  - name: hi-white-kalm
+    original_name: Hi-White kalm
+    value: 0xdbdbdb
+  - name: hi-yellow-kalm
+    original_name: Hi-Yellow kalm
+    value: 0xf0c674
   - name: honeydew
     original_name: Honeydew
     value: 0xf0fff0
@@ -2774,12 +2800,12 @@ colors:
       - name: process
         original_name: Magenta (process)
         value: 0xff0090
-      - name: xterm
-        original_name: Magenta (xterm)
-        value: 0x800080
   - name: magenta-haze
     original_name: Magenta haze
     value: 0x9f4576
+  - name: magenta-kalm
+    original_name: Magenta kalm
+    value: 0x85678f
   - name: magenta-pink
     original_name: Magenta-pink
     value: 0xcc338b
@@ -3948,9 +3974,6 @@ colors:
       - name: ryb
         original_name: Red (RYB)
         value: 0xfe2712
-      - name: xterm
-        original_name: Red (xterm)
-        value: 0x800000
   - name: red-bean
     original_name: Red bean color (Azuki-iro)
     value: 0x672422
@@ -3976,6 +3999,9 @@ colors:
   - name: red-incense
     original_name: Red incense-colored (Akakō-iro)
     value: 0xf07f5e
+  - name: red-kalm
+    original_name: Red kalm
+    value: 0xa54242
   - name: red-kite
     original_name: Red kite (bird species) (Benitobi)
     value: 0x913228
@@ -5083,6 +5109,9 @@ colors:
   - name: white-coffee
     original_name: White coffee
     value: 0xe6e0d4
+  - name: white-kalm
+    original_name: White kalm
+    value: 0x969896
   - name: white-mouse
     original_name: White mouse (Shironezumi)
     value: 0xb9a193
@@ -5175,9 +5204,6 @@ colors:
       - name: ryb
         original_name: Yellow (RYB)
         value: 0xfefe33
-      - name: xterm
-        original_name: Yellow (xterm)
-        value: 0x808000
   - name: yellow-green
     original_name: Yellow-green
     value: 0x9acd32
@@ -5188,6 +5214,9 @@ colors:
       - name: crayola
         original_name: Yellow-green (Crayola)
         value: 0xc5e384
+  - name: yellow-kalm
+    original_name: Yellow kalm
+    value: 0xde935f
   - name: yellow-orange
     original_name: Yellow Orange
     value: 0xffae42

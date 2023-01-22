@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytermor as pt
 from pytermor.utilstr import ljust_sgr
-from pytermor.utilmisc import get_terminal_width
+from pytermor import get_terminal_width
 
 
 class Main:
@@ -62,7 +62,7 @@ class Main:
                 current_renderer,
                 (
                     pt.renderer.TmuxRenderer,
-                    pt.renderer.SgrRendererDebugger,
+                    pt.renderer.SgrDebugger,
                     pt.renderer.HtmlRenderer,
                 ),
             ):
@@ -86,7 +86,7 @@ class Main:
         per_sgr_width = other_r_width * 2 // 7
         return {
             pt.renderer.SgrRenderer(om): sgr_r_width,
-            pt.renderer.SgrRendererDebugger(om): per_sgr_width,
+            pt.renderer.SgrDebugger(om): per_sgr_width,
             pt.renderer.TmuxRenderer(): per_sgr_width,
             pt.renderer.HtmlRenderer(): per_sgr_width,
             pt.renderer.NoOpRenderer(): per_sgr_width // 2,

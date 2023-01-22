@@ -12,26 +12,34 @@ from __future__ import annotations
 import math
 import re
 import sys
+import textwrap
 import typing as t
 from abc import abstractmethod, ABC
 from collections import deque
 from typing import overload
 
 from .color import IColor
-from .common import LogicError, Align, ArgTypeError, logger
+from .common import (
+    LogicError,
+    Align,
+    ArgTypeError,
+    logger,
+    trace,
+    measure,
+    flatten1,
+    get_terminal_width,
+    get_preferable_wrap_width,
+)
 from .config import get_config
 from .renderer import IRenderer, RendererManager
 from .style import Style, make_style, NOOP_STYLE, FT
-from .utilmisc import get_terminal_width, flatten1, get_preferable_wrap_width, trace, \
-    measure
-from .utilstr import wrap_sgr, pad
-
 
 RT = t.TypeVar("RT", str, "IRenderable")
 """
 :abbr:`RT (Renderable type)` includes regular *str*\\ s as well as `IRenderable` 
 implementations.
 """
+
 
 class IRenderable(t.Sized, ABC):
     """
@@ -523,7 +531,9 @@ class SimpleTable(IRenderable):
             raise ValueError(f"Row is too long (>{self._width})")
         self._rows.append(row)
 
-    def pass_row(self, *cells: RT, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
+    def pass_row(
+        self, *cells: RT, renderer: IRenderer | t.Type[IRenderer] = None
+    ) -> str:
         renderer = self._resolve_renderer(renderer)
         return self._render_row(renderer, self._make_row(*cells))
 
@@ -669,6 +679,7 @@ class TemplateEngine:
 
 _template_engine = TemplateEngine()
 
+
 @trace(enabled=get_config().trace_renders)
 @measure(template="Rendered in %s")
 def render(
@@ -752,6 +763,7 @@ def echo(
 
     print(result, end=end, file=file, flush=flush)
 
+
 def echoi(
     string: RT | t.Iterable[RT] = "",
     fmt: FT = NOOP_STYLE,
@@ -806,8 +818,54 @@ def distribute_padded(max_len: int, *values, pad_left: int = 0, pad_right: int =
     result = ""
     for value_idx, value in enumerate(val_list):
         gape_len = spaces_amount // (gapes_amount or 1)  # for last value
-        result += value + pad(gape_len)
+        result += value + (" " * gape_len)
         gapes_amount -= 1
         spaces_amount -= gape_len
 
+    return result
+
+
+_PRIVATE_REPLACER = "\U000E5750"
+
+
+def wrap_sgr(
+    raw_input: str | list[str], width: int, indent_first: int = 0, indent_subseq: int = 0
+) -> str:
+    """
+    A workaround to make standard library ``textwrap.wrap()`` more friendly
+    to an SGR-formatted strings.
+
+    The main idea is
+
+    :param raw_input:
+    :param width:
+    :param indent_first:
+    :param indent_subseq:
+    """
+    # initially was written as a part of es7s/core
+    # package, and transferred here later
+    sgrs: list[str] = []
+
+    def push(m: t.Match):
+        sgrs.append(m.group())
+        return _PRIVATE_REPLACER
+
+    if isinstance(raw_input, str):  # input can be just one paragraph
+        raw_input = [raw_input]
+
+    inp = "\n\n".join(raw_input).split("\n\n")
+    result = ""
+    for raw_line in inp:
+        # had an inspiration and wrote this; no idea how does it work exactly, it just does
+        replaced_line = re.sub(r"(\s?\S?)((\x1b\[([0-9;]*)m)+)", push, raw_line)
+        wrapped_line = f"\n".join(
+            textwrap.wrap(
+                replaced_line,
+                width=width,
+                initial_indent=(indent_first * " "),
+                subsequent_indent=(indent_subseq * " "),
+            )
+        )
+        final_line = re.sub(_PRIVATE_REPLACER, lambda _: sgrs.pop(0), wrapped_line)
+        result += final_line + "\n"
     return result

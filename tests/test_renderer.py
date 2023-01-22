@@ -132,18 +132,18 @@ class TestSgrRenderer:
 
 class TestSgrRendererDebugger:
     def test_renderers_with_different_setup_has_differing_hashes(self):
-        renderer1 = pt.renderer.SgrRendererDebugger(pt.OutputMode.NO_ANSI)
-        renderer2 = pt.renderer.SgrRendererDebugger(pt.OutputMode.TRUE_COLOR)
+        renderer1 = pt.renderer.SgrDebugger(pt.OutputMode.NO_ANSI)
+        renderer2 = pt.renderer.SgrDebugger(pt.OutputMode.TRUE_COLOR)
         assert hash(renderer1) != hash(renderer2)
 
     def test_renderer_after_update_has_differing_hash(self):
-        renderer = pt.renderer.SgrRendererDebugger(pt.OutputMode.TRUE_COLOR)
+        renderer = pt.renderer.SgrDebugger(pt.OutputMode.TRUE_COLOR)
         hash_before = hash(renderer)
         renderer.set_format_never()
         assert hash_before != hash(renderer)
 
     def test_renderers_with_same_setup_has_equal_hashes(self):
-        renderer1 = pt.renderer.SgrRendererDebugger(pt.OutputMode.XTERM_256)
-        renderer2 = pt.renderer.SgrRendererDebugger(pt.OutputMode.XTERM_256)
+        renderer1 = pt.renderer.SgrDebugger(pt.OutputMode.XTERM_256)
+        renderer2 = pt.renderer.SgrDebugger(pt.OutputMode.XTERM_256)
         assert renderer1 is not renderer2
         assert hash(renderer1) == hash(renderer2)

@@ -17,6 +17,21 @@
 
    
    
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      chunk
+      flatten
+      flatten1
+      get_preferable_wrap_width
+      get_qname
+      get_terminal_width
+      measure
+      median
+      percentile
+      trace
+   
    
 
    

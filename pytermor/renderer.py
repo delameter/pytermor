@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import enum
 import os
+import re
 import sys
 import typing as t
 from abc import abstractmethod, ABCMeta
@@ -17,11 +18,9 @@ from hashlib import md5
 
 from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose
 from .color import IColor, Color16, Color256, ColorRGB, NOOP_COLOR
-from .common import logger
+from .common import logger, get_qname
 from .config import get_config
 from .style import Style, NOOP_STYLE, Styles, make_style, FT
-from .utilmisc import get_qname
-from .utilstr import SgrStringReplacer
 
 T = t.TypeVar("T", bound="IRenderer")
 
@@ -579,20 +578,21 @@ class HtmlRenderer(IRenderer):
         return self.DEFAULT_ATTRS
 
 
-class SgrRendererDebugger(SgrRenderer):
+class SgrDebugger(SgrRenderer):
     """
     Subclass of regular `SgrRenderer` with two differences -- instead of rendering the
     proper ANSI escape sequences it renders them with ``ESC`` character replaced by "ǝ",
     and encloses the whole sequence into '()' for visual separation.
 
     Can be used for debugging of assembled sequences, because such a transformation
-    reliably converts a control sequence into a harmless piece of bytes completely ignored
-    by the terminals.
+    reliably converts a control sequence into a harmless piece of bytes completely
+    ignored by the terminals.
 
-    >>> SgrRendererDebugger(OutputMode.XTERM_16).render('text', Style(fg='red', bold=True))
+    >>> SgrDebugger(OutputMode.XTERM_16).render('text', Style(fg='red', bold=True))
     '(ǝ[1;31m)text(ǝ[22;39m)'
 
     """
+    REPLACE_REGEX = re.compile(r'\x1b(\[[0-9;]*m)')
 
     def __init__(self, output_mode: OutputMode = OutputMode.AUTO):
         super().__init__(output_mode)
@@ -602,8 +602,8 @@ class SgrRendererDebugger(SgrRenderer):
         # build the hash from instance's state as well as ancestor's state -- that way
         # it will reflect the changes in either of configurations. actually, sometimes
         # the hashes will be different, but the results would have been the same;
-        # e.g., `SgrRendererDebugger` with ``_format_override`` set to *False* and
-        # `SgrRendererDebugger` without the override and with `NO_ANSI` output mode
+        # e.g., `SgrDebugger` with ``_format_override`` set to *False* and
+        # `SgrDebugger` without the override and with `NO_ANSI` output mode
         # has different hashes, but produce exactly the same outputs. however,
         # this can be disregarded, as it is not worth the efforts to implement an
         # advanced logic and correct state computation when it comes to debug renderer.
@@ -628,10 +628,11 @@ class SgrRendererDebugger(SgrRenderer):
         return super().is_format_allowed
 
     def render(self, string: str, fmt: FT = None) -> str:
-        return SgrStringReplacer(r"(ǝ\2\3\4)").apply(super().render(string, fmt))
+        origin = super().render(string, fmt)
+        return self.REPLACE_REGEX.sub(r'(ǝ\1)', origin)
 
-    def clone(self) -> SgrRendererDebugger:
-        cloned = SgrRendererDebugger(self._output_mode)
+    def clone(self) -> SgrDebugger:
+        cloned = SgrDebugger(self._output_mode)
         cloned._format_override = self._format_override
         return cloned
 

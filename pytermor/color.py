@@ -21,6 +21,7 @@ from .ansi import (
     BG_HI_COLORS,
     make_color_256,
     make_color_rgb,
+    SeqIndex,
 )
 from .common import LogicError
 from .config import get_config
@@ -169,7 +170,9 @@ class IColor(ABC):
 
     def __init__(self, hex_value: int, name: str = None):
         if hex_value < 0 or hex_value > 0xFFFFFF:
-            raise ValueError(f"Out of bounds hex value {hex_value:06X}, should be: 0x0 <= hex_value <= 0xFFFFFF")
+            raise ValueError(
+                f"Out of bounds hex value {hex_value:06X}, should be: 0x0 <= hex_value <= 0xFFFFFF"
+            )
         self._hex_value: int = hex_value
         self._name: str | None = name
 
@@ -349,7 +352,7 @@ class Color16(IColor):
     Variant of a `IColor` operating within the most basic color set
     -- **Xterm-16**. Represents basic color-setting SGRs with primary codes
     30-37, 40-47, 90-97 and 100-107 (see `guide.presets.color16`).
-    
+
     .. note ::
 
         Arguments ``register``, ``index`` and ``aliases``
@@ -547,7 +550,7 @@ class Color256(IColor):
         code = f"X{self._code}"
         value = self.format_value("")
 
-        params = [code+f"[{value}]"]
+        params = [code + f"[{value}]"]
         if verbose:
             params = [code, value, self._name]
         return ",".join(str(s) for s in filter(None, params))
@@ -597,7 +600,7 @@ class ColorRGB(IColor):
 
         return Color256.find_closest(self._hex_value).to_sgr(bg, upper_bound)
 
-    def to_tmux(self, bg: bool) -> str:  # rgb hex format should be lower cased!
+    def to_tmux(self, bg: bool) -> str:  # rgb hex format should be lower-cased!
         return self.format_value("#").lower()
 
     def __eq__(self, other) -> bool:
@@ -654,9 +657,40 @@ class _NoopColor(IColor):
         return self.format_value()
 
 
+class DefaultColor(IColor):
+    def __init__(self):
+        super().__init__(0)
+
+    def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
+        return SeqIndex.BG_COLOR_OFF if bg else SeqIndex.COLOR_OFF
+
+    def to_tmux(self, bg: bool) -> str:
+        return "default"
+
+    @property
+    def hex_value(self) -> int:
+        raise LogicError("Default colors entirely depend on user terminal settings")
+
+    def format_value(self, prefix: str = "0x") -> str:
+        return (prefix if "=" in prefix else "") + "DEF"
+
+    def repr_attrs(self, verbose: bool = True) -> str:
+        return self.format_value()
+
+
 NOOP_COLOR = _NoopColor()
 """
 Special `IColor` instance always rendering into empty string.
+"""
+
+DEFAULT_COLOR = DefaultColor()
+"""
+Special `IColor` instance rendering to SGR sequence telling the terminal
+to reset fg or bg color; same for `TmuxRenderer`. Useful when you inherit
+some `Style` with fg or bg color wihch you don't need, but at the same time
+you don't actually want to set up any value whatsoever. *None* and `NOOP_COLOR`
+are always treated as signal to take the fallback value; you can't use them as
+a resetters; that's what `DEFAULT_COLOR` was deisgned for).  
 """
 
 
@@ -704,6 +738,7 @@ def resolve_color(subject: CDT, color_type: t.Type[CT] = None) -> CT:
     :raises LookupError: If nothing was found in either of registries.
     :return:             `IColor` instance with specified name or value.
     """
+
     def subject_as_hex():
         nonlocal subject
         if isinstance(subject, int):
@@ -713,7 +748,7 @@ def resolve_color(subject: CDT, color_type: t.Type[CT] = None) -> CT:
             if len(subject) == 3:
                 # 3-digit hex notation, basically #RGB -> #RRGGBB
                 # https://www.quackit.com/css/color/values/css_hex_color_notation_3_digits.cfm
-                subject = "".join(2*c for c in subject)
+                subject = "".join(2 * c for c in subject)
             return int(subject, 16)
         return None
 
@@ -721,10 +756,9 @@ def resolve_color(subject: CDT, color_type: t.Type[CT] = None) -> CT:
         if color_type is None or color_type == ColorRGB:
             return ColorRGB(hex_value)
 
-    color_types = [color_type] if color_type else [Color16, Color256, ColorRGB]
-    for color_cls in color_types:
+    for ct in [color_type or Color16, Color256, ColorRGB]:
         try:
-            return color_cls.resolve(str(subject))
+            return ct.resolve(str(subject))
         except LookupError:
             continue
     raise LookupError(f"Color '{subject}' was not found in any of registries")

@@ -23,6 +23,7 @@
       echo
       echoi
       render
+      wrap_sgr
    
    
 

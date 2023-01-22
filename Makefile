@@ -137,6 +137,9 @@ depends:  ## Build and display module dependency graph
 	mkdir -p ${DEPENDS_PATH}
 	./pydeps.sh ${PROJECT_NAME} ${DEPENDS_PATH}
 
+open-depends:
+	xdg-open ./${DEPENDS_PATH}
+
 ##
 ## Documentation
 

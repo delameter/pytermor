@@ -28,8 +28,8 @@
       NoOpRenderer
       OutputMode
       RendererManager
+      SgrDebugger
       SgrRenderer
-      SgrRendererDebugger
       TmuxRenderer
    
    

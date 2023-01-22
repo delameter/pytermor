@@ -16,7 +16,6 @@ from .common import logger, Align
 from .cval import CVAL as cv
 from .style import NOOP_STYLE, Style, Styles
 from .text import Text, Fragment, IRenderable, RT
-from .utilstr import pad
 
 _OVERFLOW_CHAR = "!"
 
@@ -130,15 +129,17 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
         # on the large input values.
         exp_threshold_left = None
 
-    require_exp_form = (
-        exp_threshold_left is not None and oom < exp_threshold_left
-    ) or oom > exp_threshold_right
+    # fmt: off
+    oom_lt_left_thr = (exp_threshold_left is not None and oom < exp_threshold_left)
+    oom_gt_right_thr = (oom > exp_threshold_right)
+    require_exp_form = oom_lt_left_thr or oom_gt_right_thr
+    # fmt: on
+
+    if require_exp_form and not allow_exp_form:  # oh well...
+        msg = f"Failed to fit {val:.2f} into {req_len} chars without exp notation"
+        raise ValueError(msg)
 
     if require_exp_form:
-        if not allow_exp_form:  # oh well...
-            msg = f"Failed to fit {val:.2f} into {req_len} chars without exp notation"
-            raise ValueError(msg)
-
         exponent_len = len(str(oom)) + 1  # 'e'
         if req_len < exponent_len:
             # there is no place even for exponent
@@ -146,17 +147,13 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
 
         significand = abs_value / pow(10, oom)
         max_significand_len = req_len - exponent_len
-        try:
-            # max_significand_len can be 0, in that case significand_str will be empty; that
-            # means we cannot fit it the significand, but still can display approximate number power
-            # using the 'eN'/'-eN' notation
-            significand_str = format_auto_float(
-                significand, max_significand_len, allow_exp_form=False
-            )
 
-        except ValueError:
-            return f"{sign}e{oom}".rjust(req_len)
-
+        # max_significand_len can be 0, in that case significand_str will be empty; that
+        # means we cannot fit it the significand, but still can display approximate number power
+        # using the 'eN'/'-eN' output format:  -52515050000 -> '-e10'
+        significand_str = format_auto_float(
+            significand, max_significand_len, allow_exp_form=False
+        )
         return f"{sign}{significand_str}e{oom}"
 
     integer_len = max(1, oom + 1)
@@ -194,7 +191,7 @@ class NumHighlighter:
         (?P<intp>\d+)
         (?P<frac>[.,]\d+)?
         (?P<sep>\s?)
-        (?P<prefix>[kmgtpuμµn%])?
+        (?P<pfx>[kmgtpuμµn%])?
         (?P<unit>
             i?b[/ip]?t?s?|
             v|a|s(?:econd|ec|)s?|
@@ -241,12 +238,12 @@ class NumHighlighter:
     # fmt: on
 
     @classmethod
-    def get_prefix_style(cls, prefix: str) -> Style:
-        return cls._PREFIX_MAP.get(prefix, cls.STYLE_DEFAULT)
+    def get_prefix_style(cls, pfx: str) -> Style:
+        return cls._PREFIX_MAP.get(pfx, cls.STYLE_DEFAULT)
 
     @classmethod
-    def get_time_unit_style(cls, time_unit: str) -> Style:
-        return cls._TIME_UNIT_MAP.get(time_unit, cls.STYLE_DEFAULT)
+    def get_time_unit_style(cls, unit: str) -> Style:
+        return cls._TIME_UNIT_MAP.get(unit, cls.STYLE_DEFAULT)
 
     @classmethod
     def format(cls, string: str) -> Text:
@@ -260,16 +257,16 @@ class NumHighlighter:
         return result
 
     @classmethod
-    def colorize(cls, intp: str, frac: str, sep: str, prefix: str, unit: str) -> t.List[Fragment]:
-        unit_norm = re.sub(r"^\s*(.)+s?\s*$", r"\1", unit)   # @TODO test this
+    def colorize(cls, intp: str, frac: str, sep: str, pfx: str, unit: str) -> t.List[Fragment]:
+        unit_norm = re.sub(r"^\s*(.)+s?\s*$", r"\1", unit)  # @TODO test this
         int_st = cls.STYLE_DEFAULT
-        if prefix:
-            int_st = cls.get_prefix_style(prefix)
+        if pfx:
+            int_st = cls.get_prefix_style(pfx)
         elif unit_norm:
             int_st = cls.get_time_unit_style(unit_norm)
 
         digits = intp + frac[1:]
-        if set(digits) == {'0'}:
+        if set(digits) == {"0"}:
             int_st = cls.STYLE_NUL
 
         frac_st = Style(int_st, dim=True)
@@ -278,7 +275,7 @@ class NumHighlighter:
             Fragment(intp, int_st),
             Fragment(frac, frac_st),
             Fragment(sep),
-            Fragment(prefix + unit, unit_st),
+            Fragment(pfx + unit, unit_st),
         ]
 
 
@@ -541,13 +538,14 @@ class StaticBaseFormatter:
         eff_val = round(val, self._max_value_len - 1)
 
         # @TODO here i started to feel that there should be an easier way to do all the
-        #       math; more specifically, to avoid one or two redundant transformations,
+        #       math (more specifically, to avoid one or two redundant transformations),
         #       but it's impossible to prove or reject it without an investigation. the
-        #       reason for this is existence of three rounding operations in a row.
+        #       reason for this is existence of three (hmmm) round operations in a row.
         if fractional_output:
             val_str = format_auto_float(eff_val, self._max_value_len, False)
         else:
             val_str = f"{trunc(eff_val):d}"
+
         if len(val_str) > self._max_value_len:
             logger.warning(
                 "Inconsistent result -- max val length %d exceeded (%d): '%s' <- %f"
@@ -558,15 +556,13 @@ class StaticBaseFormatter:
         if self._pad:
             max_len = self.get_max_len(unit_ov)
             pad_len = max(0, max_len - len(result))
-            result = pad(pad_len) + result
+            result = ("" * pad_len) + result
             if isinstance(result, IRenderable):
                 result.set_width(max_len)
         return result
 
-    def _colorize(
-        self, color_ov: bool, val: str, sep: str, prefix: str, unit: str
-    ) -> RT:
-        unit_full = (prefix + unit).strip()
+    def _colorize(self, color_ov: bool, val: str, sep: str, pfx: str, unit: str) -> RT:
+        unit_full = (pfx + unit).strip()
         if not unit_full or unit_full.isspace():
             sep = ""
 
@@ -574,7 +570,8 @@ class StaticBaseFormatter:
             return "".join((val.strip(), sep, unit_full))
 
         int_part, point, frac_part = val.strip().partition(".")
-        result = NumHighlighter.colorize(int_part, point + frac_part, sep, prefix, unit)
+        args = dict(intp=int_part, frac=point + frac_part, sep=sep, pfx=pfx, unit=unit)
+        result = NumHighlighter.colorize(**args)
         return Text(*result, align=Align.RIGHT)
 
     def _get_unit_effective(self, unit_ov: str) -> str:
@@ -798,7 +795,7 @@ class DynamicBaseFormatter:
 
         if self._pad:
             pad_len = max(0, self._max_len - len(result))
-            result = pad(pad_len) + result
+            result = (" " * pad_len) + result
             if isinstance(result, IRenderable):
                 result.set_width(self._max_len)
 
@@ -881,11 +878,8 @@ class DynamicBaseFormatter:
         if not self._get_color_effective(color_ov):
             return "".join((extra, val, sep, unit))
 
-        return Text(
-            Fragment(extra),
-            *NumHighlighter.colorize(val, "", sep, "", unit),
-            align=Align.RIGHT,
-        )
+        args = dict(intp=val, frac="", sep=sep, pfx="", unit=unit)
+        return Text(Fragment(extra), *NumHighlighter.colorize(**args), align=Align.RIGHT)
 
     def _get_color_effective(self, color_ov: bool) -> bool:
         if color_ov is not None:

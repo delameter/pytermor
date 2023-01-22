@@ -3370,40 +3370,6 @@
   value: 0x39a78e
 
 # ---------------------------
-# es7s
-# ---------------------------
-- name: "White"
-  value: 0xc5c8c6
-- name: "Superuser"
-  value: 0xf8b889
-
-# ---------------------------
-# GM
-# ---------------------------
-- name: "Olympic Bronze"
-  value: 0x4e3e37
-- name: "Sunrise Coral"
-  value: 0xc27863
-- name: "Grecian Bronze"
-  value: 0x923916
-- name: "Brookmere Green"
-  value: 0x3d504b
-- name: "Aspen Green"
-  value: 0x687652
-- name: "Sequoia Beige"
-  value: 0xb1b7af
-- name: "Dawn Gray"
-  value: 0x616359
-- name: "Bamboo Cream"
-  value: 0xf2e096
-- name: "Victorian White"
-  value: 0xf4e9ce
-- name: "Ispahan Blue"
-  value: 0x303940
-- name: "Banff Blue"
-  value: 0x83a9c1
-
-# ---------------------------
 # minmax channel value colors
 # ---------------------------
 - name: "Full white"
@@ -3432,17 +3398,72 @@
   value: 0xff00ff
 
 # ---------------------------
-# 1/2 channel value colors
+# es7s
 # ---------------------------
-- name: "Red (xterm)"
-  value: 0x800000
-- name: "Green (xterm)"
-  value: 0x008000
-- name: "Blue (xterm)"
-  value: 0x000080
-- name: "Yellow (xterm)"
-  value: 0x808000
-- name: "Cyan (xterm)"
-  value: 0x008080
-- name: "Magenta (xterm)"
-  value: 0x800080
+- name: "White"
+  value: 0xc5c8c6
+- name: "Superuser"
+  value: 0xf8b889
+
+# ---------------------------
+# es7s C45/Kalm
+# ---------------------------
+
+- name: "Black kalm"
+  value: 0x212328
+- name: "Red kalm"
+  value: 0xa54242
+- name: "Green kalm"
+  value: 0x769440
+- name: "Blue kalm"
+  value: 0x5f819d
+- name: "Yellow kalm"
+  value: 0xde935f
+- name: "Cyan kalm"
+  value: 0x5e8d87
+- name: "Magenta kalm"
+  value: 0x85678f
+- name: "White kalm"
+  value: 0x969896
+- name: "Gray kalm"
+  value: 0x606670
+- name: "Hi-Red kalm"
+  value: 0xcc6666
+- name: "Hi-Green kalm"
+  value: 0xa4bd68
+- name: "Hi-Blue kalm"
+  value: 0x81a2be
+- name: "Hi-Yellow kalm"
+  value: 0xf0c674
+- name: "Hi-Cyan kalm"
+  value: 0x8abeb7
+- name: "Hi-Magenta kalm"
+  value: 0xb294bb
+- name: "Hi-White kalm"
+  value: 0xdbdbdb
+
+# ---------------------------
+# GM
+# ---------------------------
+- name: "Olympic Bronze"
+  value: 0x4e3e37
+- name: "Sunrise Coral"
+  value: 0xc27863
+- name: "Grecian Bronze"
+  value: 0x923916
+- name: "Brookmere Green"
+  value: 0x3d504b
+- name: "Aspen Green"
+  value: 0x687652
+- name: "Sequoia Beige"
+  value: 0xb1b7af
+- name: "Dawn Gray"
+  value: 0x616359
+- name: "Bamboo Cream"
+  value: 0xf2e096
+- name: "Victorian White"
+  value: 0xf4e9ce
+- name: "Ispahan Blue"
+  value: 0x303940
+- name: "Banff Blue"
+  value: 0x83a9c1
