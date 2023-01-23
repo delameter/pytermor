@@ -3,8 +3,11 @@
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 """
-A
-AA
+.. note ::
+    Almost all public classes are imported into the first package level
+    on its initialization, i.e., "short" forms like ``from pytermor import ColorRGB``
+    are supported, not only "full forms" as ``from pytermor.color import ColorRGB``.
+
 """
 
 from ._version import __version__ as __version__
@@ -156,8 +159,7 @@ from .utilstr import rjust_sgr as rjust_sgr
 
 cv = CVAL()
 """ 
-cv
-:noindex: 
+Shortcut to `CVAL()` color registry.
 """
 
 init_config()

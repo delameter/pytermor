@@ -53,7 +53,7 @@ Color mode fallbacks
       :align: center
 
       Color approximations for indexed modes
-      *(click to enlarge)*
+      :comment:`(click to enlarge)`
 
 .. only:: latex
 

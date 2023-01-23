@@ -93,7 +93,7 @@ integer codes and even existing *SGRs*, in any amount and in any order. Key reso
 
 The library supports extended color modes:
 
-- XTerm 256 colors indexed mode (see `presets`);
+- XTerm 256 colors indexed mode (see `ansi-presets`);
 - True Color RGB mode (16M colors).
 
 .. literalinclude:: /examples/ex_40_ext_colors.py

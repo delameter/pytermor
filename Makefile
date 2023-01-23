@@ -106,6 +106,9 @@ set-version: ## Set new package version
 	sed -E -i "s/^__version__.+/__version__ = '$$VERSION'/" ${PROJECT_NAME}/_version.py
 	echo "Updated version: ${GREEN}$$VERSION${RESET}"
 
+update-changelist:  ## Auto-update with new commits  <@CHANGES.rst>
+	./update-changelist.sh
+
 test: ## Run pytest
 	${VENV_PATH}/bin/pytest --quiet --tb=no
 

@@ -1,12 +1,7 @@
-.. vN.NN
-.. -------------------
-.. :date:`MMM 23`
 ..
-.. git log hhhhhh~1..dev --reverse --pretty='%B' | \
-   sed -Ee '/^\s*$/d; s/^(\s*)/- /; ' | \
-   less
+   > make update-changelist
 
-pending (v2.38-dev)
+pending
 ------------------
 
 - |REFACTOR| `distribute_padded` overloads
@@ -23,7 +18,11 @@ pending (v2.38-dev)
 - |NEW| add `es7s C45/Kalm` to rgb colors list
 - |REFACTOR| attempt to break cyclic dependency of `util.*` modules
 - |TESTS| additional coverage for `utilnum`
+- |NEW|  `text` Fragments validation
+- |DOCS|  `CHANGES.rst` autoupdate
 
+.. <@pending:29a51a3>
+.. ^ blank line before should be kept
 
 v2.32-dev
 ------------------

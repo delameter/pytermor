@@ -841,7 +841,13 @@ def decompose_request_cursor_position(string: str) -> t.Tuple[int, int]|None:
 def make_color_256(code: int, bg: bool = False) -> SequenceSGR:
     """
     Wrapper for creation of `SequenceSGR` that sets foreground
-    (or background) to one of 256-color palette value.
+    (or background) to one of 256-color palette value.:
+
+        >>> make_color_256(141)
+        <SGR[38,5,141]>
+
+    .. seealso ::
+        `Color256` class.
 
     :param code:  Index of the color in the palette, 0 -- 255.
     :param bg:    Set to *True* to change the background color
@@ -862,7 +868,11 @@ def make_color_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
     value is composed as "0xRRGGBB". For example, sequence with color of
     0xFF3300 can be created with::
 
-        make_color_rgb(255, 51, 0)
+        >>> make_color_rgb(255, 51, 0)
+        <SGR[38,2,255,51,0]>
+
+    .. seealso ::
+        `ColorRGB` class.
 
     :param r:  Red channel value, 0 -- 255.
     :param g:  Blue channel value, 0 -- 255.

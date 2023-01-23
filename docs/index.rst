@@ -6,11 +6,19 @@
 pytermor
 =====================
 
-*(yet another)* Python library designed for formatting terminal output using ANSI escape codes. Implements automatic `"soft" <guide.low-level>` format termination. Provides a registry of low-level :abbr:`SGR (Select Graphic Rendition)` `sequences<SequenceSGR>` and formatting `spans <Span>` (or combined sequences). Also includes a set of formatters for pretty output.
+:comment:`(yet another)` Python library initially designed for formatting terminal output using ANSI escape codes.
 
-Key feature of this library is providing necessary abstractions for building complex text sections with lots of formatting, while keeping the application code clear and readable.
+Provides `high-level <guide.high-level>` methods for working with text sections, colors, formats, alignment and wrapping, as well as `low-level <guide.low-level>` `ansi` module which allows operating with :abbr:`SGR (Select Graphic Rendition)` `sequences<SequenceSGR>` and also implements automatic "soft" format termination. Depending on the context and technical requirements either approach can be used. Also includes a set of additional number/string/date formatters for pretty output.
 
-No dependencies besides Python Standard Library are required *(there are some for testing and docs building, though).*
+Key feature of this library is extendability and a variety of formatters (called `renderers<guide.renderers>`), which determine the output syntax:
+
+- `SgrRenderer` (global default)
+- `TmuxRenderer`
+- `HtmlRenderer`
+- `SgrDebugger` (mostly for development)
+- etc.
+
+No dependencies required, only Python Standard Library :comment:`(there are some for testing and docs building, though).`
 
 
 .. only:: html

@@ -70,7 +70,7 @@ Resulting sequence params' order is the same as argument's order.
 
 Each sequence param can be specified as:
 
-- string key (see `presets`);
+- string key (see `ansi-presets`);
 - integer param value;
 - existing `SequenceSGR` instance (params will be extracted).
 
@@ -82,7 +82,7 @@ Creating and applying :mono:`SGRs`
 ==================================
 
 You can use any of predefined sequences from `SeqIndex` registry or create your own via standard constructor. Valid
-argument values as well as preset constants are described in `presets` page.
+argument values as well as preset constants are described in `ansi-presets` page.
 
 .. important::
   ``SequenceSGR`` with zero params was specifically implemented to translate into an empty string and not
@@ -92,7 +92,7 @@ argument values as well as preset constants are described in `presets` page.
 There is also a set of methods for dynamic ``SequenceSGR`` creation:
 
 - `make_color_256()` will produce sequence operating in 256-colors mode (for a complete list
-  see `presets`);
+  see `ansi-presets`);
 - `make_color_rgb()` will create a sequence capable of setting the colors in True Color 16M mode (however, some terminal emulators doesn't
   support it).
 
@@ -135,9 +135,9 @@ One instance of `SequenceSGR` can be added to another. This will result in a new
 .. literalinclude:: /examples/ex_80_combined.py
    :linenos:
 
+-----
 
-Sources
-==============
+.. rubric:: Sources
 
 1. `XTerm Control Sequences <https://invisible-island.net/xterm/ctlseqs/ctlseqs.html>`_
 2. `ECMA-48 specification <https://www.ecma-international.org/publications-and-standards/standards/ecma-48/>`_

@@ -34,5 +34,4 @@ except CalledProcessError as e:
     versionfile = join(dirname(__file__), "_version.py")
     dt = datetime.fromtimestamp(stat(versionfile).st_mtime).strftime("%b-%y")
 
-print(f"v{version}:{dt}", end=" ")
-print("[%d colors]" % len(ColorRGB._registry))
+print(f"v{version}:{dt}")

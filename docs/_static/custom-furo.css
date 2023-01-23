@@ -41,7 +41,9 @@ h1, abbr, .sidebar-brand-text, .brand {
     text-align: center;
 }
 pre, .pre, kbd,
-.py a.reference.internal,
+a.reference.internal code,
+/*a.reference.internal .doc,
+a.reference.internal .std-ref,*/
 .xterm-palette,
 .field-list dd.field-odd strong,
 .field-list dd.field-odd em,
@@ -65,6 +67,11 @@ abbr, abbr[title] {
 }
 th abbr {
     font-size: var(--font-size--small);
+}
+
+.comment {
+    font-size: var(--font-size--small);
+    font-style: italic;
 }
 
 .strike {
@@ -131,6 +138,8 @@ a.reference:hover {
 }
 a.reference.internal code,
 a.reference.internal:hover code,
+a.reference.internal .std-ref,
+a.reference.internal:hover .std-ref,
 .py a.reference.internal,
 .py a.reference.internal:hover {
     color: var(--color-content-foreground);

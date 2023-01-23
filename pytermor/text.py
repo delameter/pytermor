@@ -238,6 +238,7 @@ class FrozenText(IRenderable):
         fill: str = " ",
         overflow: str = "",
         pad: int = 0,
+        pad_styled: bool = True,
     ):
         ...
 
@@ -250,6 +251,7 @@ class FrozenText(IRenderable):
         fill: str = " ",
         overflow: str = "",
         pad: int = 0,
+        pad_styled: bool = True,
     ):
         ...
 
@@ -261,7 +263,7 @@ class FrozenText(IRenderable):
         fill: str = " ",
         overflow: str = "",
         pad: int = 0,
-        pad_closest_style: bool = True,
+        pad_styled: bool = True,
     ):
         self._fragments = deque()
         if len(args):
@@ -283,7 +285,7 @@ class FrozenText(IRenderable):
 
         self._overflow = overflow
         self._pad = pad
-        self._pad_closest_style = pad_closest_style
+        self._pad_styled = pad_styled
 
     def __len__(self) -> int:
         return self._width or sum(len(frag) for frag in self._fragments)
@@ -394,7 +396,7 @@ class FrozenText(IRenderable):
                     spare_right = math.floor(spare_len / 2)
                 spare_left = spare_len - spare_right
 
-            if not self._pad_closest_style or len(result_parts) == 0:
+            if not self._pad_styled or len(result_parts) == 0:
                 result_parts = [
                     (spare_left * self._fill, NOOP_STYLE),
                     *result_parts,

@@ -351,7 +351,7 @@ class Color16(IColor):
     """
     Variant of a `IColor` operating within the most basic color set
     -- **Xterm-16**. Represents basic color-setting SGRs with primary codes
-    30-37, 40-47, 90-97 and 100-107 (see `guide.presets.color16`).
+    30-37, 40-47, 90-97 and 100-107 (see `guide.ansi-presets.color16`).
 
     .. note ::
 
@@ -402,7 +402,7 @@ class Color16(IColor):
         given background color.
 
         :param code:      Foreground integer code to look up for (see
-                          `guide.presets.color16`).
+                          `guide.ansi-presets.color16`).
         :raises KeyError: If no color with specified code is found.
         """
         return cls._index.get(code)
@@ -450,7 +450,7 @@ class Color256(IColor):
     """
     Variant of a `IColor` operating within relatively modern **Xterm-256**
     indexed color table. Represents SGR complex codes ``38;5;*`` and ``48;5;*``
-    (see `guide.presets.color256`).
+    (see `guide.ansi-presets.color256`).
 
     .. note ::
 
@@ -536,7 +536,7 @@ class Color256(IColor):
         """
         Get a `Color256` instance with specified code (=position in the index).
 
-        :param code:      Color code to look up for (see `guide.presets.color256`).
+        :param code:      Color code to look up for (see `guide.ansi-presets.color256`).
         :raises KeyError: If no color with specified code is found.
         """
         return cls._index.get(code)

@@ -12,6 +12,7 @@
       CDT
       CT
       NOOP_COLOR
+      DEFAULT_COLOR
    
    
 
@@ -37,6 +38,7 @@
       Color16
       Color256
       ColorRGB
+      DefaultColor
       IColor
    
    

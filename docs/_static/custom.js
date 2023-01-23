@@ -51,9 +51,11 @@ let badgeContentMap = {
 function removeBadgeBrackets() {
     for (let el of $('span.badge')) {
         let t = el.textContent;
-        if (/^$|^\[[A-Z]*\]$/.test(t)) {
+        const regex = /^$|^\[([A-Z]*)]$/;
+        if (regex.test(t)) {
             el.textContent = badgeContentMap[t];
             el.classList.remove("hidden");
+            el.setAttribute('title', t.match(regex)[1] || '');
         }
     }
 }

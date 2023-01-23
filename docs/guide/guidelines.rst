@@ -6,7 +6,7 @@ Documentation guidelines
 
 .. rst-class:: right
 
-*(mostly as a reminder for myself)*
+:comment:`(mostly as a reminder for myself)`
 
 
 - Basic types and built-in values should be surrounded with asterisks:

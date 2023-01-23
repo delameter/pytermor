@@ -9,6 +9,9 @@
 .. role:: date
     :class: date
 
+.. role:: comment
+    :class: comment
+
 .. default-role:: any
 .. include:: <isonum.txt>
 

@@ -5,8 +5,8 @@ ANSI preset list
 ======================================
 
 Preset lists are omitted from API docs to avoid unnesessary duplication;
-summary list of all presets defined in the library (not including
-`util.* <util>`) is displayed here.
+summary list of all presets defined in the library (excluding `util* <util>`)
+is displayed here.
 
 .. todo ::
 
@@ -113,7 +113,7 @@ Meta, attributes, resetters
    +--------------------------------------------------------------------------+------------------------------+---------+-----+-----+-----+------------------+----------------------+------------------------------------------------+
 
 
-.. _guide.presets.color16:
+.. _guide.ansi-presets.color16:
 
 :mono:`Color16` presets
 =========================
@@ -264,7 +264,7 @@ Meta, attributes, resetters
 
 
 
-.. _guide.presets.color256:
+.. _guide.ansi-presets.color256:
 
 :mono:`Color256` presets
 ===========================
