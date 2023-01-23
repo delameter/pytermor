@@ -106,6 +106,11 @@ class IRenderable(t.Sized, ABC):
             return RendererManager.get_default()
         return renderer
 
+    def _ensure_fragments(self, *args: Fragment):
+        for arg in args:
+            if not isinstance(arg, Fragment):
+                raise ArgTypeError(actual_type=type(arg))
+
 
 class Fragment(IRenderable):
     """
@@ -170,6 +175,7 @@ class Fragment(IRenderable):
     def __add__(self, other: str | Fragment) -> Fragment | Text:
         if isinstance(other, str):
             return Fragment(self._string + other, self._style)
+        self._ensure_fragments(other)
         return Text(self, other)
 
     def __iadd__(self, other: str | Fragment) -> Fragment | Text:
@@ -178,6 +184,7 @@ class Fragment(IRenderable):
     def __radd__(self, other: str | Fragment) -> Fragment | Text:
         if isinstance(other, str):
             return Fragment(other + self._string, self._style)
+        self._ensure_fragments(other)
         return Text(other, self)
 
     def __format__(self, format_spec: str) -> str:
@@ -217,7 +224,7 @@ class Fragment(IRenderable):
 
 class FrozenText(IRenderable):
     """
-    T
+    :param align: default is left
     """
 
     @overload
@@ -254,15 +261,17 @@ class FrozenText(IRenderable):
         fill: str = " ",
         overflow: str = "",
         pad: int = 0,
+        pad_closest_style: bool = True,
     ):
         self._fragments = deque()
         if len(args):
-            if isinstance(args[0], str):
-                self._fragments.append(Fragment(*args))
+            if isinstance(args[0], str) and (
+                len(args) == 1
+                or isinstance(args[1], (type(None), int, str, IColor, Style))
+            ):
+                self._fragments.append(Fragment(*args[0:2]))
             else:
-                for arg in args:
-                    if not isinstance(arg, Fragment):
-                        raise TypeError(f"Unexpected argument type: {type(arg)}")
+                self._ensure_fragments(*args)
                 self._fragments.extend(args)
 
         self._width = width
@@ -274,6 +283,7 @@ class FrozenText(IRenderable):
 
         self._overflow = overflow
         self._pad = pad
+        self._pad_closest_style = pad_closest_style
 
     def __len__(self) -> int:
         return self._width or sum(len(frag) for frag in self._fragments)
@@ -321,7 +331,7 @@ class FrozenText(IRenderable):
         if self._width is not None:
             max_len = max(0, self._width - self._pad)
 
-        result = ""
+        result_parts: t.List[t.Tuple[str, Style]] = []
         cur_len = 0
         cur_frag_idx = 0
         overflow_buf = self._overflow[:max_len]
@@ -351,7 +361,7 @@ class FrozenText(IRenderable):
                     attrs_stack[attr].append(frag_attr)
 
             cur_style = Style(**{k: v[-1] for k, v in attrs_stack.items()})
-            result += renderer.render(frag_part, cur_style)
+            result_parts.append((frag_part, cur_style))
             cur_len += len(frag_part)
             cur_frag_idx += 1
             if not frag.close_prev and not frag.close_this:
@@ -369,28 +379,41 @@ class FrozenText(IRenderable):
                             f'cannot proceed (attribute "{attr}" in {frag})'
                         )
 
-        if (spare_len := (self._width or max_len) - cur_len) < 0:
-            return result
-
-        # aligning and filling
-        spare_left = 0
-        spare_right = 0
-        if self._align == Align.LEFT:
-            spare_right = spare_len
-        elif self._align == Align.RIGHT:
-            spare_left = spare_len
-        else:
-            if spare_len % 2 == 1:
-                spare_right = math.ceil(spare_len / 2)
+        if (spare_len := (self._width or max_len) - cur_len) >= 0:
+            # aligning and filling
+            spare_left = 0
+            spare_right = 0
+            if self._align == Align.LEFT:
+                spare_right = spare_len
+            elif self._align == Align.RIGHT:
+                spare_left = spare_len
             else:
-                spare_right = math.floor(spare_len / 2)
-            spare_left = spare_len - spare_right
-        return (spare_left * self._fill) + result + (spare_right * self._fill)
+                if spare_len % 2 == 1:
+                    spare_right = math.ceil(spare_len / 2)
+                else:
+                    spare_right = math.floor(spare_len / 2)
+                spare_left = spare_len - spare_right
+
+            if not self._pad_closest_style or len(result_parts) == 0:
+                result_parts = [
+                    (spare_left * self._fill, NOOP_STYLE),
+                    *result_parts,
+                    (spare_right * self._fill, NOOP_STYLE),
+                ]
+            else:
+                first_fp, first_st = result_parts.pop(0)
+                result_parts.insert(0, ((spare_left * self._fill) + first_fp, first_st))
+                last_fp, last_st = result_parts.pop()
+                result_parts.append((last_fp + (spare_right * self._fill), last_st))
+
+        return "".join(renderer.render(fp, st) for fp, st in result_parts)
 
     def append(self, *fragments: Fragment) -> FrozenText:
+        self._ensure_fragments(*fragments)
         return FrozenText(*self._fragments, *fragments)
 
     def prepend(self, *fragments: Fragment) -> FrozenText:
+        self._ensure_fragments(*fragments)
         return FrozenText(*fragments, *self._fragments)
 
     def set_width(self, width: int):
@@ -402,10 +425,12 @@ class Text(FrozenText):
         return self.append(self.as_fragment(other))
 
     def append(self, *fragments: Fragment) -> Text:
+        self._ensure_fragments(*fragments)
         self._fragments.extend(fragments)
         return self
 
     def prepend(self, *fragments: Fragment) -> Text:
+        self._ensure_fragments(*fragments)
         self._fragments.extendleft(fragments)
         return self
 
@@ -442,7 +467,7 @@ class SimpleTable(IRenderable):
 
     def __init__(
         self,
-        *rows: t.Iterable[t.Iterable[RT]],
+        *rows: t.Iterable[RT],
         width: int = None,
         sep: str = 2 * " ",
         border_st: Style = NOOP_STYLE,
@@ -463,7 +488,7 @@ class SimpleTable(IRenderable):
         self._column_sep: Fragment = Fragment(sep, border_st)
         self._border_st = border_st
         self._rows: list[list[IRenderable]] = []
-        self.add_rows(rows)
+        self.add_rows(rows=rows)
 
     def __len__(self) -> int:
         return sum(flatten1((len(frag) for frag in row) for row in self._rows))
