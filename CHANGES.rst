@@ -21,7 +21,7 @@ pending
 - |NEW|  `text` Fragments validation
 - |DOCS|  `CHANGES.rst` autoupdate
 
-.. <@pending:29a51a3>
+.. <@pending:f43adca>
 .. ^ blank line before should be kept
 
 v2.32-dev

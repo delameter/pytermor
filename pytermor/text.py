@@ -652,7 +652,7 @@ class TemplateEngine:
                     for tpl_chunk, sep in self._SPLIT_REGEXP.findall(tpl_part):
                         if len(tpl_chunk) > 0:
                             result += Fragment(tpl_chunk, style_buffer, close_this=True)
-                        result.append(sep)
+                        result += sep
                     # add open style for engine to properly handle the :[-closing] tag:
                     tpl_part = ""
                 result += Fragment(tpl_part, style_buffer, close_this=False)
