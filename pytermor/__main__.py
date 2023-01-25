@@ -5,8 +5,6 @@
 from os.path import dirname, join
 from subprocess import PIPE, run, CalledProcessError, DEVNULL
 
-from .color import ColorRGB
-
 try:
     gitdir = dirname(__file__) + "a"
     cp = run(

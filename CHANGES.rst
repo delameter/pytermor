@@ -21,8 +21,9 @@ pending
 - |NEW|  `text` Fragments validation
 - |DOCS|  `CHANGES.rst` autoupdate
 - |FIX|  `parse` method of TemplateEngine
+- |NEW|  `coveralls.io` integration
 
-.. <@pending:ffcac04>
+.. <@pending:0bcc4f2>
 .. ^ blank line before should be kept
 
 v2.32-dev

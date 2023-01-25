@@ -18,10 +18,9 @@
       NON_ASCII_CHARS
       IT
       OT
-      PT
-      RT
-      MT
-      AT
+      PTT
+      RPT
+      MPT
    
    
 
@@ -62,11 +61,13 @@
       OmniSanitizer
       SgrStringReplacer
       StringAligner
+      StringLinearizer
       StringMapper
       StringReplacer
       StringTracer
       StringUcpTracer
       TracerExtra
+      WhitespaceRemover
    
    
 

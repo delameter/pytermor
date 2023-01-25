@@ -149,14 +149,12 @@ IT = t.TypeVar("IT", str, bytes)
 """ input-type """
 OT = t.TypeVar("OT", str, bytes)
 """output-type"""
-PT = Union[IT, t.Pattern[IT]]
+PTT = Union[IT, t.Pattern[IT]]
 """ pattern type """
-RT = Union[OT, t.Callable[[t.Match[OT]], OT]]
+RPT = Union[OT, t.Callable[[t.Match[OT]], OT]]
 """ replacer type """
-MT = t.Dict[int, IT]
+MPT = t.Dict[int, IT]
 """ # map """
-AT = Union["OmniFilter", t.Type["OmniFilter"]]
-""" """
 
 _dump_printers_cache: t.Dict[t.Type["AbstractTracer"], "AbstractTracer"] = dict()
 
@@ -511,7 +509,7 @@ class StringReplacer(IFilter[str, str]):
     .
     """
 
-    def __init__(self, pattern: PT[str], repl: RT[str]):
+    def __init__(self, pattern: PTT[str], repl: RPT[str]):
         if isinstance(pattern, str):
             self._pattern: t.Pattern[str] = re.compile(pattern)
         else:
@@ -528,7 +526,7 @@ class StringReplacer(IFilter[str, str]):
 class EscSeqStringReplacer(StringReplacer):
     """ """
 
-    def __init__(self, repl: RT[str] = ""):
+    def __init__(self, repl: RPT[str] = ""):
         super().__init__(ESCAPE_SEQ_REGEX, repl)
 
 
@@ -541,7 +539,7 @@ class SgrStringReplacer(StringReplacer):
         Replacement, can contain regexp groups (see :meth:`apply_filters()`).
     """
 
-    def __init__(self, repl: RT[str] = ""):
+    def __init__(self, repl: RPT[str] = ""):
         super().__init__(SGR_SEQ_REGEX, repl)
 
 
@@ -555,9 +553,34 @@ class CsiStringReplacer(StringReplacer):
         Replacement, can contain regexp groups (see :meth:`apply_filters()`).
     """
 
-    def __init__(self, repl: RT[str] = ""):
+    def __init__(self, repl: RPT[str] = ""):
         super().__init__(CSI_SEQ_REGEX, repl)
 
+
+class StringLinearizer(StringReplacer):
+    """
+    Filter transforms all whitespace sequences in the input string
+    into a single space character, or into a specified string. Most obvious
+    application is pre-formatting strings for log output in order to keep
+    the messages one-lined.
+
+    :param repl: Replacement character(s).
+    """
+
+    REGEX = re.compile(r'\s+')
+
+    def __init__(self, repl: RPT[str] = " "):
+        super().__init__(self.REGEX, repl)
+
+
+class WhitespaceRemover(StringLinearizer):
+    """
+    Special case of `StringLinearizer`. Removes all the whitespaces from the
+    input string.
+    """
+
+    def __init__(self):
+        super().__init__("")
 
 # -----------------------------------------------------------------------------
 # Filters[Mappers]
@@ -583,7 +606,7 @@ class OmniMapper(IFilter[IT, IT]):
     :see: `NonPrintsOmniVisualizer`
     """
 
-    def __init__(self, override: MT = None):
+    def __init__(self, override: MPT = None):
         self._make_maps(override)
 
     def _get_default_keys(self) -> t.List[int]:
@@ -604,13 +627,13 @@ class OmniMapper(IFilter[IT, IT]):
         """
         raise NotImplementedError
 
-    def _make_maps(self, override: MT | None):
+    def _make_maps(self, override: MPT|None):
         self._maps = {
             str: str.maketrans(self._make_premap(str, override)),
             bytes: bytes.maketrans(*self._make_bytemaps(override)),
         }
 
-    def _make_premap(self, inp_type: t.Type[IT], override: MT | None) -> t.Dict[int, IT]:
+    def _make_premap(self, inp_type: t.Type[IT], override: MPT|None) -> t.Dict[int, IT]:
         default_map = dict()
         default_replacer = None
         for i in self._get_default_keys():
@@ -635,7 +658,7 @@ class OmniMapper(IFilter[IT, IT]):
             default_map.update({i: self._transcode(v, inp_type)})
         return default_map
 
-    def _make_bytemaps(self, override: MT | None) -> t.Tuple[bytes, bytes]:
+    def _make_bytemaps(self, override: MPT|None) -> t.Tuple[bytes, bytes]:
         premap = self._make_premap(bytes, override)
         srcmap = b"".join(int.to_bytes(k, 1, "big") for k in premap.keys())
         for v in premap.values():
@@ -650,7 +673,7 @@ class OmniMapper(IFilter[IT, IT]):
     def apply(self, inp: IT, extra: t.Any = None) -> IT:
         return inp.translate(self._maps[type(inp)])
 
-    def _transcode(self, inp: IT, target: t.Type[RT]) -> RT:
+    def _transcode(self, inp: IT, target: t.Type[RPT]) -> RPT:
         if isinstance(inp, target):
             return inp
         return inp.encode() if isinstance(inp, str) else inp.decode()
@@ -661,7 +684,7 @@ class StringMapper(OmniMapper[str]):
     a
     """
 
-    def _make_maps(self, override: MT | None):
+    def _make_maps(self, override: MPT|None):
         self._maps = {str: str.maketrans(self._make_premap(str, override))}
 
     def apply(self, inp: str, extra: t.Any = None) -> str:
@@ -741,29 +764,33 @@ class OmniSanitizer(OmniMapper):
 # misc
 
 
-def apply_filters(string: IT, *args: AT) -> OT:
+def apply_filters(inp: IT, *args: Union[IFilter, t.Type[IFilter]]) -> OT:
     """
     Method for applying dynamic filter list to a target string/bytes.
+
     Example (will replace all ``ESC`` control characters to ``E`` and
-    thus make SGR params visible):
+    thus make SGR params visible)::
 
-    >>> from pytermor import SeqIndex
-    >>> apply_filters(f'{SeqIndex.RED}test{SeqIndex.COLOR_OFF}', SgrStringReplacer(r'E\2\3\4'))
-    'E[31mtestE[39m'
+        >>> from pytermor import SeqIndex
+        >>> test_str = f'{SeqIndex.RED}test{SeqIndex.COLOR_OFF}'
+        >>> apply_filters(test_str, SgrStringReplacer('E\\2\\3\\4'))
+        'E[31mtestE[39m'
 
-    Note that type of ``s`` argument must be same as ``StringFilter`` parameterized
-    type, i.e. :class:`ReplaceNonAsciiBytes` is ``StringFilter`` type, so
-    you can apply it only to bytes-type strings.
+        >>> apply_filters('\x1b[31mtest\x1b[39m', OmniSanitizer)
+        '.[31mtest.[39m'
 
-    :param string: String to filter.
-    :param args:   `OmniFilter` instance(s) or ``OmniFilter`` type(s).
-    :return:       Filtered ``s``.
+    Note that type of ``inp`` argument must be same as filter parameterized
+    input type (`IT`), i.e. `StringReplacer` is ``IFilter[str, str]`` type,
+    so you can apply it only to *str*-type inputs.
+
+    :param inp:    String/bytes to filter.
+    :param args:   Instance(s) implementing `IFilter` or their type(s).
     """
 
     def instantiate(f):
         return f() if isinstance(f, type) else f
 
-    return reduce(lambda s, f: instantiate(f)(s), args, string)
+    return reduce(lambda s, f: instantiate(f)(s), args, inp)
 
 
 def dump(data: t.Any, label: str = None, max_len_shift: int = None) -> str | None:

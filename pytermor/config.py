@@ -11,6 +11,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
+from .common import logger
+
 
 def _bool_field(key: str, default: bool = False):
     return field(default_factory=lambda k=key, d=default: os.getenv(k, d))
@@ -52,6 +54,14 @@ class Config:
     output_mode: str = field(default_factory=_output_mode_factory)
     trace_renders: bool = _bool_field("PYTERMOR_TRACE_RENDERS")
     prefer_rgb: bool = _bool_field("PYTERMOR_PREFER_RGB")
+
+    ATTRS = [  # @fixme maybe there is a better way to iterate over all fields...
+        'renderer_class', 'output_mode', 'trace_renders', 'prefer_rgb',
+    ]
+
+    def __post_init__(self):
+        attr_dict = {k: getattr(self, k) for k in self.ATTRS}
+        logger.info(f"Config initialized with: {attr_dict!s}")
 
 
 _config = Config()
