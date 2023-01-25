@@ -20,8 +20,9 @@ pending
 - |TESTS| additional coverage for `utilnum`
 - |NEW|  `text` Fragments validation
 - |DOCS|  `CHANGES.rst` autoupdate
+- |FIX|  `parse` method of TemplateEngine
 
-.. <@pending:f43adca>
+.. <@pending:ffcac04>
 .. ^ blank line before should be kept
 
 v2.32-dev

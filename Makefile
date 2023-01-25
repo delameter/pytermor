@@ -30,7 +30,7 @@ DIM    := $(shell tput -Txterm dim)
 RESET  := $(shell printf '\e[m')
                                 # tput -Txterm sgr0 returns SGR-0 with
                                 # nF code switching esq, which displaces the columns
-## Common commands
+## Common
 
 help:   ## Show this help
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s?(\s*#?[^#]+)#*\s*(.*)/\1${YELLOW}\2${RESET}#\3/; s/(.+):(#|\s)+(.+)/##   ${GREEN}\1${RESET}#\3/; s/\*(\w+)\*/${BOLD}\1${RESET}/g; 2~1s/<([ )*<@>.A-Za-z0-9_(-]+)>/${DIM}\1${RESET}/gi' -e 's/(\x1b\[)33m#/\136m/' | column -ts# | sed -Ee 's/ {3}>/ >/'
@@ -92,7 +92,7 @@ build-cval: ## Process color configs and update library color values source file
 
 
 ##
-## Testing / Pre-build
+## Versioning
 
 show-version: ## Show current package version
 	@echo "Current version: ${YELLOW}${VERSION}${RESET}"
@@ -109,6 +109,10 @@ set-version: ## Set new package version
 update-changelist:  ## Auto-update with new commits  <@CHANGES.rst>
 	./update-changelist.sh
 
+
+##
+## Testing
+
 test: ## Run pytest
 	${VENV_PATH}/bin/pytest --quiet --tb=no
 
@@ -120,6 +124,9 @@ test-trace: ## Run pytest with detailed output  <@last_test_trace.log>
 		--failed-first \
 		--log-file-level=1 \
 		--log-file=last_test_trace.log
+
+##
+## Coverage / dependencies
 
 coverage: ## Run coverage and make a report
 	rm -v coverage-report/*
@@ -135,12 +142,16 @@ open-coverage:  ## Open coverage report in browser
 	if [ -z "${DISPLAY}" ] ; then echo 'ERROR: No $$DISPLAY' && return 1 ; fi
 	if [ -d localhost ] ; then xdg-open ${LOCALHOST_URL}/coverage-report ; else xdg-open coverage-report/index.html ; fi
 
-depends:  ## Build and display module dependency graph
+update-coveralls:  ## Manually send last coverage statistics  <coveralls.io>
+	${VENV_PATH}/bin/coveralls
+
+
+depends:  ## Build module dependency graphs
 	rm -vrf ${DEPENDS_PATH}
 	mkdir -p ${DEPENDS_PATH}
 	./pydeps.sh ${PROJECT_NAME} ${DEPENDS_PATH}
 
-open-depends:
+open-depends:  ## Open dependency graph output directory
 	xdg-open ./${DEPENDS_PATH}
 
 ##
@@ -152,10 +163,6 @@ reinit-docs: ## Purge and recreate docs with auto table of contents
 
 demolish-docs:  ## Purge docs temp output folder
 	rm -rvf ${DOCS_IN_PATH}/_build
-
-open-docs-html:  ## Open HTML docs in browser
-	if [ -z "${DISPLAY}" ] ; then echo 'ERROR: No $$DISPLAY' && return 1 ; fi
-	if [ -d localhost ] ; then xdg-open ${LOCALHOST_URL}/docs ; else xdg-open ${DOCS_IN_PATH}/_build/index.html ; fi
 
 docs: ## (Re)build HTML documentation  <no cache>
 docs: depends demolish-docs docs-html
@@ -178,7 +185,6 @@ docs-pdf: ## Build PDF documentation  <caching allowed>
 	yes "" | ${VENV_PATH}/bin/sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -n >/dev/null # twice for building pdf toc
 	yes "" | ${VENV_PATH}/bin/sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build    >/dev/null # @FIXME broken unicode
 	mv ${DOCS_IN_PATH}/_build/latex/${PROJECT_NAME}.pdf ${DOCS_OUT_PATH}/${PROJECT_NAME}.pdf
-	if [ -n "${DISPLAY}" ] ; then xdg-open ${DOCS_OUT_PATH}/${PROJECT_NAME}.pdf ; fi
 
 docs-man: ## Build man pages  <caching allowed>
 	sed -i.bak -Ee 's/^.+<<<MAKE_DOCS_MAN<<</#&/' ${DOCS_IN_PATH}/conf.py
@@ -192,6 +198,13 @@ docs-all: ## (Re)build documentation in all formats  <no cache>
 docs-all: depends demolish-docs docs docs-pdf docs-man
 	@echo
 	@$(call log_success,$$(du -h ${DOCS_OUT_PATH}/*)) | sed -E '1s/^(..).{7}/\1SUMMARY/'
+
+open-docs-html:  ## Open HTML docs in browser
+	if [ -z "${DISPLAY}" ] ; then echo 'ERROR: No $$DISPLAY' && return 1 ; fi
+	if [ -d localhost ] ; then xdg-open ${LOCALHOST_URL}/docs ; else xdg-open ${DOCS_IN_PATH}/_build/index.html ; fi
+
+open-docs-pdf:  ## Open PDF docs in reader
+	if [ -n "${DISPLAY}" ] ; then xdg-open ${DOCS_OUT_PATH}/${PROJECT_NAME}.pdf ; fi
 
 ##
 ## Building / Packaging
