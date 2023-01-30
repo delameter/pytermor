@@ -1,10 +1,11 @@
 .. _guide.index:
 
-===================
+###################
 Guide
-===================
+###################
 
 .. toctree::
+   :titlesonly:
 
    install
    high-level
@@ -16,4 +17,4 @@ Guide
    ansi-presets
    xterm-color-palette
    configuration
-   guidelines
+   docs-guidelines

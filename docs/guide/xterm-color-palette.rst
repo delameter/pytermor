@@ -1,8 +1,8 @@
 .. _guide.xterm-color-palette:
 
-============================
-xterm color palette
-============================
+############################
+:term:`xterm` color palette
+############################
 
 Actual colors of *default* palette depend on user's terminal settings, i.e.
 the result color of `Color16` is not guaranteed to exactly match the

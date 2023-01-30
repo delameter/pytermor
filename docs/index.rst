@@ -2,9 +2,9 @@
 
 .. title:: pytermor
 
-=====================
+#####################
 pytermor
-=====================
+#####################
 
 :comment:`(yet another)` Python library initially designed for formatting terminal output using ANSI escape codes.
 

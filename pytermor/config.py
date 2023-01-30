@@ -34,7 +34,8 @@ class Config:
         2) or preliminarily set the corresponding environment variables to intended values,
            and the default config instance will catch them up on initialization.
 
-           .. seealso:: `/guide/configuration` guide section.
+       .. seealso:: Environment variable list is located in `/guide/configuration`
+                    guide section.
 
     :param renderer_class: renderer_class
     :param output_mode:    output_mode

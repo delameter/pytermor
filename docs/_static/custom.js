@@ -4,20 +4,30 @@
 //-----------------------------------------------------------------------------
 
 $(document).ready(function () {
-    setExternalHrefOpenMethodToBlank();
-    handleEscCharLabels();
+    transformReferences();
+    formatEnvLists();
+    formatEscCharLabels();
     removeBadgeBrackets();
+    setExternalHrefOpenMethodToBlank();
 });
 
-function setExternalHrefOpenMethodToBlank() {
-    for (let el of $('a.external, a.internal.image-reference, .icons a')) {
-        if (!el) continue;
-        if (el.attributes.href.value.charAt(0) === '#') continue;
-        el.setAttribute('target', '_blank');
+function transformReferences() {
+    for (let el of $(".field-list a.internal em, .field-list a strong")) {
+        el.outerHTML="<code class='literal'><span class='pre'>" + el.innerHTML + "</span></code>";
+    }
+    for (let el of $(".field-list a.external")) {
+        if (el.childNodes.item(0).nodeType !== Node.TEXT_NODE)
+            continue;
+        if (/^\(in python/i.test(el.title))
+            el.innerHTML="<code class='literal'><span class='pre'>" + el.innerHTML + "</span></code>";
     }
 }
 
-function handleEscCharLabels() {
+function formatEnvLists() {
+    $(".env-list dt").each((idx, el) => el.classList.add("sig"));
+}
+
+function formatEscCharLabels() {
     let affectedNodes = new Set();
     for (let el of $('code:not(.xref) .pre')) {
         if (!/^ESC$/.test(el.innerText)) continue;
@@ -37,6 +47,14 @@ function handleEscCharLabels() {
 function removeSpacesBetweenTags(el) {
     if (!el) return;
     el.innerHTML = el.innerHTML.replace(/>\s+</g, "><");
+}
+
+function setExternalHrefOpenMethodToBlank() {
+    for (let el of $('a.external, a.internal.image-reference, .icons a')) {
+        if (!el) continue;
+        if (el.attributes.href.value.charAt(0) === '#') continue;
+        el.setAttribute('target', '_blank');
+    }
 }
 
 let badgeContentMap = {

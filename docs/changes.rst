@@ -2,14 +2,15 @@
 
 .. _changes:
 
-==============================
+###############
 Changelog
-==============================
+###############
 
 .. raw:: latex
 
    \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}%
 
+=============
 Releases
 =============
 

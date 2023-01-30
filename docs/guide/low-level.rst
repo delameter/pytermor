@@ -1,11 +1,12 @@
 .. _guide.low-level:
 
-==========================
+##########################
 Low-level API
-==========================
+##########################
 
 So, what's happening under the hood?
 
+================
 Core methods
 ================
 
@@ -21,8 +22,9 @@ Core methods
    :caption:              `ISequence` inheritance tree
 
 
+====================
 Format soft reset
-=================
+====================
 
 There are two ways to manage color and attribute termination:
 
@@ -59,7 +61,8 @@ But it still can be helpful for a majority of cases (especially when text is gen
 program and in one go).
 
 
-Working with :mono:`Spans`
+=============================
+Working with :term:`Spans`
 =============================
 
 Use `Span` constructor to create new instance with specified control sequence(s) as a opening/starter sequence
@@ -78,8 +81,9 @@ It's also possible to avoid auto-composing mechanism and create `Span` with
 explicitly set parameters using `Span.init_explicit()`.
 
 
-Creating and applying :mono:`SGRs`
-==================================
+=======================================
+Creating and applying :term:`SGRs`
+=======================================
 
 You can use any of predefined sequences from `SeqIndex` registry or create your own via standard constructor. Valid
 argument values as well as preset constants are described in `ansi-presets` page.
@@ -111,7 +115,8 @@ To get the resulting sequence chars use `assemble() <SequenceSGR.assemble()>` me
 - Third line is hexadecimal string representation.
 
 
-:mono:`SGR` sequence structure
+================================
+:term:`SGR` sequence structure
 ================================
 
 1. ``ESC`` is escape *control character*, which opens a control sequence (can also be
@@ -127,13 +132,15 @@ To get the resulting sequence chars use `assemble() <SequenceSGR.assemble()>` me
    case :abbr:`SGR (Select Graphic Rendition)`. Sequences of this kind are most commonly encountered.
 
 
-Combining :mono:`SGRs`
+=========================
+Combining :term:`SGRs`
 =========================
 
 One instance of `SequenceSGR` can be added to another. This will result in a new ``SequenceSGR`` with combined params.
 
 .. literalinclude:: /examples/ex_80_combined.py
    :linenos:
+
 
 -----
 

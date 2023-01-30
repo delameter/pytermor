@@ -1,8 +1,8 @@
 .. _guide.ansi-presets:
 
-======================================
+######################################
 ANSI preset list
-======================================
+######################################
 
 Preset lists are omitted from API docs to avoid unnesessary duplication;
 summary list of all presets defined in the library (excluding `util* <util>`)
@@ -35,9 +35,9 @@ but it is not palette-based.
    - |clr|
    - |sty|
 
-
+==================================
 Meta, attributes, resetters
-===========================
+==================================
 
 .. table::
    :widths: 8 50 12 11 11 11 11 43 43
@@ -115,8 +115,9 @@ Meta, attributes, resetters
 
 .. _guide.ansi-presets.color16:
 
-:mono:`Color16` presets
-=========================
+==================================
+:term:`Color16` presets
+==================================
 
 .. table::
    :widths: 8 60 12 11 11 11 11 30 46
@@ -263,13 +264,14 @@ Meta, attributes, resetters
    +--------------------------------------------------------------------------+------------------------------+---------+-----+-----+-----+-----------------+----------------------+------------------------------------------------+
 
 
-
 .. _guide.ansi-presets.color256:
 
-:mono:`Color256` presets
-===========================
+==================================
+:term:`Color256` presets
+==================================
 
 .. include:: /_generated/preset-table/output.rst_
+
 
 -----
 

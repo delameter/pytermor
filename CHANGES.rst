@@ -22,8 +22,9 @@ pending
 - |DOCS|  `CHANGES.rst` autoupdate
 - |FIX|  `parse` method of TemplateEngine
 - |NEW|  `coveralls.io` integration
+- |NEW|  `StringLinearizer`, `WhitespaceRemover`
 
-.. <@pending:0bcc4f2>
+.. <@pending:27754ff>
 .. ^ blank line before should be kept
 
 v2.32-dev
