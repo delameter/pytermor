@@ -12,6 +12,9 @@
 .. role:: comment
     :class: comment
 
+.. role:: hex
+    :class: hex
+
 .. default-role:: any
 .. include:: <isonum.txt>
 

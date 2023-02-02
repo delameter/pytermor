@@ -31,11 +31,16 @@ body {
 
 /** Font **/
 
-h1, abbr,
-.sidebar-brand-text, .brand,
+h1,
+abbr,
+.sidebar-brand-text,
+.brand,
 dl[class].field-list > dt {
     font-family: ASM, monospace;
     text-transform: lowercase;
+}
+.hex {
+    font-family: ASM, monospace;
 }
 h2 { font-size: 1.8rem; }
 h3 { font-size: 1.6rem; }

@@ -35,10 +35,10 @@ is `resolve_color()`. Valid values include:
     - *str* with a color name in any form distinguishable by the color resolver;
       the color lists can be found at: `guide.ansi-presets` and `guide.es7s-colors`;
     - *str* starting with a "#" and consisting of 6 more hexadecimal characters, case
-      insensitive (RGB regular form), e.g.: "#0B0CCA";
+      insensitive (RGB regular form), e.g. ":hex:`#0B0CCA`";
     - *str* starting with a "#" and consisting of 3 more hexadecimal characters, case
-      insensitive (RGB short form), e.g.: "#666";
-    - *int* in a [0; 0xFFFFFF] range.
+      insensitive (RGB short form), e.g. ":hex:`#666`";
+    - *int* in a [:hex:`0`; :hex:`0xFFFFFF`] range.
 """
 
 CT = t.TypeVar("CT", bound="IColor")
@@ -214,7 +214,7 @@ class IColor(ABC):
 
     def format_value(self, prefix: str = "0x") -> str:
         """
-        Format color value as "0xFFFFFF".
+        Format color value as ":hex:`0xRRGGBB`".
 
         :param prefix: Can be customized.
         """
@@ -222,7 +222,7 @@ class IColor(ABC):
 
     @property
     def hex_value(self) -> int:
-        """Color value, e.g. 0x3AEB0C."""
+        """Color value, e.g. :hex:`0x3AEB0C`."""
         return self._hex_value
 
     @property
@@ -358,7 +358,7 @@ class Color16(IColor):
         Arguments ``register``, ``index`` and ``aliases``
         are *kwonly*-type args.
 
-    :param int hex_value:  Color RGB value, e.g. 0x800000.
+    :param int hex_value:  Color RGB value, e.g. :hex:`0x800000`.
     :param int code_fg:    Int code for a foreground color setup, e.g. 30.
     :param int code_bg:    Int code for a background color setup. e.g. 40.
     :param str name:       Name of the color, e.g. "red".
@@ -457,7 +457,7 @@ class Color256(IColor):
         Arguments ``register``, ``index``, ``aliases`` and ``color16_equiv``
         are *kwonly*-type args.
 
-    :param hex_value: Color RGB value, e.g. 0x5f0000.
+    :param hex_value: Color RGB value, e.g. :hex:`0x5f0000`.
     :param code:      Int code for a color setup, e.g. 52.
     :param name:      Name of the color, e.g. "dark-red".
     :param register:  If *True*, add color to registry for resolving by name.
@@ -569,7 +569,7 @@ class ColorRGB(IColor):
         are *kwonly*-type args.
 
 
-    :param hex_value: Color RGB value, e.g. 0x73a9c2.
+    :param hex_value: Color RGB value, e.g. :hex:`0x73A9C2`.
     :param name:      Name of the color, e.g. "moonstone-blue".
     :param register:  If *True*, add color to registry for resolving by name.
     :param index:     If *True*, add color to approximation index.
@@ -707,10 +707,10 @@ def resolve_color(subject: CDT, color_type: t.Type[CT] = None) -> CT:
         <Color16[#31,800000?,red]>
 
     If ``color_type`` is `ColorRGB` or if it is omitted, there is one more way
-    to specify a color: in form of a hexadecimal value "#RRGGBB" (or in short form, as
-    "#RGB"), as well as just use an *int* in [0x0; 0xFFFFFF] range. In this case no
-    actual searching is performed, and a new nameless instance of `ColorRGB` is
-    created and returned.
+    to specify a color: in form of a hexadecimal value ":hex:`#RRGGBB`" (or in
+    short form, as ":hex:`#RGB`"), as well as just use an *int* in [:hex:`0x00`;
+    :hex:`0xFFFFFF`] range. In this case no actual searching is performed, and
+    a new nameless instance of `ColorRGB` is created and returned.
 
         >>> resolve_color("#333")
         <ColorRGB[333333]>

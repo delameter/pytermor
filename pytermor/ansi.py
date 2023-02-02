@@ -97,7 +97,7 @@ class ISequenceFe(ISequence, metaclass=ABCMeta):
     `OSC <SequenceOSC>` and more.
 
     All subtypes of this sequence start with ``ESC`` plus ASCII byte
-    from ``0x40`` to ``0x5F`` (``@``, ``[``, ``\\``, ``]``, ``_``, ``^`` and
+    from :hex:`0x40` to :hex:`0x5F` (``@``, ``[``, ``\\``, ``]``, ``_``, ``^`` and
     capital letters ``A``-``Z``).
     """
 
@@ -105,7 +105,7 @@ class ISequenceFe(ISequence, metaclass=ABCMeta):
 class SequenceST(ISequenceFe):
     """
     String Terminator sequence (ST). Terminates strings in other control
-    sequences. Encoded as ``ESC \\`` (``0x1B`` ``0x5C``).
+    sequences. Encoded as ``ESC \\`` (:hex:`0x1B 0x5C`).
     """
 
     _INTRODUCER = "\\"
@@ -535,28 +535,28 @@ class SeqIndex:
     # text colors
 
     BLACK = SequenceSGR(IntCode.BLACK)
-    """ Set text color to 0x000000. """
+    """ Set text color to :hex:`0x000000`. """
 
     RED = SequenceSGR(IntCode.RED)
-    """ Set text color to 0x800000. """
+    """ Set text color to :hex:`0x800000`. """
 
     GREEN = SequenceSGR(IntCode.GREEN)
-    """ Set text color to 0x008000. """
+    """ Set text color to :hex:`0x008000`. """
 
     YELLOW = SequenceSGR(IntCode.YELLOW)
-    """ Set text color to 0x808000. """
+    """ Set text color to :hex:`0x808000`. """
 
     BLUE = SequenceSGR(IntCode.BLUE)
-    """ Set text color to 0x000080. """
+    """ Set text color to :hex:`0x000080`. """
 
     MAGENTA = SequenceSGR(IntCode.MAGENTA)
-    """ Set text color to 0x800080. """
+    """ Set text color to :hex:`0x800080`. """
 
     CYAN = SequenceSGR(IntCode.CYAN)
-    """ Set text color to 0x008080. """
+    """ Set text color to :hex:`0x008080`. """
 
     WHITE = SequenceSGR(IntCode.WHITE)
-    """ Set text color to 0xc0c0c0. """
+    """ Set text color to :hex:`0xC0C0C0`. """
 
     COLOR_OFF = SequenceSGR(IntCode.COLOR_OFF)
     """ Reset foreground color. """
@@ -564,28 +564,28 @@ class SeqIndex:
     # background colors
 
     BG_BLACK = SequenceSGR(IntCode.BG_BLACK)
-    """ Set background color to 0x000000. """
+    """ Set background color to :hex:`0x000000`. """
 
     BG_RED = SequenceSGR(IntCode.BG_RED)
-    """ Set background color to 0x800000. """
+    """ Set background color to :hex:`0x800000`. """
 
     BG_GREEN = SequenceSGR(IntCode.BG_GREEN)
-    """ Set background color to 0x008000. """
+    """ Set background color to :hex:`0x008000`. """
 
     BG_YELLOW = SequenceSGR(IntCode.BG_YELLOW)
-    """ Set background color to 0x808000. """
+    """ Set background color to :hex:`0x808000`. """
 
     BG_BLUE = SequenceSGR(IntCode.BG_BLUE)
-    """ Set background color to 0x000080. """
+    """ Set background color to :hex:`0x000080`. """
 
     BG_MAGENTA = SequenceSGR(IntCode.BG_MAGENTA)
-    """ Set background color to 0x800080. """
+    """ Set background color to :hex:`0x800080`. """
 
     BG_CYAN = SequenceSGR(IntCode.BG_CYAN)
-    """ Set background color to 0x008080. """
+    """ Set background color to :hex:`0x008080`. """
 
     BG_WHITE = SequenceSGR(IntCode.BG_WHITE)
-    """ Set background color to 0xc0c0c0. """
+    """ Set background color to :hex:`0xC0C0C0`. """
 
     BG_COLOR_OFF = SequenceSGR(IntCode.BG_COLOR_OFF)
     """ Reset background color. """
@@ -593,40 +593,40 @@ class SeqIndex:
     # high intensity text colors
 
     GRAY = SequenceSGR(IntCode.GRAY)
-    """ Set text color to 0x808080. """
+    """ Set text color to :hex:`0x808080`. """
     HI_RED = SequenceSGR(IntCode.HI_RED)
-    """ Set text color to 0xff0000. """
+    """ Set text color to :hex:`0xFF0000`. """
     HI_GREEN = SequenceSGR(IntCode.HI_GREEN)
-    """ Set text color to 0x00ff00. """
+    """ Set text color to :hex:`0x00FF00`. """
     HI_YELLOW = SequenceSGR(IntCode.HI_YELLOW)
-    """ Set text color to 0xffff00. """
+    """ Set text color to :hex:`0xFFFF00`. """
     HI_BLUE = SequenceSGR(IntCode.HI_BLUE)
-    """ Set text color to 0x0000ff. """
+    """ Set text color to :hex:`0x0000FF`. """
     HI_MAGENTA = SequenceSGR(IntCode.HI_MAGENTA)
-    """ Set text color to 0xff00ff. """
+    """ Set text color to :hex:`0xFF00FF`. """
     HI_CYAN = SequenceSGR(IntCode.HI_CYAN)
-    """ Set text color to 0x00ffff. """
+    """ Set text color to :hex:`0x00FFFF`. """
     HI_WHITE = SequenceSGR(IntCode.HI_WHITE)
-    """ Set text color to 0xffffff. """
+    """ Set text color to :hex:`0xFFFFFF`. """
 
     # high intensity background colors
 
     BG_GRAY = SequenceSGR(IntCode.BG_GRAY)
-    """ Set background color to 0x808080. """
+    """ Set background color to :hex:`0x808080`. """
     BG_HI_RED = SequenceSGR(IntCode.BG_HI_RED)
-    """ Set background color to 0xff0000. """
+    """ Set background color to :hex:`0xFF0000`. """
     BG_HI_GREEN = SequenceSGR(IntCode.BG_HI_GREEN)
-    """ Set background color to 0x00ff00. """
+    """ Set background color to :hex:`0x00FF00`. """
     BG_HI_YELLOW = SequenceSGR(IntCode.BG_HI_YELLOW)
-    """ Set background color to 0xffff00. """
+    """ Set background color to :hex:`0xFFFF00`. """
     BG_HI_BLUE = SequenceSGR(IntCode.BG_HI_BLUE)
-    """ Set background color to 0x0000ff. """
+    """ Set background color to :hex:`0x0000FF`. """
     BG_HI_MAGENTA = SequenceSGR(IntCode.BG_HI_MAGENTA)
-    """ Set background color to 0xff00ff. """
+    """ Set background color to :hex:`0xFF00FF`. """
     BG_HI_CYAN = SequenceSGR(IntCode.BG_HI_CYAN)
-    """ Set background color to 0x00ffff. """
+    """ Set background color to :hex:`0x00FFFF`. """
     BG_HI_WHITE = SequenceSGR(IntCode.BG_HI_WHITE)
-    """ Set background color to 0xffffff. """
+    """ Set background color to :hex:`0xFFFFFF`. """
 
     # -- OSC ------------------------------------------------------------------
 
@@ -864,9 +864,9 @@ def make_color_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
     """
     Wrapper for creation of `SequenceSGR` operating in True Color mode (16M).
     Valid values for ``r``, ``g`` and ``b`` are in range of [0; 255]. This range
-    linearly translates into [0x00; 0xFF] for each channel. The result
-    value is composed as "0xRRGGBB". For example, sequence with color of
-    0xFF3300 can be created with::
+    linearly translates into [:hex:`0x00`; :hex:`0xFF`] for each channel. The result
+    value is composed as ":hex:`0xRRGGBB`". For example, sequence with color of
+    :hex:`0xFF3300` can be created with::
 
         >>> make_color_rgb(255, 51, 0)
         <SGR[38,2,255,51,0]>

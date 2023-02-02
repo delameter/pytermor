@@ -23,8 +23,9 @@ pending
 - |FIX|  `parse` method of TemplateEngine
 - |NEW|  `coveralls.io` integration
 - |NEW|  `StringLinearizer`, `WhitespaceRemover`
+- |DOCS| rethinking of references style
 
-.. <@pending:27754ff>
+.. <@pending:8edcd99>
 .. ^ blank line before should be kept
 
 v2.32-dev

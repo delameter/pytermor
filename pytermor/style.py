@@ -147,7 +147,7 @@ class Style:
         .. todo ::
 
             check if there is a better algorithm,
-            because current thinks text on #000080 should be black
+            because current thinks text on :hex:`#000080` should be black
 
         :return: self
         """
