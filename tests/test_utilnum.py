@@ -18,8 +18,9 @@ from pytermor.utilnum import (
     tdf_registry,
     format_si,
     format_si_binary,
+    format_bytes_human,
     StaticBaseFormatter,
-    formatter_si,
+    FORMATTER_SI,
 )
 
 
@@ -294,58 +295,10 @@ class TestDynamicBaseFormatter:
         assert tdf_registry.get_by_max_len(formatter.max_len)
 
 
-class TestStaticBaseFormatter:
-    @pytest.mark.parametrize(
-        "expected,value",
-        [
-            ["0 B", -0.01],
-            ["0 B", -0.1],
-            ["0 B", -0.0],
-            ["0 B", -0],
-            ["0 B", 0],
-            ["0 B", 0.0],
-            ["0 B", 0.1],
-            ["0 B", 0.01],
-            ["1 B", 1],
-            ["10 B", 10],
-            ["43 B", 43],
-            ["180 B", 180],
-            ["631 B", 631],
-            ["1010 B", 1010],
-            ["1023 B", 1023],
-            ["1.00 KiB", 1024],
-            ["1.05 KiB", 1080],
-            ["6.08 KiB", 6230],
-            ["14.6 KiB", 15000],
-            ["44.1 KiB", 45200],
-            ["130 KiB", 133300],
-            ["1.00 MiB", 1024**2 - 1],
-            ["1.00 GiB", 1024**3 - 1],
-            ["1.00 TiB", 1024**4 - 1],
-            ["1.00 PiB", 1024**5 - 1],
-            ["1.00 EiB", 1024**6 - 1],
-            ["1.00 ZiB", 1024**7 - 1],
-            ["1.00 YiB", 1024**8 - 1],
-            ["1.00 RiB", 1024**9 - 1],
-            ["1.00 QiB", 1024**10 - 1],
-            ["1.00 ??B", 1024**11 - 1],
-            ["1.00 MiB", 1024**2],
-            ["1.00 GiB", 1024**3],
-            ["1.00 TiB", 1024**4],
-            ["1.00 PiB", 1024**5],
-            ["1.00 EiB", 1024**6],
-            ["1.00 ZiB", 1024**7],
-            ["1.00 YiB", 1024**8],
-            ["1.00 RiB", 1024**9],
-            ["1.00 QiB", 1024**10],
-            ["1.00 ??B", 1024**11],
-        ],
-    )
-    def test_format_si_binary(self, expected: str, value: float):
-        assert format_si_binary(value) == expected
+# -- StaticBaseFormatter ------------------------------------------------------
 
-    # -------------------------------------------------------------------------
 
+class TestStaticBaseFormatterSi:
     @pytest.mark.parametrize(
         "expected,value",
         [
@@ -513,7 +466,7 @@ class TestStaticBaseFormatter:
     @pytest.mark.parametrize("value", LENGTH_LIMIT_PARAMS)
     def test_si_with_unit_result_len_is_le_than_6(self, value: float):
         formatter = StaticBaseFormatter(
-            max_value_len=4, allow_fractional=False, allow_negative=False, unit="m"
+            allow_fractional=False, allow_negative=False, unit="m"
         )
         result = formatter.format(value)
         assert len(result) <= 6, f"Expected len <= 6, got {len(result)} for '{result}'"
@@ -523,8 +476,97 @@ class TestStaticBaseFormatter:
         formatter = StaticBaseFormatter(max_value_len=9, allow_fractional=False)
         assert len(formatter.format(value)) <= 10
 
-    # -------------------------------------------------------------------------
 
+class TestStaticBaseFormatterSiBinary:
+    @pytest.mark.parametrize(
+        "expected,value",
+        [
+            ["0 B", -0.01],
+            ["0 B", -0.1],
+            ["0 B", -0.0],
+            ["0 B", -0],
+            ["0 B", 0],
+            ["0 B", 0.0],
+            ["0 B", 0.1],
+            ["0 B", 0.01],
+            ["1 B", 1],
+            ["10 B", 10],
+            ["43 B", 43],
+            ["180 B", 180],
+            ["631 B", 631],
+            ["1010 B", 1010],
+            ["1023 B", 1023],
+            ["1.00 KiB", 1024],
+            ["1.05 KiB", 1080],
+            ["6.08 KiB", 6230],
+            ["14.6 KiB", 15000],
+            ["44.1 KiB", 45200],
+            ["130 KiB", 133300],
+            ["1.00 MiB", 1024**2 - 1],
+            ["1.00 GiB", 1024**3 - 1],
+            ["1.00 TiB", 1024**4 - 1],
+            ["1.00 PiB", 1024**5 - 1],
+            ["1.00 EiB", 1024**6 - 1],
+            ["1.00 ZiB", 1024**7 - 1],
+            ["1.00 YiB", 1024**8 - 1],
+            ["1.00 RiB", 1024**9 - 1],
+            ["1.00 QiB", 1024**10 - 1],
+            ["1.00 ??B", 1024**11 - 1],
+            ["1.00 MiB", 1024**2],
+            ["1.00 GiB", 1024**3],
+            ["1.00 TiB", 1024**4],
+            ["1.00 PiB", 1024**5],
+            ["1.00 EiB", 1024**6],
+            ["1.00 ZiB", 1024**7],
+            ["1.00 YiB", 1024**8],
+            ["1.00 RiB", 1024**9],
+            ["1.00 QiB", 1024**10],
+            ["1.00 ??B", 1024**11],
+        ],
+    )
+    def test_format_si_binary(self, expected: str, value: float):
+        assert format_si_binary(value) == expected
+
+
+class TestStaticBaseFormatterBytesHuman:
+    @pytest.mark.parametrize(
+        "expected,value",
+        [
+            ["0", -0.01],
+            ["0", -0.1],
+            ["0", -0.0],
+            ["0", -0],
+            ["0", 0],
+            ["0", 0.0],
+            ["0", 0.1],
+            ["0", 0.01],
+            ["1", 1],
+            ["10", 10],
+            ["43", 43],
+            ["180", 180],
+            ["631", 631],
+            ["1.01k", 1010],
+            ["1.02k", 1023],
+            ["1.02k", 1024],
+            ["1.08k", 1080],
+            ["6.23k", 6230],
+            ["15.0k", 15000],
+            ["45.2k", 45200],
+            ["133k", 133_300],
+            ["1.05M", 1_048_576],
+            ["33.6M", 33_554_432],
+            ["144M", 143_850_999],
+            ["1.07G", 1_073_741_824],
+            ["10.6G", 10_575_449_983],
+            ["1.10T", 1_099_511_627_776],
+            ["1.13P", 1_125_899_906_842_624],
+        ],
+    )
+    def test_format_bytes_human(self, expected: str, value: int):
+        assert format_bytes_human(value) == expected
+
+
+class TestStaticBaseFormatter:
     @pytest.mark.parametrize(
         argnames="value,legacy_rounding,expected",
         argvalues=[(0.2, False, "200m"), (0.2, True, "0.20")],
@@ -534,11 +576,11 @@ class TestStaticBaseFormatter:
         self, value: float, legacy_rounding: bool, expected: str
     ):
         formatter = StaticBaseFormatter(
-            formatter_si, unit_separator="", legacy_rounding=legacy_rounding
+            fallback=FORMATTER_SI,
+            unit_separator="",
+            legacy_rounding=legacy_rounding,
         )
         assert formatter.format(value) == expected
-
-    # -------------------------------------------------------------------------
 
     @pytest.mark.parametrize(
         "value,expected", [(10 - 1e-15, "10.0")]  # on the 64-bit float precision limit

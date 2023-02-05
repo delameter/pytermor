@@ -46,6 +46,6 @@ class TaskRunner(metaclass=ABCMeta):
         self.__print_file_result(fout, filepath, "Wrote", "->", 'green')
 
     def __print_file_result(self, f: TextIO, filepath: str, act: str, arr: str, sizecolor: str):
-        size = pt.format_si(f.tell(), unit="b", color=False)
+        size = pt.format_si(f.tell(), unit="b", auto_color=False)
         size = Text(size, sizecolor, width=8)
         pt.echo(SimpleTable(width=100).pass_row(f"{act:<5s}", size, arr, Fragment(filepath, "blue")))

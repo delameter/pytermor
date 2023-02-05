@@ -9,8 +9,9 @@
 
    .. autosummary::
    
-      formatter_si
-      formatter_si_binary
+      FORMATTER_SI
+      FORMATTER_SI_BINARY
+      FORMATTER_BYTES_HUMAN
    
    
 
@@ -21,6 +22,7 @@
    .. autosummary::
    
       format_auto_float
+      format_bytes_human
       format_si
       format_si_binary
       format_thousand_sep

@@ -24,8 +24,9 @@ pending
 - |NEW|  `coveralls.io` integration
 - |NEW|  `StringLinearizer`, `WhitespaceRemover`
 - |DOCS| rethinking of references style
+- |NEW| `hex` rst text role
 
-.. <@pending:8edcd99>
+.. <@pending:61a8866>
 .. ^ blank line before should be kept
 
 v2.32-dev

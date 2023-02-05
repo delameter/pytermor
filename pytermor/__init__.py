@@ -15,7 +15,6 @@ from .common import logger as logger
 from .config import init_config as init_config
 from .renderer import init_renderer as init_renderer
 
-# exceptions
 from .common import ArgCountError as ArgCountError
 from .common import ArgTypeError as ArgTypeError
 from .common import ConflictError as ConflictError
@@ -23,13 +22,12 @@ from .common import LogicError as LogicError
 from .common import UserAbort as UserAbort
 from .common import UserCancel as UserCancel
 
-# type vars
 from .color import CT as CT
 from .color import CDT as CDT
 from .style import FT as FT
 from .text import RT as RT
 
-# constants except regexes
+# constants except util*
 from .common import ALIGN_CENTER as ALIGN_CENTER
 from .common import ALIGN_LEFT as ALIGN_LEFT
 from .common import ALIGN_RIGHT as ALIGN_RIGHT
@@ -64,16 +62,13 @@ from .ansi import make_erase_in_line as make_erase_in_line
 from .ansi import make_hyperlink_part as make_hyperlink_part
 from .ansi import make_query_cursor_position as make_query_cursor_position
 from .ansi import make_set_cursor_x_abs as make_set_cursor_x_abs
+from .color import ApxResult as ApxResult
 from .color import Color16 as Color16
 from .color import Color256 as Color256
 from .color import ColorRGB as ColorRGB
-from .color import ApxResult as ApxResult
 from .color import approximate as approximate
 from .color import find_closest as find_closest
 from .color import resolve_color as resolve_color
-from .config import Config as Config
-from .config import get_config as get_config
-from .config import replace_config as replace_config
 from .common import Align as Align
 from .common import chunk as chunk
 from .common import flatten1 as flatten1
@@ -84,20 +79,23 @@ from .common import measure as measure
 from .common import median as median
 from .common import percentile as percentile
 from .common import trace as trace
+from .config import Config as Config
+from .config import get_config as get_config
+from .config import replace_config as replace_config
 from .style import Style as Style
 from .style import Styles as Styles
 from .style import make_style as make_style
 from .style import merge_styles as merge_styles
 from .renderer import HtmlRenderer as HtmlRenderer
+from .renderer import OutputMode as OutputMode
 from .renderer import RendererManager as RendererManager
 from .renderer import SgrRenderer as SgrRenderer
 from .renderer import TmuxRenderer as TmuxRenderer
-from .renderer import OutputMode as OutputMode
 from .text import Fragment as Fragment
 from .text import FrozenText as FrozenText
 from .text import SimpleTable as SimpleTable
-from .text import Text as Text
 from .text import TemplateEngine as TemplateEngine
+from .text import Text as Text
 from .text import distribute_padded as distribute_padded
 from .text import echo as echo
 from .text import echoi as echoi
@@ -115,22 +113,26 @@ from .utilmisc import rgb_to_hex as rgb_to_hex
 from .utilmisc import rgb_to_hsv as rgb_to_hsv
 from .utilmisc import total_size as total_size
 from .utilmisc import wait_key as wait_key
+from .utilnum import FORMATTER_BYTES_HUMAN as FORMATTER_BYTES_HUMAN
+from .utilnum import FORMATTER_SI as FORMATTER_SI
+from .utilnum import FORMATTER_SI_BINARY as FORMATTER_SI_BINARY
+from .utilnum import CustomBaseUnit as CustomBaseUnit
+from .utilnum import DynamicBaseFormatter as DynamicBaseFormatter
 from .utilnum import NumHighlighter as NumHighlighter
 from .utilnum import StaticBaseFormatter as StaticBaseFormatter
-from .utilnum import DynamicBaseFormatter as DynamicBaseFormatter
-from .utilnum import CustomBaseUnit as CustomBaseUnit
 from .utilnum import format_auto_float as format_auto_float
+from .utilnum import format_bytes_human as format_bytes_human
 from .utilnum import format_si as format_si
 from .utilnum import format_si_binary as format_si_binary
 from .utilnum import format_thousand_sep as format_thousand_sep
 from .utilnum import format_time_delta as format_time_delta
-from .utilstr import ESCAPE_SEQ_REGEX as ESCAPE_SEQ_REGEX
-from .utilstr import SGR_SEQ_REGEX as SGR_SEQ_REGEX
-from .utilstr import CSI_SEQ_REGEX as CSI_SEQ_REGEX
 from .utilstr import CONTROL_CHARS as CONTROL_CHARS
-from .utilstr import WHITESPACE_CHARS as WHITESPACE_CHARS
-from .utilstr import PRINTABLE_CHARS as PRINTABLE_CHARS
+from .utilstr import CSI_SEQ_REGEX as CSI_SEQ_REGEX
+from .utilstr import ESCAPE_SEQ_REGEX as ESCAPE_SEQ_REGEX
 from .utilstr import NON_ASCII_CHARS as NON_ASCII_CHARS
+from .utilstr import PRINTABLE_CHARS as PRINTABLE_CHARS
+from .utilstr import SGR_SEQ_REGEX as SGR_SEQ_REGEX
+from .utilstr import WHITESPACE_CHARS as WHITESPACE_CHARS
 from .utilstr import BytesTracer as BytesTracer
 from .utilstr import CsiStringReplacer as CsiStringReplacer
 from .utilstr import EscSeqStringReplacer as EscSeqStringReplacer
@@ -142,9 +144,9 @@ from .utilstr import OmniEncoder as OmniEncoder
 from .utilstr import OmniMapper as OmniMapper
 from .utilstr import OmniSanitizer as OmniSanitizer
 from .utilstr import SgrStringReplacer as SgrStringReplacer
-from .utilstr import StringTracer as StringTracer
 from .utilstr import StringMapper as StringMapper
 from .utilstr import StringReplacer as StringReplacer
+from .utilstr import StringTracer as StringTracer
 from .utilstr import StringUcpTracer as StringUcpTracer
 from .utilstr import TracerExtra as TracerExtra
 from .utilstr import apply_filters as apply_filters

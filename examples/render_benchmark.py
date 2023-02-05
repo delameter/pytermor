@@ -100,7 +100,7 @@ class RenderBemchmarker:
         self._echo_meter("p991 ", add_st, exact_time_p99, 0)
 
     def _echo_meter(self, label: str, add_st: pytermor.style.FT, val: float, pad: int):
-        fmted = self.fmter.format(val, color_ov=not add_st)
+        fmted = self.fmter.format(val, auto_color=not add_st)
         if not val:
             fmted = "--".center(self.fmter.get_max_len())
         pt.echoi(label + fmted + pt.pad(pad), fmt=add_st)
