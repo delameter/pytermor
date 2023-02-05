@@ -139,8 +139,8 @@ class StaticBaseFormatter:
         'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'R', 'Q',
     ]
     """
-    Prefix preset used by `format_si()`. Covers values from :math:`10^{-30}` to 
-    :math:`10^{32}`. Note lower-cased 'k' prefix.
+    Prefix preset used by `format_si()` and `format_bytes_human()`. Covers values 
+    from :math:`10^{-30}` to :math:`10^{32}`. Note lower-cased 'k' prefix.
     """
 
     PREFIXES_SI_BIN = [None, 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi', 'Yi', 'Ri', 'Qi']
@@ -269,7 +269,7 @@ class StaticBaseFormatter:
             for the argument to have at least one *None* value. Prefix list for a
             formatter without fractional values support could look like this::
 
-                [None, "k", 'M", "G", "T"]
+                [None, "k", "M", "G", "T"]
 
             Prefix step is fixed to `log_{10} 1000 = 3`, as specified for
             metric prefixes.
@@ -398,7 +398,7 @@ class StaticBaseFormatter:
         # @TODO here i started to feel that there should be an easier way to do all the
         #       math (more specifically, to avoid one or two redundant transformations),
         #       but it's impossible to prove or reject it without an investigation. the
-        #       reason for this is existence of three (hmmm) round operations in a row.
+        #       reason for this is existence of three (wut?) round operations in a row.
         if fractional_output:
             val_str = format_auto_float(eff_val, self._max_value_len, False)
         else:

@@ -4,6 +4,15 @@
 pending
 ------------------
 
+- .
+
+.. <@pending:e61b889>
+.. ^ blank line before should be kept
+
+v2.40-dev
+------------------
+:date:`Feb 23`
+
 - |REFACTOR| `distribute_padded` overloads
 - |DOCS| `utilnum` module
 - |DOCS|  `changelog` update
@@ -25,9 +34,8 @@ pending
 - |NEW|  `StringLinearizer`, `WhitespaceRemover`
 - |DOCS| rethinking of references style
 - |NEW| `hex` rst text role
+- |NEW| `utilnum.format_bytes_human()`
 
-.. <@pending:61a8866>
-.. ^ blank line before should be kept
 
 v2.32-dev
 ------------------
