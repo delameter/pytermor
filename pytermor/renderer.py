@@ -311,7 +311,7 @@ class SgrRenderer(IRenderer):
         term = os.environ.get("TERM", None)
         colorterm = os.environ.get("COLORTERM", None)
 
-        logger.debug(f"{io.name} is a terminal: {isatty}")
+        logger.debug(f"{get_qname(io)} is a terminal: {isatty}")
         logger.debug(f"Environment: TERM='{term}'")
         logger.debug(f"Environment: COLORTERM='{colorterm}'")
 

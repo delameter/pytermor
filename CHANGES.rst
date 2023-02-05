@@ -4,9 +4,9 @@
 pending
 ------------------
 
-- .
+- |DOCS| updated changelog
 
-.. <@pending:e61b889>
+.. <@pending:c9f2943>
 .. ^ blank line before should be kept
 
 v2.40-dev
