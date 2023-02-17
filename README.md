@@ -1,7 +1,7 @@
 <h1 align="center">
     <img src="https://user-images.githubusercontent.com/50381946/167745623-66bcb825-f787-4f8a-a317-18775d3f104a.png">
     <br>
-    pytermor
+    <code>pytermor</code>
 </h1>
 
 <p align="center">

@@ -442,7 +442,8 @@ class Text(FrozenText):
 
 class SimpleTable(IRenderable):
     """
-    Table class with dynamic (not bound to each other) rows.
+    Table class with dynamic (not bound to each other) rows. By defualt expands to
+    the maximum width (terminal size).
 
     Allows 0 or 1 dynamic-width cell in each row, while all the others should be
     static, i.e., be instances of `FixedString`.
@@ -481,7 +482,8 @@ class SimpleTable(IRenderable):
             All arguments except ``*rows`` are *kwonly*-type args.
 
         :param rows:
-        :param width:
+        :param width: Table width, in characters. When omitted, equals to terminal size
+                      if applicable, and to fallback value (80) otherwise.
         :param sep:
         :param border_st:
         """
@@ -584,7 +586,7 @@ class SimpleTable(IRenderable):
 
     def _render_cells(self, renderer: IRenderer, *row: IRenderable) -> t.Iterable[str]:
         fixed_len = self._sum_len(*row, fixed_only=True)
-        free_len = self._width - fixed_len
+        free_len = max(0, self._width - fixed_len)
         for cell in row:
             if not cell.has_width and cell.allows_width_setup:
                 cell.set_width(free_len)
