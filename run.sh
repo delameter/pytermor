@@ -4,4 +4,4 @@
 # (c) 2023 A. Shavykin <0.delameter@gmail.com>
 #-------------------------------------------------------------------------------
 
-PYTHONPATH=. venv/bin/python "$@"
+PYTHONSTARTUP=.run-startup.py PYTHONPATH=. venv/bin/python -q "$@"

@@ -9,7 +9,6 @@ from __future__ import annotations
 import abc
 import os.path
 import shutil
-import sys
 import typing as t
 from abc import abstractmethod
 from os.path import abspath, join, dirname
@@ -23,28 +22,36 @@ import pytermor.utilstr
 import pytermor.utilmisc
 from pytermor import Text
 
-import logging
-logger = logging.getLogger('pytermor')
-handler = logging.StreamHandler(sys.stderr)
-formatter = logging.Formatter('[%(levelname)5.5s][%(name)s][%(module)s] %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.setLevel(pt.common.LOGGING_TRACE)
+
+class Main():
+    def __init__(self):
+        # _colors = ConfigLoader().colors
+        _colors = [
+            _ColorRGBOriginAdapter(v, k) for k, v in pt.ColorRGB._registry._map.items()
+        ]
+        pt.RendererManager.set_default_format_always()
+
+        _RgbListPrinter().print(_colors)
+        print()
+
+        _RgbTablePrinter(
+            int(os.environ.get("CELL_SIZE", 0)), int(os.environ.get("CELL_HEIGHT", 0))
+        ).print(_colors)
+        print()
 
 
-
-def sort_by_name(cdef: IColorRGB) -> str:
+def _sort_by_name(cdef: _IColorRGB) -> str:
     return cdef.name
 
 
-def sort_by_hue(cdef: IColorRGB) -> t.Tuple[float, ...]:
+def _sort_by_hue(cdef: _IColorRGB) -> t.Tuple[float, ...]:
     # partitioning by hue, sat and val, grayscale group first:
     h, s, v = pytermor.utilmisc.hex_to_hsv(cdef.hex_value)
     result = (h // 18 if s > 0 else -v), h // 18, s * 5 // 1, v * 20 // 1
     return result
 
 
-class IColorRGB(metaclass=abc.ABCMeta):
+class _IColorRGB(metaclass=abc.ABCMeta):
     @property
     @abstractmethod
     def hex_value(self) -> int:
@@ -66,7 +73,7 @@ class IColorRGB(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-class ColorRGBConfigAdapter(IColorRGB):
+class _ColorRGBConfigAdapter(_IColorRGB):
     def __init__(self, data: t.Dict):
         self._data = data
 
@@ -87,7 +94,7 @@ class ColorRGBConfigAdapter(IColorRGB):
         return self._data.get("variation")
 
 
-class ColorRGBOriginAdapter(IColorRGB):
+class _ColorRGBOriginAdapter(_IColorRGB):
     SEP = pt.color._ColorRegistry._TOKEN_SEPARATOR
 
     def __init__(self, origin: pt.ColorRGB, tokens: t.Tuple[str]):
@@ -115,7 +122,7 @@ class ColorRGBOriginAdapter(IColorRGB):
         return None
 
 
-class ConfigLoader:
+class _ConfigLoader:
     PROJECT_ROOT = abspath(join(dirname(__file__), ".."))
     CONFIG_PATH = join(PROJECT_ROOT, "config")
     INPUT_CONFIG_FILENAME = "rgb.yml"
@@ -123,16 +130,16 @@ class ConfigLoader:
     def __init__(self):
         with open(os.path.join(self.CONFIG_PATH, self.INPUT_CONFIG_FILENAME), "rt") as f:
             self.colors = [
-                ColorRGBConfigAdapter(c) for c in yaml.safe_load(f).get("colors")
+                _ColorRGBConfigAdapter(c) for c in yaml.safe_load(f).get("colors")
             ]
 
 
-class RgbListPrinter:
+class _RgbListPrinter:
     MAX_NAME_L = 30
     MAX_ORIG_L = 30
 
-    def print(self, colors: t.List[IColorRGB]):
-        for idx, c in enumerate(sorted(colors, key=sort_by_name)):
+    def print(self, colors: t.List[_IColorRGB]):
+        for idx, c in enumerate(sorted(colors, key=_sort_by_name)):
             pad = "".ljust(2)
             vari_style = pt.Style(fg=pt.cv.GRAY_42)
             orig_style = pt.Style(fg=pt.cv.GRAY_30)
@@ -156,7 +163,7 @@ class RgbListPrinter:
             )
 
 
-class RgbTablePrinter:
+class _RgbTablePrinter:
     DEFAULT_CELLS_ON_SCREEN = 8, 16
 
     def __init__(self, cell_size: int = None, cell_height: int = None):
@@ -181,14 +188,14 @@ class RgbTablePrinter:
         self._cell_margin_x = pt.pad(min(2, max(0, self._cell_width // 3 - 3)))
         self._cell_margin_y = pt.padv(len(self._cell_margin_x) // 2)
 
-    def print(self, colors: t.List[IColorRGB]):
+    def print(self, colors: t.List[_IColorRGB]):
         style_idx = pt.Style(bold=True)
 
         lines = [""] * self._cell_height
         cur_x = 0
         max_idx = len(colors)
 
-        for idx, c in enumerate(sorted(colors, key=sort_by_hue)):
+        for idx, c in enumerate(sorted(colors, key=_sort_by_hue)):
             style = pt.Style(bg=pt.ColorRGB(c.hex_value)).autopick_fg()
 
             sparse_x = max(0, self._cell_width - self._cell_padding_x)
@@ -252,16 +259,8 @@ class RgbTablePrinter:
 
 
 if __name__ == "__main__":
-    # _colors = ConfigLoader().colors
-    _colors = [
-        ColorRGBOriginAdapter(v, k) for k, v in pt.ColorRGB._registry._map.items()
-    ]
-    pt.RendererManager.set_default_format_always()
-
-    RgbListPrinter().print(_colors)
-    print()
-
-    RgbTablePrinter(
-        int(os.environ.get("CELL_SIZE", 0)), int(os.environ.get("CELL_HEIGHT", 0))
-    ).print(_colors)
-    print()
+    try:
+        Main()
+    except Exception as e:
+        pt.echo(f"[ERROR] {type(e).__qualname__}: {e}\n", fmt=pt.Styles.ERROR)
+        raise e

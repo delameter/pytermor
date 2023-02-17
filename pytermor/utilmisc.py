@@ -172,6 +172,60 @@ def hsv_to_hex(h: float, s: float, v: float) -> int:
     return rgb_to_hex(*hsv_to_rgb(h, s, v))
 
 
+def lab_to_rgb(l_s: float, a_s: float, b_s: float) -> t.Tuple[int, int, int]:
+    """
+    @TODO
+
+    :param l_s:
+    :param a_s:
+    :param b_s:
+    :return:
+    """
+    var_Y: float = (l_s + 16.) / 116.
+    var_X: float = a_s / 500. + var_Y
+    var_Z: float = var_Y - b_s / 200.
+
+    if pow(var_Y, 3) > 0.008856:
+        var_Y = pow(var_Y, 3)
+    else:
+        var_Y = (var_Y - 16. / 116.) / 7.787
+    if pow(var_X, 3) > 0.008856:
+        var_X = pow(var_X, 3)
+    else:
+        var_X = (var_X - 16. / 116.) / 7.787
+    if pow(var_Z, 3) > 0.008856:
+        var_Z = pow(var_Z, 3)
+    else:
+        var_Z = (var_Z - 16. / 116.) / 7.787
+
+    X: float = 95.047 * var_X  # ref_X =  95.047     Observer= 2°, Illuminant= D65
+    Y: float = 100.000 * var_Y  # ref_Y = 100.000
+    Z: float = 108.883 * var_Z  # ref_Z = 108.883
+
+    var_X = X / 100.  # X from 0 to  95.047      (Observer = 2°, Illuminant = D65)
+    var_Y = Y / 100.  # Y from 0 to 100.000
+    var_Z = Z / 100.  # Z from 0 to 108.883
+
+    var_R: float = var_X * 3.2406 + var_Y * -1.5372 + var_Z * -0.4986
+    var_G: float = var_X * -0.9689 + var_Y * 1.8758 + var_Z * 0.0415
+    var_B: float = var_X * 0.0557 + var_Y * -0.2040 + var_Z * 1.0570
+
+    if var_R > 0.0031308:
+        var_R = 1.055 * pow(var_R, (1 / 2.4)) - 0.055
+    else:
+        var_R = 12.92 * var_R
+    if var_G > 0.0031308:
+        var_G = 1.055 * pow(var_G, (1 / 2.4)) - 0.055
+    else:
+        var_G = 12.92 * var_G
+    if var_B > 0.0031308:
+        var_B = 1.055 * pow(var_B, (1 / 2.4)) - 0.055
+    else:
+        var_B = 12.92 * var_B
+
+    return round(var_R * 255.), round(var_G * 255.), round(var_B * 255.)
+
+
 # -----------------------------------------------------------------------------
 
 

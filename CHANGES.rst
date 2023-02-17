@@ -6,8 +6,9 @@ pending
 
 - |DOCS| updated changelog
 - |FIX| debug logging
+- |FIX| bug in `SimpleTable` renderer when row is wider than a terminal
 
-.. <@pending:3687a60>
+.. <@pending:bb57c22>
 .. ^ blank line before should be kept
 
 v2.40-dev

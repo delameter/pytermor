@@ -108,6 +108,7 @@ from .utilmisc import hex_to_hsv as hex_to_hsv
 from .utilmisc import hex_to_rgb as hex_to_rgb
 from .utilmisc import hsv_to_hex as hsv_to_hex
 from .utilmisc import hsv_to_rgb as hsv_to_rgb
+from .utilmisc import lab_to_rgb as lab_to_rgb
 from .utilmisc import measure_char_width as measure_char_width
 from .utilmisc import rgb_to_hex as rgb_to_hex
 from .utilmisc import rgb_to_hsv as rgb_to_hsv
@@ -160,7 +161,7 @@ from .utilstr import rjust_sgr as rjust_sgr
 # -----------------------------------------------------------------------------
 
 cv = CVAL()
-""" 
+"""
 Shortcut to `CVAL()` color registry.
 """
 

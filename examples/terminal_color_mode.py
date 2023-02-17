@@ -25,6 +25,9 @@ class Main:
     }
     WIDTH = 52
 
+    def __init__(self):
+        self.run()
+
     def run(self):
         pt.echo(
             ["", "Look at the rectangle below. In normal conditions you:"],
@@ -121,4 +124,8 @@ class Main:
 
 
 if __name__ == "__main__":
-    Main().run()
+    try:
+        Main()
+    except Exception as e:
+        pt.echo(f"[ERROR] {type(e).__qualname__}: {e}\n", fmt=pt.Styles.ERROR)
+        raise e

@@ -19,6 +19,11 @@ from pytermor.renderer import NoOpRenderer
 from pytermor.common import percentile
 
 
+class Main:
+    def __init__(self):
+        RenderBemchmarker().run()
+
+
 class RenderBemchmarker:
     NUM = 1600
     STEPS = 16
@@ -197,9 +202,8 @@ class RenderBemchmarker:
 
 
 if __name__ == "__main__":
-#    lf = logging.getLogger("pytermor")
-#    lf.addHandler(logging.StreamHandler(sys.stderr))
-#    lf.addHandler(logging.FileHandler('/tmp/pt.log'))
-#    lf.setLevel(logging.DEBUG)
-
-    RenderBemchmarker().run()
+    try:
+        Main()
+    except Exception as e:
+        pt.echo(f"[ERROR] {type(e).__qualname__}: {e}\n", fmt=pt.Styles.ERROR)
+        raise e

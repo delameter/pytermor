@@ -8,28 +8,24 @@ from __future__ import annotations
 import re
 import random
 import sys
-import typing
+import typing as t
 
 import pytermor as pt
 import pytermor.utilmisc
-import logging
-logger = logging.getLogger('pytermor')
-handler = logging.StreamHandler(sys.stderr)
-formatter = logging.Formatter('[%(levelname)5.5s][%(name)s][%(module)s] %(message)s')
-handler.setFormatter(formatter)
-handler.setLevel(pt.common.LOGGING_TRACE)
-logger.addHandler(handler)
-logger.setLevel(pt.common.LOGGING_TRACE)
-pt.init_config()
 
 class Main:
-    def __init__(self, argv: typing.List):
-        usage = [
+    def __init__(self, *argv: t.List):
+        Approximator(argv or []).run()
+
+
+class Approximator:
+    def __init__(self, argv: t.List):
+        self.usage = [
             f"  python {sys.argv[0]} [-e] [COLOR]...",
             "",
             "Option -e|--extended enables more approximation details.",
         ]
-        input_values = []
+        self.input_values = []
         self._extended_mode = False
 
         for arg in argv:
@@ -44,12 +40,12 @@ class Main:
                     input_color = pt.resolve_color(f"#{arg}")
                 except LookupError:
                     raise ValueError(f"Argument is not valid RGB value: 0x{arg}")
-                input_values.append(input_color)
+                self.input_values.append(input_color)
             except ValueError as e:
                 pt.echo("USAGE:")
                 pt.echo(
                     [
-                        *usage,
+                        *self.usage,
                         "Expected COLOR format: '(0x)?[\da-f]{6}', i.e. a hexadecimal "
                         "integer X, where 0 <= X <= 0xFFFFFF.",
                     ],
@@ -57,13 +53,14 @@ class Main:
                 )
                 raise e
 
-        if len(input_values) == 0:
-            self.run(None, "Random")
+    def run(self):
+        if len(self.input_values) == 0:
+            self._run(None, "Random")
         else:
-            for sample_value in input_values:
-                self.run(sample_value, "Input")
+            for sample_value in self.input_values:
+                self._run(sample_value, "Input")
 
-        if len(input_values) > 0 or self._extended_mode:
+        if len(self.input_values) > 0 or self._extended_mode:
             return
 
         pt.echo(
@@ -75,7 +72,7 @@ class Main:
                 "for the details.",
                 "",
                 "Basic usage:",
-                *usage,
+                *self.usage,
                 "You can specify any amount of colors as arguments, and they will be "
                 "approximated instead of the default (random) one. Required format is "
                 "a string 1-6 characters long representing an integer(s) in a hexadecimal "
@@ -87,7 +84,7 @@ class Main:
             indent_first=2,
         )
 
-    def run(self, sample: pt.ColorRGB | None, color_type: str):
+    def _run(self, sample: pt.ColorRGB | None, color_type: str):
         if sample is None:
             random_rgb = (random.randint(40, 255) for _ in range(3))
             sample = pt.resolve_color(pytermor.utilmisc.rgb_to_hex(*random_rgb))
@@ -158,7 +155,7 @@ class Main:
 
 if __name__ == "__main__":
     try:
-        Main(sys.argv[1:])
+        Main(*sys.argv[1:])
     except Exception as e:
         pt.echo(f"[ERROR] {type(e).__qualname__}: {e}\n", fmt=pt.Styles.ERROR)
         raise e

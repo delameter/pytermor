@@ -12,6 +12,10 @@ from pytermor import get_terminal_width
 
 
 class Main:
+    def __init__(self):
+        ListRenderer().run()
+
+class ListRenderer:
     STYLES = {
         "NOOP_COLOR": pt.Style(),
         "Color16:fg": pt.Style(fg=pt.cv.RED),
@@ -94,4 +98,8 @@ class Main:
 
 
 if __name__ == "__main__":
-    Main().run()
+    try:
+        Main()
+    except Exception as e:
+        pt.echo(f"[ERROR] {type(e).__qualname__}: {e}\n", fmt=pt.Styles.ERROR)
+        raise e
