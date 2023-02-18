@@ -10,7 +10,7 @@ pending
 - |NEW| `lab_to_rgb()`
 - |FIX|  `measure_char_width` and `get_char_width` internal logic
 
-.. <@pending:0842e1f>
+.. <@pending:acafdf1>
 .. ^ blank line before should be kept
 
 v2.40-dev
