@@ -228,24 +228,30 @@ def lab_to_rgb(l_s: float, a_s: float, b_s: float) -> t.Tuple[int, int, int]:
 
 # -----------------------------------------------------------------------------
 
-
-def wait_key() -> t.AnyStr | None:
+def wait_key(block: bool = True) -> t.AnyStr | None:
     """
     Wait for a key press on the console and return it.
 
-    :raises EOFError:
+    :param block: Determines setup of O_NONBLOCK flag.
     """
+    # http://love-python.blogspot.com/2010/03/getch-in-python-get-single-character.html
+    import sys, termios, fcntl, os
+
     if os.name == "nt":
         import msvcrt
 
         return msvcrt.getch()
-    import termios
 
     fd = sys.stdin.fileno()
+
     oldterm = termios.tcgetattr(fd)
     newattr = termios.tcgetattr(fd)
     newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
     termios.tcsetattr(fd, termios.TCSANOW, newattr)
+
+    oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
+    if not block:
+        fcntl.fcntl(fd, fcntl.F_SETFL, oldflags|os.O_NONBLOCK)
 
     result = None
     try:
@@ -254,6 +260,9 @@ def wait_key() -> t.AnyStr | None:
         pass
     finally:
         termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
+        if not block:
+            fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
+
     return result
 
 
@@ -342,7 +351,7 @@ def confirm(
     return check_required(default)
 
 
-def get_char_width(char: str, wait: bool) -> int:
+def get_char_width(char: str, block: bool) -> int:
     """
     General-purpose method for getting width of a character in terminal columns.
 
@@ -350,19 +359,19 @@ def get_char_width(char: str, wait: bool) -> int:
     or/and QCP-RCP ANSI control sequence communication protocol.
 
     :param char:  Input char.
-    :param wait:  Set to *True* if you prefer slow, but 100% accurate
+    :param block: Set to *True* if you prefer slow, but 100% accurate
                   `measuring <measure_char_width>` (which **blocks** and
-                  requires an output tty), or *False* to invoke device-independent,
+                  requires an output tty), or *False* for a device-independent,
                   deterministic and non-blocking `guessing <guess_char_width>`,
                   which works most of the time, although there could be rare
-                  cases when it is not accurate.
+                  cases when it is not precise enough.
     """
-    if wait:
+    if block:
         return measure_char_width(char)
     return guess_char_width(char)
 
 
-def measure_char_width(char: str, clear_after: bool = True, legacy: bool = False) -> int:
+def measure_char_width(char: str, clear_after: bool = True) -> int:
     """
     Low-level function that returns the exact character width in terminal columns.
 
@@ -395,17 +404,8 @@ def measure_char_width(char: str, clear_after: bool = True, legacy: bool = False
     :param clear_after: Send `EL <make_erase_in_line()>` control sequence after the
                         terminal response to hide excessive utility information from
                         the output if set to *True*, or leave it be otherwise.
-    :param legacy:      For some terminal and interpreter configurations the method
-                        can put the application into an endless wait cycle, unless
-                        a newline character appears in `stdin` (for example, when
-                        the python debugger is attached). For these cases it is
-                        recommended to set this parameter to *True* to switch the
-                        internal input reading mode, which helps to avoid this.
     :raises IOError:    If ``stdout`` is not a terminal emulator.
     """
-    # @TODO research: wait_key() works fine most of the time, but for some reason
-    #                 holds the debugger in eternal wait until \x0A is sent to stdin.
-
     if not sys.stdout.isatty():
         raise IOError("Output device should be a terminal emulator")
 
@@ -415,21 +415,17 @@ def measure_char_width(char: str, clear_after: bool = True, legacy: bool = False
     sys.stdout.write(cha_seq)
     sys.stdout.write(char)
     sys.stdout.write(qcp_seq)
-    time.sleep(0.05)
+    sys.stdout.write("\r")
 
     response = ""
     while (pos := decompose_request_cursor_position(response)) is None:
-        if legacy:
-            response += sys.stdin.read(1)
-        else:
-            response += wait_key()
+        response += wait_key(block=True) or ""
 
     if clear_after:
-        sys.stdout.write(make_erase_in_line(1).assemble())
-    sys.stdout.write(cha_seq)
+        sys.stdout.write(make_erase_in_line(2).assemble())
 
     pos_y, pos_x = pos
-    return pos_x
+    return pos_x - 1  # 1st coordinate is the start of X-axis
 
 
 def guess_char_width(c: str) -> int:
@@ -494,8 +490,10 @@ def total_size(
 
         handlers = {ContainerClass: iter, ContainerClass2: ContainerClass2.get_elements}
 
-    :origin: https://code.activestate.com/recipes/577504/
     """
+    # origin:
+    # https://code.activestate.com/recipes/577504/
+
     dict_handler = lambda d: chain.from_iterable(d.items())
     all_handlers = {
         tuple: iter,

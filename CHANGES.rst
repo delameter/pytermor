@@ -7,8 +7,10 @@ pending
 - |DOCS| updated changelog
 - |FIX| debug logging
 - |FIX| bug in `SimpleTable` renderer when row is wider than a terminal
+- |NEW| `lab_to_rgb()`
+- |FIX|  `measure_char_width` and `get_char_width` internal logic
 
-.. <@pending:bb57c22>
+.. <@pending:0842e1f>
 .. ^ blank line before should be kept
 
 v2.40-dev
