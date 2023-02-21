@@ -20,6 +20,7 @@
       hex_to_rgb
       hsv_to_hex
       hsv_to_rgb
+      lab_to_rgb
       measure_char_width
       rgb_to_hex
       rgb_to_hsv

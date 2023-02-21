@@ -414,7 +414,7 @@ class StaticBaseFormatter:
         if self._pad:
             max_len = self.get_max_len(unit)
             pad_len = max(0, max_len - len(result))
-            result = ("" * pad_len) + result
+            result = (" " * pad_len) + result
             if isinstance(result, IRenderable):
                 result.set_width(max_len)
         return result

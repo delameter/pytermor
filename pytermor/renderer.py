@@ -447,8 +447,9 @@ class TmuxRenderer(IRenderer):
 class NoOpRenderer(IRenderer):
     """
     Special renderer type that does nothing with the input string and just
-    returns it as is. Often used as a default argument value (along with similar
-    "NoOps" like `NOOP_STYLE`, `NOOP_COLOR` etc.)
+    returns it as is (i.e. raw text without any `Styles<Style>` applied.
+    Often used as a default argument value (along with similar "NoOps" like
+    `NOOP_STYLE`, `NOOP_COLOR` etc.)
 
     >>> NoOpRenderer().render('text', Style(fg='green', bold=True))
     'text'
@@ -480,7 +481,9 @@ class NoOpRenderer(IRenderer):
         :param string: String to :strike:`format` ignore.
         :param fmt:    Style or color to :strike:`appl`  discard.
         """
-        return string
+        if isinstance(string, str):
+            return string
+        return string.string
 
     def clone(self) -> NoOpRenderer:
         return NoOpRenderer()
