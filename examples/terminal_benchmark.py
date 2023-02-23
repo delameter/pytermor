@@ -16,7 +16,7 @@ from time import perf_counter_ns
 from timeit import timeit
 
 import pytermor as pt
-from pytermor import SgrRenderer, wait_key, NumHighlighter
+from pytermor import SgrRenderer, wait_key, Highlighter
 from pytermor.utilmisc import confirm
 from pytermor.common import UserAbort, UserCancel
 
@@ -266,7 +266,7 @@ class Printer:
         status += pt.render(f" │ {self.format_data_sample(test_set, 4)} ")
         status += " "
 
-        status = NumHighlighter().format(status)
+        status = Highlighter().colorize(status)
         print(pt.render(status), end="")
 
     def print_results(self, test_sets: t.List[TestSet]):
@@ -316,7 +316,7 @@ class Printer:
                 result_drel_str = pt.render(result_drel_str, result_drel_st)
 
             op_num = math.ceil(test_set.limit / test_set.buf_size)
-            s = NumHighlighter().format(
+            s = Highlighter().colorize(
                 limit_str
                 + f"[{self.int_formatter.format(op_num):>3s}x"
                 + f"{self.int_formatter.format(test_set.buf_size):>5s}]"

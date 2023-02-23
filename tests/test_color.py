@@ -10,7 +10,8 @@ import pytest
 import pytermor
 import pytermor.config
 import pytermor.utilmisc
-from pytermor import NOOP_SEQ, Style, SequenceSGR, IntCode, color, resolve_color
+from pytermor import NOOP_SEQ, Style, SequenceSGR, IntCode, color, resolve_color, \
+    DEFAULT_COLOR
 from pytermor.color import (
     NOOP_COLOR,
     Color16,
@@ -442,3 +443,11 @@ class TestNoopColor(unittest.TestCase):
 
     def test_getting_hex_value_fails(self):
         self.assertRaises(LogicError, lambda: NOOP_COLOR.hex_value)
+
+
+class TestDefaultColor:
+    def test_default_eq_default(self):
+        assert DEFAULT_COLOR == DEFAULT_COLOR
+
+    def test_default_neq_noop(self):
+        assert DEFAULT_COLOR != NOOP_COLOR

@@ -15,7 +15,7 @@ from pytermor.utilnum import (
     format_time_delta,
     DynamicBaseFormatter,
     CustomBaseUnit,
-    tdf_registry,
+    _TDF_REGISTRY,
     format_si,
     format_si_binary,
     format_bytes_human,
@@ -263,7 +263,7 @@ class TestDynamicBaseFormatter:
     def test_output_has_expected_format_for_max_len(
         self, expected: str, delta: timedelta
     ):
-        longest = tdf_registry.get_longest().max_len
+        longest = _TDF_REGISTRY.get_longest().max_len
         assert format_time_delta(delta.total_seconds(), longest) == expected
 
     @pytest.mark.parametrize("_,delta", TIMEDELTA_TEST_SET, ids=delta_str)
@@ -289,10 +289,10 @@ class TestDynamicBaseFormatter:
                 CustomBaseUnit("h", 24),
             ]
         )
-        tdf_registry.register(formatter)
+        _TDF_REGISTRY.register(formatter)
 
-        assert formatter.max_len in tdf_registry._formatters
-        assert tdf_registry.get_by_max_len(formatter.max_len)
+        assert formatter.max_len in _TDF_REGISTRY._formatters
+        assert _TDF_REGISTRY.get_by_max_len(formatter.max_len)
 
 
 # -- StaticBaseFormatter ------------------------------------------------------
@@ -583,7 +583,7 @@ class TestStaticBaseFormatter:
         assert formatter.format(value) == expected
 
     @pytest.mark.parametrize(
-        "value,expected", [(10 - 1e-15, "10.0")]  # on the 64-bit float precision limit
+        "expected,value", [("10.0",10 - 1e-15)]  # on the 64-bit float precision limit
     )
-    def test_edge_cases(self, value: float, expected: str):
+    def test_edge_cases(self, expected: str, value: float):
         assert format_si(value) == expected

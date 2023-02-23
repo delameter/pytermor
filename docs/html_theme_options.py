@@ -3,6 +3,8 @@
 #  (c) 2022. A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 
+
+
 html_theme_options = {
     "footer_icons": [
         {
@@ -34,6 +36,8 @@ html_theme_options = {
         "color-internal-reference": "#000000",
         "color-link": "#36c",
         "color-link--hover": "var(--color-link)",
+        "color-link-external": "#1ba6c7",
+        "color-link-external--hover": "var(--color-link)",
         "color-link-underline": "none",
         "color-link-underline--hover": "var(--color-link)",
         "color-brand-primary": "var(--color-link)",
@@ -62,6 +66,8 @@ html_theme_options = {
         "color-internal-reference": "#ffffff",
         "color-link": "#69f",
         "color-link--hover": "var(--color-link)",
+        "color-link-external": "#a5d6ff",
+        "color-link-external--hover": "var(--color-link)",
         "color-link-underline": "none",
         "color-link-underline--hover": "var(--color-link)",
         "color-brand-primary": "var(--color-link)",

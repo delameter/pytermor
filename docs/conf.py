@@ -163,6 +163,7 @@ pt.RendererManager.set_default_format_always()
 # -- intersphinx  -------------------------------------------------------------
 
 intersphinx_mapping = {"python": ("https://docs.python.org/3.8", None)}
+intersphinx_disabled_reftypes = ["*"]  # 'py:*'
 
 # -- graphviz -----------------------------------------------------------------
 

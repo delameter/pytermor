@@ -10,8 +10,9 @@ pending
 - |NEW| `lab_to_rgb()`
 - |FIX|  `measure_char_width` and `get_char_width` internal logic
 - |UPDATE|  README
+- |FIX| `StaticBaseFormatter` padding
 
-.. <@pending:a85d60d>
+.. <@pending:34d439b>
 .. ^ blank line before should be kept
 
 v2.40-dev
@@ -26,7 +27,7 @@ v2.40-dev
 - |MAINTAIN| 2023 copytight update
 - |NEW| methods `percentile` and `median` ; `render_benchmark` example
 - |REFACTOR|  `IRenderable` rewrite
-- |FIX| `NumHighlighter`
+- |FIX| `Highlighter`
 - |REFACTOR| moved color transformations and type vars from `_commons`
 - |NEW| `Config` class
 - |NEW| add `es7s C45/Kalm` to rgb colors list
@@ -61,7 +62,7 @@ v2.32-dev
 - |NEW| `utilmisc` get_char_width(),  guess_char_width(), measure_char_width()
 - |NEW|  `Color256` aliases "colorNN"
 - |NEW|  `prefix_refpoint_shift` argument of PrefixedUnitFormatter
-- |NEW|  `NumHighlighter` from `es7s`, colorizing options of `utilnum` helpers
+- |NEW|  `Highlighter` from `es7s`, colorizing options of `utilnum` helpers
 - |FIX| `Text.prepend` typing
 - |DOCS|  docstrings, typing
 - |NEW|  `style.merge_styles()`

@@ -687,10 +687,18 @@ DEFAULT_COLOR = DefaultColor()
 """
 Special `IColor` instance rendering to SGR sequence telling the terminal
 to reset fg or bg color; same for `TmuxRenderer`. Useful when you inherit
-some `Style` with fg or bg color wihch you don't need, but at the same time
-you don't actually want to set up any value whatsoever. *None* and `NOOP_COLOR`
-are always treated as signal to take the fallback value; you can't use them as
-a resetters; that's what `DEFAULT_COLOR` was deisgned for).  
+some `Style` with fg or bg color which you don't need, but at the same time
+you don't actually want to set up any value whatsoever.
+
+.. important ::
+
+    *None* and `NOOP_COLOR` are always treated as placeholders for fallback 
+    values, i.e., they can't be used as re-setters -- that's what `DEFAULT_COLOR` 
+    is for.  
+    
+>>> DEFAULT_COLOR.to_sgr(bg=False)
+<SGR[39]>
+
 """
 
 

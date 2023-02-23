@@ -27,6 +27,7 @@
       format_si_binary
       format_thousand_sep
       format_time_delta
+      highlight
    
    
 
@@ -38,7 +39,7 @@
    
       CustomBaseUnit
       DynamicBaseFormatter
-      NumHighlighter
+      Highlighter
       StaticBaseFormatter
    
    

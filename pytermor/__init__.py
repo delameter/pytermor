@@ -119,7 +119,7 @@ from .utilnum import FORMATTER_SI as FORMATTER_SI
 from .utilnum import FORMATTER_SI_BINARY as FORMATTER_SI_BINARY
 from .utilnum import CustomBaseUnit as CustomBaseUnit
 from .utilnum import DynamicBaseFormatter as DynamicBaseFormatter
-from .utilnum import NumHighlighter as NumHighlighter
+from .utilnum import Highlighter as Highlighter
 from .utilnum import StaticBaseFormatter as StaticBaseFormatter
 from .utilnum import format_auto_float as format_auto_float
 from .utilnum import format_bytes_human as format_bytes_human
@@ -127,6 +127,7 @@ from .utilnum import format_si as format_si
 from .utilnum import format_si_binary as format_si_binary
 from .utilnum import format_thousand_sep as format_thousand_sep
 from .utilnum import format_time_delta as format_time_delta
+from .utilnum import highlight as highlight
 from .utilstr import CONTROL_CHARS as CONTROL_CHARS
 from .utilstr import CSI_SEQ_REGEX as CSI_SEQ_REGEX
 from .utilstr import ESCAPE_SEQ_REGEX as ESCAPE_SEQ_REGEX

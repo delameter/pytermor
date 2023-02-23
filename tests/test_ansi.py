@@ -11,7 +11,7 @@ from pytermor.ansi import (
     NOOP_SEQ,
     SeqIndex,
     IntCode,
-    _sgr_pairity_registry,
+    _SGR_PAIRITY_REGISTRY,
     make_color_rgb,
     make_color_256,
     make_erase_in_line,
@@ -154,4 +154,4 @@ class TestSgrRegistry:
         ],
     )
     def test_closing_seq(self, opening: SequenceSGR, expected_closing: SequenceSGR):
-        assert _sgr_pairity_registry.get_closing_seq(opening) == expected_closing
+        assert _SGR_PAIRITY_REGISTRY.get_closing_seq(opening) == expected_closing

@@ -38,8 +38,8 @@ class ISequence(t.Sized, metaclass=ABCMeta):
 
     def __init__(self, *params: int | str):
         """
-        :param  \*params:  Sequence internal parameters, existnce and
-                           valid amount depends on sequence type.
+        :param  params:  Sequence internal parameters; amount varies
+                         depending on sequence type.
         """
         self._params: t.List[int | str] = []
 
@@ -53,8 +53,7 @@ class ISequence(t.Sized, metaclass=ABCMeta):
 
     def assemble(self) -> str:
         """
-        Build up actual byte sequence and return
-        as an ASCII-encoded string.
+        Build up actual byte sequence and return as an ASCII-encoded string.
         """
         return (
             self._ESC_CHARACTER
@@ -185,10 +184,22 @@ class SequenceSGR(SequenceCSI):
     as set decorate text with italic style, underlining, overlining, cross-lining,
     making it bold or blinking etc.
 
-    When cast to *str*, as all other sequences, invokes `assemble()` method
-    and transforms into encoded control sequence string. It is possible to add
-    of one SGR sequence to another, resulting in a new one with merged params
-    (see examples).
+        >>> SequenceSGR(IntCode.HI_CYAN, 'underlined', 1)
+        <SGR[96,4,1]>
+
+    To encode into control sequence byte-string invoke `assemble()` method or cast
+    the instance to *str*, which internally does the same (this actually applies
+    to all children of `ISequence`):
+
+        >>> SequenceSGR('blue', 'italic').assemble()
+        '\x1b[34;3m'
+        >>> str(SequenceSGR('blue', 'italic'))
+        '\x1b[34;3m'
+
+    The latter also allows fluent usage in f-strings:
+
+        >>> f'{SeqIndex.RED}should be red{SeqIndex.RESET}'
+        '\x1b[31mshould be red\x1b[0m'
 
     .. note ::
         `SequenceSGR` with zero params was specifically implemented to
@@ -209,19 +220,21 @@ class SequenceSGR(SequenceCSI):
         ``ESC [31m``). However, the module can automatically match terminating
         sequences for any form of input SGRs and translate it to specified format.
 
-    >>> SequenceSGR(IntCode.HI_CYAN, 'underlined', 1)
-    <SGR[96,4,1]>
-    >>> SequenceSGR(31) + SequenceSGR(1) == SequenceSGR(31, 1)
-    True
+    It is possible to add of one SGR sequence to another, resulting in a new one
+    with merged params:
+
+        >>> SequenceSGR('blue') + SequenceSGR('italic')
+        <SGR[34,3]>
 
     :param args:  ..  ::
 
                     Sequence params. Resulting param order is the same as an
                     argument order. Each argument can be specified as:
 
-                     - *str* -- any of `IntCode` names, case-insensitive
-                     - *int* -- `IntCode` instance or plain integer
-                     - `SequenceSGR` instance (params will be extracted)
+                      * *str* -- any of `IntCode` names, case-insensitive;
+                      * *int* -- `IntCode` instance or plain integer;
+                      * another `SequenceSGR` instance (params will be extracted).
+
     """
 
     _TERMINATOR = "m"
@@ -332,14 +345,24 @@ NOOP_SEQ = _NoOpSequenceSGR()
 """
 Special sequence in case you *have to* provide one or another SGR, but do 
 not want any control sequences to be actually included in the output. 
+
 ``NOOP_SEQ.assemble()`` returns empty string, ``NOOP_SEQ.params`` 
-returns empty list.
+returns empty list:
 
->>> NOOP_SEQ.assemble()
-''
->>> NOOP_SEQ.params
-[]
+    >>> NOOP_SEQ.assemble()
+    ''
+    >>> NOOP_SEQ.params
+    []
 
+Can be safely added to regular `SequenceSGR` from any side, as internally
+`SequenceSGR` always makes a new instance with concatenated params from both 
+items, rather than modifies state of either of them:
+
+    >>> NOOP_SEQ + SequenceSGR(1)
+    <SGR[1]>
+    >>> SequenceSGR(3) + NOOP_SEQ
+    <SGR[3]>
+    
 """
 
 
@@ -735,7 +758,7 @@ class _SgrPairityRegistry:
         return SequenceSGR(*closing_seq_params)
 
 
-_sgr_pairity_registry = _SgrPairityRegistry()
+_SGR_PAIRITY_REGISTRY = _SgrPairityRegistry()
 
 
 def get_closing_seq(opening_seq: SequenceSGR) -> SequenceSGR:
@@ -744,7 +767,7 @@ def get_closing_seq(opening_seq: SequenceSGR) -> SequenceSGR:
     :param opening_seq:
     :return:
     """
-    return _sgr_pairity_registry.get_closing_seq(opening_seq)
+    return _SGR_PAIRITY_REGISTRY.get_closing_seq(opening_seq)
 
 
 def enclose(opening_seq: SequenceSGR, string: str) -> str:

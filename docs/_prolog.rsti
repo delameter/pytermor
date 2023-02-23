@@ -15,6 +15,9 @@
 .. role:: hex
     :class: hex
 
+.. role:: u
+    :class: underline
+
 .. role:: seealso
 
 .. default-role:: any

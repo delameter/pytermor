@@ -12,6 +12,7 @@ import typing as t
 from dataclasses import dataclass
 from math import floor, log10, trunc, log, isclose
 
+from . import merge_styles
 from .common import logger, Align
 from .cval import CVAL as cv
 from .style import NOOP_STYLE, Style, Styles
@@ -20,10 +21,14 @@ from .text import Text, Fragment, IRenderable, RT
 _OVERFLOW_CHAR = "!"
 
 
-class NumHighlighter:
+class Highlighter:
     """
     S
     """
+
+    def __init__(self, dim_units: bool = True) -> None:
+        self._dim_units = dim_units
+
     # fmt: off
     _PREFIX_UNIT_REGEX = re.compile(
         r"""
@@ -46,23 +51,23 @@ class NumHighlighter:
         """,
         flags=re.IGNORECASE | re.VERBOSE,
     )
-                                                                  # |_PW_|_G.MULT___G.DIV______TIME______
-    STYLE_DEFAULT = NOOP_STYLE                                    # |    | misc.               second
-    STYLE_NUL = Style(STYLE_DEFAULT, dim=True)                    # |  0 | zero
-    STYLE_PRC = Style(STYLE_DEFAULT, fg=cv.MAGENTA, bold=True)    # |  2 |          percent
-    STYLE_KIL = Style(STYLE_DEFAULT, fg=cv.BLUE, bold=True)       # |  3 | Kilo-    milli-     minute
-    STYLE_MEG = Style(STYLE_DEFAULT, fg=cv.CYAN, bold=True)       # |  6 | Mega-    micro-     hour
-    STYLE_GIG = Style(STYLE_DEFAULT, fg=cv.GREEN, bold=True)      # |  9 | Giga-    nano-      day
-    STYLE_TER = Style(STYLE_DEFAULT, fg=cv.YELLOW, bold=True)     # | 12 | Tera-    pico-      week
-    STYLE_MON = Style(STYLE_DEFAULT, fg=cv.HI_YELLOW, bold=True)  # |    |                     month
-    STYLE_PET = Style(STYLE_DEFAULT, fg=cv.RED, bold=True)        # | 15 | Peta-               year
+                                                            # |_PW_|_G.MULT___G.DIV______TIME______
+    STYLE_DEFAULT = NOOP_STYLE                              # |    | misc.               second
+    STYLE_NUL = Style(STYLE_DEFAULT, cv.GRAY, bold=False)   # |  0 | zero
+    STYLE_PRC = Style(STYLE_DEFAULT, cv.MAGENTA)            # |  2 |          percent
+    STYLE_KIL = Style(STYLE_DEFAULT, cv.BLUE)               # |  3 | Kilo-    milli-     minute
+    STYLE_MEG = Style(STYLE_DEFAULT, cv.CYAN)               # |  6 | Mega-    micro-     hour
+    STYLE_GIG = Style(STYLE_DEFAULT, cv.GREEN)              # |  9 | Giga-    nano-      day
+    STYLE_TER = Style(STYLE_DEFAULT, cv.YELLOW)             # | 12 | Tera-    pico-      week
+    STYLE_MON = Style(STYLE_DEFAULT, cv.HI_YELLOW)          # |    |                     month
+    STYLE_PET = Style(STYLE_DEFAULT, cv.RED)                # | 15 | Peta-               year
 
     _PREFIX_MAP = {
         '%': STYLE_PRC,
         'K': STYLE_KIL, 'k': STYLE_KIL, 'm': STYLE_KIL,
-        'M': STYLE_MEG, 'μ': STYLE_MEG, 'µ': STYLE_MEG,
+        'M': STYLE_MEG,                 'μ': STYLE_MEG, 'µ': STYLE_MEG,
         'G': STYLE_GIG, 'g': STYLE_GIG, 'n': STYLE_GIG,
-        'T': STYLE_TER, 'p': STYLE_TER,
+        'T': STYLE_TER,                 'p': STYLE_TER,
         'P': STYLE_PET,
     }
     _TIME_UNIT_MAP = {
@@ -70,53 +75,75 @@ class NumHighlighter:
         's': STYLE_PRC, 'sec': STYLE_PRC, 'second': STYLE_PRC,
         'm': STYLE_KIL, 'min': STYLE_KIL, 'minute': STYLE_KIL,
         'h': STYLE_MEG,  'hr': STYLE_MEG,   'hour': STYLE_MEG,
-        'd': STYLE_GIG, 'day': STYLE_GIG,
-        'w': STYLE_TER,  'wk': STYLE_TER, 'week': STYLE_TER,
-        'M': STYLE_MON,  'mo': STYLE_MON,  'mon': STYLE_MON, 'month': STYLE_MON,
-        'y': STYLE_PET,  'yr': STYLE_PET, 'year': STYLE_PET,
+        'd': STYLE_GIG,                      'day': STYLE_GIG,
+        'w': STYLE_TER,  'wk': STYLE_TER,   'week': STYLE_TER,
+        'M': STYLE_MON,  'mo': STYLE_MON,    'mon': STYLE_MON, 'month': STYLE_MON,
+        'y': STYLE_PET,  'yr': STYLE_PET,   'year': STYLE_PET,
     }
     # fmt: on
 
-    @classmethod
-    def get_prefix_style(cls, pfx: str) -> Style:
-        return cls._PREFIX_MAP.get(pfx, cls.STYLE_DEFAULT)
+    def colorize(self, string: str) -> Text:
+        """
+        parse and highlight
 
-    @classmethod
-    def get_time_unit_style(cls, unit: str) -> Style:
-        return cls._TIME_UNIT_MAP.get(unit, cls.STYLE_DEFAULT)
-
-    @classmethod
-    def format(cls, string: str) -> Text:
+        :param string:
+        :return:
+        """
         cursor = 0
         result = Text()
-        for m in cls._PREFIX_UNIT_REGEX.finditer(string):
+        for m in self._PREFIX_UNIT_REGEX.finditer(string):
             result += string[cursor : m.start()]
-            result.append(*cls.colorize(**m.groupdict("")))
+            result.append(*self.apply(**m.groupdict("")))
             cursor = m.end()
         result += string[cursor:]
         return result
 
-    @classmethod
-    def colorize(cls, intp: str, frac: str, sep: str, pfx: str, unit: str) -> t.List[Fragment]:
+    def apply(
+        self, intp: str, frac: str, sep: str, pfx: str, unit: str
+    ) -> t.List[Fragment]:
+        """
+        highlight already parsed
+
+        :param intp:
+        :param frac:
+        :param sep:
+        :param pfx:
+        :param unit:
+        :return:
+        """
         unit_norm = re.sub(r"^\s*(.)+s?\s*$", r"\1", unit)  # @TODO test this
-        int_st = cls.STYLE_DEFAULT
+        st = self.STYLE_DEFAULT
         if pfx:
-            int_st = cls.get_prefix_style(pfx)
+            st = self._get_prefix_style(pfx)
         elif unit_norm:
-            int_st = cls.get_time_unit_style(unit_norm)
+            st = self._get_time_unit_style(unit_norm)
 
         digits = intp + frac[1:]
         if set(digits) == {"0"}:
-            int_st = cls.STYLE_NUL
+            st = self.STYLE_NUL
 
-        frac_st = Style(int_st, dim=True)
-        unit_st = Style(int_st, dim=True, bold=False)
+        int_st = merge_styles(st, fallbacks=[Style(bold=True)])
+        # bold unless style prohibits (STYLE_NUL)
+        frac_st = merge_styles(st, fallbacks=[Style(bold=True, dim=True)])
+        # dim bold unless style prohibits
+        unit_st = pfx_st = merge_styles(st, fallbacks=[Style(dim=self._dim_units)])
+        # dim unless style or instance settings prohibit
         return [
             Fragment(intp, int_st),
             Fragment(frac, frac_st),
             Fragment(sep),
-            Fragment(pfx + unit, unit_st),
+            Fragment(pfx, pfx_st),
+            Fragment(unit, unit_st),
         ]
+
+    def _get_prefix_style(self, pfx: str) -> Style:
+        return self._PREFIX_MAP.get(pfx, self.STYLE_DEFAULT)
+
+    def _get_time_unit_style(self, unit: str) -> Style:
+        return self._TIME_UNIT_MAP.get(unit, self.STYLE_DEFAULT)
+
+
+_HIGHLIGHTER = Highlighter()
 
 
 class StaticBaseFormatter:
@@ -164,6 +191,7 @@ class StaticBaseFormatter:
         _prefixes=PREFIXES_SI_DEC,
         _prefix_refpoint_shift=0,
         _value_mapping=dict(),
+        _highlighter=_HIGHLIGHTER,
     )
 
     def __init__(
@@ -183,6 +211,7 @@ class StaticBaseFormatter:
         prefixes: t.List[str | None] = None,
         prefix_refpoint_shift: int = None,
         value_mapping: t.Dict[float, RT] | t.Callable[[float], RT] = None,  # @TODO
+        highlighter: Highlighter = None,
     ):
         """
         .. note ::
@@ -212,7 +241,7 @@ class StaticBaseFormatter:
             numbers in `[1000; 10^6)` and `[10^{-3}; 1)` ranges (prefixes
             nearest to 1, kilo- and milli-); cyan for values in `[10^6; 10^9)` and
             `[10^{-6}; 10^{-3})` ranges (next ones, mega-/micro-), etc. The values
-            from `[1; 999]` are colored in neutral gray. See :any:`NumHighlighter`.
+            from `[1; 999]` are colored in neutral gray. See :any:`Highlighter`.
 
         :param bool allow_negative:
             [default: *True*] Allow negative numbers handling, or (if set to *False*)
@@ -282,6 +311,7 @@ class StaticBaseFormatter:
             incorrect "2.33 kHz".
 
         :param value_mapping: @TODO
+        :param highlighter: ...
 
         .. default-role:: any
         """
@@ -298,6 +328,7 @@ class StaticBaseFormatter:
         self._prefixes: t.List[str | None] = prefixes
         self._prefix_refpoint_shift: int = prefix_refpoint_shift
         self._value_mapping: t.Dict[float, RT] | t.Callable[[float], RT] = value_mapping
+        self._highlighter: Highlighter = highlighter
 
         for attr_name, default in self._attribute_defaults.items():
             if getattr(self, attr_name) is None:
@@ -429,7 +460,7 @@ class StaticBaseFormatter:
 
         int_part, point, frac_part = val.strip().partition(".")
         args = dict(intp=int_part, frac=point + frac_part, sep=sep, pfx=pfx, unit=unit)
-        result = NumHighlighter.colorize(**args)
+        result = self._highlighter.apply(**args)
         return Text(*result, align=Align.RIGHT)
 
     def _get_unit_effective(self, unit: str) -> str:
@@ -473,6 +504,7 @@ class DynamicBaseFormatter:
                   to allow shorter result strings.
     :param plural_suffix:
     :param overflow_msg:
+    :param highlighter:
     """
 
     def __init__(
@@ -486,6 +518,7 @@ class DynamicBaseFormatter:
         pad: bool = False,
         plural_suffix: str = None,
         overflow_msg: str = "OVERFLOW",
+        highlighter: Highlighter = _HIGHLIGHTER,
     ):
         self._units = units
         self._color = auto_color
@@ -495,6 +528,7 @@ class DynamicBaseFormatter:
         self._pad = pad
         self._plural_suffix = plural_suffix
         self._overflow_msg = overflow_msg
+        self._highlighter: Highlighter = highlighter
 
         self._fractional_formatter = StaticBaseFormatter(
             max_value_len=4,
@@ -542,7 +576,7 @@ class DynamicBaseFormatter:
         return result
 
     # @TODO naming?
-    def format_base(self, val: float, auto_color: bool = None) -> RT|None:
+    def format_base(self, val: float, auto_color: bool = None) -> RT | None:
         """
         Pretty-print difference between two moments in time. If input
         value is too big for the current formatter to handle, return *None*.
@@ -590,7 +624,9 @@ class DynamicBaseFormatter:
 
             if abs(num) < 1:
                 if negative:
-                    result = self._colorize(auto_color, "~", "0", sep, unit_name_suffixed)
+                    result = self._colorize(
+                        auto_color, "~", "0", sep, unit_name_suffixed
+                    )
                 elif isclose(num, 0, abs_tol=1e-03):
                     result = self._colorize(auto_color, "", "0", sep, unit_name_suffixed)
                 else:
@@ -598,7 +634,9 @@ class DynamicBaseFormatter:
 
             elif unit.collapsible_after is not None and num < unit.collapsible_after:
                 val = str(floor(num))
-                result = self._colorize(auto_color, sign, val, "", unit_short) + result_sub
+                result = (
+                    self._colorize(auto_color, sign, val, "", unit_short) + result_sub
+                )
 
             elif not next_unit_ratio or num < next_unit_ratio:
                 val = str(floor(num))
@@ -614,12 +652,14 @@ class DynamicBaseFormatter:
 
         return result or ""
 
-    def _colorize(self, auto_color: bool, extra: str, val: str, sep: str, unit: str) -> RT:
+    def _colorize(
+        self, auto_color: bool, extra: str, val: str, sep: str, unit: str
+    ) -> RT:
         if not self._get_color_effective(auto_color):
             return "".join((extra, val, sep, unit))
 
         args = dict(intp=val, frac="", sep=sep, pfx="", unit=unit)
-        return Text(Fragment(extra), *NumHighlighter.colorize(**args), align=Align.RIGHT)
+        return Text(Fragment(extra), *self._highlighter.apply(**args), align=Align.RIGHT)
 
     def _get_color_effective(self, auto_color: bool) -> bool:
         if auto_color is not None:
@@ -721,6 +761,7 @@ class _TimeDeltaFormatterRegistry:
     def get_longest(self) -> _TimeDeltaFormatterRegistry | None:
         return self._formatters.get(max(self._formatters.keys() or [None]))
 
+
 # -----------------------------------------------------------------------------
 
 
@@ -791,15 +832,34 @@ FORMATTER_BYTES_HUMAN = StaticBaseFormatter(
     allow_negative=False,
     discrete_input=True,
     unit_separator="",
+    highlighter=Highlighter(dim_units=False),
 )
 """
-Special case of `SI formatter <FORMATTER_SI>` optimized for formatting byte-based
-values. The main differences from the "older brother" are: 
+Special case of `SI formatter <FORMATTER_SI>` optimized for processing byte-based
+values. Inspired by default stats formatting used in `htop <https://htop.dev/>`__.
+Comprises traits of both preset SI formatters, the key ones being: 
 
-    - this formatter doesn't utilize value-unit separators;
-    - input type is integer;
-    - negative values are not allowed.
+    - expecting integer inputs;
+    - prohibiting negative inputs;
+    - operating in decimal mode with the base of 1000 (not 1024);
+    - the absence of units and value-unit separators in the output, while 
+      prefixes are still present;
+    - (if colors allowed) utilizing `Highlighter` with a bit customized setup,
+      as detailed below.
+     
+.. admonition :: Highlighting options
 
+    Default highlighter for this formatter does not render units (as well as prefixes) 
+    dimmed. The main reason for that is the absence of actual unit in the output of this 
+    formatter, while prefixes are still there; this allows to format the fractional 
+    output this way: :u:`1`\ .57\ :u:`k`\ , where underline indicates brighter colors. 
+    
+    This format is acceptable because only essential info gets highlighted; however, 
+    in case of other formatters with actual units in the output this approach leads 
+    to complex and mixed-up formatting; furthermore, it doesn't matter if the highlighting 
+    affects the prefix part only or both prefix and unit parts -- in either case it's 
+    just too much formatting on a unit of surface: :u:`1`\ .53 :u:`Ki`\ B (looks patchworky).          
+     
 .. table:: Default formatters comparison
 
     ============== ============== =========== =============
@@ -828,8 +888,8 @@ values. The main differences from the "older brother" are:
 """
 
 
-tdf_registry = _TimeDeltaFormatterRegistry()
-tdf_registry.register(
+_TDF_REGISTRY = _TimeDeltaFormatterRegistry()
+_TDF_REGISTRY.register(
     DynamicBaseFormatter(
         [
             CustomBaseUnit("s", 60),
@@ -888,7 +948,21 @@ tdf_registry.register(
     ),
 )
 
+
 # -----------------------------------------------------------------------------
+
+
+def highlight(string: str) -> RT:
+    """
+    .. todo ::
+
+        @TODO
+
+    :param string:
+    :return:
+    """
+    return _HIGHLIGHTER.colorize(string)
+
 
 def format_thousand_sep(val: int | float, separator: str = " ") -> str:
     """
@@ -1111,7 +1185,9 @@ def format_bytes_human(val: int, auto_color: bool = False) -> RT:
     return FORMATTER_BYTES_HUMAN.format(val, auto_color=auto_color)
 
 
-def format_time_delta(val_sec: float, max_len: int = None, auto_color: bool = None) -> RT:
+def format_time_delta(
+    val_sec: float, max_len: int = None, auto_color: bool = None
+) -> RT:
     """
     Format time delta using suitable format (which depends on
     ``max_len`` argument). Key feature of this formatter is
@@ -1140,9 +1216,9 @@ def format_time_delta(val_sec: float, max_len: int = None, auto_color: bool = No
                            setting value.
     """
     if max_len is None:
-        formatter = tdf_registry.get_longest()
+        formatter = _TDF_REGISTRY.get_longest()
     else:
-        formatter = tdf_registry.find_matching(max_len)
+        formatter = _TDF_REGISTRY.find_matching(max_len)
 
     if formatter is None:
         raise ValueError(f"No settings defined for max length = {max_len} (or less)")

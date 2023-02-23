@@ -10,16 +10,18 @@ from __future__ import annotations
 
 import typing as t
 from dataclasses import dataclass, field
+from typing import Any
 
 from .color import IColor, NOOP_COLOR, resolve_color, CDT
 from .cval import CVAL as cv
-from .common import ArgTypeError
+from .common import ArgTypeError, LogicError
 
-FT = t.TypeVar("FT", int, str, IColor, 'Style', None)
+FT = t.TypeVar("FT", int, str, IColor, "Style", None)
 """
 :abbr:`FT (Format type)` is a style descriptor. Used as a shortcut precursor for actual 
 styles. Primary handler is `make_style()`.
 """
+
 
 @dataclass()
 class Style:
@@ -30,11 +32,11 @@ class Style:
     as plain *str* or *int* (for the details see `resolve_color()`).
 
         >>> Style(fg='green', bold=True)
-        <Style[green,bold]>
+        <Style[green:NOP +BOLD]>
         >>> Style(bg=0x0000ff)
-        <Style[bg=0000FF]>
+        <Style[NOP:0000FF]>
         >>> Style(fg='DeepSkyBlue1', bg='gray3')
-        <Style[X39[00AFFF],bg=X232[080808]]>
+        <Style[X39[00AFFF]:X232[080808]]>
 
     Attribute merging from ``fallback`` works this way:
 
@@ -95,7 +97,7 @@ class Style:
 
     @property
     def _attributes(self) -> t.FrozenSet:
-        return frozenset(list(self.__dict__.keys()) + ["_fg", "_bg"])
+        return frozenset({*self.__dict__.keys(), "_fg", "_bg"} - {'_initialized'})
 
     def __init__(
         self,
@@ -137,6 +139,8 @@ class Style:
             self._fg = NOOP_COLOR
         if self._bg is None:
             self._bg = NOOP_COLOR
+
+        self._initialized = True
 
     def autopick_fg(self) -> Style:
         """
@@ -192,6 +196,8 @@ class Style:
         are subject to merging. `NOOP_COLOR` is treated like *None* (default for `fg`
         and `bg`).
 
+        Modifies the instance in-place and returns it as well (for chained calls).
+
         .. code-block ::
             :caption: Merging different values in fallback mode
 
@@ -214,6 +220,7 @@ class Style:
             if self_val is None or self_val == NOOP_COLOR:
                 # @TODO refactor? maybe usage of NOOP instances is not as good as
                 #       it seemed to be in the beginning
+                # @FIXME replace Nones to constant _UNSETs or smth
                 fallback_val = getattr(fallback, attr)
                 if fallback_val is not None and fallback_val != NOOP_COLOR:
                     setattr(self, attr, fallback_val)
@@ -235,6 +242,8 @@ class Style:
         All attributes corresponding to constructor arguments except ``fallback``
         are subject to merging. `NOOP_COLOR` is treated like *None* (default for `fg`
         and `bg`).
+
+        Modifies the instance in-place and returns it as well (for chained calls).
 
         .. code-block ::
             :caption: Merging different values in overwrite mode
@@ -280,25 +289,21 @@ class Style:
 
     def repr_attrs(self, verbose: bool) -> str:
         if self == NOOP_STYLE:
-            props_set = ["NOP"]
+            colors_set = ["NOP"]
         elif self._fg is None or self._bg is None:
-            props_set = ["uninitialized"]
+            colors_set = ["uninitialized"]
         else:
-            props_set = []
+            colors_set = []
             for attr_name in ("fg", "bg"):
                 val: IColor = getattr(self, attr_name)
-                if val == NOOP_COLOR:
-                    continue
-                props_set.append(
-                    (f"{attr_name}=" if attr_name != "fg" else "")
-                    + val.repr_attrs(verbose)
-                )
+                colors_set.append(val.repr_attrs(verbose))
 
+        props_set = [":".join(colors_set)]
         for attr_name in self.renderable_attributes:
             attr = getattr(self, attr_name)
-            if isinstance(attr, bool) and attr is True:
-                props_set.append(attr_name)
-        return ",".join(props_set)
+            if isinstance(attr, bool):
+                props_set.append(("+" if attr else "-") + attr_name.upper())
+        return " ".join(props_set)
 
     @property
     def fg(self) -> IColor:
@@ -321,9 +326,30 @@ class _NoOpStyle(Style):
     def __bool__(self) -> bool:
         return False
 
+    def __setattr__(self, name: str, value: Any):
+        if hasattr(self, '_initialized'):
+            raise LogicError("NOOP_STYLE is immutable")
+        super().__setattr__(name, value)
+
 
 NOOP_STYLE = _NoOpStyle()
-""" Special style passing the text through without any modifications. """
+""" 
+Special style passing the text through without any modifications. 
+
+.. important ::
+
+    This class is immutable, i.e. `LogicError` will be raised upon an attempt to
+    modify any of its attributes, which can lead to schrödinbugs::
+    
+         st1.merge_fallback(Style(bold=True), [Style(italic=False)])
+         
+    If ``st1`` is a regular style instance, the statement above will always work
+    (and pass the tests), but if it happens to be a `NOOP_STYLE`, this will result 
+    in an exception. To protect from this outcome one could merge styles via frontend 
+    method `merge_styles` only, which always makes a copy of base argument and thus
+    cannot lead to such behaviour.
+    
+"""
 
 
 class Styles:
@@ -390,7 +416,9 @@ def merge_styles(
     Bulk style merging method. First merge `fallbacks` `styles <Style>` with the
     ``base`` in the same order they are iterated, using `merge_fallback()` algorithm;
     then do the same for `overwrites` styles, but using `merge_overwrite()` merge
-    method. The original `base` is left untouched, as all the operations are performed on
+    method.
+
+    The original `base` is left untouched, as all the operations are performed on
     its clone.
 
     .. code-block ::
@@ -419,12 +447,12 @@ def merge_styles(
         is empty.
 
         .. code-block :: python
-            :caption: Fallback merge algorithm example
+            :caption: Fallback merge algorithm example №1
 
             >>> base = Style(fg='red')
             >>> fallbacks = [Style(fg='blue'), Style(bold=True), Style(bold=False)]
             >>> merge_styles(base, fallbacks=fallbacks)
-            <Style[red,bold]>
+            <Style[red:NOP +BOLD]>
 
         In the example above:
 
@@ -434,6 +462,34 @@ def merge_styles(
             - which will make the handler ignore third fallback completely; if third
               fallback was encountered earlier than the 2nd one, ``base`` `bold` attribute
               would have been set to *False*, but alas.
+
+        .. note ::
+
+            Fallbacks allow to build complex style conditions, e.g. take a look into
+            `Highlighter.colorize()` method ::
+
+                int_st = merge_styles(st, fallbacks=[Style(bold=True)])
+
+            Instead of using ``Style(st, bold=True)`` the merging algorithm is invoked.
+            This changes the logic of "bold" attribute application -- if there is a
+            necessity to explicitly forbid bold text at base/parent level, one could write::
+
+                STYLE_NUL = Style(STYLE_DEFAULT, cv.GRAY, bold=False)
+                STYLE_PRC = Style(STYLE_DEFAULT, cv.MAGENTA)
+                STYLE_KIL = Style(STYLE_DEFAULT, cv.BLUE)
+                ...
+
+            As you can see, resulting ``int_st`` will be bold for all styles other
+            than ``STYLE_NUL``.
+
+            .. code-block :: python
+                :caption: Fallback merge algorithm example №2
+
+                >>> merge_styles(Style(fg=cv.BLUE), fallbacks=[Style(bold=True)])
+                <Style[blue:NOP +BOLD]>
+                >>> merge_styles(Style(fg=cv.GRAY, bold=False), fallbacks=[Style(bold=True)])
+                <Style[gray:NOP -BOLD]>
+
 
     :(C),(D),(E):
         Iterate ``overwrite`` styles one by one; discard all the attributes of a ``base``
@@ -449,7 +505,7 @@ def merge_styles(
             >>> base = Style(fg='red')
             >>> overwrites = [Style(fg='blue'), Style(bold=True), Style(bold=False)]
             >>> merge_styles(base, overwrites=overwrites)
-            <Style[blue]>
+            <Style[blue:NOP -BOLD]>
 
         In the example above all the ``overwrites`` will be applied in order they were
         put into *list*, and the result attribute values are equal to the last

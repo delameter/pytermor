@@ -13,16 +13,16 @@ $(document).ready(function () {
 
 function transformReferences() {
     for (let el of $(".field-list a.internal em, .field-list a strong")) {
-        el.outerHTML="<code class='literal'><span class='pre'>" + el.innerHTML + "</span></code>";
+        el.outerHTML = "<code class='literal'><span class='pre'>" + el.innerHTML + "</span></code>";
     }
-    for (let el of $(".field-list a.external")) {
-        if (el.childNodes.item(0).nodeType !== Node.TEXT_NODE)
-            continue;
-        if (/^\(in python/i.test(el.title))
-            el.innerHTML="<code class='literal'><span class='pre'>" + el.innerHTML + "</span></code>";
+    for (let el of $(".field-list dd:last-child > p:first-child")) {
+        if (el.childNodes.length !== 1) continue;
+        if (el.firstChild.nodeType !== Node.TEXT_NODE) continue;
+        let em = document.createElement('em');
+        em.textContent = el.textContent;
+        el.replaceWith(em);
     }
 }
-
 function formatEnvLists() {
     $(".env-list dt").each((idx, el) => el.classList.add("sig"));
 }
