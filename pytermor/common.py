@@ -303,11 +303,12 @@ def percentile(
     """
     Find the percentile of a list of values.
 
-    :origin:         https://code.activestate.com/recipes/511478/
     :param N:        List of values. MUST BE already sorted.
     :param percent:  Float value from 0.0 to 1.0.
     :param key:      Optional key function to compute value from each element of N.
     """
+    # origin: https://code.activestate.com/recipes/511478/
+
     if not N:
         raise ValueError("N should be a non-empty sequence of floats")
     k = (len(N) - 1) * percent

@@ -437,8 +437,10 @@ def guess_char_width(c: str) -> int:
 
     Utilizes `unicodedata` table. A terminal emulator is unnecessary.
 
-    :origin: `_pytest._io.wcwidth <https://pypi.org/project/pytest>`_
+    :param c:
     """
+    # origin: _pytest._io.wcwidth <https://pypi.org/project/pytest>
+
     o = ord(c)
 
     # ASCII fast path.
@@ -482,7 +484,8 @@ except ImportError:
 def total_size(
     o: t.Any, handlers: t.Dict[t.Any, t.Iterator] = None, verbose: bool = False
 ) -> int:
-    """Return the approximate memory footprint of an object and all of its contents.
+    """
+    Return the approximate memory footprint of an object and all of its contents.
 
     Automatically finds the contents of the following builtin containers and
     their subclasses: *tuple, list, deque, dict, set* and *frozenset*.
@@ -490,9 +493,11 @@ def total_size(
 
         handlers = {ContainerClass: iter, ContainerClass2: ContainerClass2.get_elements}
 
+    :param o:
+    :param handlers:
+    :param verbose:
     """
-    # origin:
-    # https://code.activestate.com/recipes/577504/
+    # origin: https://code.activestate.com/recipes/577504/
 
     dict_handler = lambda d: chain.from_iterable(d.items())
     all_handlers = {

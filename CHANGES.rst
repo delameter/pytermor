@@ -11,8 +11,9 @@ pending
 - |FIX|  `measure_char_width` and `get_char_width` internal logic
 - |UPDATE|  README
 - |FIX| `StaticBaseFormatter` padding
+- |NEW| `Hightlighter` from static methods to real class
 
-.. <@pending:34d439b>
+.. <@pending:145c94e>
 .. ^ blank line before should be kept
 
 v2.40-dev

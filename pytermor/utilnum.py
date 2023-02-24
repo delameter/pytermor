@@ -51,16 +51,16 @@ class Highlighter:
         """,
         flags=re.IGNORECASE | re.VERBOSE,
     )
-                                                            # |_PW_|_G.MULT___G.DIV______TIME______
-    STYLE_DEFAULT = NOOP_STYLE                              # |    | misc.               second
-    STYLE_NUL = Style(STYLE_DEFAULT, cv.GRAY, bold=False)   # |  0 | zero
-    STYLE_PRC = Style(STYLE_DEFAULT, cv.MAGENTA)            # |  2 |          percent
-    STYLE_KIL = Style(STYLE_DEFAULT, cv.BLUE)               # |  3 | Kilo-    milli-     minute
-    STYLE_MEG = Style(STYLE_DEFAULT, cv.CYAN)               # |  6 | Mega-    micro-     hour
-    STYLE_GIG = Style(STYLE_DEFAULT, cv.GREEN)              # |  9 | Giga-    nano-      day
-    STYLE_TER = Style(STYLE_DEFAULT, cv.YELLOW)             # | 12 | Tera-    pico-      week
-    STYLE_MON = Style(STYLE_DEFAULT, cv.HI_YELLOW)          # |    |                     month
-    STYLE_PET = Style(STYLE_DEFAULT, cv.RED)                # | 15 | Peta-               year
+                                                # |_PW_|_G.MULT___G.DIV______TIME______
+    STYLE_DEFAULT = Style(bold=False)           # |    | misc.               second
+    STYLE_NUL = Style(fg=cv.GRAY, bold=False)   # |  0 | zero
+    STYLE_PRC = Style(fg=cv.MAGENTA)            # |  2 |          percent
+    STYLE_KIL = Style(fg=cv.BLUE)               # |  3 | Kilo-    milli-     minute
+    STYLE_MEG = Style(fg=cv.CYAN)               # |  6 | Mega-    micro-     hour
+    STYLE_GIG = Style(fg=cv.GREEN)              # |  9 | Giga-    nano-      day
+    STYLE_TER = Style(fg=cv.YELLOW)             # | 12 | Tera-    pico-      week
+    STYLE_MON = Style(fg=cv.HI_YELLOW)          # |    |                     month
+    STYLE_PET = Style(fg=cv.RED)                # | 15 | Peta-               year
 
     _PREFIX_MAP = {
         '%': STYLE_PRC,
