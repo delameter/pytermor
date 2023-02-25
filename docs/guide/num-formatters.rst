@@ -8,6 +8,16 @@ Number formatters
 
    The library contains @TODO
 
+.. grid:: 1
+   :class-container: inheritance-columns
+
+   .. grid-item::
+
+      .. inheritance-diagram::   pytermor.utilnum
+         :parts: 1
+         :top-classes:           pytermor.utilnum.NumFormatter
+         :caption:               `NumFormatter` inheritance tree
+
 
 ====================
 Auto-float formatter

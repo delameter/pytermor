@@ -9,9 +9,13 @@
 
    .. autosummary::
    
+      PREFIXES_SI_DEC
       FORMATTER_SI
       FORMATTER_SI_BINARY
       FORMATTER_BYTES_HUMAN
+      FORMATTER_TIME
+      FORMATTER_TIME_MS
+      FORMATTER_TIME_NS
    
    
 
@@ -26,7 +30,10 @@
       format_si
       format_si_binary
       format_thousand_sep
+      format_time
       format_time_delta
+      format_time_ms
+      format_time_ns
       highlight
    
    
@@ -37,10 +44,14 @@
 
    .. autosummary::
    
-      CustomBaseUnit
-      DynamicBaseFormatter
+      BaseUnit
+      DualBaseUnit
+      DualFormatter
+      DynamicFormatter
       Highlighter
-      StaticBaseFormatter
+      NumFormatter
+      StaticFormatter
+      SupportsFallback
    
    
 

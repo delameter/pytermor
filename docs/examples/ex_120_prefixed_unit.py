@@ -1,6 +1,6 @@
-from pytermor.utilnum import StaticBaseFormatter
+from pytermor.utilnum import StaticFormatter
 
-StaticBaseFormatter(
+StaticFormatter(
     max_value_len=5, allow_fractional=True,
     unit='b', unit_separator=' ',
     mcoef=1024.0,

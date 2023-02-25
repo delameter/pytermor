@@ -166,26 +166,26 @@ class Printer:
     PREFIXES_SI_UPPER = list(
         map(
             lambda s: s.upper() if s else None,
-            pt.utilnum.StaticBaseFormatter.PREFIXES_SI_DEC,
+            pt.utilnum.StaticFormatter.PREFIXES_SI_DEC,
         )
     )
     PROGBAR_WIDTH = 15
     TABLE_WIDTH = 100
 
-    size_formatter = pt.utilnum.StaticBaseFormatter(
+    size_formatter = pt.utilnum.StaticFormatter(
         max_value_len=4, allow_fractional=False
     )
-    total_size_formatter = pt.utilnum.StaticBaseFormatter(
+    total_size_formatter = pt.utilnum.StaticFormatter(
         max_value_len=4,
         allow_fractional=True,
         unit="b",
         unit_separator=" ",
         prefixes=PREFIXES_SI_UPPER,
     )
-    speed_formatter = pt.utilnum.StaticBaseFormatter(
+    speed_formatter = pt.utilnum.StaticFormatter(
         max_value_len=4, unit="b/s", unit_separator=" ", prefixes=PREFIXES_SI_UPPER
     )
-    int_formatter = pt.utilnum.StaticBaseFormatter(
+    int_formatter = pt.utilnum.StaticFormatter(
         max_value_len=4, allow_fractional=False, prefixes=[None, "K", "M", "G"], unit_separator=""
     )
 

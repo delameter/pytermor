@@ -54,7 +54,7 @@ class RenderBemchmarker:
             (src3, [pt.Text, str]),
         ]
 
-        self.fmter = pt.StaticBaseFormatter(
+        self.fmter = pt.StaticFormatter(
             max_value_len=4,
             pad=True,
             prefix_refpoint_shift=-3,

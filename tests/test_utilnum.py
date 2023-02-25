@@ -4,7 +4,6 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
-import typing as t
 from datetime import timedelta
 
 import pytest
@@ -13,14 +12,16 @@ from pytermor.utilnum import (
     format_thousand_sep,
     format_auto_float,
     format_time_delta,
-    DynamicBaseFormatter,
-    CustomBaseUnit,
+    DualFormatter,
+    DualBaseUnit,
     _TDF_REGISTRY,
     format_si,
     format_si_binary,
     format_bytes_human,
-    StaticBaseFormatter,
+    StaticFormatter,
     FORMATTER_SI,
+    format_time_ms,
+    format_time,
 )
 
 
@@ -153,11 +154,12 @@ class TestFormatAutoFloat:
             ["99.9", 99.9, 4],
             ["-9", -9.9, 2],
             ["-10", -9.9, 3],
+            pytest.param("", 9.9, -1, marks=pytest.mark.xfail(raises=ValueError)),
         ],
     )
     def test_format_auto_float(self, expected: str, value: float, max_len: int):
-        assert max_len == len(expected)
         assert format_auto_float(value, max_len) == expected
+        assert max_len == len(expected)
 
     @pytest.mark.parametrize(
         "expected,value",
@@ -178,7 +180,7 @@ class TestFormatAutoFloat:
         assert format_auto_float(value, max_len, allow_exp_form=False) == expected
 
 
-# -- DynamicBaseFormatter -----------------------------------------------------
+# -- dual -----------------------------------------------------
 
 
 def delta_str(val) -> str | None:
@@ -194,7 +196,7 @@ def delta_str(val) -> str | None:
     return None
 
 
-class TestDynamicBaseFormatter:
+class TestDualFormatter:
     TIMEDELTA_TEST_SET = [
         ["OVERFLOW", timedelta(days=-700000)],
         ["-2 years", timedelta(days=-1000)],
@@ -213,10 +215,10 @@ class TestDynamicBaseFormatter:
         ["-1.0s", timedelta(seconds=-1.0)],
         ["-500ms", timedelta(seconds=-0.5)],
         ["- 50ms", timedelta(milliseconds=-50)],
-        ["-100μs", timedelta(microseconds=-100)],
-        ["-1.0μs", timedelta(microseconds=-1)],
+        ["-100µs", timedelta(microseconds=-100)],
+        ["-1.0µs", timedelta(microseconds=-1)],
         ["0s", timedelta()],
-        ["500μs", timedelta(microseconds=500)],
+        ["500µs", timedelta(microseconds=500)],
         ["25.0ms", timedelta(milliseconds=25)],
         ["100ms", timedelta(seconds=0.1)],
         ["900ms", timedelta(seconds=0.9)],
@@ -282,11 +284,11 @@ class TestDynamicBaseFormatter:
     # -------------------------------------------------------------------------
 
     def test_formatter_registration(self):  # @TODO more
-        formatter = DynamicBaseFormatter(
+        formatter = DualFormatter(
             units=[
-                CustomBaseUnit("s", 60),
-                CustomBaseUnit("m", 60),
-                CustomBaseUnit("h", 24),
+                DualBaseUnit("s", 60),
+                DualBaseUnit("m", 60),
+                DualBaseUnit("h", 24),
             ]
         )
         _TDF_REGISTRY.register(formatter)
@@ -295,10 +297,30 @@ class TestDynamicBaseFormatter:
         assert _TDF_REGISTRY.get_by_max_len(formatter.max_len)
 
 
-# -- StaticBaseFormatter ------------------------------------------------------
+# -- static ------------------------------------------------------
+
+class TestStaticFormatter:
+    @pytest.mark.parametrize(
+        argnames="value,legacy_rounding,expected",
+        argvalues=[(0.2, False, "200m"), (0.2, True, "0.20")],
+        ids=["legacy OFF", "legacy ON"],
+    )
+    def test_legacy_rounding_works(
+        self, value: float, legacy_rounding: bool, expected: str
+    ):
+        formatter = StaticFormatter(
+            fallback=FORMATTER_SI, unit_separator="", legacy_rounding=legacy_rounding
+        )
+        assert formatter.format(value) == expected
+
+    @pytest.mark.parametrize(
+        "expected,value", [("10.0", 10 - 1e-15)]  # on the 64-bit float precision limit
+    )
+    def test_edge_cases(self, expected: str, value: float):
+        assert format_si(value) == expected
 
 
-class TestStaticBaseFormatterSi:
+class TestStaticFormatterSi:
     @pytest.mark.parametrize(
         "expected,value",
         [
@@ -330,9 +352,9 @@ class TestStaticBaseFormatterSi:
             ["123 m", 0.123456789],
             ["12.3 m", 1.23456789e-2],
             ["1.24 m", 1.23456789e-3],
-            ["123 μ", 1.23456789e-4],
-            ["12.3 μ", 1.23456789e-5],
-            ["1.24 μ", 1.23456789e-6],
+            ["123 µ", 1.23456789e-4],
+            ["12.3 µ", 1.23456789e-5],
+            ["1.24 µ", 1.23456789e-6],
             ["123 n", 1.23456789e-7],
             ["12.3 n", 1.23456789e-8],
             ["1.24 n", 1.23456789e-9],
@@ -385,15 +407,15 @@ class TestStaticBaseFormatterSi:
             ["1.00 nm", 1e-09],
             ["10.0 nm", 1e-08],
             ["100 nm", 1e-07],
-            ["5.00 μm", 5e-06],
-            ["1.00 μm", 1e-06],
-            ["10.0 μm", 1e-05],
-            ["- 50 μm", -5e-05],
-            ["50.0 μm", 5e-05],
-            ["500 μm", 5e-04],
-            ["-500 μm", -5e-04],
-            ["100 μm", 1e-04],
-            ["-100 μm", -1e-04],
+            ["5.00 µm", 5e-06],
+            ["1.00 µm", 1e-06],
+            ["10.0 µm", 1e-05],
+            ["- 50 µm", -5e-05],
+            ["50.0 µm", 5e-05],
+            ["500 µm", 5e-04],
+            ["-500 µm", -5e-04],
+            ["100 µm", 1e-04],
+            ["-100 µm", -1e-04],
             ["1.00 mm", 1e-03],
             ["5.00 mm", 5e-03],
             ["50.0 mm", 5e-02],
@@ -465,7 +487,7 @@ class TestStaticBaseFormatterSi:
 
     @pytest.mark.parametrize("value", LENGTH_LIMIT_PARAMS)
     def test_si_with_unit_result_len_is_le_than_6(self, value: float):
-        formatter = StaticBaseFormatter(
+        formatter = StaticFormatter(
             allow_fractional=False, allow_negative=False, unit="m"
         )
         result = formatter.format(value)
@@ -473,11 +495,11 @@ class TestStaticBaseFormatterSi:
 
     @pytest.mark.parametrize("value", LENGTH_LIMIT_PARAMS)
     def test_si_with_unit_result_len_is_le_than_10(self, value: float):
-        formatter = StaticBaseFormatter(max_value_len=9, allow_fractional=False)
+        formatter = StaticFormatter(max_value_len=9, allow_fractional=False)
         assert len(formatter.format(value)) <= 10
 
 
-class TestStaticBaseFormatterSiBinary:
+class TestStaticFormatterSiBinary:
     @pytest.mark.parametrize(
         "expected,value",
         [
@@ -528,7 +550,7 @@ class TestStaticBaseFormatterSiBinary:
         assert format_si_binary(value) == expected
 
 
-class TestStaticBaseFormatterBytesHuman:
+class TestStaticFormatterBytesHuman:
     @pytest.mark.parametrize(
         "expected,value",
         [
@@ -566,24 +588,72 @@ class TestStaticBaseFormatterBytesHuman:
         assert format_bytes_human(value) == expected
 
 
-class TestStaticBaseFormatter:
+# -- dynamic ------------------------------------------------------
+
+class TestDynamicFormatter:
     @pytest.mark.parametrize(
-        argnames="value,legacy_rounding,expected",
-        argvalues=[(0.2, False, "200m"), (0.2, True, "0.20")],
-        ids=["legacy OFF", "legacy ON"],
+        "expected,value",
+        [
+            ["-10.0 ms", -0.01],
+            ["0.0 s", 1e-18],
+            ["1.0 fs", 1e-15],
+            ["1.0 ps", 1e-12],
+            ["1.0 ns", 1e-9],
+            ["1.0 µs", 1e-6],
+            ["100.0 µs", 0.0001],
+            ["1.0 ms", 0.001],
+            ["10.0 ms", 0.01],
+            ["100.0 ms", 0.1],
+            ["0.0 s", 0.0],
+            ["0.0 s", 0],
+            ["0.0 s", -0],
+            ["1.0 s", 1],
+            ["10.0 s", 10],
+            ["43.0 s", 43],
+            ["3 m", 180],
+            ["10 m", 631],
+            ["16 m", 1010],
+            ["17 m", 1023],
+            ["18 m", 1080],
+            ["1 h", 6230],
+            ["4 h", 15000],
+            ["12 h", 45200],
+            ["1 d", 133_300],
+            ["1 w", 1_048_576],
+            ["5 M", 13_048_576],
+            ["29 y", 932_048_576],
+        ],
     )
-    def test_legacy_rounding_works(
-        self, value: float, legacy_rounding: bool, expected: str
-    ):
-        formatter = StaticBaseFormatter(
-            fallback=FORMATTER_SI,
-            unit_separator="",
-            legacy_rounding=legacy_rounding,
-        )
-        assert formatter.format(value) == expected
+    def test_format_time(self, expected: str, value: int):
+        assert format_time(value) == expected
 
     @pytest.mark.parametrize(
-        "expected,value", [("10.0",10 - 1e-15)]  # on the 64-bit float precision limit
+        "expected,value",
+        [
+            ["-10µs", -0.01],
+            ["0ms", -0],
+            ["0ms", 0],
+            ["0ms", 0.0],
+            ["100µs", 0.1],
+            ["10µs", 0.01],
+            ["1µs", 0.001],
+            ["100ns", 0.0001],
+            ["1ms", 1],
+            ["10ms", 10],
+            ["43ms", 43],
+            ["180ms", 180],
+            ["631ms", 631],
+            ["1s", 1010],
+            ["1s", 1023],
+            ["1s", 1024],
+            ["1s", 1080],
+            ["6s", 6230],
+            ["15s", 15000],
+            ["45s", 45200],
+            ["2m", 133_300],
+            ["17m", 1_048_576],
+        ],
     )
-    def test_edge_cases(self, expected: str, value: float):
-        assert format_si(value) == expected
+    def test_format_time_ms(self, expected: str, value: int):
+        assert format_time_ms(value) == expected
+

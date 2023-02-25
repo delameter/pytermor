@@ -7,18 +7,32 @@ utilnum
 """
 from __future__ import annotations
 
+import math
 import re
 import typing as t
+from abc import abstractmethod
 from dataclasses import dataclass
 from math import floor, log10, trunc, log, isclose
 
 from . import merge_styles
 from .common import logger, Align
 from .cval import CVAL as cv
-from .style import NOOP_STYLE, Style, Styles
+from .style import Style, Styles
 from .text import Text, Fragment, IRenderable, RT
 
 _OVERFLOW_CHAR = "!"
+
+# fmt: off
+PREFIXES_SI_DEC = [
+    'q', 'r', 'y', 'z', 'a', 'f', 'p', 'n', 'µ', 'm',
+    None,
+    'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'R', 'Q',
+]
+"""
+Prefix preset used by `format_si()` and `format_bytes_human()`. Covers values 
+from :math:`10^{-30}` to :math:`10^{32}`. Note lower-cased 'k' prefix.
+"""
+# fmt: on
 
 
 class Highlighter:
@@ -146,12 +160,59 @@ class Highlighter:
 _HIGHLIGHTER = Highlighter()
 
 
-class StaticBaseFormatter:
+class SupportsFallback:
+    _DEFAULTS: t.Dict = None
+
+    @classmethod
+    def _set_defaults(cls, defaults: SupportsFallback):
+        type(defaults)._DEFAULTS = defaults.__dict__
+
+    def _apply_defaults(self, fallback: SupportsFallback = None):
+        for attr_name, default in self._DEFAULTS.items():
+            if getattr(self, attr_name) is None:
+                if (fallback_attr := getattr(fallback, attr_name, None)) is not None:
+                    setattr(self, attr_name, fallback_attr)
+                    continue
+                setattr(self, attr_name, default)
+
+
+class NumFormatter(SupportsFallback):
+    def __init__(self):
+        self._auto_color: bool = None
+        self._highlighter: Highlighter = None
+
+    @abstractmethod
+    def format(self, val: float, auto_color: bool) -> RT:
+        raise NotImplementedError
+
+    def _colorize(self, auto_color: bool, val: str, sep: str, pfx: str, unit: str) -> RT:
+        unit_full = (pfx + unit).strip()
+        if not unit_full or unit_full.isspace():
+            sep = ""
+
+        if not self._get_color_effective(auto_color):
+            return "".join((val.strip(), sep, unit_full))
+
+        int_part, point, frac_part = val.strip().partition(".")
+        args = dict(intp=int_part, frac=point + frac_part, sep=sep, pfx=pfx, unit=unit)
+        result = self._highlighter.apply(**args)
+        return Text(*result, align=Align.RIGHT)
+
+    def _get_color_effective(self, auto_color: bool) -> bool:
+        if auto_color is not None:
+            return auto_color
+        return self._auto_color
+
+
+class StaticFormatter(NumFormatter):
     """
     Format ``value`` using settings passed to constructor. The purpose of this class
     is to fit into specified string length as much significant digits as it's
     theoretically possible by using multipliers and unit prefixes. Designed
     for metric systems with bases 1000 or 1024.
+
+    The key property of this formatter is maximum length -- the output will not
+    excess specified amount of characters no matter what (that's what is "static" for).
 
     You can create your own formatters if you need fine tuning of the
     output and customization. If that's not the case, there are facade
@@ -159,44 +220,11 @@ class StaticBaseFormatter:
     which will invoke predefined formatters and doesn't require setting up.
     """
 
-    # fmt: off
-    PREFIXES_SI_DEC = [
-        'q', 'r', 'y', 'z', 'a', 'f', 'p', 'n', 'μ', 'm',
-        None,
-        'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'R', 'Q',
-    ]
-    """
-    Prefix preset used by `format_si()` and `format_bytes_human()`. Covers values 
-    from :math:`10^{-30}` to :math:`10^{32}`. Note lower-cased 'k' prefix.
-    """
-
-    PREFIXES_SI_BIN = [None, 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi', 'Yi', 'Ri', 'Qi']
-    """
-    Prefix preset used by `format_si_binary()`. Covers values from :math:`0` to 
-    :math:`10^{32}`. 
-    """
-    # fmt: on
-
-    _attribute_defaults = dict(
-        _max_value_len=4,
-        _auto_color=False,
-        _allow_negative=True,
-        _allow_fractional=True,
-        _discrete_input=False,
-        _unit="",
-        _unit_separator=" ",
-        _mcoef=1000.0,
-        _pad=False,
-        _legacy_rounding=False,
-        _prefixes=PREFIXES_SI_DEC,
-        _prefix_refpoint_shift=0,
-        _value_mapping=dict(),
-        _highlighter=_HIGHLIGHTER,
-    )
+    _DEFAULTS: t.Dict = None
 
     def __init__(
         self,
-        fallback: StaticBaseFormatter = None,
+        fallback: StaticFormatter = None,
         *,
         max_value_len: int = None,
         auto_color: bool = None,
@@ -330,12 +358,9 @@ class StaticBaseFormatter:
         self._value_mapping: t.Dict[float, RT] | t.Callable[[float], RT] = value_mapping
         self._highlighter: Highlighter = highlighter
 
-        for attr_name, default in self._attribute_defaults.items():
-            if getattr(self, attr_name) is None:
-                if (fallback_attr := getattr(fallback, attr_name, None)) is not None:
-                    setattr(self, attr_name, fallback_attr)
-                    continue
-                setattr(self, attr_name, default)
+        if self._DEFAULTS is None:
+            return
+        self._apply_defaults(fallback)
 
         if self._max_value_len < self.max_len_lower_bound:
             raise ValueError(
@@ -450,28 +475,10 @@ class StaticBaseFormatter:
                 result.set_width(max_len)
         return result
 
-    def _colorize(self, auto_color: bool, val: str, sep: str, pfx: str, unit: str) -> RT:
-        unit_full = (pfx + unit).strip()
-        if not unit_full or unit_full.isspace():
-            sep = ""
-
-        if not self._get_color_effective(auto_color):
-            return "".join((val.strip(), sep, unit_full))
-
-        int_part, point, frac_part = val.strip().partition(".")
-        args = dict(intp=int_part, frac=point + frac_part, sep=sep, pfx=pfx, unit=unit)
-        result = self._highlighter.apply(**args)
-        return Text(*result, align=Align.RIGHT)
-
     def _get_unit_effective(self, unit: str) -> str:
         if unit is not None:
             return unit
         return self._unit
-
-    def _get_color_effective(self, auto_color: bool) -> bool:
-        if auto_color is not None:
-            return auto_color
-        return self._auto_color
 
     def _get_max_prefix_len(self) -> int:
         return max([len(p) for p in self._prefixes if p is not None])
@@ -480,7 +487,145 @@ class StaticBaseFormatter:
         return self.__class__.__qualname__
 
 
-class DynamicBaseFormatter:
+StaticFormatter._set_defaults(
+    StaticFormatter(
+        fallback=None,
+        max_value_len=4,
+        auto_color=False,
+        allow_negative=True,
+        allow_fractional=True,
+        discrete_input=False,
+        unit="",
+        unit_separator=" ",
+        mcoef=1000.0,
+        pad=False,
+        legacy_rounding=False,
+        prefixes=PREFIXES_SI_DEC,
+        prefix_refpoint_shift=0,
+        value_mapping=dict(),
+        highlighter=_HIGHLIGHTER,
+    )
+)
+
+
+class DynamicFormatter(NumFormatter):
+    """
+    A simplified version of static formatter for cases, when length of the result
+    string doesn't matter too much (e.g., for log output), and you don't have
+    intention to customize the output (too much).
+    """
+
+    _DEFAULTS: t.Dict = None
+
+    def __init__(
+        self,
+        fallback: DynamicFormatter = None,
+        *,
+        auto_color: bool = None,
+        allow_fractional: bool = None,
+        unit_separator: str = None,
+        units: list[BaseUnit] = None,
+        oom_shift: int = None,
+        highlighter: Highlighter = None,
+    ):
+        """
+        .. note ::
+
+            All arguments except ``fallback`` are *kwonly*-type arguments.
+
+        """
+        self._auto_color: bool = auto_color
+        self._allow_fractional: bool = allow_fractional
+        self._unit_separator: str = unit_separator
+        self._units: list[BaseUnit] = units
+        self._oom_shift: int = oom_shift
+        self._highlighter: Highlighter = highlighter
+        self._base: int = 10
+
+        if not self._DEFAULTS:
+            return
+
+        for attr_name, default in self._DEFAULTS.items():
+            if getattr(self, attr_name) is None:
+                if (fallback_attr := getattr(fallback, attr_name, None)) is not None:
+                    setattr(self, attr_name, fallback_attr)
+                    continue
+                setattr(self, attr_name, default)
+
+        if len(self._units) < 2:
+            raise ValueError("At least two base units are required")
+
+    def format(self, val: float, auto_color: bool = False) -> RT:
+        """
+        ,,,
+        :param val:
+        :param auto_color:
+        :return:
+        """
+        if self._auto_color:
+            return self._colorize(auto_color, *self._format_raw(val, True))
+        return self._format_raw(val, False)
+
+    def _format_raw(self, val: float, as_tuple: bool) -> str|t.Tuple[str, ...]:
+        min_unit = self._units[-1]
+        min_val = math.pow(self._base, min_unit.oom)
+        if abs(val) > min_val:
+            val_oom = math.log(abs(val), self._base) + self._oom_shift
+        else:
+            val_oom = min_unit.oom - 1
+
+        val_mp = None
+        unit = base_unit = min_unit
+        for _unit in self._units:
+            if _unit.oom == self._oom_shift:
+                base_unit = _unit
+            if val_oom >= _unit.oom:
+                coef = math.pow(self._base, _unit.oom - self._oom_shift)
+                val_mp = val / coef
+                unit = _unit
+                break
+
+        if val_mp is None:
+            val_mp = 0
+            unit = base_unit
+
+        if unit.integer or not self._allow_fractional:
+            val_str = "{:>d}".format(math.trunc(val_mp))
+        else:
+            val_str = "{:>.1f}".format(val_mp)
+
+        result = (val_str, self._unit_separator, unit.prefix, unit.unit)
+        if as_tuple:
+            return result
+        return "".join(result)
+
+
+DynamicFormatter._set_defaults(
+    DynamicFormatter(
+        auto_color=False,
+        allow_fractional=True,
+        unit_separator=" ",
+        oom_shift=0,
+        highlighter=_HIGHLIGHTER,
+    )
+)
+
+
+@dataclass(frozen=True)
+class BaseUnit:
+    oom: float
+    unit: str = ""
+    prefix: str = ""
+    _integer: bool = None
+
+    @property
+    def integer(self) -> bool:
+        if self._integer is None:
+            return not isinstance(self.oom, int)
+        return self._integer
+
+
+class DualFormatter(NumFormatter):
     """
     Formatter designed for time intervals. Key feature of this formatter is
     ability to combine two units and display them simultaneously,
@@ -509,7 +654,7 @@ class DynamicBaseFormatter:
 
     def __init__(
         self,
-        units: t.List[CustomBaseUnit],
+        units: t.List[DualBaseUnit],
         *,
         auto_color: bool = False,
         allow_negative: bool = False,
@@ -530,7 +675,7 @@ class DynamicBaseFormatter:
         self._overflow_msg = overflow_msg
         self._highlighter: Highlighter = highlighter
 
-        self._fractional_formatter = StaticBaseFormatter(
+        self._fractional_formatter = StaticFormatter(
             max_value_len=4,
             unit="s",
             unit_separator="",
@@ -690,7 +835,7 @@ class DynamicBaseFormatter:
 
 
 @dataclass(frozen=True)
-class CustomBaseUnit:
+class DualBaseUnit:
     """
     TU
 
@@ -732,13 +877,13 @@ class _TimeDeltaFormatterRegistry:
     """
 
     def __init__(self):
-        self._formatters: t.Dict[int, DynamicBaseFormatter] = dict()
+        self._formatters: t.Dict[int, DualFormatter] = dict()
 
-    def register(self, *formatters: DynamicBaseFormatter):
+    def register(self, *formatters: DualFormatter):
         for formatter in formatters:
             self._formatters[formatter.max_len] = formatter
 
-    def find_matching(self, max_len: int) -> DynamicBaseFormatter | None:
+    def find_matching(self, max_len: int) -> DualFormatter | None:
         exact_match = self.get_by_max_len(max_len)
         if exact_match is not None:
             return exact_match
@@ -752,7 +897,7 @@ class _TimeDeltaFormatterRegistry:
             return None
         return self.get_by_max_len(suitable_max_len_list[0])
 
-    def get_by_max_len(self, max_len: int) -> DynamicBaseFormatter | None:
+    def get_by_max_len(self, max_len: int) -> DualFormatter | None:
         return self._formatters.get(max_len, None)
 
     def get_shortest(self) -> _TimeDeltaFormatterRegistry | None:
@@ -765,7 +910,7 @@ class _TimeDeltaFormatterRegistry:
 # -----------------------------------------------------------------------------
 
 
-FORMATTER_SI = StaticBaseFormatter()
+FORMATTER_SI = StaticFormatter()
 """
 Decimal SI formatter, formats ``value`` as a unitless value with SI-prefixes;
 a unit can be provided as an argument of `format()` method. Suitable for 
@@ -787,17 +932,18 @@ See `format_si()`.
     length increases by length of that unit.
 """
 
-FORMATTER_SI_BINARY = StaticBaseFormatter(
+FORMATTER_SI_BINARY = StaticFormatter(
     allow_negative=False,
     discrete_input=True,
     unit="B",
     unit_separator=" ",
     mcoef=1024.0,
-    prefixes=StaticBaseFormatter.PREFIXES_SI_BIN,
+    prefixes=[None, "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi", "Ri", "Qi"],
 )
 """
 Binary SI formatter, formats ``value`` as binary size ("KiB", "MiB") 
-with base = 1024. Unit can be customized.
+with base = 1024. Unit can be customized. Covers values from :math:`0` to 
+:math:`10^{32}`. 
 
 While being similar to `formatter_si`, this formatter 
 differs in one aspect. Given a variable with default value = 995,
@@ -828,7 +974,7 @@ of "1.00 KiB". See `format_si_binary()`.
     defined in `formatter_si_binary`).
 """
 
-FORMATTER_BYTES_HUMAN = StaticBaseFormatter(
+FORMATTER_BYTES_HUMAN = StaticFormatter(
     allow_negative=False,
     discrete_input=True,
     unit_separator="",
@@ -881,21 +1027,49 @@ Comprises traits of both preset SI formatters, the key ones being:
 
 :max len: 
     Total maximum length is ``max_value_len + 1``, which is **5**
-    by default (4 from value + 1 from prefix). That's the shortest 
-    of all default formatters. See `format_bytes_human()`.
+    by default (4 from value + 1 from prefix).
 
 .. [1] 250 millibytes is not something you would see every day 
 """
 
+FORMATTER_TIME = DynamicFormatter(
+    units=[
+        BaseUnit(math.log10(60 * 60 * 24 * 365), "y"),
+        BaseUnit(math.log10(60 * 60 * 24 * 30), "M"),
+        BaseUnit(math.log10(60 * 60 * 24 * 7), "w"),
+        BaseUnit(math.log10(60 * 60 * 24), "d"),
+        BaseUnit(math.log10(60 * 60), "h"),
+        BaseUnit(math.log10(60), "m"),
+        BaseUnit(0, "s"),
+        BaseUnit(-3, "s", prefix="m"),
+        BaseUnit(-6, "s", prefix="µ"),
+        BaseUnit(-9, "s", prefix="n"),
+        BaseUnit(-12, "s", prefix="p"),
+        BaseUnit(-15, "s", prefix="f"),
+        BaseUnit(-18, "s", prefix="a"),
+    ]
+)
+"""
+...
+"""
+
+FORMATTER_TIME_MS = DynamicFormatter(
+    FORMATTER_TIME, oom_shift=-3, unit_separator="", allow_fractional=False
+)
+""" ... """
+FORMATTER_TIME_NS = DynamicFormatter(
+    FORMATTER_TIME, oom_shift=-9, unit_separator="", allow_fractional=False
+)
+""" ... """
 
 _TDF_REGISTRY = _TimeDeltaFormatterRegistry()
 _TDF_REGISTRY.register(
-    DynamicBaseFormatter(
+    DualFormatter(
         [
-            CustomBaseUnit("s", 60),
-            CustomBaseUnit("m", 60),
-            CustomBaseUnit("h", 24),
-            CustomBaseUnit("d", overflow_after=99),
+            DualBaseUnit("s", 60),
+            DualBaseUnit("m", 60),
+            DualBaseUnit("h", 24),
+            DualBaseUnit("d", overflow_after=99),
         ],
         allow_negative=False,
         allow_fractional=True,
@@ -903,14 +1077,14 @@ _TDF_REGISTRY.register(
         plural_suffix=None,
         overflow_msg="ERR",
     ),
-    DynamicBaseFormatter(
+    DualFormatter(
         [
-            CustomBaseUnit("s", 60),
-            CustomBaseUnit("m", 60),
-            CustomBaseUnit("h", 24),
-            CustomBaseUnit("d", 30),
-            CustomBaseUnit("M", 12),
-            CustomBaseUnit("y", overflow_after=99),
+            DualBaseUnit("s", 60),
+            DualBaseUnit("m", 60),
+            DualBaseUnit("h", 24),
+            DualBaseUnit("d", 30),
+            DualBaseUnit("M", 12),
+            DualBaseUnit("y", overflow_after=99),
         ],
         allow_negative=False,
         allow_fractional=True,
@@ -918,28 +1092,28 @@ _TDF_REGISTRY.register(
         plural_suffix=None,
         overflow_msg="ERRO",
     ),
-    DynamicBaseFormatter(
+    DualFormatter(
         [
-            CustomBaseUnit("sec", 60),
-            CustomBaseUnit("min", 60),
-            CustomBaseUnit("hr", 24, collapsible_after=10),
-            CustomBaseUnit("day", 30, collapsible_after=10),
-            CustomBaseUnit("mon", 12),
-            CustomBaseUnit("yr", overflow_after=99),
+            DualBaseUnit("sec", 60),
+            DualBaseUnit("min", 60),
+            DualBaseUnit("hr", 24, collapsible_after=10),
+            DualBaseUnit("day", 30, collapsible_after=10),
+            DualBaseUnit("mon", 12),
+            DualBaseUnit("yr", overflow_after=99),
         ],
         allow_negative=False,
         allow_fractional=True,
         unit_separator=" ",
         plural_suffix=None,
     ),
-    DynamicBaseFormatter(
+    DualFormatter(
         [
-            CustomBaseUnit("sec", 60),
-            CustomBaseUnit("min", 60, custom_short="min"),
-            CustomBaseUnit("hour", 24, collapsible_after=24),
-            CustomBaseUnit("day", 30, collapsible_after=10),
-            CustomBaseUnit("month", 12),
-            CustomBaseUnit("year", overflow_after=999),
+            DualBaseUnit("sec", 60),
+            DualBaseUnit("min", 60, custom_short="min"),
+            DualBaseUnit("hour", 24, collapsible_after=24),
+            DualBaseUnit("day", 30, collapsible_after=10),
+            DualBaseUnit("month", 12),
+            DualBaseUnit("year", overflow_after=999),
         ],
         allow_negative=True,
         allow_fractional=True,
@@ -974,8 +1148,11 @@ def format_thousand_sep(val: int | float, separator: str = " ") -> str:
     >>> format_thousand_sep(-9123123123.55, ',')
     '-9,123,123,123.55'
 
-    :param val:
-    :param separator:
+    :max output len:  :math:`(L + max(0, floor(N/3)))`,
+
+                       where *L* is ``val`` length, and *N* is order of magnitude of ``val``
+    :param val:       value to format
+    :param separator: character(s) to use as thousand separators
     """
     return f"{val:_}".replace("_", separator)
 
@@ -1010,13 +1187,14 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
     >>> format_auto_float(12345.67891, 5)
     '12346'
 
+    :max output len:        *adjustable*
     :param val:             Value to format.
     :param req_len:         Required output string length.
     :param allow_exp_form:  Allow scientific notation usage when that's the only way
                             of fitting the value into a string of required length.
     :raises ValueError:     When value is too long and ``allow_exp_form`` is *False*.
     """
-    if req_len < -1:
+    if req_len < 0:
         raise ValueError(f"Required length should be >= 0 (got {req_len})")
 
     sign = ""
@@ -1133,8 +1311,9 @@ def format_si(val: float, unit: str = None, auto_color: bool = None) -> RT:
     >>> format_si(1.22e28, 'eV')  # the Planck energy
     '12.2 ReV'
 
-    :param val:    Input value (unitless).
-    :param unit:   A unit override [default unit is an empty string].
+    :max output len:    6
+    :param val:         Input value (unitless).
+    :param unit:        A unit override [default unit is an empty string].
     :param auto_color:  If *True*, the result will be colorized depending
                         on prefix type.
     :return: Formatted value, *Text* if colorizing is on, *str* otherwise.
@@ -1155,8 +1334,9 @@ def format_si_binary(val: float, unit: str = None, auto_color: bool = False) -> 
     >>> format_si_binary(1.258 * pow(10, 6), 'b')
     '1.20 Mib'
 
-    :param val:    Input value in bytes.
-    :param unit:   A unit override [default unit is "B"].
+    :max output len:    8
+    :param val:         Input value in bytes.
+    :param unit:        A unit override [default unit is "B"].
     :param auto_color:  If *True*, the result will be colorized depending
                         on prefix type.
     :return: Formatted value, *Text* if colorizing is on, *str* otherwise.
@@ -1177,12 +1357,25 @@ def format_bytes_human(val: int, auto_color: bool = False) -> RT:
     >>> format_bytes_human(1.258 * pow(10, 6))
     '1.26M'
 
-    :param val:  Input value in bytes.
+    :max output len:   5
+    :param val:        Input value in bytes.
     :param auto_color: If *True*, the result will be colorized depending
                        on prefix type.
     :return: Formatted value, *Text* if colorizing is on, *str* otherwise.
     """
     return FORMATTER_BYTES_HUMAN.format(val, auto_color=auto_color)
+
+
+def format_time(val_s: float) -> str:
+    return FORMATTER_TIME.format(val_s)
+
+
+def format_time_ms(value_ms: float) -> str:
+    return FORMATTER_TIME_MS.format(value_ms)
+
+
+def format_time_ns(value_ns: float) -> str:
+    return FORMATTER_TIME_NS.format(value_ns)
 
 
 def format_time_delta(
@@ -1209,6 +1402,7 @@ def format_time_delta(
     >>> format_time_delta(15350)
     '4h 15min'
 
+    :max output len:  *adjustable*
     :param val_sec:   Value to format.
     :param max_len:   Maximum output string length (total).
     :param auto_color:  Color mode override, *bool* to enable/disable

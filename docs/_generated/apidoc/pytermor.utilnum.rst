@@ -34,9 +34,11 @@
 
    .. autosummary::
    
-      StaticBaseFormatter
-      DynamicBaseFormatter
-      CustomBaseUnit
+      StaticFormatter
+      DynamicFormatter
+      DualFormatter
+      BaseUnit
+      DualBaseUnit
    
    
 

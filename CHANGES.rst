@@ -10,10 +10,11 @@ pending
 - |NEW| `lab_to_rgb()`
 - |FIX|  `measure_char_width` and `get_char_width` internal logic
 - |UPDATE|  README
-- |FIX| `StaticBaseFormatter` padding
+- |FIX| `StaticFormatter` padding
 - |NEW| `Hightlighter` from static methods to real class
+- |REFACTOR| edited highlighter styles
 
-.. <@pending:145c94e>
+.. <@pending:d2d078b>
 .. ^ blank line before should be kept
 
 v2.40-dev
