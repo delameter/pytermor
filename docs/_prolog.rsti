@@ -32,6 +32,9 @@
 .. role:: badge-new
     :class: hidden, badge, badge-new
 
+.. role:: badge-update
+    :class: hidden, badge, badge-update
+
 .. role:: badge-fix
     :class: hidden, badge, badge-fix
 
@@ -44,10 +47,15 @@
 .. role:: badge-refactor
     :class: hidden, badge, badge-refactor
 
+.. role:: badge-rework
+    :class: hidden, badge, badge-rework
+
 .. |[]| replace:: :badge:`\ `
 .. |NEW| replace:: :badge-new:`[NEW]`
+.. |UPDATE| replace:: :badge-new:`[UPDATE]`
 .. |FIX| replace:: :badge-fix:`[FIX]`
 .. |DOCS| replace:: :badge-doc:`[DOCS]`
 .. |TESTS| replace:: :badge-test:`[TESTS]`
 .. |REFACTOR| replace:: :badge-refactor:`[REFACTOR]`
+.. |REWORK| replace:: :badge-rework:`[REWORK]`
 .. |MAINTAIN| replace:: :badge:`\ `

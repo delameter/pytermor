@@ -12,6 +12,7 @@ import re
 import typing as t
 from abc import abstractmethod
 from dataclasses import dataclass
+from functools import partial
 from math import floor, log10, trunc, log, isclose
 
 from . import merge_styles
@@ -177,9 +178,9 @@ class SupportsFallback:
 
 
 class NumFormatter(SupportsFallback):
-    def __init__(self):
-        self._auto_color: bool = None
-        self._highlighter: Highlighter = None
+    def __init__(self, auto_color: bool, highlighter: Highlighter):
+        self._auto_color: bool = auto_color
+        self._highlighter: Highlighter = highlighter
 
     @abstractmethod
     def format(self, val: float, auto_color: bool) -> RT:
@@ -219,8 +220,6 @@ class StaticFormatter(NumFormatter):
     methods `format_si()`, `format_si_binary()` and `format_bytes_human()`,
     which will invoke predefined formatters and doesn't require setting up.
     """
-
-    _DEFAULTS: t.Dict = None
 
     def __init__(
         self,
@@ -343,8 +342,9 @@ class StaticFormatter(NumFormatter):
 
         .. default-role:: any
         """
+        super().__init__(auto_color, highlighter)
+
         self._max_value_len: int = max_value_len
-        self._auto_color: bool = auto_color
         self._allow_negative: bool = allow_negative
         self._allow_fractional: bool = allow_fractional
         self._discrete_input: bool = discrete_input
@@ -356,7 +356,6 @@ class StaticFormatter(NumFormatter):
         self._prefixes: t.List[str | None] = prefixes
         self._prefix_refpoint_shift: int = prefix_refpoint_shift
         self._value_mapping: t.Dict[float, RT] | t.Callable[[float], RT] = value_mapping
-        self._highlighter: Highlighter = highlighter
 
         if self._DEFAULTS is None:
             return
@@ -489,7 +488,6 @@ class StaticFormatter(NumFormatter):
 
 StaticFormatter._set_defaults(
     StaticFormatter(
-        fallback=None,
         max_value_len=4,
         auto_color=False,
         allow_negative=True,
@@ -515,8 +513,6 @@ class DynamicFormatter(NumFormatter):
     intention to customize the output (too much).
     """
 
-    _DEFAULTS: t.Dict = None
-
     def __init__(
         self,
         fallback: DynamicFormatter = None,
@@ -534,23 +530,17 @@ class DynamicFormatter(NumFormatter):
             All arguments except ``fallback`` are *kwonly*-type arguments.
 
         """
-        self._auto_color: bool = auto_color
+        super().__init__(auto_color, highlighter)
+
         self._allow_fractional: bool = allow_fractional
         self._unit_separator: str = unit_separator
         self._units: list[BaseUnit] = units
         self._oom_shift: int = oom_shift
-        self._highlighter: Highlighter = highlighter
         self._base: int = 10
 
-        if not self._DEFAULTS:
+        if self._DEFAULTS is None:
             return
-
-        for attr_name, default in self._DEFAULTS.items():
-            if getattr(self, attr_name) is None:
-                if (fallback_attr := getattr(fallback, attr_name, None)) is not None:
-                    setattr(self, attr_name, fallback_attr)
-                    continue
-                setattr(self, attr_name, default)
+        self._apply_defaults(fallback)
 
         if len(self._units) < 2:
             raise ValueError("At least two base units are required")
@@ -562,11 +552,11 @@ class DynamicFormatter(NumFormatter):
         :param auto_color:
         :return:
         """
-        if self._auto_color:
+        if self._get_color_effective(auto_color):
             return self._colorize(auto_color, *self._format_raw(val, True))
         return self._format_raw(val, False)
 
-    def _format_raw(self, val: float, as_tuple: bool) -> str|t.Tuple[str, ...]:
+    def _format_raw(self, val: float, as_tuple: bool) -> str | t.Tuple[str, ...]:
         min_unit = self._units[-1]
         min_val = math.pow(self._base, min_unit.oom)
         if abs(val) > min_val:
@@ -639,6 +629,7 @@ class DualFormatter(NumFormatter):
 
         "10 secs", "5 mins", "4h 15min", "5d 22h"
 
+    :param fallback:
     :param units:
     :param auto_color: If *True*, the result will be colorized depending on unit type.
     :param allow_negative:
@@ -654,33 +645,38 @@ class DualFormatter(NumFormatter):
 
     def __init__(
         self,
-        units: t.List[DualBaseUnit],
+        fallback: DualFormatter = None,
+        units: t.List[DualBaseUnit] = None,
         *,
-        auto_color: bool = False,
-        allow_negative: bool = False,
-        allow_fractional: bool = True,
+        auto_color: bool = None,
+        allow_negative: bool = None,
+        allow_fractional: bool = None,
         unit_separator: str = None,
-        pad: bool = False,
+        pad: bool = None,
         plural_suffix: str = None,
-        overflow_msg: str = "OVERFLOW",
-        highlighter: Highlighter = _HIGHLIGHTER,
+        overflow_msg: str = None,
+        highlighter: Highlighter = None,
     ):
+        super().__init__(auto_color, highlighter)
+
         self._units = units
-        self._color = auto_color
         self._allow_negative = allow_negative
         self._allow_fractional = allow_fractional
         self._unit_separator = unit_separator
         self._pad = pad
         self._plural_suffix = plural_suffix
         self._overflow_msg = overflow_msg
-        self._highlighter: Highlighter = highlighter
+
+        if self._DEFAULTS is None:
+            return
+        self._apply_defaults(fallback)
 
         self._fractional_formatter = StaticFormatter(
             max_value_len=4,
             unit="s",
             unit_separator="",
-            allow_negative=True,
-            allow_fractional=True,
+            allow_negative=self._allow_negative,
+            allow_fractional=self._allow_fractional,
         )
         self._max_len = None
         self._compute_max_len()
@@ -806,11 +802,6 @@ class DualFormatter(NumFormatter):
         args = dict(intp=val, frac="", sep=sep, pfx="", unit=unit)
         return Text(Fragment(extra), *self._highlighter.apply(**args), align=Align.RIGHT)
 
-    def _get_color_effective(self, auto_color: bool) -> bool:
-        if auto_color is not None:
-            return auto_color
-        return self._color
-
     def _compute_max_len(self):
         max_len = 0
         coef = 1.00
@@ -832,6 +823,21 @@ class DualFormatter(NumFormatter):
             coef *= unit.in_next or unit.overflow_after
 
         self._max_len = max_len
+
+
+DualFormatter._set_defaults(
+    DualFormatter(
+        units=[],
+        auto_color=False,
+        allow_negative=False,
+        allow_fractional=True,
+        unit_separator=None,
+        pad=False,
+        plural_suffix=None,
+        overflow_msg="OVERFLOW",
+        highlighter=_HIGHLIGHTER,
+    )
+)
 
 
 @dataclass(frozen=True)
@@ -900,10 +906,10 @@ class _TimeDeltaFormatterRegistry:
     def get_by_max_len(self, max_len: int) -> DualFormatter | None:
         return self._formatters.get(max_len, None)
 
-    def get_shortest(self) -> _TimeDeltaFormatterRegistry | None:
+    def get_shortest(self) -> DualFormatter | None:
         return self._formatters.get(min(self._formatters.keys() or [None]))
 
-    def get_longest(self) -> _TimeDeltaFormatterRegistry | None:
+    def get_longest(self) -> DualFormatter | None:
         return self._formatters.get(max(self._formatters.keys() or [None]))
 
 
@@ -1062,14 +1068,15 @@ FORMATTER_TIME_NS = DynamicFormatter(
 )
 """ ... """
 
-_TDF_REGISTRY = _TimeDeltaFormatterRegistry()
-_TDF_REGISTRY.register(
+TDF_REGISTRY = _TimeDeltaFormatterRegistry()
+TDF_REGISTRY.register(
     DualFormatter(
-        [
+        units=[
             DualBaseUnit("s", 60),
             DualBaseUnit("m", 60),
             DualBaseUnit("h", 24),
-            DualBaseUnit("d", overflow_after=99),
+            DualBaseUnit("d", 30),
+            DualBaseUnit("M", overflow_after=9),
         ],
         allow_negative=False,
         allow_fractional=True,
@@ -1078,7 +1085,7 @@ _TDF_REGISTRY.register(
         overflow_msg="ERR",
     ),
     DualFormatter(
-        [
+        units=[
             DualBaseUnit("s", 60),
             DualBaseUnit("m", 60),
             DualBaseUnit("h", 24),
@@ -1093,7 +1100,7 @@ _TDF_REGISTRY.register(
         overflow_msg="ERRO",
     ),
     DualFormatter(
-        [
+        units=[
             DualBaseUnit("sec", 60),
             DualBaseUnit("min", 60),
             DualBaseUnit("hr", 24, collapsible_after=10),
@@ -1107,7 +1114,7 @@ _TDF_REGISTRY.register(
         plural_suffix=None,
     ),
     DualFormatter(
-        [
+        units=[
             DualBaseUnit("sec", 60),
             DualBaseUnit("min", 60, custom_short="min"),
             DualBaseUnit("hour", 24, collapsible_after=24),
@@ -1366,16 +1373,14 @@ def format_bytes_human(val: int, auto_color: bool = False) -> RT:
     return FORMATTER_BYTES_HUMAN.format(val, auto_color=auto_color)
 
 
-def format_time(val_s: float) -> str:
-    return FORMATTER_TIME.format(val_s)
+def format_time(val_s: float, auto_color: bool = None) -> RT:
+    return FORMATTER_TIME.format(val_s, auto_color)
 
+def format_time_ms(value_ms: float, auto_color: bool = None) -> RT:
+    return FORMATTER_TIME_MS.format(value_ms, auto_color)
 
-def format_time_ms(value_ms: float) -> str:
-    return FORMATTER_TIME_MS.format(value_ms)
-
-
-def format_time_ns(value_ns: float) -> str:
-    return FORMATTER_TIME_NS.format(value_ns)
+def format_time_ns(value_ns: float, auto_color: bool = None) -> RT:
+    return FORMATTER_TIME_NS.format(value_ns, auto_color)
 
 
 def format_time_delta(
@@ -1410,11 +1415,17 @@ def format_time_delta(
                            setting value.
     """
     if max_len is None:
-        formatter = _TDF_REGISTRY.get_longest()
+        formatter = TDF_REGISTRY.get_longest()
     else:
-        formatter = _TDF_REGISTRY.find_matching(max_len)
+        formatter = TDF_REGISTRY.find_matching(max_len)
 
     if formatter is None:
         raise ValueError(f"No settings defined for max length = {max_len} (or less)")
 
     return formatter.format(val_sec, auto_color)
+
+
+format_time_delta_short = partial(format_time_delta, max_len=TDF_REGISTRY.get_shortest())
+"""..."""
+format_time_delta_long = partial(format_time_delta, max_len=TDF_REGISTRY.get_longest())
+"""..."""

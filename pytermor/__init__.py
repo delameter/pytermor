@@ -120,6 +120,7 @@ from .utilnum import FORMATTER_SI_BINARY as FORMATTER_SI_BINARY
 from .utilnum import FORMATTER_TIME as FORMATTER_TIME
 from .utilnum import FORMATTER_TIME_MS as FORMATTER_TIME_MS
 from .utilnum import FORMATTER_TIME_NS as FORMATTER_TIME_NS
+from .utilnum import TDF_REGISTRY as TDF_REGISTRY
 from .utilnum import DualBaseUnit as DualBaseUnit
 from .utilnum import DynamicFormatter as DynamicFormatter
 from .utilnum import DualFormatter as DualFormatter

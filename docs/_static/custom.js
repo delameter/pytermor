@@ -60,10 +60,12 @@ function setExternalHrefOpenMethodToBlank() {
 let badgeContentMap = {
     "": "•",
     "[NEW]": "+",
+    "[UPDATE]": "^",
     "[FIX]": "*",
     "[DOCS]": "#",
     "[TESTS]": "»",
-    "[REFACTOR]": "=",
+    "[REFACTOR]": "±",
+    "[REWORK]": "!",
 }
 
 function removeBadgeBrackets() {

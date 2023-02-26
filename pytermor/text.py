@@ -47,17 +47,14 @@ class IRenderable(t.Sized, ABC):
     """
 
     @staticmethod
-    def as_fragment(string: IRenderable) -> Fragment:
+    def as_fragments(string: IRenderable) -> t.List[Fragment]:
         if isinstance(string, str):
-            return Fragment(string)
+            return [Fragment(string)]
         if isinstance(string, Fragment):
-            return string
+            return [string]
         if isinstance(string, (FrozenText, Text)):
-            raise TypeError(
-                f"{type(string)} cannot be represented as "
-                f"a fragment without partial data loss"
-            )
-        raise ArgTypeError(type(string), "string", IRenderable.as_fragment)
+            return [*string._fragments]
+        raise ArgTypeError(type(string), "string", IRenderable.as_fragments)
 
     @abstractmethod
     def __len__(self) -> int:
@@ -312,13 +309,13 @@ class FrozenText(IRenderable):
         return result % (", " + ", ".join([repr(f) for f in self._fragments]))
 
     def __add__(self, other: str | Fragment) -> FrozenText:
-        return self.append(self.as_fragment(other))
+        return self.append(*self.as_fragments(other))
 
     def __iadd__(self, other: str | Fragment) -> FrozenText:
         raise LogicError("FrozenText is immutable")
 
     def __radd__(self, other: str | Fragment) -> FrozenText:
-        return self.prepend(self.as_fragment(other))
+        return self.prepend(*self.as_fragments(other))
 
     @property
     def allows_width_setup(self) -> bool:
@@ -424,7 +421,7 @@ class FrozenText(IRenderable):
 
 class Text(FrozenText):
     def __iadd__(self, other: str | Fragment) -> FrozenText:
-        return self.append(self.as_fragment(other))
+        return self.append(*self.as_fragments(other))
 
     def append(self, *fragments: Fragment) -> Text:
         self._ensure_fragments(*fragments)

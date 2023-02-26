@@ -32,7 +32,7 @@ class TestRendererConfiguration:
             assert result == "12345"
 
 
-@pytest.mark.setup(renderer_class='TmuxRenderer')
+@pytest.mark.setup(renderer_class="TmuxRenderer")
 class TestTmuxRenderer:
     def test_basic_render_works(self):
         result = pt.render("12345", Style(fg="red", bg="black", bold=True))
@@ -84,21 +84,11 @@ class TestTmuxRenderer:
         ).render(pt.renderer.TmuxRenderer)
 
         assert result == (
-            "#[fg=red]"
-            "123"
-            "#[fg=default]"
-            "#[fg=blue]"
-            "456"
-            "#[fg=default]"
-            "#[fg=blue]"
-            "789"
-            "#[fg=default]"
-            "#[fg=blue]"
-            "0qw"
-            "#[fg=default]"
-            "#[fg=red]"
-            "ert"
-            "#[fg=default]"
+            "#[fg=red]" + "123" + "#[fg=default]"
+            "#[fg=blue]" + "456" + "#[fg=default]"
+            "#[fg=blue]" + "789" + "#[fg=default]"
+            "#[fg=blue]" + "0qw" + "#[fg=default]"
+            "#[fg=red]" + "ert" + "#[fg=default]"
             "yui"
         )
 

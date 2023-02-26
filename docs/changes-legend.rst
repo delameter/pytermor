@@ -7,9 +7,10 @@ Legend
    A hint with type of the change shows up when icon is hovered with the
    mouse pointer.
 
-- |FIX| fixes
-- |NEW| features
 - |DOCS|  improvements to documentation
-- |TESTS| improvements to tests
+- |FIX| bug fixes
+- |NEW|\ |UPDATE| new features/updates
 - |REFACTOR| refactoring
+- |REWORK| new major version
+- |TESTS| improvements to tests
 - |[]|  unclassified

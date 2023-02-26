@@ -10,7 +10,7 @@ import pytest
 
 import pytermor as pt
 import pytermor.text
-from pytermor import Text, FrozenText, Fragment, IRenderable, Style
+from pytermor import Text, FrozenText, Fragment, IRenderable, Style, RT
 from pytermor.renderer import NoOpRenderer
 
 
@@ -32,7 +32,7 @@ def print_test_formatting_args(val) -> str | None:
     return None
 
 
-@pytest.mark.setup(output_mode='TRUE_COLOR')
+@pytest.mark.setup(output_mode="TRUE_COLOR")
 class TestText:
     def test_style_applying_works(self):
         assert Text("123", Style(fg="red")).render() == "\x1b[31m" "123" "\x1b[39m"
@@ -66,22 +66,11 @@ class TestText:
             Fragment("6"),
         )
         expected = (
-            "\x1b[1;31;40m"
-            "1"
-            "\x1b[22;39;49m"
-            "\x1b[1;4;33;42m"
-            "2"
-            "\x1b[22;24;39;49m"
-            "\x1b[1;4;33;42m"
-            "3"
-            "\x1b[22;24;39;49m"
-            "\x1b[1;4;33;42m"
-            "4"
-            "\x1b[22;24;39;49m"
-            "\x1b[1;31;40m"
-            "5"
-            "\x1b[22;39;49m"
-            "6"
+            "\x1b[1;31;40m" + "1" + "\x1b[22;39;49m"
+            "\x1b[1;4;33;42m" + "2" + "\x1b[22;24;39;49m"
+            "\x1b[1;4;33;42m" + "3" + "\x1b[22;24;39;49m"
+            "\x1b[1;4;33;42m" + "4" + "\x1b[22;24;39;49m"
+            "\x1b[1;31;40m" + "5" + "\x1b[22;39;49m" + "6"
         )
         assert text.render() == expected
 
@@ -136,13 +125,17 @@ class TestAdding:
         assert result.render(NoOpRenderer).startswith("poi")
 
     @pytest.mark.parametrize(
-        "item1, item2",
+        "expected, item1, item2",
         [
-            (FrozenText(frag1), FrozenText(frag2)),
-            (Text(frag1), Text(frag2)),
-            (Text(frag1), 123),
-            (Text(frag1), [frag2]),
+            (FrozenText(frag1, frag2), FrozenText(frag1), FrozenText(frag2)),
+            (Text(frag1, frag2), Text(frag1), Text(frag2)),
         ],
+    )
+    def test_adding_works(self, expected: RT, item1: RT, item2: RT):
+        assert item1 + item2 == expected
+
+    @pytest.mark.parametrize(
+        "item1, item2", [(Text(frag1), 123), (Text(frag1), [frag2])]
     )
     @pytest.mark.xfail(raises=(TypeError, pt.ArgTypeError))
     def test_adding_fails(self, item1: IRenderable, item2: IRenderable):
@@ -315,13 +308,7 @@ class TestSimpleTable:
 
     @pytest.mark.parametrize(
         "cell",
-        [
-            "1",
-            pt.Fragment("1"),
-            pt.FrozenText("1"),
-            pt.Text("1"),
-            pt.SimpleTable("1"),
-        ],
+        ["1", pt.Fragment("1"), pt.FrozenText("1"), pt.Text("1"), pt.SimpleTable("1")],
         ids=rt_str,
     )
     def test_cell_types_accepted(self, cell: pytermor.text.RT):

@@ -471,7 +471,7 @@ span.badge {
     font-size: 95%;
     text-shadow: 1px 1px 0px var(--color-pt-badge-text-shadow, black);
 }
-span.badge-new {
+span.badge-new, span.badge-update {
     background: var(--color-pt-badge-background, #7fff7f40);
     color: var(--color-pt-badge-foreground, #7fff7f);
 }
@@ -490,6 +490,10 @@ span.badge-test {
 span.badge-refactor {
     background: var(--color-pt-badge-background, #5f7fff40);
     color: var(--color-pt-badge-foreground, #5f7fff);
+}
+span.badge-rework {
+    background: var(--color-pt-badge-background, #ffd15e40);
+    color: var(--color-pt-badge-foreground, #ffdf5f);
 }
 
 
