@@ -20,7 +20,11 @@ pending
   - ``DynamicBaseFormatter`` -> `DynamicFormatter`
   - ``StaticBaseFormatter`` -> `StaticFormatter`
 
-.. <@pending:b26f38d>
+- |NEW| numeric formatters fallback mechanics
+- |TESTS| numeric formatters colorizing
+- |REFACTOR| ``utilnum._TDF_REGISTRY`` -> `TDF_REGISTRY`
+
+.. <@pending:ebd7ade>
 .. ^ blank line before should be kept
 
 v2.40-dev

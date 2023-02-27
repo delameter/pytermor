@@ -12,8 +12,19 @@ $(document).ready(function () {
 });
 
 function transformReferences() {
-    for (let el of $(".field-list a.internal em, .field-list a strong")) {
-        el.outerHTML = "<code class='literal'><span class='pre'>" + el.innerHTML + "</span></code>";
+    for (let el of $(".field-list a.internal em, .field-list a strong, .field-list a.internal")) {
+        if (el.firstChild.nodeType !== Node.TEXT_NODE) continue;
+        let code = document.createElement('code');
+        let span = document.createElement('span');
+        code.classList.add('literal');
+        span.classList.add('pre');
+        span.innerHTML = el.innerHTML;
+        code.appendChild(span);
+        if (el.tagName.toLowerCase() === "em") {
+            el.replaceWith(code);
+        } else {
+            el.firstChild.replaceWith(code);
+        }
     }
     for (let el of $(".field-list dd:last-child > p:first-child")) {
         if (el.childNodes.length !== 1) continue;
@@ -23,6 +34,7 @@ function transformReferences() {
         el.replaceWith(em);
     }
 }
+
 function formatEnvLists() {
     $(".env-list dt").each((idx, el) => el.classList.add("sig"));
 }

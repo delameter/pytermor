@@ -114,13 +114,8 @@ from .utilmisc import rgb_to_hex as rgb_to_hex
 from .utilmisc import rgb_to_hsv as rgb_to_hsv
 from .utilmisc import total_size as total_size
 from .utilmisc import wait_key as wait_key
-from .utilnum import FORMATTER_BYTES_HUMAN as FORMATTER_BYTES_HUMAN
-from .utilnum import FORMATTER_SI as FORMATTER_SI
-from .utilnum import FORMATTER_SI_BINARY as FORMATTER_SI_BINARY
-from .utilnum import FORMATTER_TIME as FORMATTER_TIME
-from .utilnum import FORMATTER_TIME_MS as FORMATTER_TIME_MS
-from .utilnum import FORMATTER_TIME_NS as FORMATTER_TIME_NS
-from .utilnum import TDF_REGISTRY as TDF_REGISTRY
+from .utilnum import dual_registry as dual_registry
+from .utilnum import BaseUnit as BaseUnit
 from .utilnum import DualBaseUnit as DualBaseUnit
 from .utilnum import DynamicFormatter as DynamicFormatter
 from .utilnum import DualFormatter as DualFormatter

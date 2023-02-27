@@ -12,10 +12,9 @@ import re
 import typing as t
 from abc import abstractmethod
 from dataclasses import dataclass
-from functools import partial
 from math import floor, log10, trunc, log, isclose
 
-from . import merge_styles
+from . import merge_styles, ConflictError
 from .common import logger, Align
 from .cval import CVAL as cv
 from .style import Style, Styles
@@ -273,11 +272,12 @@ class StaticFormatter(NumFormatter):
         :param bool allow_negative:
             [default: *True*] Allow negative numbers handling, or (if set to *False*)
             ignore the sign and round all of them to 0.0. This option effectively
-            increases lower limit of ``max_value_len`` by 1.
+            increases lower limit of ``max_value_len`` by 1 (when enabled).
 
         :param bool allow_fractional:
             [default: *True*] Allows the usage of fractional values in the output. If
-            set to *False*, the results will be rounded.
+            set to *False*, the results will be rounded. Does not affect lower
+            limit of ``max_value_len``.
 
         :param bool discrete_input:
             [default: *False*] If set to *True*, truncate the fractional part off the
@@ -516,18 +516,19 @@ class DynamicFormatter(NumFormatter):
     def __init__(
         self,
         fallback: DynamicFormatter = None,
+        units: list[BaseUnit] = None,
         *,
         auto_color: bool = None,
         allow_fractional: bool = None,
         unit_separator: str = None,
-        units: list[BaseUnit] = None,
         oom_shift: int = None,
         highlighter: Highlighter = None,
     ):
         """
         .. note ::
 
-            All arguments except ``fallback`` are *kwonly*-type arguments.
+            All arguments except ``fallback`` and ``units`` are
+            *kwonly*-type arguments.
 
         """
         super().__init__(auto_color, highlighter)
@@ -545,32 +546,36 @@ class DynamicFormatter(NumFormatter):
         if len(self._units) < 2:
             raise ValueError("At least two base units are required")
 
-    def format(self, val: float, auto_color: bool = False) -> RT:
+    def format(self, val: float, auto_color: bool = False, oom_shift: int = None) -> RT:
         """
         ,,,
         :param val:
+        :param oom_shift:
         :param auto_color:
         :return:
         """
         if self._get_color_effective(auto_color):
-            return self._colorize(auto_color, *self._format_raw(val, True))
-        return self._format_raw(val, False)
+            return self._colorize(auto_color, *self._format_raw(val, oom_shift, True))
+        return self._format_raw(val, oom_shift, False)
 
-    def _format_raw(self, val: float, as_tuple: bool) -> str | t.Tuple[str, ...]:
+    def _format_raw(
+        self, val: float, oom_shift: int = None, as_tuple: bool = False
+    ) -> str | t.Tuple[str, ...]:
+        eff_oom_shift = self._oom_shift if oom_shift is None else oom_shift
         min_unit = self._units[-1]
         min_val = math.pow(self._base, min_unit.oom)
         if abs(val) > min_val:
-            val_oom = math.log(abs(val), self._base) + self._oom_shift
+            val_oom = math.log(abs(val), self._base) + eff_oom_shift
         else:
             val_oom = min_unit.oom - 1
 
         val_mp = None
         unit = base_unit = min_unit
         for _unit in self._units:
-            if _unit.oom == self._oom_shift:
+            if _unit.oom == eff_oom_shift:
                 base_unit = _unit
             if val_oom >= _unit.oom:
-                coef = math.pow(self._base, _unit.oom - self._oom_shift)
+                coef = math.pow(self._base, _unit.oom - eff_oom_shift)
                 val_mp = val / coef
                 unit = _unit
                 break
@@ -691,18 +696,18 @@ class DualFormatter(NumFormatter):
         """
         return self._max_len
 
-    def format(self, val: float, auto_color: bool = None) -> RT:
+    def format(self, val_sec: float, auto_color: bool = None) -> RT:
         """
         Pretty-print difference between two moments in time. If input
         value is too big for the current formatter to handle, return "OVERFLOW"
         string (or a part of it, depending on ``max_len``).
 
-        :param val: Input value.
+        :param val_sec:     Input value in seconds.
         :param auto_color:  Color mode, *bool* to enable/disable colorizing,
                             *None* to use formatter default value.
         :return: Formatted time delta, *Text* if colorizing is on, *str* otherwise.
         """
-        result = self.format_base(val, auto_color)
+        result = self.format_base(val_sec, auto_color)
         if result is None:
             result = self._overflow_msg[: self.max_len]
             if self._get_color_effective(auto_color):
@@ -717,28 +722,28 @@ class DualFormatter(NumFormatter):
         return result
 
     # @TODO naming?
-    def format_base(self, val: float, auto_color: bool = None) -> RT | None:
+    def format_base(self, val_sec: float, auto_color: bool = None) -> RT|None:
         """
         Pretty-print difference between two moments in time. If input
         value is too big for the current formatter to handle, return *None*.
 
-        :param val:   Input value.
+        :param val_sec:     Input value in seconds.
         :param auto_color:  Color mode, *bool* to enable/disable colorizing,
                             *None* to use formatter default value.
         :return: Formatted value as *Text* if colorizing is on; as *str*
                  otherwise. Returns *None* on overflow.
         """
-        num = abs(val)
+        num = abs(val_sec)
         unit_idx = 0
         result_sub = ""
 
-        negative = self._allow_negative and val < 0
+        negative = self._allow_negative and val_sec < 0
         sign = "-" if negative else ""
         result = None
 
         if self._allow_fractional and num < self._units[0].in_next:
             if self._max_len is not None:
-                result = self._fractional_formatter.format(val, auto_color=auto_color)
+                result = self._fractional_formatter.format(val_sec, auto_color=auto_color)
                 if len(result) > self._max_len:
                     # for example, 500ms doesn't fit in the shortest possible
                     # delta string (which is 3 chars), so "<1s" will be returned
@@ -774,14 +779,14 @@ class DualFormatter(NumFormatter):
                     result = self._colorize(auto_color, "<", "1", sep, unit_name)
 
             elif unit.collapsible_after is not None and num < unit.collapsible_after:
-                val = str(floor(num))
+                val_sec = str(floor(num))
                 result = (
-                    self._colorize(auto_color, sign, val, "", unit_short) + result_sub
+                    self._colorize(auto_color, sign, val_sec, "", unit_short) + result_sub
                 )
 
             elif not next_unit_ratio or num < next_unit_ratio:
-                val = str(floor(num))
-                result = self._colorize(auto_color, sign, val, sep, unit_name_suffixed)
+                val_sec = str(floor(num))
+                result = self._colorize(auto_color, sign, val_sec, sep, unit_name_suffixed)
 
             else:
                 next_num = floor(num / next_unit_ratio)
@@ -876,20 +881,27 @@ class DualBaseUnit:
             raise ValueError("Mutually exclusive attributes: in_next, overflow_after.")
 
 
-class _TimeDeltaFormatterRegistry:
+class DualFormatterRegistry:
     """
-    Simple tdf_registry for storing formatters and selecting
+    Simple DualFormatter registry for storing formatters and selecting
     the suitable one by max output length.
     """
 
     def __init__(self):
         self._formatters: t.Dict[int, DualFormatter] = dict()
+        self._min_len: int|None = None
+        self._max_len: int|None = None
 
     def register(self, *formatters: DualFormatter):
+        """..."""
         for formatter in formatters:
-            self._formatters[formatter.max_len] = formatter
+            key = formatter.max_len
+            if key in self._formatters:
+                raise ConflictError(f"Formatter with max len {key} already exists")
+            self._formatters[key] = formatter
 
     def find_matching(self, max_len: int) -> DualFormatter | None:
+        """..."""
         exact_match = self.get_by_max_len(max_len)
         if exact_match is not None:
             return exact_match
@@ -904,41 +916,24 @@ class _TimeDeltaFormatterRegistry:
         return self.get_by_max_len(suitable_max_len_list[0])
 
     def get_by_max_len(self, max_len: int) -> DualFormatter | None:
+        """..."""
         return self._formatters.get(max_len, None)
 
     def get_shortest(self) -> DualFormatter | None:
-        return self._formatters.get(min(self._formatters.keys() or [None]))
+        """..."""
+        return self._formatters.get(min(self._formatters.keys()))
 
     def get_longest(self) -> DualFormatter | None:
-        return self._formatters.get(max(self._formatters.keys() or [None]))
+        """..."""
+        return self._formatters.get(max(self._formatters.keys()))
 
 
 # -----------------------------------------------------------------------------
 
 
-FORMATTER_SI = StaticFormatter()
-"""
-Decimal SI formatter, formats ``value`` as a unitless value with SI-prefixes;
-a unit can be provided as an argument of `format()` method. Suitable for 
-formatting any SI unit with values from :math:`10^{-30}` to :math:`10^{32}`.
-See `format_si()`.
+formatter_si = StaticFormatter()
 
-:usage:
-
-    .. code-block :: 
-
-        # either of: 
-        format_si(<value>, ...)
-        FORMATTER_SI.format(<value>, ...)
-
-:max len: 
-    Total maximum length is ``max_value_len + 2``, which is **6**
-    by default (4 from value + 1 from separator and + 1 from prefix).
-    If the unit is defined and is a non-empty string, the maximum output 
-    length increases by length of that unit.
-"""
-
-FORMATTER_SI_BINARY = StaticFormatter(
+formatter_si_binary = StaticFormatter(
     allow_negative=False,
     discrete_input=True,
     unit="B",
@@ -946,99 +941,15 @@ FORMATTER_SI_BINARY = StaticFormatter(
     mcoef=1024.0,
     prefixes=[None, "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi", "Ri", "Qi"],
 )
-"""
-Binary SI formatter, formats ``value`` as binary size ("KiB", "MiB") 
-with base = 1024. Unit can be customized. Covers values from :math:`0` to 
-:math:`10^{32}`. 
 
-While being similar to `formatter_si`, this formatter 
-differs in one aspect. Given a variable with default value = 995,
-formatting its value results in "995 B". After increasing it
-by 20 we'll have 1015, but it's still not enough to become
-a kilobyte -- so returned value will be "1015 B". Only after one
-more increase (at 1024 and more) the value will be in a form
-of "1.00 KiB". See `format_si_binary()`.
-
-:usage:
-
-    .. code-block :: 
-
-        # either of: 
-        format_si_binary(<value>, ...)
-        FORMATTER_SI_BINARY.format(<value>, ...)
-
-:max len: 
-    First things first, the initial ``max_value_len`` must be at least 5 (not 4),
-    because it is a minimum requirement for formatting values from 1023 to -1023.
-
-    The negative values for this formatter are disabled by default and thus 
-    will be rounded to 0, which decreases the ``max_value_len`` minimum value 
-    by 1 (to 4).
-
-    Total maximum length is ``max_value_len + 4`` = **8** (base + 1 from separator,
-    1 from unit and 2 from prefix, assuming all of them have default values 
-    defined in `formatter_si_binary`).
-"""
-
-FORMATTER_BYTES_HUMAN = StaticFormatter(
+formatter_bytes_human = StaticFormatter(
     allow_negative=False,
     discrete_input=True,
     unit_separator="",
     highlighter=Highlighter(dim_units=False),
 )
-"""
-Special case of `SI formatter <FORMATTER_SI>` optimized for processing byte-based
-values. Inspired by default stats formatting used in `htop <https://htop.dev/>`__.
-Comprises traits of both preset SI formatters, the key ones being: 
 
-    - expecting integer inputs;
-    - prohibiting negative inputs;
-    - operating in decimal mode with the base of 1000 (not 1024);
-    - the absence of units and value-unit separators in the output, while 
-      prefixes are still present;
-    - (if colors allowed) utilizing `Highlighter` with a bit customized setup,
-      as detailed below.
-     
-.. admonition :: Highlighting options
-
-    Default highlighter for this formatter does not render units (as well as prefixes) 
-    dimmed. The main reason for that is the absence of actual unit in the output of this 
-    formatter, while prefixes are still there; this allows to format the fractional 
-    output this way: :u:`1`\ .57\ :u:`k`\ , where underline indicates brighter colors. 
-    
-    This format is acceptable because only essential info gets highlighted; however, 
-    in case of other formatters with actual units in the output this approach leads 
-    to complex and mixed-up formatting; furthermore, it doesn't matter if the highlighting 
-    affects the prefix part only or both prefix and unit parts -- in either case it's 
-    just too much formatting on a unit of surface: :u:`1`\ .53 :u:`Ki`\ B (looks patchworky).          
-     
-.. table:: Default formatters comparison
-
-    ============== ============== =========== =============
-    Value          `SI(unit='B')` `SI_BINARY` `BYTES_HUMAN`
-    ============== ============== =========== =============
-    1568           '1.57 kB'      '1.53 KiB'  '1.57k'                      
-    218371331      '218 MB'       '208 MiB'   '218M'                     
-    0.25           '250 mB' [1]_  '0 B'       '0'                     
-    -1218371331232 '-1.2 TB'      '0 B'       '0'                     
-    ============== ============== =========== =============
-
-:usage:
-
-    .. code-block :: 
-
-        # either of: 
-        format_bytes_human(<value>, ...)
-        FORMATTER_BYTES_HUMAN.format(<value>, ...)
-
-:max len: 
-    Total maximum length is ``max_value_len + 1``, which is **5**
-    by default (4 from value + 1 from prefix).
-
-.. [1] 250 millibytes is not something you would see every day 
-"""
-
-FORMATTER_TIME = DynamicFormatter(
+formatter_time = DynamicFormatter(
     units=[
         BaseUnit(math.log10(60 * 60 * 24 * 365), "y"),
         BaseUnit(math.log10(60 * 60 * 24 * 30), "M"),
@@ -1055,21 +966,13 @@ FORMATTER_TIME = DynamicFormatter(
         BaseUnit(-18, "s", prefix="a"),
     ]
 )
-"""
-...
-"""
 
-FORMATTER_TIME_MS = DynamicFormatter(
-    FORMATTER_TIME, oom_shift=-3, unit_separator="", allow_fractional=False
+formatter_time_ms = DynamicFormatter(
+    formatter_time, oom_shift=-3, unit_separator="", allow_fractional=False
 )
-""" ... """
-FORMATTER_TIME_NS = DynamicFormatter(
-    FORMATTER_TIME, oom_shift=-9, unit_separator="", allow_fractional=False
-)
-""" ... """
 
-TDF_REGISTRY = _TimeDeltaFormatterRegistry()
-TDF_REGISTRY.register(
+dual_registry = DualFormatterRegistry()
+dual_registry.register(
     DualFormatter(
         units=[
             DualBaseUnit("s", 60),
@@ -1098,6 +1001,21 @@ TDF_REGISTRY.register(
         unit_separator=" ",
         plural_suffix=None,
         overflow_msg="ERRO",
+    ),
+    DualFormatter(
+        units=[
+            DualBaseUnit("s", 60),
+            DualBaseUnit("m", 60),
+            DualBaseUnit("h", 24),
+            DualBaseUnit("d", 30),
+            DualBaseUnit("M", 12),
+            DualBaseUnit("y", overflow_after=99),
+        ],
+        allow_negative=True,
+        allow_fractional=True,
+        unit_separator=" ",
+        plural_suffix=None,
+        overflow_msg="ERROR",
     ),
     DualFormatter(
         units=[
@@ -1139,8 +1057,8 @@ def highlight(string: str) -> RT:
 
         @TODO
 
-    :param string:
-    :return:
+    :max output len:    *same as input*
+    :param string:      input text
     """
     return _HIGHLIGHTER.colorize(string)
 
@@ -1155,9 +1073,9 @@ def format_thousand_sep(val: int | float, separator: str = " ") -> str:
     >>> format_thousand_sep(-9123123123.55, ',')
     '-9,123,123,123.55'
 
-    :max output len:  :math:`(L + max(0, floor(N/3)))`,
+    :max output len:  :math:`(L + max(0, floor(M/3)))`,
 
-                       where *L* is ``val`` length, and *N* is order of magnitude of ``val``
+                       where *L* is ``val`` length, and *M* is order of magnitude of ``val``
     :param val:       value to format
     :param separator: character(s) to use as thousand separators
     """
@@ -1307,7 +1225,20 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
 
 def format_si(val: float, unit: str = None, auto_color: bool = None) -> RT:
     """
-    Wrapper for `SI formatter <FORMATTER_SI>`.
+    Invoke fixed-length decimal SI formatter; format ``value`` as a unitless value with
+    SI-prefixes; a unit can be provided as an argument of `format()` method.
+    Suitable for formatting any SI unit with values from :math:`10^{-30}` to
+    :math:`10^{32}`.
+
+    Total maximum length is ``max_value_len + 2``, which is **6**
+    by default (4 from value + 1 from separator and + 1 from prefix).
+    If the unit is defined and is a non-empty string, the maximum output
+    length increases by length of that unit.
+
+    .. code-block:: python
+        :caption: Extending the formatter
+
+        my_formatter = StaticFormatter(formatter_si)
 
     >>> format_si(1010, 'm²')
     '1.01 km²'
@@ -1321,16 +1252,41 @@ def format_si(val: float, unit: str = None, auto_color: bool = None) -> RT:
     :max output len:    6
     :param val:         Input value (unitless).
     :param unit:        A unit override [default unit is an empty string].
-    :param auto_color:  If *True*, the result will be colorized depending
-                        on prefix type.
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
+                        depending on unit type, *None* to use formatters' setting 
+                        value [*False* by default].
     :return: Formatted value, *Text* if colorizing is on, *str* otherwise.
     """
-    return FORMATTER_SI.format(val, unit, auto_color)
+    return formatter_si.format(val, unit, auto_color)
 
 
 def format_si_binary(val: float, unit: str = None, auto_color: bool = False) -> RT:
     """
-    Wrapper for `binary SI formatter <FORMATTER_SI_BINARY>`.
+    Invoke fixed-length binary SI formatter which formats ``value`` as binary
+    size ("KiB", "MiB") with base 1024. Unit can be customized. Covers values
+    from :math:`0` to :math:`10^{32}`.
+
+    While being similar to `formatter_si`, this formatter
+    differs in one aspect. Given a variable with default value = 995,
+    formatting it results in "995 B". After increasing it
+    by 20 it equals to 1015, which is still not enough to become
+    a kilobyte -- so returned value will be "1015 B". Only after one
+    more increase (at 1024 and more) the value will morph into "1.00 KiB"
+    form.
+
+    That's why the initial ``max_value_len`` should be at least 5 -- because it
+    is a minimum requirement for formatting values from 1023 to -1023. However,
+    The negative values for this formatter are disabled by default and rendered
+    as 0, which decreases the ``max_value_len`` minimum value back to 4.
+
+    Total maximum length of the result is ``max_value_len + 4`` = **8**
+    (base + 1 from separator + 1 from unit + 2 from prefix, assuming all of
+    them have default values defined in `formatter_si_binary`).
+
+    .. code-block:: python
+        :caption: Extending the formatter
+
+        my_formatter = StaticFormatter(formatter_si_binary)
 
     >>> format_si_binary(1010)  # 1010 b < 1 kb
     '1010 B'
@@ -1344,16 +1300,62 @@ def format_si_binary(val: float, unit: str = None, auto_color: bool = False) -> 
     :max output len:    8
     :param val:         Input value in bytes.
     :param unit:        A unit override [default unit is "B"].
-    :param auto_color:  If *True*, the result will be colorized depending
-                        on prefix type.
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
+                        depending on unit type, *None* to use formatters' setting 
+                        value [*False* by default].
     :return: Formatted value, *Text* if colorizing is on, *str* otherwise.
     """
-    return FORMATTER_SI_BINARY.format(val, unit, auto_color)
+    return formatter_si_binary.format(val, unit, auto_color)
 
 
 def format_bytes_human(val: int, auto_color: bool = False) -> RT:
     """
-    Wrapper for `bytes-to-human formatter <FORMATTER_BYTES_HUMAN>`.
+    Invoke special case of fixed-length SI formatter optimized for processing
+    byte-based values. Inspired by default stats formatting used in
+    `htop <https://htop.dev/>`__. Comprises traits of both preset SI formatters,
+    the key ones being:
+
+        - expecting integer inputs;
+        - prohibiting negative inputs;
+        - operating in decimal mode with the base of 1000 (not 1024);
+        - the absence of units and value-unit separators in the output, while
+          prefixes are still present;
+        - (if colors allowed) utilizing `Highlighter` with a bit customized setup,
+          as detailed below.
+
+    Total maximum length is ``max_value_len + 1``, which is **5**
+    by default (4 from value + 1 from prefix).
+
+    .. admonition :: Highlighting options
+
+        Default highlighter for this formatter does not render units (as well as prefixes)
+        dimmed. The main reason for that is the absence of actual unit in the output of this
+        formatter, while prefixes are still there; this allows to format the fractional
+        output this way: :u:`1`\ .57\ :u:`k`\ , where underline indicates brighter colors.
+
+        This format is acceptable because only essential info gets highlighted; however,
+        in case of other formatters with actual units in the output this approach leads
+        to complex and mixed-up formatting; furthermore, it doesn't matter if the highlighting
+        affects the prefix part only or both prefix and unit parts -- in either case it's
+        just too much formatting on a unit of surface: :u:`1`\ .53 :u:`Ki`\ B (looks patchworky).
+
+    .. table:: Default formatters comparison
+
+        ============== ============== =========== =============
+        Value          `SI(unit='B')` `SI_BINARY` `BYTES_HUMAN`
+        ============== ============== =========== =============
+        1568           '1.57 kB'      '1.53 KiB'  '1.57k'
+        218371331      '218 MB'       '208 MiB'   '218M'
+        0.25           '250 mB' [1]_  '0 B'       '0'
+        -1218371331232 '-1.2 TB'      '0 B'       '0'
+        ============== ============== =========== =============
+
+    .. [1] 250 millibytes is not something you would see every day
+
+    .. code-block:: python
+        :caption: Extending the formatter
+
+        my_formatter = StaticFormatter(formatter_bytes_human, unit_separator=" ")
 
     >>> format_bytes_human(990)
     '990'
@@ -1366,37 +1368,106 @@ def format_bytes_human(val: int, auto_color: bool = False) -> RT:
 
     :max output len:   5
     :param val:        Input value in bytes.
-    :param auto_color: If *True*, the result will be colorized depending
-                       on prefix type.
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
+                        depending on unit type, *None* to use formatters' setting 
+                        value [*False* by default].
     :return: Formatted value, *Text* if colorizing is on, *str* otherwise.
     """
-    return FORMATTER_BYTES_HUMAN.format(val, auto_color=auto_color)
+    return formatter_bytes_human.format(val, auto_color=auto_color)
 
 
-def format_time(val_s: float, auto_color: bool = None) -> RT:
-    return FORMATTER_TIME.format(val_s, auto_color)
+def format_time(val_sec: float, auto_color: bool = None) -> RT:
+    """
+    Invoke dynamic-length general-purpose time formatter, which supports a
+    wide range of output units, including seconds, minutes, hours, days, weeks,
+    months, years, milliseconds, microseconds, nanoseconds etc.
+
+    .. code-block:: python
+        :caption: Extending the formatter
+
+        my_formatter = DynamicFormatter(formatter_time, unit_separator=" ")
+
+    >>> format_time(12)
+    '12.0 s'
+    >>> format_time(65536)
+    '18 h'
+    >>> format_time(0.00324)
+    '3.2 ms'
+
+    :max output len:    *varying*
+    :param val_sec:     Input value in seconds.
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
+                        depending on unit type, *None* to use formatters' setting 
+                        value [*False* by default].
+    """
+    return formatter_time.format(val_sec, auto_color)
+
 
 def format_time_ms(value_ms: float, auto_color: bool = None) -> RT:
-    return FORMATTER_TIME_MS.format(value_ms, auto_color)
+    """
+    Invoke a variation of `formatter_time` specifically configured to
+    format small time intervals.
+
+    .. code-block:: python
+        :caption: Extending the formatter
+
+        my_formatter = DynamicFormatter(formatter_time_ms, unit_separator=" ")
+
+    >>> format_time_ms(1)
+    '1ms'
+    >>> format_time_ms(344)
+    '344ms'
+    >>> format_time_ms(0.967)
+    '967µs'
+
+    :param value_ms:    Input value in milliseconds.
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
+                        depending on unit type, *None* to use formatters' setting 
+                        value [*False* by default].
+    :return:
+    """
+    return formatter_time_ms.format(value_ms, auto_color)
+
 
 def format_time_ns(value_ns: float, auto_color: bool = None) -> RT:
-    return FORMATTER_TIME_NS.format(value_ns, auto_color)
+    """
+    Wrapper for `format_time_ms()` expecting input value as nanoseconds.
+
+    >>> format_time_ns(1003000)
+    '1ms'
+    >>> format_time_ns(3232332224)
+    '3s'
+    >>> format_time_ns(9932248284343.32)
+    '2h'
+
+    :param value_ns:    Input value in nanoseconds.
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
+                        depending on unit type, *None* to use formatters' setting 
+                        value [*False* by default].
+    :return:
+    """
+    return formatter_time_ms.format(value_ns, auto_color, oom_shift=-9)
 
 
 def format_time_delta(
     val_sec: float, max_len: int = None, auto_color: bool = None
 ) -> RT:
     """
-    Format time delta using suitable format (which depends on
-    ``max_len`` argument). Key feature of this formatter is
-    ability to combine two units and display them simultaneously,
-    e.g. return "3h 48min" instead of "228 mins" or "3 hours",
+    Format time interval using the most suitable format with one or
+    two time units, depending on ``max_len`` argument. Key feature
+    of this formatter is an ability to combine two units and display
+    them simultaneously, e.g. return "3h 48min" instead of "228 mins"
+    or "3 hours", and on top of that -- fixed-length output.
 
-    There are predefined formatters with output length of **3, 4,
+    There are predefined formatters with output lengths of **3, 4, 5,
     6** and **10** characters. Therefore, you can pass in any value
     from 3 inclusive and it's guarenteed that result's length
     will be less or equal to required length. If `max_len` is
     omitted, longest registred formatter will be used.
+
+    .. note ::
+
+        Negative values are supported by formatters 5 and 10 only.
 
     >>> format_time_delta(10, 3)
     '10s'
@@ -1407,17 +1478,17 @@ def format_time_delta(
     >>> format_time_delta(15350)
     '4h 15min'
 
-    :max output len:  *adjustable*
-    :param val_sec:   Value to format.
-    :param max_len:   Maximum output string length (total).
-    :param auto_color:  Color mode override, *bool* to enable/disable
-                           colorizing depending on unit type, *None* to use formatters'
-                           setting value.
+    :max output len:    3, 4, 5, 6, 10
+    :param val_sec:     Input value in seconds.
+    :param max_len:     Maximum output string length (total).
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
+                        depending on unit type, *None* to use formatters' setting 
+                        value [*False* by default].
     """
     if max_len is None:
-        formatter = TDF_REGISTRY.get_longest()
+        formatter = dual_registry.get_longest()
     else:
-        formatter = TDF_REGISTRY.find_matching(max_len)
+        formatter = dual_registry.find_matching(max_len)
 
     if formatter is None:
         raise ValueError(f"No settings defined for max length = {max_len} (or less)")
@@ -1425,7 +1496,26 @@ def format_time_delta(
     return formatter.format(val_sec, auto_color)
 
 
-format_time_delta_short = partial(format_time_delta, max_len=TDF_REGISTRY.get_shortest())
-"""..."""
-format_time_delta_long = partial(format_time_delta, max_len=TDF_REGISTRY.get_longest())
-"""..."""
+def format_time_delta_shortest(val_sec: float, auto_color: bool = None) -> RT:
+    """
+    Wrapper around `format_time_delta()` with pre-set shortest formatter.
+
+    :max output len:    3
+    :param val_sec:     Input value in seconds.
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
+                        depending on unit type, *None* to use formatters' setting 
+                        value [*False* by default].
+    """
+    return dual_registry.get_shortest().format(val_sec, auto_color)
+
+def format_time_delta_longest(val_sec: float, auto_color: bool = None) -> RT:
+    """
+    Wrapper around `format_time_delta()` with pre-set longest formatter.
+
+    :max output len:    10
+    :param val_sec:     Input value in seconds.
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
+                        depending on unit type, *None* to use formatters' setting 
+                        value [*False* by default].
+    """
+    return dual_registry.get_longest().format(val_sec, auto_color)
