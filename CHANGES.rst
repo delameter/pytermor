@@ -23,8 +23,9 @@ pending
 - |NEW| numeric formatters fallback mechanics
 - |TESTS| numeric formatters colorizing
 - |REFACTOR| ``utilnum._TDF_REGISTRY`` -> `TDF_REGISTRY`
+- |REFACTOR| ``TDF_REGISTRY`` -> `dual_registry- ``FORMATTER_`` constants from top-level imports
 
-.. <@pending:ebd7ade>
+.. <@pending:f98e147>
 .. ^ blank line before should be kept
 
 v2.40-dev

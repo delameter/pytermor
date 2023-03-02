@@ -286,6 +286,8 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
         )
 
     def _render_rows(self) -> t.Iterable[str]:
+        if self._state.cols_max_len is None:
+            return
         for row in self._state.rows:
             row_str = ""
             for col_idx, col_val in enumerate(row):
