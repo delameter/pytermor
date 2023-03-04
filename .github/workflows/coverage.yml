@@ -27,7 +27,7 @@ jobs:
           coverage json
 
       - name: Coveralls
-        env: |
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           coveralls
