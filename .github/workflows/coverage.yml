@@ -23,7 +23,7 @@ jobs:
       - name: Run coverage
         run: |
           coverage run -m pytest
-	        coverage report
+          coverage report
 
       - name: Coveralls
         uses: AndreMiras/coveralls-python-action@develop
