@@ -24,6 +24,7 @@ jobs:
         run: |
           coverage run -m pytest
           coverage report
+          coverage json
 
       - name: Coveralls
         uses: AndreMiras/coveralls-python-action@develop
