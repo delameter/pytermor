@@ -1,0 +1,541 @@
+/*---------------------------------------------------------------------------*/
+/* pytermor [ANSI formatted terminal output toolset]                         */
+/* (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>                        */
+/*---------------------------------------------------------------------------*/
+
+body {
+    --api-header-border: 3px solid;
+}
+
+/** Scrollbar **/
+/* Works on Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-foreground-secondary) var(--color-background-secondary);
+}
+/* Works on Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 12px;
+}
+*::-webkit-scrollbar-track {
+  background: var(--color-background-secondary);
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-background-item);
+  border: 1px solid var(--color-background-border);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-background-border);
+}
+
+
+/** Font **/
+
+h1,
+abbr,
+.sidebar-brand-text,
+.brand,
+dl[class].field-list > dt {
+    font-family: ASM, monospace;
+    text-transform: lowercase;
+}
+.hex {
+    font-family: ASM, monospace;
+}
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.6rem; }
+h4 { font-size: 1.4rem; }
+h5 { font-size: 1.2rem; }
+h6 { font-size: 1rem; }
+
+.sidebar-brand-text, .brand {
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+}
+pre, .pre, kbd,
+a.reference.internal code,
+.xterm-palette,
+.field-list dd.field-odd strong,
+.field-list dd.field-odd em,
+.std-term,
+dl.env-list dt {
+    font-family: "Iose7ka Terminal", monospace;
+}
+dl.env-list dt {
+    font-weight: bold;
+}
+pre, .pre, kbd,
+.xterm-palette,
+article,
+article[role=main] .highlight pre {
+    /*line-height: 1.3;*/
+}
+
+code.literal {
+    font-size: var(--font-size--small);
+}
+
+abbr, abbr[title] {
+    text-decoration: 1px underline dashed var(--color-content-foreground);
+    text-transform: uppercase;
+}
+th abbr {
+    font-size: var(--font-size--small);
+}
+
+.comment {
+    font-size: var(--font-size--small);
+    font-style: italic;
+}
+
+.strike {  text-decoration: 1px line-through solid; }
+.underline { text-decoration: 1px underline solid; }
+
+section .date {
+    font-size: .7em;
+    float: right;
+    font-weight: normal;
+}
+
+.py-type {
+    font-style: italic;
+}
+
+/** Layout **/
+
+.right { text-align: right; }
+
+article .align-center, article .align-default {
+    margin-block: 0.5em 1.0em; /** more below **/
+}
+kbd:not(.compound) {
+    vertical-align: middle;
+}
+blockquote {
+    background: transparent;
+    border: none;
+    padding-block: 0;
+}
+.hidden {
+    visibility: hidden;
+}
+div.graphviz {
+    text-align: center;
+}
+
+/** Code **/
+
+.control-char {
+    /*background: var(--color-pt-control-char-background);*/
+    border: 1px dashed /*dotted*/;
+    padding: 3px;
+    margin: 1px;
+    font-family: 'ASM';
+    font-size: .8em;
+    letter-spacing: -1px;
+    vertical-align: middle;
+}
+
+.highlight {
+    background: var(--color-pt-doctest-background);
+    border: 1px solid var(--color-pt-doctest-border)
+}
+.highlight-adjacent:not(:last-of-type) {
+    margin-bottom: 0 !important;
+}
+.highlight-adjacent:not(:first-of-type) {
+    margin-top: 0 !important;
+}
+
+button.copybtn {
+   background: var(--color-pt-doctest-background);
+}
+
+/** Hyperlinks **/
+
+a {
+    text-decoration: none !important;
+}
+a:hover,
+a:hover :not(.page-info.context),
+a.reference:not(.internal):hover {
+    text-decoration: 1px underline solid !important;
+    /*text-decoration-thickness: from-font;*/
+    /*text-underline-position: under;*/
+}
+.content a.reference.internal code {
+    text-decoration-style: solid;
+    font-weight: bold;
+}
+.content a.reference.external {
+    font-style: italic;
+    color: var(--color-link-external);
+}
+.content a.reference.external::after {
+    content: "↗";  /**   U+A0 | ↗️ U+2197 U+FE0F | ↗ U+2197 **/
+    padding-left: .25em;
+}
+
+.toctree-wrapper code, .toc-tree code {
+    /*font-weight: 300 !important;*/
+    background: transparent;
+}
+.toc-drawer .toc-tree {
+    white-space: nowrap;
+    overflow-x: hidden;
+}
+.toc-tree li.scroll-current>.reference {
+    color: var(--color-toc-item-text);
+}
+
+/** Images **/
+
+a.image-reference img {
+    border: 1px dotted var(--color-background-item);
+    padding: 5px;
+}
+.bottom-of-page .icons {
+    gap: 0.75rem;
+}
+
+body[data-theme="dark"] div.graphviz > img,
+body[data-theme="dark"] div.graphviz > object {
+    filter: invert(1);
+}
+
+
+/** Captions **/
+
+table caption {
+    margin-bottom: 1rem;
+}
+figcaption {
+    font-size: var(--font-size--small);
+}
+
+
+/** Intro **/
+
+.intro a.reference {
+    font-size: 1.5rem;
+}
+.intro p {
+    margin: 0;
+}
+.intro em {
+    font-size: 0.8rem;
+}
+
+/** Abomination **/
+
+.admonition {
+    border-bottom: var(--color-table-border) 1px solid;
+}
+
+/** Inheritance diagrams **/
+
+.inheritance-columns .sd-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.inheritance-columns .sd-col figure {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+
+/** API reference **/
+
+article[role=main] dl.py {
+    margin-top: 1.5rem;
+}
+/*article[role=main] > section > dl.class {*/
+/*    margin-top: 2.0rem;*/
+/*}*/
+article[role=main] dt.sig,
+article[role=main] dl.env-list dt {
+    border-radius: 0;
+    margin-bottom: 0.5rem;
+}
+
+dl.class > dt,
+dl.class > dt:hover  {
+    background: var(--color-pt-class-background);
+    border-top: var(--api-header-border) var(--color-pt-class-border);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+dl.class > * > dl.class > dt,
+dl.class > * > dl.class > dt:hover  {
+    width: fit-content;
+    border-left: var(--api-header-border) var(--color-pt-class-border);
+    border-top: none;
+}
+dl.function > dt,
+dl.function > dt:hover  {
+    background: var(--color-pt-module-method-background);
+    border-top: var(--api-header-border) var(--color-pt-module-method-border);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+dl.exception > dt,
+dl.exception > dt:hover {
+    background: var(--color-pt-exception-background);
+    border-top: var(--api-header-border) var(--color-pt-exception-border);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+dl.class > * > dl.exception > dt,
+dl.class > * > dl.exception > dt:hover {
+    width: fit-content;
+    border-left: var(--api-header-border) var(--color-pt-exception-border);
+    border-top: none;
+}
+dl.data > dt,
+dl.data > dt:hover {
+    background: var(--color-pt-data-background);
+    border-top: var(--api-header-border) var(--color-pt-data-border);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+dl.env-list > dt,
+dl.env-list > dt:hover,
+dl.attribute > dt,
+dl.attribute > dt:hover {
+    width: fit-content;
+    background: var(--color-pt-data-background);
+    border-left: var(--api-header-border) var(--color-pt-data-border);
+}
+dl.property > dt,
+dl.property > dt:hover {
+    width: fit-content;
+    background: var(--color-pt-data-background);
+    border-left: var(--api-header-border) var(--color-pt-data-border);
+}
+dl.method > dt,
+dl.method > dt:hover {
+    width: fit-content;
+    background: var(--color-pt-method-background);
+    border-left: var(--api-header-border) var(--color-pt-method-border);
+}
+
+dl.class > dt.sig:target,
+dl.function > dt.sig:target,
+dl.exception > dt.sig:target,
+dl.data > dt.sig:target,
+dl.attribute > dt.sig:target,
+dl.property > dt.sig:target,
+dl.method > dt.sig:target {
+    border-color: var(--color-pt-highlight-target-border) !important;
+}
+
+
+/** API reference -- signature body **/
+
+.sig {
+    font-weight: normal;
+    font-size: var(--font-size--normal);
+}
+.sig .reference {
+    /*font-weight: bold;*/
+}
+.property:first-child { /** class, classmethod etc **/
+    font-size: var(--font-size--small);
+    font-style: italic;
+}
+.sig-prename { /** pytermor.renderer. **/
+    color: var(--color-api-keyword);
+}
+.sig-name { /** IRenderer **/
+    font-weight: bold;
+    color: var(--color-api-keyword);
+}
+:target .sig-name {
+    color: var(--color-pt-highlight-target-foreground);
+}
+.sig-param .n { /** output_mode **/
+    color: var(--color-api-keyword);
+}
+/*.sig-param .o {}             */
+/*.sig-param .p {}             */
+/*.sig-param .default_value {} */
+/*.sig-return-typehint .p {}   */
+/*.sig-return:before {         */
+/*    content: '➜';            */
+/*}                            */
+/*.sig-return-icon {           */
+/*    display: none;           */
+/*}                            */
+
+
+/** API reference -- signature hyperlinks **/
+
+dl dt > .headerlink {
+    margin-right: 0.5rem;
+}
+
+.sig a.reference .viewcode-link {
+    font-weight: normal;
+    width: 2.5rem;
+    color: var(--color-link);
+    font-size: var(--font-size--small--2);
+}
+.sig a.reference .viewcode-link:before {
+    content: '[src]';
+}
+.sig a.reference .viewcode-link .pre {
+    display: none;
+}
+.sig a.reference .viewcode-link:hover {
+    text-decoration: underline;
+}
+
+
+/** API reference -- field list **/
+
+dl[class].field-list {
+    display: grid;
+    grid-template-columns: max-content auto;
+}
+dl[class].field-list > dt {
+    font-size: var(--font-size--small--2) !important;
+    text-transform: uppercase;
+}
+dl[class].field-list em {
+    font-size: var(--font-size--small);
+    font-weight: normal;
+}
+
+
+/** XTerm palette **/
+
+table.xterm-palette td {
+    font-family: monospace;
+    text-align: center;
+}
+body table.xterm-palette td {
+    border: 1px solid var(--color-background-secondary);
+}
+body[data-theme="dark"] table.xterm-palette td {
+    border: 1px solid var(--color-background-secondary);
+}
+span.xterm-palette-code {
+    font-weight: bold;
+}
+span.xterm-palette-color {
+    font-size: var(--font-size--small);
+}
+td.xterm-palette-light {
+    color: #ffffff;
+}
+td.xterm-palette-dark {
+    color: #000000;
+}
+.xterm-palette-options {
+    text-align: left;
+    margin-left: 0.5rem;
+}
+
+
+/** Core API table **/
+
+table.core-api-refs p {
+    font-size: 1.33em;
+}
+table.core-api-refs td {
+    padding: 1rem;
+}
+
+/** Changelog **/
+
+#changelog li {
+    list-style: none;
+}
+
+/** Badges **/
+
+span.badge {
+    padding: 2px 5px;
+    width: 10px;
+    text-align: center;
+    font-family: 'ASM-Bold';
+    font-weight: 700;
+    vertical-align: middle;
+    border: thin outset var(--color-pt-badge-border, #333);;
+    border-radius: 5px;
+    color: #666;
+    font-size: 95%;
+    text-shadow: 1px 1px 0px var(--color-pt-badge-text-shadow, black);
+}
+span.badge-new, span.badge-update {
+    background: var(--color-pt-badge-background, #7fff7f40);
+    color: var(--color-pt-badge-foreground, #7fff7f);
+}
+span.badge-fix {
+    background: var(--color-pt-badge-background, #FF7F7F40);
+    color: var(--color-pt-badge-foreground, #FF7F7F);
+}
+span.badge-doc {
+    background: var(--color-pt-badge-background, #ffaf5f40);
+    color: var(--color-pt-badge-foreground, #ffaf5f);
+}
+span.badge-test {
+    background: var(--color-pt-badge-background, #be79ff40);
+    color: var(--color-pt-badge-foreground, #be79ff);
+}
+span.badge-refactor {
+    background: var(--color-pt-badge-background, #5f7fff40);
+    color: var(--color-pt-badge-foreground, #5f7fff);
+}
+span.badge-rework {
+    background: var(--color-pt-badge-background, #ffd15e40);
+    color: var(--color-pt-badge-foreground, #ffdf5f);
+}
+
+
+/** Presets table **/
+
+table.presets {
+    margin-inline: 0.125rem;
+    line-height: 1.25;
+}
+table.presets img {
+    height: 24px !important;
+    border: 1px solid var(--color-background-item);
+    vertical-align: middle;
+}
+table.presets td, table.presets th {
+    padding: 0 0 0.05rem;
+    vertical-align: middle;
+}
+table.presets th {
+    padding-block: 0.75rem;
+}
+table.presets td {
+    border: none;
+}
+table.presets td:first-child, table.presets th:first-child {
+    padding: 0;
+}
+table.presets p.rubric {
+    margin-block: 0.5rem;
+}
+table.presets td:nth-child(n+3):nth-child(-n+7), table.preset-colors td:nth-child(8) {
+    text-align: center;
+}
+table.preset-colors {
+    /*line-height: 1;*/
+}
+table.preset-attributes td:nth-child(8) {
+    font-size: 0.9rem;
+}
+table.presets aside.footnote {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    margin: 0.5rem;
+}

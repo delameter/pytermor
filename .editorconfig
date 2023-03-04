@@ -1,0 +1,25 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+max_line_length = 120
+tab_width = 4
+
+[*.py]
+max_line_length = 89
+ij_visual_guides = 79,89,120
+
+[*.rst]
+indent_size = 3
+ij_visual_guides = 80
+max_line_length = 80
+
+[*.yml]
+indent_size = 2
+
+[/docs/guide/presets.rst]
+ij_visual_guides = 4,79,110,120,126,132,138,156,179,228

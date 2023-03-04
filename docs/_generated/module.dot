@@ -1,0 +1,50 @@
+
+digraph G {
+    concentrate = true;
+
+    rankdir = LR;
+    node [style=filled,fillcolor="#ffffff",fontcolor="#000000",fontname=Helvetica,fontsize=10];
+
+    pytermor_ansi [fillcolor="#d92626",fontcolor="#ffffff",label="ansi"];
+    pytermor_color [fillcolor="#bf2121",fontcolor="#ffffff",label="color"];
+    pytermor_common [fillcolor="#ef0606",fontcolor="#ffffff",label="common"];
+    pytermor_config [fillcolor="#cc3333",fontcolor="#ffffff",label="config"];
+    pytermor_cval [fillcolor="#b83d3d",fontcolor="#ffffff",label="cval"];
+    pytermor_renderer [fillcolor="#964040",fontcolor="#ffffff",label="renderer"];
+    pytermor_style [fillcolor="#bc2f2f",fontcolor="#ffffff",label="style"];
+    pytermor_text [fillcolor="#964040",fontcolor="#ffffff",label="text"];
+    pytermor_utilmisc [fillcolor="#ac4949",fontcolor="#ffffff",label="utilmisc"];
+    pytermor_utilnum [fillcolor="#9d4343",fontcolor="#ffffff",label="utilnum"];
+    pytermor_utilstr [fillcolor="#b34c4c",fontcolor="#ffffff",label="utilstr"];
+    pytermor_ansi -> pytermor_color [fillcolor="#d92626"];
+    pytermor_ansi -> pytermor_cval [fillcolor="#d92626"];
+    pytermor_ansi -> pytermor_renderer [fillcolor="#d92626"];
+    pytermor_ansi -> pytermor_utilmisc [fillcolor="#d92626"];
+    pytermor_color -> pytermor_cval [fillcolor="#bf2121"];
+    pytermor_color -> pytermor_renderer [fillcolor="#bf2121"];
+    pytermor_color -> pytermor_style [fillcolor="#bf2121"];
+    pytermor_color -> pytermor_text [fillcolor="#bf2121"];
+    pytermor_common -> pytermor_ansi [fillcolor="#ef0606"];
+    pytermor_common -> pytermor_color [fillcolor="#ef0606"];
+    pytermor_common -> pytermor_config [fillcolor="#ef0606"];
+    pytermor_common -> pytermor_renderer [fillcolor="#ef0606"];
+    pytermor_common -> pytermor_style [fillcolor="#ef0606"];
+    pytermor_common -> pytermor_text [fillcolor="#ef0606"];
+    pytermor_common -> pytermor_utilmisc [fillcolor="#ef0606"];
+    pytermor_common -> pytermor_utilnum [fillcolor="#ef0606"];
+    pytermor_common -> pytermor_utilstr [fillcolor="#ef0606"];
+    pytermor_config -> pytermor_color [fillcolor="#cc3333"];
+    pytermor_config -> pytermor_renderer [fillcolor="#cc3333"];
+    pytermor_config -> pytermor_text [fillcolor="#cc3333"];
+    pytermor_cval -> pytermor_style [fillcolor="#b83d3d"];
+    pytermor_cval -> pytermor_utilnum [fillcolor="#b83d3d"];
+    pytermor_renderer -> pytermor_text [fillcolor="#964040"];
+    pytermor_style -> pytermor_renderer [fillcolor="#bc2f2f"];
+    pytermor_style -> pytermor_text [fillcolor="#bc2f2f"];
+    pytermor_style -> pytermor_utilnum [fillcolor="#bc2f2f"];
+    pytermor_text -> pytermor_utilnum [fillcolor="#964040"];
+    pytermor_utilmisc -> pytermor_color [fillcolor="#ac4949"];
+    pytermor_utilnum -> pytermor_common [fillcolor="#9d4343"];
+    pytermor_utilstr -> pytermor_common [fillcolor="#b34c4c"];
+}
+

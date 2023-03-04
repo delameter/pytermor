@@ -1,0 +1,81 @@
+
+digraph G {
+    layout=dot;
+    newrank=true;
+    compound=true;
+    edge [penwidth = 1.0];
+
+    rankdir = TB;
+    node [shape=box,style=filled,fillcolor="#ffffff",fontcolor="#000000",fontname="ASM-Bold",fontsize=10];
+
+    subgraph cluster_com {
+
+        pytermor_common [fillcolor="#f91010",fontcolor="#ffffff",label="common"];
+    }
+
+
+    subgraph cluster_aux {
+        label=aux;
+        pytermor_utilmisc [fillcolor="#d02424",fontcolor="#ffffff",label="utilmisc"];
+        pytermor_utilstr [fillcolor="#c43131",fontcolor="#ffffff",label="utilstr"];
+        pytermor_utilnum [fillcolor="#8b4b4b",fontcolor="#ffffff",label="utilnum"];
+        pytermor_cval [fillcolor="#b83d3d",fontcolor="#ffffff",label="cval"];
+
+    pytermor_cval -> pytermor_utilnum [fillcolor="#b83d3d"];
+        pytermor_utilmisc -> pytermor_utilstr [fillcolor="#d02424"];
+        pytermor_utilstr -> pytermor_utilnum [fillcolor="#c43131" ];
+    }
+
+    subgraph cluster_main {
+        label=main;
+        pytermor_ansi [fillcolor="#d92626",fontcolor="#ffffff",label="ansi"];
+        pytermor_color [fillcolor="#c82323",fontcolor="#ffffff",label="color"];
+        pytermor_style [fillcolor="#bc2f2f",fontcolor="#ffffff",label="style"];
+        pytermor_renderer [fillcolor="#8f3d3d",fontcolor="#ffffff",label="renderer"];
+        pytermor_text [fillcolor="#8f3d3d",fontcolor="#ffffff",label="text"];
+
+        pytermor_ansi -> pytermor_color [fillcolor="#d92626"];
+        pytermor_ansi -> pytermor_renderer [fillcolor="#d92626"];
+        pytermor_color -> pytermor_renderer [fillcolor="#c82323"];
+        pytermor_color -> pytermor_style [fillcolor="#c82323"];
+        pytermor_color -> pytermor_text [fillcolor="#c82323"];
+        pytermor_style -> pytermor_renderer [fillcolor="#bc2f2f"];
+        pytermor_renderer -> pytermor_text [fillcolor="#8f3d3d"];
+        pytermor_style -> pytermor_text [fillcolor="#bc2f2f"];
+    }
+
+
+
+    edge[ltail="cluster_aux" style=dashed];
+    pytermor_cval -> pytermor_style [fillcolor="#b83d3d" ];
+
+    edge[lhead="cluster_main" ltail="cluster_com" style=dashed];
+    pytermor_common -> pytermor_ansi [fillcolor="#f91010"];
+    pytermor_common -> pytermor_color [fillcolor="#f91010"];
+    pytermor_common -> pytermor_renderer [fillcolor="#f91010"];
+    pytermor_common -> pytermor_style [fillcolor="#f91010"];
+    pytermor_common -> pytermor_text [fillcolor="#f91010" style=invis];
+
+    edge[lhead="cluster_aux" ltail="cluster_com" ]
+    pytermor_common -> pytermor_utilmisc [fillcolor="#f91010"];
+    pytermor_common -> pytermor_utilnum [fillcolor="#f91010"];
+    pytermor_common -> pytermor_utilstr [fillcolor="#800000"];
+
+
+    edge[ltail="" lhead="" style=dashed];
+    pytermor_ansi -> pytermor_cval [fillcolor="#d92626"];
+    pytermor_color -> pytermor_cval [fillcolor="#c82323"];
+
+    edge[lhead="" ltail="" style=dashed];
+    pytermor_utilmisc -> pytermor_color [fillcolor="#d02424" ];
+    pytermor_utilmisc -> pytermor_renderer [fillcolor="#d02424" ];
+    pytermor_utilstr -> pytermor_renderer [fillcolor="#c43131" ];
+    pytermor_utilstr -> pytermor_text [fillcolor="#c43131"];
+
+    edge[lhead="cluster_aux" ltail="" style=dashed];
+    pytermor_text -> pytermor_utilnum [fillcolor="#8f3d3d"];
+    pytermor_ansi -> pytermor_utilmisc [fillcolor="#d92626"];
+    pytermor_style -> pytermor_utilnum [fillcolor="#bc2f2f"];
+
+}
+

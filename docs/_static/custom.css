@@ -1,0 +1,28 @@
+/*---------------------------------------------------------------------------*/
+/* pytermor [ANSI formatted terminal output toolset]                         */
+/* (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>                        */
+/*---------------------------------------------------------------------------*/
+@font-face {
+      font-family: ASM;
+      src: url("fonts/asm-regular.woff") format("woff");
+}
+@font-face {
+      font-family: ASM;
+      src: url("fonts/asm-bold.woff") format("woff");
+      font-weight: bold;
+}
+
+@font-face {
+      font-family: "Iose7ka Terminal";
+      src: url("fonts/iose7ka-terminal-regular.woff2") format("woff2");
+}
+@font-face {
+      font-family: "Iose7ka Terminal";
+      src: url("fonts/iose7ka-terminal-bold.woff2") format("woff2");
+      font-weight: bold;
+}
+
+/*@font-face {*/
+/*      font-family: "JetBrains Mono";*/
+/*      src: url("fonts/jetbrains-mono-regular.woff2") format("woff");*/
+/*}*/
