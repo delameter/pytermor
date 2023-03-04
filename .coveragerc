@@ -9,7 +9,7 @@ omit =
     pytermor/_version.py
     pytermor/ansi.py:SeqIndex
     pytermor/cval.py
-
+relative_files = True
 dynamic_context = test_function
 
 [report]
