@@ -11,6 +11,7 @@
   <a href="https://pepy.tech/project/pytermor/">
     <img alt="Downloads" src="https://pepy.tech/badge/pytermor">
   </a>
+  <br>
   <a href='https://coveralls.io/github/delameter/pytermor?branch=dev'>
     <img src='https://coveralls.io/repos/github/delameter/pytermor/badge.svg?branch=dev' alt='Coverage Status' />
   </a>
