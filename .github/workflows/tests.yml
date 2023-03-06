@@ -1,4 +1,4 @@
-name: test w/f
+name: tests w/f
 
 on:
   push:
@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -27,14 +26,14 @@ jobs:
       run: |
         set -ex
         python -m pip install --no-cache-dir --upgrade pip
-        python -m venv venv
-        venv/bin/python -m pip install --no-cache-dir -r requirements-dev.txt
+        python -m pip install --no-cache-dir -r requirements-dev.lock
 
     - name: Lint with flake8
       run: |
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-line-length=127 --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
     - name: Test with pytest
       run: |
         pytest

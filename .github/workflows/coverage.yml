@@ -14,14 +14,15 @@ jobs:
       
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
+        with:
+            python-version: 3.8
         
       - name: Install dependencies
         run: |
           set -ex
           python -m pip install --no-cache-dir --upgrade pip
-          dmlkcmdclkd
-          python -m venv venv 
-          venv/bin/python -m pip install --no-cache-dir -r requirements-test.txt
+          python -m venv venv
+          venv/bin/pip install --no-cache-dir -r requirements-dev.lock
     
       - name: Run coverage
         run: |
@@ -34,4 +35,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          venv/bin/coveralls debug
+          venv/bin/coveralls
