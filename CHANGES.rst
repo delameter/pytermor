@@ -24,8 +24,9 @@ pending
 - |TESTS| numeric formatters colorizing
 - |REFACTOR| ``utilnum._TDF_REGISTRY`` -> `TDF_REGISTRY`
 - |REFACTOR| ``TDF_REGISTRY`` -> `dual_registry- ``FORMATTER_`` constants from top-level imports
+- |FIX| `AbstractTracer` failure on empty input
 
-.. <@pending:f98e147>
+.. <@pending:d719708>
 .. ^ blank line before should be kept
 
 v2.40-dev

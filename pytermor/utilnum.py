@@ -1328,16 +1328,18 @@ def format_bytes_human(val: int, auto_color: bool = False) -> RT:
 
     .. admonition :: Highlighting options
 
-        Default highlighter for this formatter does not render units (as well as prefixes)
-        dimmed. The main reason for that is the absence of actual unit in the output of this
-        formatter, while prefixes are still there; this allows to format the fractional
-        output this way: :u:`1`\ .57\ :u:`k`\ , where underline indicates brighter colors.
+        Default highlighter for this formatter does not render units (as well as
+        prefixes) dimmed. The main reason for that is the absence of actual unit in
+        the output of this formatter, while prefixes are still there; this allows
+        to format the fractional output this way: :u:`1`\ .57\ :u:`k`\ , where
+        underline indicates brighter colors.
 
         This format is acceptable because only essential info gets highlighted; however,
         in case of other formatters with actual units in the output this approach leads
-        to complex and mixed-up formatting; furthermore, it doesn't matter if the highlighting
-        affects the prefix part only or both prefix and unit parts -- in either case it's
-        just too much formatting on a unit of surface: :u:`1`\ .53 :u:`Ki`\ B (looks patchworky).
+        to complex and mixed-up formatting; furthermore, it doesn't matter if the
+        highlighting affects the prefix part only or both prefix and unit parts -- in
+        either case it's just too much formatting on a unit of surface:
+        :u:`1`\ .53 :u:`Ki`\ B (looks patchworky).
 
     .. table:: Default formatters comparison
 
@@ -1368,8 +1370,8 @@ def format_bytes_human(val: int, auto_color: bool = False) -> RT:
 
     :max output len:   5
     :param val:        Input value in bytes.
-    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
-                        depending on unit type, *None* to use formatters' setting 
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing
+                        depending on unit type, *None* to use formatters' setting
                         value [*False* by default].
     :return: Formatted value, *Text* if colorizing is on, *str* otherwise.
     """

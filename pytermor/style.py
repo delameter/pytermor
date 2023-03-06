@@ -340,15 +340,15 @@ Special style passing the text through without any modifications.
 
     This class is immutable, i.e. `LogicError` will be raised upon an attempt to
     modify any of its attributes, which can lead to schrödinbugs::
-    
+
          st1.merge_fallback(Style(bold=True), [Style(italic=False)])
-         
+
     If ``st1`` is a regular style instance, the statement above will always work
     (and pass the tests), but if it happens to be a `NOOP_STYLE`, this will result 
     in an exception. To protect from this outcome one could merge styles via frontend 
     method `merge_styles` only, which always makes a copy of base argument and thus
     cannot lead to such behaviour.
-    
+
 """
 
 

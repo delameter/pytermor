@@ -1,4 +1,4 @@
-name: pytermor coverage
+name: coverage w/f
 
 on:
   push:
@@ -10,24 +10,28 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
         
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install pytest~=7.1 coverage~=6.4 coveralls~=3.3 sybil==3.0.1
+          set -ex
+          python -m pip install --no-cache-dir --upgrade pip
+          dmlkcmdclkd
+          python -m venv venv 
+          venv/bin/python -m pip install --no-cache-dir -r requirements-test.txt
     
       - name: Run coverage
         run: |
-          coverage run -m pytest
-          coverage report
-          coverage json
+          set -ex
+          venv/bin/coverage run -m pytest
+          venv/bin/coverage lcov
+          venv/bin/coverage report
 
       - name: Coveralls
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          coveralls debug
+          venv/bin/coveralls debug

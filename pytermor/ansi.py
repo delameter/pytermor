@@ -362,7 +362,7 @@ items, rather than modifies state of either of them:
     <SGR[1]>
     >>> SequenceSGR(3) + NOOP_SEQ
     <SGR[3]>
-    
+
 """
 
 
@@ -657,7 +657,7 @@ class SeqIndex:
     """
     Create a hyperlink in the text *(supported by limited amount of terminals)*.
     Note that for a working hyperlink you'll need two sequences, not just one.
-     
+
     .. seealso ::
         `make_hyperlink_part()` and `assemble_hyperlink()`.
     """

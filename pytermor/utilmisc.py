@@ -11,7 +11,6 @@ from __future__ import annotations
 import math
 import os
 import sys
-import time
 import typing as t
 import unicodedata
 from collections import deque
@@ -127,7 +126,7 @@ def rgb_to_hsv(r: int, g: int, b: int) -> t.Tuple[float, float, float]:
     v = vmax
 
     h = 0
-    if c == 0:     pass
+    if c == 0: pass
     elif v == rn:  h = 60 * (0 + (gn - bn) / c)
     elif v == gn:  h = 60 * (2 + (bn - rn) / c)
     elif v == bn:  h = 60 * (4 + (rn - gn) / c)
@@ -235,7 +234,7 @@ def wait_key(block: bool = True) -> t.AnyStr | None:
     :param block: Determines setup of O_NONBLOCK flag.
     """
     # http://love-python.blogspot.com/2010/03/getch-in-python-get-single-character.html
-    import sys, termios, fcntl, os
+    import sys, termios, fcntl
 
     if os.name == "nt":
         import msvcrt

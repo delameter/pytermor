@@ -734,7 +734,7 @@ def render(
             raise ValueError("Template parsing is supported for raw strings only.")
         try:
             string = _template_engine.parse(string)
-        except t.Union[ValueError, LogicError] as e:
+        except (ValueError, LogicError) as e:
             string += f" [pytermor] Template parsing failed with {e}"
         return render(string, fmt, renderer, parse_template=False)
 

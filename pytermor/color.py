@@ -695,7 +695,7 @@ you don't actually want to set up any value whatsoever.
     *None* and `NOOP_COLOR` are always treated as placeholders for fallback 
     values, i.e., they can't be used as re-setters -- that's what `DEFAULT_COLOR` 
     is for.  
-    
+
 >>> DEFAULT_COLOR.to_sgr(bg=False)
 <SGR[39]>
 

@@ -10,7 +10,7 @@ PROJECT_NAME_PRIVATE = ${PROJECT_NAME}-delameter
 DOCS_IN_PATH = docs
 DOCS_OUT_PATH = docs-build
 DEPENDS_PATH = misc/depends
-LOCALHOST_URL = http://localhost/pytermor
+LOCALHOST_URL = http://localhost/pt
 LOCALHOST_WRITE_PATH = localhost
 
 VENV_PATH = venv
@@ -20,6 +20,9 @@ include .env.dist
 -include .env
 export
 VERSION ?= 0.0.0
+
+DOCKER_IMAGE = ghcr.io/delameter/pytermor
+DOCKER_TAG = ${DOCKER_IMAGE}:${VERSION}
 
 NOW    := $(shell LC_TIME=en_US.UTF-8 date '+%H:%M:%S %-e-%b-%y')
 BOLD   := $(shell tput -Txterm bold)
@@ -32,29 +35,42 @@ RESET  := $(shell printf '\e[m')
                                 # nF code switching esq, which displaces the columns
 ## Common
 
-help:   ## Show this help
+help:   ## [any] Show this help
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s?(\s*#?[^#]+)#*\s*(.*)/\1${YELLOW}\2${RESET}#\3/; s/(.+):(#|\s)+(.+)/##   ${GREEN}\1${RESET}#\3/; s/\*(\w+)\*/${BOLD}\1${RESET}/g; 2~1s/<([ )*<@>.A-Za-z0-9_(-]+)>/${DIM}\1${RESET}/gi' -e 's/(\x1b\[)33m#/\136m/' | column -ts# | sed -Ee 's/ {3}>/ >/'
 
+cli: ## [any] Launch python interpreter  <venv>
+	PYTHONPATH=. ${VENV_PATH}/bin/python -uq
 
-all:   ## Prepare, run tests, generate docs and reports, build module
-all: reinit-venv prepare-pdf auto-all test coverage docs-all build
-# CI (on push into master): prepare prepare-pdf set-version set-tag auto-all test coverage docs-all build upload upload-doc?
+all-host: ## [host] Run tests, generate docs and reports, build module
+all-host: auto-all test coverage docs-all build
+# CI (on push into master): set-version set-tag auto-all test coverage docs-all build upload upload-doc?
 
-reinit-venv:  ## Prepare environment for module building
-	rm -vrf ${VENV_PATH}
+all-host-unprepared: ## [host] Reinit virtual environment, install deps, execute "all-host"
+
+all-docker: ## [docker] Run tests, generate docs and reports, build module
+all-docker: test coverage docs-all build
+
+build-image: ## [host] Build docker image
+	docker build . --tag ${DOCKER_TAG} \
+    		--build-arg PYTERMOR_VERSION="${VERSION}" \
+    		--build-arg IMAGE_BUILD_DATE="${NOW}"
+
+build-in-docker:  ## [host] Build module using docker image
+build-in-docker:  build-image
+	docker rm -f pytermor
+	docker run --name pytermor ${DOCKER_TAG}
+
+reinit-venv:  ## [host] Prepare environment for module building
 	if [ ! -f .env ] ; then cp -u .env.dist .env && sed -i -Ee '/^VERSION=/d' .env ; fi
-	python3 -m venv ${VENV_PATH}
+	python3 -m venv --clear ${VENV_PATH}
 	${VENV_PATH}/bin/pip install --upgrade build twine
 	${VENV_PATH}/bin/pip install -r requirements-dev.txt
 
-prepare-pdf:  ## Prepare environment for pdf rendering
+prepare-pdf:  ## [host] Prepare environment for pdf rendering
 	sudo apt install texlive-latex-recommended \
 					 texlive-fonts-recommended \
 					 texlive-latex-extra \
 					 latexmk
-
-cli: ## Launch python interpreter  <venv>
-	PYTHONPATH=. ${VENV_PATH}/bin/python -uq
 
 ##
 ## Examples
@@ -77,14 +93,14 @@ ex-terminal-color-mode:  ## Run "terminal color mode" example
 ##
 ## Automation
 
-auto-all:  ## Run full cycle of automatic operations
+auto-all:  ## Run full cycle of automatic operations (done on docker image building)
 auto-all: preprocess-rgb build-cval
 
 preprocess-rgb:  ## Transform interm. RGB config to suitable for embedding
-	${VENV_PATH}/bin/python dev/preprocess_rgb.py
+	${VENV_PATH}/bin/python scripts/preprocess_rgb.py
 
 build-cval: ## Process color configs and update library color values source file
-	${VENV_PATH}/bin/python dev/build_cval.py
+	${VENV_PATH}/bin/python scripts/build_cval.py
 
 #update-readme: # Generate and rewrite README
 #	. venv/bin/activate
@@ -133,7 +149,7 @@ coverage: ## Run coverage and make a report
 	${VENV_PATH}/bin/coverage run -m pytest -q
 	${VENV_PATH}/bin/coverage report
 	${VENV_PATH}/bin/coverage html
-	if [ -d ${LOCALHOST_WRITE_PATH} ] ; then \
+	if [ -d "${LOCALHOST_WRITE_PATH}" ] ; then \
     	mkdir -p ${LOCALHOST_WRITE_PATH}/coverage-report && \
 	    cp -auv coverage-report/* ${LOCALHOST_WRITE_PATH}/coverage-report/
 	fi
@@ -187,17 +203,17 @@ docs-pdf: ## Build PDF documentation  <caching allowed>
 	mv ${DOCS_IN_PATH}/_build/latex/${PROJECT_NAME}.pdf ${DOCS_OUT_PATH}/${PROJECT_NAME}.pdf
 
 docs-man: ## Build man pages  <caching allowed>
+	mkdir -p docs-build
 	sed -i.bak -Ee 's/^.+<<<MAKE_DOCS_MAN<<</#&/' ${DOCS_IN_PATH}/conf.py
 	${VENV_PATH}/bin/sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b man -n || echo 'Generation failed'
 	mv ${DOCS_IN_PATH}/conf.py.bak ${DOCS_IN_PATH}/conf.py
 	mv ${DOCS_IN_PATH}/_build/${PROJECT_NAME}.1 ${DOCS_OUT_PATH}/${PROJECT_NAME}.1
-	man ${DOCS_OUT_PATH}/${PROJECT_NAME}.1 2>/dev/null | sed -Ee '/корректность/d' | lpr -p
+	if [ -z "${DISPLAY}" ] ; then return 0 ; fi
+	COLUMNS=120 man ${DOCS_OUT_PATH}/${PROJECT_NAME}.1 2>/dev/null | sed -Ee '/корректность/d' | lpr -p  # @TODO ебаный стыд
 	if command -v maf &>/dev/null; then maf ${DOCS_OUT_PATH}/${PROJECT_NAME}.1; else man ${DOCS_OUT_PATH}/${PROJECT_NAME}.1; fi
 
 docs-all: ## (Re)build documentation in all formats  <no cache>
 docs-all: depends demolish-docs docs docs-pdf docs-man
-	@echo
-	@$(call log_success,$$(du -h ${DOCS_OUT_PATH}/*)) | sed -E '1s/^(..).{7}/\1SUMMARY/'
 
 open-docs-html:  ## Open HTML docs in browser
 	if [ -z "${DISPLAY}" ] ; then echo 'ERROR: No $$DISPLAY' && return 1 ; fi

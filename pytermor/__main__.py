@@ -10,7 +10,7 @@ from os import stat
 from os.path import dirname, join
 from datetime import datetime
 
-from ._version import __version__
+from pytermor._version import __version__
 
 
 class Main:
@@ -36,7 +36,7 @@ class Main:
             v = self._call_git("describe", "--tags")
             dt = self._call_git("showw", "-s", "--format=%cd", "--date=format:%b-%y")
             return v, dt
-        except (CalledProcessError, UnicodeDecodeError):
+        except (FileNotFoundError, CalledProcessError, UnicodeDecodeError):
             return None
 
     def _get_version_from_fs(self) -> t.Tuple[str, str]|None:

@@ -301,7 +301,7 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
         # useless before processing
         if self._state.cols_max_len is None:
             return 0
-        return sum(l for l in self._state.cols_max_len)
+        return sum(ml for ml in self._state.cols_max_len)
 
     @abstractmethod
     def _process(self, part: IT) -> str:
@@ -534,8 +534,8 @@ class EscSeqStringReplacer(StringReplacer):
 
 class SgrStringReplacer(StringReplacer):
     """
-    Find all `SGR <SequenceSGR>` seqs (e.g., ``ESC [1;4m``) and replace with given string. More
-    specific version of :class:`CsiReplacer`.
+    Find all `SGR <SequenceSGR>` seqs (e.g., ``ESC [1;4m``) and replace with
+    given string. More specific version of :class:`CsiReplacer`.
 
     :param repl:
         Replacement, can contain regexp groups (see :meth:`apply_filters()`).
@@ -654,7 +654,8 @@ class OmniMapper(IFilter[IT, IT]):
             raise TypeError("Mapper keys should be ints such as: 0 <= key <= 255")
         if not all(isinstance(v, (str, bytes)) or v is None for v in override.values()):
             raise TypeError(
-                "Each map value should be either a single char in 'str' or 'bytes' form, or None"
+                "Each map value should be either a single char"
+                " in 'str' or 'bytes' form, or None"
             )
         for i, v in override.items():
             default_map.update({i: self._transcode(v, inp_type)})
@@ -713,10 +714,10 @@ class NonPrintsStringVisualizer(StringMapper):
     newlines. Newlines are kept and get prepneded with same char by default,
     but this behaviour can be disabled with ``keep_newlines`` = *False*.
 
-    >>> NonPrintsStringVisualizer().apply('A  B  C')
-    'A␣␣B␣␣C'
-    >>> apply_filters('1. D'+os.linesep+'2. L ', NonPrintsStringVisualizer(keep_newlines=False))
-    '1.␣D↵2.␣L␣'
+    >>> NonPrintsStringVisualizer(keep_newlines=False).apply("S"+os.linesep+"K")
+    'S↵K'
+    >>> apply_filters('1. D'+os.linesep+'2. L ', NonPrintsStringVisualizer())
+    '1.␣D↵\n2.␣L␣'
 
     :param keep_newlines: When *True*, transform newline characters into "↵\\\\n", or
                           into just "↵" otherwise.

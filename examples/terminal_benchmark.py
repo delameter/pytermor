@@ -91,10 +91,10 @@ class TestRunner:
             raise SystemExit(126)
 
         self.test_sets: t.List[TestSet] = [
-            TestSet(self.mode_read, self.mode_binary, l, b, (l, b))
-            for l in self.LIMITS
+            TestSet(self.mode_read, self.mode_binary, lm, b, (lm, b))
+            for lm in self.LIMITS
             for b in self.BUF_SIZES
-            if b <= l and (l / b <= 100)
+            if b <= lm and (lm / b <= 100)
         ]
 
     def run(self):
@@ -334,10 +334,10 @@ class Printer:
 
     @staticmethod
     def format_time(value: float, pow_shift: float = 0.00, trunc: bool = False) -> str:
-        def fmt(p: float, v: float, l: str) -> str:
+        def fmt(p: float, v: float, lm: str) -> str:
             if p >= 2 or trunc:
-                return "{:>d} {:s}".format(math.trunc(v), l)
-            return "{:>.1f} {:s}".format(v, l)
+                return "{:>d} {:s}".format(math.trunc(v), lm)
+            return "{:>.1f} {:s}".format(v, lm)
 
         thresholds = [
             (math.log10(60 * 60 * 24 * 365), "yr"),
