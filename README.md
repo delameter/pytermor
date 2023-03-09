@@ -1,27 +1,22 @@
-<h1 align="center">
+<h4 align="center">
+<p>
    <img src="https://user-images.githubusercontent.com/50381946/167745623-66bcb825-f787-4f8a-a317-18775d3f104a.png" width="96" height="96"><br>
    <img src="https://user-images.githubusercontent.com/50381946/219900171-660d4309-c290-424d-95f8-8d0e5958511d.png" width="400" height="64">
-</h1>
-
-<div align="center">
+</p>
+<p>
   <img src="https://img.shields.io/badge/python-3.8-3776AB?logo=python&logoColor=white&labelColor=333333">
   <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
   <br>
   <a href="https://pypi.org/project/pytermor/"><img alt="PyPI" src="https://img.shields.io/pypi/v/pytermor"></a>
   <a href="https://pepy.tech/project/pytermor/"><img alt="Downloads" src="https://pepy.tech/badge/pytermor"></a>
   <a href='https://coveralls.io/github/delameter/pytermor?branch=dev'><img src='https://coveralls.io/repos/github/delameter/pytermor/badge.svg?branch=dev' alt='Coverage Status' /></a>
-</div>
-
-<h4 align="center">
-    <a href="https://pytermor.dlup.link">
-      [Documentation]
-    </a>
-    |
-    <a href="CHANGES.rst">
-      [Changelog]
-    </a>
+</p>
+<p>
+  <a href="https://pytermor.dlup.link">[Documentation]</a>|
+  <a href="CHANGES.rst">[Changelog]</a>
+</p>
+<h1></h1>
 </h4>
-<hr>
 
 _(yet another)_ Python library initially designed for formatting terminal output using ANSI escape codes.
 
