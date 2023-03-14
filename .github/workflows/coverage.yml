@@ -35,4 +35,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          venv/bin/coveralls --verbose debug
+          venv/bin/coveralls --verbose
