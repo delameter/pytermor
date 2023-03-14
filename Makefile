@@ -147,6 +147,7 @@ test-trace: ## Run pytest with detailed output  <@last_test_trace.log>
 coverage: ## Run coverage and make a report
 	rm -v coverage-report/*
 	${VENV_PATH}/bin/coverage run -m pytest -q
+	${VENV_PATH}/bin/coverage json
 	${VENV_PATH}/bin/coverage report
 	${VENV_PATH}/bin/coverage html
 	if [ -d "${LOCALHOST_WRITE_PATH}" ] ; then \

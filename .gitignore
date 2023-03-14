@@ -7,7 +7,9 @@ dist-dev
 .env
 venv
 .coverage
+coverage.*
 docs/_build
+identifier.sqlite
 temp
 misc/depends
 *.bak
