@@ -41,11 +41,15 @@ help:   ## [any] Show this help
 cli: ## [any] Launch python interpreter  <venv>
 	PYTHONPATH=. ${VENV_PATH}/bin/python -uq
 
+cli-docker: ## [host] Launch shell in a container
+	docker run -it ${DOCKER_TAG} /bin/bash
+
 all-host: ## [host] Run tests, generate docs and reports, build module
 all-host: auto-all test coverage docs-all build
 # CI (on push into master): set-version set-tag auto-all test coverage docs-all build upload upload-doc?
 
 all-host-unprepared: ## [host] Reinit virtual environment, install deps, execute "all-host"
+all-host-unprepared: reinit-venv all-host
 
 all-docker: ## [docker] Run tests, generate docs and reports, build module
 all-docker: test coverage docs-all build
@@ -57,8 +61,10 @@ build-image: ## [host] Build docker image
 
 build-in-docker:  ## [host] Build module using docker image
 build-in-docker:  build-image
-	docker rm -f pytermor
-	docker run --name pytermor ${DOCKER_TAG}
+	docker rm -f pytermor >/dev/null
+	docker run --name pytermor \
+			--volume ${PWD}/${DOCS_IN_PATH}/_build:/opt/${DOCS_IN_PATH}/_build:rw \
+			${DOCKER_TAG}
 
 reinit-venv:  ## [host] Prepare environment for module building
 	if [ ! -f .env ] ; then cp -u .env.dist .env && sed -i -Ee '/^VERSION=/d' .env ; fi
@@ -179,7 +185,7 @@ reinit-docs: ## Purge and recreate docs with auto table of contents
 	${VENV_PATH}/bin/sphinx-apidoc --force --separate --module-first --tocfile index --output-dir ${DOCS_IN_PATH} ${PROJECT_NAME}
 
 demolish-docs:  ## Purge docs temp output folder
-	rm -rvf ${DOCS_IN_PATH}/_build
+	rm -rvf ${DOCS_IN_PATH}/_build/*
 
 docs: ## (Re)build HTML documentation  <no cache>
 docs: depends demolish-docs docs-html
