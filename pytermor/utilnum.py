@@ -426,11 +426,11 @@ class StaticFormatter(NumFormatter):
             # order of magnitude:
             oom = floor(round(log(abs_value, power_base), 6))
             # rounding is required because cumulative floating point error can lead to:
-            # 1024^9 = 1099511600000.0 -> "1024 GiB" (expected "1.00 TiB"),
-            # 1023 -> "1.00 KiB" (expected "1023 B").
+            # 1024^9 = 1099511600000.0 -> "1024 GiB" (expected "1.00 TiB")
+            #                     1023 -> "1.00 KiB" (expected "1023 B")
 
-            oom_shift = 0 if self._legacy_rounding else -1  # "0.18s" --> "180ms"
-            prefix_shift = round((oom + oom_shift) / 3)
+            oom_shift = 0 if self._legacy_rounding else -1  # Legacy OFF: "180ms"
+            prefix_shift = round((oom + oom_shift) / 3)  # Legacy ON : "0.18s"
 
         base_output = prefix_shift == 0
         val /= power_base ** (prefix_shift * 3)
@@ -722,7 +722,7 @@ class DualFormatter(NumFormatter):
         return result
 
     # @TODO naming?
-    def format_base(self, val_sec: float, auto_color: bool = None) -> RT|None:
+    def format_base(self, val_sec: float, auto_color: bool = None) -> RT | None:
         """
         Pretty-print difference between two moments in time. If input
         value is too big for the current formatter to handle, return *None*.
@@ -743,7 +743,9 @@ class DualFormatter(NumFormatter):
 
         if self._allow_fractional and num < self._units[0].in_next:
             if self._max_len is not None:
-                result = self._fractional_formatter.format(val_sec, auto_color=auto_color)
+                result = self._fractional_formatter.format(
+                    val_sec, auto_color=auto_color
+                )
                 if len(result) > self._max_len:
                     # for example, 500ms doesn't fit in the shortest possible
                     # delta string (which is 3 chars), so "<1s" will be returned
@@ -781,12 +783,15 @@ class DualFormatter(NumFormatter):
             elif unit.collapsible_after is not None and num < unit.collapsible_after:
                 val_sec = str(floor(num))
                 result = (
-                    self._colorize(auto_color, sign, val_sec, "", unit_short) + result_sub
+                    self._colorize(auto_color, sign, val_sec, "", unit_short)
+                    + result_sub
                 )
 
             elif not next_unit_ratio or num < next_unit_ratio:
                 val_sec = str(floor(num))
-                result = self._colorize(auto_color, sign, val_sec, sep, unit_name_suffixed)
+                result = self._colorize(
+                    auto_color, sign, val_sec, sep, unit_name_suffixed
+                )
 
             else:
                 next_num = floor(num / next_unit_ratio)
@@ -889,8 +894,8 @@ class DualFormatterRegistry:
 
     def __init__(self):
         self._formatters: t.Dict[int, DualFormatter] = dict()
-        self._min_len: int|None = None
-        self._max_len: int|None = None
+        self._min_len: int | None = None
+        self._max_len: int | None = None
 
     def register(self, *formatters: DualFormatter):
         """..."""
@@ -1252,8 +1257,8 @@ def format_si(val: float, unit: str = None, auto_color: bool = None) -> RT:
     :max output len:    6
     :param val:         Input value (unitless).
     :param unit:        A unit override [default unit is an empty string].
-    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
-                        depending on unit type, *None* to use formatters' setting 
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing
+                        depending on unit type, *None* to use formatters' setting
                         value [*False* by default].
     :return: Formatted value, *Text* if colorizing is on, *str* otherwise.
     """
@@ -1300,8 +1305,8 @@ def format_si_binary(val: float, unit: str = None, auto_color: bool = False) -> 
     :max output len:    8
     :param val:         Input value in bytes.
     :param unit:        A unit override [default unit is "B"].
-    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
-                        depending on unit type, *None* to use formatters' setting 
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing
+                        depending on unit type, *None* to use formatters' setting
                         value [*False* by default].
     :return: Formatted value, *Text* if colorizing is on, *str* otherwise.
     """
@@ -1398,8 +1403,8 @@ def format_time(val_sec: float, auto_color: bool = None) -> RT:
 
     :max output len:    *varying*
     :param val_sec:     Input value in seconds.
-    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
-                        depending on unit type, *None* to use formatters' setting 
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing
+                        depending on unit type, *None* to use formatters' setting
                         value [*False* by default].
     """
     return formatter_time.format(val_sec, auto_color)
@@ -1423,8 +1428,8 @@ def format_time_ms(value_ms: float, auto_color: bool = None) -> RT:
     '967µs'
 
     :param value_ms:    Input value in milliseconds.
-    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
-                        depending on unit type, *None* to use formatters' setting 
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing
+                        depending on unit type, *None* to use formatters' setting
                         value [*False* by default].
     :return:
     """
@@ -1443,8 +1448,8 @@ def format_time_ns(value_ns: float, auto_color: bool = None) -> RT:
     '2h'
 
     :param value_ns:    Input value in nanoseconds.
-    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
-                        depending on unit type, *None* to use formatters' setting 
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing
+                        depending on unit type, *None* to use formatters' setting
                         value [*False* by default].
     :return:
     """
@@ -1483,8 +1488,8 @@ def format_time_delta(
     :max output len:    3, 4, 5, 6, 10
     :param val_sec:     Input value in seconds.
     :param max_len:     Maximum output string length (total).
-    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
-                        depending on unit type, *None* to use formatters' setting 
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing
+                        depending on unit type, *None* to use formatters' setting
                         value [*False* by default].
     """
     if max_len is None:
@@ -1504,11 +1509,12 @@ def format_time_delta_shortest(val_sec: float, auto_color: bool = None) -> RT:
 
     :max output len:    3
     :param val_sec:     Input value in seconds.
-    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
-                        depending on unit type, *None* to use formatters' setting 
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing
+                        depending on unit type, *None* to use formatters' setting
                         value [*False* by default].
     """
     return dual_registry.get_shortest().format(val_sec, auto_color)
+
 
 def format_time_delta_longest(val_sec: float, auto_color: bool = None) -> RT:
     """
@@ -1516,8 +1522,8 @@ def format_time_delta_longest(val_sec: float, auto_color: bool = None) -> RT:
 
     :max output len:    10
     :param val_sec:     Input value in seconds.
-    :param auto_color:  Color mode override, *bool* to enable/disable colorizing 
-                        depending on unit type, *None* to use formatters' setting 
+    :param auto_color:  Color mode override, *bool* to enable/disable colorizing
+                        depending on unit type, *None* to use formatters' setting
                         value [*False* by default].
     """
     return dual_registry.get_longest().format(val_sec, auto_color)
