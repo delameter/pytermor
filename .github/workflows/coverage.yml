@@ -28,7 +28,7 @@ jobs:
         run: |
           set -ex
           venv/bin/coverage run -m pytest
-          venv/bin/coverage lcov
+          venv/bin/coverage json
           venv/bin/coverage report
 
       - name: Coveralls
