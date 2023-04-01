@@ -13,12 +13,20 @@ import itertools
 import math
 import os
 import threading
-import time
 import typing as t
 import logging
-from functools import update_wrapper
+from collections import namedtuple
+
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
+
+
+RGB = namedtuple("RGB", ["red", "green", "blue"])
+""" RGB.
+"""
+
+HSV = namedtuple("HSV", ["hue", "saturation", "value"])
+""" HSV. """
 
 LOGGING_TRACE = 5
 logging.addLevelName(LOGGING_TRACE, "TRACE")
@@ -37,12 +45,28 @@ logger.addHandler(logging.NullHandler())
 
 
 class ExtendedEnum(enum.Enum):
+    """ Standard `Enum` with a few additional methods on top. """
+
     @classmethod
     def list(cls):
+        """
+        Return all enum values as list.
+
+        >>> Align.list()
+        ['<', '>', '^']
+
+        """
         return list(map(lambda c: c.value, cls))
 
     @classmethod
     def dict(cls):
+        """
+        Return mapping of all enum keys to corresponding enum values.
+
+        >>> Align.dict()
+        {<Align.LEFT: '<'>: '<', <Align.RIGHT: '>'>: '>', <Align.CENTER: '^'>: '^'}
+
+        """
         return dict(map(lambda c: (c, c.value), cls))
 
 
@@ -194,67 +218,6 @@ def get_preferable_wrap_width(force_width: int = None) -> int:
     if isinstance(force_width, int) and force_width > 1:
         return force_width
     return min(120, get_terminal_width())
-
-
-def trace(enabled: bool = True, level: int = LOGGING_TRACE, label: str = "Dump"):
-    """
-
-    :param enabled:
-    :param level:
-    :param label:
-    :return:
-    """
-
-    def wrapper(origin: F) -> F:
-        def new_func(*args, **kwargs):
-            from .utilstr import dump  # @FIXME cyclic dependency
-
-            result = origin(*args, **kwargs)
-
-            if enabled and not kwargs.get("no_log", False):
-                logger.log(level=level, msg=dump(result, label))
-            return result
-
-        return update_wrapper(t.cast(F, new_func), origin)
-
-    return wrapper
-
-
-def measure(level: int = logging.DEBUG, template: str = "Done in %s"):
-    """
-
-    :param level:
-    :param template:
-    :return:
-    """
-
-    MAX_PREVIEW_LEN = 10
-
-    def wrapper(origin: F) -> F:
-        def new_func(*args, **kwargs):
-            from .utilnum import format_si  # @FIXME cyclic dependency
-            from .utilstr import OmniSanitizer, StringLinearizer, apply_filters
-
-            before_s = time.time_ns() / 1e9
-            result = origin(*args, **kwargs)
-            after_s = time.time_ns() / 1e9
-
-            if kwargs.get("no_log", False):
-                return result
-
-            preview = apply_filters(f"'{result!s}'", OmniSanitizer, StringLinearizer)
-            if len(preview) > MAX_PREVIEW_LEN - 2:
-                preview = preview[: MAX_PREVIEW_LEN - 2] + ".."
-            logger.log(
-                level=level,
-                msg=template % format_si(after_s - before_s, "s")
-                + f" ({preview:.{MAX_PREVIEW_LEN}s})",
-            )
-            return result
-
-        return update_wrapper(t.cast(F, new_func), origin)
-
-    return wrapper
 
 
 T = t.TypeVar("T")

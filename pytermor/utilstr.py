@@ -10,13 +10,15 @@ Library methods rewritten for correct work with strings containing control seque
 from __future__ import annotations
 
 import codecs
+import logging
 import math
 import os
 import re
+import time
 import typing as t
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
-from functools import reduce
+from functools import reduce, update_wrapper
 from math import ceil
 from typing import Union
 
@@ -27,7 +29,8 @@ from .common import (
     ALIGN_RIGHT,
     ALIGN_CENTER,
     chunk,
-    get_terminal_width,
+    logger,
+    get_terminal_width, LOGGING_TRACE, F,
 )
 
 
@@ -820,3 +823,61 @@ def dump(data: t.Any, label: str = None, max_len_shift: int = None) -> str | Non
     _dump_printers_cache[printer_t] = printer
 
     return printer.apply(data, TracerExtra(label))
+
+
+def trace(enabled: bool = True, level: int = LOGGING_TRACE, label: str = "Dump"):
+    """
+
+    :param enabled:
+    :param level:
+    :param label:
+    :return:
+    """
+
+    def wrapper(origin: F) -> F:
+        def new_func(*args, **kwargs):
+            result = origin(*args, **kwargs)
+
+            if enabled and not kwargs.get("no_log", False):
+                logger.log(level=level, msg=dump(result, label))
+            return result
+
+        return update_wrapper(t.cast(F, new_func), origin)
+
+    return wrapper
+
+
+def measure(level: int = logging.DEBUG, template: str = "Done in %s"):
+    """
+
+    :param level:
+    :param template:
+    :return:
+    """
+
+    MAX_PREVIEW_LEN = 10
+
+    def wrapper(origin: F) -> F:
+        def new_func(*args, **kwargs):
+            from .utilnum import format_si
+
+            before_s = time.time_ns() / 1e9
+            result = origin(*args, **kwargs)
+            after_s = time.time_ns() / 1e9
+
+            if kwargs.get("no_log", False):
+                return result
+
+            preview = apply_filters(f"'{result!s}'", OmniSanitizer, StringLinearizer)
+            if len(preview) > MAX_PREVIEW_LEN - 2:
+                preview = preview[: MAX_PREVIEW_LEN - 2] + ".."
+            logger.log(
+                level=level,
+                msg=template % format_si(after_s - before_s, "s")
+                + f" ({preview:.{MAX_PREVIEW_LEN}s})",
+            )
+            return result
+
+        return update_wrapper(t.cast(F, new_func), origin)
+
+    return wrapper

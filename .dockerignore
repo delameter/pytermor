@@ -12,6 +12,7 @@ scripts/*
 !scripts/*.py
 temp
 venv
+.venv
 .coverage
 localhost
 *.bak

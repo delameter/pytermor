@@ -43,7 +43,7 @@ from .ansi import ISequenceFe as ISequenceFe
 from .color import IColor as IColor
 from .renderer import IRenderer as IRenderer
 from .text import IRenderable as IRenderable
-from .utilstr import IFilter as IFilter
+from .utilstr import IFilter as IFilter, trace as trace, measure as measure
 
 # -----------------------------------------------------------------------------
 from .ansi import IntCode as IntCode
@@ -75,10 +75,8 @@ from .common import flatten1 as flatten1
 from .common import get_preferable_wrap_width as get_preferable_wrap_width
 from .common import get_qname as get_qname
 from .common import get_terminal_width as get_terminal_width
-from .common import measure as measure
 from .common import median as median
 from .common import percentile as percentile
-from .common import trace as trace
 from .config import Config as Config
 from .config import get_config as get_config
 from .config import replace_config as replace_config
@@ -158,9 +156,11 @@ from .utilstr import apply_filters as apply_filters
 from .utilstr import center_sgr as center_sgr
 from .utilstr import dump as dump
 from .utilstr import ljust_sgr as ljust_sgr
+from .utilstr import measure as measure
 from .utilstr import pad as pad
 from .utilstr import padv as padv
 from .utilstr import rjust_sgr as rjust_sgr
+from .utilstr import trace as trace
 
 # -----------------------------------------------------------------------------
 

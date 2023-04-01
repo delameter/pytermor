@@ -14,16 +14,15 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from math import floor, log10, trunc, log, isclose
 
-from . import merge_styles, ConflictError
-from .common import logger, Align
+from .common import logger, Align, ConflictError
 from .cval import CVAL as cv
-from .style import Style, Styles
+from .style import Style, Styles, merge_styles
 from .text import Text, Fragment, IRenderable, RT
 
 _OVERFLOW_CHAR = "!"
 
 # fmt: off
-PREFIXES_SI_DEC = [
+PREFIXES_SI_DEC = [  #: :meta hide-value:
     'q', 'r', 'y', 'z', 'a', 'f', 'p', 'n', 'µ', 'm',
     None,
     'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'R', 'Q',

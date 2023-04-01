@@ -25,8 +25,14 @@ pending
 - |REFACTOR| ``utilnum._TDF_REGISTRY`` -> `TDF_REGISTRY`
 - |REFACTOR| ``TDF_REGISTRY`` -> `dual_registry- ``FORMATTER_`` constants from top-level imports
 - |FIX| `AbstractTracer` failure on empty input
+- |MAINTAIN| `Dockerfile` for repeatable builds
+- |FIX|  pipelines
+- |DRAFT| ci debug
+- |MAINTAIN|  coverage git ignore
+- |MAINTAIN| `cli-docker` make command
+- |DOCS| small fixes
 
-.. <@pending:d719708>
+.. <@pending:8ab7900>
 .. ^ blank line before should be kept
 
 v2.40-dev

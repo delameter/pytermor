@@ -21,18 +21,17 @@ jobs:
         run: |
           set -ex
           python -m pip install --no-cache-dir --upgrade pip
-          python -m venv venv
-          venv/bin/pip install --no-cache-dir -r requirements-dev.lock
-    
+          python -m pip install --no-cache-dir -r requirements-test.txt
+
       - name: Run coverage
         run: |
           set -ex
-          venv/bin/coverage run -m pytest
-          venv/bin/coverage lcov
-          venv/bin/coverage report
+          python -m coverage run -m pytest
+          python -m coverage lcov
+          python -m coverage report
 
       - name: Coveralls
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          venv/bin/coveralls 
+          python -m coveralls 

@@ -1,7 +1,6 @@
 FROM python:3.8-slim AS base
 
 MAINTAINER delameter <0.delameter@gmail.com>
-LABEL org.opencontainers.image.source=https://github.com/delameter/pytermor
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -15,15 +14,17 @@ RUN set -ex && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         ca-certificates \
-        make \
-        graphviz \
-        lpr \
+        cm-super \
         curl \
         git \
+        graphviz \
+        latexmk \
+        lpr \
+        make \
         texlive-latex-recommended \
         texlive-fonts-recommended \
         texlive-latex-extra \
-        latexmk && \
+        && \
     rm -rf /var/lib/apt/lists/*
 
 RUN addgroup --gid "${GID}" "${GROUP}" && \
@@ -38,24 +39,30 @@ RUN addgroup --gid "${GID}" "${GROUP}" && \
 
 USER ${UID}:${GID}
 WORKDIR ${WORKDIR}
+ENV PATH="$PATH:/home/${USER}/.local/bin"
 
 
-FROM base AS dev
+FROM base AS build
 
 ARG UID=1000
 ARG GID=1000
 
-COPY --chown=${UID}:${GID} requirements-dev.txt .
+COPY --chown=${UID}:${GID} requirements-*.txt ./
 RUN set -ex && \
-    python -m pip install --no-cache-dir --upgrade pip && \
-    python -m venv venv && \
-    venv/bin/python -m pip install --no-cache-dir -r requirements-dev.txt
+    python -m pip install --no-cache-dir --upgrade pip hatch
+
+COPY --chown=${UID}:${GID} pyproject.toml .
+COPY --chown=${UID}:${GID} README.md .
+RUN set -ex && \
+    mkdir -p ./pytermor && \
+    echo '__version__ = "0.0.0"' > ./pytermor/_version.py && \
+    hatch -e build env run pip list && \
+    hatch -e test env run pip list
 
 COPY --chown=${UID}:${GID} . .
-RUN make auto-all
+RUN make pre-build
 
-CMD [ "make", "all-docker" ]
-
+CMD [ "make", "all" ]
 
 ARG IMAGE_BUILD_DATE=0
 ARG PYTERMOR_VERSION=0
@@ -65,3 +72,4 @@ ENV PYTERMOR_VERSION=${PYTERMOR_VERSION}
 
 LABEL org.opencontainers.image.created=${IMAGE_BUILD_DATE}
 LABEL org.opencontainers.image.version=${PYTERMOR_VERSION}
+LABEL org.opencontainers.image.source=https://github.com/delameter/pytermor

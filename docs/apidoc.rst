@@ -9,6 +9,7 @@ API reference
 .. only:: latex
 
    .. graphviz:: _generated/module.dot
+      :caption: Module dependency graph
 
 
 .. autosummary::
@@ -30,3 +31,4 @@ API reference
 .. only:: html
 
    .. graphviz:: _generated/module.dot
+      :caption: Module dependency graph

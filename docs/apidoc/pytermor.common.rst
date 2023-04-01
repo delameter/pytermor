@@ -9,6 +9,8 @@
 
    .. autosummary::
    
+      RGB
+      HSV
       ALIGN_LEFT
       ALIGN_RIGHT
       ALIGN_CENTER
@@ -27,10 +29,8 @@
       get_preferable_wrap_width
       get_qname
       get_terminal_width
-      measure
       median
       percentile
-      trace
    
    
 
@@ -42,6 +42,8 @@
    
       Align
       ExtendedEnum
+      HSV
+      RGB
    
    
 

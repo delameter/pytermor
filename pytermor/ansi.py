@@ -374,7 +374,7 @@ class IntCode(enum.IntEnum):
 
     .. note ::
         `IntCode` predefined constants are omitted from documentation to avoid
-        useless repeats and save space, as most of the time "next level" class
+        useless repeats and save space, as most of the time "higher-level" class
         `SeqIndex` is more appropriate, and on top of that, the constant
         names are literally the same for `SeqIndex` and `IntCode`.
     """

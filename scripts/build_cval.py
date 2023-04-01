@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import datetime
 import re
+import sys
 import typing as t
 from os.path import join
 
@@ -52,7 +53,7 @@ class IndexBuilder(TaskRunner):
         return self._colors_count
 
     def _run_callback(self, colors_count: int):
-        print(f"Colors processed: {colors_count}")
+        print(f"Colors processed: {colors_count}", file=sys.stdout)
 
     def _run_mode(self, mode: str, sorter: t.Callable):
         config_path = join(CONFIG_PATH, mode + ".yml")

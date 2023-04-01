@@ -21,6 +21,7 @@ project = "pytermor"
 copyright = "2022, Alexandr Shavykin"
 author = "Alexandr Shavykin"
 show_authors = True
+#language = "ru"
 
 github_repository = "pytermor"
 github_branch = "master"
@@ -85,6 +86,21 @@ copybutton_prompt_text = ">>> "
 # -- LaTeX / PDF --------------------------------------------------------------
 
 latex_logo = "_static/logo-96.png"
+
+latex_elements = {
+    'preamble': r'''
+\setlength{\emergencystretch}{5em}
+\DeclareUnicodeCharacter{2588}{~}
+''',
+    #'fontenc': r'\usepackage[X2,T1]{fontenc}',
+    'papersize': 'a4paper',
+    'pointsize': '10pt',  # 10,11,12
+    'pxunit': '0.5bp',  # (dpi = 72*bp)
+    'figure_align': 'H',
+    'fncychap': r'\usepackage[Bjornstrup]{fncychap}',
+    'printindex': r'\footnotesize\raggedright\printindex',
+}
+latex_show_urls = 'footnote'
 
 # -- autodoc ------------------------------------------------------------------
 

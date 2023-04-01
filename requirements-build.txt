@@ -1,0 +1,10 @@
+build~=0.8
+furo~=2022.6
+pillow~=9.1
+pydeps~=1.10
+pyyaml~=5.4
+sphinx-copybutton~=0.5
+sphinx-design~=0.2
+sphinx-toolbox~=3.3
+sphinx~=5.3
+twine~=4.0

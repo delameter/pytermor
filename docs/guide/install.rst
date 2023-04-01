@@ -139,9 +139,9 @@ The library supports extended color modes:
 CLI usage
 ==========
 
-Commands like these can be used for quick experimenting without loading the IDE:
+Commands like the ones below can be used for quick experimenting without loading the IDE:
 
- - One-liner for system-wide installation :comment:`(not recommended)`:
+ - One-liner for system-wide installation :comment:`(which is not recommended)`:
 
    .. code-block:: console
       :class: highlight-adjacent

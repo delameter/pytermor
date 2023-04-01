@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import re
+import sys
 import typing as t
 import unicodedata
 from os.path import join
@@ -53,7 +54,7 @@ class RgbPreprocessor(TaskRunner):
         return config.get("colors")
 
     def _run_callback(self, result: t.List[t.Dict]):
-        print(f"Definitions processed: {len(result)}")
+        print(f"Definitions processed: {len(result)}", file=sys.stderr)
 
     def _process_color_def(self, color_def: t.Dict):
         color_def_name = color_def.get("name")

@@ -73,7 +73,6 @@ No dependencies required, only Python Standard Library :comment:`(there are some
    https://chrisyeh96.github.io/2020/03/28/terminal-colors.html#color-schemes
 
 
-
 .. toctree::
    :hidden:
 

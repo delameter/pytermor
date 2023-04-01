@@ -5,24 +5,23 @@
 .PHONY: help test docs
 
 PROJECT_NAME = pytermor
-PROJECT_NAME_PUBLIC = ${PROJECT_NAME}
-PROJECT_NAME_PRIVATE = ${PROJECT_NAME}-delameter
+HOST_DEFAULT_PYTHON = /usr/bin/python3
+
+VENV_LOCAL_PATH = venv
 DOCS_IN_PATH = docs
 DOCS_OUT_PATH = docs-build
 DEPENDS_PATH = misc/depends
+
 LOCALHOST_URL = http://localhost/pt
 LOCALHOST_WRITE_PATH = localhost
 
-VENV_PATH = venv
-PYTHONPATH = .
-
-include .env.dist
 -include .env
 export
-VERSION ?= 0.0.0
+VERSION := $(shell hatch version)
 
 DOCKER_IMAGE = ghcr.io/delameter/pytermor
 DOCKER_TAG = ${DOCKER_IMAGE}:${VERSION}
+DOCKER_CONTAINER = pytermor-build-${VERSION}
 
 NOW    := $(shell LC_TIME=en_US.UTF-8 date '+%H:%M:%S %-e-%b-%y')
 BOLD   := $(shell tput -Txterm bold)
@@ -38,95 +37,86 @@ RESET  := $(shell printf '\e[m')
 help:   ## [any] Show this help
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s?(\s*#?[^#]+)#*\s*(.*)/\1${YELLOW}\2${RESET}#\3/; s/(.+):(#|\s)+(.+)/##   ${GREEN}\1${RESET}#\3/; s/\*(\w+)\*/${BOLD}\1${RESET}/g; 2~1s/<([ )*<@>.A-Za-z0-9_(-]+)>/${DIM}\1${RESET}/gi' -e 's/(\x1b\[)33m#/\136m/' | column -ts# | sed -Ee 's/ {3}>/ >/'
 
-cli: ## [any] Launch python interpreter  <venv>
-	PYTHONPATH=. ${VENV_PATH}/bin/python -uq
+init-venv:  ## [host] Prepare manual environment  <venv>
+	${HOST_DEFAULT_PYTHON} -m pip install hatch
+	${HOST_DEFAULT_PYTHON} -m venv --clear ${VENV_LOCAL_PATH}
+	${VENV_LOCAL_PATH}/bin/python -m pip install -r requirements-build.txt -r requirements-test.txt
+	${VENV_LOCAL_PATH}/bin/python -m pytermor
 
-cli-docker: ## [host] Launch shell in a container
+init-system-pdf:  ## [host] Prepare environment for pdf rendering
+	sudo apt install texlive-latex-recommended \
+					 texlive-fonts-recommended \
+					 texlive-latex-extra \
+					 latexmk
+
+cli: ## [any] Launch python interpreter  <venv>
+	hatch run python -uq
+
+docker-cli: build-image  ## [host] Launch shell in a container
 	docker run -it ${DOCKER_TAG} /bin/bash
 
-all-host: ## [host] Run tests, generate docs and reports, build module
-all-host: auto-all test coverage docs-all build
-# CI (on push into master): set-version set-tag auto-all test coverage docs-all build upload upload-doc?
-
-all-host-unprepared: ## [host] Reinit virtual environment, install deps, execute "all-host"
-all-host-unprepared: reinit-venv all-host
-
-all-docker: ## [docker] Run tests, generate docs and reports, build module
-all-docker: test coverage docs-all build
+all: ## [host] Run tests, generate docs and reports, build module
+all: test cover update-coveralls docs-all build
+# CI (on push into master): set-version set-tag auto-all test cover docs-all build upload upload-doc?
 
 build-image: ## [host] Build docker image
 	docker build . --tag ${DOCKER_TAG} \
     		--build-arg PYTERMOR_VERSION="${VERSION}" \
     		--build-arg IMAGE_BUILD_DATE="${NOW}"
 
-build-in-docker:  ## [host] Build module using docker image
-build-in-docker:  build-image
-	docker rm -f pytermor >/dev/null
-	docker run --name pytermor \
-			--volume ${PWD}/${DOCS_IN_PATH}/_build:/opt/${DOCS_IN_PATH}/_build:rw \
-			${DOCKER_TAG}
+_docker_run = (docker run -it --env-file .env --name ${DOCKER_CONTAINER} ${DOCKER_TAG} "$1")
+_docker_run_rm = (docker run --rm -it --env-file .env --name ${DOCKER_CONTAINER} ${DOCKER_TAG} "$1")
+_docker_cp_docs = (docker cp ${DOCKER_CONTAINER}:/opt/${DOCS_OUT_PATH} ${PWD})
+_docker_cp_dist = (docker cp ${DOCKER_CONTAINER}:/opt/dist ${PWD})
+_docker_rm = (docker rm ${DOCKER_CONTAINER})
 
-reinit-venv:  ## [host] Prepare environment for module building
-	if [ ! -f .env ] ; then cp -u .env.dist .env && sed -i -Ee '/^VERSION=/d' .env ; fi
-	python3 -m venv --clear ${VENV_PATH}
-	${VENV_PATH}/bin/pip install --upgrade build twine
-	${VENV_PATH}/bin/pip install -r requirements-dev.txt
+docker-all:  ## [host] Run tests, build module and update docs in docker container
+docker-all: demolish-docs build-image
+	$(call _docker_run,"make all")
+	$(call _docker_cp_docs)
+	$(call _docker_cp_dist)
+	$(call _docker_rm)
 
-prepare-pdf:  ## [host] Prepare environment for pdf rendering
-	sudo apt install texlive-latex-recommended \
-					 texlive-fonts-recommended \
-					 texlive-latex-extra \
-					 latexmk
+docker-cover:  ## [host] Measure coverage in docker container
+docker-cover: build-image
+	$(call _docker_run_rm,"make cover update-coveralls")
 
-##
-## Examples
+docker-docs-pdf:  ## [host] Update PDF docs in docker container
+docker-docs-pdf: build-image
+	$(call _docker_run,"make docs-pdf")
+	$(call _docker_cp_docs)
 
-ex-approximate:  ## Run "approximate color" example
-	${VENV_PATH}/bin/python examples/approximate.py
 
-ex-list-renderers:  ## Run "list renderers" example
-	${VENV_PATH}/bin/python examples/list_renderers.py
-
-ex-render-benchmark:  ## Run "render benchmark" example
-	${VENV_PATH}/bin/python examples/render_benchmark.py
-
-ex-terminal-benchmark:  ## Run "terminal benchmark" example
-	${VENV_PATH}/bin/python examples/terminal_benchmark.py
-
-ex-terminal-color-mode:  ## Run "terminal color mode" example
-	${VENV_PATH}/bin/python examples/terminal_color_mode.py
 
 ##
 ## Automation
 
-auto-all:  ## Run full cycle of automatic operations (done on docker image building)
-auto-all: preprocess-rgb build-cval
-
-preprocess-rgb:  ## Transform interm. RGB config to suitable for embedding
-	${VENV_PATH}/bin/python scripts/preprocess_rgb.py
-
-build-cval: ## Process color configs and update library color values source file
-	${VENV_PATH}/bin/python scripts/build_cval.py
-
-#update-readme: # Generate and rewrite README
-#	. venv/bin/activate
-#	PYTHONPATH=`pwd` python3 -s dev/readme/update_readme.py
+pre-build:  ## Run full cycle of automatic operations (done on docker image building)
+	hatch run build:pre-build
 
 
 ##
 ## Versioning
 
 show-version: ## Show current package version
-	@echo "Current version: ${YELLOW}${VERSION}${RESET}"
+	@hatch version | sed -Ee "s/.+/Current: ${CYAN}&${RESET}/"
 
-set-version: ## Set new package version
-	@echo "Current version: ${YELLOW}${VERSION}${RESET}"
-	read -p "New version (press enter to keep current): " VERSION
-	if [ -z $$VERSION ] ; then echo "No changes" && return 0 ; fi
-	sed -E -i "s/^VERSION.+/VERSION=$$VERSION/" .env.dist
-	sed -E -i "s/^version.+/version = $$VERSION/" setup.cfg
-	sed -E -i "s/^__version__.+/__version__ = '$$VERSION'/" ${PROJECT_NAME}/_version.py
-	echo "Updated version: ${GREEN}$$VERSION${RESET}"
+_set_next_version = (hatch version $1 | sed -Ee "s/^(Old:)(.+)/\1${CYAN}\2${RESET}/; s/^(New:)(.+)/\1${YELLOW}\2${RESET}/")
+
+set-next-version-dev: ## Increase version by <dev>
+	@$(call _set_next_version,dev)
+
+set-next-version-micro: ## Increase version by 0.0.1
+	@$(call _set_next_version,micro | head -1)
+	@$(call _set_next_version,dev | tail -1)
+
+set-next-version-minor: ## Increase version by 0.1
+	@$(call _set_next_version,minor | head -1)
+	@$(call _set_next_version,dev | tail -1)
+
+set-next-version-major: ## Increase version by 1
+	@$(call _set_next_version,major | head -1)
+	@$(call _set_next_version,dev | tail -1)
 
 update-changelist:  ## Auto-update with new commits  <@CHANGES.rst>
 	./update-changelist.sh
@@ -136,26 +126,21 @@ update-changelist:  ## Auto-update with new commits  <@CHANGES.rst>
 ## Testing
 
 test: ## Run pytest
-	${VENV_PATH}/bin/pytest --quiet --tb=no
+	hatch run test:test
 
 test-verbose: ## Run pytest with detailed output
-	${VENV_PATH}/bin/pytest -v --failed-first
+	hatch run test:test-verbose
 
 test-trace: ## Run pytest with detailed output  <@last_test_trace.log>
-	PYTERMOR_TRACE_RENDERS=1 ${VENV_PATH}/bin/pytest -v \
-		--failed-first \
-		--log-file-level=1 \
-		--log-file=last_test_trace.log
+	hatch run test:test-trace
+
 
 ##
 ## Coverage / dependencies
 
-coverage: ## Run coverage and make a report
+cover: ## Run coverage and make a report
 	rm -v coverage-report/*
-	${VENV_PATH}/bin/coverage run -m pytest -q
-	${VENV_PATH}/bin/coverage json
-	${VENV_PATH}/bin/coverage report
-	${VENV_PATH}/bin/coverage html
+	hatch run test:cover
 	if [ -d "${LOCALHOST_WRITE_PATH}" ] ; then \
     	mkdir -p ${LOCALHOST_WRITE_PATH}/coverage-report && \
 	    cp -auv coverage-report/* ${LOCALHOST_WRITE_PATH}/coverage-report/
@@ -166,7 +151,8 @@ open-coverage:  ## Open coverage report in browser
 	if [ -d localhost ] ; then xdg-open ${LOCALHOST_URL}/coverage-report ; else xdg-open coverage-report/index.html ; fi
 
 update-coveralls:  ## Manually send last coverage statistics  <coveralls.io>
-	${VENV_PATH}/bin/coveralls
+	if [ -n "${SKIP_COVERALLS_UPDATE}" ] ; then return 0 ; fi
+	hatch run test:coveralls
 
 
 depends:  ## Build module dependency graphs
@@ -182,42 +168,42 @@ open-depends:  ## Open dependency graph output directory
 
 reinit-docs: ## Purge and recreate docs with auto table of contents
 	rm -rfv ${DOCS_IN_PATH}/*
-	${VENV_PATH}/bin/sphinx-apidoc --force --separate --module-first --tocfile index --output-dir ${DOCS_IN_PATH} ${PROJECT_NAME}
+	hatch run build:sphinx-apidoc --force --separate --module-first --tocfile index --output-dir ${DOCS_IN_PATH} ${PROJECT_NAME}
 
 demolish-docs:  ## Purge docs temp output folder
-	rm -rvf ${DOCS_IN_PATH}/_build/*
+	-rm -rvf ${DOCS_IN_PATH}/_build/* ${DOCS_IN_PATH}/_build/.*
 
 docs: ## (Re)build HTML documentation  <no cache>
 docs: depends demolish-docs docs-html
 
 docs-html: ## Build HTML documentation  <caching allowed>
 	mkdir -p docs-build
-	if ! ${VENV_PATH}/bin/sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b html -n ; then \
+	if ! hatch run build:sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b html -n ; then \
     	notify-send -i important pytermor 'HTML docs build failed ${NOW}' && \
     	return 1 ; \
     fi
+	cp -auv ${DOCS_IN_PATH}/_build/* ${DOCS_OUT_PATH}/${VERSION}/ ; \
 	if [ -d localhost ] ; then \
     	mkdir -p ${LOCALHOST_WRITE_PATH}/docs && \
 		cp -auv ${DOCS_IN_PATH}/_build/* ${LOCALHOST_WRITE_PATH}/docs/ ; \
     fi
 	#find docs/_build -type f -name '*.html' | sort | xargs -n1 grep -HnT ^ | sed s@^docs/_build/@@ > docs-build/${PROJECT_NAME}.html.dump
-	if command -v notify-send ; then notify-send -i ${PWD}/${DOCS_IN_PATH}/_static_src/logo-white-bg.svg 'pytermor ${VERSION}' 'HTML docs updated ${NOW}' ; fi
+	#if command -v notify-send ; then notify-send -i ${PWD}/${DOCS_IN_PATH}/_static_src/logo-white-bg.svg 'pytermor ${VERSION}' 'HTML docs updated ${NOW}' ; fi
 
 docs-pdf: ## Build PDF documentation  <caching allowed>
 	mkdir -p docs-build
-	yes "" | ${VENV_PATH}/bin/sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -n >/dev/null # twice for building pdf toc
-	yes "" | ${VENV_PATH}/bin/sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build    >/dev/null # @FIXME broken unicode
-	mv ${DOCS_IN_PATH}/_build/latex/${PROJECT_NAME}.pdf ${DOCS_OUT_PATH}/${PROJECT_NAME}.pdf
+	yes "" | hatch run build:sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -n  # twice for building pdf toc
+	yes "" | hatch run build:sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build     # @FIXME broken unicode
+	cp ${DOCS_IN_PATH}/_build/latex/${PROJECT_NAME}.pdf ${DOCS_OUT_PATH}/${VERSION}.pdf
 
 docs-man: ## Build man pages  <caching allowed>
 	mkdir -p docs-build
 	sed -i.bak -Ee 's/^.+<<<MAKE_DOCS_MAN<<</#&/' ${DOCS_IN_PATH}/conf.py
-	${VENV_PATH}/bin/sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b man -n || echo 'Generation failed'
+	hatch run build:sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b man -n || echo 'Generation failed'
 	mv ${DOCS_IN_PATH}/conf.py.bak ${DOCS_IN_PATH}/conf.py
-	mv ${DOCS_IN_PATH}/_build/${PROJECT_NAME}.1 ${DOCS_OUT_PATH}/${PROJECT_NAME}.1
+	cp ${DOCS_IN_PATH}/_build/${PROJECT_NAME}.1 ${DOCS_OUT_PATH}/${VERSION}.1
 	if [ -z "${DISPLAY}" ] ; then return 0 ; fi
 	COLUMNS=120 man ${DOCS_OUT_PATH}/${PROJECT_NAME}.1 2>/dev/null | sed -Ee '/корректность/d' | lpr -p  # @TODO ебаный стыд
-	if command -v maf &>/dev/null; then maf ${DOCS_OUT_PATH}/${PROJECT_NAME}.1; else man ${DOCS_OUT_PATH}/${PROJECT_NAME}.1; fi
 
 docs-all: ## (Re)build documentation in all formats  <no cache>
 docs-all: depends demolish-docs docs docs-pdf docs-man
@@ -227,48 +213,40 @@ open-docs-html:  ## Open HTML docs in browser
 	if [ -d localhost ] ; then xdg-open ${LOCALHOST_URL}/docs ; else xdg-open ${DOCS_IN_PATH}/_build/index.html ; fi
 
 open-docs-pdf:  ## Open PDF docs in reader
-	if [ -n "${DISPLAY}" ] ; then xdg-open ${DOCS_OUT_PATH}/${PROJECT_NAME}.pdf ; fi
+	if [ -z "${DISPLAY}" ] ; then echo 'ERROR: No $$DISPLAY' && return 1 ; fi
+	xdg-open ${DOCS_OUT_PATH}/${PROJECT_NAME}.pdf
 
 ##
 ## Building / Packaging
 ### *
 
-freeze:  ## Actualize the requirements.txt file(s)  <venv>
-	${VENV_PATH}/bin/pip freeze -r requirements-dev.txt --all --exclude-editable > requirements-dev.txt.tmp
-	sed -i -Ee '/were added by pip/ s/.+//' requirements-dev.txt.tmp
-	mv requirements-dev.txt.tmp requirements-dev.txt
+freeze:
+	hatch -e test dep show requirements | tee requirements-test.txt
+	hatch -e build dep show requirements | tee requirements-build.txt
 
-demolish-build:  ## Purge build output folders
-	rm -f -v dist/* ${PROJECT_NAME_PUBLIC}.egg-info/* ${PROJECT_NAME_PRIVATE}.egg-info/*
+demolish-build:  ## Delete build output folders
+	hatch clean
 
-### dev
+build: ## Build a package
+build: demolish-build
+	hatch -e build build
 
-build-dev: ## Create new private build  <*-delameter>
-build-dev: demolish-build
-	sed -E -i "s/^name.+/name = ${PROJECT_NAME_PRIVATE}/" setup.cfg
-	${VENV_PATH}/bin/python3 -m build --outdir dist-dev
-	sed -E -i "s/^name.+/name = ${PROJECT_NAME_PUBLIC}/" setup.cfg
+### test
 
-upload-dev: ## Upload latest private build to dev repo
-	${VENV_PATH}/bin/twine upload --repository testpypi dist-dev/* \
-			-u ${PYPI_USERNAME} -p ${PYPI_PASSWORD_DEV} --verbose
+publish-test: ## Upload latest build to test repo
+	hatch -e build publish -r test -u "${PYPI_USERNAME}" -a "${PYPI_PASSWORD_TEST}"
 
-install-dev: ## Install latest private build from dev repo
-	${VENV_PATH}/bin/pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME_PRIVATE}==${VERSION}
+install-test: ## Install latest build from test repo  <system>
+	python -m pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME}==${VERSION}
 
-install-dev-public: ## Install latest *public* build from dev repo
-	${VENV_PATH}/bin/pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME_PUBLIC}==${VERSION}
 
 ### release
 
-build: ## Create new *public* build
-build: demolish-build
-	${VENV_PATH}/bin/python -m build
+publish: ## Upload last build (=> PRIMARY registry)
+	if [ -n "${SKIP_MODULE_UPLOAD}" ] ; then return 0 ; fi
+	hatch -e build publish -u "${PYPI_USERNAME}" -a "${PYPI_PASSWORD}"
 
-upload: ## Upload latest *public* build to MASTER repo
-	${VENV_PATH}/bin/twine upload dist/* -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD} --verbose
-
-install: ## Install latest *public* build from MASTER repo
-	${VENV_PATH}/bin/pip install ${PROJECT_NAME_PUBLIC}==${VERSION}
+install: ## Install latest build from PRIMARY repo  <system>
+	python -m pip install ${PROJECT_NAME}==${VERSION}
 
 ##

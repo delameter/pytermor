@@ -18,14 +18,13 @@ from abc import abstractmethod, ABC
 from collections import deque
 from typing import overload
 
+from .utilstr import trace, measure
 from .color import IColor
 from .common import (
     LogicError,
     Align,
     ArgTypeError,
     logger,
-    trace,
-    measure,
     flatten1,
     get_terminal_width,
     get_preferable_wrap_width,

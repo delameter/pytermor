@@ -4,6 +4,7 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
+import sys
 import time
 from abc import abstractmethod, ABCMeta
 from os.path import join, abspath, dirname
@@ -17,7 +18,7 @@ CONFIG_PATH = join(PROJECT_ROOT, "config")
 
 
 def error(string: str | pt.IRenderable):
-    print(pt.render("[ERROR] ", pt.Styles.ERROR_LABEL) + string)
+    print(pt.render("[ERROR] ", pt.Styles.ERROR_LABEL) + string, file=sys.stderr)
     exit(1)
 
 
@@ -27,10 +28,9 @@ class TaskRunner(metaclass=ABCMeta):
         self._run_callback(self._run(*args, **kwargs))
         elapsed_sec = (time.time_ns() - ts_before) / 1e9
         if elapsed_sec > 1:
-            print(f"Execution time: {pt.format_time_delta(elapsed_sec)}")
+            print(f"Execution time: {pt.format_time_delta(elapsed_sec)}", file=sys.stderr)
         else:
-            print(f"Execution time: {pt.format_si(elapsed_sec, 's')}")
-        print()
+            print(f"Execution time: {pt.format_si(elapsed_sec, 's')}", file=sys.stderr)
 
     @abstractmethod
     def _run(self, *args, **kwargs):
@@ -48,4 +48,4 @@ class TaskRunner(metaclass=ABCMeta):
     def __print_file_result(self, f: TextIO, filepath: str, act: str, arr: str, sizecolor: str):
         size = pt.format_si(f.tell(), unit="b", auto_color=False)
         size = Text(size, sizecolor, width=8)
-        pt.echo(SimpleTable(width=100).pass_row(f"{act:<5s}", size, arr, Fragment(filepath, "blue")))
+        pt.echo(SimpleTable(width=100).pass_row(f"{act:<5s}", size, arr, Fragment(filepath, "blue")), file=sys.stderr)

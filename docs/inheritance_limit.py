@@ -15,18 +15,19 @@ def class_info_patched(fn: t.Callable):
     #  result consists of top-level classes with all their children
     #  found in the same (top-level class origination) module.
     #
-    #  ┌─ renderers.rst ──────────────────────────────────────────┐
-    #  │ .. inheritance-diagram::  pytermor.renderer              │
-    #  │    :top-classes:          pytermor.renderer.IRenderer    │
-    #  └──────────────────────────────────────────────────────────┘
-    #    ↓           ↓            ↓           ↓             ↓
-    #  ┌─ filter_not_related ─────────────────────────────────────┐
-    #  │ keep because          keep because is a │  hide as       │
-    #  │ is a top class     child of a top class │  irrelevant    │
-    #  │ ┌───────────┐           ┌─────────────┐ │ ┌────────────┐ │
-    #  │ │ IRenderer │ --------> │ SgrRenderer │ │ │ OutputMode │ │
-    #  │ └───────────┘           └─────────────┘ │ └────────────┘ │
-    #  └──────────────────────────────────────────────────────────┘
+    #  +- renderers.rst ------------------------------------------+
+    #  | .. inheritance-diagram::  pytermor.renderer              |
+    #  |    :top-classes:          pytermor.renderer.IRenderer    |
+    #  +----------------------------------------------------------+
+    #    |           |            |           |             |
+    #    V           V            V           V             V
+    #  +- filter_not_related -------------------------------------+
+    #  | keep because          keep because is a |  hide as       |
+    #  | is a top class     child of a top class |  irrelevant    |
+    #  | +-----------+           +-------------+ | +------------+ |
+    #  | | IRenderer | --------> | SgrRenderer | | | OutputMode | |
+    #  | +-----------+           +-------------+ | +------------+ |
+    #  +----------------------------------------------------------+
 
     def filter_not_related(
         result: t.List[t.Tuple[str, str, t.List[str], str]], top_classes: t.List[t.Any]

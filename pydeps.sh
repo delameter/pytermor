@@ -8,30 +8,30 @@ DEPENDS_PATH="${2:?Output path required}"
 
 run() {
     # args: [cmd-option]...
-    set -- venv/bin/pydeps "${PROJECT_NAME}" "$@"
+    set -- hatch -q run build:pydeps "${PROJECT_NAME}" "$@"
     echo "$*" >&2
     "$@"
 }
 
-run --rmprefix ${PROJECT_NAME}. \
-    --only ${PROJECT_NAME} \
+run --rmprefix "${PROJECT_NAME}". \
+    --only "${PROJECT_NAME}" \
     --no-output \
-    --rankdir LR \
+    --rankdir TB \
     --show-dot \
     -xx pytermor pytermor._version \
     | tee "${DOCS_IN_PATH}/_generated/module.dot"
 
-run --rmprefix ${PROJECT_NAME}. \
+run --rmprefix "${PROJECT_NAME}". \
     --start-color 120 \
-    --only ${PROJECT_NAME} \
+    --only "${PROJECT_NAME}" \
      --no-show \
-    -o ${DEPENDS_PATH}/structure.svg
+    -o "${DEPENDS_PATH}/structure.svg"
 
-run --rmprefix ${PROJECT_NAME}. \
+run --rmprefix "${PROJECT_NAME}". \
     --start-color 120 \
     --show-cycle \
      --no-show \
-    -o ${DEPENDS_PATH}/cycles.svg
+    -o "${DEPENDS_PATH}/cycles.svg"
 
 run --start-color 0 \
     --max-bacon 3 \
@@ -39,17 +39,17 @@ run --start-color 0 \
     --max-cluster 100 \
     --keep \
      --no-show \
-    -o ${DEPENDS_PATH}/imports-deep.svg
+    -o "${DEPENDS_PATH}/imports-deep.svg"
 
 #run --start-color 0 \
 #    --max-bacon 3 \
 #    --cluster \
 #    --collapse \
-#    -o ${DEPENDS_PATH}/imports-cross.svg
+#    -o "${DEPENDS_PATH}/imports-cross.svg"
 #
 #run --start-color 0 \
 #    --max-bacon 12 \
 #    --max-mod 1 \
 #    --cluster \
 #    --collapse \
-#    -o ${DEPENDS_PATH}/imports-far.svg
+#    -o "${DEPENDS_PATH}/imports-far.svg"

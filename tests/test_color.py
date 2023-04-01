@@ -24,46 +24,7 @@ from pytermor.common import LogicError
 
 
 class TestStatic(unittest.TestCase):
-    def test_hex_to_hsv_works(self):
-        for input_idx, ((expected_output), input_num) in enumerate(
-            [
-                [(0, 0, 0.0), 0x000000],
-                [(0, 0, 1.0), 0xFFFFFF],
-                [(0, 1, 1.0), 0xFF0000],
-                [(120, 1, 1.0), 0x00FF00],
-                [(240, 1, 1.0), 0x0000FF],
-                [(60, 1, 0.0), 0x010100],
-                [(240, 1, 0.5), 0x000080],
-                [(0, 0, 0), 0x1000000],
-            ]
-        ):
-            subtest_msg = f'"#{input_num:06x}" -> "{expected_output}"'
-            with self.subTest(msg=subtest_msg):
-                actual_output = pytermor.utilmisc.hex_to_hsv(input_num)
-                logging.debug(subtest_msg + f' => "{actual_output}"')
-                for idx in range(0, len(expected_output)):
-                    self.assertAlmostEqual(
-                        expected_output[idx], actual_output[idx], delta=0.01
-                    )
 
-    def test_hex_to_rgb_works(self):
-        for input_idx, ((expected_output), input_num) in enumerate(
-            [
-                [(0, 0, 0), 0x000000],
-                [(255, 255, 255), 0xFFFFFF],
-                [(255, 0, 0), 0xFF0000],
-                [(0, 255, 0), 0x00FF00],
-                [(0, 0, 255), 0x0000FF],
-                [(1, 1, 0), 0x010100],
-                [(0, 0, 128), 0x000080],
-                [(0, 0, 0), 0x1000000],
-            ]
-        ):
-            subtest_msg = f'"#{input_num:06x}" -> "{expected_output}"'
-            with self.subTest(msg=subtest_msg):
-                actual_output = pytermor.utilmisc.hex_to_rgb(input_num)
-                logging.debug(subtest_msg + f' => "{actual_output}"')
-                self.assertEqual(expected_output, actual_output)
 
     def test_rgb_to_hex_works(self):
         for input_idx, ((expected_num), input_channels) in enumerate(

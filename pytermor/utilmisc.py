@@ -24,7 +24,7 @@ from .ansi import (
     make_erase_in_line,
     make_set_cursor_x_abs,
 )
-from .common import UserAbort, UserCancel
+from .common import UserAbort, UserCancel, HSV, RGB
 
 
 # -----------------------------------------------------------------------------
@@ -64,7 +64,7 @@ def rgb_to_hex(r: int, g: int, b: int) -> int:
     return (r << 16) + (g << 8) + b
 
 
-def hsv_to_rgb(h: float, s: float, v: float) -> t.Tuple[int, int, int]:
+def hsv_to_rgb(h: float, s: float, v: float) -> RGB | t.Tuple[int, int, int]:
     """
     Transforms HSV value in three-floats form (where 0 <= h < 360, 0 <= s <= 1,
     and 0 <= v <= 1) into RGB three-integer form ([0; 255], [0; 255], [0; 255]).
@@ -109,7 +109,7 @@ def rgb_to_hsv(r: int, g: int, b: int) -> t.Tuple[float, float, float]:
     HSV in three-floats form such as (0 <= h < 360, 0 <= s <= 1, and 0 <= v <= 1).
 
         >>> rgb_to_hsv(0, 0, 255)
-        (240.0, 1.0, 1.0)
+        HSV(hue=240.0, saturation=1.0, value=1.0)
 
     :param r: value of red channel.
     :param g: value of green channel.
@@ -125,7 +125,7 @@ def rgb_to_hsv(r: int, g: int, b: int) -> t.Tuple[float, float, float]:
     c = vmax - vmin
     v = vmax
 
-    h = 0
+    h = 0.0
     if c == 0: pass
     elif v == rn:  h = 60 * (0 + (gn - bn) / c)
     elif v == gn:  h = 60 * (2 + (bn - rn) / c)
@@ -136,21 +136,21 @@ def rgb_to_hsv(r: int, g: int, b: int) -> t.Tuple[float, float, float]:
 
     if h < 0:      h += 360
 
-    return h, s, v
+    return HSV(h, s, v)
     # fmt: on
 
 
-def hex_to_hsv(hex_value: int) -> t.Tuple[float, float, float]:
+def hex_to_hsv(hex_value: int) -> HSV:
     """
-    Transforms ``hex_value`` in *int* form into a tuple of three numbers
+    Transforms ``hex_value`` in *int* form into named tuple consisting of three floats
     corresponding to **hue**, **saturation** and **value** channel values respectively.
     Hue is within [0, 359] range, both saturation and value are within [0; 1] range.
 
         >>> hex_to_hsv(0x999999)
-        (0, 0.0, 0.6)
+        HSV(hue=0.0, saturation=0.0, value=0.6)
 
     :param hex_value: RGB value.
-    :returns: H, S, V channel values correspondingly.
+    :returns: named tuple with H, S and V channel values
     """
     return rgb_to_hsv(*hex_to_rgb(hex_value))
 
