@@ -4,36 +4,46 @@
 pending
 ------------------
 
+.. <@pending:ec912bf>
+.. ^ blank line before should be kept
+
+
+v2.48-dev
+------------------
+:date:`Apr 23`
+
+- |DOCS| small fixes
 - |DOCS| updated changelog
-- |FIX| debug logging
-- |FIX| bug in `SimpleTable` renderer when row is wider than a terminal
-- |NEW| `lab_to_rgb()`
+- |DRAFT| ci debug
 - |FIX|  `measure_char_width` and `get_char_width` internal logic
-- |UPDATE|  README
+- |FIX|  pipelines
+- |FIX| `AbstractTracer` failure on empty input
 - |FIX| `StaticFormatter` padding
-- |NEW| `Hightlighter` from static methods to real class
-- |REFACTOR| edited highlighter styles
+- |FIX| bug in `SimpleTable` renderer when row is wider than a terminal
+- |FIX| debug logging
+- |MAINTAIN|  coverage git ignore
+- |MAINTAIN| `cli-docker` make command
+- |MAINTAIN| `Dockerfile` for repeatable builds
+- |MAINTAIN| `hatch` as build backend
+- |MAINTAIN| copyrights update
+- |MAINTAIN| host system/docker interchangable building automations
 - |NEW|  `format_time`, `format_time_ms`, `format_time_ns`
+- |NEW| `Hightlighter` from static methods to real class
+- |NEW| `lab_to_rgb()`
+- |NEW| numeric formatters fallback mechanics
+- |REFACTOR| ``TDF_REGISTRY`` -> `dual_registry- ``FORMATTER_`` constants from top-level imports
+- |REFACTOR| ``utilnum._TDF_REGISTRY`` -> `TDF_REGISTRY`
+- |REFACTOR| edited highlighter styles
 - |REFACTOR| naming:
 
   - ``CustomBaseUnit`` -> `DualBaseUnit`
   - ``DynamicBaseFormatter`` -> `DynamicFormatter`
   - ``StaticBaseFormatter`` -> `StaticFormatter`
 
-- |NEW| numeric formatters fallback mechanics
 - |TESTS| numeric formatters colorizing
-- |REFACTOR| ``utilnum._TDF_REGISTRY`` -> `TDF_REGISTRY`
-- |REFACTOR| ``TDF_REGISTRY`` -> `dual_registry- ``FORMATTER_`` constants from top-level imports
-- |FIX| `AbstractTracer` failure on empty input
-- |MAINTAIN| `Dockerfile` for repeatable builds
-- |FIX|  pipelines
-- |DRAFT| ci debug
-- |MAINTAIN|  coverage git ignore
-- |MAINTAIN| `cli-docker` make command
-- |DOCS| small fixes
+- |UPDATE|  README
+- |UPDATE| license is now Lesser GPL v3
 
-.. <@pending:8ab7900>
-.. ^ blank line before should be kept
 
 v2.40-dev
 ------------------
