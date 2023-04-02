@@ -47,7 +47,6 @@ include = [
 
 [tool.hatch.envs.default.scripts]
 version = "python -m pytermor"
-pre-build = "python scripts/preprocess_rgb.py && python scripts/build_cval.py"
 ex-approx = "python examples/approximate.py"
 ex-lsrend = "python examples/list_renderers.py"
 ex-rendbmark = "python examples/render_benchmark.py"
@@ -55,11 +54,11 @@ ex-termbmark = "python examples/terminal_benchmark.py"
 ex-termmode = "python examples/terminal_color_mode.py"
 
 [tool.hatch.envs.test.scripts]
-test = "pytest --quiet --tb=no"
-test-verbose = "pytest -v --failed-first"
-test-trace = "PYTERMOR_TRACE_RENDERS=1 pytest -v --failed-first --log-file-level=1 --log-file=last_test_trace.log"
-cover = "coverage run -m pytest; coverage html; coverage json; coverage report"
-depends = "bash pydeps.sh pytermor misc/depends LR"
+test = "make test"
+test-verbose = "make test-verbose"
+test-trace = "make test-trace"
+cover = "make cover"
+depends = "make depends"
 
 [tool.hatch.envs.test]
 extra-dependencies = [

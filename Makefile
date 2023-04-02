@@ -17,7 +17,7 @@ LOCALHOST_WRITE_PATH = localhost
 
 -include .env
 export
-VERSION := $(shell hatch version)
+VERSION := $(shell ./.version)
 
 DOCKER_IMAGE = ghcr.io/delameter/pytermor
 DOCKER_TAG = ${DOCKER_IMAGE}:${VERSION}
@@ -38,10 +38,13 @@ help:   ## [any] Show this help
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s?(\s*#?[^#]+)#*\s*(.*)/\1${YELLOW}\2${RESET}#\3/; s/(.+):(#|\s)+(.+)/##   ${GREEN}\1${RESET}#\3/; s/\*(\w+)\*/${BOLD}\1${RESET}/g; 2~1s/<([ )*<@>.A-Za-z0-9_(-]+)>/${DIM}\1${RESET}/gi' -e 's/(\x1b\[)33m#/\136m/' | column -ts# | sed -Ee 's/ {3}>/ >/'
 
 init-venv:  ## [host] Prepare manual environment  <venv>
-	${HOST_DEFAULT_PYTHON} -m pip install hatch
 	${HOST_DEFAULT_PYTHON} -m venv --clear ${VENV_LOCAL_PATH}
-	${VENV_LOCAL_PATH}/bin/python -m pip install -r requirements-build.txt -r requirements-test.txt
+	${VENV_LOCAL_PATH}/bin/python -m pip install -r requirements-build.txt
+	${VENV_LOCAL_PATH}/bin/python -m pip install -r requirements-test.txt
 	${VENV_LOCAL_PATH}/bin/python -m pytermor
+
+init-hatch:  ## [host] Install build backend <system>
+	pipx install hatch
 
 init-system-pdf:  ## [host] Prepare environment for pdf rendering
 	sudo apt install texlive-latex-recommended \
@@ -49,15 +52,19 @@ init-system-pdf:  ## [host] Prepare environment for pdf rendering
 					 texlive-latex-extra \
 					 latexmk
 
-cli: ## [any] Launch python interpreter  <venv>
+cli: ## [host] Launch python interpreter  <hatch>
 	hatch run python -uq
 
-docker-cli: build-image  ## [host] Launch shell in a container
+docker-cli: ## [host] Launch shell in a container
+docker-cli: build-image
 	docker run -it ${DOCKER_TAG} /bin/bash
 
 all: ## [host] Run tests, generate docs and reports, build module
 all: test cover update-coveralls docs-all build
 # CI (on push into master): set-version set-tag auto-all test cover docs-all build upload upload-doc?
+
+build-image-base: ## [host] Build base docker image
+	docker build . --target python-texlive --tag delameter/python-texlive:3.8-2020
 
 build-image: ## [host] Build docker image
 	docker build . --tag ${DOCKER_TAG} \
@@ -86,13 +93,13 @@ docker-docs-pdf: build-image
 	$(call _docker_run,"make docs-pdf")
 	$(call _docker_cp_docs)
 
-
-
 ##
 ## Automation
 
 pre-build:  ## Run full cycle of automatic operations (done on docker image building)
-	hatch run build:pre-build
+	export PT_ENV=build
+	./.invoke python scripts/preprocess_rgb.py
+	./.invoke python scripts/build_cval.py
 
 
 ##
@@ -126,24 +133,30 @@ update-changelist:  ## Auto-update with new commits  <@CHANGES.rst>
 ## Testing
 
 test: ## Run pytest
-	hatch run test:test
+	@PT_ENV=test ./.invoke pytest --quiet --tb=no
 
 test-verbose: ## Run pytest with detailed output
-	hatch run test:test-verbose
+	@PT_ENV=test ./.invoke pytest -v --failed-first
 
 test-trace: ## Run pytest with detailed output  <@last_test_trace.log>
-	hatch run test:test-trace
+	@PT_ENV=test PYTERMOR_TRACE_RENDERS=1 \
+      ./.invoke pytest -v --failed-first --log-file-level=1 --log-file=last_test_trace.log
 
 
 ##
 ## Coverage / dependencies
 
 cover: ## Run coverage and make a report
+	export PT_ENV=test
 	rm -v coverage-report/*
-	hatch run test:cover
+	./.invoke coverage run -m pytest
+	./.invoke coverage html
+	./.invoke coverage json
+	./.invoke coverage report
+
 	if [ -d "${LOCALHOST_WRITE_PATH}" ] ; then \
     	mkdir -p ${LOCALHOST_WRITE_PATH}/coverage-report && \
-	    cp -auv coverage-report/* ${LOCALHOST_WRITE_PATH}/coverage-report/
+	    cp -au coverage-report/* ${LOCALHOST_WRITE_PATH}/coverage-report/
 	fi
 
 open-coverage:  ## Open coverage report in browser
@@ -151,8 +164,8 @@ open-coverage:  ## Open coverage report in browser
 	if [ -d localhost ] ; then xdg-open ${LOCALHOST_URL}/coverage-report ; else xdg-open coverage-report/index.html ; fi
 
 update-coveralls:  ## Manually send last coverage statistics  <coveralls.io>
-	if [ -n "${SKIP_COVERALLS_UPDATE}" ] ; then return 0 ; fi
-	hatch run test:coveralls
+	if [ -n "${SKIP_COVERALLS_UPDATE}" ] ; then echo "DISABLED" && return 0 ; fi
+	@PT_ENV=test ./.invoke coveralls
 
 
 depends:  ## Build module dependency graphs
@@ -167,8 +180,9 @@ open-depends:  ## Open dependency graph output directory
 ## Documentation
 
 reinit-docs: ## Purge and recreate docs with auto table of contents
+	export PT_ENV=build
 	rm -rfv ${DOCS_IN_PATH}/*
-	hatch run build:sphinx-apidoc --force --separate --module-first --tocfile index --output-dir ${DOCS_IN_PATH} ${PROJECT_NAME}
+	./.invoke sphinx-apidoc --force --separate --module-first --tocfile index --output-dir ${DOCS_IN_PATH} ${PROJECT_NAME}
 
 demolish-docs:  ## Purge docs temp output folder
 	-rm -rvf ${DOCS_IN_PATH}/_build/* ${DOCS_IN_PATH}/_build/.*
@@ -177,8 +191,9 @@ docs: ## (Re)build HTML documentation  <no cache>
 docs: depends demolish-docs docs-html
 
 docs-html: ## Build HTML documentation  <caching allowed>
+	export PT_ENV=build
 	mkdir -p docs-build
-	if ! hatch run build:sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b html -n ; then \
+	if ! ./.invoke sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b html -n ; then \
     	notify-send -i important pytermor 'HTML docs build failed ${NOW}' && \
     	return 1 ; \
     fi
@@ -191,15 +206,17 @@ docs-html: ## Build HTML documentation  <caching allowed>
 	#if command -v notify-send ; then notify-send -i ${PWD}/${DOCS_IN_PATH}/_static_src/logo-white-bg.svg 'pytermor ${VERSION}' 'HTML docs updated ${NOW}' ; fi
 
 docs-pdf: ## Build PDF documentation  <caching allowed>
+	export PT_ENV=build
 	mkdir -p docs-build
-	yes "" | hatch run build:sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -n  # twice for building pdf toc
-	yes "" | hatch run build:sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build     # @FIXME broken unicode
+	yes "" | ./.invoke sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -n  # twice for building pdf toc
+	yes "" | ./.invoke sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build     # @FIXME broken unicode
 	cp ${DOCS_IN_PATH}/_build/latex/${PROJECT_NAME}.pdf ${DOCS_OUT_PATH}/${VERSION}.pdf
 
 docs-man: ## Build man pages  <caching allowed>
+	export PT_ENV=build
 	mkdir -p docs-build
 	sed -i.bak -Ee 's/^.+<<<MAKE_DOCS_MAN<<</#&/' ${DOCS_IN_PATH}/conf.py
-	hatch run build:sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b man -n || echo 'Generation failed'
+	./.invoke sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b man -n || echo 'Generation failed'
 	mv ${DOCS_IN_PATH}/conf.py.bak ${DOCS_IN_PATH}/conf.py
 	cp ${DOCS_IN_PATH}/_build/${PROJECT_NAME}.1 ${DOCS_OUT_PATH}/${VERSION}.1
 	if [ -z "${DISPLAY}" ] ; then return 0 ; fi
@@ -220,20 +237,22 @@ open-docs-pdf:  ## Open PDF docs in reader
 ## Building / Packaging
 ### *
 
-freeze:
-	hatch -e test dep show requirements | tee requirements-test.txt
-	hatch -e build dep show requirements | tee requirements-build.txt
+_freeze = (hatch -e $1 run pip freeze -q --exclude-editable | sed --unbuffered -Ee '/^Checking/d' | tee /dev/stderr > requirements-$1.txt)
 
-demolish-build:  ## Delete build output folders
+freeze:  ## Update requirements-*.txt   <hatch>
+	$(call _freeze,test)
+	$(call _freeze,build)
+
+demolish-build:  ## Delete build output folders  <hatch>
 	hatch clean
 
-build: ## Build a package
+build: ## Build a package   <hatch>
 build: demolish-build
 	hatch -e build build
 
 ### test
 
-publish-test: ## Upload latest build to test repo
+publish-test: ## Upload latest build to test repo   <hatch>
 	hatch -e build publish -r test -u "${PYPI_USERNAME}" -a "${PYPI_PASSWORD_TEST}"
 
 install-test: ## Install latest build from test repo  <system>
@@ -242,7 +261,7 @@ install-test: ## Install latest build from test repo  <system>
 
 ### release
 
-publish: ## Upload last build (=> PRIMARY registry)
+publish: ## Upload last build (=> PRIMARY registry)   <hatch>
 	if [ -n "${SKIP_MODULE_UPLOAD}" ] ; then return 0 ; fi
 	hatch -e build publish -u "${PYPI_USERNAME}" -a "${PYPI_PASSWORD}"
 

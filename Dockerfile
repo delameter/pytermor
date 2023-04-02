@@ -1,4 +1,4 @@
-FROM python:3.8-slim AS base
+FROM python:3.8-slim AS python-texlive
 
 MAINTAINER delameter <0.delameter@gmail.com>
 
@@ -42,34 +42,29 @@ WORKDIR ${WORKDIR}
 ENV PATH="$PATH:/home/${USER}/.local/bin"
 
 
-FROM base AS build
+FROM python-texlive AS build
 
 ARG UID=1000
 ARG GID=1000
 
 COPY --chown=${UID}:${GID} requirements-*.txt ./
 RUN set -ex && \
-    python -m pip install --no-cache-dir --upgrade pip hatch
-
-COPY --chown=${UID}:${GID} pyproject.toml .
-COPY --chown=${UID}:${GID} README.md .
-RUN set -ex && \
-    mkdir -p ./pytermor && \
-    echo '__version__ = "0.0.0"' > ./pytermor/_version.py && \
-    hatch -e build env run pip list && \
-    hatch -e test env run pip list
+    pip install --no-cache-dir --upgrade pip virtualenv && \
+    python -m venv venv && \
+    venv/bin/pip install --no-cache-dir -r requirements-build.txt && \
+    venv/bin/pip install --no-cache-dir -r requirements-test.txt && \
+    mkdir -p ./pytermor
 
 COPY --chown=${UID}:${GID} . .
 RUN make pre-build
 
 CMD [ "make", "all" ]
 
-ARG IMAGE_BUILD_DATE=0
 ARG PYTERMOR_VERSION=0
-ARG PYTERMOR_COMMIT_HASH=""
+ARG IMAGE_BUILD_DATE=0
 
 ENV PYTERMOR_VERSION=${PYTERMOR_VERSION}
 
-LABEL org.opencontainers.image.created=${IMAGE_BUILD_DATE}
-LABEL org.opencontainers.image.version=${PYTERMOR_VERSION}
 LABEL org.opencontainers.image.source=https://github.com/delameter/pytermor
+LABEL org.opencontainers.image.version=${PYTERMOR_VERSION}
+LABEL org.opencontainers.image.created=${IMAGE_BUILD_DATE}

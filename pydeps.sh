@@ -8,7 +8,8 @@ DEPENDS_PATH="${2:?Output path required}"
 
 run() {
     # args: [cmd-option]...
-    set -- hatch -q run build:pydeps "${PROJECT_NAME}" "$@"
+    export PT_ENV=build
+    set -- ./.invoke pydeps "${PROJECT_NAME}" "$@"
     echo "$*" >&2
     "$@"
 }

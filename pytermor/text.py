@@ -45,16 +45,6 @@ class IRenderable(t.Sized, ABC):
     I
     """
 
-    @staticmethod
-    def as_fragments(string: IRenderable) -> t.List[Fragment]:
-        if isinstance(string, str):
-            return [Fragment(string)]
-        if isinstance(string, Fragment):
-            return [string]
-        if isinstance(string, (FrozenText, Text)):
-            return [*string._fragments]
-        raise ArgTypeError(type(string), "string", IRenderable.as_fragments)
-
     @abstractmethod
     def __len__(self) -> int:
         """raise NotImplementedError"""
@@ -63,17 +53,19 @@ class IRenderable(t.Sized, ABC):
     def __eq__(self, o: t.Any) -> bool:
         """raise NotImplementedError"""
 
-    @abstractmethod
     def __add__(self, other: RT) -> IRenderable:
-        """raise NotImplementedError"""
+        ...
 
-    @abstractmethod
     def __iadd__(self, other: RT) -> IRenderable:
-        """:raise"""
+        ...
+
+    def __radd__(self, other: RT) -> IRenderable:
+        ...
 
     @abstractmethod
-    def __radd__(self, other: RT) -> IRenderable:
-        """raise NotImplementedError"""
+    def _as_fragments(self) -> t.List[Fragment]:
+        """ a-s """
+        ...
 
     @abstractmethod
     def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
@@ -186,6 +178,9 @@ class Fragment(IRenderable):
     def __format__(self, format_spec: str) -> str:
         formatted = self._string.__format__(format_spec)
         return self._resolve_renderer().render(formatted, self._style)
+
+    def _as_fragments(self) -> t.List[Fragment]:
+        return [self]
 
     @property
     def string(self) -> str:
@@ -308,13 +303,16 @@ class FrozenText(IRenderable):
         return result % (", " + ", ".join([repr(f) for f in self._fragments]))
 
     def __add__(self, other: str | Fragment) -> FrozenText:
-        return self.append(*self.as_fragments(other))
+        return self.append(*as_fragments(other))
 
     def __iadd__(self, other: str | Fragment) -> FrozenText:
         raise LogicError("FrozenText is immutable")
 
     def __radd__(self, other: str | Fragment) -> FrozenText:
-        return self.prepend(*self.as_fragments(other))
+        return self.prepend(*as_fragments(other))
+
+    def _as_fragments(self) -> t.List[Fragment]:
+        return [*self._fragments]
 
     @property
     def allows_width_setup(self) -> bool:
@@ -420,7 +418,7 @@ class FrozenText(IRenderable):
 
 class Text(FrozenText):
     def __iadd__(self, other: str | Fragment) -> FrozenText:
-        return self.append(*self.as_fragments(other))
+        return self.append(*as_fragments(other))
 
     def append(self, *fragments: Fragment) -> Text:
         self._ensure_fragments(*fragments)
@@ -436,13 +434,62 @@ class Text(FrozenText):
         self._width = width
 
 
+class TextComposite(IRenderable):
+    """
+    Simple class-container supporting concatenation of
+    any `IRenderable` instances with each other without
+    any extra logic on top of it. Renders parts joined
+    by an empty string.
+    """
+    def __init__(self, *parts: t.Iterable[IRenderable]):
+        super().__init__()
+        self._parts: deque[IRenderable] = deque(*parts)
+
+    def __len__(self) -> int:
+        return sum(len(part) for part in self._parts)
+
+    def __eq__(self, o: t.Any) -> bool:
+        if not isinstance(o, type(self)):
+            return False
+        return self._parts == o._parts
+
+    def __add__(self, other: RT) -> IRenderable:
+        self._parts.append(other)
+        return self
+
+    def __iadd__(self, other: RT) -> IRenderable:
+        self._parts.append(other)
+        return self
+
+    def __radd__(self, other: RT) -> IRenderable:
+        self._parts.appendleft(other)
+        return self
+
+    def _as_fragments(self) -> t.List[Fragment]:
+        return flatten1([as_fragments(p) for p in self._parts])
+
+    def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
+        return "".join(p.render(self._resolve_renderer(renderer)) for p in self._parts)
+
+    def set_width(self, width: int):
+        raise NotImplementedError
+
+    @property
+    def has_width(self) -> bool:
+        return False
+
+    @property
+    def allows_width_setup(self) -> bool:
+        return False
+
+
 class SimpleTable(IRenderable):
     """
     Table class with dynamic (not bound to each other) rows. By defualt expands to
     the maximum width (terminal size).
 
     Allows 0 or 1 dynamic-width cell in each row, while all the others should be
-    static, i.e., be instances of `FixedString`.
+    static, i.e., be instances of `FrozenText`.
 
     >>> echo(
     ...     SimpleTable(
@@ -503,13 +550,7 @@ class SimpleTable(IRenderable):
         result = f"<{self.__class__.__qualname__}>[R={len(self._rows)}, F={frags}]"
         return result
 
-    def __add__(self, other: RT) -> IRenderable:
-        raise NotImplementedError
-
-    def __iadd__(self, other: RT) -> IRenderable:
-        raise NotImplementedError
-
-    def __radd__(self, other: RT) -> IRenderable:
+    def _as_fragments(self) -> t.List[Fragment]:
         raise NotImplementedError
 
     @property
@@ -614,7 +655,7 @@ class TemplateEngine:
     _TAG_REGEXP = re.compile(
         r"""
         (?:
-          (?P<set>@[\w]+)?
+          (?P<set>@\w+)?
           (?P<add>:)
           |
           (?P<comment>_)
@@ -644,7 +685,7 @@ class TemplateEngine:
 
         for tag_match in self._TAG_REGEXP.finditer(tpl):
             span = tag_match.span()
-            tpl_part = self._ESCAPE_REGEXP.sub(r"\1[", tpl[tpl_cursor : span[0]])
+            tpl_part = self._ESCAPE_REGEXP.sub(r"\1[", tpl[tpl_cursor: span[0]])
             if len(tpl_part) > 0 or style_buffer != NOOP_STYLE:
                 if split_style:
                     for tpl_chunk, sep in self._SPLIT_REGEXP.findall(tpl_part):
@@ -881,7 +922,7 @@ def wrap_sgr(
     inp = "\n\n".join(raw_input).split("\n\n")
     result = ""
     for raw_line in inp:
-        # had an inspiration and wrote this; no idea how does it work exactly, it just does
+        # had an inspiration and wrote it; no idea how does it work exactly, it just does
         replaced_line = re.sub(r"(\s?\S?)((\x1b\[([0-9;]*)m)+)", push, raw_line)
         wrapped_line = f"\n".join(
             textwrap.wrap(
@@ -894,3 +935,11 @@ def wrap_sgr(
         final_line = re.sub(_PRIVATE_REPLACER, lambda _: sgrs.pop(0), wrapped_line)
         result += final_line + "\n"
     return result
+
+
+def as_fragments(string: RT) -> t.List[Fragment]:
+    if isinstance(string, str):
+        return [Fragment(string)]
+    elif isinstance(string, IRenderable):
+        return string._as_fragments()
+    raise ArgTypeError(type(string), "string", as_fragments)

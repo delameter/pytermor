@@ -1,4 +1,4 @@
-name: coverage w/f
+name: run and upload coverage results w/f
 
 on:
   push:
@@ -20,18 +20,18 @@ jobs:
       - name: Install dependencies
         run: |
           set -ex
-          python -m pip install --no-cache-dir --upgrade pip
-          python -m pip install --no-cache-dir -r requirements-test.txt
+          pip install --no-cache-dir --upgrade pip
+          pip install --no-cache-dir -r requirements-test.txt
 
       - name: Run coverage
         run: |
           set -ex
-          python -m coverage run -m pytest
-          python -m coverage lcov
-          python -m coverage report
+          coverage run -m pytest
+          coverage lcov
+          coverage report
 
       - name: Coveralls
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python -m coveralls 
+          coveralls 

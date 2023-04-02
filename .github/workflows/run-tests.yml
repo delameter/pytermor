@@ -1,4 +1,4 @@
-name: tests w/f
+name: test running w/f
 
 on:
   push:

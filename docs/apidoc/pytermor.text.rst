@@ -19,6 +19,7 @@
 
    .. autosummary::
    
+      as_fragments
       distribute_padded
       echo
       echoi
@@ -39,6 +40,7 @@
       SimpleTable
       TemplateEngine
       Text
+      TextComposite
    
    
 
