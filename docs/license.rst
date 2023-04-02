@@ -9,7 +9,7 @@ License
 .. raw:: latex
 
    \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}%
-   \footnotesize\raggedright
+   \scriptsize
 
 .. literalinclude:: /../LICENSE
    :language: text

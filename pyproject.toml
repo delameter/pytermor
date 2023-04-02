@@ -7,22 +7,21 @@ name = "pytermor"
 dynamic = ["version"]
 description = "ANSI formatted terminal output toolset"
 readme = "README.md"
-license = "GPL-3.0-or-later"
-requires-python = ">=3.7"
+license = "LGPL-3.0"
+requires-python = ">=3.8"
 platforms = ["linux"]
 keywords = ["color", "format", "console", "terminal", "ansi"]
 authors = [
     { name = "Aleksandr Shavykin", email = "0.delameter@gmail.com" },
 ]
 classifiers = [
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
     "Development Status :: 5 - Production/Stable",
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",
     "Intended Audience :: System Administrators",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -54,11 +53,7 @@ ex-termbmark = "python examples/terminal_benchmark.py"
 ex-termmode = "python examples/terminal_color_mode.py"
 
 [tool.hatch.envs.test.scripts]
-test = "make test"
-test-verbose = "make test-verbose"
-test-trace = "make test-trace"
-cover = "make cover"
-depends = "make depends"
+test = "pytest"
 
 [tool.hatch.envs.test]
 extra-dependencies = [

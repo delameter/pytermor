@@ -231,7 +231,7 @@ open-docs-html:  ## Open HTML docs in browser
 
 open-docs-pdf:  ## Open PDF docs in reader
 	if [ -z "${DISPLAY}" ] ; then echo 'ERROR: No $$DISPLAY' && return 1 ; fi
-	xdg-open ${DOCS_OUT_PATH}/${PROJECT_NAME}.pdf
+	xdg-open ${DOCS_OUT_PATH}/${VERSION}.pdf
 
 ##
 ## Building / Packaging
