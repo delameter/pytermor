@@ -1,6 +1,7 @@
 #------------------------------------------------------------------------------
 # pytermor [ANSI formatted terminal output toolset]                           -
 # (c) 2021-2023. A. Shavykin <0.delameter@gmail.com>                          -
+# Licensed under GNU Lesser General Public License v3.0                       -
 #------------------------------------------------------------------------------
 
 PROJECT_NAME="${1:?Project name required}"

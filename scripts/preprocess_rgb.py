@@ -1,6 +1,7 @@
 # -----------------------------------------------------------------------------
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
+#  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
 # BUILD AUTOMATION SCRIPT. Fell free to look around if you'd like, though.
 # Transforms arbitrary named color config into standardized library format.

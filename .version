@@ -1,5 +1,11 @@
 #!/bin/sh
 
+#------------------------------------------------------------------------------
+# pytermor [ANSI formatted terminal output toolset]                           -
+# (c) 2023. A. Shavykin <0.delameter@gmail.com>                               -
+# Licensed under GNU Lesser General Public License v3.0                       -
+#------------------------------------------------------------------------------
+
 if command -v hatch >/dev/null ; then
     hatch version
     return
