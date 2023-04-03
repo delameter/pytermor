@@ -13,3 +13,5 @@ identifier.sqlite
 temp
 misc/depends
 *.bak
+scripts/fileWatchers
+scripts/runConfigurations
