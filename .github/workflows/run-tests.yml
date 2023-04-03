@@ -54,11 +54,11 @@ jobs:
       - name: Run coverage
         run: |
           coverage run -m pytest
-          coverage lcov
+          coverage json
           coverage report
 
       - name: Upload to coveralls
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          coveralls 
+          coveralls --service=github
