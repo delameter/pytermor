@@ -14,7 +14,6 @@ v2.48-dev
 
 - |DOCS| small fixes
 - |DOCS| updated changelog
-- |DRAFT| ci debug
 - |FIX|  `measure_char_width` and `get_char_width` internal logic
 - |FIX|  pipelines
 - |FIX| `AbstractTracer` failure on empty input

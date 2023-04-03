@@ -1,5 +1,4 @@
 #!/bin/sh
-
 #------------------------------------------------------------------------------
 # pytermor [ANSI formatted terminal output toolset]                           -
 # (c) 2023. A. Shavykin <0.delameter@gmail.com>                               -
@@ -10,7 +9,7 @@ if command -v hatch >/dev/null ; then
     hatch version
     return
 elif [ -x venv/bin/python ] ; then
-    PYTHONPATH=. venv/bin/python -m pytermor
+    PYTHONPATH=. venv/bin/python -m pytermor -s
     return
 else
     echo "Failed to determine executor" >&2

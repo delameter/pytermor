@@ -5,6 +5,7 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
+import sys
 import typing as t
 from subprocess import PIPE, run, CalledProcessError, DEVNULL
 from os import stat
@@ -15,15 +16,32 @@ from pytermor._version import __version__
 
 
 class Main:
+    """
+    USAGE:
+        python -m pytermor [-s|--short]
+
+    Print library version.
+    """
     def __init__(self):
+        short = False
+        for arg in sys.argv[1:]:
+            if arg in ('-s', '--short'):
+                short = True
+                continue
+            print(f"ERROR: Invalid argument/option: {arg}")
+            print(Main.__doc__)
+            exit(1)
+
         _iter_fns: t.List[t.Callable] = [
-            self._get_version_from_git,
             self._get_version_from_fs,
+            self._get_version_from_git,
         ]
         while len(_iter_fns) > 0:
             fn = _iter_fns.pop(0)
             if (result := fn()) is not None:
-                print("v" + ":".join(result))
+                if short:
+                    result = result[:1]
+                print(":".join(result))
                 return
         print("Failed to determine the version")
 
@@ -35,7 +53,7 @@ class Main:
     def _get_version_from_git(self) -> t.Tuple[str, str]|None:
         try:
             v = self._call_git("describe", "--tags")
-            dt = self._call_git("showw", "-s", "--format=%cd", "--date=format:%b-%y")
+            dt = self._call_git("show", "-s", "--format=%cd", "--date=format:%b-%y")
             return v, dt
         except (FileNotFoundError, CalledProcessError, UnicodeDecodeError):
             return None

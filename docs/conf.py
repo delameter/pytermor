@@ -56,9 +56,9 @@ extensions = [
 # line before building it and uncomments it afterwards (yeah I know it's ugly)
 
 templates_path = ["_templates"]
-exclude_patterns = ["_build", "_depreacted", "_generated"]
+exclude_patterns = ["_build", "_depreacted", "_generated", "_include"]
 
-with open("_prolog.rsti", "rt") as f:
+with open("_include/_prolog.rsti", "rt") as f:
     rst_prolog = f.read()
 
 # -- HTML ---------------------------------------------------------------------
@@ -92,13 +92,29 @@ latex_elements = {
     'preamble': r'''
 \setlength{\emergencystretch}{5em}
 \DeclareUnicodeCharacter{2588}{~}
+
+
 ''',
-    #'fontenc': r'\usepackage[X2,T1]{fontenc}',
-    'papersize': 'a4paper',
+    #'fontenc': r'\usepackage[X2,T1]{fontenc}',  # #language = "ru"
+    'papersize': 'a4paper',  # letter
     'pointsize': '10pt',  # 10,11,12
+
+    # necessary for unicode charactacters in pdf output
+    'inputenc': '',
+    'utf8extra': '',
+
+    # remove blank pages (between the title page and the TOC, etc.)
+    'classoptions': ',openany,oneside',
+    'babel' : '\\usepackage[english]{babel}',
+
     'pxunit': '0.5bp',  # (dpi = 72*bp)
     'figure_align': 'H',
-    'fncychap': r'\usepackage[Bjornstrup]{fncychap}',
+    'fncychap': r'''
+\usepackage{fix-cm} 
+\usepackage[Conny]{fncychap}
+\ChNumVar{\fontsize{48}{56}\selectfont}
+\renewcommand\FmN[1]{}
+''',
     'printindex': r'\footnotesize\raggedright\printindex',
 }
 latex_show_urls = 'footnote'

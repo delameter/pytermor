@@ -24,5 +24,5 @@ This project uses Semantic Versioning -- https://semver.org *(starting from v2.0
 
 .. only:: html
 
-   .. include:: changes-legend.rst
+   .. include:: _include/changes-legend.rst
 
