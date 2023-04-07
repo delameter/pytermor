@@ -19,10 +19,10 @@ root_doc = "index"
 # -- Project information ------------------------------------------------------
 
 project = "pytermor"
-copyright = "2022, Alexandr Shavykin"
+copyright = "2022-2023, Alexandr Shavykin"
 author = "Alexandr Shavykin"
 show_authors = True
-#language = "ru"
+# language = "ru"
 
 github_repository = "pytermor"
 github_branch = "master"
@@ -42,7 +42,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.inheritance_diagram",
     "sphinx.ext.graphviz",
-    #"sphinx.ext.doctest",
+    # "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
     "sphinx_design",  # <<<MAKE_DOCS_MAN<<<
@@ -65,11 +65,7 @@ with open("_include/_prolog.rsti", "rt") as f:
 
 # html_theme = 'alabaster'  # alibabaster f[f[f[
 html_theme = "furo"
-
-if len(version) > 5:
-    html_title = f"pytermor<br>{version}"
-else:
-    html_title = f"pytermor {version}"
+html_title = ("<br>" if len(version) > 5 else "").join([project, version])
 
 html_static_path = ["_static"]
 html_css_files = ["custom.css", "custom-furo.css"]
@@ -87,37 +83,29 @@ copybutton_prompt_text = ">>> "
 # -- LaTeX / PDF --------------------------------------------------------------
 
 latex_logo = "_static/logo-96.png"
+latex_show_urls = "footnote"
 
+# noinspection SpellCheckingInspection
 latex_elements = {
-    'preamble': r'''
-\setlength{\emergencystretch}{5em}
-\DeclareUnicodeCharacter{2588}{~}
-
-
-''',
-    #'fontenc': r'\usepackage[X2,T1]{fontenc}',  # #language = "ru"
-    'papersize': 'a4paper',  # letter
-    'pointsize': '10pt',  # 10,11,12
-
-    # necessary for unicode charactacters in pdf output
-    'inputenc': '',
-    'utf8extra': '',
-
-    # remove blank pages (between the title page and the TOC, etc.)
-    'classoptions': ',openany,oneside',
-    'babel' : '\\usepackage[english]{babel}',
-
-    'pxunit': '0.5bp',  # (dpi = 72*bp)
-    'figure_align': 'H',
-    'fncychap': r'''
-\usepackage{fix-cm} 
-\usepackage[Conny]{fncychap}
-\ChNumVar{\fontsize{48}{56}\selectfont}
-\renewcommand\FmN[1]{}
-''',
-    'printindex': r'\footnotesize\raggedright\printindex',
+    # 'fontenc': r'\usepackage[X2,T1]{fontenc}',  # with language = "ru"
+    "preamble":
+        r'\setlength{\emergencystretch}{5em}'  # decrease "can't fit" warnings
+        r'\DeclareUnicodeCharacter{2588}{~}',  # █
+    "papersize": "a4paper",  # letter,a4paper
+    "pointsize": "10pt",  # 10,11,12
+    "inputenc": "",
+    "utf8extra": "",  # both necessary for unicode charactacters in pdf output
+    "classoptions": ",openany,oneside",  # remove blank pages
+    "babel": "\\usepackage[english]{babel}",  # quote symbols and more
+    "pxunit": "0.5bp",  # (dpi = 72*bp)  doesnt work btw
+    "figure_align": "H",  # text wrapping
+    "fncychap":  # chapter start pages
+        r'\usepackage{fix-cm}' 
+        r'\usepackage[Conny]{fncychap}'  # pre-set chapter style
+        r'\ChNumVar{\fontsize{48}{56}\selectfont}'  # with bigger font for numbers
+        r'\renewcommand\FmN[1]{}',
+    "printindex": r"\footnotesize\raggedright\printindex",  # decrease font for index
 }
-latex_show_urls = 'footnote'
 
 # -- autodoc ------------------------------------------------------------------
 
@@ -133,13 +121,13 @@ latex_show_urls = 'footnote'
 # autodoc_typehints_format = 'short'
 autodoc_default_options = {
     "members": True,
-    #'undoc-members': True,
+    # 'undoc-members': True,
     "inherited-members": True,
-    #'private-members': True,
+    # 'private-members': True,
     "show-inheritance": True,
     # "special-members": "__call__",
     "member-order": "bysource",
-    #'member-order': 'groupwise',
+    # 'member-order': 'groupwise',
 }
 
 # class pytermor.Colors.Color(hex_value.. -> class Color(..

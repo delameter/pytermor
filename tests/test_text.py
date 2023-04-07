@@ -75,6 +75,33 @@ class TestText:
         )
         assert text.render() == expected
 
+    def test_raw_works(self):
+        style1 = Style(fg="red", bg="black", bold=True)
+        style2 = Style(fg="yellow", bg="green", underlined=True)
+        text = Text(
+            Fragment("1", style1, close_this=False),
+            Fragment("2", style2, close_this=False),
+            Fragment("3"),
+            Fragment("4", style2, close_prev=True),
+            Fragment("5", style1, close_prev=True),
+            Fragment("6"),
+        )
+        assert text.raw() == '123456'
+
+    def test_as_fragments_works(self):
+        style1 = Style(fg="red", bg="black", bold=True)
+        style2 = Style(fg="yellow", bg="green", underlined=True)
+        fragments = [
+            Fragment("1", style1, close_this=False),
+            Fragment("2", style2, close_this=False),
+            Fragment("3"),
+            Fragment("4", style2, close_prev=True),
+            Fragment("5", style1, close_prev=True),
+            Fragment("6"),
+        ]
+        text = Text(*fragments)
+        assert pt.text.as_fragments(text) == fragments
+
 
 class TestAdding:
     frag1 = Fragment("123", "red")
@@ -179,7 +206,7 @@ class TestFragmentFormatting:
     def test_format_works(self, expected: str, template: str):
         expected_no_sgr = pt.SgrStringReplacer().apply(expected)
         assert template.format(self.fragment) == expected
-        assert template.format(self.fragment.string) == expected_no_sgr
+        assert template.format(self.fragment.raw()) == expected_no_sgr
 
     @pytest.mark.parametrize("format_type", "bcdoxXneEfFgGn%")
     @pytest.mark.xfail(raises=ValueError)

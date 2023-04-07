@@ -9,6 +9,7 @@ venv
 .coverage
 coverage.*
 docs/_build
+docs-build/*/
 identifier.sqlite
 temp
 misc/depends

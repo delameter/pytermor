@@ -3,8 +3,13 @@
 
 pending
 ------------------
+- |UPDATE| Update coverage.yml
+- |MAINTAIN| pdf documentation
+- |MAINTAIN| cleanup
+- |MAINTAIN| (c) update
+- |FIX| `flake8`
 
-.. <@pending:ec912bf>
+.. <@pending:cb3934f>
 .. ^ blank line before should be kept
 
 

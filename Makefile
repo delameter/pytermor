@@ -78,7 +78,7 @@ _docker_cp_dist = (docker cp ${DOCKER_CONTAINER}:/opt/dist ${PWD})
 _docker_rm = (docker rm ${DOCKER_CONTAINER})
 
 docker-all:  ## [host] Run tests, build module and update docs in docker container
-docker-all: demolish-docs build-image
+docker-all: demolish-docs build-image make-docs-out-dir
 	$(call _docker_run,"make all")
 	$(call _docker_cp_docs)
 	$(call _docker_cp_dist)
@@ -88,10 +88,18 @@ docker-cover:  ## [host] Measure coverage in docker container
 docker-cover: build-image
 	$(call _docker_run_rm,"make cover update-coveralls")
 
+docker-docs-html:  ## [host] Update PDF docs in docker container
+docker-docs-html: build-image make-docs-out-dir
+	$(call _docker_run,"make docs-html")
+	$(call _docker_cp_docs)
+
 docker-docs-pdf:  ## [host] Update PDF docs in docker container
-docker-docs-pdf: build-image
+docker-docs-pdf: build-image make-docs-out-dir
 	$(call _docker_run,"make docs-pdf")
 	$(call _docker_cp_docs)
+
+make-docs-out-dir:
+	mkdir -p ${DOCS_OUT_PATH}/${VERSION}
 
 ##
 ## Automation
@@ -192,7 +200,7 @@ docs: depends demolish-docs docs-html
 
 docs-html: ## Build HTML documentation  <caching allowed>
 	export PT_ENV=build
-	mkdir -p docs-build
+	mkdir -p ${DOCS_OUT_PATH}/${VERSION}
 	if ! ./.invoke sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b html -n ; then \
     	notify-send -i important pytermor 'HTML docs build failed ${NOW}' && \
     	return 1 ; \

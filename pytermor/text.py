@@ -69,6 +69,10 @@ class IRenderable(t.Sized, ABC):
         ...
 
     @abstractmethod
+    def raw(self) -> str:
+        """pass"""
+
+    @abstractmethod
     def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
         """pass"""
 
@@ -183,8 +187,7 @@ class Fragment(IRenderable):
     def _as_fragments(self) -> t.List[Fragment]:
         return [self]
 
-    @property
-    def string(self) -> str:
+    def raw(self) -> str:
         return self._string
 
     @property
@@ -315,13 +318,8 @@ class FrozenText(IRenderable):
     def _as_fragments(self) -> t.List[Fragment]:
         return [*self._fragments]
 
-    @property
-    def allows_width_setup(self) -> bool:
-        return True
-
-    @property
-    def has_width(self) -> bool:
-        return self._width is not None
+    def raw(self) -> str:
+        return ''.join(f.raw() for f in self._fragments)
 
     def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
         max_len = len(self) + self._pad
@@ -342,7 +340,7 @@ class FrozenText(IRenderable):
             # cropping and overflow handling
             max_frag_len = max_len - cur_len
             frag = self._fragments[cur_frag_idx]
-            frag_part = frag.string[:max_frag_len]
+            frag_part = frag.raw()[:max_frag_len]
             next_len = cur_len + len(frag_part)
             if next_len > overflow_start:
                 overflow_start_rel = overflow_start - next_len
@@ -405,6 +403,14 @@ class FrozenText(IRenderable):
 
         return "".join(renderer.render(fp, st) for fp, st in result_parts)
 
+    @property
+    def allows_width_setup(self) -> bool:
+        return True
+
+    @property
+    def has_width(self) -> bool:
+        return self._width is not None
+
     def append(self, *fragments: Fragment) -> FrozenText:
         self._ensure_fragments(*fragments)
         return FrozenText(*self._fragments, *fragments)
@@ -439,8 +445,8 @@ class TextComposite(IRenderable):
     """
     Simple class-container supporting concatenation of
     any `IRenderable` instances with each other without
-    any extra logic on top of it. Renders parts joined
-    by an empty string.
+    extra logic on top of it. Renders parts joined by an
+    empty string.
     """
     def __init__(self, *parts: t.Iterable[IRenderable]):
         super().__init__()
@@ -468,6 +474,9 @@ class TextComposite(IRenderable):
 
     def _as_fragments(self) -> t.List[Fragment]:
         return flatten1([as_fragments(p) for p in self._parts])
+
+    def raw(self) -> str:
+        return ''.join(p.raw() for p in self._parts)
 
     def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
         return "".join(p.render(self._resolve_renderer(renderer)) for p in self._parts)
@@ -553,6 +562,9 @@ class SimpleTable(IRenderable):
 
     def _as_fragments(self) -> t.List[Fragment]:
         raise NotImplementedError
+
+    def raw(self) -> str:
+        return "\n".join(*[[cell.raw() for cell in row] for row in self._rows])
 
     @property
     def allows_width_setup(self) -> bool:
