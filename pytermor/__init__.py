@@ -71,6 +71,7 @@ from .color import approximate as approximate
 from .color import find_closest as find_closest
 from .color import resolve_color as resolve_color
 from .common import Align as Align
+from .common import ExtendedEnum as ExtendedEnum
 from .common import chunk as chunk
 from .common import flatten1 as flatten1
 from .common import get_preferable_wrap_width as get_preferable_wrap_width

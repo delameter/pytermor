@@ -34,6 +34,9 @@ colors:
   - name: alabaster
     original_name: Alabaster
     value: 0xf2f0e6
+  - name: alexandria
+    original_name: Alexandria (Atlassian)
+    value: 0xff8f73
   - name: alice-blue
     original_name: Alice blue
     value: 0xf0f8ff
@@ -167,6 +170,9 @@ colors:
   - name: aquamarine
     original_name: Aquamarine
     value: 0x7fffd4
+  - name: arctic-chill
+    original_name: Arctic chill (Atlassian)
+    value: 0xb3f5ff
   - name: arctic-lime
     original_name: Arctic lime
     value: 0xd0ff14
@@ -179,6 +185,9 @@ colors:
   - name: artichoke
     original_name: Artichoke
     value: 0x8f9779
+  - name: arvo-breeze
+    original_name: Arvo breeze (Atlassian)
+    value: 0x4c9aff
   - name: arylide-yellow
     original_name: Arylide yellow
     value: 0xe9d66b
@@ -410,6 +419,9 @@ colors:
   - name: black-shadows
     original_name: Black Shadows
     value: 0xbfafb2
+  - name: blanche
+    original_name: Blanche (Atlassian)
+    value: 0xa5adba
   - name: blanched-almond
     original_name: Blanched almond
     value: 0xffebcd
@@ -419,6 +431,9 @@ colors:
   - name: bleu-de-france
     original_name: Bleu de France
     value: 0x318ce7
+  - name: bling-bling
+    original_name: Bling bling (Atlassian)
+    value: 0x6b778c
   - name: blizzard-blue
     original_name: Blizzard blue
     value: 0xace5ee
@@ -541,6 +556,9 @@ colors:
   - name: bondi-blue
     original_name: Bondi blue
     value: 0x0095b6
+  - name: bondi-sunburn
+    original_name: Bondi sunburn (Atlassian)
+    value: 0xffbdad
   - name: bone
     original_name: Bone
     value: 0xe3dac9
@@ -912,6 +930,9 @@ colors:
   - name: cheese
     original_name: Cheese
     value: 0xffa600
+  - name: cheezy-blasters
+    original_name: Cheezy blasters (Atlassian)
+    value: 0xff991f
   - name: cherry-blossom
     original_name: Cherry blossom color (Sakura-iro)
     value: 0xfcc9b9
@@ -1000,6 +1021,9 @@ colors:
   - name: chocolate-kisses
     original_name: Chocolate Kisses
     value: 0x3c1421
+  - name: chore-coat
+    original_name: Chore coat (Atlassian)
+    value: 0x0747a6
   - name: chrome-aluminum
     original_name: Chrome aluminum
     value: 0xa8a9ad
@@ -1033,12 +1057,18 @@ colors:
   - name: classic-rose
     original_name: Classic rose
     value: 0xfbcce7
+  - name: clooney
+    original_name: Clooney (Atlassian)
+    value: 0x5e6c84
   - name: clove-brown
     original_name: Clove-brown (Chōjicha)
     value: 0x8f583c
   - name: clove-dyed
     original_name: Clove-dyed (Chōjizome)
     value: 0xa96232
+  - name: cloverleaf
+    original_name: Cloverleaf (Atlassian)
+    value: 0x79f2c0
   - name: coarse-wool
     original_name: Coarse wool color (Kachi-iro)
     value: 0x181b26
@@ -1063,6 +1093,9 @@ colors:
   - name: columbia-blue
     original_name: Columbia Blue
     value: 0xc4d8e2
+  - name: concrete-jungle
+    original_name: Concrete jungle (Atlassian)
+    value: 0x505f79
   - name: conditioner
     original_name: Conditioner
     value: 0xffffcc
@@ -1072,6 +1105,9 @@ colors:
   - name: contemplation-in-a-tea-garden
     original_name: Contemplation in a tea garden (Rokōcha)
     value: 0x665343
+  - name: coogee
+    original_name: Coogee (Atlassian)
+    value: 0x2684ff
   - name: cookies-and-cream
     original_name: Cookies and cream
     value: 0xeee0b1
@@ -1145,6 +1181,9 @@ colors:
   - name: cotton-candy
     original_name: Cotton candy
     value: 0xffbcd9
+  - name: cowbell
+    original_name: Cowbell (Atlassian)
+    value: 0xffe380
   - name: coyote-brown
     original_name: Coyote brown
     value: 0x81613c
@@ -1202,6 +1241,11 @@ colors:
   - name: cypress-bark-red
     original_name: Cypress bark red (Benihibata)
     value: 0x6f3028
+  - aliases:
+      - jira-violet
+    name: da-juice
+    original_name: Da' juice (Atlassian)
+    value: 0x6554c0
   - name: daffodil
     original_name: Daffodil
     value: 0xffff31
@@ -1212,6 +1256,9 @@ colors:
       - name: crayola
         original_name: Dandelion (Crayola)
         value: 0xfddb6d
+  - name: dandelion-whisper
+    original_name: Dandelion whisper (Atlassian)
+    value: 0xfff0b3
   - name: dark-blue
     original_name: Dark blue
     value: 0x00008b
@@ -1444,6 +1491,9 @@ colors:
   - name: debian-red
     original_name: Debian red
     value: 0xd70a53
+  - name: debrito
+    original_name: Debrito (Atlassian)
+    value: 0xff8b00
   - name: decaying-leaves
     original_name: Decaying leaves color (Kuchiba-iro)
     value: 0xd57835
@@ -1615,6 +1665,9 @@ colors:
   - name: dove-feather-gray
     original_name: Dove feather gray (Hatobanezumi)
     value: 0x755d5b
+  - name: dragons-blood
+    original_name: Dragon's blood (Atlassian)
+    value: 0xbf2600
   - name: duke-blue
     original_name: Duke blue
     value: 0x00009c
@@ -1784,6 +1837,11 @@ colors:
   - name: finch-brown
     original_name: Finch-brown (Cardueline finch) (Hiwacha)
     value: 0x957b38
+  - aliases:
+      - jira-green
+    name: fine-pine
+    original_name: Fine pine (Atlassian)
+    value: 0x36b37e
   - name: fire-engine-red
     original_name: Fire engine red
     value: 0xce2029
@@ -1935,6 +1993,7 @@ colors:
   - aliases:
       - true-white
       - pure-white
+      - doctor
     name: full-white
     original_name: Full white
     value: 0xffffff
@@ -2034,6 +2093,11 @@ colors:
   - name: golden-poppy
     original_name: Golden poppy
     value: 0xfcc200
+  - aliases:
+      - jira-yellow
+    name: golden-state
+    original_name: Golden state (Atlassian)
+    value: 0xffab00
   - name: golden-yellow
     original_name: Golden yellow
     value: 0xffdf00
@@ -2059,6 +2123,12 @@ colors:
   - name: goryeo-storeroom
     original_name: Goryeo storeroom (Kōrainando)
     value: 0x203838
+  - name: grams-hair
+    original_name: Gram's hair (Atlassian)
+    value: 0xf4f5f7
+  - name: grams-sofa
+    original_name: Gram's sofa (Atlassian)
+    value: 0xe6fcff
   - name: granite-gray
     original_name: Granite gray
     value: 0x676767
@@ -2142,6 +2212,10 @@ colors:
   - name: green-tea
     original_name: Green tea-colored (Sencha-iro)
     value: 0x824b35
+    variations:
+      - name: atlassian
+        original_name: Green tea (Atlassian)
+        value: 0x57d9a3
   - name: green-yellow
     original_name: Green-yellow
     value: 0xadff2f
@@ -2164,6 +2238,9 @@ colors:
   - name: guyabano
     original_name: Guyabano
     value: 0xf8f8f8
+  - name: hairy-fairy
+    original_name: Hairy fairy (Atlassian)
+    value: 0x79e2f2
   - name: halaya-ube
     original_name: Halaya ube
     value: 0x663854
@@ -2212,6 +2289,9 @@ colors:
   - name: heliotrope-magenta
     original_name: Heliotrope magenta
     value: 0xaa00bb
+  - name: herky-jerky
+    original_name: Herky jerky (Atlassian)
+    value: 0x998dd9
   - name: hi-blue-kalm
     original_name: Hi-Blue kalm
     value: 0x81a2be
@@ -2258,6 +2338,9 @@ colors:
       - name: 1987-2018
         original_name: Huawei Red (1987-2018)
         value: 0xed1c24
+  - name: humboldt-fog
+    original_name: Humboldt fog (Atlassian)
+    value: 0x7a869a
   - name: ibis-wing
     original_name: Ibis wing color (Tokiha-iro)
     value: 0xf58f84
@@ -2403,6 +2486,9 @@ colors:
   - name: jade
     original_name: Jade
     value: 0x00a86b
+  - name: james-blonde
+    original_name: James blonde (Atlassian)
+    value: 0xfffae6
   - name: japanese-carmine
     original_name: Japanese carmine
     value: 0x9d2933
@@ -2445,6 +2531,9 @@ colors:
   - name: jet-stream
     original_name: Jet stream
     value: 0xbbd0c9
+  - name: jolly-fun-time
+    original_name: Jolly fun time (Atlassian)
+    value: 0xdfe1e6
   - name: jonquil
     original_name: Jonquil
     value: 0xf4ca16
@@ -2457,6 +2546,12 @@ colors:
   - name: jungle-green
     original_name: Jungle green
     value: 0x29ab87
+  - name: karl
+    original_name: Karl (Atlassian)
+    value: 0xc1c7d0
+  - name: keen-green
+    original_name: Keen green (Atlassian)
+    value: 0x006644
   - name: kelly-green
     original_name: Kelly green
     value: 0x4cbb17
@@ -2545,6 +2640,9 @@ colors:
   - name: lavender-rose
     original_name: Lavender rose
     value: 0xfba0e3
+  - name: lavender-secret
+    original_name: Lavender secret (Atlassian)
+    value: 0xeae6ff
   - name: lawn-green
     original_name: Lawn green
     value: 0x7cfc00
@@ -2921,6 +3019,9 @@ colors:
   - name: maya-blue
     original_name: Maya blue
     value: 0x73c2fb
+  - name: mc-fanning
+    original_name: McFanning (Atlassian)
+    value: 0x42526e
   - name: meat
     original_name: Meat-color (Shishi-iro)
     value: 0xf9906f
@@ -3005,6 +3106,12 @@ colors:
   - name: menthol
     original_name: Menthol
     value: 0xc1f9a2
+  - name: meredith
+    original_name: Meredith (Atlassian)
+    value: 0x8993a4
+  - name: mermaid-net
+    original_name: Mermaid net (Atlassian)
+    value: 0x00c7e6
   - name: metallic-blue
     original_name: Metallic blue
     value: 0x32527b
@@ -3132,6 +3239,9 @@ colors:
   - name: mint-green
     original_name: Mint green
     value: 0x98ff98
+  - name: mintie
+    original_name: Mintie (Atlassian)
+    value: 0xabf5d1
   - name: misty-moss
     original_name: Misty moss
     value: 0xbbb477
@@ -3274,6 +3384,9 @@ colors:
   - name: north-texas-green
     original_name: North Texas Green
     value: 0x059033
+  - name: northeast-snow
+    original_name: Northeast snow (Atlassian)
+    value: 0xebecf0
   - name: nyanza
     original_name: Nyanza
     value: 0xe9ffdb
@@ -3438,6 +3551,11 @@ colors:
   - name: pacific-blue
     original_name: Pacific blue
     value: 0x1ca9c9
+  - aliases:
+      - jira-blue
+    name: pacific-bridge
+    original_name: Pacific bridge (Atlassian)
+    value: 0x0052cc
   - name: painite
     original_name: Painite
     value: 0x6b4947
@@ -3585,6 +3703,9 @@ colors:
   - name: pastel-yellow
     original_name: Pastel yellow
     value: 0xfdfd96
+  - name: pastelli
+    original_name: Pastelli (Atlassian)
+    value: 0x8777d9
   - name: patina
     original_name: Patina (Rokushō)
     value: 0x407a52
@@ -3670,9 +3791,15 @@ colors:
   - name: peru
     original_name: Peru
     value: 0xcd853f
+  - name: pet-rock
+    original_name: Pet rock (Atlassian)
+    value: 0x344563
   - name: pewter-blue
     original_name: Pewter Blue
     value: 0x8ba8b7
+  - name: phantom-mist
+    original_name: Phantom mist (Atlassian)
+    value: 0xc0b6f2
   - name: philippine-blue
     original_name: Philippine blue
     value: 0x0038a7
@@ -3767,6 +3894,9 @@ colors:
   - name: pistachio
     original_name: Pistachio
     value: 0x93c572
+  - name: pixie-dust
+    original_name: Pixie dust (Atlassian)
+    value: 0xdeebff
   - name: pixie-powder
     original_name: Pixie Powder
     value: 0x391285
@@ -3815,6 +3945,11 @@ colors:
   - name: poppy-petal
     original_name: Poppy Petal
     value: 0xf6a08c
+  - aliases:
+      - jira-red
+    name: poppy-surprise
+    original_name: Poppy surprise (Atlassian)
+    value: 0xff5630
   - name: popstar
     original_name: Popstar
     value: 0xbe4f62
@@ -3827,12 +3962,18 @@ colors:
   - name: powder-blue
     original_name: Powder blue
     value: 0xb0e0e6
+  - name: prince
+    original_name: Prince (Atlassian)
+    value: 0x403294
   - name: princess-perfume
     original_name: Princess Perfume
     value: 0xff85cf
   - name: princeton-orange
     original_name: Princeton orange
     value: 0xf58025
+  - name: prom-dress
+    original_name: Prom dress (Atlassian)
+    value: 0x00a3bf
   - name: prussian-blue
     original_name: Prussian blue
     value: 0x003153
@@ -3840,6 +3981,9 @@ colors:
       - name: konjo-iro
         original_name: Prussian blue color (Konjō-iro)
         value: 0x003171
+  - name: pub-mix
+    original_name: Pub mix (Atlassian)
+    value: 0xffc400
   - name: puce
     original_name: Puce
     value: 0xcc8899
@@ -3996,6 +4140,9 @@ colors:
   - name: red-devil
     original_name: Red devil
     value: 0x860111
+  - name: red-dirt
+    original_name: Red dirt (Atlassian)
+    value: 0xde350b
   - name: red-incense
     original_name: Red incense-colored (Akakō-iro)
     value: 0xf07f5e
@@ -4128,6 +4275,9 @@ colors:
   - name: rosewood
     original_name: Rosewood
     value: 0x65000b
+  - name: rosie
+    original_name: Rosie (Atlassian)
+    value: 0xffebe6
   - name: rosso-corsa
     original_name: Rosso corsa
     value: 0xd40000
@@ -4257,6 +4407,9 @@ colors:
   - name: salmon-rose
     original_name: Salmon Rose
     value: 0xe7968b
+  - name: salmon-sashimi
+    original_name: Salmon sashimi (Atlassian)
+    value: 0xff7452
   - name: samsung-blue
     original_name: Samsung blue
     value: 0x12279e
@@ -4303,6 +4456,9 @@ colors:
   - name: school-bus-yellow
     original_name: School bus yellow
     value: 0xffd800
+  - name: schwag
+    original_name: Schwag (Atlassian)
+    value: 0xb3d4ff
   - name: scorched-brown
     original_name: Scorched brown (Kogecha)
     value: 0x351f19
@@ -4337,6 +4493,9 @@ colors:
   - name: sen-no-rikyus-tea
     original_name: Sen no Rikyu's tea (Rikyūcha)
     value: 0x826b58
+  - name: sentinel
+    original_name: Sentinel (Atlassian)
+    value: 0xb3bac5
   - name: sepia
     original_name: Sepia
     value: 0x704214
@@ -4346,6 +4505,9 @@ colors:
   - name: sesame-street-green
     original_name: Sesame Street Green
     value: 0x00a870
+  - name: shabby-chic
+    original_name: Shabby chic (Atlassian)
+    value: 0x008da6
   - name: shadow
     original_name: Shadow
     value: 0x8a795d
@@ -4432,12 +4594,18 @@ colors:
   - name: sky-magenta
     original_name: Sky magenta
     value: 0xcf71af
+  - name: slate
+    original_name: Slate (Atlassian)
+    value: 0x091e42
   - name: slate-blue
     original_name: Slate blue
     value: 0x6a5acd
   - name: slate-gray
     original_name: Slate gray
     value: 0x708090
+  - name: slime
+    original_name: Slime (Atlassian)
+    value: 0x00875a
   - name: slimy-green
     original_name: Slimy green
     value: 0x299617
@@ -4459,12 +4627,21 @@ colors:
   - name: smoky-topaz
     original_name: Smoky Topaz
     value: 0x933d41
+  - name: snorlax
+    original_name: Snorlax (Atlassian)
+    value: 0x253858
   - name: snow
     original_name: Snow
     value: 0xfffafa
+  - name: snozzberry
+    original_name: Snozzberry (Atlassian)
+    value: 0x5243aa
   - name: soap
     original_name: Soap
     value: 0xcec8ef
+  - name: sodium-explosion
+    original_name: Sodium explosion (Atlassian)
+    value: 0x0065ff
   - name: soldier-green
     original_name: Soldier Green
     value: 0x545a2c
@@ -4537,6 +4714,9 @@ colors:
   - name: sponge
     original_name: Sponge
     value: 0xfdfe03
+  - name: spooky-ghost
+    original_name: Spooky ghost (Atlassian)
+    value: 0x97a0af
   - name: spring-bud
     original_name: Spring bud
     value: 0xa7fc00
@@ -4549,6 +4729,11 @@ colors:
   - name: sprint-yellow
     original_name: Sprint Yellow
     value: 0xffdd05
+  - aliases:
+      - jira-black
+    name: squid-ink
+    original_name: Squid ink (Atlassian)
+    value: 0x172b4d
   - name: st-patricks-blue
     original_name: St. Patrick's blue
     value: 0x23297a
@@ -4646,6 +4831,11 @@ colors:
   - name: sweet-sixteen
     original_name: Sweet Sixteen
     value: 0xf29eab
+  - aliases:
+      - jira-cyan
+    name: tamarama
+    original_name: Tamarama (Atlassian)
+    value: 0x00b8d9
   - name: tan
     original_name: Tan
     value: 0xd2b48c
@@ -4707,6 +4897,9 @@ colors:
   - name: the-color-of-an-undried-wall
     original_name: The color of an undried wall (Namakabe-iro)
     value: 0x785e49
+  - name: the-smell
+    original_name: The smell (Atlassian)
+    value: 0xe3fcef
   - name: thin
     original_name: Thin color (Usu-iro)
     value: 0xa87ca0
@@ -5064,6 +5257,9 @@ colors:
   - name: warm-black
     original_name: Warm black
     value: 0x004242
+  - name: wash-me
+    original_name: Wash me (Atlassian)
+    value: 0xfafbfc
   - name: washed-out-crimson
     original_name: Washed-out crimson (dye) (Arazome)
     value: 0xffb3a7

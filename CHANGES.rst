@@ -8,8 +8,9 @@ pending
 - |MAINTAIN| cleanup
 - |MAINTAIN| (c) update
 - |FIX| `flake8`
+- |NEW|  `IRenderable.raw()` method
 
-.. <@pending:cb3934f>
+.. <@pending:b0c15ad>
 .. ^ blank line before should be kept
 
 
