@@ -14,8 +14,8 @@ digraph G {
     pytermor_style [fillcolor="#bc2f2f",fontcolor="#ffffff",label="style"];
     pytermor_text [fillcolor="#8f3d3d",fontcolor="#ffffff",label="text"];
     pytermor_utilmisc [fillcolor="#ac4949",fontcolor="#ffffff",label="utilmisc"];
-    pytermor_utilnum [fillcolor="#9d4343",fontcolor="#ffffff",label="utilnum"];
-    pytermor_utilstr [fillcolor="#ac4949",fontcolor="#ffffff",label="utilstr"];
+    pytermor_utilnum [fillcolor="#924e4e",fontcolor="#ffffff",label="utilnum"];
+    pytermor_utilstr [fillcolor="#b34c4c",fontcolor="#ffffff",label="utilstr"];
     pytermor_ansi -> pytermor_color [fillcolor="#d92626"];
     pytermor_ansi -> pytermor_cval [fillcolor="#d92626"];
     pytermor_ansi -> pytermor_renderer [fillcolor="#d92626"];
@@ -44,7 +44,6 @@ digraph G {
     pytermor_style -> pytermor_utilnum [fillcolor="#bc2f2f"];
     pytermor_text -> pytermor_utilnum [fillcolor="#8f3d3d"];
     pytermor_utilmisc -> pytermor_color [fillcolor="#ac4949"];
-    pytermor_utilnum -> pytermor_utilstr [fillcolor="#9d4343"];
-    pytermor_utilstr -> pytermor_text [fillcolor="#ac4949"];
+    pytermor_utilstr -> pytermor_text [fillcolor="#b34c4c"];
 }
 

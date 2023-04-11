@@ -44,7 +44,7 @@ from .ansi import ISequenceFe as ISequenceFe
 from .color import IColor as IColor
 from .renderer import IRenderer as IRenderer
 from .text import IRenderable as IRenderable
-from .utilstr import IFilter as IFilter, trace as trace, measure as measure
+from .utilstr import IFilter as IFilter
 
 # -----------------------------------------------------------------------------
 from .ansi import IntCode as IntCode
@@ -158,11 +158,9 @@ from .utilstr import apply_filters as apply_filters
 from .utilstr import center_sgr as center_sgr
 from .utilstr import dump as dump
 from .utilstr import ljust_sgr as ljust_sgr
-from .utilstr import measure as measure
 from .utilstr import pad as pad
 from .utilstr import padv as padv
 from .utilstr import rjust_sgr as rjust_sgr
-from .utilstr import trace as trace
 
 # -----------------------------------------------------------------------------
 

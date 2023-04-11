@@ -34,11 +34,9 @@
       center_sgr
       dump
       ljust_sgr
-      measure
       pad
       padv
       rjust_sgr
-      trace
    
    
 

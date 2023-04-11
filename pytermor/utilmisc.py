@@ -30,6 +30,7 @@ from .common import UserAbort, UserCancel, HSV, RGB
 
 # -----------------------------------------------------------------------------
 
+# @TODO -> to color
 
 def hex_to_rgb(hex_value: int) -> t.Tuple[int, int, int]:
     """
@@ -227,6 +228,8 @@ def lab_to_rgb(l_s: float, a_s: float, b_s: float) -> t.Tuple[int, int, int]:
 
 
 # -----------------------------------------------------------------------------
+
+# @TODO -> to ioutil
 
 def wait_key(block: bool = True) -> t.AnyStr | None:
     """
@@ -474,6 +477,8 @@ def guess_char_width(c: str) -> int:
 
 
 # -----------------------------------------------------------------------------
+
+# @todo -> delete
 
 try:
     from reprlib import repr

@@ -9,8 +9,10 @@ pending
 - |MAINTAIN| (c) update
 - |FIX| `flake8`
 - |NEW|  `IRenderable.raw()` method
+- |NEW| `cval` atlassian colors
+- |REFACTOR| made `measure` and `trace` private
 
-.. <@pending:b0c15ad>
+.. <@pending:cced767>
 .. ^ blank line before should be kept
 
 

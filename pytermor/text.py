@@ -10,16 +10,18 @@ of styled strings before the rendering, text alignment and wrapping, etc.
 """
 from __future__ import annotations
 
+import logging
 import math
 import re
 import sys
 import textwrap
+import time
 import typing as t
 from abc import abstractmethod, ABC
 from collections import deque
+from functools import update_wrapper
 from typing import overload
 
-from .utilstr import trace, measure
 from .color import IColor
 from .common import (
     LogicError,
@@ -28,11 +30,12 @@ from .common import (
     logger,
     flatten1,
     get_terminal_width,
-    get_preferable_wrap_width,
+    get_preferable_wrap_width, LOGGING_TRACE, F,
 )
 from .config import get_config
 from .renderer import IRenderer, RendererManager
 from .style import Style, make_style, NOOP_STYLE, FT
+from .utilstr import StringLinearizer, dump, apply_filters, OmniSanitizer
 
 RT = t.TypeVar("RT", str, "IRenderable")
 """
@@ -759,8 +762,60 @@ class TemplateEngine:
 _template_engine = TemplateEngine()
 
 
-@trace(enabled=get_config().trace_renders)
-@measure(template="Rendered in %s")
+def _trace(enabled: bool = True, level: int = LOGGING_TRACE, label: str = "Dump"):
+    def wrapper(origin: F) -> F:
+        def new_func(*args, **kwargs):
+            result = origin(*args, **kwargs)
+
+            if enabled and not kwargs.get("no_log", False):
+                logger.log(level=level, msg=dump(result, label))
+            return result
+
+        return update_wrapper(t.cast(F, new_func), origin)
+
+    return wrapper
+
+
+def _measure(level: int = logging.DEBUG, template: str = "Done in %s"):
+    MAX_PREVIEW_LEN = 10
+
+    def wrapper(origin: F) -> F:
+        def format_sec(val: float) -> str:
+            if val >= 2:
+                return f'{val:.1f}s'
+            if val >= 2e-3:
+                return f'{val*1e3:.0f}ms'
+            if val >= 2e-6:
+                return f'{val*1e6:.0f}µs'
+            if val >= 1e-9:
+                return f'{val*1e9:.0f}ns'
+            return '<1ns'
+
+        def new_func(*args, **kwargs):
+            before_s = time.time_ns() / 1e9
+            result = origin(*args, **kwargs)
+            after_s = time.time_ns() / 1e9
+
+            if kwargs.get("no_log", False):
+                return result
+
+            preview = apply_filters(f"'{result!s}'", OmniSanitizer, StringLinearizer)
+            if len(preview) > MAX_PREVIEW_LEN - 2:
+                preview = preview[: MAX_PREVIEW_LEN - 2] + ".."
+            logger.log(
+                level=level,
+                msg=template % format_sec(after_s - before_s)
+                + f" ({preview:.{MAX_PREVIEW_LEN}s})",
+            )
+            return result
+
+        return update_wrapper(t.cast(F, new_func), origin)
+
+    return wrapper
+
+
+@_trace(enabled=get_config().trace_renders)
+@_measure(template="Rendered in %s")
 def render(
     string: RT | t.Iterable[RT] = "",
     fmt: FT = NOOP_STYLE,

@@ -46,7 +46,7 @@ include = [
 
 [tool.hatch.envs.default.scripts]
 version = "python -m pytermor"
-importtime = "python -qX importtime -c 'import pytermor' 2>&1 | tail -1"
+importtime = "python -qX importtime -m pytermor 2> import.log && tuna import.log"
 ex-approx = "python examples/approximate.py"
 ex-lsrend = "python examples/list_renderers.py"
 ex-rendbmark = "python examples/render_benchmark.py"

@@ -11,15 +11,13 @@ Library methods rewritten for correct work with strings containing control seque
 from __future__ import annotations
 
 import codecs
-import logging
 import math
 import os
 import re
-import time
 import typing as t
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
-from functools import reduce, update_wrapper
+from functools import reduce
 from math import ceil
 from typing import Union
 
@@ -30,13 +28,11 @@ from .common import (
     ALIGN_RIGHT,
     ALIGN_CENTER,
     chunk,
-    logger,
-    get_terminal_width, LOGGING_TRACE, F,
+    get_terminal_width,
 )
 
 
-# =============================================================================
-# stdlib extensions
+# @TODO -> "filter.py"
 
 
 def pad(n: int) -> str:
@@ -99,7 +95,6 @@ def center_sgr(s: str, width: int, fillchar: str = " ", actual_len: int = None) 
 
 
 codecs.register_error("replace_with_qmark", lambda e: ("?", e.start + 1))
-
 
 # =============================================================================
 # Filters
@@ -573,7 +568,7 @@ class StringLinearizer(StringReplacer):
     :param repl: Replacement character(s).
     """
 
-    REGEX = re.compile(r'\s+')
+    REGEX = re.compile(r"\s+")
 
     def __init__(self, repl: RPT[str] = " "):
         super().__init__(self.REGEX, repl)
@@ -587,6 +582,7 @@ class WhitespaceRemover(StringLinearizer):
 
     def __init__(self):
         super().__init__("")
+
 
 # -----------------------------------------------------------------------------
 # Filters[Mappers]
@@ -633,13 +629,15 @@ class OmniMapper(IFilter[IT, IT]):
         """
         raise NotImplementedError
 
-    def _make_maps(self, override: MPT|None):
+    def _make_maps(self, override: MPT | None):
         self._maps = {
             str: str.maketrans(self._make_premap(str, override)),
             bytes: bytes.maketrans(*self._make_bytemaps(override)),
         }
 
-    def _make_premap(self, inp_type: t.Type[IT], override: MPT|None) -> t.Dict[int, IT]:
+    def _make_premap(
+        self, inp_type: t.Type[IT], override: MPT | None
+    ) -> t.Dict[int, IT]:
         default_map = dict()
         default_replacer = None
         for i in self._get_default_keys():
@@ -665,7 +663,7 @@ class OmniMapper(IFilter[IT, IT]):
             default_map.update({i: self._transcode(v, inp_type)})
         return default_map
 
-    def _make_bytemaps(self, override: MPT|None) -> t.Tuple[bytes, bytes]:
+    def _make_bytemaps(self, override: MPT | None) -> t.Tuple[bytes, bytes]:
         premap = self._make_premap(bytes, override)
         srcmap = b"".join(int.to_bytes(k, 1, "big") for k in premap.keys())
         for v in premap.values():
@@ -691,7 +689,7 @@ class StringMapper(OmniMapper[str]):
     a
     """
 
-    def _make_maps(self, override: MPT|None):
+    def _make_maps(self, override: MPT | None):
         self._maps = {str: str.maketrans(self._make_premap(str, override))}
 
     def apply(self, inp: str, extra: t.Any = None) -> str:
@@ -825,60 +823,3 @@ def dump(data: t.Any, label: str = None, max_len_shift: int = None) -> str | Non
 
     return printer.apply(data, TracerExtra(label))
 
-
-def trace(enabled: bool = True, level: int = LOGGING_TRACE, label: str = "Dump"):
-    """
-
-    :param enabled:
-    :param level:
-    :param label:
-    :return:
-    """
-
-    def wrapper(origin: F) -> F:
-        def new_func(*args, **kwargs):
-            result = origin(*args, **kwargs)
-
-            if enabled and not kwargs.get("no_log", False):
-                logger.log(level=level, msg=dump(result, label))
-            return result
-
-        return update_wrapper(t.cast(F, new_func), origin)
-
-    return wrapper
-
-
-def measure(level: int = logging.DEBUG, template: str = "Done in %s"):
-    """
-
-    :param level:
-    :param template:
-    :return:
-    """
-
-    MAX_PREVIEW_LEN = 10
-
-    def wrapper(origin: F) -> F:
-        def new_func(*args, **kwargs):
-            from .utilnum import format_si
-
-            before_s = time.time_ns() / 1e9
-            result = origin(*args, **kwargs)
-            after_s = time.time_ns() / 1e9
-
-            if kwargs.get("no_log", False):
-                return result
-
-            preview = apply_filters(f"'{result!s}'", OmniSanitizer, StringLinearizer)
-            if len(preview) > MAX_PREVIEW_LEN - 2:
-                preview = preview[: MAX_PREVIEW_LEN - 2] + ".."
-            logger.log(
-                level=level,
-                msg=template % format_si(after_s - before_s, "s")
-                + f" ({preview:.{MAX_PREVIEW_LEN}s})",
-            )
-            return result
-
-        return update_wrapper(t.cast(F, new_func), origin)
-
-    return wrapper
