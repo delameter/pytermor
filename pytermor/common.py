@@ -22,11 +22,10 @@ from collections import namedtuple
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
 
-RGB = namedtuple("RGB", ["red", "green", "blue"])
-""" RGB.
-"""
+RGB = t.NamedTuple("RGB", red=int, green=int, blue=int)
+""" RGB. """
 
-HSV = namedtuple("HSV", ["hue", "saturation", "value"])
+HSV = t.NamedTuple("HSV", hue=float, saturation=float, value=float)
 """ HSV. """
 
 LOGGING_TRACE = 5

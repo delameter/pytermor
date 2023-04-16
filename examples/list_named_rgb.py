@@ -16,36 +16,18 @@ from os.path import abspath, join, dirname
 
 import yaml
 
-
 import pytermor as pt
 import pytermor.common
 import pytermor.utilstr
 import pytermor.utilmisc
-from pytermor import Text
+from pytermor import Text, HtmlRenderer
 
 
-class Main():
-    def __init__(self):
-        # _colors = ConfigLoader().colors
-        _colors = [
-            _ColorRGBOriginAdapter(v, k) for k, v in pt.ColorRGB._registry._map.items()
-        ]
-        pt.RendererManager.set_default_format_always()
-
-        _RgbListPrinter().print(_colors)
-        print()
-
-        _RgbTablePrinter(
-            int(os.environ.get("CELL_SIZE", 0)), int(os.environ.get("CELL_HEIGHT", 0))
-        ).print(_colors)
-        print()
-
-
-def _sort_by_name(cdef: _IColorRGB) -> str:
+def _sorter_by_name(cdef: _IColorRGB) -> str:
     return cdef.name
 
 
-def _sort_by_hue(cdef: _IColorRGB) -> t.Tuple[float, ...]:
+def _sorter_by_hue(cdef: _IColorRGB) -> t.Tuple[float, ...]:
     # partitioning by hue, sat and val, grayscale group first:
     h, s, v = pytermor.utilmisc.hex_to_hsv(cdef.hex_value)
     result = (h // 18 if s > 0 else -v), h // 18, s * 5 // 1, v * 20 // 1
@@ -123,24 +105,42 @@ class _ColorRGBOriginAdapter(_IColorRGB):
         return None
 
 
-class _ConfigLoader:
+class ILoader:
+    @abstractmethod
+    def load(self):
+        ...
+
+
+class _OriginLoader(ILoader):
+    def load(self) -> t.Iterable[_IColorRGB]:
+        for k, v in pt.ColorRGB._registry._map.items():
+            yield _ColorRGBOriginAdapter(v, k)
+
+
+class _ConfigLoader(ILoader):
     PROJECT_ROOT = abspath(join(dirname(__file__), ".."))
     CONFIG_PATH = join(PROJECT_ROOT, "config")
     INPUT_CONFIG_FILENAME = "rgb.yml"
 
-    def __init__(self):
+    def load(self) -> t.Iterable[_IColorRGB]:
         with open(os.path.join(self.CONFIG_PATH, self.INPUT_CONFIG_FILENAME), "rt") as f:
-            self.colors = [
-                _ColorRGBConfigAdapter(c) for c in yaml.safe_load(f).get("colors")
-            ]
+            for c in yaml.safe_load(f).get("colors"):
+                yield _ColorRGBConfigAdapter(c)
+
+                for v in c.get("variations", []):
+                    yield _ColorRGBConfigAdapter(v)
+
+                for a in c.get("aliases", []):
+                    c.update({"name": a})
+                    yield _ColorRGBConfigAdapter(c)
 
 
 class _RgbListPrinter:
     MAX_NAME_L = 30
     MAX_ORIG_L = 30
 
-    def print(self, colors: t.List[_IColorRGB]):
-        for idx, c in enumerate(sorted(colors, key=_sort_by_name)):
+    def print(self, colors: t.Sequence[_IColorRGB]):
+        for idx, c in enumerate(sorted(colors, key=_sorter_by_name)):
             pad = "".ljust(2)
             vari_style = pt.Style(fg=pt.cv.GRAY_42)
             orig_style = pt.Style(fg=pt.cv.GRAY_30)
@@ -148,7 +148,11 @@ class _RgbListPrinter:
             style = pt.Style(bg=pt.ColorRGB(c.hex_value)).autopick_fg()
             style2 = pt.Style(fg=style.bg)
 
-            name = [pt.Fragment(c.name), pt.Fragment(pad), pt.Fragment(c.variation or "", vari_style)]
+            name = [
+                pt.Fragment(c.name),
+                pt.Fragment(pad),
+                pt.Fragment(c.variation or "", vari_style),
+            ]
             orig_name = pt.Fragment(c.original_name or "", orig_style)
 
             print(
@@ -189,14 +193,14 @@ class _RgbTablePrinter:
         self._cell_margin_x = pt.pad(min(2, max(0, self._cell_width // 3 - 3)))
         self._cell_margin_y = pt.padv(len(self._cell_margin_x) // 2)
 
-    def print(self, colors: t.List[_IColorRGB]):
+    def print(self, colors: t.Sequence[_IColorRGB]):
         style_idx = pt.Style(bold=True)
 
         lines = [""] * self._cell_height
         cur_x = 0
         max_idx = len(colors)
 
-        for idx, c in enumerate(sorted(colors, key=_sort_by_hue)):
+        for idx, c in enumerate(sorted(colors, key=_sorter_by_hue)):
             style = pt.Style(bg=pt.ColorRGB(c.hex_value)).autopick_fg()
 
             sparse_x = max(0, self._cell_width - self._cell_padding_x)
@@ -257,6 +261,26 @@ class _RgbTablePrinter:
                     lines[pid] = ""
                 print(end=self._cell_margin_y)
                 cur_x = 0
+
+
+
+class Main():
+    def __init__(self):
+        pt.RendererManager.set_default_format_always()
+        #pt.RendererManager.set_default(HtmlRenderer)
+
+        config_list = [*_ConfigLoader().load()]
+        origin_list = [*_OriginLoader().load()]
+        self.run(origin_list)
+
+    def run(self, colors: t.Sequence[_IColorRGB]):
+        _RgbListPrinter().print(colors)
+        print()
+
+        cell_size = int(os.environ.get("CELL_SIZE", 0))
+        cell_height = int(os.environ.get("CELL_HEIGHT", 0))
+        _RgbTablePrinter(cell_size, cell_height).print(colors)
+        print()
 
 
 if __name__ == "__main__":

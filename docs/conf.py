@@ -3,6 +3,7 @@
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
+import datetime
 import os
 import sys
 
@@ -19,7 +20,7 @@ root_doc = "index"
 # -- Project information ------------------------------------------------------
 
 project = "pytermor"
-copyright = "2022-2023, Alexandr Shavykin"
+copyright = f"2022-{datetime.date.today().year}, A. Shavykin"
 author = "Alexandr Shavykin"
 show_authors = True
 # language = "ru"
@@ -56,9 +57,9 @@ extensions = [
 # line before building it and uncomments it afterwards (yeah I know it's ugly)
 
 templates_path = ["_templates"]
-exclude_patterns = ["_build", "_depreacted", "_generated", "_include"]
+exclude_patterns = ["_build", "depreacted", "_static", ".static.sources", "examples", "generated", "include"]
 
-with open("_include/_prolog.rsti", "rt") as f:
+with open("include/_prolog.rsti", "rt") as f:
     rst_prolog = f.read()
 
 # -- HTML ---------------------------------------------------------------------
@@ -66,14 +67,17 @@ with open("_include/_prolog.rsti", "rt") as f:
 # html_theme = 'alabaster'  # alibabaster f[f[f[
 html_theme = "furo"
 html_title = ("<br>" if len(version) > 5 else "").join([project, version])
+#html_baseurl = "https://pwk.local/pt"
+html_copy_source = False
+html_last_updated_fmt = '%d %b %Y'
 
 html_static_path = ["_static"]
-html_css_files = ["custom.css", "custom-furo.css"]
+html_css_files = ["custom.css", "custom-furo.css", "hint.css"]
 html_js_files = ["custom.js"]
 html_favicon = "_static/logo-96.svg"
 html_logo = "_static/logo-96.svg"
 
-from docs.html_theme_options import html_theme_options  # noqa
+from docs.conf_extras.html_theme_options import html_theme_options  # noqa
 
 pygments_style = "tango"
 pygments_dark_style = "github-dark"
@@ -205,7 +209,7 @@ inheritance_edge_attrs = dict(
 
 # limit members with specified module and list of allowed ascendants
 from sphinx.ext.inheritance_diagram import InheritanceGraph
-from docs.inheritance_limit import class_info_patched
+from docs.conf_extras.inheritance_limit import class_info_patched
 
 # noinspection PyProtectedMember
 # ikr
@@ -223,7 +227,7 @@ todo_include_todos = True
 # -- Hide "bases: object" elements --------------------------------------------
 
 from sphinx.ext.autodoc import ClassDocumenter
-from docs.hide_object_base import add_directive_header_no_object_base
+from docs.conf_extras.hide_object_base import add_directive_header_no_object_base
 
 ClassDocumenter.add_directive_header = add_directive_header_no_object_base
 

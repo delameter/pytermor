@@ -1,10 +1,31 @@
 .. _guide.low-level:
 
 ##########################
-Low-level API
+Low-level core API
 ##########################
 
 So, what's happening under the hood?
+
+================
+Glossary
+================
+
+.. glossary::
+
+   ANSI escape sequence
+      is a standard for in-band signaling to control cursor location, color,
+      font styling, and other options on video text terminals and terminal
+      emulators. Certain sequences of bytes, most starting with an ASCII escape
+      character and a bracket character, are embedded into text. The terminal
+      interprets these sequences as commands, rather than text to display
+      verbatim. [1]_
+
+   SGR
+      :term:`ANSI escape sequence` with varying amount of parameters. SGR sequences
+      allow to change the color of text or/and terminal background (in 3 different
+      color spaces) as well as decorate text with italic style, underlining,
+      overlining, cross-lining, making it bold or blinking etc. Represented by
+      `SequenceSGR` class.
 
 ================
 Core methods
@@ -15,12 +36,6 @@ Core methods
    ansi.SequenceSGR
    ansi.make_color_256
    ansi.make_color_rgb
-
-.. inheritance-diagram::  pytermor.ansi
-   :parts: 1
-   :top-classes:          pytermor.ansi.ISequence
-   :caption:              `ISequence` inheritance tree
-
 
 ====================
 Format soft reset
@@ -60,7 +75,6 @@ word won't be blue anymore, as we used ``SeqIndex.COLOR_OFF`` escape sequence to
 But it still can be helpful for a majority of cases (especially when text is generated and formatted by the same
 program and in one go).
 
-
 =============================
 Working with :term:`Spans`
 =============================
@@ -79,7 +93,6 @@ Each sequence param can be specified as:
 
 It's also possible to avoid auto-composing mechanism and create `Span` with
 explicitly set parameters using `Span.init_explicit()`.
-
 
 =======================================
 Creating and applying :term:`SGRs`
@@ -114,7 +127,6 @@ To get the resulting sequence chars use `assemble() <SequenceSGR.assemble()>` me
 - Second line shows up the string in raw mode, as if sequences were ignored by the terminal;
 - Third line is hexadecimal string representation.
 
-
 ================================
 :term:`SGR` sequence structure
 ================================
@@ -131,7 +143,6 @@ To get the resulting sequence chars use `assemble() <SequenceSGR.assemble()>` me
 4. ``m`` is sequence *terminator*; it also determines the sub-type of sequence, in our
    case :abbr:`SGR (Select Graphic Rendition)`. Sequences of this kind are most commonly encountered.
 
-
 =========================
 Combining :term:`SGRs`
 =========================
@@ -141,12 +152,22 @@ One instance of `SequenceSGR` can be added to another. This will result in a new
 .. literalinclude:: /examples/ex_80_combined.py
    :linenos:
 
+==================
+Class hierarchy
+==================
+
+.. inheritance-diagram::  pytermor.ansi
+   :parts: 1
+   :top-classes:          pytermor.ansi.ISequence
+   :caption:              `ISequence` inheritance tree
 
 -----
 
 .. rubric:: Sources
 
-1. `XTerm Control Sequences <https://invisible-island.net/xterm/ctlseqs/ctlseqs.html>`_
-2. `ECMA-48 specification <https://www.ecma-international.org/publications-and-standards/standards/ecma-48/>`_
+.. [1] https://en.wikipedia.org/wiki/ANSI_escape_code
+
+2. `XTerm Control Sequences <https://invisible-island.net/xterm/ctlseqs/ctlseqs.html>`_
+3. `ECMA-48 specification <https://www.ecma-international.org/publications-and-standards/standards/ecma-48/>`_
 
 

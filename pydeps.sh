@@ -21,7 +21,7 @@ run --rmprefix "${PROJECT_NAME}". \
     --rankdir TB \
     --show-dot \
     -xx pytermor pytermor._version \
-    | tee "${DOCS_IN_PATH}/_generated/module.dot"
+    | tee "${DOCS_IN_PATH}/generated/module.dot"
 
 run --rmprefix "${PROJECT_NAME}". \
     --start-color 120 \

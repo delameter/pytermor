@@ -1,7 +1,7 @@
 .. _guide.xterm-color-palette:
 
 ############################
-:term:`xterm` color palette
+:term:`Color256` palette
 ############################
 
 Actual colors of *default* palette depend on user's terminal settings, i.e.
@@ -32,11 +32,11 @@ of precise hue or brightness values for it.
 .. only:: html
 
    .. raw:: html
-      :file: ../_generated/color-palette/output.html
+      :file: ../generated/color-palette/output.html
 
 .. only:: latex
 
-   .. figure:: /_generated/color-palette/output.png
+   .. figure:: /generated/color-palette/output.png
       :align: center
 
       *Indexed* mode palette

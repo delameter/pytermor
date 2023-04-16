@@ -10,8 +10,8 @@ Can be used for creating a variety of sequences including:
     - :abbr:`SGR (Select Graphic Rendition)` sequences (text and background
       coloring, other text formatting and effects);
     - :abbr:`CSI (Control Sequence Introducer)` sequences (cursor management,
-      selective screen cleraing);
-    - :abbr:`OSC (Operating System Command)` sequences (varoius system commands).
+      selective screen clearing);
+    - :abbr:`OSC (Operating System Command)` sequences (various system commands).
 
 .. important ::
     blah-blah-blah low-level @TODO

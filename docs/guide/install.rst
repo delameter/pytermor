@@ -25,9 +25,9 @@ basically it if intended usage of the package is as a library.
    v2.41.1-dev1:Feb-23
 
 
-===========
-Structure
-===========
+==================
+Library structure
+==================
 
 .. table::
    :widths: 5 10 15 70

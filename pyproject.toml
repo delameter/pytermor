@@ -47,14 +47,6 @@ include = [
 [tool.hatch.envs.default.scripts]
 version = "python -m pytermor"
 importtime = "python -qX importtime -m pytermor 2> import.log && tuna import.log"
-ex-approx = "python examples/approximate.py"
-ex-lsrend = "python examples/list_renderers.py"
-ex-rendbmark = "python examples/render_benchmark.py"
-ex-termbmark = "python examples/terminal_benchmark.py"
-ex-termmode = "python examples/terminal_color_mode.py"
-
-[tool.hatch.envs.test.scripts]
-test = "pytest"
 
 [tool.hatch.envs.test]
 extra-dependencies = [
@@ -64,6 +56,9 @@ extra-dependencies = [
     "pytest~=7.1",
     "sybil~=3.0",
 ]
+
+[tool.hatch.envs.test.scripts]
+test = "pytest"
 
 [tool.hatch.envs.build]
 extra-dependencies = [
@@ -78,6 +73,14 @@ extra-dependencies = [
     "sphinx~=5.3",
     "twine~=4.0",
 ]
+
+[tool.hatch.envs.build.scripts]
+ex-approx = "python examples/approximate.py"
+ex-list-render = "python examples/list_renderers.py"
+ex-list-named = "python examples/list_named_rgb.py"
+ex-render-bmark = "python examples/render_benchmark.py"
+ex-terminal-bmark = "python examples/terminal_benchmark.py"
+ex-terminal-mode = "python examples/terminal_color_mode.py"
 
 [tool.hatch.version]
 path = "pytermor/_version.py"

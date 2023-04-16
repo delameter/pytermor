@@ -124,6 +124,25 @@ blockquote {
 div.graphviz {
     text-align: center;
 }
+.bottom-of-page {
+    gap: .5em;
+}
+@media not (max-width: 46em) {
+    .bottom-of-page .left-details {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow-x: hidden;
+    }
+    .bottom-of-page .left-details > div {
+        display: inline;
+    }
+
+    .bottom-of-page .left-details > div:not(:first-child):before,
+    .bottom-of-page .left-details > div:not(:last-child):after {
+        content: '·';
+        margin-inline: .25em;
+    }
+}
 
 /** Code **/
 
@@ -415,32 +434,81 @@ dl[class].field-list em {
 /** XTerm palette **/
 
 table.xterm-palette td {
-    font-family: monospace;
+    font-family: ASM, monospace;
     text-align: center;
 }
-body table.xterm-palette td {
-    border: 1px solid var(--color-background-secondary);
+body table.xterm-palette td:not(.xterm-palette-corner) {
+    border: thin outset;
+    cursor: pointer;
 }
-body[data-theme="dark"] table.xterm-palette td {
-    border: 1px solid var(--color-background-secondary);
+body table.xterm-palette td .xterm-palette-inner {
+    border: thin dotted transparent;
 }
+body[data-theme="dark"] table.xterm-palette td.xterm-palette-light,
+body[data-theme="dark"] table.xterm-palette td.xterm-palette-dark {
+    background-color: black !important;
+}
+body:not([data-theme="dark"]) table.xterm-palette td.xterm-palette-light {
+    color: white !important;
+}
+body:not([data-theme="dark"]) table.xterm-palette td.xterm-palette-dark {
+    color: black !important;
+}
+body table.xterm-palette td.xterm-palette-elem:hover {
+    background-color: #6E2021 !important;
+    color: snow !important;
+}
+body table.xterm-palette td:hover .xterm-palette-inner {
+    border-color: antiquewhite !important;
+}
+body table.xterm-palette td.xterm-palette-elem:active {
+    background-color: #3E2021 !important;
+    color: snow !important;
+}
+
 span.xterm-palette-code {
     font-weight: bold;
 }
 span.xterm-palette-color {
     font-size: var(--font-size--small);
-}
-td.xterm-palette-light {
-    color: #ffffff;
-}
-td.xterm-palette-dark {
-    color: #000000;
-}
-.xterm-palette-options {
-    text-align: left;
-    margin-left: 0.5rem;
+    display: block;
 }
 
+table.xterm-palette {
+    border-collapse: separate;
+    border-spacing: 0.2em;
+}
+table.xterm-palette td {
+    padding: .125em;
+}
+table.xterm-palette td .xterm-palette-inner {
+    padding: .5em;
+}
+@media (max-width: 82em) {
+    table.xterm-palette td .xterm-palette-inner {
+        padding: .4em;
+    }
+}
+@media (max-width: 67em) {
+    table.xterm-palette {
+        border-spacing: 0.1em;
+    }
+    table.xterm-palette td {
+        padding: 0;
+    }
+    table.xterm-palette td .xterm-palette-inner {
+        padding: .3em;
+    }
+}
+@media (max-width: 46em) {
+    table.xterm-palette {
+        border-collapse: collapse;
+        border-spacing: 0;
+    }
+    table.xterm-palette td .xterm-palette-inner {
+        padding: .25em;
+    }
+}
 
 /** Core API table **/
 

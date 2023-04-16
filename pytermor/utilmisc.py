@@ -15,6 +15,7 @@ import sys
 import typing as t
 import unicodedata
 from collections import deque
+from typing import overload
 from io import StringIO
 from itertools import chain
 from sys import getsizeof, stderr
@@ -29,56 +30,94 @@ from .common import UserAbort, UserCancel, HSV, RGB
 
 
 # -----------------------------------------------------------------------------
+# HEX <-> RGB
 
 # @TODO -> to color
 
-def hex_to_rgb(hex_value: int) -> t.Tuple[int, int, int]:
+def hex_to_rgb(hex_value: int) -> RGB | t.Tuple[int, int, int]:
     """
     Transforms ``hex_value`` in *int* format into a tuple of three
     integers corresponding to **red**, **blue** and **green** channel value
     respectively. Values are within [0; 255] range.
 
         >>> hex_to_rgb(0x80ff80)
-        (128, 255, 128)
+        RGB(red=128, green=255, blue=128)
 
-    :param hex_value: RGB value.
-    :returns: R, G, B channel values correspondingly.
+    :param hex_value: RGB integer value.
+    :returns: tuple with R, G, B channel values.
     """
     if not isinstance(hex_value, int):
         raise TypeError(f"Argument type should be 'int', got: {type(hex_value)}")
 
-    return ((hex_value & 0xFF0000) >> 16, (hex_value & 0xFF00) >> 8, (hex_value & 0xFF))
+    return RGB(
+        red=(hex_value & 0xFF0000) >> 16,
+        green=(hex_value & 0xFF00) >> 8,
+        blue=(hex_value & 0xFF),
+    )
 
 
+@overload
+def rgb_to_hex(rgb: RGB) -> int:
+    """
+    :param rgb: tuple with R, G, B channel values.
+    :return: RGB value.
+    """
+
+@overload
 def rgb_to_hex(r: int, g: int, b: int) -> int:
+    """
+    :param r: value of red channel.
+    :param g: value of green channel.
+    :param b: value of blue channel.
+    :return: RGB value.
+    """
+
+def rgb_to_hex(*args) -> int:
     """
     Transforms RGB value in a three-integers form ([0; 255], [0; 255], [0; 255])
     to an one-integer form.
 
         >>> hex(rgb_to_hex(0, 128, 0))
         '0x8000'
+        >>> hex(rgb_to_hex(RGB(red=16, green=16, blue=0)))
+        '0x101000'
 
-    :param r: value of red channel.
-    :param g: value of green channel.
-    :param b: value of blue channel.
-    :return: RGB value.
     """
+    r, g, b = args if len(args) > 1 else args[0]
     return (r << 16) + (g << 8) + b
 
+# -----------------------------------------------------------------------------
+# HSV <-> RGB
 
+@overload
+def hsv_to_rgb(hsv: HSV) -> RGB | t.Tuple[int, int, int]:
+    """
+    :param hsv: tuple with H, S, V channel values.
+    :return: tuple with R, G, B channel values.
+    """
+
+@overload
 def hsv_to_rgb(h: float, s: float, v: float) -> RGB | t.Tuple[int, int, int]:
+    """
+    :param h: hue channel value.
+    :param s: saturation channel value.
+    :param v: value channel value.
+    :return: tuple with R, G, B channel values.
+    """
+
+def hsv_to_rgb(*args) -> RGB | t.Tuple[int, int, int]:
     """
     Transforms HSV value in three-floats form (where 0 <= h < 360, 0 <= s <= 1,
     and 0 <= v <= 1) into RGB three-integer form ([0; 255], [0; 255], [0; 255]).
 
         >>> hsv_to_rgb(270, 2/3, 0.75)
-        (128, 64, 192)
+        RGB(red=128, green=64, blue=192)
+        >>> hsv_to_rgb(HSV(hue=120, saturation=0.5, value=0.77))
+        RGB(red=99, green=197, blue=99)
 
-    :param h: hue channel value.
-    :param s: saturation channel value.
-    :param v: value channel value.
-    :return: R, G, B channel values correspondingly.
     """
+    h, s, v = args if len(args) > 1 else args[0]
+
     h = 0.0 if h == 360.0 else h / 60.0
     fract = h - math.floor(h)
 
@@ -101,11 +140,21 @@ def hsv_to_rgb(h: float, s: float, v: float) -> RGB | t.Tuple[int, int, int]:
     else:
         r, g, b = 0, 0, 0
 
-    r, g, b = (math.ceil(255 * c) for c in (r, g, b))
-    return r, g, b
+    return RGB(
+        red=math.ceil(255 * r),
+        green=math.ceil(255 * g),
+        blue=math.ceil(255 * b),
+    )
 
 
-def rgb_to_hsv(r: int, g: int, b: int) -> t.Tuple[float, float, float]:
+@overload
+def rgb_to_hsv(rgb: RGB) -> HSV | t.Tuple[float, float, float]:
+    ...
+@overload
+def rgb_to_hsv(r: int, g: int, b: int) -> HSV | t.Tuple[float, float, float]:
+    ...
+
+def rgb_to_hsv(*args) -> HSV | t.Tuple[float, float, float]:
     """
     Transforms RGB value in a three-integers form ([0; 255], [0; 255], [0; 255]) to an
     HSV in three-floats form such as (0 <= h < 360, 0 <= s <= 1, and 0 <= v <= 1).
@@ -120,6 +169,7 @@ def rgb_to_hsv(r: int, g: int, b: int) -> t.Tuple[float, float, float]:
     """
     # fmt: off
     # https://en.wikipedia.org/wiki/HSL_and_HSV#From_RGB
+    r, g, b = args if len(args) > 1 else args[0]
 
     rn, gn, bn = r / 255, g / 255, b / 255
     vmax = max(rn, gn, bn)
@@ -138,11 +188,13 @@ def rgb_to_hsv(r: int, g: int, b: int) -> t.Tuple[float, float, float]:
 
     if h < 0:      h += 360
 
-    return HSV(h, s, v)
+    return HSV(hue=h, saturation=s, value=v)
     # fmt: on
 
+# -----------------------------------------------------------------------------
+# HSV <-> HEX (wrappers)
 
-def hex_to_hsv(hex_value: int) -> HSV:
+def hex_to_hsv(hex_value: int) -> HSV | t.Tuple[float, float, float]:
     """
     Transforms ``hex_value`` in *int* form into named tuple consisting of three floats
     corresponding to **hue**, **saturation** and **value** channel values respectively.
@@ -154,10 +206,17 @@ def hex_to_hsv(hex_value: int) -> HSV:
     :param hex_value: RGB value.
     :returns: named tuple with H, S and V channel values
     """
-    return rgb_to_hsv(*hex_to_rgb(hex_value))
+    return rgb_to_hsv(hex_to_rgb(hex_value))
 
 
+@overload
+def hsv_to_hex(hsv: HSV) -> int:
+    ...
+@overload
 def hsv_to_hex(h: float, s: float, v: float) -> int:
+    ...
+
+def hsv_to_hex(*args) -> int:
     """
     Transforms HSV value in three-floats form (where 0 <= h < 360, 0 <= s <= 1,
     and 0 <= v <= 1) into an one-integer form.
@@ -170,10 +229,12 @@ def hsv_to_hex(h: float, s: float, v: float) -> int:
     :param v: value channel value.
     :return: RGB value.
     """
-    return rgb_to_hex(*hsv_to_rgb(h, s, v))
+    return rgb_to_hex(hsv_to_rgb(*args))
 
+# -----------------------------------------------------------------------------
+# LAB -> RGB
 
-def lab_to_rgb(l_s: float, a_s: float, b_s: float) -> t.Tuple[int, int, int]:
+def lab_to_rgb(l_s: float, a_s: float, b_s: float) -> RGB | t.Tuple[int, int, int]:
     """
     @TODO
 
@@ -182,49 +243,49 @@ def lab_to_rgb(l_s: float, a_s: float, b_s: float) -> t.Tuple[int, int, int]:
     :param b_s:
     :return:
     """
-    var_Y: float = (l_s + 16.) / 116.
-    var_X: float = a_s / 500. + var_Y
-    var_Z: float = var_Y - b_s / 200.
+    y: float = (l_s + 16.0) / 116.0
+    x: float = a_s / 500.0 + y
+    z: float = y - b_s / 200.0
 
-    if pow(var_Y, 3) > 0.008856:
-        var_Y = pow(var_Y, 3)
+    if pow(y, 3) > 0.008856:
+        y = pow(y, 3)
     else:
-        var_Y = (var_Y - 16. / 116.) / 7.787
-    if pow(var_X, 3) > 0.008856:
-        var_X = pow(var_X, 3)
+        y = (y - 16.0 / 116.0) / 7.787
+    if pow(x, 3) > 0.008856:
+        x = pow(x, 3)
     else:
-        var_X = (var_X - 16. / 116.) / 7.787
-    if pow(var_Z, 3) > 0.008856:
-        var_Z = pow(var_Z, 3)
+        x = (x - 16.0 / 116.0) / 7.787
+    if pow(z, 3) > 0.008856:
+        z = pow(z, 3)
     else:
-        var_Z = (var_Z - 16. / 116.) / 7.787
+        z = (z - 16.0 / 116.0) / 7.787
 
-    X: float = 95.047 * var_X  # ref_X =  95.047     Observer= 2°, Illuminant= D65
-    Y: float = 100.000 * var_Y  # ref_Y = 100.000
-    Z: float = 108.883 * var_Z  # ref_Z = 108.883
+    xx: float = 95.047 * x  # ref_X =  95.047     Observer= 2°, Illuminant= D65
+    yy: float = 100.000 * y  # ref_Y = 100.000
+    zz: float = 108.883 * z  # ref_Z = 108.883
 
-    var_X = X / 100.  # X from 0 to  95.047      (Observer = 2°, Illuminant = D65)
-    var_Y = Y / 100.  # Y from 0 to 100.000
-    var_Z = Z / 100.  # Z from 0 to 108.883
+    x = xx / 100.0  # X from 0 to  95.047      (Observer = 2°, Illuminant = D65)
+    y = yy / 100.0  # Y from 0 to 100.000
+    z = zz / 100.0  # Z from 0 to 108.883
 
-    var_R: float = var_X * 3.2406 + var_Y * -1.5372 + var_Z * -0.4986
-    var_G: float = var_X * -0.9689 + var_Y * 1.8758 + var_Z * 0.0415
-    var_B: float = var_X * 0.0557 + var_Y * -0.2040 + var_Z * 1.0570
+    r: float = x * 3.2406 + y * -1.5372 + z * -0.4986
+    g: float = x * -0.9689 + y * 1.8758 + z * 0.0415
+    b: float = x * 0.0557 + y * -0.2040 + z * 1.0570
 
-    if var_R > 0.0031308:
-        var_R = 1.055 * pow(var_R, (1 / 2.4)) - 0.055
+    if r > 0.0031308:
+        r = 1.055 * pow(r, (1 / 2.4)) - 0.055
     else:
-        var_R = 12.92 * var_R
-    if var_G > 0.0031308:
-        var_G = 1.055 * pow(var_G, (1 / 2.4)) - 0.055
+        r = 12.92 * r
+    if g > 0.0031308:
+        g = 1.055 * pow(g, (1 / 2.4)) - 0.055
     else:
-        var_G = 12.92 * var_G
-    if var_B > 0.0031308:
-        var_B = 1.055 * pow(var_B, (1 / 2.4)) - 0.055
+        g = 12.92 * g
+    if b > 0.0031308:
+        b = 1.055 * pow(b, (1 / 2.4)) - 0.055
     else:
-        var_B = 12.92 * var_B
+        b = 12.92 * b
 
-    return round(var_R * 255.), round(var_G * 255.), round(var_B * 255.)
+    return RGB(red=round(r * 255.0), green=round(g * 255.0), blue=round(b * 255.0))
 
 
 # -----------------------------------------------------------------------------

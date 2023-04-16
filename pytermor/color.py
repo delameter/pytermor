@@ -12,7 +12,7 @@ import dataclasses
 import math
 import re
 import typing as t
-from abc import abstractmethod, ABC
+from abc import abstractmethod, ABCMeta
 
 from .utilmisc import hex_to_rgb, hex_to_hsv
 from .ansi import (
@@ -24,7 +24,7 @@ from .ansi import (
     make_color_rgb,
     SeqIndex,
 )
-from .common import LogicError
+from .common import LogicError, HSV, RGB
 from .config import get_config
 
 
@@ -50,12 +50,13 @@ Any non-abstract `IColor` type.
  """
 
 
-class _ColorRegistry(t.Generic[CT], t.Sized):
+class _ColorRegistry(t.Generic[CT], t.Sized, t.Iterable):
     _TOKEN_SEPARATOR = "-"
     _QUERY_SPLIT_REGEX = re.compile(r"[\W_]+|(?<=[a-z])(?=[A-Z0-9])")
 
     def __init__(self):
         self._map: t.Dict[t.Tuple[str], CT] = {}
+        self._list: t.Set[CT] = set()
 
     def register(self, color: CT, name: str):
         primary_tokens = tuple(self._QUERY_SPLIT_REGEX.split(name))
@@ -71,6 +72,8 @@ class _ColorRegistry(t.Generic[CT], t.Sized):
             self._register_pair(variation, variation_tokens)
 
     def _register_pair(self, color: CT, tokens: t.Tuple[str, ...]):
+        self._list.add(color)
+
         if tokens not in self._map.keys():
             self._map[tokens] = color
             return
@@ -88,6 +91,15 @@ class _ColorRegistry(t.Generic[CT], t.Sized):
 
     def __len__(self) -> int:
         return len(self._map)
+
+    def __bool__(self) -> bool:
+        return len(self) > 0
+
+    def __iter__(self) -> t.Iterator[CT]:
+        return iter(self._list)
+
+    def names(self) -> t.Iterable[t.Tuple[str]]:
+        return self._map.keys()
 
 
 class _ColorIndex(t.Generic[CT], t.Sized):
@@ -114,9 +126,11 @@ class _ColorIndex(t.Generic[CT], t.Sized):
     def __len__(self) -> int:
         return len(self._map)
 
-    @property
-    def values(self) -> t.Iterable[_ColorChannels[CT]]:
-        return self._map.values()
+    def __bool__(self) -> bool:
+        return len(self) > 0
+
+    def __iter__(self) -> t.Iterator[_ColorChannels[CT]]:
+        return iter(self._map.values())
 
 
 class _ColorChannels(t.Generic[CT]):
@@ -146,38 +160,41 @@ class ApxResult(t.Generic[CT]):
         return math.sqrt(self.distance)
 
 
-class IColor(ABC):
+class _ColorMeta(ABCMeta):
+    def __new__(mcls, name, bases, namespace, **kwargs):
+        cls = super().__new__(mcls, name, bases, namespace, **kwargs)
+
+        cls._registry = _ColorRegistry[cls]()
+        cls._index = _ColorIndex[cls]()
+        cls._approx_cache = dict()
+        return cls
+
+    def __iter__(self) -> t.Iterator[CT]:
+        return iter(self._registry)
+
+
+class IColor(metaclass=_ColorMeta):
     """
     Abstract superclass for other ``Colors``.
 
     :meta private:
     """
 
-    # class vars #
     _registry: _ColorRegistry
     _index: _ColorIndex
     _approx_cache: t.Dict[int, CT]
 
-    @classmethod
-    def __new__(cls, *args, **kwargs):
-        # @TODO find a way to provide a correct constructor signature
-        #       for Color256 etc. instead of this one (for sphinx)
-        # fmt: off
-        if not hasattr(cls, "_registry"):     cls._registry = _ColorRegistry[cls]()
-        if not hasattr(cls, "_index"):        cls._index = _ColorIndex[cls]()
-        if not hasattr(cls, "_approx_cache"): cls._approx_cache = dict()
-        return super().__new__(cls)
-        # fmt: on
-
     def __init__(self, hex_value: int, name: str = None):
         if hex_value < 0 or hex_value > 0xFFFFFF:
             raise ValueError(
-                f"Out of bounds hex value {hex_value:06X}, should be: 0x0 <= hex_value <= 0xFFFFFF"
+                f"Out of bounds hex value {hex_value:06X}, "
+                + "should be: 0x0 <= hex_value <= 0xFFFFFF"
             )
         self._hex_value: int = hex_value
         self._name: str | None = name
+        self._base: CT | None = None
 
-    def _post_init(
+    def _register(
         self: CT, code: int | None, register: bool, index: bool, aliases: t.List[str]
     ):
         if register:
@@ -198,13 +215,10 @@ class IColor(ABC):
     def _make_variations(self: CT, variation_map: t.Dict[int, str] = None):
         if not variation_map:
             return
-
-        # @TODO rewrite this part later. don't like that entity relationship attributes
-        #       are being set in some indistinct method, not in the constructor.
         for vari_hex_value, vari_name in variation_map.items():
             variation = type(self)(
                 hex_value=vari_hex_value, name=vari_name, register=False, index=True
-            )  # registration will be made by registry itself
+            )
             variation._base = self
             self._variations[vari_name] = variation
 
@@ -212,6 +226,9 @@ class IColor(ABC):
         if not isinstance(other, self.__class__):
             return False
         return self._hex_value == other._hex_value
+
+    def __hash__(self) -> int:
+        return self._hex_value + hash(self._name)
 
     def format_value(self, prefix: str = "0x") -> str:
         """
@@ -238,7 +255,7 @@ class IColor(ABC):
     def repr_attrs(self, verbose: bool = True) -> str:
         raise NotImplementedError
 
-    def to_hsv(self) -> t.Tuple[float, float, float]:
+    def to_hsv(self) -> HSV | t.Tuple[float, float, float]:
         """
         Wrapper around `hex_to_hsv()` for concrete instance.
 
@@ -246,7 +263,7 @@ class IColor(ABC):
         """
         return hex_to_hsv(self._hex_value)
 
-    def to_rgb(self) -> t.Tuple[int, int, int]:
+    def to_rgb(self) -> RGB | t.Tuple[int, int, int]:
         """
         Wrapper around `to_rgb()` for concrete instance.
 
@@ -277,6 +294,10 @@ class IColor(ABC):
                    color, or *False* for the foreground (=text) color.
         """
         raise NotImplementedError
+
+    @classmethod
+    def names(cls) -> t.Iterable[t.Tuple[str]]:
+        return cls._registry.names()
 
     @classmethod
     def resolve(cls, name: str) -> CT:
@@ -338,7 +359,7 @@ class IColor(ABC):
         input_r, input_g, input_b = hex_to_rgb(hex_value)
         result: t.List[ApxResult[CT]] = list()
 
-        for channels in cls._index.values:
+        for channels in cls._index:
             distance_sq: int = (
                 pow(channels.r - input_r, 2)
                 + pow(channels.g - input_g, 2)
@@ -369,6 +390,8 @@ class Color16(IColor):
                             Alternative color names (used in `resolve_color()`).
     """
 
+    __hash__ = IColor.__hash__
+
     def __init__(
         self,
         hex_value: int,
@@ -383,7 +406,7 @@ class Color16(IColor):
         super().__init__(hex_value, name)
         self._code_fg: int = code_fg
         self._code_bg: int = code_bg
-        self._post_init(self._code_fg, register, index, aliases)
+        self._register(self._code_fg, register, index, aliases)
 
     @property
     def code_fg(self) -> int:
@@ -468,6 +491,8 @@ class Color256(IColor):
                       `Color16` counterpart (applies only to codes 0-15).
     """
 
+    __hash__ = IColor.__hash__
+
     def __init__(
         self,
         hex_value: int,
@@ -484,7 +509,7 @@ class Color256(IColor):
         self._color16_equiv: Color16 | None = None
         if color16_equiv:
             self._color16_equiv = Color16.get_by_code(color16_equiv.code_fg)
-        self._post_init(self._code, register, index, aliases)
+        self._register(self._code, register, index, aliases)
 
     def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
         """
@@ -579,6 +604,8 @@ class ColorRGB(IColor):
                           and values are variation names.
     """
 
+    __hash__ = IColor.__hash__
+
     def __init__(
         self,
         hex_value: int,
@@ -593,7 +620,7 @@ class ColorRGB(IColor):
         self._base: CT | None = None
         self._variations: t.Dict[str, CT] = {}
         self._make_variations(variation_map)
-        self._post_init(None, register, index, aliases)
+        self._register(None, register, index, aliases)
 
     def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
         if upper_bound is ColorRGB or upper_bound is None:
@@ -694,7 +721,7 @@ you don't actually want to set up any value whatsoever.
 .. important ::
 
     *None* and `NOOP_COLOR` are always treated as placeholders for fallback 
-    values, i.e., they can't be used as re-setters -- that's what `DEFAULT_COLOR` 
+    values, i.e., they can't be used as *resetters* -- that's what `DEFAULT_COLOR` 
     is for.  
 
 >>> DEFAULT_COLOR.to_sgr(bg=False)
@@ -706,20 +733,32 @@ you don't actually want to set up any value whatsoever.
 def resolve_color(subject: CDT, color_type: t.Type[CT] = None) -> CT:
     """
     Case-insensitive search through registry contents. Search is performed for
-    `IColor` instance named as specified in ``subject`` argument, and of specified
-    ``color_type``, or for any type if argument is omitted: first it will be performed
-    in the registry of `Color16` class, then -- in `Color256`, and, if previous two
-    were unsuccessful, in the largest `ColorRGB` registry. Therefore, the return value
-    could be any of these types:
+    `IColor` instance with name ``subject`` if the ``color_type`` registry.
+    If ``color_type`` is omitted, all the registries will be requested in this
+    order: [`Color16`, `Color256`, `ColorRGB`]. Should any registry return a match,
+    the resolving is stopped and the result is returned.
 
         >>> resolve_color('red')
         <Color16[#31,800000?,red]>
 
-    If ``color_type`` is `ColorRGB` or if it is omitted, there is one more way
-    to specify a color: in form of a hexadecimal value ":hex:`#RRGGBB`" (or in
-    short form, as ":hex:`#RGB`"), as well as just use an *int* in [:hex:`0x00`;
-    :hex:`0xFFFFFF`] range. In this case no actual searching is performed, and
-    a new nameless instance of `ColorRGB` is created and returned.
+    If ``color_type`` is `ColorRGB` or *None*, one more way to specify a color
+    is supported. ``subject`` should be:
+
+        1) in full hexadecimal form as *str*: ":hex:`#RRGGBB`",
+        2) in short hexadecimal form as *str*: ":hex:`#RGB`",
+        3) as an integer in [:hex:`0x000000`; :hex:`0xFFFFFF`] range.
+
+    Note that '#' in the beginning of the string is essential, as it tells the
+    resolver to parse a string instead of invoking the registry.
+
+    .. important ::
+
+        In this case no actual searching is performed, and a new nameless instance
+        of `ColorRGB` is created and returned. This instance will be a "unbound" color,
+        i.e. it does not end up in a registry or index, thus it can't be resolved by
+        name and can't be used in approximation procedures.
+
+    ::
 
         >>> resolve_color("#333")
         <ColorRGB[333333]>
@@ -748,20 +787,19 @@ def resolve_color(subject: CDT, color_type: t.Type[CT] = None) -> CT:
     :return:             `IColor` instance with specified name or value.
     """
 
-    def subject_as_hex():
-        nonlocal subject
-        if isinstance(subject, int):
-            return subject
-        elif re.fullmatch(r"#[\da-f]{3}([\da-f]{3})?", subject, flags=re.IGNORECASE):
-            subject = subject[1:]
-            if len(subject) == 3:
+    def as_hex(s: CDT):
+        if isinstance(s, int):
+            return s
+        if re.fullmatch(r"#[\da-f]{3}([\da-f]{3})?", s, flags=re.IGNORECASE):
+            s = s[1:]
+            if len(s) == 3:
                 # 3-digit hex notation, basically #RGB -> #RRGGBB
                 # https://www.quackit.com/css/color/values/css_hex_color_notation_3_digits.cfm
-                subject = "".join(2 * c for c in subject)
-            return int(subject, 16)
+                s = "".join(map(lambda c: 2 * c, s))
+            return int(s, 16)
         return None
 
-    if (hex_value := subject_as_hex()) is not None:
+    if (hex_value := as_hex(subject)) is not None:
         if color_type is None or color_type == ColorRGB:
             return ColorRGB(hex_value)
 

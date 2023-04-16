@@ -20,9 +20,9 @@ This project uses Semantic Versioning -- https://semver.org *(starting from v2.0
 
    Descriptions of annotation symbols can be found in `Legend`_ section.
 
-.. include:: ../CHANGES.rst
+.. include:: /include/CHANGES.rst
 
 .. only:: html
 
-   .. include:: _include/changes-legend.rst
+   .. include:: /include/changes-legend.rst
 

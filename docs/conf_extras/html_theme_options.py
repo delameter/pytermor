@@ -4,8 +4,6 @@
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
 
-
-
 html_theme_options = {
     "footer_icons": [
         {

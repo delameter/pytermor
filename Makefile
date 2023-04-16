@@ -60,7 +60,7 @@ docker-cli: build-image
 	docker run -it ${DOCKER_TAG} /bin/bash
 
 all: ## [host] Run tests, generate docs and reports, build module
-all: test cover update-coveralls docs-all build
+all: test-verbose cover update-coveralls docs-all build
 # CI (on push into master): set-version set-tag auto-all test cover docs-all build upload upload-doc?
 
 build-image-base: ## [host] Build base docker image
@@ -106,6 +106,7 @@ make-docs-out-dir:
 
 pre-build:  ## Run full cycle of automatic operations (done on docker image building)
 	export PT_ENV=build
+	./.invoke python -m pytermor  # for hatch to prepare environment
 	./.invoke python scripts/preprocess_rgb.py
 	./.invoke python scripts/build_cval.py
 
@@ -193,41 +194,47 @@ reinit-docs: ## Purge and recreate docs with auto table of contents
 	./.invoke sphinx-apidoc --force --separate --module-first --tocfile index --output-dir ${DOCS_IN_PATH} ${PROJECT_NAME}
 
 demolish-docs:  ## Purge docs temp output folder
-	-rm -rvf ${DOCS_IN_PATH}/_build/* ${DOCS_IN_PATH}/_build/.*
+	-rm -rvf ${DOCS_IN_PATH}/_build/* ${DOCS_IN_PATH}/_build/.* ${DOCS_IN_PATH}/_cache/*
 
 docs: ## (Re)build HTML documentation  <no cache>
 docs: depends demolish-docs docs-html
 
+_build_html = (./.invoke sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b html -d ${DOCS_IN_PATH}/_cache -n)
+_build_pdf = (yes "" | ./.invoke sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -d ${DOCS_IN_PATH}/_cache $1)
+_build_man = (./.invoke sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b man -d ${DOCS_IN_PATH}/_cache -n )
+_notify = (if command -v es7s ; then es7s exec notify -s $1 'pytermor ${VERSION}' '$2 ${NOW}' ; fi)
+
 docs-html: ## Build HTML documentation  <caching allowed>
 	export PT_ENV=build
 	mkdir -p ${DOCS_OUT_PATH}/${VERSION}
-	if ! ./.invoke sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b html -n ; then \
-    	notify-send -i important pytermor 'HTML docs build failed ${NOW}' && \
-    	return 1 ; \
-    fi
+	$(call _build_html) || { $(call _notify,error,HTML docs build failed) ; return 1 ; }
 	cp -auv ${DOCS_IN_PATH}/_build/* ${DOCS_OUT_PATH}/${VERSION}/ ; \
 	if [ -d localhost ] ; then \
     	mkdir -p ${LOCALHOST_WRITE_PATH}/docs && \
 		cp -auv ${DOCS_IN_PATH}/_build/* ${LOCALHOST_WRITE_PATH}/docs/ ; \
     fi
+	$(call _notify,success,HTML docs updated)
 	#find docs/_build -type f -name '*.html' | sort | xargs -n1 grep -HnT ^ | sed s@^docs/_build/@@ > docs-build/${PROJECT_NAME}.html.dump
-	#if command -v notify-send ; then notify-send -i ${PWD}/${DOCS_IN_PATH}/_static_src/logo-white-bg.svg 'pytermor ${VERSION}' 'HTML docs updated ${NOW}' ; fi
 
 docs-pdf: ## Build PDF documentation  <caching allowed>
 	export PT_ENV=build
 	mkdir -p docs-build
-	yes "" | ./.invoke sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -n  # twice for building pdf toc
-	yes "" | ./.invoke sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build     # @FIXME broken unicode
-	cp ${DOCS_IN_PATH}/_build/latex/${PROJECT_NAME}.pdf ${DOCS_OUT_PATH}/${VERSION}.pdf
+	[ ! -f ${DOCS_IN_PATH}/_build/latex/${PROJECT_NAME}.toc ] && $(call _build_pdf,-n) 	# @FIXME broken unicode
+	$(call _build_pdf)  # 2nd time for TOC and INDEX building
+	$(call _build_pdf)  # 3rd time for TOC rebuilding (to include INDEX, mama-mia)
+	cp -v ${DOCS_IN_PATH}/_build/latex/${PROJECT_NAME}.pdf ${DOCS_OUT_PATH}/${VERSION}.pdf
+	$(call _notify,success,PDF docs updated)
 
 docs-man: ## Build man pages  <caching allowed>
 	export PT_ENV=build
 	mkdir -p docs-build
 	sed -i.bak -Ee 's/^.+<<<MAKE_DOCS_MAN<<</#&/' ${DOCS_IN_PATH}/conf.py
-	./.invoke sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b man -n || echo 'Generation failed'
+	$(call _build_man) || { $(call _notify,error,MAN docs build failed) ; return 1 ; }
 	mv ${DOCS_IN_PATH}/conf.py.bak ${DOCS_IN_PATH}/conf.py
 	cp ${DOCS_IN_PATH}/_build/${PROJECT_NAME}.1 ${DOCS_OUT_PATH}/${VERSION}.1
-	if [ -z "${DISPLAY}" ] ; then return 0 ; fi
+	$(call _notify,success,MAN docs updated)
+
+print-man:
 	COLUMNS=120 man ${DOCS_OUT_PATH}/${PROJECT_NAME}.1 2>/dev/null | sed -Ee '/корректность/d' | lpr -p  # @TODO ебаный стыд
 
 docs-all: ## (Re)build documentation in all formats  <no cache>

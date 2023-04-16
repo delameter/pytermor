@@ -13,15 +13,15 @@ License
 
 .. only:: html
 
-   .. include:: _include/license.orig.rst
+   .. include:: /include/license.orig.rst
 
 .. only:: latex
 
-   .. include:: _include/license.orig.rst
-   .. include: _include/license.columns.rst
+   .. include:: /include/license.orig.rst
+   .. include: /include/license.columns.rst
 
 
-.. include:: _include/disclaimer.rst
+.. include:: /include/disclaimer.rst
 
-.. include:: _include/limits.rst
+.. include:: /include/limits.rst
 

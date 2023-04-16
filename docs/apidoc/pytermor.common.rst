@@ -23,17 +23,14 @@
 
    .. autosummary::
    
-      center_sgr
       chunk
       flatten
       flatten1
       get_preferable_wrap_width
       get_qname
       get_terminal_width
-      ljust_sgr
       median
       percentile
-      rjust_sgr
    
    
 

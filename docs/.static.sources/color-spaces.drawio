@@ -1,0 +1,90 @@
+<mxfile host="drawio-plugin" modified="2023-04-15T13:11:25.007Z"
+        agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36"
+        etag="ifB5i92PkDtSSDTmhGcN" version="20.5.3" type="embed">
+    <diagram name="Page-1" id="SGUsI2AbsCqm-Oq0gaVD">
+        <mxGraphModel dx="1142" dy="755" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1"
+                      page="1" pageScale="1" pageWidth="680" pageHeight="440" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="PACsW9q_83rTljW93qoS-5" value=""
+                        style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;shape=flexArrow;startArrow=block;"
+                        parent="1" source="PACsW9q_83rTljW93qoS-4" target="PACsW9q_83rTljW93qoS-14" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="370" y="360" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="PACsW9q_83rTljW93qoS-7" value=""
+                        style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;shape=flexArrow;startArrow=block;"
+                        parent="1" source="PACsW9q_83rTljW93qoS-14" target="PACsW9q_83rTljW93qoS-6" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="280" y="420" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="PACsW9q_83rTljW93qoS-4"
+                        value="&lt;span style=&quot;font-style: normal;&quot;&gt;&lt;font face=&quot;Munson&quot; style=&quot;font-size: 18px;&quot;&gt;&lt;b&gt;HEX&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;/span&gt;integer"
+                        style="rounded=1;fontSize=12;fontFamily=Finlandica;labelBackgroundColor=none;align=left;whiteSpace=wrap;shadow=1;fontStyle=2;html=1;direction=west;fontSource=https%3A%2F%2Fdlup.s3.eu-north-1.amazonaws.com%2Fstatic%2Ffonts%2Ffinlandica-vari.ttf;strokeWidth=3;labelPosition=center;verticalLabelPosition=middle;verticalAlign=top;movableLabel=1;spacing=10;perimeter=rectanglePerimeter;"
+                        parent="1" vertex="1">
+                    <mxGeometry x="280" y="40" width="120" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="PACsW9q_83rTljW93qoS-54"
+                        style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontFamily=Finlandica;fontSource=https%3A%2F%2Fdlup.s3.eu-north-1.amazonaws.com%2Fstatic%2Ffonts%2Ffinlandica-vari.ttf;fontSize=12;fontColor=default;shape=flexArrow;exitX=0.5;exitY=1;exitDx=0;exitDy=0;dashed=1;startArrow=block;edgeStyle=orthogonalEdgeStyle;"
+                        parent="1" source="PACsW9q_83rTljW93qoS-6" target="PACsW9q_83rTljW93qoS-4" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="PACsW9q_83rTljW93qoS-56" value="indirect, with RGB&lt;br&gt;&amp;nbsp;as intermediate state"
+                        style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontFamily=Finlandica;fontColor=default;"
+                        parent="PACsW9q_83rTljW93qoS-54" vertex="1" connectable="0">
+                    <mxGeometry x="0.4222" y="-3" relative="1" as="geometry">
+                        <mxPoint x="-76" y="-33" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="PACsW9q_83rTljW93qoS-6"
+                        value="&lt;font face=&quot;Munson&quot; style=&quot;font-size: 18px;&quot;&gt;HSV&lt;/font&gt;&lt;br&gt;&lt;i&gt;named tuple&lt;/i&gt;"
+                        style="rounded=1;fontSize=12;fontFamily=Finlandica;labelBackgroundColor=none;align=left;whiteSpace=wrap;shadow=1;fontStyle=0;html=1;direction=west;fontSource=https%3A%2F%2Fdlup.s3.eu-north-1.amazonaws.com%2Fstatic%2Ffonts%2Ffinlandica-vari.ttf;verticalAlign=top;spacing=10;"
+                        parent="1" vertex="1">
+                    <mxGeometry x="40" y="280" width="120" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="PACsW9q_83rTljW93qoS-13" value=""
+                        style="rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;shape=flexArrow;edgeStyle=orthogonalEdgeStyle;"
+                        parent="1" source="PACsW9q_83rTljW93qoS-8" target="PACsW9q_83rTljW93qoS-14" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="400" y="400" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="PACsW9q_83rTljW93qoS-8"
+                        value="&lt;font face=&quot;Munson&quot;&gt;&lt;span&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;LAB&lt;/font&gt;&lt;/span&gt;&lt;br&gt;&lt;/font&gt;&lt;i&gt;tuple&lt;/i&gt;"
+                        style="rounded=1;fontSize=12;fontFamily=Finlandica;labelBackgroundColor=none;align=left;whiteSpace=wrap;shadow=1;fontStyle=0;html=1;fontSource=https%3A%2F%2Fdlup.s3.eu-north-1.amazonaws.com%2Fstatic%2Ffonts%2Ffinlandica-vari.ttf;verticalAlign=top;spacing=10;"
+                        parent="1" vertex="1">
+                    <mxGeometry x="520" y="280" width="120" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="PACsW9q_83rTljW93qoS-14"
+                        value="&lt;span style=&quot;font-style: normal;&quot;&gt;&lt;font face=&quot;Munson&quot; data-font-src=&quot;https://dlup.s3.eu-north-1.amazonaws.com/static/fonts/texgyreschola-regular.otf&quot; style=&quot;font-size: 18px;&quot;&gt;RGB&lt;/font&gt;&lt;/span&gt;&lt;br&gt;&lt;i&gt;named tuple&lt;/i&gt;"
+                        style="shape=ext;double=0;rounded=1;whiteSpace=wrap;html=1;fontFamily=Finlandica;labelBackgroundColor=none;shadow=1;fontStyle=0;fontSource=https%3A%2F%2Fdlup.s3.eu-north-1.amazonaws.com%2Fstatic%2Ffonts%2Ffinlandica-vari.ttf;strokeWidth=1;align=left;verticalAlign=top;spacing=10;"
+                        parent="1" vertex="1">
+                    <mxGeometry x="280" y="280" width="120" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="PACsW9q_83rTljW93qoS-48" value="(R, G, B)"
+                        style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=Finlandica;fontColor=default;"
+                        parent="1" vertex="1">
+                    <mxGeometry x="305" y="370" width="70" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="PACsW9q_83rTljW93qoS-49" value="(H, S, V)"
+                        style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=Finlandica;fontColor=default;"
+                        parent="1" vertex="1">
+                    <mxGeometry x="65" y="370" width="70" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="PACsW9q_83rTljW93qoS-50" value="(L, a, b)"
+                        style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=Finlandica;fontColor=default;"
+                        parent="1" vertex="1">
+                    <mxGeometry x="550" y="370" width="60" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="PACsW9q_83rTljW93qoS-53" value="0xRRGGBB"
+                        style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=Finlandica;fontColor=default;"
+                        parent="1" vertex="1">
+                    <mxGeometry x="300" y="130" width="80" height="30" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

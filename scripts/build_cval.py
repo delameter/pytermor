@@ -14,6 +14,7 @@ import re
 import sys
 import typing as t
 from os.path import join
+from string import Template
 
 import yaml
 
@@ -42,14 +43,26 @@ class IndexBuilder(TaskRunner):
 
     def _run(self) -> int:
         result = ""
+        counts = ""
         for mode, sorter in self.MODE_TO_SORTER_MAP.items():
-            result += "\n".join(self._run_mode(mode, sorter)) + "\n\n"
+            self._colors_mode_class = ""
+            self._colors_mode_count = 0
+            self._colors_mode_unique = 0
+            mode_results = [*self._run_mode(mode, sorter)]
+            result += "\n".join(mode_results) + "\n\n"
+            counts += f"\n - {self._colors_mode_count:4d}x " \
+                      f"`{self._colors_mode_class}` " \
+                      f"({self._colors_mode_unique} unique)"
         result = result.rstrip()
 
         now = datetime.datetime.now().isoformat()
         with open(self.OUTPUT_TPL_PATH, "rt") as fin:
             with open(self.OUTPUT_DEST_PATH, "wt") as fout:
-                fout.write(fin.read().replace("%s", result).replace("%t", now))
+                fout.write(Template(fin.read()).safe_substitute({
+                    'created_at': now,
+                    'counts': counts,
+                    'defs': result,
+                }))
                 self._print_fout_result(fout, self.OUTPUT_DEST_PATH)
         return self._colors_count
 
@@ -61,7 +74,7 @@ class IndexBuilder(TaskRunner):
         with open(config_path, "rt") as f:
             config = yaml.safe_load(f)
             self._print_fin_result(f, config_path)
-        color_class = config.get("class")
+        self._colors_mode_class = config.get("class")
 
         colors = sorted(config.get("colors"), key=sorter)
         for color in colors:
@@ -72,8 +85,10 @@ class IndexBuilder(TaskRunner):
             len(color.get("var_name")) for color in config.get("colors")
         )
 
+        color_values = set()
         for color in colors:
             self._colors_count += 1
+            self._colors_mode_count += 1
 
             var_name = color.get("var_name")
             code = str(color.get("code"))
@@ -89,6 +104,7 @@ class IndexBuilder(TaskRunner):
                     col_var_name = f"{var_name}".ljust(longest_name_len) + "= "
 
             col_value = "0x{:06x}, ".format(color.get("value"))
+            color_values.add(color.get("value"))
 
             col_name = f'"{color.get("name")}", '
             col_name = col_name.ljust(longest_name_len + 4)
@@ -116,7 +132,7 @@ class IndexBuilder(TaskRunner):
 
             columns = [
                 col_var_name,
-                f"{color_class}(",
+                f"{self._colors_mode_class}(",
                 col_value,
                 *cols_code,
                 col_name,
@@ -127,6 +143,8 @@ class IndexBuilder(TaskRunner):
                 col_variations,
             ]
             yield self.INDENT + "".join(filter(None, columns)).rstrip(", ") + ")"
+
+        self._colors_mode_unique = len(color_values)
 
     def _extract_names(self, color: t.Dict) -> t.List[str]:
         return [

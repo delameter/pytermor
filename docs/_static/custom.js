@@ -9,6 +9,7 @@ $(document).ready(function () {
     formatEscCharLabels();
     removeBadgeBrackets();
     setExternalHrefOpenMethodToBlank();
+    setXtermPaletteClickHandler();
 });
 
 function transformReferences() {
@@ -90,4 +91,18 @@ function removeBadgeBrackets() {
             el.setAttribute('title', t.match(regex)[1] || '');
         }
     }
+}
+
+function setXtermPaletteClickHandler() {
+    $(".xterm-palette tr div").click(function (e) {
+            let el = e.currentTarget;
+            el.data = el.ariaLabel;
+
+            let text = [el.innerText, ...el.data.split(" · ")].join(" ");
+            navigator.clipboard.writeText(text).then(function(){
+                el.ariaLabel = "Copied to clipboard";
+                setTimeout(() => el.ariaLabel = el.data, 500);
+            });
+        }
+    );
 }
