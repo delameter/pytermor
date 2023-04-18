@@ -3,6 +3,7 @@
 #💎 REFACTOR: 
 
 #🔩 ADJUST: 
+#🍒 CHERRY-PICK:
 #⌛ DRAFT: 
 #📙 DOCS: 
 #🚧 INIT
@@ -20,8 +21,8 @@
 
 
 ##-----------------------##----------------------------------------------------
-## es7s/gitmessage   v13 ## es7s projects commit normalizer
-## Oct-2022              ## A. Shavykin <0.delameter@gmail.com>
+## es7s/gitmessage   v14 ## es7s projects commit normalizer
+## Apr-2023              ## A. Shavykin <0.delameter@gmail.com>
 
 # Run this command to make git use new commit template:
 #   git config --add commit.template .gitmessage

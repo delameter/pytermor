@@ -1,6 +1,3 @@
-──────────────────────────────────────────────────────────────────────────────────────────────────────────────── build ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-Checking dependencies
-cmd [1] | pydeps pytermor --rmprefix pytermor. --only pytermor --no-output --rankdir TB --show-dot -xx pytermor pytermor._version
 
 digraph G {
     concentrate = true;

@@ -10,7 +10,8 @@ shift
 
 if command -v hatch >/dev/null ; then
     env="${PT_ENV:?PT_ENV required}"
-    hatch -v run "$env:$cmd" "$@"
+    [ -n "$PT_QUIET" ] && output_opt="-q" || output_opt="-v"
+    hatch $output_opt run "$env:$cmd" "$@"
     return
 elif [ -x venv/bin/python ] ; then
     PYTHONPATH=. "venv/bin/$cmd" "$@"

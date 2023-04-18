@@ -10,6 +10,7 @@ DEPENDS_PATH="${2:?Output path required}"
 run() {
     # args: [cmd-option]...
     export PT_ENV=build
+    export PT_QUIET=true
     set -- ./.invoke pydeps "${PROJECT_NAME}" "$@"
     echo "$*" >&2
     "$@"

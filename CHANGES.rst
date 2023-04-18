@@ -11,8 +11,10 @@ pending
 - |NEW|  `IRenderable.raw()` method
 - |NEW| `cval` atlassian colors
 - |REFACTOR| made `measure` and `trace` private
+- |NEW| `utilmisc` color transform methods overloaded
+- |DOCS| a lot
 
-.. <@pending:cced767>
+.. <@pending:8873bc9>
 .. ^ blank line before should be kept
 
 
