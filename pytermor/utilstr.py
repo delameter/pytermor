@@ -110,39 +110,93 @@ ESCAPE_SEQ_REGEX = re.compile(
       )|
       (?P<fp_class_seq>
         (?P<fp_classifier>[\x30-\x3f])
-        (?P<fp_params>[\x20-\x7e]*)
-        (?P<fp_terminator>)
+        (?P<fp_param>[\x20-\x7e]*)
       )|
       (?P<fe_class_seq>
         (?P<fe_classifier>[\x40-\x5f])
-        (?P<fe_params>[\x30-\x3f]*)
-        (?P<fe_termintaor>[\x40-\x5a])
+        (?P<fe_param>[\x30-\x3f]*)
+        (?P<fe_interm>[\x20-\x2f]*)
+        (?P<fe_terminator>[\x40-\x7e])
       )|
       (?P<fs_class_seq>
         (?P<fs_classifier>[\x60-\x7e])
-        (?P<fs_params>[\x20-\x7e]*)
-        (?P<fs_termintaor>)
+        (?P<fs_param>[\x20-\x7e]*)
       )  
     )
 """,
     flags=re.VERBOSE,
 )
-""" s """
-# https://ecma-international.org/wp-content/uploads/ECMA-35_6th_edition_december_1994.pdf
+""" 
+Regular expression that matches all classes of escape sequences.
+
+More specifically, it recognizes nF, Fp, Fe and Fs [#]_ classes. Useful 
+for removing the sequences as well as for granular search thanks to named 
+match groups, which include:
+
+    ``escape_byte``
+        first byte of every sequence -- ``ESC``, or :hex:`0x1B`.
+        
+    ``data``
+        remaining bytes of the sequence, excluding escape byte; contains
+        no more than one of the following groups:
+        
+    ``nf_class_seq``, ``fp_class_seq``, ``fe_class_seq``, ``fs_class_seq``
+        groups that contain ``data`` bytes. each of these is split to more
+        specific groups including:
+        
+        - ``nf_interm`` and ``nf_final`` for nF-class sequences,
+        - ``fp_classifier`` and ``fp_param`` for Fp-class sequences,
+        - ``fe_classifier``, ``fe_param``, ``fe_interm`` and ``fe_terminator`` 
+          for Fe-class sequences (including :term:`SGRs <SGR>`),
+        - ``fs_classifier`` and ``fs_param`` for Fs-class sequences.
+
+.. [#] `ECMA-35 specification <https://ecma-international.org/wp-content/uploads/ECMA-35_6th_edition_december_1994.pdf>`_
+
+:meta hide-value:
+"""
 
 SGR_SEQ_REGEX = re.compile(r"(\x1b)(\[)([0-9;]*)(m)")
-""" s """
+"""
+Regular expression that matches :term:`SGR` sequences. Group 3 can be used for 
+sequence params extraction.
+
+:meta hide-value:
+"""
+
 CSI_SEQ_REGEX = re.compile(r"(\x1b)(\[)(([0-9;:<=>?])*)([@A-Za-z])")
-""" :dfn:`sssss` """
+"""
+Regular expression that matches CSI sequences (a superset which includes 
+:term:`SGRs <SGR>`). 
+
+:meta hide-value:
+"""
 
 CONTROL_CHARS = [*range(0x00, 0x08 + 1), *range(0x0E, 0x1F + 1), 0x7F]
-""" s """
+"""
+Set of ASCII control characters: :hex:`0x00-0x08`, :hex:`0x0E-0x1F` and
+:hex:`0x7F`.
+
+:meta hide-value:
+"""
 WHITESPACE_CHARS = [*range(0x09, 0x0D + 1), 0x20]
-""" s """
+""" 
+Set of ASCII whitespace characters: :hex:`0x09-0x0D` and :hex:`0x20`.
+
+:meta hide-value:
+"""
 PRINTABLE_CHARS = [*range(0x21, 0x7E + 1)]
-""" s """
+"""
+Set of ASCII "normal" characters, i.e. non-control and non-space ones:
+letters, digits and punctuation (:hex:`0x21-0x7E`).
+
+:meta hide-value:
+"""
 NON_ASCII_CHARS = [*range(0x80, 0xFF + 1)]
-""" s """
+""" 
+Set of bytes that are invalid in ASCII-7 context: :hex:`0x80-0xFF`.
+
+:meta hide-value: 
+"""
 
 IT = t.TypeVar("IT", str, bytes)
 """ input-type """
