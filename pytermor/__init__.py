@@ -54,6 +54,7 @@ from .ansi import SequenceOSC as SequenceOSC
 from .ansi import SequenceSGR as SequenceSGR
 from .ansi import SequenceST as SequenceST
 from .ansi import assemble_hyperlink as assemble_hyperlink
+from .ansi import contains_sgr as contains_sgr
 from .ansi import decompose_request_cursor_position as decompose_request_cursor_position
 from .ansi import enclose as enclose
 from .ansi import get_closing_seq as get_closing_seq

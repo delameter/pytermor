@@ -19,10 +19,12 @@ Can be used for creating a variety of sequences including:
 """
 from __future__ import annotations
 
+import re
 from abc import abstractmethod, ABCMeta
 from copy import copy
 import enum
 import typing as t
+from functools import lru_cache
 
 from .common import ConflictError
 
@@ -227,7 +229,13 @@ class SequenceSGR(SequenceCSI):
         >>> SequenceSGR('blue') + SequenceSGR('italic')
         <SGR[34,3]>
 
-    :param args:  ..  ::
+    """
+
+    _TERMINATOR = "m"
+
+    def __init__(self, *args: str | int | SequenceSGR):
+        """
+        :param args:  ..  ::
 
                     Sequence params. Resulting param order is the same as an
                     argument order. Each argument can be specified as:
@@ -235,12 +243,7 @@ class SequenceSGR(SequenceCSI):
                       * *str* -- any of `IntCode` names, case-insensitive;
                       * *int* -- `IntCode` instance or plain integer;
                       * another `SequenceSGR` instance (params will be extracted).
-
-    """
-
-    _TERMINATOR = "m"
-
-    def __init__(self, *args: str | int | SequenceSGR):
+        """
         result: t.List[int] = []
 
         for arg in args:
@@ -354,6 +357,10 @@ returns empty list:
     ''
     >>> NOOP_SEQ.params
     []
+
+.. important ::
+    Casting to *bool* results in **False** for all ``NOOP`` instances of the 
+    library (`NOOP_SEQ`, `NOOP_COLOR` and `NOOP_STYLE`). This is intended. 
 
 Can be safely added to regular `SequenceSGR` from any side, as internally
 `SequenceSGR` always makes a new instance with concatenated params from both 
@@ -779,6 +786,35 @@ def enclose(opening_seq: SequenceSGR, string: str) -> str:
     :return:
     """
     return f"{opening_seq}{string}{get_closing_seq(opening_seq)}"
+
+
+@lru_cache
+def _get_contains_sgr_regex(*codes: int) -> re.Pattern:
+    codes_str = ";".join([str(c) for c in codes])
+    return re.compile(Rf'\x1b\[(?:\d*;)*({codes_str})(?:;\d*)*m')
+
+def contains_sgr(string: str, *codes: int) -> re.Match | None:
+    """
+    Return the first match of :term:`SGR` sequence in ``string`` with specified
+    ``codes`` as params, strictly inside a single sequence in specified order,
+    or *None* if nothing was found.
+
+    The match object consists of two groups:
+
+        - Group #0: the whole matched SGR sequence;
+        - Group #1: the requested code bytes only.
+
+        >>> contains_sgr(make_color_256(128).assemble(), 38)
+        <re.Match object; span=(0, 11), match='\x1b[38;5;128m'>
+        >>> contains_sgr(make_color_256(84, True).assemble(), 48, 5, 84)
+        <re.Match object; span=(0, 10), match='\x1b[48;5;84m'>
+
+    :param string: String to search the SGR in.
+    :param codes:  Integer SGR codes to find.
+    """
+    if not string:
+        return None
+    return _get_contains_sgr_regex(*codes).search(string)
 
 
 def make_set_cursor_x_abs(x: int = 1) -> SequenceCSI:

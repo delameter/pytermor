@@ -12,10 +12,6 @@ from sybil.parsers.codeblock import PythonCodeBlockParser
 from sybil.parsers.doctest import DocTestParser
 
 
-def doctest_setup(*args):
-    import pytermor as pt
-    pt.RendererManager.set_default_format_always()
-
 
 pytest_plugins = [
    "tests.fixtures",
@@ -27,5 +23,4 @@ pytest_collect_file = Sybil(
         PythonCodeBlockParser(),
     ],
     patterns=['*.rst', '*.py'],
-    setup=doctest_setup
 ).pytest()

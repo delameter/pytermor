@@ -3,6 +3,8 @@
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
+from __future__ import annotations
+
 import unittest
 
 import pytest
@@ -18,7 +20,13 @@ from pytermor.ansi import (
     make_erase_in_line,
     make_hyperlink_part,
     assemble_hyperlink,
+    contains_sgr,
 )
+
+def format_test_params(val) -> str | None:
+    if isinstance(val, (list, tuple)):
+        return "("+",".join(map(str, val))+")"
+    return None
 
 
 class TestSequenceSGR(unittest.TestCase):
@@ -119,6 +127,59 @@ class TestSequenceSGR(unittest.TestCase):
         self.assertRaises(ValueError, make_color_rgb, 10, 310, 30)
         self.assertRaises(ValueError, make_color_rgb, 310, 10, 130)
         self.assertRaises(ValueError, make_color_rgb, 0, 0, 256, bg=True)
+
+
+class TestContainsSgr:
+    example = (
+        "[38;5;237m"
+        "-"
+        "[0m"
+        " delameter "
+        "[1;34m"
+        "4"
+        "[22;39m"
+        "[1;2;34m"
+        ".1"
+        "[22;22;39m"
+        "[34m"
+        "k"
+        "[m"
+    )
+
+    @pytest.mark.parametrize(
+        "expected_span_idx, expected_span_value, codes",
+        [
+            [1, (7, 10), [237]],
+            [1, None, [37]],
+            [1, (5, 10), [5, 237]],
+            [1, (2, 10), [38, 5, 237]],
+            [1, (2, 4), [38]],
+            [1, (14, 15), [0]],
+            [1, None, [4]],
+            [1, None, [34, 4]],
+            [1, (73, 73), []],
+            [1, None, [0, 0]],
+            [1, None, [34, 22]],
+            [1, (56, 61), [22, 22]],
+            [1, None, [22, 2]],
+            [1, (45, 48), [1, 2]],
+            [0, (0, 11), [237]],
+            [0, (12, 16), [0]],
+            [0, (43, 52), [1, 2]],
+            [0, None, [222]],
+        ],
+        ids=format_test_params,
+    )
+    def test_contains_seq(
+        self,
+        expected_span_idx: int,
+        expected_span_value: tuple[int, int] | None,
+        codes: list[int],
+    ):
+        if (match := contains_sgr(TestContainsSgr.example, *codes)) is None:
+            assert expected_span_value is None
+        else:
+            assert match.span(expected_span_idx) == expected_span_value
 
 
 class TestSequenceCSI(unittest.TestCase):

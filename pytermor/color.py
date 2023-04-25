@@ -44,7 +44,7 @@ is `resolve_color()`. Valid values include:
 
 CT = t.TypeVar("CT", bound="IColor")
 """ 
-Any non-abstract `IColor` type.
+Any non-abstract ``IColor`` type.
 
 :meta public:
  """
@@ -146,7 +146,7 @@ class ApxResult(t.Generic[CT]):
     """
 
     color: CT
-    """ Found `IColor` instance. """
+    """ Found ``IColor`` instance. """
     distance: int
     """ Squared sRGB distance from this instance to the approximation target. """
 
@@ -274,11 +274,11 @@ class IColor(metaclass=_ColorMeta):
     @abstractmethod
     def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
         """
-        Make an `SGR sequence<SequenceSGR>` out of `IColor`. Used by `SgrRenderer`.
+        Make an `SGR sequence<SequenceSGR>` out of ``IColor``. Used by `SgrRenderer`.
 
         :param bg: Set to *True* if required SGR should change the background color, or
                    *False* for the foreground (=text) color.
-        :param upper_bound: Required result `IColor` type upper boundary, i.e., the
+        :param upper_bound: Required result ``IColor`` type upper boundary, i.e., the
                             maximum acceptable color class, which will be the basis for
                             SGR being made. See `Color256.to_sgr()` for the details.
         """
@@ -305,7 +305,7 @@ class IColor(metaclass=_ColorMeta):
         Case-insensitive search through registry contents.
 
         :see: `resolve_color()` for the details
-        :param name:  `IColor` name to search for.
+        :param name:  ``IColor`` name to search for.
         """
         if not hasattr(cls, "_registry"):
             raise LogicError(
@@ -371,8 +371,8 @@ class IColor(metaclass=_ColorMeta):
 
 class Color16(IColor):
     """
-    Variant of a `IColor` operating within the most basic color set
-    -- **Xterm-16**. Represents basic color-setting SGRs with primary codes
+    Variant of a ``IColor`` operating within the most basic color set
+    -- **xterm-16**. Represents basic color-setting SGRs with primary codes
     30-37, 40-47, 90-97 and 100-107 (see `guide.ansi-presets.color16`).
 
     .. note ::
@@ -472,7 +472,7 @@ class Color16(IColor):
 
 class Color256(IColor):
     """
-    Variant of a `IColor` operating within relatively modern **Xterm-256**
+    Variant of a ``IColor`` operating within relatively modern **xterm-256**
     indexed color table. Represents SGR complex codes ``38;5;*`` and ``48;5;*``
     (see `guide.ansi-presets.color256`).
 
@@ -513,9 +513,9 @@ class Color256(IColor):
 
     def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
         """
-        Make an `SGR sequence<SequenceSGR>` out of `IColor`. Used by `SgrRenderer`.
+        Make an `SGR sequence<SequenceSGR>` out of ``IColor``. Used by `SgrRenderer`.
 
-        Each `IColor` type represents one SGR type in the context of colors. For
+        Each ``IColor`` type represents one SGR type in the context of colors. For
         example, if ``upper_bound`` is set to `Color16`, the resulting SGR will always
         be one of 16-color index table, even if the original color was of different
         type -- it will be approximated just before the SGR assembling.
@@ -532,7 +532,7 @@ class Color256(IColor):
 
         :param bg: Set to *True* if required SGR should change the background color, or
                    *False* for the foreground (=text) color.
-        :param upper_bound: Required result `IColor` type upper boundary, i.e., the
+        :param upper_bound: Required result ``IColor`` type upper boundary, i.e., the
                             maximum acceptable color class, which will be the basis for
                             SGR being made.
         """
@@ -584,7 +584,7 @@ class Color256(IColor):
 
 class ColorRGB(IColor):
     """
-    Variant of a `IColor` operating within RGB color space. Presets include
+    Variant of a ``IColor`` operating within RGB color space. Presets include
     `es7s named colors <guide.es7s-colors>`, a unique collection of colors
     compiled from several known sources after careful selection. However,
     it's not limited to aforementioned color list and can be easily extended.
@@ -708,32 +708,39 @@ class DefaultColor(IColor):
 
 NOOP_COLOR = _NoopColor()
 """
-Special `IColor` instance always rendering into empty string.
+Special ``IColor`` instance always rendering into empty string.
+
+.. important ::
+    Casting to *bool* results in **False** for all ``NOOP`` instances of the 
+    library (`NOOP_SEQ`, `NOOP_COLOR` and `NOOP_STYLE`). This is intended. 
+
 """
 
 DEFAULT_COLOR = DefaultColor()
 """
-Special `IColor` instance rendering to SGR sequence telling the terminal
+Special ``IColor`` instance rendering to SGR sequence telling the terminal
 to reset fg or bg color; same for `TmuxRenderer`. Useful when you inherit
 some `Style` with fg or bg color which you don't need, but at the same time
-you don't actually want to set up any value whatsoever.
+you don't actually want to set up any color whatsoever (as using `NOOP_COLOR`
+will result in an inheritance of parent style color instead of terminal default).
 
-.. important ::
+	>>> DEFAULT_COLOR.to_sgr(bg=False)
+	<SGR[39]>
 
-    *None* and `NOOP_COLOR` are always treated as placeholders for fallback 
-    values, i.e., they can't be used as *resetters* -- that's what `DEFAULT_COLOR` 
-    is for.  
-
->>> DEFAULT_COLOR.to_sgr(bg=False)
-<SGR[39]>
-
+	>>> import pytermor as pt
+	>>> pt.Style(pt.Styles.CRITICAL, fg=NOOP_COLOR)
+	<Style[hi-white:X160[D70000]]>
+	
+	>>> pt.Style(pt.Styles.CRITICAL, fg=DEFAULT_COLOR)
+	<Style[DEF:X160[D70000]]>
+	
 """
 
 
 def resolve_color(subject: CDT, color_type: t.Type[CT] = None) -> CT:
     """
     Case-insensitive search through registry contents. Search is performed for
-    `IColor` instance with name ``subject`` if the ``color_type`` registry.
+    ``IColor`` instance with name ``subject`` if the ``color_type`` registry.
     If ``color_type`` is omitted, all the registries will be requested in this
     order: [`Color16`, `Color256`, `ColorRGB`]. Should any registry return a match,
     the resolving is stopped and the result is returned.
@@ -781,10 +788,10 @@ def resolve_color(subject: CDT, color_type: t.Type[CT] = None) -> CT:
         LookupError: Color 'deepskyblue7' was not found in any of registries
 
     :param str|int subject:
-            `IColor` name or hex value to search for. See `CDT`.
+            ``IColor`` name or hex value to search for. See `CDT`.
     :param color_type:   Target color type (`Color16`, `Color256` or `ColorRGB`).
     :raises LookupError: If nothing was found in either of registries.
-    :return:             `IColor` instance with specified name or value.
+    :return:             ``IColor`` instance with specified name or value.
     """
 
     def as_hex(s: CDT):
@@ -845,7 +852,7 @@ def approximate(
     `find_closest()`, although they differ in some aspects:
 
         - `approximate()` can return more than one result;
-        - `approximate()` returns not just a `IColor` instance(s), but also a
+        - `approximate()` returns not just a ``IColor`` instance(s), but also a
           number equal to squared distance to the target color for each of them;
         - `find_closest()` caches the results, while `approximate()` ignores
           the cache completely.
@@ -853,7 +860,7 @@ def approximate(
     :param hex_value:    Target color RGB value.
     :param color_type:   Target color type (`Color16`, `Color256` or `ColorRGB`).
     :param max_results:  Return no more than ``max_results`` items.
-    :return: Pairs of closest `IColor` instance(s) found with their distances
+    :return: Pairs of closest ``IColor`` instance(s) found with their distances
              to the target color, sorted by distance descending, i.e., element
              at index 0 is the closest color found, paired with its distance
              to the target; element with index 1 is second-closest color

@@ -160,30 +160,37 @@ autodoc_typehints_description_target = "documented_params"
 # autodoc_inherit_docstrings =
 
 autodoc_type_aliases = {
-    "IColor": "pytermor.color.IColor",
-    "CT": "pytermor.color.CT",
-    "RT": "pytermor.text.RT",
-    "FT": "pytermor.style.FT",
-    "IT": "pytermor.utilstr.IT",
-    "OT": "pytermor.utilstr.OT",
+    # "CT": "pytermor.color.CT",
+    # "RT": "pytermor.text.RT",
+    # "FT": "pytermor.style.FT",
+    # "IT": "pytermor.utilstr.IT",
+    # "OT": "pytermor.utilstr.OT",
 }
 
 keep_warnings = True
-# nitpick_ignore = [('py:class', 'Match'),
-#                   ('py:class', 'InitVar'),
-#                   ('py:class', 'pytermor.common.T'),
-#                   ('py:class', 'pytermor.color.TypeColor')]
+
+nitpicky = True
+nitpick_ignore = []
+
+for line in open('conf_extras/nitpick-exceptions'):
+    if (line := line.strip()) == "" or line.startswith("#"):
+        continue
+    dtype, target = line.split(None, 1)
+    target = target.strip()
+    nitpick_ignore.append((dtype, target))
 
 # -- autosummary ------------------------------------------------------------------
 
 autosummary_generate = True
 
 # -- doctest ------------------------------------------------------------------
+# disabled due to clashing with pytest/sybil
 
-doctest_global_setup = """
-import pytermor as pt                         
-pt.RendererManager.set_default_format_always()
-"""
+# doctest_path = [os.path.abspath("..")]
+# doctest_global_setup = """
+# import pytermor
+# pytermor.RendererManager.set_default_format_always()
+# """
 
 # -- intersphinx  -------------------------------------------------------------
 

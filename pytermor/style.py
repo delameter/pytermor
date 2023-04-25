@@ -29,7 +29,7 @@ class Style:
     """
     Create new text render descriptior.
 
-    Both ``fg`` and ``bg`` can be specified as existing `IColor` instance as well
+    Both ``fg`` and ``bg`` can be specified as existing ``IColor`` instance as well
     as plain *str* or *int* (for the details see `resolve_color()`).
 
         >>> Style(fg='green', bold=True)
@@ -41,20 +41,25 @@ class Style:
 
     Attribute merging from ``fallback`` works this way:
 
-        - If constructor argument is *not* empty (``True``, ``False``, `IColor`
+        - If constructor argument is *not* empty (*True*, *False*, ``IColor``
           etc.), keep it as attribute value.
-        - If constructor argument is empty (*None*), take the value from
-          ``fallback``'s corresponding attribute.
+        - If constructor argument is empty (*None*, ``NOOP_COLOR``), take the
+           value from ``fallback``'s corresponding attribute.
 
     See `merge_fallback()` and `merge_overwrite()` methods and take the
     differences into account. The method used in the constructor is the first one.
 
     .. note ::
-        Both empty (i.e., *None*) attributes of type `IColor` after initialization
+        Both empty (i.e., *None*) attributes of type ``IColor`` after initialization
         will be replaced with special constant `NOOP_COLOR`, which behaves like
         there was no color defined, and at the same time makes it safer to work
         with nullable color-type variables. Merge methods are aware of this and
         trear `NOOP_COLOR` as *None*.
+
+    .. important ::
+        *None* and `NOOP_COLOR` are always treated as placeholders for fallback
+        values, i.e., they can't be used as *resetters* -- that's what `DEFAULT_COLOR`
+        is for.
 
     .. note ::
         All arguments except ``fallback``, ``fg`` and ``bg`` are *kwonly*-type args.
@@ -153,8 +158,6 @@ class Style:
 
             check if there is a better algorithm,
             because current thinks text on :hex:`#000080` should be black
-
-        :return: self
         """
         if self._bg is None or self._bg.hex_value is None:
             return self
@@ -169,16 +172,13 @@ class Style:
     def flip(self) -> Style:
         """
         Swap foreground color and background color.
-
-        :return: self
         """
         self._fg, self._bg = self._bg, self._fg
         return self
 
     def clone(self) -> Style:
         """
-
-        :return: self
+        C
         """
         return Style(self)
 
@@ -214,7 +214,6 @@ class Style:
             `merge_styles` for the examples.
 
         :param fallback: Style to merge the attributes with.
-        :return: self
         """
         for attr in self.renderable_attributes:
             self_val = getattr(self, attr)
@@ -261,7 +260,6 @@ class Style:
             `merge_styles` for the examples.
 
         :param overwrite:  Style to merge the attributes with.
-        :return: self
         """
         for attr in self.renderable_attributes:
             overwrite_val = getattr(overwrite, attr)
@@ -336,19 +334,21 @@ class _NoOpStyle(Style):
 NOOP_STYLE = _NoOpStyle()
 """ 
 Special style passing the text through without any modifications. 
-
+    
 .. important ::
+    Casting to *bool* results in **False** for all ``NOOP`` instances of the 
+    library (`NOOP_SEQ`, `NOOP_COLOR` and `NOOP_STYLE`). This is intended. 
 
-    This class is immutable, i.e. `LogicError` will be raised upon an attempt to
-    modify any of its attributes, which can lead to schrödinbugs::
+This class is immutable, i.e. `LogicError` will be raised upon an attempt to
+modify any of its attributes, which can lead to schrödinbugs::
 
-         st1.merge_fallback(Style(bold=True), [Style(italic=False)])
+    st1.merge_fallback(Style(bold=True), [Style(italic=False)])
 
-    If ``st1`` is a regular style instance, the statement above will always work
-    (and pass the tests), but if it happens to be a `NOOP_STYLE`, this will result 
-    in an exception. To protect from this outcome one could merge styles via frontend 
-    method `merge_styles` only, which always makes a copy of base argument and thus
-    cannot lead to such behaviour.
+If ``st1`` is a regular style instance, the statement above will always work
+(and pass the tests), but if it happens to be a `NOOP_STYLE`, this will result 
+in an exception. To protect from this outcome one could merge styles via frontend 
+method `merge_styles` only, which always makes a copy of base argument and thus
+cannot lead to such behaviour.
 
 """
 
@@ -467,7 +467,7 @@ def merge_styles(
         .. note ::
 
             Fallbacks allow to build complex style conditions, e.g. take a look into
-            `Highlighter.colorize()` method ::
+            `Highlighter.colorize()` method::
 
                 int_st = merge_styles(st, fallbacks=[Style(bold=True)])
 

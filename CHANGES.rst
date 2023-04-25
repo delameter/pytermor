@@ -13,8 +13,10 @@ pending
 - |REFACTOR| made `measure` and `trace` private
 - |NEW| `utilmisc` color transform methods overloaded
 - |DOCS| a lot
+- |FIX| `pydeps` invocation
+- |FIX|  `ESCAPE_SEQ_REGEX`
 
-.. <@pending:8873bc9>
+.. <@pending:5033979>
 .. ^ blank line before should be kept
 
 

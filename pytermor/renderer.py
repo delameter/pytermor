@@ -158,7 +158,7 @@ class IRenderer(metaclass=ABCMeta):
         class, which defines the implementation.
 
         :param string: String to format.
-        :param fmt:    Style or color to apply. If ``fmt`` is a `IColor` instance,
+        :param fmt:    Style or color to apply. If ``fmt`` is a ``IColor`` instance,
                        it is assumed to be a foreground color. See `FT`.
         :return: String with formatting applied, or without it, depending on
                  renderer settings.
@@ -168,8 +168,6 @@ class IRenderer(metaclass=ABCMeta):
     def clone(self: T, *args: t.Any, **kwargs: t.Any) -> T:
         """
         Make a copy of the renderer with the same setup.
-
-        :rtype: self
         """
 
     def __repr__(self):
@@ -210,9 +208,9 @@ class OutputMode(enum.Enum):
 
 class SgrRenderer(IRenderer):
     """
-    Default renderer invoked by `Text.render()`. Transforms `IColor` instances
+    Default renderer invoked by `Text.render()`. Transforms ``IColor`` instances
     defined in ``style`` into ANSI control sequence bytes and merges them with
-    input string. Type of resulting `SequenceSGR` depends on type of `IColor`
+    input string. Type of resulting `SequenceSGR` depends on type of ``IColor``
     instances in ``style`` argument and current output mode of the renderer.
 
     1. `ColorRGB` can be rendered as True Color sequence, 256-color sequence

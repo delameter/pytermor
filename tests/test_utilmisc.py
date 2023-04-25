@@ -18,7 +18,7 @@ def assert_close(a: float, b: float):
     assert isclose(a, b, abs_tol=0.01)
 
 
-def print_test_formatting_args(val) -> str | None:
+def format_test_params(val) -> str | None:
     if isinstance(val, int):
         return f"0x{val:06x}"
     elif isinstance(val, tuple):
@@ -39,7 +39,7 @@ class TestColorTransform:
             [HSV(240, 1, 0.5), 0x000080],
             [HSV(0, 0, 0), 0x1000000],
         ],
-        ids=print_test_formatting_args,
+        ids=format_test_params,
     )
     def test_hex_to_hsv(self, expected_hsv: HSV, input_hex: int):
         actual_hsv = pt.utilmisc.hex_to_hsv(input_hex)
@@ -58,7 +58,7 @@ class TestColorTransform:
             [RGB(0, 0, 128), 0x000080],
             [RGB(0, 0, 0), 0x1000000],
         ],
-        ids=print_test_formatting_args,
+        ids=format_test_params,
     )
     def test_hex_to_rgb(self, expected_rgb: RGB, input_hex: int):
         assert pt.utilmisc.hex_to_rgb(input_hex)    == expected_rgb
@@ -74,7 +74,7 @@ class TestColorTransform:
             [0xFFFFFF, [255, 255, 255]],
             [0x808080, [(128, 128, 128)]],
         ],
-        ids=print_test_formatting_args,
+        ids=format_test_params,
     )
     def test_rgb_to_hex(
         self, expected_hex: int, input_args_rgb: t.List[RGB | t.Tuple[int, int, int]]

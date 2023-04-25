@@ -16,6 +16,7 @@ class TestStringFilter:  # @TODO
         expected = "213"
         assert actual == expected
 
+
 @pytest.mark.setup(output_mode='TRUE_COLOR')
 class TestStringAligner:
     @pytest.mark.parametrize('expected,align,width', [

@@ -36,7 +36,7 @@ str_filters = [
 ]
 
 
-def print_test_formatting_args(val) -> str | None:
+def format_test_params(val) -> str | None:
     if isinstance(val, list):
         return str(val[0])
     if isinstance(val, str):
@@ -309,7 +309,7 @@ class TestStaticFormatter:
                 1.1e15,
             ],
         ],
-        ids=print_test_formatting_args,
+        ids=format_test_params,
     )
     @pytest.mark.setup(output_mode="TRUE_COLOR")
     def test_colorizing(self, expected: str, value: float):
@@ -737,7 +737,7 @@ class TestDynamicFormatter:
                 932_048_576,
             ],
         ],
-        ids=print_test_formatting_args,
+        ids=format_test_params,
     )
     @pytest.mark.setup(output_mode="TRUE_COLOR")
     def test_colorizing(self, expected: str, value: int):
@@ -818,14 +818,14 @@ class TestDualFormatter:
     # fmt: on
 
     @pytest.mark.parametrize(
-        "delta,expected", TIMEDELTA_TEST_SET, ids=print_test_formatting_args
+        "delta,expected", TIMEDELTA_TEST_SET, ids=format_test_params
     )
     @pytest.mark.parametrize("max_len,column", [(3, 0), (4, 1), (5, 2), (6, 3), (10, 4)])
     def test_output(self, max_len: int, column: int, expected: str, delta: timedelta):
         assert format_time_delta(delta.total_seconds(), max_len) == expected[column]
 
     @pytest.mark.parametrize(
-        "delta", [l[0] for l in TIMEDELTA_TEST_SET], ids=print_test_formatting_args
+        "delta", [l[0] for l in TIMEDELTA_TEST_SET], ids=format_test_params
     )
     @pytest.mark.parametrize("max_len", [3, 4, 5, 6, 10, 9, 1000])
     def test_output_fits_in_required_length(self, max_len: int, delta: timedelta):
@@ -896,7 +896,7 @@ class TestDualFormatter:
             ],
             ["\x1b[1;31m" "OVERFLOW" "\x1b[22;39m", timedelta(days=400000)],
         ],
-        ids=print_test_formatting_args,
+        ids=format_test_params,
     )
     @pytest.mark.setup(output_mode="TRUE_COLOR")
     def test_colorizing(self, expected: str, delta: timedelta):
@@ -904,7 +904,7 @@ class TestDualFormatter:
         actual = formatter.format(delta.total_seconds(), auto_color=True)
         assert actual.render() == expected
 
-    @pytest.mark.parametrize("max_len", [-5, 0, 1, 2], ids=print_test_formatting_args)
+    @pytest.mark.parametrize("max_len", [-5, 0, 1, 2], ids=format_test_params)
     @pytest.mark.xfail(raises=ValueError)
     def test_invalid_max_length_fails(self, max_len: int):
         format_time_delta(100, max_len)

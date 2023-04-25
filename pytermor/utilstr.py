@@ -7,6 +7,7 @@
 Formatters for prettier output and utility classes to avoid writing boilerplate
 code when dealing with escape sequences. Also includes several Python Standard
 Library methods rewritten for correct work with strings containing control sequences.
+
 """
 from __future__ import annotations
 
@@ -36,10 +37,16 @@ from .common import (
 
 
 def pad(n: int) -> str:
+    """
+    Convenient method to use instead of ``\"\".ljust(n)``.
+    """
     return " " * n
 
 
 def padv(n: int) -> str:
+    """
+    Convenient method to use instead of ``"\\n\" * n``.
+    """
     return "\n" * n
 
 
@@ -588,7 +595,7 @@ class EscSeqStringReplacer(StringReplacer):
 class SgrStringReplacer(StringReplacer):
     """
     Find all `SGR <SequenceSGR>` seqs (e.g., ``ESC [1;4m``) and replace with
-    given string. More specific version of :class:`CsiReplacer`.
+    given string. More specific version of :class:`~CsiReplacer`.
 
     :param repl:
         Replacement, can contain regexp groups (see :meth:`apply_filters()`).
@@ -770,10 +777,8 @@ class NonPrintsStringVisualizer(StringMapper):
     newlines. Newlines are kept and get prepneded with same char by default,
     but this behaviour can be disabled with ``keep_newlines`` = *False*.
 
-    >>> NonPrintsStringVisualizer(keep_newlines=False).apply("S"+os.linesep+"K")
-    'S↵K'
-    >>> apply_filters('1. D'+os.linesep+'2. L ', NonPrintsStringVisualizer())
-    '1.␣D↵\n2.␣L␣'
+        >>> NonPrintsStringVisualizer(keep_newlines=False).apply("S"+os.linesep+"K")
+        'S↵K'
 
     :param keep_newlines: When *True*, transform newline characters into "↵\\\\n", or
                           into just "↵" otherwise.

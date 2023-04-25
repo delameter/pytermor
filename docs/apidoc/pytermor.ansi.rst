@@ -20,6 +20,7 @@
    .. autosummary::
    
       assemble_hyperlink
+      contains_sgr
       decompose_request_cursor_position
       enclose
       get_closing_seq

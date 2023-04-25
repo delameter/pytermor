@@ -85,7 +85,7 @@ Class hierarchy
 
       .. inheritance-diagram:: pytermor.color
          :top-classes:         pytermor.color.IColor
-         :caption:             `IColor` inheritance diagram
+         :caption:             ``IColor`` inheritance diagram
          :parts: 1
 
    .. grid-item::

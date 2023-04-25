@@ -1,0 +1,27 @@
+# Pending on python docs links
+# https://stackoverflow.com/questions/11417221
+py:class abc.ABC
+py:class enum.Enum
+py:class enum.IntEnum
+py:class logging.NullHandler
+py:class pytermor.color.CT
+py:class pytermor.color.DefaultColor
+py:class pytermor.color.IColor
+py:class pytermor.common.T
+py:class pytermor.style.FT
+py:class pytermor.text.RT
+py:class pytermor.utilnum.NumFormatter
+py:class pytermor.utilstr.EscSeqStringReplacer
+py:class pytermor.utilstr.IT
+py:class pytermor.utilstr.NoopFilter
+py:class pytermor.utilstr.OmniDecoder
+py:class pytermor.utilstr.OmniEncoder
+py:class pytermor.utilstr.OT
+py:class re.Match
+py:class t.Callable
+py:class t.Iterable
+py:class t.List
+py:class t.Dict
+py:class t.Int
+py:class t.Float
+py:class t.Str

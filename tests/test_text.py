@@ -15,7 +15,7 @@ from pytermor import Text, FrozenText, Fragment, IRenderable, Style, RT
 from pytermor.renderer import NoOpRenderer
 
 
-def rt_str(val) -> str | None:
+def format_test_rt_params(val) -> str | None:
     if isinstance(val, str):
         max_sl = 9
         sample = val[:max_sl] + ("‥" * (len(val) > max_sl))
@@ -25,7 +25,7 @@ def rt_str(val) -> str | None:
     return None
 
 
-def print_test_formatting_args(val) -> str | None:
+def format_test_params(val) -> str | None:
     if isinstance(val, dict):
         return f"(" + (" ".join((k + "=" + str(v)) for k, v in val.items())) + ")"
     if isinstance(val, str):
@@ -315,7 +315,7 @@ class TestTextFormatting:
             (dict(width=5, overflow="...", fill="-", pad=2),  "...--"),
             (dict(width=6, overflow="...", fill="-", pad=2),  "1...--"),
         ],
-        ids=print_test_formatting_args
+        ids=format_test_params
     )
     # fmt: on
     def test_format(self, kwargs: dict, expected: str):
@@ -337,7 +337,7 @@ class TestSimpleTable:
     @pytest.mark.parametrize(
         "cell",
         ["1", pt.Fragment("1"), pt.FrozenText("1"), pt.Text("1"), pt.SimpleTable("1")],
-        ids=rt_str,
+        ids=format_test_rt_params,
     )
     def test_cell_types_accepted(self, cell: pytermor.text.RT):
         self.table.add_row(cell)
