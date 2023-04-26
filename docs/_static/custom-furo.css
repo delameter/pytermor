@@ -103,6 +103,12 @@ section .date {
     font-style: italic;
 }
 
+p.rubric,
+dd p.rubric {
+    font-size: 1.125em;
+    font-weight: 700;
+}
+
 /** Layout **/
 
 .right { text-align: right; }

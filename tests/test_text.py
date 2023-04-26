@@ -20,6 +20,8 @@ def format_test_rt_params(val) -> str | None:
         max_sl = 9
         sample = val[:max_sl] + ("‥" * (len(val) > max_sl))
         return f'<str>[({len(val)}, "{sample}")]'
+    if isinstance(val, Text):
+        return repr(val)[:16]+".."
     if isinstance(val, IRenderable):
         return repr(val)
     return None
@@ -343,6 +345,27 @@ class TestSimpleTable:
         self.table.add_row(cell)
         assert self.table.row_count == 1
 
+
+class TestSplitting:
+    @pytest.mark.parametrize(
+        "expected, input",
+        [(
+            Text(
+                Fragment("Testing", pt.Style(underlined=True)),
+                Fragment(" "),
+                Fragment("started", pt.Style(underlined=True)),
+                Fragment(" "),
+                Fragment("at", pt.Style(underlined=True)),
+                Fragment(" "),
+                Fragment("23:24", pt.Style(underlined=True)),
+            ),
+            Text(Fragment("Testing started at 23:24", pt.Style(underlined=True))),
+        )],
+        ids=format_test_rt_params
+    )
+    def test_splitting_works(self, expected: Text, input: Text):
+        input.split_by_spaces()
+        assert input == expected
 
 class TestMisc:
     @pytest.mark.parametrize(

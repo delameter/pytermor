@@ -71,6 +71,20 @@ References
 =================
 Headers
 =================
+.. chapter header
+
+----------------
+Section header
+----------------
+
+Subsection header
+-------------------
+
+Paragraph header
+""""""""""""""""""
+
+.. rubric:: Rubric
+
 .. code-block:: rst
 
    ##########################
@@ -83,31 +97,18 @@ Headers
    =================
    .. chapter header
 
-----------------
-Section header
-----------------
-.. code-block:: rst
-
    ----------------
    Section header
    ----------------
 
-Subsection header
--------------------
-.. code-block:: rst
-
    Subsection header
    -------------------
-
-Paragraph header
-""""""""""""""""""
-.. code-block:: rst
 
    Paragraph header
    """"""""""""""""""
 
-
-.. rubric:: Rubric
-.. code-block:: rst
-
    .. rubric:: Rubric
+
+   .. code-block:: rst
+
+      ...

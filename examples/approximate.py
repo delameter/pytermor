@@ -25,6 +25,7 @@ class Approximator:
             f"  python {sys.argv[0]} [-e] [COLOR]...",
             "",
             "Option -e|--extended enables more approximation details.",
+            "",
         ]
         self.input_values = []
         self._extended_mode = False
@@ -37,18 +38,23 @@ class Approximator:
                         continue
                     raise ValueError(f"Invalid option {arg}")
 
-                try:
-                    input_color = pt.resolve_color(f"#{arg}")
-                except LookupError:
-                    raise ValueError(f"Argument is not valid RGB value: 0x{arg}")
+                for argcolor in [arg, "#"+arg]:
+                    try:
+                        if input_color := pt.resolve_color(argcolor):
+                            break
+                    except LookupError:
+                        pass
+                else:
+                    raise ValueError(f"Failed to resolve: '{arg}'")
                 self.input_values.append(input_color)
             except ValueError as e:
                 pt.echo("USAGE:")
                 pt.echo(
                     [
                         *self.usage,
-                        "Expected COLOR format: '(0x)?[\da-f]{6}', i.e. a hexadecimal "
-                        "integer X, where 0 <= X <= 0xFFFFFF.",
+                        "Expected COLOR format: '(0x)?[\da-f]{6}', "
+                        "i.e. a hexadecimal integer X, where 0 <= X <= 0xFFFFFF, "
+                        "or a name from named colors list.",
                     ],
                     wrap=True,
                 )
@@ -107,7 +113,7 @@ class Approximator:
     def run_default(self, sample: pt.ColorRGB):
         results = []
         descriptions = [
-            "No approximation (direct output)",
+            "No approximation (as input)",
             "Closest color in named colors list (pytermor)",
             "Closest color in xterm-256 index",
             "Closest color in xterm-16 index",
@@ -142,7 +148,7 @@ class Approximator:
             results.append((string, style, renderer))
 
         prim_len = max(len(s[0]) for s in results)
-        header = " Mode".ljust(12) + " Δ".center(7) + "  " + "Approximated color"
+        header = "Render mode".ljust(12) + " Δ".center(7) + "  " + "Approximated color"
         pt.echo(header.ljust(prim_len + 1), pt.Style(underlined=True))
 
         for string, style, renderer in results:
@@ -159,4 +165,4 @@ if __name__ == "__main__":
         Main(*sys.argv[1:])
     except Exception as e:
         pt.echo(f"[ERROR] {type(e).__qualname__}: {e}\n", fmt=pt.Styles.ERROR)
-        raise e
+        # raise e

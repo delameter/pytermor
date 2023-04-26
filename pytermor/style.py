@@ -49,7 +49,7 @@ class Style:
     See `merge_fallback()` and `merge_overwrite()` methods and take the
     differences into account. The method used in the constructor is the first one.
 
-    .. note ::
+    .. important ::
         Both empty (i.e., *None*) attributes of type ``IColor`` after initialization
         will be replaced with special constant `NOOP_COLOR`, which behaves like
         there was no color defined, and at the same time makes it safer to work
@@ -64,40 +64,107 @@ class Style:
     .. note ::
         All arguments except ``fallback``, ``fg`` and ``bg`` are *kwonly*-type args.
 
-    :param fallback:    Copy unset attributes from speicifed fallback style.
+    :param fallback:    Copy empty attributes from speicifed fallback style.
                         See `merge_fallback()`.
-    :param fg:          Foreground (i.e., text) color.
+    :param fg:          Foreground (=text) color.
     :param bg:          Background color.
-    :param blink:       Blinking effect; *supported by limited amount of Renderers*.
     :param bold:        Bold or increased intensity.
-    :param crosslined:  Strikethrough.
     :param dim:         Faint, decreased intensity.
-    :param double_underlined:
-                        Faint, decreased intensity.
-    :param inversed:    Swap foreground and background colors.
     :param italic:      Italic.
-    :param overlined:   Overline.
     :param underlined:  Underline.
-    :param class_name:  Arbitary string used by some _get_renderers, e.g. by
-                        ``HtmlRenderer``.
+    :param overlined:   Overline.
+    :param crosslined:  Strikethrough.
+    :param double_underlined:
+                        Double underline.
+    :param inversed:    Swap foreground and background colors.
+    :param blink:       Blinking effect.
+    :param class_name:  Custom class name for the element.
     """
 
     _fg: IColor = field(default=None, init=False)
     _bg: IColor = field(default=None, init=False)
 
+    @property
+    def fg(self) -> IColor:
+        """
+        Foreground (i.e., text) color. Can be set as `CDT` or ``IColor``,
+        stored always as ``IColor``.
+        """
+        return self._fg
+
+    @property
+    def bg(self) -> IColor:
+        """
+        Background color. Can be set as `CDT` or ``IColor``, stored always
+        as ``IColor``.
+        """
+        return self._bg
+
+    @fg.setter
+    def fg(self, val: CDT | IColor):
+        self._fg: IColor = self._resolve_color(val)
+
+    @bg.setter
+    def bg(self, val: CDT | IColor):
+        self._bg: IColor = self._resolve_color(val)
+
+
+    bold: bool
+    """ Bold or increased intensity (depending on terminal settings)."""
+    dim: bool
+    """ 
+    Faint, decreased intensity. 
+    
+    .. admonition:: Terminal-based rendering
+    
+        Terminals apply this effect to foreground (=text) color, but when 
+        it's used together with `inversed`, they usually make the background 
+        darker instead.
+    
+        Also note that usually it affects indexed colors only and has no effect
+        on RGB-based ones (True Color mode).
+    """
+    italic: bool
+    """ Italic (some terminals may display it as inversed instead). """
+    underlined: bool
+    """ Underline. """
+    overlined: bool
+    """ Overline. """
+    crosslined: bool
+    """ Strikethrough."""
+    double_underlined: bool
+    """ Double underline. """
+    inversed: bool
+    """ 
+    Swap foreground and background colors. When inversed effect is active, 
+    changing the background color will actually change the text color, and
+    vice versa. 
+    """
+    blink: bool
+    """ 
+    Blinking effect. Supported by a limited set of `renderers <IRenderer>`.
+    """
+
+    class_name: str
+    """ 
+    Arbitary string used by some `renderers <IRenderer>`, e.g. by `
+    `HtmlRenderer``, which will include the value of this property to an output
+    element class list. This property is not inheritable.
+    """
+
     renderable_attributes = frozenset(
         [
             "fg",
             "bg",
-            "blink",
             "bold",
-            "crosslined",
             "dim",
+            "italic",
+            "underlined",
+            "overlined",
+            "crosslined",
             "double_underlined",
             "inversed",
-            "italic",
-            "overlined",
-            "underlined",
+            "blink",
         ]
     )
 
@@ -111,15 +178,15 @@ class Style:
         fg: CDT | IColor = None,
         bg: CDT | IColor = None,
         *,
-        blink: bool = None,
         bold: bool = None,
-        crosslined: bool = None,
         dim: bool = None,
+        italic: bool = None,
+        underlined: bool = None,
+        overlined: bool = None,
+        crosslined: bool = None,
         double_underlined: bool = None,
         inversed: bool = None,
-        italic: bool = None,
-        overlined: bool = None,
-        underlined: bool = None,
+        blink: bool = None,
         class_name: str = None,
     ):
         if fg is not None:
@@ -127,15 +194,15 @@ class Style:
         if bg is not None:
             self._bg = self._resolve_color(bg)
 
-        self.blink = blink
         self.bold = bold
-        self.crosslined = crosslined
         self.dim = dim
+        self.italic = italic
+        self.underlined = underlined
+        self.overlined = overlined
+        self.crosslined = crosslined
         self.double_underlined = double_underlined
         self.inversed = inversed
-        self.italic = italic
-        self.overlined = overlined
-        self.underlined = underlined
+        self.blink = blink
         self.class_name = class_name
 
         if fallback is not None:
@@ -304,21 +371,6 @@ class Style:
                 props_set.append(("+" if attr else "-") + attr_name.upper())
         return " ".join(props_set)
 
-    @property
-    def fg(self) -> IColor:
-        return self._fg
-
-    @property
-    def bg(self) -> IColor:
-        return self._bg
-
-    @fg.setter
-    def fg(self, val: str | int | IColor | None):
-        self._fg: IColor = self._resolve_color(val)
-
-    @bg.setter
-    def bg(self, val: str | int | IColor | None):
-        self._bg: IColor = self._resolve_color(val)
 
 
 class _NoOpStyle(Style):
@@ -336,7 +388,7 @@ NOOP_STYLE = _NoOpStyle()
 Special style passing the text through without any modifications. 
     
 .. important ::
-    Casting to *bool* results in **False** for all ``NOOP`` instances of the 
+    Casting to *bool* results in **False** for all ``NOOP`` instances in the 
     library (`NOOP_SEQ`, `NOOP_COLOR` and `NOOP_STYLE`). This is intended. 
 
 This class is immutable, i.e. `LogicError` will be raised upon an attempt to

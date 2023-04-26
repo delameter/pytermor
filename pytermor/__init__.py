@@ -92,6 +92,7 @@ from .renderer import OutputMode as OutputMode
 from .renderer import RendererManager as RendererManager
 from .renderer import SgrRenderer as SgrRenderer
 from .renderer import TmuxRenderer as TmuxRenderer
+from .text import Composite as Composite
 from .text import Fragment as Fragment
 from .text import FrozenText as FrozenText
 from .text import SimpleTable as SimpleTable

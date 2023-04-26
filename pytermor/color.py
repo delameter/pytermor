@@ -685,7 +685,7 @@ class _NoopColor(IColor):
         return self.format_value()
 
 
-class DefaultColor(IColor):
+class _DefaultColor(IColor):
     def __init__(self):
         super().__init__(0)
 
@@ -711,12 +711,12 @@ NOOP_COLOR = _NoopColor()
 Special ``IColor`` instance always rendering into empty string.
 
 .. important ::
-    Casting to *bool* results in **False** for all ``NOOP`` instances of the 
+    Casting to *bool* results in **False** for all ``NOOP`` instances in the 
     library (`NOOP_SEQ`, `NOOP_COLOR` and `NOOP_STYLE`). This is intended. 
 
 """
 
-DEFAULT_COLOR = DefaultColor()
+DEFAULT_COLOR = _DefaultColor()
 """
 Special ``IColor`` instance rendering to SGR sequence telling the terminal
 to reset fg or bg color; same for `TmuxRenderer`. Useful when you inherit

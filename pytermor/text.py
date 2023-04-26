@@ -263,7 +263,7 @@ class FrozenText(IRenderable):
         pad: int = 0,
         pad_styled: bool = True,
     ):
-        self._fragments = deque()
+        self._fragments: deque[Fragment] = deque()
         if len(args):
             if isinstance(args[0], str) and (
                 len(args) == 1
@@ -426,6 +426,8 @@ class FrozenText(IRenderable):
         raise LogicError("FrozenText is immutable")
 
 
+
+
 class Text(FrozenText):
     def __iadd__(self, other: str | Fragment) -> FrozenText:
         return self.append(*as_fragments(other))
@@ -443,17 +445,29 @@ class Text(FrozenText):
     def set_width(self, width: int):
         self._width = width
 
+    def split_by_spaces(self):
+        split_fragments = [*self._split_by_spaces()]
+        self._fragments.clear()
+        self._fragments.extend(*split_fragments)
 
-class TextComposite(IRenderable):
+    def _split_by_spaces(self) -> t.Iterable[Fragment]:
+        for frag in self._fragments:
+            yield TemplateEngine.split_by_spaces(frag.raw(), st=frag.style)
+
+
+class Composite(IRenderable):
     """
     Simple class-container supporting concatenation of
     any `IRenderable` instances with each other without
     extra logic on top of it. Renders parts joined by an
     empty string.
+
+    :param parts: text parts in any format implementing
+                  `IRenderable` interface.
     """
-    def __init__(self, *parts: t.Iterable[IRenderable]):
+    def __init__(self, *parts: IRenderable):
         super().__init__()
-        self._parts: deque[IRenderable] = deque(*parts)
+        self._parts: deque[IRenderable] = deque(parts)
 
     def __len__(self) -> int:
         return sum(len(part) for part in self._parts)
@@ -686,8 +700,9 @@ class TemplateEngine:
         re.VERBOSE,
     )
 
-    _ESCAPE_REGEXP = re.compile(r"([^\\])\\\[")
-    _SPLIT_REGEXP = re.compile(r"([^\s,]+)?([\s,]*)")
+    ESCAPE_REGEXP = re.compile(r"([^\\])\\\[")
+    SPLIT_REGEXP = re.compile(r"(\S+)?(\s*)")
+    # SPLIT_REGEXP = re.compile(r"([^\s,]+)?([\s,]*)")
 
     def __init__(self, custom_styles: t.Dict[str, Style] = None):
         self._custom_styles: t.Dict[str, Style] = custom_styles or {}
@@ -701,13 +716,11 @@ class TemplateEngine:
 
         for tag_match in self._TAG_REGEXP.finditer(tpl):
             span = tag_match.span()
-            tpl_part = self._ESCAPE_REGEXP.sub(r"\1[", tpl[tpl_cursor: span[0]])
+            tpl_part = self.ESCAPE_REGEXP.sub(r"\1[", tpl[tpl_cursor: span[0]])
             if len(tpl_part) > 0 or style_buffer != NOOP_STYLE:
                 if split_style:
-                    for tpl_chunk, sep in self._SPLIT_REGEXP.findall(tpl_part):
-                        if len(tpl_chunk) > 0:
-                            result += Fragment(tpl_chunk, style_buffer, close_this=True)
-                        result += sep
+                    for part in self.split_by_spaces(tpl_part, st=style_buffer):
+                        result += part
                     # add open style for engine to properly handle the :[-closing] tag:
                     tpl_part = ""
                 result += Fragment(tpl_part, style_buffer, close_this=False)
@@ -757,6 +770,14 @@ class TemplateEngine:
                 continue
             raise ValueError(f'Unknown style name or attribute: "{style_attr}"')
         return Style(base_style, **style_attrs)
+
+    @staticmethod
+    def split_by_spaces(*parts: str, st: Style) -> t.Sequence[Fragment]:
+        for word, sep in TemplateEngine.SPLIT_REGEXP.findall("".join(parts)):
+            if len(word) > 0:
+                yield Fragment(word, st, close_this=True)
+            if len(sep) > 0:
+                yield Fragment(sep)
 
 
 _template_engine = TemplateEngine()

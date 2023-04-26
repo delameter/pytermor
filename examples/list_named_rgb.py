@@ -288,4 +288,4 @@ if __name__ == "__main__":
         Main()
     except Exception as e:
         pt.echo(f"[ERROR] {type(e).__qualname__}: {e}\n", fmt=pt.Styles.ERROR)
-        raise e
+        # raise e

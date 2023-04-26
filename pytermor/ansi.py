@@ -359,7 +359,7 @@ returns empty list:
     []
 
 .. important ::
-    Casting to *bool* results in **False** for all ``NOOP`` instances of the 
+    Casting to *bool* results in **False** for all ``NOOP`` instances in the 
     library (`NOOP_SEQ`, `NOOP_COLOR` and `NOOP_STYLE`). This is intended. 
 
 Can be safely added to regular `SequenceSGR` from any side, as internally

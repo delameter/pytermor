@@ -86,11 +86,7 @@ class RendererManager:
             return
 
         renderer_class: t.Type = getattr(__import__(__package__), get_config().renderer_class)
-        output_mode = OutputMode[get_config().output_mode]
-        if issubclass(renderer_class, SgrRenderer):
-            cls._default = renderer_class(output_mode)
-        else:
-            cls._default = renderer_class()
+        cls._default = renderer_class()
 
     @classmethod
     def get_default(cls) -> IRenderer:
@@ -264,7 +260,7 @@ class SgrRenderer(IRenderer):
 
         logger.debug(
             f"Instantiated {self.__class__.__qualname__}"
-            f"[{self._output_mode.name} <- {output_mode.name}, "
+            f"[{self._output_mode.name}, "
             f"upper bound {get_qname(self._color_upper_bound)}]"
         )
 
@@ -304,12 +300,19 @@ class SgrRenderer(IRenderer):
 
     def _determine_output_mode(self, arg_value: OutputMode, io: t.IO) -> OutputMode:
         if arg_value is not OutputMode.AUTO:
+            logger.debug(f"Using explicitly set output mode: {arg_value}")
             return arg_value
+
+        config_value = OutputMode[get_config().output_mode]
+        if config_value is not OutputMode.AUTO:
+            logger.debug(f"Using output mode set in environment: {config_value}")
+            return config_value
 
         isatty = io.isatty()
         term = os.environ.get("TERM", None)
         colorterm = os.environ.get("COLORTERM", None)
 
+        logger.debug(f"Determining output mode automatically: {config_value}")
         logger.debug(f"{get_qname(io)} is a terminal: {isatty}")
         logger.debug(f"Environment: TERM='{term}'")
         logger.debug(f"Environment: COLORTERM='{colorterm}'")

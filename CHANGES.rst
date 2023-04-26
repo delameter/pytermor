@@ -15,8 +15,9 @@ pending
 - |DOCS| a lot
 - |FIX| `pydeps` invocation
 - |FIX|  `ESCAPE_SEQ_REGEX`
+- |NEW| `contains_sgr` method
 
-.. <@pending:5033979>
+.. <@pending:3fb8499>
 .. ^ blank line before should be kept
 
 

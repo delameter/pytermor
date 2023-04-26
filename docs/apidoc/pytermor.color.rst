@@ -38,7 +38,6 @@
       Color16
       Color256
       ColorRGB
-      DefaultColor
       IColor
    
    
