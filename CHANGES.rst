@@ -16,8 +16,10 @@ pending
 - |FIX| `pydeps` invocation
 - |FIX|  `ESCAPE_SEQ_REGEX`
 - |NEW| `contains_sgr` method
+- |NEW|  `Text.split_by_spaces()`, `Composite`
+- |NEW| +3 base sequence classes, +26 preset sequences
 
-.. <@pending:3fb8499>
+.. <@pending:770a83e>
 .. ^ blank line before should be kept
 
 

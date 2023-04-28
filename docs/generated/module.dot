@@ -5,7 +5,7 @@ digraph G {
     rankdir = TB;
     node [style=filled,fillcolor="#ffffff",fontcolor="#000000",fontname=Helvetica,fontsize=10];
 
-    pytermor_ansi [fillcolor="#d92626",fontcolor="#ffffff",label="ansi"];
+    pytermor_ansi [fillcolor="#d02424",fontcolor="#ffffff",label="ansi"];
     pytermor_color [fillcolor="#bf2121",fontcolor="#ffffff",label="color"];
     pytermor_common [fillcolor="#f91010",fontcolor="#ffffff",label="common"];
     pytermor_config [fillcolor="#cc3333",fontcolor="#ffffff",label="config"];
@@ -15,11 +15,11 @@ digraph G {
     pytermor_text [fillcolor="#8f3d3d",fontcolor="#ffffff",label="text"];
     pytermor_utilmisc [fillcolor="#ac4949",fontcolor="#ffffff",label="utilmisc"];
     pytermor_utilnum [fillcolor="#924e4e",fontcolor="#ffffff",label="utilnum"];
-    pytermor_utilstr [fillcolor="#b34c4c",fontcolor="#ffffff",label="utilstr"];
-    pytermor_ansi -> pytermor_color [fillcolor="#d92626"];
-    pytermor_ansi -> pytermor_cval [fillcolor="#d92626"];
-    pytermor_ansi -> pytermor_renderer [fillcolor="#d92626"];
-    pytermor_ansi -> pytermor_utilmisc [fillcolor="#d92626"];
+    pytermor_utilstr [fillcolor="#c04040",fontcolor="#ffffff",label="utilstr"];
+    pytermor_ansi -> pytermor_color [fillcolor="#d02424"];
+    pytermor_ansi -> pytermor_cval [fillcolor="#d02424"];
+    pytermor_ansi -> pytermor_renderer [fillcolor="#d02424"];
+    pytermor_ansi -> pytermor_utilmisc [fillcolor="#d02424"];
     pytermor_color -> pytermor_cval [fillcolor="#bf2121"];
     pytermor_color -> pytermor_renderer [fillcolor="#bf2121"];
     pytermor_color -> pytermor_style [fillcolor="#bf2121"];
@@ -44,6 +44,7 @@ digraph G {
     pytermor_style -> pytermor_utilnum [fillcolor="#bc2f2f"];
     pytermor_text -> pytermor_utilnum [fillcolor="#8f3d3d"];
     pytermor_utilmisc -> pytermor_color [fillcolor="#ac4949"];
-    pytermor_utilstr -> pytermor_text [fillcolor="#b34c4c"];
+    pytermor_utilstr -> pytermor_ansi [fillcolor="#c04040"];
+    pytermor_utilstr -> pytermor_text [fillcolor="#c04040"];
 }
 

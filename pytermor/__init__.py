@@ -7,7 +7,7 @@
 .. note ::
     Almost all public classes are imported into the first package level
     on its initialization, i.e., "short" forms like ``from pytermor import ColorRGB``
-    are supported, not only "full forms" as ``from pytermor.color import ColorRGB``.
+    are available in addition to full import statements.
 
 """
 
@@ -53,17 +53,46 @@ from .ansi import SequenceCSI as SequenceCSI
 from .ansi import SequenceOSC as SequenceOSC
 from .ansi import SequenceSGR as SequenceSGR
 from .ansi import SequenceST as SequenceST
+from .ansi import SequenceFp as SequenceFp
+from .ansi import SequenceFs as SequenceFs
+from .ansi import SequenceNf as SequenceNf
 from .ansi import assemble_hyperlink as assemble_hyperlink
 from .ansi import contains_sgr as contains_sgr
-from .ansi import decompose_request_cursor_position as decompose_request_cursor_position
+from .ansi import decompose_report_cursor_position as decompose_report_cursor_position
 from .ansi import enclose as enclose
 from .ansi import get_closing_seq as get_closing_seq
+from .ansi import make_clear_display as make_clear_display
+from .ansi import make_clear_display_after_cursor as make_clear_display_after_cursor
+from .ansi import make_clear_display_and_history as make_clear_display_and_history
+from .ansi import make_clear_display_before_cursor as make_clear_display_before_cursor
+from .ansi import make_clear_line as make_clear_line
+from .ansi import make_clear_line as make_clear_line
+from .ansi import make_clear_line_after_cursor as make_clear_line_after_cursor
+from .ansi import make_clear_line_before_cursor as make_clear_line_before_cursor
 from .ansi import make_color_256 as make_color_256
 from .ansi import make_color_rgb as make_color_rgb
+from .ansi import make_disable_alt_screen_buffer as make_disable_alt_screen_buffer
+from .ansi import make_enable_alt_screen_buffer as make_enable_alt_screen_buffer
+from .ansi import make_erase_in_display as make_erase_in_display
 from .ansi import make_erase_in_line as make_erase_in_line
+from .ansi import make_hide_cursor as make_hide_cursor
 from .ansi import make_hyperlink_part as make_hyperlink_part
+from .ansi import make_move_cursor_down as make_move_cursor_down
+from .ansi import make_move_cursor_left as make_move_cursor_left
+from .ansi import make_move_cursor_right as make_move_cursor_right
+from .ansi import make_move_cursor_to_start_and_down as make_move_cursor_to_start_and_down
+from .ansi import make_move_cursor_to_start_and_up as make_move_cursor_to_start_and_up
+from .ansi import make_move_cursor_up as make_move_cursor_up
 from .ansi import make_query_cursor_position as make_query_cursor_position
-from .ansi import make_set_cursor_x_abs as make_set_cursor_x_abs
+from .ansi import make_reset_cursor as make_reset_cursor
+from .ansi import make_restore_cursor_position as make_restore_cursor_position
+from .ansi import make_restore_screen as make_restore_screen
+from .ansi import make_save_cursor_position as make_save_cursor_position
+from .ansi import make_save_screen as make_save_screen
+from .ansi import make_set_cursor as make_set_cursor
+from .ansi import make_set_cursor_column as make_set_cursor_column
+from .ansi import make_set_cursor_line as make_set_cursor_line
+from .ansi import make_show_cursor as make_show_cursor
 from .color import ApxResult as ApxResult
 from .color import Color16 as Color16
 from .color import Color256 as Color256
@@ -137,6 +166,7 @@ from .utilstr import CONTROL_CHARS as CONTROL_CHARS
 from .utilstr import CSI_SEQ_REGEX as CSI_SEQ_REGEX
 from .utilstr import ESCAPE_SEQ_REGEX as ESCAPE_SEQ_REGEX
 from .utilstr import NON_ASCII_CHARS as NON_ASCII_CHARS
+from .utilstr import RCP_REGEX as RCP_REGEX
 from .utilstr import PRINTABLE_CHARS as PRINTABLE_CHARS
 from .utilstr import SGR_SEQ_REGEX as SGR_SEQ_REGEX
 from .utilstr import WHITESPACE_CHARS as WHITESPACE_CHARS

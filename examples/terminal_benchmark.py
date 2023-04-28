@@ -242,7 +242,7 @@ class Printer:
             return
         self.prev_update_time = time.time_ns()
 
-        status = "\r" + pt.ansi.make_erase_in_line().assemble()
+        status = "\r" + pt.ansi.make_clear_line().assemble()
         status += f" RUN "
         status += pt.render(f"{self.int_formatter.format(run):<3s}" + " [")
         status += (

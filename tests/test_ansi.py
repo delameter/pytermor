@@ -184,7 +184,7 @@ class TestContainsSgr:
 
 class TestSequenceCSI(unittest.TestCase):
     def test_make_erase_in_line(self):
-        s = make_erase_in_line()
+        s = make_erase_in_line(0)
 
 
 class TestSequenceOSC(unittest.TestCase):
@@ -212,7 +212,7 @@ class TestSgrRegistry:
             (make_color_256(128, True), SeqIndex.BG_COLOR_OFF),
             (make_color_rgb(128, 0, 128, False), SeqIndex.COLOR_OFF),
             (make_color_rgb(128, 0, 128, True), SeqIndex.BG_COLOR_OFF),
-            (make_erase_in_line(), NOOP_SEQ),
+            (make_erase_in_line(0), NOOP_SEQ),
         ],
     )
     def test_closing_seq(self, opening: SequenceSGR, expected_closing: SequenceSGR):

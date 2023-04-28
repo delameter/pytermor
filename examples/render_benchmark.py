@@ -186,8 +186,8 @@ class RenderBemchmarker:
                             if class_ is str:
                                 add_st = "gray50"
                                 q = pt.Fragment("[CONTROL] ", add_st) + q
-                            pt.echoi(pt.ansi.make_set_cursor_x_abs(1).assemble())
-                            pt.echoi(pt.ansi.make_erase_in_line().assemble())
+                            pt.echoi(pt.ansi.make_set_cursor_column(1).assemble())
+                            pt.echoi(pt.ansi.make_clear_line().assemble())
                             q.set_width(14)
                             pt.echoi(q)
                             pt.echoi(pt.Text(f" ({om.value.upper()})", width=15))

@@ -2,7 +2,7 @@
 Disclaimer of Warranty
 ==========================
 
-::
+.. rst-class:: justified mono
 
    THERE IS  NO WARRANTY  FOR THE PROGRAM, TO THE EXTENT  PERMITTED  BY APPLICABLE
    LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER

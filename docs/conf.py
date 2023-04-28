@@ -35,6 +35,9 @@ release = version
 
 # -- General configuration ----------------------------------------------------
 
+with open("include/_prolog.rsti", "rt") as f:
+    rst_prolog = f.read()
+
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.todo",
@@ -48,19 +51,17 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_design",  # <<<MAKE_DOCS_MAN<<<
     # "sphinx_toolbox.more_autodoc.regex",
-    # "sphinx_toolbox.more_autodoc.overloads",
+    "sphinx_toolbox.more_autodoc.overloads",
     # "sphinx_toolbox.more_autodoc.generic_bases",
-    # "sphinx_toolbox.more_autodoc.typehints",
-    # "sphinx_toolbox.more_autodoc.typevars",
+    "sphinx_toolbox.more_autodoc.typehints",
+    "sphinx_toolbox.more_autodoc.typevars",
+    #"sphinxext-opengraph", # @TODO
 ]
 # sphinx-design breaks building docs in man format, so `make` comments that
 # line before building it and uncomments it afterwards (yeah I know it's ugly)
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "depreacted", "_static", ".static.sources", "examples", "generated", "include"]
-
-with open("include/_prolog.rsti", "rt") as f:
-    rst_prolog = f.read()
 
 # -- HTML ---------------------------------------------------------------------
 
@@ -122,7 +123,7 @@ latex_elements = {
 #     if what == 'class' and name.startswith('__'):
 #         print(what, name, obj, skip, options)
 
-# autodoc_typehints_format = 'short'
+autodoc_typehints_format = 'short'
 autodoc_default_options = {
     "members": True,
     # 'undoc-members': True,

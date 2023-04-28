@@ -38,6 +38,33 @@ General
    .. math::
       d_{min} = 350*10^{-3}
 
+- Hexadecimal numbers should be displayed using ``:hex:`` role (applies to all
+  examples below except the last one). In general, when the characters are
+  supposed to be typed manually, or when the result length is 6+ chars, it's
+  better to use lower case; when the numbers are distinct or "U+" notation is
+  used, the upper case is acceptable:
+
+   separate bytes
+      :hex:`0x1B 0x23 0x88`
+
+   Unicode codepoints
+      :hex:`U+21BC` ; :hex:`U+F0909`
+
+   hex dump
+      :hex:`"0x 00AF 00BB 96CA"` ; :hex:`"0x 80 80 11 BD AA B5"`
+
+   memory address or size
+      :hex:`0000:9cf0`
+
+   RGB colors
+      :hex:`0xeb0c0c` ; :hex:`#ff00ff`
+
+   escaped strings
+
+      .. code-block:: python
+
+         "\u21bc", "\U000f0909", re.compile(R"\x1b\[[0-9;]*m")
+
 
 ==================
 References

@@ -1,4 +1,4 @@
-/*---------------------------------------------------------------------------*/
+﻿/*---------------------------------------------------------------------------*/
 /* pytermor [ANSI formatted terminal output toolset]                         */
 /* (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>                        */
 /* Licensed under GNU Lesser General Public License v3.0                     */
@@ -37,11 +37,12 @@ abbr,
 .sidebar-brand-text,
 .brand,
 dl[class].field-list > dt {
-    font-family: ASM, monospace;
+    font-family: 'Iose7ka Terminal', monospace;
     text-transform: lowercase;
 }
 .hex {
     font-family: ASM, monospace;
+    font-size: var(--font-size--small);
 }
 h2 { font-size: 1.8rem; }
 h3 { font-size: 1.6rem; }
@@ -112,6 +113,9 @@ dd p.rubric {
 /** Layout **/
 
 .right { text-align: right; }
+.centered { text-align: center; }
+.justified { text-align: justify; }
+.mono { font-family: ElementaCyr-Bold, monospace; }
 
 article .align-center, article .align-default {
     margin-block: 0.5em 1.0em; /** more below **/

@@ -27,6 +27,7 @@ import typing as t
 from functools import lru_cache
 
 from .common import ConflictError
+from .utilstr import RCP_REGEX
 
 
 class ISequence(t.Sized, metaclass=ABCMeta):
@@ -36,14 +37,8 @@ class ISequence(t.Sized, metaclass=ABCMeta):
 
     _ESC_CHARACTER: str = "\x1b"
     _SEPARATOR: str = ";"
-    _INTRODUCER: str
-    _TERMINATOR: str
 
     def __init__(self, *params: int | str):
-        """
-        :param  params:  Sequence internal parameters; amount varies
-                         depending on sequence type.
-        """
         self._params: t.List[int | str] = []
 
         for param in params:
@@ -54,22 +49,12 @@ class ISequence(t.Sized, metaclass=ABCMeta):
                 continue
             self._params.append(param)
 
+    @abstractmethod
     def assemble(self) -> str:
-        """
-        Build up actual byte sequence and return as an ASCII-encoded string.
-        """
-        return (
-            self._ESC_CHARACTER
-            + self._INTRODUCER
-            + self._SEPARATOR.join([str(param) for param in self.params])
-            + self._TERMINATOR
-        )
+        raise NotImplementedError
 
     @property
     def params(self) -> t.List[int | str]:
-        """
-        Return internal params as array.
-        """
         return self._params
 
     @classmethod
@@ -93,15 +78,113 @@ class ISequence(t.Sized, metaclass=ABCMeta):
         return f"<{self._short_class_name()}[{params}]>"
 
 
+class SequenceNf(ISequence, metaclass=ABCMeta):
+    """
+    Escape sequences mostly used for ANSI/ISO code-switching mechanisms.
+
+    All **nF**-class sequences start with ``ESC`` plus ASCII byte from
+    the range :hex:`0x20-0x2f` (space, ``!``, ``"``, ``#``, ``$``, ``%``,
+    ``&``, ``'``, ``(``, ``)``, ``*``, ``+``, ``,``, ``-``, ``.``, ``/``).
+    """
+    def __init__(self, *interm: str, final: str, short_name: str = None):
+        """
+
+        :param interm: intermediate bytes :hex:`0x20-0x2f`
+        :param final:
+        :param short_name:
+        """
+        self._interm = interm
+        self._final = final
+        self._short_name = short_name
+        super().__init__()
+
+    def assemble(self) -> str:
+        """
+        Build up actual byte sequence and return as an ASCII-encoded string.
+        """
+        return self._ESC_CHARACTER \
+            + "".join(self._interm) \
+            + self._final
+
+    def _short_class_name(self):
+        return self._short_name or "nF"
+
+
+class SequenceFp(ISequence):
+    """
+    Sequence class representing private control functions.
+
+    All **Fp**-class sequences start with ``ESC`` plus ASCII byte in the
+    range :hex:`0x30-0x3F` (``0``-``9``, ``:``, ``;``, ``<``, ``=``, ``>``,
+    ``?``).
+    """
+
+    def __init__(self, classifier: str, short_name: str = None, *params: str):
+        """
+
+        :param classifier:
+        :param short_name:
+        :param params:
+        """
+        self._classifier = classifier
+        self._short_name = short_name
+        super().__init__(*params)
+
+    def assemble(self) -> str:
+        """
+        Build up actual byte sequence and return as an ASCII-encoded string.
+        """
+        return self._ESC_CHARACTER + self._classifier
+
+    def _short_class_name(self):
+        return self._short_name or "Fp"
+
+
 class ISequenceFe(ISequence, metaclass=ABCMeta):
     """
-    Wide range of sequence types that includes `CSI <SequenceCSI>`,
-    `OSC <SequenceOSC>` and more.
+    C1 set sequences -- a wide range of sequences that includes
+    `CSI <SequenceCSI>`, `OSC <SequenceOSC>` and more.
 
-    All subtypes of this sequence start with ``ESC`` plus ASCII byte
-    from :hex:`0x40` to :hex:`0x5F` (``@``, ``[``, ``\\``, ``]``, ``_``, ``^`` and
-    capital letters ``A``-``Z``).
+    All **Fe**-class sequences start with ``ESC`` plus ASCII byte
+    from :hex:`0x40` to :hex:`0x5F` (``@``, ``[``, ``\\``, ``]``, ``_``, ``^``
+    and capital letters ``A``-``Z``).
     """
+
+    def _short_class_name(self):
+        return "Fe"
+
+
+class SequenceFs(ISequence, metaclass=ABCMeta):
+    """
+    Sequences referred by ECMA-48 as "independent control functions".
+
+    All **Fs**-class sequences start with ``ESC`` plus a byte in the range
+    :hex:`0x60-0x7E` (``\```, ``a``-``z``, ``{``, ``|``, ``}``).
+    """
+
+    def __init__(self, classifier: str, short_name: str = None, *params: str):
+        """
+
+        :param classifier:
+        :param short_name:
+        :param params:
+        """
+        self._classifier = classifier
+        self._short_name = short_name
+        super().__init__(*params)
+
+    def assemble(self) -> str:
+        """
+        Build up actual byte sequence and return as an ASCII-encoded string.
+        """
+        return (
+            self._ESC_CHARACTER
+            + self._classifier
+            + self._SEPARATOR.join(map(str, self._params))
+        )
+
+    def _short_class_name(self):
+        return self._short_name or "Fs"
 
 
 class SequenceST(ISequenceFe):
@@ -113,6 +196,9 @@ class SequenceST(ISequenceFe):
     _INTRODUCER = "\\"
 
     def assemble(self) -> str:
+        """
+        Build up actual byte sequence and return as an ASCII-encoded string.
+        """
         return self._ESC_CHARACTER + self._INTRODUCER
 
     @classmethod
@@ -130,6 +216,17 @@ class SequenceOSC(ISequenceFe):
     _INTRODUCER = "]"
     _TERMINATOR = SequenceST().assemble()
 
+    def assemble(self) -> str:
+        """
+        Build up actual byte sequence and return as an ASCII-encoded string.
+        """
+        return (
+            self._ESC_CHARACTER
+            + self._INTRODUCER
+            + self._SEPARATOR.join(map(str, self._params))
+            + self._TERMINATOR
+        )
+
     @classmethod
     def _short_class_name(cls):
         return "OSC"
@@ -143,14 +240,14 @@ class SequenceCSI(ISequenceFe):
     Sequences of this type are used to control text formatting,
     change cursor position, erase screen and more.
 
-    >>> make_erase_in_line().assemble()
-    '\x1b[0K'
+    >>> make_clear_line().assemble()
+    '\x1b[2K'
 
     """
 
     _INTRODUCER = "["
 
-    def __init__(self, terminator: str, short_name: str, *params: int):
+    def __init__(self, terminator: str, short_name: str = None, *params: int | str):
         """
 
         :param terminator:
@@ -161,14 +258,14 @@ class SequenceCSI(ISequenceFe):
         self._short_name = short_name
         super().__init__(*params)
 
-    def regexp(self) -> str:
-        return f"\\x1b\\[[0-9;]*{self._terminator}"
-
     def assemble(self) -> str:
+        """
+        Build up actual byte sequence and return as an ASCII-encoded string.
+        """
         return (
             self._ESC_CHARACTER
             + self._INTRODUCER
-            + self._SEPARATOR.join([str(param) for param in self.params])
+            + self._SEPARATOR.join(map(str, self.params))
             + self._terminator
         )
 
@@ -177,6 +274,26 @@ class SequenceCSI(ISequenceFe):
         if self._short_name:
             result += ":" + self._short_name
         return result
+
+    @staticmethod
+    def validate_column_abs_value(column: int):
+        if column <= 0:
+            raise ValueError(f"Invalid column value: expected > 0, got: {column}")
+
+    @staticmethod
+    def validate_line_abs_value(line: int):
+        if line <= 0:
+            raise ValueError(f"Invalid line value: expected > 0, got: {line}")
+
+    @staticmethod
+    def validate_column_rel_value(columns: int):
+        if columns <= 0:
+            raise ValueError(f"Invalid column shift value: expected > 0, got: {columns}")
+
+    @staticmethod
+    def validate_line_rel_value(lines: int):
+        if lines <= 0:
+            raise ValueError(f"Invalid line shift value: expected > 0, got: {lines}")
 
 
 class SequenceSGR(SequenceCSI):
@@ -260,20 +377,23 @@ class SequenceSGR(SequenceCSI):
         super().__init__(self._TERMINATOR, "SGR", *result)
 
     def assemble(self) -> str:
+        """
+        Build up actual byte sequence and return as an ASCII-encoded string.
+        """
         if len(self._params) == 0:  # NOOP
             return ""
 
         return (
             self._ESC_CHARACTER
             + self._INTRODUCER
-            + self._SEPARATOR.join([str(param) for param in self._params])
+            + self._SEPARATOR.join(map(str, self._params))
             + self._TERMINATOR
         )
 
     @property
     def params(self) -> t.List[int]:
         """
-        :return: Sequence params as integers or `IntCode` instances.
+        :return: Sequence params as integers.
         """
         return super().params
 
@@ -328,6 +448,7 @@ class SequenceSGR(SequenceCSI):
 #     def params(self) -> t.List[str]:
 #         """ """
 #         return self._params
+
 
 class _NoOpSequenceSGR(SequenceSGR):
     def __init__(self):
@@ -769,6 +890,9 @@ class _SgrPairityRegistry:
 _SGR_PAIRITY_REGISTRY = _SgrPairityRegistry()
 
 
+# SGR sequences assembly ------------------------------------------------------
+
+
 def get_closing_seq(opening_seq: SequenceSGR) -> SequenceSGR:
     """
 
@@ -786,116 +910,6 @@ def enclose(opening_seq: SequenceSGR, string: str) -> str:
     :return:
     """
     return f"{opening_seq}{string}{get_closing_seq(opening_seq)}"
-
-
-@lru_cache
-def _get_contains_sgr_regex(*codes: int) -> re.Pattern:
-    codes_str = ";".join([str(c) for c in codes])
-    return re.compile(Rf'\x1b\[(?:\d*;)*({codes_str})(?:;\d*)*m')
-
-def contains_sgr(string: str, *codes: int) -> re.Match | None:
-    """
-    Return the first match of :term:`SGR` sequence in ``string`` with specified
-    ``codes`` as params, strictly inside a single sequence in specified order,
-    or *None* if nothing was found.
-
-    The match object consists of two groups:
-
-        - Group #0: the whole matched SGR sequence;
-        - Group #1: the requested code bytes only.
-
-        >>> contains_sgr(make_color_256(128).assemble(), 38)
-        <re.Match object; span=(0, 11), match='\x1b[38;5;128m'>
-        >>> contains_sgr(make_color_256(84, True).assemble(), 48, 5, 84)
-        <re.Match object; span=(0, 10), match='\x1b[48;5;84m'>
-
-    :param string: String to search the SGR in.
-    :param codes:  Integer SGR codes to find.
-    """
-    if not string:
-        return None
-    return _get_contains_sgr_regex(*codes).search(string)
-
-
-def make_set_cursor_x_abs(x: int = 1) -> SequenceCSI:
-    """
-    Create :abbr:`CHA (Cursor Horizontal Absolute)` sequence that sets
-    cursor horizontal position, or column, to ``x``.
-
-    :param x:  New cursor horizontal position.
-    :example:  ``ESC [1G``
-    """
-    if x <= 0:
-        raise ValueError(f"Invalid x value: {x}, expected x > 0")
-    return SequenceCSI("G", "CHA", x)
-
-
-def make_erase_in_line(mode: int = 0) -> SequenceCSI:
-    """
-    Create :abbr:`EL (Erase in Line)` sequence that erases a part of the line
-    or the entire line. Cursor position does not change.
-
-    :param mode:  .. ::
-
-                  Sequence operating mode.
-
-                     - If set to 0, clear from cursor to the end of the line.
-                     - If set to 1, clear from cursor to beginning of the line.
-                     - If set to 2, clear the entire line.
-
-    :example:     ``ESC [0K``
-    """
-    if not (0 <= mode <= 2):
-        raise ValueError(f"Invalid mode: {mode}, expected [0;2]")
-    return SequenceCSI("K", "EL", mode)
-
-
-def make_query_cursor_position() -> SequenceCSI:
-    """
-    Create :abbr:`QCP (Query Cursor Position)` sequence that requests an output
-    device to respond with a structure containing current cursor coordinates
-    (`RCP <decompose_request_cursor_position()>`).
-
-    .. warning ::
-
-        Sending this sequence to the terminal may **block** infinitely. Consider
-        using a thread or set a timeout for the main thread using a signal.
-
-    :example:   ``ESC [6n``
-    """
-
-    return SequenceCSI("n", "QCP", 6)
-
-
-def decompose_request_cursor_position(string: str) -> t.Tuple[int, int]|None:
-    """
-    Parse :abbr:`RCP (Report Cursor Position)` sequence that generally comes from
-    a terminal as a response to `QCP <make_query_cursor_position>` sequence and
-    contains a cursor's current row and column.
-
-    .. note ::
-
-        As the library in general provides sequence assembling methods, but not
-        the disassembling ones, there is no dedicated class for RCP sequences yet.
-
-    >>> decompose_request_cursor_position('\x1b[18;2R')
-    (18, 2)
-
-    :param string:  Terminal response with a sequence.
-    :return:        Current row and column if the expected sequence exists
-                    in ``string``, *None* otherwise.
-    """
-    if not all(c in string for c in "\x1b[;R"):
-        return None  # input does not contain a valid RCP sequence
-
-    start_idx = string.rfind("\x1b[")
-    seq = string[start_idx + 2: string.rfind("R") - start_idx]
-    y, x = seq.split(";", 2)
-
-    try:
-        return int(y), int(x)
-    except ValueError:
-        return None  # unexpected results
 
 
 def make_color_256(code: int, bg: bool = False) -> SequenceSGR:
@@ -946,6 +960,361 @@ def make_color_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
     return SequenceSGR(key_code, IntCode.EXTENDED_MODE_RGB, r, g, b)
 
 
+@lru_cache
+def _compile_contains_sgr_regex(*codes: int) -> re.Pattern:
+    return re.compile(Rf'\x1b\[(?:\d*;)*({";".join(map(str, codes))})(?:;\d*)*m')
+
+
+def contains_sgr(string: str, *codes: int) -> re.Match | None:
+    """
+    Return the first match of :term:`SGR` sequence in ``string`` with specified
+    ``codes`` as params, strictly inside a single sequence in specified order,
+    or *None* if nothing was found.
+
+    The match object consists of two groups:
+
+        - Group #0: the whole matched SGR sequence;
+        - Group #1: the requested code bytes only.
+
+        >>> contains_sgr(make_color_256(128).assemble(), 38)
+        <re.Match object; span=(0, 11), match='\x1b[38;5;128m'>
+        >>> contains_sgr(make_color_256(84, True).assemble(), 48, 5, 84)
+        <re.Match object; span=(0, 10), match='\x1b[48;5;84m'>
+
+    :param string: String to search the SGR in.
+    :param codes:  Integer SGR codes to find.
+    """
+    if not string:
+        return None
+    return _compile_contains_sgr_regex(*codes).search(string)
+
+
+# CSI / Cursor position control sequences assembly ----------------------------
+
+
+def make_reset_cursor() -> SequenceCSI:
+    """
+    Create :abbr:`CUP (Cursor Position)` sequence without params, which moves
+    the cursor to top left corner of the screen. See `make_set_cursor()`.
+
+    :example:  ``ESC [H``
+    """
+    return make_set_cursor()
+
+
+def make_set_cursor(line: int = 1, column: int = 1) -> SequenceCSI:
+    """
+    Create :abbr:`CUP (Cursor Position)` sequence that moves the cursor to
+    specified amount `line` and `column`. The values are 1-based, i.e. (1; 1)
+    is top left corner of the screen.
+
+    .. note ::
+        Both sequence params are optional and defaults to 1 if omitted, e.g.
+        ``ESC [;3H`` is effectively ``ESC [1;3H``, and ``ESC [4H`` is the
+        same as ``ESC [4;H`` or ``ESC [4;1H``.
+
+    :example:  ``ESC [9;15H``
+    """
+    SequenceCSI.validate_line_abs_value(line)
+    SequenceCSI.validate_column_abs_value(column)
+    return SequenceCSI("H", "CUP", line, column)
+
+
+def make_move_cursor_up(lines: int = 1) -> SequenceCSI:
+    """
+    Create :abbr:`CUU (Cursor Up)` sequence that moves the cursor up by
+    specified amount of `lines`. If the cursor is already at the top of the
+    screen, this has no effect.
+
+    :example:  ``ESC [2A``
+    """
+    SequenceCSI.validate_line_rel_value(lines)
+    return SequenceCSI("A", "CUU", lines)
+
+
+def make_move_cursor_down(lines: int = 1) -> SequenceCSI:
+    """
+    Create :abbr:`CUD (Cursor Down)` sequence that moves the cursor down by
+    specified amount of `lines`. If the cursor is already at the bottom of the
+    screen, this has no effect.
+
+    :example:  ``ESC [3B``
+    """
+    SequenceCSI.validate_line_rel_value(lines)
+    return SequenceCSI("B", "CUD", lines)
+
+
+def make_move_cursor_left(columns: int = 1) -> SequenceCSI:
+    """
+    Create :abbr:`CUB (Cursor Back)` sequence that moves the cursor left by
+    specified amount of `columns`. If the cursor is already at the left edge of
+    the screen, this has no effect.
+
+    :example:  ``ESC [4D``
+    """
+    SequenceCSI.validate_column_rel_value(columns)
+    return SequenceCSI("D", "CUB", columns)
+
+
+def make_move_cursor_right(columns: int = 1) -> SequenceCSI:
+    """
+    Create :abbr:`CUF (Cursor Forward)` sequence that moves the cursor right by
+    specified amount of `columns`. If the cursor is already at the right edge
+    of the screen, this has no effect.
+
+    :example:  ``ESC [5C``
+    """
+    SequenceCSI.validate_column_rel_value(columns)
+    return SequenceCSI("C", "CUF", columns)
+
+
+def make_move_cursor_to_start_and_up(lines: int = 1) -> SequenceCSI:
+    """
+    Create :abbr:`CPL (Cursor Previous Line)` sequence that moves the cursor
+    to the beginning of the line and up by specified amount of `lines`.
+
+    :example:  ``ESC [2F``
+    """
+    SequenceCSI.validate_line_rel_value(lines)
+    return SequenceCSI("F", "CPL", lines)
+
+
+def make_move_cursor_to_start_and_down(lines: int = 1) -> SequenceCSI:
+    """
+    Create :abbr:`CNL (Cursor Next Line)` sequence that moves the cursor
+    to the beginning of the line and down by specified amount of `lines`.
+
+    :example:  ``ESC [3E``
+    """
+    SequenceCSI.validate_line_rel_value(lines)
+    return SequenceCSI("E", "CNL", lines)
+
+
+def make_set_cursor_line(line: int = 1) -> SequenceCSI:
+    """
+    Create :abbr:`VPA (Vertical Position Absolute)` sequence that sets
+    cursor vertical position to `line`.
+
+    :example:       ``ESC [9d``
+    """
+    SequenceCSI.validate_line_abs_value(line)
+    return SequenceCSI("d", "VPA", line)
+
+
+def make_set_cursor_column(column: int = 1) -> SequenceCSI:
+    """
+    Create :abbr:`CHA (Cursor Character Absolute)` sequence that sets
+    cursor horizontal position to `column`.
+
+    :param column:  New cursor horizontal position.
+    :example:       ``ESC [15G``
+    """
+    SequenceCSI.validate_column_abs_value(column)
+    return SequenceCSI("G", "CHA", column)
+
+
+def make_query_cursor_position() -> SequenceCSI:
+    """
+    Create :abbr:`QCP (Query Cursor Position)` sequence that requests an output
+    device to respond with a structure containing current cursor coordinates
+    (`RCP <decompose_request_cursor_position()>`).
+
+    .. warning ::
+
+        Sending this sequence to the terminal may **block** infinitely. Consider
+        using a thread or set a timeout for the main thread using a signal.
+
+    :example:   ``ESC [6n``
+    """
+
+    return SequenceCSI("n", "QCP", 6)
+
+
+def decompose_report_cursor_position(string: str) -> t.Tuple[int, int] | None:
+    """
+    Parse :abbr:`RCP (Report Cursor Position)` sequence that usually comes from
+    a terminal as a response to `QCP <make_query_cursor_position>` sequence and
+    contains a cursor's current line and column.
+
+    .. note ::
+        As the library in general provides sequence assembling methods, but not
+        the disassembling ones, there is no dedicated class for RCP sequences yet.
+
+    >>> decompose_report_cursor_position('\x1b[9;15R')
+    (9, 15)
+
+    :param string:  Terminal response with a sequence.
+    :return:        Current line and column if the expected sequence exists
+                    in ``string``, *None* otherwise.
+    """
+    if match := RCP_REGEX.match(string):
+        return int(match.group(1)), int(match.group(2))
+    return None
+
+
+# CSI / Erase sequences assembly ----------------------------------------------
+
+
+def make_erase_in_display(mode: int = 0) -> SequenceCSI:
+    """
+    Create :abbr:`ED (Erase in Display)` sequence that clears a part of the screen
+    or the entire screen. Cursor position does not change.
+
+    :param mode:  .. ::
+
+                  Sequence operating mode.
+
+                     - If set to 0, clear from cursor to the end of the screen.
+                     - If set to 1, clear from cursor to the beginning of the screen.
+                     - If set to 2, clear the entire screen.
+                     - If set to 3, clear the entire screen and saved lines (history).
+
+    :example:     ``ESC [0J``
+    """
+    if not (0 <= mode <= 3):
+        raise ValueError(f"Invalid mode: {mode}, expected [0;3]")
+    return SequenceCSI("J", "ED", mode)
+
+
+def make_clear_display_after_cursor() -> SequenceCSI:
+    """
+    Create :abbr:`ED (Erase in Display)` sequence that clears a part of the screen
+    from cursor to the end of the screen. Cursor position does not change.
+
+    :example:     ``ESC [0J``
+    """
+    return make_erase_in_display(0)
+
+
+def make_clear_display_before_cursor() -> SequenceCSI:
+    """
+    Create :abbr:`ED (Erase in Display)` sequence that clears a part of the screen
+    from cursor to the beginning of the screen. Cursor position does not change.
+
+    :example:     ``ESC [1J``
+    """
+    return make_erase_in_display(1)
+
+
+def make_clear_display() -> SequenceCSI:
+    """
+    Create :abbr:`ED (Erase in Display)` sequence that clears an entire screen.
+    Cursor position does not change.
+
+    :example:     ``ESC [2J``
+    """
+    return make_erase_in_display(2)
+
+
+def make_clear_display_and_history() -> SequenceCSI:
+    """
+    Create :abbr:`ED (Erase in Display)` sequence that clears an entire screen.
+    and saved lines (history). Cursor position does not change.
+
+    :example:     ``ESC [3J``
+    """
+    return make_erase_in_display(3)
+
+
+def make_erase_in_line(mode: int = 0) -> SequenceCSI:
+    """
+    Create :abbr:`EL (Erase in Line)` sequence that clears a part of the line
+    or the entire line at the cursor position. Cursor position does not change.
+
+    :param mode:  .. ::
+
+                  Sequence operating mode.
+
+                     - If set to 0, clear from cursor to the end of the line.
+                     - If set to 1, clear from cursor to the beginning of the line.
+                     - If set to 2, clear the entire line.
+
+    :example:     ``ESC [0K``
+    """
+    if not (0 <= mode <= 2):
+        raise ValueError(f"Invalid mode: {mode}, expected [0;2]")
+    return SequenceCSI("K", "EL", mode)
+
+
+def make_clear_line_after_cursor() -> SequenceCSI:
+    """
+    Create :abbr:`EL (Erase in Line)` sequence that clears a part of the line
+    from cursor to the end of the same line. Cursor position does not change.
+
+    :example:     ``ESC [0K``
+    """
+    return make_erase_in_line(0)
+
+
+def make_clear_line_before_cursor() -> SequenceCSI:
+    """
+    Create :abbr:`EL (Erase in Line)` sequence that clears a part of the line
+    from cursor to the beginning of the same line. Cursor position does not
+    change.
+
+    :example:     ``ESC [1K``
+    """
+    return make_erase_in_line(1)
+
+
+def make_clear_line() -> SequenceCSI:
+    """
+    Create :abbr:`EL (Erase in Line)` sequence that clears an entire line
+    at the cursor position. Cursor position does not change.
+
+    :example:     ``ESC [2K``
+    """
+    return make_erase_in_line(2)
+
+
+# CSI / Private mode sequences assembly ---------------------------------------
+
+
+def make_show_cursor() -> SequenceCSI:
+    """
+    C
+    """
+    return SequenceCSI("h", "", "?25")
+
+
+def make_hide_cursor() -> SequenceCSI:
+    """
+    C
+    """
+    return SequenceCSI("l", "", "?25")
+
+
+def make_save_screen() -> SequenceCSI:
+    """
+    C
+    """
+    return SequenceCSI("h", "", "?47")
+
+
+def make_restore_screen() -> SequenceCSI:
+    """
+    C
+    """
+    return SequenceCSI("l", "", "?47")
+
+
+def make_enable_alt_screen_buffer() -> SequenceCSI:
+    """
+    C
+    """
+    return SequenceCSI("h", "", "?1049")
+
+
+def make_disable_alt_screen_buffer() -> SequenceCSI:
+    """
+    C
+    """
+    return SequenceCSI("l", "", "?1049")
+
+
+# OSC sequences assembly ------------------------------------------------------
+
+
 def make_hyperlink_part(url: str = None) -> SequenceOSC:
     """
 
@@ -963,3 +1332,20 @@ def assemble_hyperlink(url: str, label: str = None) -> str:
     :example:  ``ESC ]8;;http://localhost ESC \\Text ESC ]8;; ESC \\``
     """
     return f"{make_hyperlink_part(url)}{label or url}{make_hyperlink_part()}"
+
+
+# Fp sequences assembly -------------------------------------------------------
+
+
+def make_save_cursor_position() -> SequenceFp:
+    """
+    :example:  ``ESC 7``
+    """
+    return SequenceFp("7", "DECSC")
+
+
+def make_restore_cursor_position() -> SequenceFp:
+    """
+    :example:  ``ESC 8``
+    """
+    return SequenceFp("8", "DECRC")

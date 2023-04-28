@@ -15,16 +15,16 @@ import sys
 import typing as t
 import unicodedata
 from collections import deque
-from typing import overload
 from io import StringIO
 from itertools import chain
 from sys import getsizeof, stderr
+from typing import overload
 
 from .ansi import (
     make_query_cursor_position,
-    decompose_request_cursor_position,
-    make_erase_in_line,
-    make_set_cursor_x_abs,
+    decompose_report_cursor_position,
+    make_set_cursor_column,
+    make_clear_line,
 )
 from .common import UserAbort, UserCancel, HSV, RGB
 
@@ -33,6 +33,7 @@ from .common import UserAbort, UserCancel, HSV, RGB
 # HEX <-> RGB
 
 # @TODO -> to color
+
 
 def hex_to_rgb(hex_value: int) -> RGB | t.Tuple[int, int, int]:
     """
@@ -63,6 +64,7 @@ def rgb_to_hex(rgb: RGB) -> int:
     :return: RGB value.
     """
 
+
 @overload
 def rgb_to_hex(r: int, g: int, b: int) -> int:
     """
@@ -71,6 +73,7 @@ def rgb_to_hex(r: int, g: int, b: int) -> int:
     :param b: value of blue channel.
     :return: RGB value.
     """
+
 
 def rgb_to_hex(*args) -> int:
     """
@@ -86,8 +89,10 @@ def rgb_to_hex(*args) -> int:
     r, g, b = args if len(args) > 1 else args[0]
     return (r << 16) + (g << 8) + b
 
+
 # -----------------------------------------------------------------------------
 # HSV <-> RGB
+
 
 @overload
 def hsv_to_rgb(hsv: HSV) -> RGB | t.Tuple[int, int, int]:
@@ -95,6 +100,7 @@ def hsv_to_rgb(hsv: HSV) -> RGB | t.Tuple[int, int, int]:
     :param hsv: tuple with H, S, V channel values.
     :return: tuple with R, G, B channel values.
     """
+
 
 @overload
 def hsv_to_rgb(h: float, s: float, v: float) -> RGB | t.Tuple[int, int, int]:
@@ -104,6 +110,7 @@ def hsv_to_rgb(h: float, s: float, v: float) -> RGB | t.Tuple[int, int, int]:
     :param v: value channel value.
     :return: tuple with R, G, B channel values.
     """
+
 
 def hsv_to_rgb(*args) -> RGB | t.Tuple[int, int, int]:
     """
@@ -140,19 +147,18 @@ def hsv_to_rgb(*args) -> RGB | t.Tuple[int, int, int]:
     else:
         r, g, b = 0, 0, 0
 
-    return RGB(
-        red=math.ceil(255 * r),
-        green=math.ceil(255 * g),
-        blue=math.ceil(255 * b),
-    )
+    return RGB(red=math.ceil(255 * r), green=math.ceil(255 * g), blue=math.ceil(255 * b))
 
 
 @overload
 def rgb_to_hsv(rgb: RGB) -> HSV | t.Tuple[float, float, float]:
     ...
+
+
 @overload
 def rgb_to_hsv(r: int, g: int, b: int) -> HSV | t.Tuple[float, float, float]:
     ...
+
 
 def rgb_to_hsv(*args) -> HSV | t.Tuple[float, float, float]:
     """
@@ -191,8 +197,10 @@ def rgb_to_hsv(*args) -> HSV | t.Tuple[float, float, float]:
     return HSV(hue=h, saturation=s, value=v)
     # fmt: on
 
+
 # -----------------------------------------------------------------------------
 # HSV <-> HEX (wrappers)
+
 
 def hex_to_hsv(hex_value: int) -> HSV | t.Tuple[float, float, float]:
     """
@@ -212,9 +220,12 @@ def hex_to_hsv(hex_value: int) -> HSV | t.Tuple[float, float, float]:
 @overload
 def hsv_to_hex(hsv: HSV) -> int:
     ...
+
+
 @overload
 def hsv_to_hex(h: float, s: float, v: float) -> int:
     ...
+
 
 def hsv_to_hex(*args) -> int:
     """
@@ -231,8 +242,10 @@ def hsv_to_hex(*args) -> int:
     """
     return rgb_to_hex(hsv_to_rgb(*args))
 
+
 # -----------------------------------------------------------------------------
 # LAB -> RGB
+
 
 def lab_to_rgb(l_s: float, a_s: float, b_s: float) -> RGB | t.Tuple[int, int, int]:
     """
@@ -292,6 +305,7 @@ def lab_to_rgb(l_s: float, a_s: float, b_s: float) -> RGB | t.Tuple[int, int, in
 
 # @TODO -> to ioutil
 
+
 def wait_key(block: bool = True) -> t.AnyStr | None:
     """
     Wait for a key press on the console and return it.
@@ -315,7 +329,7 @@ def wait_key(block: bool = True) -> t.AnyStr | None:
 
     oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
     if not block:
-        fcntl.fcntl(fd, fcntl.F_SETFL, oldflags|os.O_NONBLOCK)
+        fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
 
     result = None
     try:
@@ -473,7 +487,7 @@ def measure_char_width(char: str, clear_after: bool = True) -> int:
     if not sys.stdout.isatty():
         raise IOError("Output device should be a terminal emulator")
 
-    cha_seq = make_set_cursor_x_abs(1).assemble()
+    cha_seq = make_set_cursor_column(1).assemble()
     qcp_seq = make_query_cursor_position().assemble()
 
     sys.stdout.write(cha_seq)
@@ -482,11 +496,11 @@ def measure_char_width(char: str, clear_after: bool = True) -> int:
     sys.stdout.write("\r")
 
     response = ""
-    while (pos := decompose_request_cursor_position(response)) is None:
+    while (pos := decompose_report_cursor_position(response)) is None:
         response += wait_key(block=True) or ""
 
     if clear_after:
-        sys.stdout.write(make_erase_in_line(2).assemble())
+        sys.stdout.write(make_clear_line().assemble())
 
     pos_y, pos_x = pos
     return pos_x - 1  # 1st coordinate is the start of X-axis

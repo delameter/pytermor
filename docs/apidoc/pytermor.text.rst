@@ -34,13 +34,13 @@
 
    .. autosummary::
    
+      Composite
       Fragment
       FrozenText
       IRenderable
       SimpleTable
       TemplateEngine
       Text
-      TextComposite
    
    
 

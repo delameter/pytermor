@@ -5,6 +5,7 @@ colors:
     aliases:
       - "color0"
       - "colour0"
+      - "xterm0"
     value: 0x000000
     color16_equiv: BLACK
 
@@ -13,6 +14,7 @@ colors:
     aliases:
       - "color1"
       - "colour1"
+      - "xterm1"
     value: 0x800000
     color16_equiv: RED
 
@@ -21,6 +23,7 @@ colors:
     aliases:
       - "color2"
       - "colour2"
+      - "xterm2"
     value: 0x008000
     color16_equiv: GREEN
 
@@ -29,6 +32,7 @@ colors:
     aliases:
       - "color3"
       - "colour3"
+      - "xterm3"
     value: 0x808000
     color16_equiv: YELLOW
 
@@ -37,6 +41,7 @@ colors:
     aliases:
       - "color4"
       - "colour4"
+      - "xterm4"
     value: 0x000080
     color16_equiv: BLUE
 
@@ -46,6 +51,7 @@ colors:
     aliases:
       - "color5"
       - "colour5"
+      - "xterm5"
     value: 0x800080
     color16_equiv: MAGENTA
 
@@ -54,6 +60,7 @@ colors:
     aliases:
       - "color6"
       - "colour6"
+      - "xterm6"
     value: 0x008080
     color16_equiv: CYAN
 
@@ -62,6 +69,7 @@ colors:
     aliases:
       - "color7"
       - "colour7"
+      - "xterm7"
     value: 0xc0c0c0
     color16_equiv: WHITE
 
@@ -70,6 +78,7 @@ colors:
     aliases:
       - "color8"
       - "colour8"
+      - "xterm8"
     value: 0x808080
     color16_equiv: GRAY
 
@@ -78,6 +87,7 @@ colors:
     aliases:
       - "color9"
       - "colour9"
+      - "xterm9"
     value: 0xff0000
     color16_equiv: HI_RED
 
@@ -86,6 +96,7 @@ colors:
     aliases:
       - "color10"
       - "colour10"
+      - "xterm10"
     value: 0x00ff00
     color16_equiv: HI_GREEN
 
@@ -94,6 +105,7 @@ colors:
     aliases:
       - "color11"
       - "colour11"
+      - "xterm11"
     value: 0xffff00
     color16_equiv: HI_YELLOW
 
@@ -102,6 +114,7 @@ colors:
     aliases:
       - "color12"
       - "colour12"
+      - "xterm12"
     value: 0x0000ff
     color16_equiv: HI_BLUE
 
@@ -110,6 +123,7 @@ colors:
     aliases:
       - "color13"
       - "colour13"
+      - "xterm13"
     value: 0xff00ff
     color16_equiv: HI_MAGENTA
 
@@ -118,6 +132,7 @@ colors:
     aliases:
       - "color14"
       - "colour14"
+      - "xterm14"
     value: 0x00ffff
     color16_equiv: HI_CYAN
 
@@ -126,6 +141,7 @@ colors:
     aliases:
       - "color15"
       - "colour15"
+      - "xterm15"
     value: 0xffffff
     color16_equiv: HI_WHITE
 
@@ -134,6 +150,7 @@ colors:
     aliases:
       - "color16"
       - "colour16"
+      - "xterm16"
     value: 0x000000
 
   - code: 17
@@ -141,6 +158,7 @@ colors:
     aliases:
       - "color17"
       - "colour17"
+      - "xterm17"
     value: 0x00005f
 
   - code: 18
@@ -148,6 +166,7 @@ colors:
     aliases:
       - "color18"
       - "colour18"
+      - "xterm18"
     value: 0x000087
 
   - code: 19
@@ -155,6 +174,7 @@ colors:
     aliases:
       - "color19"
       - "colour19"
+      - "xterm19"
     value: 0x0000af
 
   - code: 20
@@ -163,6 +183,7 @@ colors:
     aliases:
       - "color20"
       - "colour20"
+      - "xterm20"
     value: 0x0000d7
 
   - code: 21
@@ -170,6 +191,7 @@ colors:
     aliases:
       - "color21"
       - "colour21"
+      - "xterm21"
     value: 0x0000ff
 
   - code: 22
@@ -177,6 +199,7 @@ colors:
     aliases:
       - "color22"
       - "colour22"
+      - "xterm22"
     value: 0x005f00
 
   - code: 23
@@ -185,6 +208,7 @@ colors:
     aliases:
       - "color23"
       - "colour23"
+      - "xterm23"
     value: 0x005f5f
 
   - code: 24
@@ -193,6 +217,7 @@ colors:
     aliases:
       - "color24"
       - "colour24"
+      - "xterm24"
     value: 0x005f87
 
   - code: 25
@@ -201,6 +226,7 @@ colors:
     aliases:
       - "color25"
       - "colour25"
+      - "xterm25"
     value: 0x005faf
 
   - code: 26
@@ -208,6 +234,7 @@ colors:
     aliases:
       - "color26"
       - "colour26"
+      - "xterm26"
     value: 0x005fd7
 
   - code: 27
@@ -215,6 +242,7 @@ colors:
     aliases:
       - "color27"
       - "colour27"
+      - "xterm27"
     value: 0x005fff
 
   - code: 28
@@ -223,6 +251,7 @@ colors:
     aliases:
       - "color28"
       - "colour28"
+      - "xterm28"
     value: 0x008700
 
   - code: 29
@@ -230,6 +259,7 @@ colors:
     aliases:
       - "color29"
       - "colour29"
+      - "xterm29"
     value: 0x00875f
 
   - code: 30
@@ -237,6 +267,7 @@ colors:
     aliases:
       - "color30"
       - "colour30"
+      - "xterm30"
     value: 0x008787
 
   - code: 31
@@ -245,6 +276,7 @@ colors:
     aliases:
       - "color31"
       - "colour31"
+      - "xterm31"
     value: 0x0087af
 
   - code: 32
@@ -252,6 +284,7 @@ colors:
     aliases:
       - "color32"
       - "colour32"
+      - "xterm32"
     value: 0x0087d7
 
   - code: 33
@@ -259,6 +292,7 @@ colors:
     aliases:
       - "color33"
       - "colour33"
+      - "xterm33"
     value: 0x0087ff
 
   - code: 34
@@ -267,6 +301,7 @@ colors:
     aliases:
       - "color34"
       - "colour34"
+      - "xterm34"
     value: 0x00af00
 
   - code: 35
@@ -275,6 +310,7 @@ colors:
     aliases:
       - "color35"
       - "colour35"
+      - "xterm35"
     value: 0x00af5f
 
   - code: 36
@@ -282,6 +318,7 @@ colors:
     aliases:
       - "color36"
       - "colour36"
+      - "xterm36"
     value: 0x00af87
 
   - code: 37
@@ -289,6 +326,7 @@ colors:
     aliases:
       - "color37"
       - "colour37"
+      - "xterm37"
     value: 0x00afaf
 
   - code: 38
@@ -296,6 +334,7 @@ colors:
     aliases:
       - "color38"
       - "colour38"
+      - "xterm38"
     value: 0x00afd7
 
   - code: 39
@@ -303,6 +342,7 @@ colors:
     aliases:
       - "color39"
       - "colour39"
+      - "xterm39"
     value: 0x00afff
 
   - code: 40
@@ -310,6 +350,7 @@ colors:
     aliases:
       - "color40"
       - "colour40"
+      - "xterm40"
     value: 0x00d700
 
   - code: 41
@@ -317,6 +358,7 @@ colors:
     aliases:
       - "color41"
       - "colour41"
+      - "xterm41"
     value: 0x00d75f
 
   - code: 42
@@ -325,6 +367,7 @@ colors:
     aliases:
       - "color42"
       - "colour42"
+      - "xterm42"
     value: 0x00d787
 
   - code: 43
@@ -332,6 +375,7 @@ colors:
     aliases:
       - "color43"
       - "colour43"
+      - "xterm43"
     value: 0x00d7af
 
   - code: 44
@@ -339,6 +383,7 @@ colors:
     aliases:
       - "color44"
       - "colour44"
+      - "xterm44"
     value: 0x00d7d7
 
   - code: 45
@@ -346,6 +391,7 @@ colors:
     aliases:
       - "color45"
       - "colour45"
+      - "xterm45"
     value: 0x00d7ff
 
   - code: 46
@@ -354,6 +400,7 @@ colors:
     aliases:
       - "color46"
       - "colour46"
+      - "xterm46"
     value: 0x00ff00
 
   - code: 47
@@ -361,6 +408,7 @@ colors:
     aliases:
       - "color47"
       - "colour47"
+      - "xterm47"
     value: 0x00ff5f
 
   - code: 48
@@ -368,6 +416,7 @@ colors:
     aliases:
       - "color48"
       - "colour48"
+      - "xterm48"
     value: 0x00ff87
 
   - code: 49
@@ -375,6 +424,7 @@ colors:
     aliases:
       - "color49"
       - "colour49"
+      - "xterm49"
     value: 0x00ffaf
 
   - code: 50
@@ -382,6 +432,7 @@ colors:
     aliases:
       - "color50"
       - "colour50"
+      - "xterm50"
     value: 0x00ffd7
 
   - code: 51
@@ -389,6 +440,7 @@ colors:
     aliases:
       - "color51"
       - "colour51"
+      - "xterm51"
     value: 0x00ffff
 
   - code: 52
@@ -397,6 +449,7 @@ colors:
     aliases:
       - "color52"
       - "colour52"
+      - "xterm52"
     value: 0x5f0000
 
   - code: 53
@@ -405,6 +458,7 @@ colors:
     aliases:
       - "color53"
       - "colour53"
+      - "xterm53"
     value: 0x5f005f
 
   - code: 54
@@ -413,6 +467,7 @@ colors:
     aliases:
       - "color54"
       - "colour54"
+      - "xterm54"
     value: 0x5f0087
 
   - code: 55
@@ -420,6 +475,7 @@ colors:
     aliases:
       - "color55"
       - "colour55"
+      - "xterm55"
     value: 0x5f00af
 
   - code: 56
@@ -427,6 +483,7 @@ colors:
     aliases:
       - "color56"
       - "colour56"
+      - "xterm56"
     value: 0x5f00d7
 
   - code: 57
@@ -434,6 +491,7 @@ colors:
     aliases:
       - "color57"
       - "colour57"
+      - "xterm57"
     value: 0x5f00ff
 
   - code: 58
@@ -441,6 +499,7 @@ colors:
     aliases:
       - "color58"
       - "colour58"
+      - "xterm58"
     value: 0x5f5f00
 
   - code: 59
@@ -448,6 +507,7 @@ colors:
     aliases:
       - "color59"
       - "colour59"
+      - "xterm59"
     value: 0x5f5f5f
 
   - code: 60
@@ -456,6 +516,7 @@ colors:
     aliases:
       - "color60"
       - "colour60"
+      - "xterm60"
     value: 0x5f5f87
 
   - code: 61
@@ -463,6 +524,7 @@ colors:
     aliases:
       - "color61"
       - "colour61"
+      - "xterm61"
     value: 0x5f5faf
 
   - code: 62
@@ -471,6 +533,7 @@ colors:
     aliases:
       - "color62"
       - "colour62"
+      - "xterm62"
     value: 0x5f5fd7
 
   - code: 63
@@ -478,6 +541,7 @@ colors:
     aliases:
       - "color63"
       - "colour63"
+      - "xterm63"
     value: 0x5f5fff
 
   - code: 64
@@ -486,6 +550,7 @@ colors:
     aliases:
       - "color64"
       - "colour64"
+      - "xterm64"
     value: 0x5f8700
 
   - code: 65
@@ -494,6 +559,7 @@ colors:
     aliases:
       - "color65"
       - "colour65"
+      - "xterm65"
     value: 0x5f875f
 
   - code: 66
@@ -501,6 +567,7 @@ colors:
     aliases:
       - "color66"
       - "colour66"
+      - "xterm66"
     value: 0x5f8787
 
   - code: 67
@@ -508,6 +575,7 @@ colors:
     aliases:
       - "color67"
       - "colour67"
+      - "xterm67"
     value: 0x5f87af
 
   - code: 68
@@ -515,6 +583,7 @@ colors:
     aliases:
       - "color68"
       - "colour68"
+      - "xterm68"
     value: 0x5f87d7
 
   - code: 69
@@ -522,6 +591,7 @@ colors:
     aliases:
       - "color69"
       - "colour69"
+      - "xterm69"
     value: 0x5f87ff
 
   - code: 70
@@ -530,6 +600,7 @@ colors:
     aliases:
       - "color70"
       - "colour70"
+      - "xterm70"
     value: 0x5faf00
 
   - code: 71
@@ -538,6 +609,7 @@ colors:
     aliases:
       - "color71"
       - "colour71"
+      - "xterm71"
     value: 0x5faf5f
 
   - code: 72
@@ -546,6 +618,7 @@ colors:
     aliases:
       - "color72"
       - "colour72"
+      - "xterm72"
     value: 0x5faf87
 
   - code: 73
@@ -553,6 +626,7 @@ colors:
     aliases:
       - "color73"
       - "colour73"
+      - "xterm73"
     value: 0x5fafaf
 
   - code: 74
@@ -560,6 +634,7 @@ colors:
     aliases:
       - "color74"
       - "colour74"
+      - "xterm74"
     value: 0x5fafd7
 
   - code: 75
@@ -568,6 +643,7 @@ colors:
     aliases:
       - "color75"
       - "colour75"
+      - "xterm75"
     value: 0x5fafff
 
   - code: 76
@@ -576,6 +652,7 @@ colors:
     aliases:
       - "color76"
       - "colour76"
+      - "xterm76"
     value: 0x5fd700
 
   - code: 77
@@ -584,6 +661,7 @@ colors:
     aliases:
       - "color77"
       - "colour77"
+      - "xterm77"
     value: 0x5fd75f
 
   - code: 78
@@ -591,6 +669,7 @@ colors:
     aliases:
       - "color78"
       - "colour78"
+      - "xterm78"
     value: 0x5fd787
 
   - code: 79
@@ -598,6 +677,7 @@ colors:
     aliases:
       - "color79"
       - "colour79"
+      - "xterm79"
     value: 0x5fd7af
 
   - code: 80
@@ -605,6 +685,7 @@ colors:
     aliases:
       - "color80"
       - "colour80"
+      - "xterm80"
     value: 0x5fd7d7
 
   - code: 81
@@ -612,6 +693,7 @@ colors:
     aliases:
       - "color81"
       - "colour81"
+      - "xterm81"
     value: 0x5fd7ff
 
   - code: 82
@@ -619,6 +701,7 @@ colors:
     aliases:
       - "color82"
       - "colour82"
+      - "xterm82"
     value: 0x5fff00
 
   - code: 83
@@ -627,6 +710,7 @@ colors:
     aliases:
       - "color83"
       - "colour83"
+      - "xterm83"
     value: 0x5fff5f
 
   - code: 84
@@ -635,6 +719,7 @@ colors:
     aliases:
       - "color84"
       - "colour84"
+      - "xterm84"
     value: 0x5fff87
 
   - code: 85
@@ -642,6 +727,7 @@ colors:
     aliases:
       - "color85"
       - "colour85"
+      - "xterm85"
     value: 0x5fffaf
 
   - code: 86
@@ -650,6 +736,7 @@ colors:
     aliases:
       - "color86"
       - "colour86"
+      - "xterm86"
     value: 0x5fffd7
 
   - code: 87
@@ -657,6 +744,7 @@ colors:
     aliases:
       - "color87"
       - "colour87"
+      - "xterm87"
     value: 0x5fffff
 
   - code: 88
@@ -664,6 +752,7 @@ colors:
     aliases:
       - "color88"
       - "colour88"
+      - "xterm88"
     value: 0x870000
 
   - code: 89
@@ -672,6 +761,7 @@ colors:
     aliases:
       - "color89"
       - "colour89"
+      - "xterm89"
     value: 0x87005f
 
   - code: 90
@@ -680,6 +770,7 @@ colors:
     aliases:
       - "color90"
       - "colour90"
+      - "xterm90"
     value: 0x870087
 
   - code: 91
@@ -687,6 +778,7 @@ colors:
     aliases:
       - "color91"
       - "colour91"
+      - "xterm91"
     value: 0x8700af
 
   - code: 92
@@ -695,6 +787,7 @@ colors:
     aliases:
       - "color92"
       - "colour92"
+      - "xterm92"
     value: 0x8700d7
 
   - code: 93
@@ -703,6 +796,7 @@ colors:
     aliases:
       - "color93"
       - "colour93"
+      - "xterm93"
     value: 0x8700ff
 
   - code: 94
@@ -711,6 +805,7 @@ colors:
     aliases:
       - "color94"
       - "colour94"
+      - "xterm94"
     value: 0x875f00
 
   - code: 95
@@ -719,6 +814,7 @@ colors:
     aliases:
       - "color95"
       - "colour95"
+      - "xterm95"
     value: 0x875f5f
 
   - code: 96
@@ -726,6 +822,7 @@ colors:
     aliases:
       - "color96"
       - "colour96"
+      - "xterm96"
     value: 0x875f87
 
   - code: 97
@@ -734,6 +831,7 @@ colors:
     aliases:
       - "color97"
       - "colour97"
+      - "xterm97"
     value: 0x875faf
 
   - code: 98
@@ -742,6 +840,7 @@ colors:
     aliases:
       - "color98"
       - "colour98"
+      - "xterm98"
     value: 0x875fd7
 
   - code: 99
@@ -749,6 +848,7 @@ colors:
     aliases:
       - "color99"
       - "colour99"
+      - "xterm99"
     value: 0x875fff
 
   - code: 100
@@ -757,6 +857,7 @@ colors:
     aliases:
       - "color100"
       - "colour100"
+      - "xterm100"
     value: 0x878700
 
   - code: 101
@@ -764,6 +865,7 @@ colors:
     aliases:
       - "color101"
       - "colour101"
+      - "xterm101"
     value: 0x87875f
 
   - code: 102
@@ -771,6 +873,7 @@ colors:
     aliases:
       - "color102"
       - "colour102"
+      - "xterm102"
     value: 0x878787
 
   - code: 103
@@ -778,6 +881,7 @@ colors:
     aliases:
       - "color103"
       - "colour103"
+      - "xterm103"
     value: 0x8787af
 
   - code: 104
@@ -786,6 +890,7 @@ colors:
     aliases:
       - "color104"
       - "colour104"
+      - "xterm104"
     value: 0x8787d7
 
   - code: 105
@@ -793,6 +898,7 @@ colors:
     aliases:
       - "color105"
       - "colour105"
+      - "xterm105"
     value: 0x8787ff
 
   - code: 106
@@ -800,6 +906,7 @@ colors:
     aliases:
       - "color106"
       - "colour106"
+      - "xterm106"
     value: 0x87af00
 
   - code: 107
@@ -808,6 +915,7 @@ colors:
     aliases:
       - "color107"
       - "colour107"
+      - "xterm107"
     value: 0x87af5f
 
   - code: 108
@@ -816,6 +924,7 @@ colors:
     aliases:
       - "color108"
       - "colour108"
+      - "xterm108"
     value: 0x87af87
 
   - code: 109
@@ -823,6 +932,7 @@ colors:
     aliases:
       - "color109"
       - "colour109"
+      - "xterm109"
     value: 0x87afaf
 
   - code: 110
@@ -831,6 +941,7 @@ colors:
     aliases:
       - "color110"
       - "colour110"
+      - "xterm110"
     value: 0x87afd7
 
   - code: 111
@@ -838,6 +949,7 @@ colors:
     aliases:
       - "color111"
       - "colour111"
+      - "xterm111"
     value: 0x87afff
 
   - code: 112
@@ -846,6 +958,7 @@ colors:
     aliases:
       - "color112"
       - "colour112"
+      - "xterm112"
     value: 0x87d700
 
   - code: 113
@@ -854,6 +967,7 @@ colors:
     aliases:
       - "color113"
       - "colour113"
+      - "xterm113"
     value: 0x87d75f
 
   - code: 114
@@ -861,6 +975,7 @@ colors:
     aliases:
       - "color114"
       - "colour114"
+      - "xterm114"
     value: 0x87d787
 
   - code: 115
@@ -869,6 +984,7 @@ colors:
     aliases:
       - "color115"
       - "colour115"
+      - "xterm115"
     value: 0x87d7af
 
   - code: 116
@@ -876,6 +992,7 @@ colors:
     aliases:
       - "color116"
       - "colour116"
+      - "xterm116"
     value: 0x87d7d7
 
   - code: 117
@@ -883,6 +1000,7 @@ colors:
     aliases:
       - "color117"
       - "colour117"
+      - "xterm117"
     value: 0x87d7ff
 
   - code: 118
@@ -890,6 +1008,7 @@ colors:
     aliases:
       - "color118"
       - "colour118"
+      - "xterm118"
     value: 0x87ff00
 
   - code: 119
@@ -898,6 +1017,7 @@ colors:
     aliases:
       - "color119"
       - "colour119"
+      - "xterm119"
     value: 0x87ff5f
 
   - code: 120
@@ -905,6 +1025,7 @@ colors:
     aliases:
       - "color120"
       - "colour120"
+      - "xterm120"
     value: 0x87ff87
 
   - code: 121
@@ -912,6 +1033,7 @@ colors:
     aliases:
       - "color121"
       - "colour121"
+      - "xterm121"
     value: 0x87ffaf
 
   - code: 122
@@ -919,6 +1041,7 @@ colors:
     aliases:
       - "color122"
       - "colour122"
+      - "xterm122"
     value: 0x87ffd7
 
   - code: 123
@@ -926,6 +1049,7 @@ colors:
     aliases:
       - "color123"
       - "colour123"
+      - "xterm123"
     value: 0x87ffff
 
   - code: 124
@@ -934,6 +1058,7 @@ colors:
     aliases:
       - "color124"
       - "colour124"
+      - "xterm124"
     value: 0xaf0000
 
   - code: 125
@@ -942,6 +1067,7 @@ colors:
     aliases:
       - "color125"
       - "colour125"
+      - "xterm125"
     value: 0xaf005f
 
   - code: 126
@@ -949,6 +1075,7 @@ colors:
     aliases:
       - "color126"
       - "colour126"
+      - "xterm126"
     value: 0xaf0087
 
   - code: 127
@@ -957,6 +1084,7 @@ colors:
     aliases:
       - "color127"
       - "colour127"
+      - "xterm127"
     value: 0xaf00af
 
   - code: 128
@@ -964,6 +1092,7 @@ colors:
     aliases:
       - "color128"
       - "colour128"
+      - "xterm128"
     value: 0xaf00d7
 
   - code: 129
@@ -971,6 +1100,7 @@ colors:
     aliases:
       - "color129"
       - "colour129"
+      - "xterm129"
     value: 0xaf00ff
 
   - code: 130
@@ -978,6 +1108,7 @@ colors:
     aliases:
       - "color130"
       - "colour130"
+      - "xterm130"
     value: 0xaf5f00
 
   - code: 131
@@ -986,6 +1117,7 @@ colors:
     aliases:
       - "color131"
       - "colour131"
+      - "xterm131"
     value: 0xaf5f5f
 
   - code: 132
@@ -994,6 +1126,7 @@ colors:
     aliases:
       - "color132"
       - "colour132"
+      - "xterm132"
     value: 0xaf5f87
 
   - code: 133
@@ -1002,6 +1135,7 @@ colors:
     aliases:
       - "color133"
       - "colour133"
+      - "xterm133"
     value: 0xaf5faf
 
   - code: 134
@@ -1010,6 +1144,7 @@ colors:
     aliases:
       - "color134"
       - "colour134"
+      - "xterm134"
     value: 0xaf5fd7
 
   - code: 135
@@ -1017,6 +1152,7 @@ colors:
     aliases:
       - "color135"
       - "colour135"
+      - "xterm135"
     value: 0xaf5fff
 
   - code: 136
@@ -1024,6 +1160,7 @@ colors:
     aliases:
       - "color136"
       - "colour136"
+      - "xterm136"
     value: 0xaf8700
 
   - code: 137
@@ -1031,6 +1168,7 @@ colors:
     aliases:
       - "color137"
       - "colour137"
+      - "xterm137"
     value: 0xaf875f
 
   - code: 138
@@ -1038,6 +1176,7 @@ colors:
     aliases:
       - "color138"
       - "colour138"
+      - "xterm138"
     value: 0xaf8787
 
   - code: 139
@@ -1045,6 +1184,7 @@ colors:
     aliases:
       - "color139"
       - "colour139"
+      - "xterm139"
     value: 0xaf87af
 
   - code: 140
@@ -1053,6 +1193,7 @@ colors:
     aliases:
       - "color140"
       - "colour140"
+      - "xterm140"
     value: 0xaf87d7
 
   - code: 141
@@ -1060,6 +1201,7 @@ colors:
     aliases:
       - "color141"
       - "colour141"
+      - "xterm141"
     value: 0xaf87ff
 
   - code: 142
@@ -1067,6 +1209,7 @@ colors:
     aliases:
       - "color142"
       - "colour142"
+      - "xterm142"
     value: 0xafaf00
 
   - code: 143
@@ -1074,6 +1217,7 @@ colors:
     aliases:
       - "color143"
       - "colour143"
+      - "xterm143"
     value: 0xafaf5f
 
   - code: 144
@@ -1081,6 +1225,7 @@ colors:
     aliases:
       - "color144"
       - "colour144"
+      - "xterm144"
     value: 0xafaf87
 
   - code: 145
@@ -1088,6 +1233,7 @@ colors:
     aliases:
       - "color145"
       - "colour145"
+      - "xterm145"
     value: 0xafafaf
 
   - code: 146
@@ -1095,6 +1241,7 @@ colors:
     aliases:
       - "color146"
       - "colour146"
+      - "xterm146"
     value: 0xafafd7
 
   - code: 147
@@ -1103,6 +1250,7 @@ colors:
     aliases:
       - "color147"
       - "colour147"
+      - "xterm147"
     value: 0xafafff
 
   - code: 148
@@ -1111,6 +1259,7 @@ colors:
     aliases:
       - "color148"
       - "colour148"
+      - "xterm148"
     value: 0xafd700
 
   - code: 149
@@ -1119,6 +1268,7 @@ colors:
     aliases:
       - "color149"
       - "colour149"
+      - "xterm149"
     value: 0xafd75f
 
   - code: 150
@@ -1127,6 +1277,7 @@ colors:
     aliases:
       - "color150"
       - "colour150"
+      - "xterm150"
     value: 0xafd787
 
   - code: 151
@@ -1135,6 +1286,7 @@ colors:
     aliases:
       - "color151"
       - "colour151"
+      - "xterm151"
     value: 0xafd7af
 
   - code: 152
@@ -1142,6 +1294,7 @@ colors:
     aliases:
       - "color152"
       - "colour152"
+      - "xterm152"
     value: 0xafd7d7
 
   - code: 153
@@ -1149,6 +1302,7 @@ colors:
     aliases:
       - "color153"
       - "colour153"
+      - "xterm153"
     value: 0xafd7ff
 
   - code: 154
@@ -1156,6 +1310,7 @@ colors:
     aliases:
       - "color154"
       - "colour154"
+      - "xterm154"
     value: 0xafff00
 
   - code: 155
@@ -1164,6 +1319,7 @@ colors:
     aliases:
       - "color155"
       - "colour155"
+      - "xterm155"
     value: 0xafff5f
 
   - code: 156
@@ -1172,6 +1328,7 @@ colors:
     aliases:
       - "color156"
       - "colour156"
+      - "xterm156"
     value: 0xafff87
 
   - code: 157
@@ -1180,6 +1337,7 @@ colors:
     aliases:
       - "color157"
       - "colour157"
+      - "xterm157"
     value: 0xafffaf
 
   - code: 158
@@ -1187,6 +1345,7 @@ colors:
     aliases:
       - "color158"
       - "colour158"
+      - "xterm158"
     value: 0xafffd7
 
   - code: 159
@@ -1194,6 +1353,7 @@ colors:
     aliases:
       - "color159"
       - "colour159"
+      - "xterm159"
     value: 0xafffff
 
   - code: 160
@@ -1201,6 +1361,7 @@ colors:
     aliases:
       - "color160"
       - "colour160"
+      - "xterm160"
     value: 0xd70000
 
   - code: 161
@@ -1209,6 +1370,7 @@ colors:
     aliases:
       - "color161"
       - "colour161"
+      - "xterm161"
     value: 0xd7005f
 
   - code: 162
@@ -1216,6 +1378,7 @@ colors:
     aliases:
       - "color162"
       - "colour162"
+      - "xterm162"
     value: 0xd70087
 
   - code: 163
@@ -1223,6 +1386,7 @@ colors:
     aliases:
       - "color163"
       - "colour163"
+      - "xterm163"
     value: 0xd700af
 
   - code: 164
@@ -1231,6 +1395,7 @@ colors:
     aliases:
       - "color164"
       - "colour164"
+      - "xterm164"
     value: 0xd700d7
 
   - code: 165
@@ -1239,6 +1404,7 @@ colors:
     aliases:
       - "color165"
       - "colour165"
+      - "xterm165"
     value: 0xd700ff
 
   - code: 166
@@ -1247,6 +1413,7 @@ colors:
     aliases:
       - "color166"
       - "colour166"
+      - "xterm166"
     value: 0xd75f00
 
   - code: 167
@@ -1255,6 +1422,7 @@ colors:
     aliases:
       - "color167"
       - "colour167"
+      - "xterm167"
     value: 0xd75f5f
 
   - code: 168
@@ -1263,6 +1431,7 @@ colors:
     aliases:
       - "color168"
       - "colour168"
+      - "xterm168"
     value: 0xd75f87
 
   - code: 169
@@ -1271,6 +1440,7 @@ colors:
     aliases:
       - "color169"
       - "colour169"
+      - "xterm169"
     value: 0xd75faf
 
   - code: 170
@@ -1279,6 +1449,7 @@ colors:
     aliases:
       - "color170"
       - "colour170"
+      - "xterm170"
     value: 0xd75fd7
 
   - code: 171
@@ -1287,6 +1458,7 @@ colors:
     aliases:
       - "color171"
       - "colour171"
+      - "xterm171"
     value: 0xd75fff
 
   - code: 172
@@ -1295,6 +1467,7 @@ colors:
     aliases:
       - "color172"
       - "colour172"
+      - "xterm172"
     value: 0xd78700
 
   - code: 173
@@ -1303,6 +1476,7 @@ colors:
     aliases:
       - "color173"
       - "colour173"
+      - "xterm173"
     value: 0xd7875f
 
   - code: 174
@@ -1311,6 +1485,7 @@ colors:
     aliases:
       - "color174"
       - "colour174"
+      - "xterm174"
     value: 0xd78787
 
   - code: 175
@@ -1318,6 +1493,7 @@ colors:
     aliases:
       - "color175"
       - "colour175"
+      - "xterm175"
     value: 0xd787af
 
   - code: 176
@@ -1325,6 +1501,7 @@ colors:
     aliases:
       - "color176"
       - "colour176"
+      - "xterm176"
     value: 0xd787d7
 
   - code: 177
@@ -1332,6 +1509,7 @@ colors:
     aliases:
       - "color177"
       - "colour177"
+      - "xterm177"
     value: 0xd787ff
 
   - code: 178
@@ -1340,6 +1518,7 @@ colors:
     aliases:
       - "color178"
       - "colour178"
+      - "xterm178"
     value: 0xd7af00
 
   - code: 179
@@ -1348,6 +1527,7 @@ colors:
     aliases:
       - "color179"
       - "colour179"
+      - "xterm179"
     value: 0xd7af5f
 
   - code: 180
@@ -1355,6 +1535,7 @@ colors:
     aliases:
       - "color180"
       - "colour180"
+      - "xterm180"
     value: 0xd7af87
 
   - code: 181
@@ -1362,6 +1543,7 @@ colors:
     aliases:
       - "color181"
       - "colour181"
+      - "xterm181"
     value: 0xd7afaf
 
   - code: 182
@@ -1369,6 +1551,7 @@ colors:
     aliases:
       - "color182"
       - "colour182"
+      - "xterm182"
     value: 0xd7afd7
 
   - code: 183
@@ -1376,6 +1559,7 @@ colors:
     aliases:
       - "color183"
       - "colour183"
+      - "xterm183"
     value: 0xd7afff
 
   - code: 184
@@ -1383,6 +1567,7 @@ colors:
     aliases:
       - "color184"
       - "colour184"
+      - "xterm184"
     value: 0xd7d700
 
   - code: 185
@@ -1390,6 +1575,7 @@ colors:
     aliases:
       - "color185"
       - "colour185"
+      - "xterm185"
     value: 0xd7d75f
 
   - code: 186
@@ -1398,6 +1584,7 @@ colors:
     aliases:
       - "color186"
       - "colour186"
+      - "xterm186"
     value: 0xd7d787
 
   - code: 187
@@ -1405,6 +1592,7 @@ colors:
     aliases:
       - "color187"
       - "colour187"
+      - "xterm187"
     value: 0xd7d7af
 
   - code: 188
@@ -1412,6 +1600,7 @@ colors:
     aliases:
       - "color188"
       - "colour188"
+      - "xterm188"
     value: 0xd7d7d7
 
   - code: 189
@@ -1419,6 +1608,7 @@ colors:
     aliases:
       - "color189"
       - "colour189"
+      - "xterm189"
     value: 0xd7d7ff
 
   - code: 190
@@ -1426,6 +1616,7 @@ colors:
     aliases:
       - "color190"
       - "colour190"
+      - "xterm190"
     value: 0xd7ff00
 
   - code: 191
@@ -1434,6 +1625,7 @@ colors:
     aliases:
       - "color191"
       - "colour191"
+      - "xterm191"
     value: 0xd7ff5f
 
   - code: 192
@@ -1441,6 +1633,7 @@ colors:
     aliases:
       - "color192"
       - "colour192"
+      - "xterm192"
     value: 0xd7ff87
 
   - code: 193
@@ -1449,6 +1642,7 @@ colors:
     aliases:
       - "color193"
       - "colour193"
+      - "xterm193"
     value: 0xd7ffaf
 
   - code: 194
@@ -1456,6 +1650,7 @@ colors:
     aliases:
       - "color194"
       - "colour194"
+      - "xterm194"
     value: 0xd7ffd7
 
   - code: 195
@@ -1463,6 +1658,7 @@ colors:
     aliases:
       - "color195"
       - "colour195"
+      - "xterm195"
     value: 0xd7ffff
 
   - code: 196
@@ -1470,6 +1666,7 @@ colors:
     aliases:
       - "color196"
       - "colour196"
+      - "xterm196"
     value: 0xff0000
 
   - code: 197
@@ -1478,6 +1675,7 @@ colors:
     aliases:
       - "color197"
       - "colour197"
+      - "xterm197"
     value: 0xff005f
 
   - code: 198
@@ -1486,6 +1684,7 @@ colors:
     aliases:
       - "color198"
       - "colour198"
+      - "xterm198"
     value: 0xff0087
 
   - code: 199
@@ -1493,6 +1692,7 @@ colors:
     aliases:
       - "color199"
       - "colour199"
+      - "xterm199"
     value: 0xff00af
 
   - code: 200
@@ -1500,6 +1700,7 @@ colors:
     aliases:
       - "color200"
       - "colour200"
+      - "xterm200"
     value: 0xff00d7
 
   - code: 201
@@ -1507,6 +1708,7 @@ colors:
     aliases:
       - "color201"
       - "colour201"
+      - "xterm201"
     value: 0xff00ff
 
   - code: 202
@@ -1514,6 +1716,7 @@ colors:
     aliases:
       - "color202"
       - "colour202"
+      - "xterm202"
     value: 0xff5f00
 
   - code: 203
@@ -1521,6 +1724,7 @@ colors:
     aliases:
       - "color203"
       - "colour203"
+      - "xterm203"
     value: 0xff5f5f
 
   - code: 204
@@ -1529,6 +1733,7 @@ colors:
     aliases:
       - "color204"
       - "colour204"
+      - "xterm204"
     value: 0xff5f87
 
   - code: 205
@@ -1537,6 +1742,7 @@ colors:
     aliases:
       - "color205"
       - "colour205"
+      - "xterm205"
     value: 0xff5faf
 
   - code: 206
@@ -1544,6 +1750,7 @@ colors:
     aliases:
       - "color206"
       - "colour206"
+      - "xterm206"
     value: 0xff5fd7
 
   - code: 207
@@ -1551,6 +1758,7 @@ colors:
     aliases:
       - "color207"
       - "colour207"
+      - "xterm207"
     value: 0xff5fff
 
   - code: 208
@@ -1558,6 +1766,7 @@ colors:
     aliases:
       - "color208"
       - "colour208"
+      - "xterm208"
     value: 0xff8700
 
   - code: 209
@@ -1565,6 +1774,7 @@ colors:
     aliases:
       - "color209"
       - "colour209"
+      - "xterm209"
     value: 0xff875f
 
   - code: 210
@@ -1572,6 +1782,7 @@ colors:
     aliases:
       - "color210"
       - "colour210"
+      - "xterm210"
     value: 0xff8787
 
   - code: 211
@@ -1579,6 +1790,7 @@ colors:
     aliases:
       - "color211"
       - "colour211"
+      - "xterm211"
     value: 0xff87af
 
   - code: 212
@@ -1586,6 +1798,7 @@ colors:
     aliases:
       - "color212"
       - "colour212"
+      - "xterm212"
     value: 0xff87d7
 
   - code: 213
@@ -1593,6 +1806,7 @@ colors:
     aliases:
       - "color213"
       - "colour213"
+      - "xterm213"
     value: 0xff87ff
 
   - code: 214
@@ -1600,6 +1814,7 @@ colors:
     aliases:
       - "color214"
       - "colour214"
+      - "xterm214"
     value: 0xffaf00
 
   - code: 215
@@ -1607,6 +1822,7 @@ colors:
     aliases:
       - "color215"
       - "colour215"
+      - "xterm215"
     value: 0xffaf5f
 
   - code: 216
@@ -1614,6 +1830,7 @@ colors:
     aliases:
       - "color216"
       - "colour216"
+      - "xterm216"
     value: 0xffaf87
 
   - code: 217
@@ -1621,6 +1838,7 @@ colors:
     aliases:
       - "color217"
       - "colour217"
+      - "xterm217"
     value: 0xffafaf
 
   - code: 218
@@ -1628,6 +1846,7 @@ colors:
     aliases:
       - "color218"
       - "colour218"
+      - "xterm218"
     value: 0xffafd7
 
   - code: 219
@@ -1635,6 +1854,7 @@ colors:
     aliases:
       - "color219"
       - "colour219"
+      - "xterm219"
     value: 0xffafff
 
   - code: 220
@@ -1642,6 +1862,7 @@ colors:
     aliases:
       - "color220"
       - "colour220"
+      - "xterm220"
     value: 0xffd700
 
   - code: 221
@@ -1650,6 +1871,7 @@ colors:
     aliases:
       - "color221"
       - "colour221"
+      - "xterm221"
     value: 0xffd75f
 
   - code: 222
@@ -1657,6 +1879,7 @@ colors:
     aliases:
       - "color222"
       - "colour222"
+      - "xterm222"
     value: 0xffd787
 
   - code: 223
@@ -1664,6 +1887,7 @@ colors:
     aliases:
       - "color223"
       - "colour223"
+      - "xterm223"
     value: 0xffd7af
 
   - code: 224
@@ -1671,6 +1895,7 @@ colors:
     aliases:
       - "color224"
       - "colour224"
+      - "xterm224"
     value: 0xffd7d7
 
   - code: 225
@@ -1678,6 +1903,7 @@ colors:
     aliases:
       - "color225"
       - "colour225"
+      - "xterm225"
     value: 0xffd7ff
 
   - code: 226
@@ -1685,6 +1911,7 @@ colors:
     aliases:
       - "color226"
       - "colour226"
+      - "xterm226"
     value: 0xffff00
 
   - code: 227
@@ -1692,6 +1919,7 @@ colors:
     aliases:
       - "color227"
       - "colour227"
+      - "xterm227"
     value: 0xffff5f
 
   - code: 228
@@ -1699,6 +1927,7 @@ colors:
     aliases:
       - "color228"
       - "colour228"
+      - "xterm228"
     value: 0xffff87
 
   - code: 229
@@ -1706,6 +1935,7 @@ colors:
     aliases:
       - "color229"
       - "colour229"
+      - "xterm229"
     value: 0xffffaf
 
   - code: 230
@@ -1713,6 +1943,7 @@ colors:
     aliases:
       - "color230"
       - "colour230"
+      - "xterm230"
     value: 0xffffd7
 
   - code: 231
@@ -1720,6 +1951,7 @@ colors:
     aliases:
       - "color231"
       - "colour231"
+      - "xterm231"
     value: 0xffffff
 
   - code: 232
@@ -1727,6 +1959,7 @@ colors:
     aliases:
       - "color232"
       - "colour232"
+      - "xterm232"
     value: 0x080808
 
   - code: 233
@@ -1734,6 +1967,7 @@ colors:
     aliases:
       - "color233"
       - "colour233"
+      - "xterm233"
     value: 0x121212
 
   - code: 234
@@ -1741,6 +1975,7 @@ colors:
     aliases:
       - "color234"
       - "colour234"
+      - "xterm234"
     value: 0x1c1c1c
 
   - code: 235
@@ -1748,6 +1983,7 @@ colors:
     aliases:
       - "color235"
       - "colour235"
+      - "xterm235"
     value: 0x262626
 
   - code: 236
@@ -1755,6 +1991,7 @@ colors:
     aliases:
       - "color236"
       - "colour236"
+      - "xterm236"
     value: 0x303030
 
   - code: 237
@@ -1762,6 +1999,7 @@ colors:
     aliases:
       - "color237"
       - "colour237"
+      - "xterm237"
     value: 0x3a3a3a
 
   - code: 238
@@ -1769,6 +2007,7 @@ colors:
     aliases:
       - "color238"
       - "colour238"
+      - "xterm238"
     value: 0x444444
 
   - code: 239
@@ -1776,6 +2015,7 @@ colors:
     aliases:
       - "color239"
       - "colour239"
+      - "xterm239"
     value: 0x4e4e4e
 
   - code: 240
@@ -1783,6 +2023,7 @@ colors:
     aliases:
       - "color240"
       - "colour240"
+      - "xterm240"
     value: 0x585858
 
   - code: 241
@@ -1790,6 +2031,7 @@ colors:
     aliases:
       - "color241"
       - "colour241"
+      - "xterm241"
     value: 0x626262
 
   - code: 242
@@ -1797,6 +2039,7 @@ colors:
     aliases:
       - "color242"
       - "colour242"
+      - "xterm242"
     value: 0x6c6c6c
 
   - code: 243
@@ -1804,6 +2047,7 @@ colors:
     aliases:
       - "color243"
       - "colour243"
+      - "xterm243"
     value: 0x767676
 
   - code: 244
@@ -1811,6 +2055,7 @@ colors:
     aliases:
       - "color244"
       - "colour244"
+      - "xterm244"
     value: 0x808080
 
   - code: 245
@@ -1818,6 +2063,7 @@ colors:
     aliases:
       - "color245"
       - "colour245"
+      - "xterm245"
     value: 0x8a8a8a
 
   - code: 246
@@ -1825,6 +2071,7 @@ colors:
     aliases:
       - "color246"
       - "colour246"
+      - "xterm246"
     value: 0x949494
 
   - code: 247
@@ -1832,6 +2079,7 @@ colors:
     aliases:
       - "color247"
       - "colour247"
+      - "xterm247"
     value: 0x9e9e9e
 
   - code: 248
@@ -1839,6 +2087,7 @@ colors:
     aliases:
       - "color248"
       - "colour248"
+      - "xterm248"
     value: 0xa8a8a8
 
   - code: 249
@@ -1846,6 +2095,7 @@ colors:
     aliases:
       - "color249"
       - "colour249"
+      - "xterm249"
     value: 0xb2b2b2
 
   - code: 250
@@ -1853,6 +2103,7 @@ colors:
     aliases:
       - "color250"
       - "colour250"
+      - "xterm250"
     value: 0xbcbcbc
 
   - code: 251
@@ -1860,6 +2111,7 @@ colors:
     aliases:
       - "color251"
       - "colour251"
+      - "xterm251"
     value: 0xc6c6c6
 
   - code: 252
@@ -1867,6 +2119,7 @@ colors:
     aliases:
       - "color252"
       - "colour252"
+      - "xterm252"
     value: 0xd0d0d0
 
   - code: 253
@@ -1874,6 +2127,7 @@ colors:
     aliases:
       - "color253"
       - "colour253"
+      - "xterm253"
     value: 0xdadada
 
   - code: 254
@@ -1881,6 +2135,7 @@ colors:
     aliases:
       - "color254"
       - "colour254"
+      - "xterm254"
     value: 0xe4e4e4
 
   - code: 255
@@ -1888,4 +2143,5 @@ colors:
     aliases:
       - "color255"
       - "colour255"
+      - "xterm255"
     value: 0xeeeeee
