@@ -60,7 +60,7 @@ jobs:
       - name: Upload to coveralls [debug]
         if: ${{ github.run_attempt > 1 }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         run: |
           coveralls debug --service=github
           coveralls --output=cov --service=github
@@ -68,7 +68,7 @@ jobs:
 
       - name: Upload to coveralls
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         run: |
           coveralls --verbose --service=github
 
