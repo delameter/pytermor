@@ -56,7 +56,7 @@ General
    memory address or size
       :hex:`0000:9cf0`
 
-   RGB colors
+   RGB colors (*int*/*str* forms)
       :hex:`0xeb0c0c` ; :hex:`#ff00ff`
 
    escaped strings

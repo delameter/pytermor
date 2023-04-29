@@ -83,13 +83,13 @@ class SequenceNf(ISequence, metaclass=ABCMeta):
     Escape sequences mostly used for ANSI/ISO code-switching mechanisms.
 
     All **nF**-class sequences start with ``ESC`` plus ASCII byte from
-    the range :hex:`0x20-0x2f` (space, ``!``, ``"``, ``#``, ``$``, ``%``,
+    the range :hex:`0x20-0x2F` (space, ``!``, ``"``, ``#``, ``$``, ``%``,
     ``&``, ``'``, ``(``, ``)``, ``*``, ``+``, ``,``, ``-``, ``.``, ``/``).
     """
     def __init__(self, *interm: str, final: str, short_name: str = None):
         """
 
-        :param interm: intermediate bytes :hex:`0x20-0x2f`
+        :param interm: intermediate bytes :hex:`0x20-0x2F`
         :param final:
         :param short_name:
         """
@@ -159,7 +159,7 @@ class SequenceFs(ISequence, metaclass=ABCMeta):
     Sequences referred by ECMA-48 as "independent control functions".
 
     All **Fs**-class sequences start with ``ESC`` plus a byte in the range
-    :hex:`0x60-0x7E` (``\```, ``a``-``z``, ``{``, ``|``, ``}``).
+    :hex:`0x60-0x7E` (``\u0060``, ``a``-``z``, ``{``, ``|``, ``}``).
     """
 
     def __init__(self, classifier: str, short_name: str = None, *params: str):
@@ -708,7 +708,7 @@ class SeqIndex:
     """ Set text color to :hex:`0x008080`. """
 
     WHITE = SequenceSGR(IntCode.WHITE)
-    """ Set text color to :hex:`0xC0C0C0`. """
+    """ Set text color to :hex:`0xc0c0c0`. """
 
     COLOR_OFF = SequenceSGR(IntCode.COLOR_OFF)
     """ Reset foreground color. """
@@ -737,7 +737,7 @@ class SeqIndex:
     """ Set background color to :hex:`0x008080`. """
 
     BG_WHITE = SequenceSGR(IntCode.BG_WHITE)
-    """ Set background color to :hex:`0xC0C0C0`. """
+    """ Set background color to :hex:`0xc0c0c0`. """
 
     BG_COLOR_OFF = SequenceSGR(IntCode.BG_COLOR_OFF)
     """ Reset background color. """
@@ -747,38 +747,38 @@ class SeqIndex:
     GRAY = SequenceSGR(IntCode.GRAY)
     """ Set text color to :hex:`0x808080`. """
     HI_RED = SequenceSGR(IntCode.HI_RED)
-    """ Set text color to :hex:`0xFF0000`. """
+    """ Set text color to :hex:`0xff0000`. """
     HI_GREEN = SequenceSGR(IntCode.HI_GREEN)
-    """ Set text color to :hex:`0x00FF00`. """
+    """ Set text color to :hex:`0x00ff00`. """
     HI_YELLOW = SequenceSGR(IntCode.HI_YELLOW)
-    """ Set text color to :hex:`0xFFFF00`. """
+    """ Set text color to :hex:`0xffff00`. """
     HI_BLUE = SequenceSGR(IntCode.HI_BLUE)
-    """ Set text color to :hex:`0x0000FF`. """
+    """ Set text color to :hex:`0x0000ff`. """
     HI_MAGENTA = SequenceSGR(IntCode.HI_MAGENTA)
-    """ Set text color to :hex:`0xFF00FF`. """
+    """ Set text color to :hex:`0xff00ff`. """
     HI_CYAN = SequenceSGR(IntCode.HI_CYAN)
-    """ Set text color to :hex:`0x00FFFF`. """
+    """ Set text color to :hex:`0x00ffff`. """
     HI_WHITE = SequenceSGR(IntCode.HI_WHITE)
-    """ Set text color to :hex:`0xFFFFFF`. """
+    """ Set text color to :hex:`0xffffff`. """
 
     # high intensity background colors
 
     BG_GRAY = SequenceSGR(IntCode.BG_GRAY)
     """ Set background color to :hex:`0x808080`. """
     BG_HI_RED = SequenceSGR(IntCode.BG_HI_RED)
-    """ Set background color to :hex:`0xFF0000`. """
+    """ Set background color to :hex:`0xff0000`. """
     BG_HI_GREEN = SequenceSGR(IntCode.BG_HI_GREEN)
-    """ Set background color to :hex:`0x00FF00`. """
+    """ Set background color to :hex:`0x00ff00`. """
     BG_HI_YELLOW = SequenceSGR(IntCode.BG_HI_YELLOW)
-    """ Set background color to :hex:`0xFFFF00`. """
+    """ Set background color to :hex:`0xffff00`. """
     BG_HI_BLUE = SequenceSGR(IntCode.BG_HI_BLUE)
-    """ Set background color to :hex:`0x0000FF`. """
+    """ Set background color to :hex:`0x0000ff`. """
     BG_HI_MAGENTA = SequenceSGR(IntCode.BG_HI_MAGENTA)
-    """ Set background color to :hex:`0xFF00FF`. """
+    """ Set background color to :hex:`0xff00ff`. """
     BG_HI_CYAN = SequenceSGR(IntCode.BG_HI_CYAN)
-    """ Set background color to :hex:`0x00FFFF`. """
+    """ Set background color to :hex:`0x00ffff`. """
     BG_HI_WHITE = SequenceSGR(IntCode.BG_HI_WHITE)
-    """ Set background color to :hex:`0xFFFFFF`. """
+    """ Set background color to :hex:`0xffffff`. """
 
     # -- OSC ------------------------------------------------------------------
 
@@ -939,8 +939,8 @@ def make_color_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
     Wrapper for creation of `SequenceSGR` operating in True Color mode (16M).
     Valid values for ``r``, ``g`` and ``b`` are in range of [0; 255]. This range
     linearly translates into [:hex:`0x00`; :hex:`0xFF`] for each channel. The result
-    value is composed as ":hex:`0xRRGGBB`". For example, sequence with color of
-    :hex:`0xFF3300` can be created with::
+    value is composed as ":hex:`#RRGGBB`". For example, a sequence with color of
+    :hex:`#ff3300` can be created with::
 
         >>> make_color_rgb(255, 51, 0)
         <SGR[38,2,255,51,0]>
@@ -962,7 +962,7 @@ def make_color_rgb(r: int, g: int, b: int, bg: bool = False) -> SequenceSGR:
 
 @lru_cache
 def _compile_contains_sgr_regex(*codes: int) -> re.Pattern:
-    return re.compile(Rf'\x1b\[(?:\d*;)*({";".join(map(str, codes))})(?:;\d*)*m')
+    return re.compile(Rf'\x1b\[(?:|[\d;]*;)({";".join(map(str, codes))})(?:|;[\d;]*)m')
 
 
 def contains_sgr(string: str, *codes: int) -> re.Match | None:
@@ -971,14 +971,16 @@ def contains_sgr(string: str, *codes: int) -> re.Match | None:
     ``codes`` as params, strictly inside a single sequence in specified order,
     or *None* if nothing was found.
 
-    The match object consists of two groups:
+    The match object has one group (or, technically, two):
 
         - Group #0: the whole matched SGR sequence;
         - Group #1: the requested code bytes only.
 
+    Example regex used for searching: :regex:`\\x1b\\[(?:|[\\d;]*;)(48;5)(?:|;[\\d;]*)m`.
+
         >>> contains_sgr(make_color_256(128).assemble(), 38)
         <re.Match object; span=(0, 11), match='\x1b[38;5;128m'>
-        >>> contains_sgr(make_color_256(84, True).assemble(), 48, 5, 84)
+        >>> contains_sgr(make_color_256(84, True).assemble(), 48, 5)
         <re.Match object; span=(0, 10), match='\x1b[48;5;84m'>
 
     :param string: String to search the SGR in.

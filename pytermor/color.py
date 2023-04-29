@@ -36,10 +36,10 @@ is `resolve_color()`. Valid values include:
     - *str* with a color name in any form distinguishable by the color resolver;
       the color lists can be found at: `guide.ansi-presets` and `guide.es7s-colors`;
     - *str* starting with a "#" and consisting of 6 more hexadecimal characters, case
-      insensitive (RGB regular form), e.g. ":hex:`#0B0CCA`";
+      insensitive (RGB regular form), e.g. ":hex:`#0b0cca`";
     - *str* starting with a "#" and consisting of 3 more hexadecimal characters, case
       insensitive (RGB short form), e.g. ":hex:`#666`";
-    - *int* in a [:hex:`0`; :hex:`0xFFFFFF`] range.
+    - *int* in a [:hex:`0`; :hex:`0xffffff`] range.
 """
 
 CT = t.TypeVar("CT", bound="IColor")
@@ -236,11 +236,11 @@ class IColor(metaclass=_ColorMeta):
 
         :param prefix: Can be customized.
         """
-        return f"{prefix:s}{self._hex_value:06X}"
+        return f"{prefix:s}{self._hex_value:06x}"
 
     @property
     def hex_value(self) -> int:
-        """Color value, e.g. :hex:`0x3AEB0C`."""
+        """Color value, e.g. :hex:`0x3aeb0c`."""
         return self._hex_value
 
     @property
@@ -448,13 +448,13 @@ class Color16(IColor):
         # the exceptions are rare and include color mapping at low level, e.g.,
         # ``tmux`` with specifically configured terminal capability overrides.
         # that's not something that you'd expect from a regular user, anyway.
-        code = f"#{self._code_fg}"
-        value = f"{self.format_value('')}?"
+        if not verbose:
+            return self._name
 
-        params = [self._name]
-        if verbose:
-            params = [code, value] + params
-        return ",".join(str(s) for s in filter(None, params))
+        code = f"c{self._code_fg}"
+        value = f"{self.format_value('#')}?"
+        params = " ".join(map(str, filter(None, [value, self._name])))
+        return f"{code}({params})"
 
     def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
         if bg:
@@ -573,13 +573,13 @@ class Color256(IColor):
         return self._hex_value == other._hex_value and self._code == other._code
 
     def repr_attrs(self, verbose: bool = True) -> str:
-        code = f"X{self._code}"
-        value = self.format_value("")
+        code = f"x{self._code}"
+        if not verbose:
+            return code
 
-        params = [code + f"[{value}]"]
-        if verbose:
-            params = [code, value, self._name]
-        return ",".join(str(s) for s in filter(None, params))
+        value = self.format_value("#")
+        params = " ".join(map(str, filter(None, [value, self._name])))
+        return f"{code}({params})"
 
 
 class ColorRGB(IColor):
@@ -595,7 +595,7 @@ class ColorRGB(IColor):
         are *kwonly*-type args.
 
 
-    :param hex_value: Color RGB value, e.g. :hex:`0x73A9C2`.
+    :param hex_value: Color RGB value, e.g. :hex:`0x73a9c2`.
     :param name:      Name of the color, e.g. "moonstone-blue".
     :param register:  If *True*, add color to registry for resolving by name.
     :param index:     If *True*, add color to approximation index.
@@ -637,12 +637,10 @@ class ColorRGB(IColor):
         return self._hex_value == other._hex_value
 
     def repr_attrs(self, verbose: bool = True) -> str:
-        value = self.format_value("")
-
-        params = [value]
-        if verbose:
-            params += [self.name]
-        return ",".join(str(s) for s in filter(None, params))
+        value = self.format_value("#")
+        if not verbose or not self._name:
+            return value
+        return f"{value}({self._name})"
 
     @property
     def base(self) -> CT | None:
@@ -678,8 +676,8 @@ class _NoopColor(IColor):
     def hex_value(self) -> int:
         raise LogicError("No color for NO-OP instance")
 
-    def format_value(self, prefix: str = "0x") -> str:
-        return (prefix if "=" in prefix else "") + "NOP"
+    def format_value(self, prefix: str = "") -> str:
+        return prefix + "NOP"
 
     def repr_attrs(self, verbose: bool = True) -> str:
         return self.format_value()
@@ -699,8 +697,8 @@ class _DefaultColor(IColor):
     def hex_value(self) -> int:
         raise LogicError("Default colors entirely depend on user terminal settings")
 
-    def format_value(self, prefix: str = "0x") -> str:
-        return (prefix if "=" in prefix else "") + "DEF"
+    def format_value(self, prefix: str = "") -> str:
+        return prefix + "DEF"
 
     def repr_attrs(self, verbose: bool = True) -> str:
         return self.format_value()
@@ -746,14 +744,14 @@ def resolve_color(subject: CDT, color_type: t.Type[CT] = None) -> CT:
     the resolving is stopped and the result is returned.
 
         >>> resolve_color('red')
-        <Color16[#31,800000?,red]>
+        <Color16[c31(#800000? red)]>
 
     If ``color_type`` is `ColorRGB` or *None*, one more way to specify a color
     is supported. ``subject`` should be:
 
         1) in full hexadecimal form as *str*: ":hex:`#RRGGBB`",
         2) in short hexadecimal form as *str*: ":hex:`#RGB`",
-        3) as an integer in [:hex:`0x000000`; :hex:`0xFFFFFF`] range.
+        3) as an integer in [:hex:`0x000000`; :hex:`0xffffff`] range.
 
     Note that '#' in the beginning of the string is essential, as it tells the
     resolver to parse a string instead of invoking the registry.
@@ -768,20 +766,20 @@ def resolve_color(subject: CDT, color_type: t.Type[CT] = None) -> CT:
     ::
 
         >>> resolve_color("#333")
-        <ColorRGB[333333]>
+        <ColorRGB[#333333]>
         >>> resolve_color(0xfafef0)
-        <ColorRGB[FAFEF0]>
+        <ColorRGB[#fafef0]>
 
     Color names are stored in registries as tokens, which allows to use any form of
     input and get the correct result regardless. The only requirement is to split the
     words in any matter, so that tokenizer could distinguish the words from each other:
 
         >>> resolve_color('deep-sky-blue-7')
-        <Color256[X23,005F5F,deep-sky-blue-7]>
-        >>> resolve_color('DEEP_SKY_BLUE_7')
-        <Color256[X23,005F5F,deep-sky-blue-7]>
+        <Color256[x23(#005f5f deep-sky-blue-7)]>
+        >>> resolve_color('DEEP SKY BLUE 7')
+        <Color256[x23(#005f5f deep-sky-blue-7)]>
         >>> resolve_color('DeepSkyBlue7')
-        <Color256[X23,005F5F,deep-sky-blue-7]>
+        <Color256[x23(#005f5f deep-sky-blue-7)]>
 
         >>> resolve_color('deepskyblue7')
         Traceback (most recent call last):

@@ -35,9 +35,6 @@ release = version
 
 # -- General configuration ----------------------------------------------------
 
-with open("include/_prolog.rsti", "rt") as f:
-    rst_prolog = f.read()
-
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.todo",
@@ -46,19 +43,22 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.inheritance_diagram",
     "sphinx.ext.graphviz",
-    # "sphinx.ext.doctest",
+    # "sphinx.ext.doctest",  # replaced with sybil
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
     "sphinx_design",  # <<<MAKE_DOCS_MAN<<<
-    # "sphinx_toolbox.more_autodoc.regex",
-    "sphinx_toolbox.more_autodoc.overloads",
+    "sphinx_toolbox.more_autodoc.regex",
+    #"sphinx_toolbox.more_autodoc.overloads",
     # "sphinx_toolbox.more_autodoc.generic_bases",
-    "sphinx_toolbox.more_autodoc.typehints",
-    "sphinx_toolbox.more_autodoc.typevars",
+    #"sphinx_toolbox.more_autodoc.typehints",
+    #"sphinx_toolbox.more_autodoc.typevars",
     #"sphinxext-opengraph", # @TODO
 ]
 # sphinx-design breaks building docs in man format, so `make` comments that
 # line before building it and uncomments it afterwards (yeah I know it's ugly)
+
+with open("include/_prolog.rsti", "rt") as f:
+    rst_prolog = f.read()
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "depreacted", "_static", ".static.sources", "examples", "generated", "include"]

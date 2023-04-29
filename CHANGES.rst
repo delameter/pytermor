@@ -19,7 +19,7 @@ pending
 - |NEW|  `Text.split_by_spaces()`, `Composite`
 - |NEW| +3 base sequence classes, +26 preset sequences
 
-.. <@pending:770a83e>
+.. <@pending:e86b27c>
 .. ^ blank line before should be kept
 
 

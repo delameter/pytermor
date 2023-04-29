@@ -7,8 +7,20 @@ from math import isclose
 
 import pytest
 
-from pytermor import NOOP_SEQ, Style, SequenceSGR, IntCode, color, resolve_color, \
-    DEFAULT_COLOR, NOOP_COLOR, Color16, Color256, ColorRGB, cv
+from pytermor import (
+    NOOP_SEQ,
+    Style,
+    SequenceSGR,
+    IntCode,
+    color,
+    resolve_color,
+    DEFAULT_COLOR,
+    NOOP_COLOR,
+    Color16,
+    Color256,
+    ColorRGB,
+    cv,
+)
 from pytermor.color import ColorNameConflictError, ColorCodeConflictError
 from pytermor.common import LogicError
 
@@ -19,22 +31,22 @@ def assert_close(a: float, b: float):
 
 class TestResolving:
     def test_module_method_resolve_works(self):
-        assert ColorRGB(0xfffff0) == resolve_color("ivory")
+        assert ColorRGB(0xFFFFF0) == resolve_color("ivory")
 
     def test_module_method_resolve_alias_works(self):
-        assert ColorRGB(0x0052cc) == resolve_color("jira-blue")
+        assert ColorRGB(0x0052CC) == resolve_color("jira-blue")
 
     def test_module_method_resolve_full_rgb_form_works(self):
-        assert ColorRGB(0xffd000) == resolve_color("#ffd000")
+        assert ColorRGB(0xFFD000) == resolve_color("#ffd000")
 
     def test_module_method_resolve_short_rgb_form_works(self):
-        assert ColorRGB(0x3399ff) == resolve_color("#39f")
+        assert ColorRGB(0x3399FF) == resolve_color("#39f")
 
     def test_module_method_resolve_integer_rgb_form_works(self):
-        assert ColorRGB(0x00039f) == resolve_color(0x39f)
+        assert ColorRGB(0x00039F) == resolve_color(0x39F)
 
     def test_module_method_resolve_rgb_form_works_upon_color_rgb(self):
-        assert ColorRGB(0xfafafe) == resolve_color("#fafafe", ColorRGB)
+        assert ColorRGB(0xFAFAFE) == resolve_color("#fafafe", ColorRGB)
 
     @pytest.mark.xfail(raises=LookupError)
     def test_module_method_resolve_rgb_form_fails_upon_color_256(self):
@@ -140,7 +152,9 @@ class TestApproximation:
         assert color.find_closest(0x87FFD7, Color16) is cv.WHITE
 
     def test_module_method_find_closest_works_for_rgb(self):
-        assert resolve_color("aquamarine", ColorRGB) is color.find_closest(0x87FFD7, ColorRGB)
+        assert resolve_color("aquamarine", ColorRGB) is color.find_closest(
+            0x87FFD7, ColorRGB
+        )
 
     def test_module_method_approximate_works_as_256_by_default(self):
         assert color.approximate(0x87FFD7)[0].color is cv.AQUAMARINE_1
@@ -149,7 +163,10 @@ class TestApproximation:
         assert color.approximate(0x87FFD7, Color16)[0].color is cv.WHITE
 
     def test_module_method_approximate_works_for_rgb(self):
-        assert resolve_color("aquamarine", ColorRGB) is color.approximate(0x87FFD7, ColorRGB)[0].color
+        assert (
+            resolve_color("aquamarine", ColorRGB)
+            is color.approximate(0x87FFD7, ColorRGB)[0].color
+        )
 
     def test_class_method_find_closest_works_for_16(self):
         assert Color16.find_closest(0x87FFD7) is cv.WHITE
@@ -209,6 +226,10 @@ class TestColor16:
         assert Color16(0x800000, 133, 143).format_value() == "0x800000"
         assert Color16(0x800000, 134, 144).format_value("#") == "#800000"
 
+    def test_repr(self):
+        assert repr(Color16(0x800000, 135, 145)) == "<Color16[c135(#800000?)]>"
+        assert repr(cv.RED) == "<Color16[c31(#800000? red)]>"
+
     def test_equality(self):
         assert Color16(0x010203, 11, 12) == Color16(0x010203, 11, 12)
 
@@ -223,7 +244,7 @@ class TestColor16:
         h, s, v = col.to_hsv()
         assert_close(0, h)
         assert_close(1, s)
-        assert_close(.50, v)
+        assert_close(0.50, v)
 
     def test_to_rgb(self):
         col = Color16(0x800000, IntCode.RED, IntCode.BG_RED)
@@ -276,8 +297,12 @@ class TestColor256:
         assert col.to_tmux(True) == "colour258"
 
     def test_format_value(self):
-        assert Color256(0xFF00FF, 259).format_value() == "0xFF00FF"
-        assert Color256(0xFF00FF, 260).format_value("#") == "#FF00FF"
+        assert Color256(0xFF00FF, 259).format_value() == "0xff00ff"
+        assert Color256(0xFF00FF, 260).format_value("#") == "#ff00ff"
+
+    def test_repr(self):
+        assert repr(Color256(0xFF00FF, 259)) == "<Color256[x259(#ff00ff)]>"
+        assert repr(cv.DARK_GREEN) == "<Color256[x22(#005f00 dark-green)]>"
 
     def test_equality(self):
         assert Color256(0x010203, 11) == Color256(0x010203, 11)
@@ -294,7 +319,7 @@ class TestColor256:
         h, s, v = col.to_hsv()
         assert_close(h, 60)
         assert_close(s, 1)
-        assert_close(v, .5)
+        assert_close(v, 0.5)
 
     def test_to_rgb(self):
         col = Color256(0x808000, code=256)
@@ -312,7 +337,9 @@ class TestColorRGB:
 
     def test_to_sgr_with_rgb_upper_bound_results_in_sgr_rgb(self):
         col = ColorRGB(0xFF33FF)
-        assert col.to_sgr(False, upper_bound=ColorRGB) == SequenceSGR(38, 2, 255, 51, 255)
+        assert col.to_sgr(False, upper_bound=ColorRGB) == SequenceSGR(
+            38, 2, 255, 51, 255
+        )
         assert col.to_sgr(True, upper_bound=ColorRGB) == SequenceSGR(48, 2, 255, 51, 255)
 
     def test_to_sgr_with_256_upper_bound_results_in_sgr_256(self):
@@ -331,8 +358,12 @@ class TestColorRGB:
         assert col.to_tmux(True) == "#ff00ff"
 
     def test_format_value(self):
-        assert ColorRGB(0xFF00FF).format_value() == "0xFF00FF"
-        assert ColorRGB(0xFF00FF).format_value("#") == "#FF00FF"
+        assert ColorRGB(0xFF00FF).format_value() == "0xff00ff"
+        assert ColorRGB(0xFF00FF).format_value("#") == "#ff00ff"
+
+    def test_repr(self):
+        assert repr(ColorRGB(0xFF00FF)) == "<ColorRGB[#ff00ff]>"
+        assert repr(ColorRGB(0xFF00FF, name="testrgb")) == "<ColorRGB[#ff00ff(testrgb)]>"
 
     def test_equality(self):
         assert ColorRGB(0x010203) == ColorRGB(0x010203)
@@ -347,7 +378,7 @@ class TestColorRGB:
         h, s, v = col.to_hsv()
         assert_close(h, 120)
         assert_close(s, 1)
-        assert_close(v, .50)
+        assert_close(v, 0.50)
 
     def test_to_rgb(self):
         col = ColorRGB(0x008000)
@@ -358,15 +389,15 @@ class TestColorRGB:
 
 
 class TestNoopColor:
-    def test_noop(self):
+    def test_equality(self):
         assert NOOP_COLOR.to_sgr(True, Color16) == NOOP_SEQ
         assert NOOP_COLOR.to_sgr(False, ColorRGB) == NOOP_SEQ
-        assert Style().fg == NOOP_COLOR
-        assert Style().bg == NOOP_COLOR
 
-    def test_format_noop_color_value(self):
+    def test_format_value(self):
         assert NOOP_COLOR.format_value() == "NOP"
-        assert NOOP_COLOR.format_value("#") == "NOP"
+
+    def test_repr(self):
+        assert repr(NOOP_COLOR) == "<_NoopColor[NOP]>"
 
     def test_to_tmux(self):
         assert NOOP_COLOR.to_tmux(False) == ""
@@ -378,8 +409,14 @@ class TestNoopColor:
 
 
 class TestDefaultColor:
-    def test_default_eq_default(self):
+    def test_default_equality(self):
         assert DEFAULT_COLOR == DEFAULT_COLOR
 
     def test_default_neq_noop(self):
         assert DEFAULT_COLOR != NOOP_COLOR
+
+    def test_format_value(self):
+        assert DEFAULT_COLOR.format_value() == "DEF"
+
+    def test_repr(self):
+        assert repr(DEFAULT_COLOR) == "<_DefaultColor[DEF]>"

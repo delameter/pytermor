@@ -33,11 +33,11 @@ class Style:
     as plain *str* or *int* (for the details see `resolve_color()`).
 
         >>> Style(fg='green', bold=True)
-        <Style[green:NOP +BOLD]>
+        <Style[green +BOLD]>
         >>> Style(bg=0x0000ff)
-        <Style[NOP:0000FF]>
+        <Style[|#0000ff]>
         >>> Style(fg='DeepSkyBlue1', bg='gray3')
-        <Style[X39[00AFFF]:X232[080808]]>
+        <Style[x39|x232]>
 
     Attribute merging from ``fallback`` works this way:
 
@@ -355,21 +355,28 @@ class Style:
 
     def repr_attrs(self, verbose: bool) -> str:
         if self == NOOP_STYLE:
-            colors_set = ["NOP"]
+            colors = ["NOP"]
         elif self._fg is None or self._bg is None:
-            colors_set = ["uninitialized"]
+            colors = ["uninitialized"]
         else:
-            colors_set = []
+            colors = []
             for attr_name in ("fg", "bg"):
                 val: IColor = getattr(self, attr_name)
-                colors_set.append(val.repr_attrs(verbose))
+                prefix = "" if attr_name == "fg" else "|"
+                valstr = prefix+val.repr_attrs(verbose)
+                if not valstr.endswith("NOP"):
+                    colors.append(valstr)
 
-        props_set = [":".join(colors_set)]
+        props = []
         for attr_name in self.renderable_attributes:
             attr = getattr(self, attr_name)
             if isinstance(attr, bool):
-                props_set.append(("+" if attr else "-") + attr_name.upper())
-        return " ".join(props_set)
+                prefix = ("+" if attr else "-")
+                prop = attr_name.upper()
+                if not verbose:
+                    prop = prop[:4]
+                props.append(prefix + prop)
+        return " ".join(["".join(colors), *sorted(props)]).strip()
 
 
 
@@ -503,9 +510,11 @@ def merge_styles(
             :caption: Fallback merge algorithm example №1
 
             >>> base = Style(fg='red')
+            ...
             >>> fallbacks = [Style(fg='blue'), Style(bold=True), Style(bold=False)]
+            ...
             >>> merge_styles(base, fallbacks=fallbacks)
-            <Style[red:NOP +BOLD]>
+            <Style[red +BOLD]>
 
         In the example above:
 
@@ -539,9 +548,9 @@ def merge_styles(
                 :caption: Fallback merge algorithm example №2
 
                 >>> merge_styles(Style(fg=cv.BLUE), fallbacks=[Style(bold=True)])
-                <Style[blue:NOP +BOLD]>
+                <Style[blue +BOLD]>
                 >>> merge_styles(Style(fg=cv.GRAY, bold=False), fallbacks=[Style(bold=True)])
-                <Style[gray:NOP -BOLD]>
+                <Style[gray -BOLD]>
 
 
     :(C),(D),(E):
@@ -556,9 +565,11 @@ def merge_styles(
             :caption: Overwrite merge algorithm example
 
             >>> base = Style(fg='red')
+            ...
             >>> overwrites = [Style(fg='blue'), Style(bold=True), Style(bold=False)]
+            ...
             >>> merge_styles(base, overwrites=overwrites)
-            <Style[blue:NOP -BOLD]>
+            <Style[blue -BOLD]>
 
         In the example above all the ``overwrites`` will be applied in order they were
         put into *list*, and the result attribute values are equal to the last
