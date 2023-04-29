@@ -19,8 +19,9 @@ pending
 - |NEW|  `Text.split_by_spaces()`, `Composite`
 - |NEW| +3 base sequence classes, +26 preset sequences
 - |TESTS| `Style`/`IColor` reprs
+- |FIX| `make_clear_display_and_history()` -> `make_clear_history()`
 
-.. <@pending:fee3fab>
+.. <@pending:9f55c3d>
 .. ^ blank line before should be kept
 
 
