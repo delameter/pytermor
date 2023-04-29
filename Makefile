@@ -5,7 +5,7 @@
 .PHONY: help test docs
 
 PROJECT_NAME = pytermor
-HOST_DEFAULT_PYTHON = /usr/bin/python3
+HOST_DEFAULT_PYTHON = /usr/bin/python3.10
 
 VENV_LOCAL_PATH = venv
 DOCS_IN_PATH = docs

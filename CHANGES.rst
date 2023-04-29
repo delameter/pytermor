@@ -20,8 +20,10 @@ pending
 - |NEW| +3 base sequence classes, +26 preset sequences
 - |TESTS| `Style`/`IColor` reprs
 - |FIX| `make_clear_display_and_history()` -> `make_clear_history()`
+- |MAINTAIN| CI coverage now running on python 3.10 (was 3.8)
+- |MAINTAIN| CI coverage now running on python 3.10 (was 3.8)
 
-.. <@pending:9f55c3d>
+.. <@pending:ff2b8f0>
 .. ^ blank line before should be kept
 
 
