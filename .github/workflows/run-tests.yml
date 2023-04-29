@@ -57,16 +57,18 @@ jobs:
           coverage json
           coverage report
 
-      - name: Upload to coveralls
-        if: ${{ github.run_attempt == 1 }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          coveralls --service=github
-
       - name: Upload to coveralls [debug]
         if: ${{ github.run_attempt > 1 }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           coveralls debug --service=github
+          coveralls --output=cov --service=github
+          xxd < cov
+
+      - name: Upload to coveralls
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          coveralls --verbose --service=github
+
