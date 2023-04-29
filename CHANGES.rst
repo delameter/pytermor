@@ -23,8 +23,11 @@ pending
 - |MAINTAIN| CI coverage now running on python 3.10 (was 3.8)
 - |MAINTAIN| CI coverage now running on python 3.10 (was 3.8)
 - |DOCS| fixed pydoc escaped spaces to stop python's warnings whining that breaks the CI
+- |MAINTAIN| upload to coveralls debug mode !@#$
+- |MAINTAIN| upload to coveralls debug mode !@#$
+- |MAINTAIN| replaced GITHUB_TOKEN secret to COVERALLS_REPO_TOKEN
 
-.. <@pending:f1dced5>
+.. <@pending:7225805>
 .. ^ blank line before should be kept
 
 
