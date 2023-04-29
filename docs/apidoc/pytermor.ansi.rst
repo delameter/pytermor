@@ -26,8 +26,8 @@
       get_closing_seq
       make_clear_display
       make_clear_display_after_cursor
-      make_clear_display_and_history
       make_clear_display_before_cursor
+      make_clear_history
       make_clear_line
       make_clear_line_after_cursor
       make_clear_line_before_cursor

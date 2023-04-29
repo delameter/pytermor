@@ -18,8 +18,9 @@ pending
 - |NEW| `contains_sgr` method
 - |NEW|  `Text.split_by_spaces()`, `Composite`
 - |NEW| +3 base sequence classes, +26 preset sequences
+- |TESTS| `Style`/`IColor` reprs
 
-.. <@pending:e86b27c>
+.. <@pending:fee3fab>
 .. ^ blank line before should be kept
 
 

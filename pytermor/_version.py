@@ -3,4 +3,4 @@
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
-__version__ = '2.56.1.dev0'
+__version__ = '2.57.0.dev0'

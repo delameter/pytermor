@@ -63,8 +63,8 @@ from .ansi import enclose as enclose
 from .ansi import get_closing_seq as get_closing_seq
 from .ansi import make_clear_display as make_clear_display
 from .ansi import make_clear_display_after_cursor as make_clear_display_after_cursor
-from .ansi import make_clear_display_and_history as make_clear_display_and_history
 from .ansi import make_clear_display_before_cursor as make_clear_display_before_cursor
+from .ansi import make_clear_history as make_clear_history
 from .ansi import make_clear_line as make_clear_line
 from .ansi import make_clear_line as make_clear_line
 from .ansi import make_clear_line_after_cursor as make_clear_line_after_cursor

@@ -1169,7 +1169,7 @@ def make_erase_in_display(mode: int = 0) -> SequenceCSI:
                      - If set to 0, clear from cursor to the end of the screen.
                      - If set to 1, clear from cursor to the beginning of the screen.
                      - If set to 2, clear the entire screen.
-                     - If set to 3, clear the entire screen and saved lines (history).
+                     - If set to 3, clear terminal history (xterm only).
 
     :example:     ``ESC [0J``
     """
@@ -1208,10 +1208,11 @@ def make_clear_display() -> SequenceCSI:
     return make_erase_in_display(2)
 
 
-def make_clear_display_and_history() -> SequenceCSI:
+def make_clear_history() -> SequenceCSI:
     """
-    Create :abbr:`ED (Erase in Display)` sequence that clears an entire screen.
-    and saved lines (history). Cursor position does not change.
+    Create :abbr:`ED (Erase in Display)` sequence that clears history, i.e.,
+    invisible lines on the top that can be scrolled back down. Cursor position
+    does not change. This is a xterm extension.
 
     :example:     ``ESC [3J``
     """
