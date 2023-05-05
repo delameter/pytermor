@@ -6,24 +6,12 @@
 from __future__ import annotations
 
 import typing as t
-from math import isclose
-
 import pytest
 
 import pytermor as pt
 from pytermor.common import RGB, HSV
 
-
-def assert_close(a: float, b: float):
-    assert isclose(a, b, abs_tol=0.01)
-
-
-def format_test_params(val) -> str | None:
-    if isinstance(val, int):
-        return f"0x{val:06x}"
-    elif isinstance(val, tuple):
-        return str(val)
-    return str(val)
+from . import assert_close, format_test_params
 
 
 class TestColorTransform:
@@ -61,7 +49,7 @@ class TestColorTransform:
         ids=format_test_params,
     )
     def test_hex_to_rgb(self, expected_rgb: RGB, input_hex: int):
-        assert pt.utilmisc.hex_to_rgb(input_hex)    == expected_rgb
+        assert pt.utilmisc.hex_to_rgb(input_hex) == expected_rgb
 
     @pytest.mark.parametrize(
         "expected_hex, input_args_rgb",

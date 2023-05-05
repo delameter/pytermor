@@ -5,12 +5,10 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
-import re
 from datetime import timedelta
 
 import pytest
 
-from pytermor import SgrStringReplacer, apply_filters
 from pytermor.utilnum import (
     format_thousand_sep,
     format_auto_float,
@@ -28,29 +26,7 @@ from pytermor.utilnum import (
     format_time_delta_shortest,
     format_time_delta_longest, DualFormatterRegistry,
 )
-from pytermor.utilstr import NonPrintsOmniVisualizer
-
-str_filters = [
-    SgrStringReplacer(lambda m: "]" if "39" in m.group(3) else "["),
-    NonPrintsOmniVisualizer,
-]
-
-
-def format_test_params(val) -> str | None:
-    if isinstance(val, list):
-        return str(val[0])
-    if isinstance(val, str):
-        return apply_filters(val, *str_filters)
-    if isinstance(val, timedelta):
-        args = []
-        if val.days:
-            args += ["%dd" % val.days]
-        if val.seconds:
-            args += ["%ds" % val.seconds]
-        if val.microseconds:
-            args += ["%dus" % val.microseconds]
-        return "%s(%s)" % ("", " ".join(args))
-    return None
+from . import format_test_params
 
 
 class TestFormatThousandSep:
@@ -751,7 +727,7 @@ class TestDualFormatter:
     # fmt: off
     TIMEDELTA_TEST_SET = [
         [timedelta(days=-700000)                   , [  "ERR",  "ERRO", "ERROR",  "OVERFL",   "OVERFLOW"]],
-        [timedelta(days=-1000)                     , [  "ERR",   "2 y",  "-2 y",   "2 yr",   "-2 years"]],
+        [timedelta(days=-1000)                     , [  "ERR",   "2 y",  "-2 y",    "2 yr",   "-2 years"]],
         [timedelta(days=-300)                      , [  "ERR",  "10 M", "-10 M",  "10 mon", "-10 months"]],
         [timedelta(days=-300, seconds=1)           , [   "9M",   "9 M",  "-9 M",   "9 mon",  "-9 months"]],
         [timedelta(days=-100)                      , [   "3M",   "3 M",  "-3 M",   "3 mon",  "-3 months"]],

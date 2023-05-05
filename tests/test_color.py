@@ -3,13 +3,11 @@
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
-from math import isclose
 
 import pytest
 
 from pytermor import (
     NOOP_SEQ,
-    Style,
     SequenceSGR,
     IntCode,
     color,
@@ -24,9 +22,7 @@ from pytermor import (
 from pytermor.color import ColorNameConflictError, ColorCodeConflictError
 from pytermor.common import LogicError
 
-
-def assert_close(a: float, b: float):
-    assert isclose(a, b, abs_tol=0.01)
+from . import assert_close
 
 
 class TestResolving:

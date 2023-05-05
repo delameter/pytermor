@@ -22,11 +22,7 @@ from pytermor.ansi import (
     assemble_hyperlink,
     contains_sgr,
 )
-
-def format_test_params(val) -> str | None:
-    if isinstance(val, (list, tuple)):
-        return "("+",".join(map(str, val))+")"
-    return None
+from . import format_test_params
 
 
 class TestSequenceSGR(unittest.TestCase):

@@ -62,12 +62,14 @@ class Style:
         is for.
 
     .. note ::
-        All arguments except ``fallback``, ``fg`` and ``bg`` are *kwonly*-type args.
+        All arguments except ``fallback``, ``fg``, ``bg`` and ``frozen`` are
+        *kwonly*-type args.
 
     :param fallback:    Copy empty attributes from speicifed fallback style.
                         See `merge_fallback()`.
     :param fg:          Foreground (=text) color.
     :param bg:          Background color.
+    :param frozen:      Set to *True* to make an immutable instance.
     :param bold:        Bold or increased intensity.
     :param dim:         Faint, decreased intensity.
     :param italic:      Italic.
@@ -107,7 +109,6 @@ class Style:
     @bg.setter
     def bg(self, val: CDT | IColor):
         self._bg: IColor = self._resolve_color(val)
-
 
     bold: bool
     """ Bold or increased intensity (depending on terminal settings)."""
@@ -170,13 +171,14 @@ class Style:
 
     @property
     def _attributes(self) -> t.FrozenSet:
-        return frozenset({*self.__dict__.keys(), "_fg", "_bg"} - {'_initialized'})
+        return frozenset({*self.__dict__.keys(), "_fg", "_bg"})
 
     def __init__(
         self,
         fallback: Style = None,
         fg: CDT | IColor = None,
         bg: CDT | IColor = None,
+        frozen: bool = False,
         *,
         bold: bool = None,
         dim: bool = None,
@@ -213,7 +215,16 @@ class Style:
         if self._bg is None:
             self._bg = NOOP_COLOR
 
-        self._initialized = True
+        self._frozen = frozen
+
+    def clone(self, frozen=False) -> Style:
+        """
+        Make a copy of the instance. Note that a copy is mutable by default
+        even if an original was frozen.
+        
+        :param frozen: Set to *True* to make an immutable instance.
+        """
+        return Style(self, frozen=frozen)
 
     def autopick_fg(self) -> Style:
         """
@@ -225,8 +236,11 @@ class Style:
 
             check if there is a better algorithm,
             because current thinks text on :hex:`#000080` should be black
+
+        Modifies the instance in-place and returns it as well (for chained calls).
         """
-        if self._bg is None or self._bg.hex_value is None:
+        self._ensure_not_frozen()
+        if not self._bg:
             return self
 
         h, s, v = self._bg.to_hsv()
@@ -238,16 +252,12 @@ class Style:
 
     def flip(self) -> Style:
         """
-        Swap foreground color and background color.
+        Swap foreground color and background color. Modifies the instance in-place
+        and returns it as well (for chained calls).
         """
+        self._ensure_not_frozen()
         self._fg, self._bg = self._bg, self._fg
         return self
-
-    def clone(self) -> Style:
-        """
-        C
-        """
-        return Style(self)
 
     def merge_fallback(self, fallback: Style) -> Style:
         """
@@ -282,6 +292,7 @@ class Style:
 
         :param fallback: Style to merge the attributes with.
         """
+        self._ensure_not_frozen()
         for attr in self.renderable_attributes:
             self_val = getattr(self, attr)
             if self_val is None or self_val == NOOP_COLOR:
@@ -293,7 +304,7 @@ class Style:
                     setattr(self, attr, fallback_val)
         return self
 
-    def merge_overwrite(self, overwrite: Style):
+    def merge_overwrite(self, overwrite: Style) -> Style:
         """
         Merge current style with specified ``overwrite`` `style <Style>`, following
         the rules:
@@ -328,11 +339,16 @@ class Style:
 
         :param overwrite:  Style to merge the attributes with.
         """
+        self._ensure_not_frozen()
         for attr in self.renderable_attributes:
             overwrite_val = getattr(overwrite, attr)
             if overwrite_val is not None and overwrite_val != NOOP_COLOR:
                 setattr(self, attr, overwrite_val)
         return self
+
+    def _ensure_not_frozen(self) -> None:
+        if hasattr(self, '_frozen') and self._frozen:
+            raise LogicError(f"{self.__class__.__qualname__} is immutable")
 
     def _resolve_color(self, arg: str | int | IColor | None) -> IColor | None:
         if arg is None:
@@ -343,21 +359,24 @@ class Style:
             return resolve_color(arg)
         raise ArgTypeError(type(arg), "arg", fn=self._resolve_color)
 
+    def __setattr__(self, name: str, value: Any) -> None:
+        self._ensure_not_frozen()
+        super().__setattr__(name, value)
+
     def __eq__(self, other: Style) -> bool:
-        if not isinstance(other, Style):
+        if not isinstance(other, Style):  # pragma: no cover
             return False
         return all(
             getattr(self, attr) == getattr(other, attr) for attr in self._attributes
         )
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}[{self.repr_attrs(False)}]>"
+        frozen = '*' if self._frozen else ''
+        return f"<{frozen}{self.__class__.__name__}[{self.repr_attrs(False)}]>"
 
     def repr_attrs(self, verbose: bool) -> str:
-        if self == NOOP_STYLE:
-            colors = ["NOP"]
-        elif self._fg is None or self._bg is None:
-            colors = ["uninitialized"]
+        if self._fg is None or self._bg is None:  # reachable only in debugger
+            colors = ["uninitialized"]  # pragma: no cover
         else:
             colors = []
             for attr_name in ("fg", "bg"):
@@ -379,15 +398,12 @@ class Style:
         return " ".join(["".join(colors), *sorted(props)]).strip()
 
 
-
 class _NoOpStyle(Style):
+    def __init__(self):
+        super().__init__(frozen=True)
+    
     def __bool__(self) -> bool:
         return False
-
-    def __setattr__(self, name: str, value: Any):
-        if hasattr(self, '_initialized'):
-            raise LogicError("NOOP_STYLE is immutable")
-        super().__setattr__(name, value)
 
 
 NOOP_STYLE = _NoOpStyle()
@@ -399,44 +415,45 @@ Special style passing the text through without any modifications.
     library (`NOOP_SEQ`, `NOOP_COLOR` and `NOOP_STYLE`). This is intended. 
 
 This class is immutable, i.e. `LogicError` will be raised upon an attempt to
-modify any of its attributes, which can lead to schrödinbugs::
+modify any of its attributes, which could potentially lead to schrödinbugs::
 
     st1.merge_fallback(Style(bold=True), [Style(italic=False)])
 
-If ``st1`` is a regular style instance, the statement above will always work
-(and pass the tests), but if it happens to be a `NOOP_STYLE`, this will result 
-in an exception. To protect from this outcome one could merge styles via frontend 
-method `merge_styles` only, which always makes a copy of base argument and thus
-cannot lead to such behaviour.
+If ``st1`` is a regular style instance, it's safe to call self-modifying methods,
+but if it happens to be a `NOOP_STYLE`, the statement could have been alter the 
+internal state of the style, which is referenced all over the library, which could 
+lead to the changes appearing in an unexpected places.  
 
+To be safe from this outcome one could merge styles via frontend method `merge_styles`, 
+which always makes a copy of ``base`` argument and thus cannot lead to such results.
 """
 
 
 class Styles:
     """
-    Some ready-to-use styles. Can be used as examples.
-
+    Some ready-to-use styles which also can be used as examples. All instances
+    are immutable.
     """
 
-    WARNING = Style(fg=cv.YELLOW)
+    WARNING = Style(fg=cv.YELLOW, frozen=True)
     """ """
-    WARNING_LABEL = Style(WARNING, bold=True)
+    WARNING_LABEL = Style(WARNING, frozen=True, bold=True)
     """ """
-    WARNING_ACCENT = Style(fg=cv.HI_YELLOW)
-    """ """
-
-    ERROR = Style(fg=cv.RED)
-    """ """
-    ERROR_LABEL = Style(ERROR, bold=True)
-    """ """
-    ERROR_ACCENT = Style(fg=cv.HI_RED)
+    WARNING_ACCENT = Style(fg=cv.HI_YELLOW, frozen=True)
     """ """
 
-    CRITICAL = Style(bg=cv.RED_3, fg=cv.HI_WHITE)
+    ERROR = Style(fg=cv.RED, frozen=True)
     """ """
-    CRITICAL_LABEL = Style(CRITICAL, bold=True)
+    ERROR_LABEL = Style(ERROR, frozen=True, bold=True)
     """ """
-    CRITICAL_ACCENT = Style(CRITICAL_LABEL, blink=True)
+    ERROR_ACCENT = Style(fg=cv.HI_RED, frozen=True)
+    """ """
+
+    CRITICAL = Style(bg=cv.RED_3, fg=cv.HI_WHITE, frozen=True)
+    """ """
+    CRITICAL_LABEL = Style(CRITICAL, frozen=True, bold=True)
+    """ """
+    CRITICAL_ACCENT = Style(CRITICAL_LABEL, frozen=True, blink=True)
     """ """
 
 

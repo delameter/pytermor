@@ -14,6 +14,7 @@ import pytermor.text
 from pytermor import Text, FrozenText, Fragment, IRenderable, Style, RT
 from pytermor.renderer import NoOpRenderer
 
+from . import format_test_params
 
 def format_test_rt_params(val) -> str | None:
     if isinstance(val, str):
@@ -24,14 +25,6 @@ def format_test_rt_params(val) -> str | None:
         return repr(val)[:16]+".."
     if isinstance(val, IRenderable):
         return repr(val)
-    return None
-
-
-def format_test_params(val) -> str | None:
-    if isinstance(val, dict):
-        return f"(" + (" ".join((k + "=" + str(v)) for k, v in val.items())) + ")"
-    if isinstance(val, str):
-        return val.replace("\x1b[39m", "]").replace("\x1b[31m", "[")
     return None
 
 
