@@ -22,11 +22,38 @@ from collections import namedtuple
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
 
-RGB = t.NamedTuple("RGB", red=int, green=int, blue=int)
-""" RGB. """
+class RGB(t.NamedTuple):
+    red: int
+    """ Red channel value (0-255) """
+    green: int
+    """ Green channel value (0-255) """
+    blue: int
+    """ Blue channel value (0-255) """
 
-HSV = t.NamedTuple("HSV", hue=float, saturation=float, value=float)
-""" HSV. """
+    def __str__(self):  # RGB(R=128, G=0, B=0)
+        attrs = map(self._format_channel, ['red', 'green', 'blue'])
+        return f"{self.__class__.__name__}({' '.join(attrs)})"
+
+    def _format_channel(self, attr: str) -> str:
+        return f'{attr[0].upper()}={getattr(self, attr):d}'
+
+
+class HSV(t.NamedTuple):
+    hue: float
+    """ Hue channel value (0-360) """
+    saturation: float
+    """ Saturation channel value (0.0-1.0) """
+    value: float
+    """ Value channel value (0.0-1.0) """
+
+    def __str__(self):  # HSV(H=0.0° S=100.0% V=50.2%)
+        attrs = [
+            f"H={self.hue:.1f}°",
+            f"S={100*self.saturation:.1f}%",
+            f"V={100*self.value:.1f}%",
+        ]
+        return f"{self.__class__.__name__}({' '.join(attrs)})"
+
 
 LOGGING_TRACE = 5
 logging.addLevelName(LOGGING_TRACE, "TRACE")
@@ -45,7 +72,7 @@ logger.addHandler(logging.NullHandler())
 
 
 class ExtendedEnum(enum.Enum):
-    """ Standard `Enum` with a few additional methods on top. """
+    """Standard `Enum` with a few additional methods on top."""
 
     @classmethod
     def list(cls):

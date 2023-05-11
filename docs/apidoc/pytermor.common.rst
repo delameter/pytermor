@@ -9,8 +9,6 @@
 
    .. autosummary::
    
-      RGB
-      HSV
       ALIGN_LEFT
       ALIGN_RIGHT
       ALIGN_CENTER

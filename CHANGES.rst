@@ -25,8 +25,9 @@ pending
 - |MAINTAIN| upload to coveralls debug mode !@#$
 - |MAINTAIN| replaced GITHUB_TOKEN secret to COVERALLS_REPO_TOKEN
 - |MAINTAIN| disabled verbose mode on CI
+- |NEW| "frozen" `Style` attribute
 
-.. <@pending:6c95407>
+.. <@pending:fd12d17>
 .. ^ blank line before should be kept
 
 
