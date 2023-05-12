@@ -47,7 +47,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
     "sphinx_design",  # <<<MAKE_DOCS_MAN<<<
-    "sphinx_toolbox.more_autodoc.regex",
+    #"sphinx_toolbox.more_autodoc.regex",
     #"sphinx_toolbox.more_autodoc.overloads",
     # "sphinx_toolbox.more_autodoc.generic_bases",
     #"sphinx_toolbox.more_autodoc.typehints",

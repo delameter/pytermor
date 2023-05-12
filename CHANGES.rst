@@ -26,8 +26,10 @@ pending
 - |MAINTAIN| replaced GITHUB_TOKEN secret to COVERALLS_REPO_TOKEN
 - |MAINTAIN| disabled verbose mode on CI
 - |NEW| "frozen" `Style` attribute
+- |NEW| `__str__` methods override for named tuples `RGB`, `HSV`
+- |REFACTOR| color resolver
 
-.. <@pending:fd12d17>
+.. <@pending:7ba3abf>
 .. ^ blank line before should be kept
 
 

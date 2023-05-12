@@ -51,12 +51,14 @@ Any non-abstract ``IColor`` type.
 
 
 class _ColorRegistry(t.Generic[CT], t.Sized, t.Iterable):
+    # Colors hashed by name parts
+
     _TOKEN_SEPARATOR = "-"
     _QUERY_SPLIT_REGEX = re.compile(r"[\W_]+|(?<=[a-z])(?=[A-Z0-9])")
 
     def __init__(self):
         self._map: t.Dict[t.Tuple[str], CT] = {}
-        self._list: t.Set[CT] = set()
+        self._set: t.Set[CT] = set()
 
     def register(self, color: CT, name: str):
         primary_tokens = tuple(self._QUERY_SPLIT_REGEX.split(name))
@@ -72,7 +74,7 @@ class _ColorRegistry(t.Generic[CT], t.Sized, t.Iterable):
             self._register_pair(variation, variation_tokens)
 
     def _register_pair(self, color: CT, tokens: t.Tuple[str, ...]):
-        self._list.add(color)
+        self._set.add(color)
 
         if tokens not in self._map.keys():
             self._map[tokens] = color
@@ -96,13 +98,15 @@ class _ColorRegistry(t.Generic[CT], t.Sized, t.Iterable):
         return len(self) > 0
 
     def __iter__(self) -> t.Iterator[CT]:
-        return iter(self._list)
+        return iter(self._set)
 
     def names(self) -> t.Iterable[t.Tuple[str]]:
         return self._map.keys()
 
 
 class _ColorIndex(t.Generic[CT], t.Sized):
+    # Colors indexed by CODE (not RGB value)
+
     def __init__(self):
         self._map: t.Dict[int, _ColorChannels[CT]] = {}
 
@@ -158,6 +162,11 @@ class ApxResult(t.Generic[CT]):
             :math:`distance_{real} = \\sqrt{distance}`
         """
         return math.sqrt(self.distance)
+
+    def __eq__(self, other: ApxResult) -> bool:
+        if not isinstance(other, ApxResult):  # pragma: no cover
+            return False
+        return self.color == other.color and self.distance == other.distance
 
 
 class _ColorMeta(ABCMeta):
@@ -307,7 +316,7 @@ class IColor(metaclass=_ColorMeta):
         :see: `resolve_color()` for the details
         :param name:  ``IColor`` name to search for.
         """
-        if not hasattr(cls, "_registry"):
+        if not hasattr(cls, "_registry"):  # pragma: no cover
             raise LogicError(
                 "Registry is empty. Did you call an abstract class' method?"
             )
@@ -321,7 +330,7 @@ class IColor(metaclass=_ColorMeta):
         :see: `color.find_closest()` for the details
         :param hex_value: Target RGB value.
         """
-        if not hasattr(cls, "_index"):
+        if not hasattr(cls, "_index"):  # pragma: no cover
             raise LogicError("Index is empty. Did you call an abstract class' method?")
 
         if hex_value in cls._approx_cache.keys():
@@ -340,7 +349,7 @@ class IColor(metaclass=_ColorMeta):
         :param hex_value:   Target RGB value.
         :param max_results: Result limit.
         """
-        if not hasattr(cls, "_index"):
+        if not hasattr(cls, "_index"):  # pragma: no cover
             raise LogicError("Index is empty. Did you call an abstract class' method?")
         return cls._find_neighbours(hex_value)[:max_results]
 
@@ -694,7 +703,7 @@ class _DefaultColor(IColor):
         return "default"
 
     @property
-    def hex_value(self) -> int:
+    def hex_value(self) -> int:  # pragma: no cover
         raise LogicError("Default colors entirely depend on user terminal settings")
 
     def format_value(self, prefix: str = "") -> str:
@@ -735,44 +744,24 @@ will result in an inheritance of parent style color instead of terminal default)
 """
 
 
-def resolve_color(subject: CDT, color_type: t.Type[CT] = None) -> CT:
+def resolve_color(subject: CDT, color_type: t.Type[CT] = None, approx_cache=True) -> CT:
     """
-    Case-insensitive search through registry contents. Search is performed for
-    ``IColor`` instance with name ``subject`` if the ``color_type`` registry.
-    If ``color_type`` is omitted, all the registries will be requested in this
-    order: [`Color16`, `Color256`, `ColorRGB`]. Should any registry return a match,
-    the resolving is stopped and the result is returned.
+    Suggested usage is to transform the user input in a free form in an attempt
+    to find any matching color. The method operates in three different modes depending
+    on arguments: resolving by name, resolving by value and instantiating.
 
-        >>> resolve_color('red')
-        <Color16[c31(#800000? red)]>
+    **Resolving by name**\\ : If ``subject`` is a *str* starting with any character
+    except `#`, case-insensitive search through the registry of ``color_type`` colors
+    is performed. In this mode the algorithm looks for the instance which has all the
+    words from ``subject`` as parts of its name (the order must be the same). Color
+    names are stored in registries as sets of tokens, which allows to use any form
+    of input and get the correct result regardless. The only requirement is to
+    separate the words in any matter (see the example below), so that they could be
+    split to tokens which will be matched with the registry keys.
 
-    If ``color_type`` is `ColorRGB` or *None*, one more way to specify a color
-    is supported. ``subject`` should be:
-
-        1) in full hexadecimal form as *str*: ":hex:`#RRGGBB`",
-        2) in short hexadecimal form as *str*: ":hex:`#RGB`",
-        3) as an integer in [:hex:`0x000000`; :hex:`0xffffff`] range.
-
-    Note that '#' in the beginning of the string is essential, as it tells the
-    resolver to parse a string instead of invoking the registry.
-
-    .. important ::
-
-        In this case no actual searching is performed, and a new nameless instance
-        of `ColorRGB` is created and returned. This instance will be a "unbound" color,
-        i.e. it does not end up in a registry or index, thus it can't be resolved by
-        name and can't be used in approximation procedures.
-
-    ::
-
-        >>> resolve_color("#333")
-        <ColorRGB[#333333]>
-        >>> resolve_color(0xfafef0)
-        <ColorRGB[#fafef0]>
-
-    Color names are stored in registries as tokens, which allows to use any form of
-    input and get the correct result regardless. The only requirement is to split the
-    words in any matter, so that tokenizer could distinguish the words from each other:
+    If ``color_type`` is omitted, all the registries will be requested in this order:
+    [`Color16`, `Color256`, `ColorRGB`]. Should any registry find a full match, the
+    resolving is stopped and the result is returned.
 
         >>> resolve_color('deep-sky-blue-7')
         <Color256[x23(#005f5f deep-sky-blue-7)]>
@@ -783,13 +772,42 @@ def resolve_color(subject: CDT, color_type: t.Type[CT] = None) -> CT:
 
         >>> resolve_color('deepskyblue7')
         Traceback (most recent call last):
-        LookupError: Color 'deepskyblue7' was not found in any of registries
+        LookupError: Color 'deepskyblue7' was not found in any registry
 
-    :param str|int subject:
-            ``IColor`` name or hex value to search for. See `CDT`.
-    :param color_type:   Target color type (`Color16`, `Color256` or `ColorRGB`).
-    :raises LookupError: If nothing was found in either of registries.
-    :return:             ``IColor`` instance with specified name or value.
+    **Resolving by value** or **instantiating**\\ : if ``subject`` is specified as:
+
+        1) *int* in [:hex:`0x000000`; :hex:`0xffffff`] range, or
+        2) *str* in full hexadecimal form: ":hex:`#RRGGBB`", or
+        3) *str* in short hexadecimal form: ":hex:`#RGB`",
+
+    and ``color_type`` is **present** , the result will be the best ``subject``
+    approximation to corresponding color index. Note that this value is expected
+    to differ from the requested one (and sometimes differs a lot). If ``color_type``
+    is **missing**, no searching is performed; instead a new nameless `ColorRGB`
+    is instantiated and returned.
+
+    .. note::
+        The instance created this way is an "unbound" color, i.e. it does
+        not end up in a registry or an index bound to its type, thus the resolver
+        and approximation algorithms are unaware of its existence. The rationale
+        for this is to keep the registries clean and stateless to ensure that
+        the same input always resolves to the same output.
+
+    ::
+
+        >>> resolve_color("#333")
+        <ColorRGB[#333333]>
+        >>> resolve_color(0xfafef0)
+        <ColorRGB[#fafef0]>
+
+    :param str|int subject: ``IColor`` name or hex value to search for. See `CDT`.
+    :param color_type:      Target color type (`Color16`, `Color256` or `ColorRGB`).
+    :param approx_cache:    Use the approximation cache for **resolving by value**
+                            mode or ignore it. For the details see `find_closest` and
+                            `approximate` which are actually invoked by this method
+                            under the hood.
+    :raises LookupError:    If nothing was found in either of registries.
+    :return:               ``IColor`` instance with specified name or value.
     """
 
     def as_hex(s: CDT):
@@ -805,15 +823,24 @@ def resolve_color(subject: CDT, color_type: t.Type[CT] = None) -> CT:
         return None
 
     if (hex_value := as_hex(subject)) is not None:
-        if color_type is None or color_type == ColorRGB:
+        if color_type is None:
             return ColorRGB(hex_value)
+        if approx_cache:
+            return find_closest(hex_value, color_type)
+        return approximate(hex_value, color_type)[0].color
 
-    for ct in [color_type or Color16, Color256, ColorRGB]:
+    color_types: t.List[t.Type[IColor]] = [Color16, Color256, ColorRGB]
+    if color_type:
+        color_types = [color_type]
+
+    for ct in color_types:
         try:
             return ct.resolve(str(subject))
         except LookupError:
             continue
-    raise LookupError(f"Color '{subject}' was not found in any of registries")
+
+    registry = str(color_type) if color_type else "any registry"
+    raise LookupError(f"Color '{subject}' was not found in {registry}")
 
 
 def find_closest(hex_value: int, color_type: t.Type[CT] = None) -> CT:
@@ -846,7 +873,7 @@ def approximate(
     """
     Search for nearest to ``hex_value`` colors of specified ``color_type`` and
     return the first ``max_results`` of them. If `color_type` is omitted, search
-    for the closest `Color256` elements. This method is similar to the
+    for the closest `Color256` instances. This method is similar to the
     `find_closest()`, although they differ in some aspects:
 
         - `approximate()` can return more than one result;

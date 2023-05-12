@@ -3,6 +3,10 @@
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
+from __future__ import annotations
+
+import typing as t
+from copy import copy
 
 import pytest
 
@@ -18,14 +22,33 @@ from pytermor import (
     Color256,
     ColorRGB,
     cv,
+    IColor, find_closest, approximate,
 )
-from pytermor.color import ColorNameConflictError, ColorCodeConflictError
+from pytermor.color import (
+    ColorNameConflictError,
+    ColorCodeConflictError,
+    _ColorRegistry,
+    _ColorIndex,
+)
 from pytermor.common import LogicError
+from . import assert_close, format_test_params
 
-from . import assert_close
+NON_EXISTING_COLORS = [
+    0xFEDCBA,
+    0xfa0ccc,
+    *range(1, 7),
+]
+
+@pytest.mark.parametrize('value', NON_EXISTING_COLORS, ids=format_test_params)
+def test_non_existing_colors_do_not_exist(value: int):
+    assert approximate(value)[0].color.hex_value != value
+
 
 
 class TestResolving:
+    def setup_method(self):
+        Color256._approx_cache.clear()
+
     def test_module_method_resolve_works(self):
         assert ColorRGB(0xFFFFF0) == resolve_color("ivory")
 
@@ -41,16 +64,25 @@ class TestResolving:
     def test_module_method_resolve_integer_rgb_form_works(self):
         assert ColorRGB(0x00039F) == resolve_color(0x39F)
 
+    def test_module_method_resolve_rgb_form_works_with_instantiating(self):
+        NON_EXISTING_COLOR = 0xFEDCBA
+        assert NON_EXISTING_COLOR not in [
+            c.hex_value for c in ColorRGB._registry._map.values()
+        ]
+        col1 = resolve_color(NON_EXISTING_COLOR)
+        col2 = resolve_color(f"#{NON_EXISTING_COLOR:06x}")
+        assert col1 == col2
+        assert col1 is not col2
+        assert ColorRGB.find_closest(NON_EXISTING_COLOR).hex_value != NON_EXISTING_COLOR
+
     def test_module_method_resolve_rgb_form_works_upon_color_rgb(self):
-        assert ColorRGB(0xFAFAFE) == resolve_color("#fafafe", ColorRGB)
+        assert ColorRGB.resolve("wash-me") == resolve_color("#fafafe", ColorRGB)
 
-    @pytest.mark.xfail(raises=LookupError)
-    def test_module_method_resolve_rgb_form_fails_upon_color_256(self):
-        resolve_color("#148811", Color256)
+    def test_module_method_resolve_rgb_form_works_upon_color_256(self):
+        assert cv.GREEN_5 == resolve_color("#148811", Color256)
 
-    @pytest.mark.xfail(raises=LookupError)
-    def test_module_method_resolve_rgb_form_fails_upon_color_16(self):
-        resolve_color("#111488", Color16)
+    def test_module_method_resolve_rgb_form_works_upon_color_16(self):
+        assert cv.BLUE == resolve_color("#111488", Color16)
 
     @pytest.mark.xfail(raises=LookupError)
     def test_module_method_resolve_of_non_existing_color_fails(self):
@@ -76,10 +108,61 @@ class TestResolving:
         assert col.hex_value == 0x1CAC78
         assert isinstance(col, ColorRGB)
 
+    def test_param_enables_cache(self):
+        NEW_COLOR = 0xfa0ccc
+        assert NEW_COLOR not in Color256._approx_cache.keys()
+        resolve_color(NEW_COLOR, Color256, approx_cache=True)
+        assert NEW_COLOR in Color256._approx_cache.keys()
+
+    def test_param_disables_cache(self):
+        NEW_COLOR = 0xfa0ccc
+        assert NEW_COLOR not in Color256._approx_cache.keys()
+        resolve_color(NEW_COLOR, Color256, approx_cache=False)
+        assert NEW_COLOR not in Color256._approx_cache.keys()
+
+    @pytest.mark.parametrize("ctype, expected_text", [
+        (Color16, "Color16"),
+        (Color256, "Color256"),
+        (ColorRGB, "ColorRGB"),
+        (None, "any"),
+    ], ids=format_test_params)
+    def test_exception_message(self, ctype: t.Type[IColor], expected_text: str):
+        try:
+            non_existing_value = -1
+            if not ctype:
+                non_existing_value = 0x000001
+            resolve_color(non_existing_value, ctype)
+        except LookupError as e:
+            assert expected_text in str(e)
+
 
 class TestColorRegistry:
-    # @TODO the state of the registry better be reset before each one of those,
-    #       but at the moment I don't see a fast and reliable way to achieve this
+    # @TEMP? The problem: reimporting the CVAL class that recreates colors and
+    #        thus registry results in making completely new classes that don't
+    #        pass instance checks in the tests code (because python thinks the
+    #        old ones and the new ones are completely unrelated).
+    # Current approach is to clone the original registry in the setup method,
+    # and clone the clone back before every test, as that effectively reverts
+    # any changes the tests possibly did to it. After the tests have been run
+    # restore the origin and clear the reference. It works OK but I feel that
+    # there should be more optimal way to do the same.
+
+    _keeper_registry: _ColorRegistry | None = None
+
+    @classmethod
+    def setup_class(cls):
+        cls._keeper_registry = copy(ColorRGB._registry)
+        cls._keeper_registry._map = copy(ColorRGB._registry._map)
+        cls._keeper_registry._set = copy(ColorRGB._registry._set)
+
+    @classmethod
+    def teardown_class(cls):
+        ColorRGB._registry = cls._keeper_registry
+        cls._keeper_registry = None
+
+    def setup_method(self):
+        ColorRGB._registry._map = copy(self._keeper_registry._map)
+        ColorRGB._registry._set = copy(self._keeper_registry._set)
 
     def test_registering_works(self):
         map_length_start = len(ColorRGB._registry)
@@ -114,8 +197,38 @@ class TestColorRegistry:
         col = Color256(0x6, code=256, register=True)
         assert col.name is None
 
+    def test_registry_length(self):
+        assert len(ColorRGB._registry) == len(ColorRGB._registry._map)
+
+    def test_registry_casts_to_true_if_has_elements(self):
+        assert bool(ColorRGB._registry)
+
+    def test_registry_casts_to_false_if_empty(self):
+        assert not bool(_ColorRegistry())
+
+    def test_iterating(self):
+        assert len([*ColorRGB._registry]) == len(ColorRGB._registry._set)
+
+    def test_names(self):
+        assert len([*ColorRGB._registry.names()]) == len(ColorRGB._registry._map)
+
 
 class TestColorIndex:
+    _keeper_index: _ColorIndex | None = None
+
+    @classmethod
+    def setup_class(cls):
+        cls._keeper_index = copy(ColorRGB._index)
+        cls._keeper_index._map = copy(ColorRGB._index._map)
+
+    @classmethod
+    def teardown_class(cls):
+        ColorRGB._index = cls._keeper_index
+        cls._keeper_index = None
+
+    def setup_method(self):
+        ColorRGB._index._map = copy(self._keeper_index._map)
+
     def test_adding_to_index_works(self):
         index_length_start = len(ColorRGB._index)
         col = ColorRGB(0x1, "test 1", index=True)
@@ -139,48 +252,79 @@ class TestColorIndex:
     def test_getting_of_non_existing_color_fails(self):
         Color256.get_by_code(256)
 
+    def test_index_casts_to_true_if_has_elements(self):
+        assert bool(ColorRGB._index)
+
+    def test_index_casts_to_false_if_empty(self):
+        assert not bool(_ColorRegistry())
+
 
 class TestApproximation:
     def test_module_method_find_closest_works_as_256_by_default(self):
-        assert color.find_closest(0x87FFD7) is cv.AQUAMARINE_1
+        assert color.find_closest(0x87FFD7) == cv.AQUAMARINE_1
 
     def test_module_method_find_closest_works_for_16(self):
-        assert color.find_closest(0x87FFD7, Color16) is cv.WHITE
+        assert color.find_closest(0x87FFD7, Color16) == cv.WHITE
 
     def test_module_method_find_closest_works_for_rgb(self):
-        assert resolve_color("aquamarine", ColorRGB) is color.find_closest(
+        assert resolve_color("aquamarine", ColorRGB) == color.find_closest(
             0x87FFD7, ColorRGB
         )
 
     def test_module_method_approximate_works_as_256_by_default(self):
-        assert color.approximate(0x87FFD7)[0].color is cv.AQUAMARINE_1
+        assert color.approximate(0x87FFD7)[0].color == cv.AQUAMARINE_1
 
     def test_module_method_approximate_works_for_16(self):
-        assert color.approximate(0x87FFD7, Color16)[0].color is cv.WHITE
+        assert color.approximate(0x87FFD7, Color16)[0].color == cv.WHITE
 
     def test_module_method_approximate_works_for_rgb(self):
         assert (
             resolve_color("aquamarine", ColorRGB)
-            is color.approximate(0x87FFD7, ColorRGB)[0].color
+            == color.approximate(0x87FFD7, ColorRGB)[0].color
         )
 
     def test_class_method_find_closest_works_for_16(self):
-        assert Color16.find_closest(0x87FFD7) is cv.WHITE
+        assert Color16.find_closest(0x87FFD7) == cv.WHITE
 
     def test_class_method_find_closest_works_for_256(self):
-        assert Color256.find_closest(0x87FFD7) is cv.AQUAMARINE_1
+        assert Color256.find_closest(0x87FFD7) == cv.AQUAMARINE_1
 
     def test_class_method_find_closest_works_for_rgb(self):
         assert 0x7FFFD4 == ColorRGB.find_closest(0x87FFD7).hex_value
 
     def test_class_method_approximate_works_for_16(self):
-        assert Color16.approximate(0x87FFD7)[0].color is cv.WHITE
+        assert Color16.approximate(0x87FFD7)[0].color == cv.WHITE
 
     def test_class_method_approximate_works_for_256(self):
-        assert Color256.approximate(0x87FFD7)[0].color is cv.AQUAMARINE_1
+        assert Color256.approximate(0x87FFD7)[0].color == cv.AQUAMARINE_1
 
     def test_class_method_approximate_works_for_rgb(self):
         assert ColorRGB.approximate(0x87FFD7)[0].color.hex_value == 0x7FFFD4
+
+    def test_distance_is_correct(self):
+        expected = [
+            color.ApxResult(cv.NAVAJO_WHITE_1, 147),
+            color.ApxResult(cv.MISTY_ROSE_1, 867),
+            color.ApxResult(cv.WHEAT_1, 1347),
+            color.ApxResult(cv.LIGHT_YELLOW_3, 1667),
+            color.ApxResult(cv.CORNSILK_1, 2067),
+        ]
+        result = color.approximate(0xFEDCBA, Color256, len(expected))
+        assert len(result) == len(expected)
+        while result:
+            assert result.pop(0) == expected.pop(0)
+
+    def test_distance_real(self):
+        assert_close(color.approximate(0xFEDCBA, Color256)[0].distance_real, 12.124)
+
+
+@pytest.mark.parametrize("ctype", [Color16, Color256, ColorRGB], ids=format_test_params)
+class TestColor:
+    def test_iterating(self, ctype: t.Type[IColor]):
+        assert all(isinstance(c, ctype) for c in [*iter(ctype)])
+
+    def test_names(self, ctype: t.Type[IColor]):
+        assert len([*ctype.names()]) == len([*ctype._registry.names()])
 
 
 class TestColor16:
@@ -248,6 +392,10 @@ class TestColor16:
         assert r == 128
         assert g == 0
         assert b == 0
+
+    @pytest.mark.xfail(raises=ValueError)
+    def test_invalid_hex_value_fails_init(self):
+        Color16(-1, 300, 301)
 
 
 class TestColor256:
@@ -324,6 +472,10 @@ class TestColor256:
         assert g == 128
         assert b == 0
 
+    @pytest.mark.xfail(raises=ValueError)
+    def test_invalid_hex_value_fails_init(self):
+        Color256(-1, 302)
+
 
 class TestColorRGB:
     def test_to_sgr_without_upper_bound_results_in_sgr_rgb(self):
@@ -383,6 +535,10 @@ class TestColorRGB:
         assert g == 128
         assert b == 0
 
+    @pytest.mark.xfail(raises=ValueError)
+    def test_invalid_hex_value_fails_init(self):
+        ColorRGB(-1)
+
 
 class TestNoopColor:
     def test_equality(self):
@@ -416,3 +572,17 @@ class TestDefaultColor:
 
     def test_repr(self):
         assert repr(DEFAULT_COLOR) == "<_DefaultColor[DEF]>"
+
+    def test_default_resets_text_color(self):
+        assert str(IntCode.COLOR_OFF.value) in DEFAULT_COLOR.to_sgr(bg=False).assemble()
+
+    def test_default_resets_bg_color(self):
+        assert (
+            str(IntCode.BG_COLOR_OFF.value) in DEFAULT_COLOR.to_sgr(bg=True).assemble()
+        )
+
+    def test_default_resets_text_color_tmux(self):
+        assert "default" in DEFAULT_COLOR.to_tmux(bg=False)
+
+    def test_default_resets_bg_color_tmux(self):
+        assert "default" in DEFAULT_COLOR.to_tmux(bg=True)
