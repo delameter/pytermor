@@ -29,7 +29,7 @@ pending
 - |NEW| `__str__` methods override for named tuples `RGB`, `HSV`
 - |REFACTOR| color resolver
 
-.. <@pending:7ba3abf>
+.. <@pending:ae598e7>
 .. ^ blank line before should be kept
 
 

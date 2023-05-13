@@ -712,7 +712,7 @@ class TemplateEngine:
         tpl_cursor = 0
         style_buffer = NOOP_STYLE
         split_style = False
-        logger.debug(f"Parsing the template (len {tpl}")
+        logger.debug(f"Parsing the template ({len(tpl)})")
 
         for tag_match in self._TAG_REGEXP.finditer(tpl):
             span = tag_match.span()

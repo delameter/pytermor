@@ -11,6 +11,7 @@ VENV_LOCAL_PATH = venv
 DOCS_IN_PATH = docs
 DOCS_OUT_PATH = docs-build
 DEPENDS_PATH = misc/depends
+VERSION_FILE_PATH = pytermor/_version.py
 
 LOCALHOST_URL = http://localhost/pt
 LOCALHOST_WRITE_PATH = localhost
@@ -23,11 +24,13 @@ DOCKER_IMAGE = ghcr.io/delameter/pytermor
 DOCKER_TAG = ${DOCKER_IMAGE}:${VERSION}
 DOCKER_CONTAINER = pytermor-build-${VERSION}
 
-NOW    := $(shell LC_TIME=en_US.UTF-8 date '+%H:%M:%S %-e-%b-%y')
+NOW    := $(shell LC_TIME=en_US.UTF-8 date --rfc-3339=seconds)
 BOLD   := $(shell tput -Txterm bold)
 GREEN  := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)
 BLUE   := $(shell tput -Txterm setaf 4)
+CYAN   := $(shell tput -Txterm setaf 6)
+GRAY   := $(shell tput -Txterm setaf 7)
 DIM    := $(shell tput -Txterm dim)
 RESET  := $(shell printf '\e[m')
                                 # tput -Txterm sgr0 returns SGR-0 with
@@ -117,22 +120,30 @@ pre-build:  ## Run full cycle of automatic operations (done on docker image buil
 show-version: ## Show current package version
 	@hatch version | sed -Ee "s/.+/Current: ${CYAN}&${RESET}/"
 
-_set_next_version = (hatch version $1 | sed -Ee "s/^(Old:)(.+)/\1${CYAN}\2${RESET}/; s/^(New:)(.+)/\1${YELLOW}\2${RESET}/")
+_set_next_version = (hatch version $1 | sed -Ee "s/^(Old:)(.+)/\1${GRAY}\2${RESET}/; s/^(New:)(.+)/\1${YELLOW}\2${RESET}/")
+_set_current_date = (sed ${VERSION_FILE_PATH} -i -Ee 's/^(__updated__).+/\1 = "${NOW}"/w/dev/stdout' | cut -f2 -d'"')
 
 set-next-version-dev: ## Increase version by <dev>
+	@$(call _set_current_date)
 	@$(call _set_next_version,dev)
 
 set-next-version-micro: ## Increase version by 0.0.1
+	@$(call _set_current_date)
 	@$(call _set_next_version,micro | head -1)
 	@$(call _set_next_version,dev | tail -1)
 
 set-next-version-minor: ## Increase version by 0.1
+	@$(call _set_current_date)
 	@$(call _set_next_version,minor | head -1)
 	@$(call _set_next_version,dev | tail -1)
 
 set-next-version-major: ## Increase version by 1
+	@$(call _set_current_date)
 	@$(call _set_next_version,major | head -1)
 	@$(call _set_next_version,dev | tail -1)
+
+set-current-date: ## Update timestamp in version file
+	@$(call _set_current_date)
 
 update-changelist:  ## Auto-update with new commits  <@CHANGES.rst>
 	./update-changelist.sh
