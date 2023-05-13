@@ -28,8 +28,9 @@ pending
 - |NEW| "frozen" `Style` attribute
 - |NEW| `__str__` methods override for named tuples `RGB`, `HSV`
 - |REFACTOR| color resolver
+- |MAINTAIN| add `updated` field in _version.py
 
-.. <@pending:ae598e7>
+.. <@pending:1b473b5>
 .. ^ blank line before should be kept
 
 

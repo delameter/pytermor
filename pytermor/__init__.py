@@ -12,6 +12,7 @@
 """
 
 from ._version import __version__ as __version__
+from ._version import __updated__ as __updated__
 from .common import logger as logger
 from .config import init_config as init_config
 from .renderer import init_renderer as init_renderer
