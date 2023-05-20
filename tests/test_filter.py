@@ -7,7 +7,7 @@ import pytest
 
 from pytermor import Align, render, Fragment
 from pytermor.ansi import SeqIndex
-from pytermor.utilstr import center_sgr, SgrStringReplacer, StringAligner
+from pytermor.filter import center_sgr, SgrStringReplacer, StringAligner
 
 
 class TestStringFilter:  # @TODO

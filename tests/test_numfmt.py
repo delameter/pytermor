@@ -9,7 +9,7 @@ from datetime import timedelta
 
 import pytest
 
-from pytermor.utilnum import (
+from pytermor.numfmt import (
     format_thousand_sep,
     format_auto_float,
     format_time_delta,

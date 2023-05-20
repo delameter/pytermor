@@ -12,15 +12,14 @@ from sybil.parsers.codeblock import PythonCodeBlockParser
 from sybil.parsers.doctest import DocTestParser
 
 
-
-pytest_plugins = [
-   "tests.fixtures",
-]
+pytest_plugins = ["tests.fixtures"]
 
 pytest_collect_file = Sybil(
-    parsers=[
-        DocTestParser(optionflags=ELLIPSIS),
-        PythonCodeBlockParser(),
-    ],
-    patterns=['*.rst', '*.py'],
+    parsers=[DocTestParser(optionflags=ELLIPSIS), PythonCodeBlockParser()],
+    patterns=["*.rst", "*.py"],
 ).pytest()
+
+
+def pytest_assertrepr_compare(op, left, right):
+    if isinstance(left, int) and isinstance(right, int) and op == "==":
+        return [f"{left} (0x{left:06x}) != {right} (0x{right:06x})"]

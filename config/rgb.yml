@@ -2344,6 +2344,9 @@ colors:
   - name: ibis-wing
     original_name: Ibis wing color (Tokiha-iro)
     value: 0xf58f84
+  - name: icathian-yellow
+    original_name: icathian yellow
+    value: 0xe7c899
   - name: iceberg
     original_name: Iceberg
     value: 0x71a6d2
@@ -3251,6 +3254,9 @@ colors:
   - name: mocha
     original_name: Mocha
     value: 0xbea493
+  - name: moonlightd
+    original_name: moonlightd
+    value: 0x7280e2
   - name: moonstone
     original_name: Moonstone
     value: 0x3aa8c1

@@ -35,7 +35,7 @@ from .common import (
 from .config import get_config
 from .renderer import IRenderer, RendererManager
 from .style import Style, make_style, NOOP_STYLE, FT
-from .utilstr import StringLinearizer, dump, apply_filters, OmniSanitizer
+from .filter import StringLinearizer, dump, apply_filters, OmniSanitizer
 
 RT = t.TypeVar("RT", str, "IRenderable")
 """
@@ -780,7 +780,7 @@ class TemplateEngine:
                 yield Fragment(sep)
 
 
-_template_engine = TemplateEngine()
+template_engine = TemplateEngine()
 
 
 def _trace(enabled: bool = True, level: int = LOGGING_TRACE, label: str = "Dump"):
@@ -862,7 +862,7 @@ def render(
         if not isinstance(string, str):
             raise ValueError("Template parsing is supported for raw strings only.")
         try:
-            string = _template_engine.parse(string)
+            string = template_engine.parse(string)
         except (ValueError, LogicError) as e:
             string += f" [pytermor] Template parsing failed with {e}"
         return render(string, fmt, renderer, parse_template=False)

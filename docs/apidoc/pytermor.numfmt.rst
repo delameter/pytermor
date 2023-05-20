@@ -1,7 +1,7 @@
-﻿pytermor.utilnum
-================
+﻿pytermor.numfmt
+===============
 
-.. automodule:: pytermor.utilnum
+.. automodule:: pytermor.numfmt
 
    
    

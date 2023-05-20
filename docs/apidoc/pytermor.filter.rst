@@ -1,7 +1,7 @@
-﻿pytermor.utilstr
-================
+﻿pytermor.filter
+===============
 
-.. automodule:: pytermor.utilstr
+.. automodule:: pytermor.filter
 
    
    
@@ -9,10 +9,6 @@
 
    .. autosummary::
    
-      ESCAPE_SEQ_REGEX
-      SGR_SEQ_REGEX
-      CSI_SEQ_REGEX
-      RCP_REGEX
       CONTROL_CHARS
       WHITESPACE_CHARS
       PRINTABLE_CHARS

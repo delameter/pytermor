@@ -19,13 +19,15 @@ API reference
    color
    common
    config
+   conv
    cval
+   filter
+   numfmt
+   parser
    renderer
    style
+   term
    text
-   utilmisc
-   utilnum
-   utilstr
 
 
 .. only:: html

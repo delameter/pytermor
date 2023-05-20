@@ -3405,6 +3405,10 @@
   value: 0xc5c8c6
 - name: "Superuser"
   value: 0xf8b889
+- name: "moonlightd"
+  value: 0x7280e2
+- name: "icathian yellow"
+  value: 0xe7c899
 
 # ---------------------------
 # es7s C45/Kalm

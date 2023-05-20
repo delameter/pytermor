@@ -9,6 +9,9 @@
 
    .. autosummary::
    
+      ESCAPE_SEQ_REGEX
+      SGR_SEQ_REGEX
+      CSI_SEQ_REGEX
       ALIGN_LEFT
       ALIGN_RIGHT
       ALIGN_CENTER
@@ -41,7 +44,9 @@
       Align
       ExtendedEnum
       HSV
+      LAB
       RGB
+      XYZ
    
    
 

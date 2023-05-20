@@ -7,9 +7,10 @@ from __future__ import annotations
 
 from datetime import timedelta
 from math import isclose
+from typing import overload, TypeVar
 
 from pytermor import Style, get_qname, apply_filters, SgrStringReplacer, \
-    NonPrintsOmniVisualizer
+    NonPrintsOmniVisualizer, RGB, HSV, LAB, XYZ
 from .fixtures import *  # noqa
 
 
@@ -23,6 +24,8 @@ def format_test_params(val) -> str | None:
         return apply_filters(val, *str_filters)
     if isinstance(val, int):
         return f"0x{val:06x}"
+    if isinstance(val, (RGB, HSV, LAB, XYZ)):
+        return str(val).replace('°', '')
     if isinstance(val, (list, tuple)):
         return "("+",".join(map(str, val))+")"
     if isinstance(val, dict):
@@ -44,5 +47,25 @@ def format_timedelta(val: timedelta) -> str:
     return "%s(%s)" % ("", " ".join(args))
 
 
-def assert_close(a: float, b: float):
-    assert isclose(a, b, abs_tol=0.01)
+TT = TypeVar("TT", bound=tuple)
+
+@overload
+def assert_close(a: TT, b: TT):
+    ...
+@overload
+def assert_close(a: float|int, b: float|int):
+    ...
+def assert_close(a, b):
+    def are_instances(t):
+        return isinstance(a, t) and isinstance(b, t)
+
+    if are_instances((float, int)):
+        assert isclose(a, b, abs_tol=0.01)
+    elif are_instances(tuple):
+        for (pa, pb) in zip(a, b):
+            try:
+                assert_close(pa, pb)
+            except AssertionError as e:
+                raise AssertionError(a, b) from e
+    else:
+        raise TypeError

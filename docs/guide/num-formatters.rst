@@ -36,8 +36,8 @@ Time delta formatter
 
    .. grid-item::
 
-      .. inheritance-diagram::   pytermor.utilnum
+      .. inheritance-diagram::   pytermor.numfmt
          :parts: 1
-         :top-classes:           pytermor.utilnum.NumFormatter
+         :top-classes:           pytermor.numfmt.NumFormatter
          :caption:               `NumFormatter` inheritance tree
 

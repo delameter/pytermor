@@ -17,7 +17,7 @@ from abc import abstractmethod, ABCMeta
 from functools import reduce
 from hashlib import md5
 
-from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose
+from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose, ColorTarget
 from .color import IColor, Color16, Color256, ColorRGB, NOOP_COLOR
 from .common import logger, get_qname
 from .config import get_config
@@ -282,8 +282,9 @@ class SgrRenderer(IRenderer):
         style = make_style(fmt)
         opening_seq = (
             self._render_attributes(style, squash=True)
-            + self._render_color(style.fg, False)
-            + self._render_color(style.bg, True)
+            + self._render_color(style.fg, ColorTarget.FG)
+            + self._render_color(style.bg, ColorTarget.BG)
+            + self._render_color(style.underline_color, ColorTarget.UNDERLINE)
         )
 
         # in case there are line breaks -- split text to lines and apply
@@ -344,6 +345,8 @@ class SgrRenderer(IRenderer):
             result += [SeqIndex.DIM]
         if style.double_underlined:
             result += [SeqIndex.DOUBLE_UNDERLINED]
+        if style.curly_underlined:
+            result += [SeqIndex.CURLY_UNDERLINED]
         if style.inversed:
             result += [SeqIndex.INVERSED]
         if style.italic:
@@ -352,15 +355,17 @@ class SgrRenderer(IRenderer):
             result += [SeqIndex.OVERLINED]
         if style.underlined:
             result += [SeqIndex.UNDERLINED]
+        if style.framed:
+            result += [SeqIndex.FRAMED]
 
         if squash:
             return reduce(lambda p, c: p + c, result, NOOP_SEQ)
         return result
 
-    def _render_color(self, color: IColor, bg: bool) -> SequenceSGR:
+    def _render_color(self, color: IColor, target: ColorTarget) -> SequenceSGR:
         if not self.is_format_allowed or color == NOOP_COLOR:
             return NOOP_SEQ
-        return color.to_sgr(bg, self._color_upper_bound)
+        return color.to_sgr(target, self._color_upper_bound)
 
 
 class TmuxRenderer(IRenderer):
@@ -425,9 +430,10 @@ class TmuxRenderer(IRenderer):
             if attr_val is None:
                 continue
             if isinstance(attr_val, IColor):
-                if attr_val == NOOP_COLOR:
-                    continue
-                cmd_open.append((tmux_name + "=", attr_val.to_tmux(attr_name == "bg")))
+                if attr_val == NOOP_COLOR or attr_name not in ("fg", "bg"):
+                    continue  # skipping underline_color
+                target = ColorTarget.BG if attr_name == "bg" else ColorTarget.FG
+                cmd_open.append((tmux_name + "=", attr_val.to_tmux(target)))
                 cmd_close.append((tmux_name + "=", "default"))
             elif isinstance(attr_val, bool):
                 if not attr_val:

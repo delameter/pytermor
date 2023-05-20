@@ -11,24 +11,96 @@ from __future__ import annotations
 import enum
 import inspect
 import itertools
+import logging
 import math
 import os
+import re
 import threading
 import typing as t
-import logging
-from collections import namedtuple
-
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
 
+ESCAPE_SEQ_REGEX = re.compile(
+    R"""
+	(?P<escape_char>\x1b)
+	(?P<data>
+		(?P<nf_class_seq>
+			(?P<nf_interm>[\x20-\x2f]+)
+			(?P<nf_final>[\x30-\x7e])
+		)|
+		(?P<fp_class_seq>
+			(?P<fp_classifier>[\x30-\x3f])
+			(?P<fp_interm>[\x20-\x7e]*)
+		)|
+		(?P<fe_class_seq>
+			(?P<fe_classifier>[\x40-\x5f])
+			(?P<fe_param>[\x30-\x3f]*)
+			(?P<fe_interm>[\x20-\x2f]*)
+			(?P<fe_final>[\x40-\x7e]*)
+		)|
+		(?P<fs_class_seq>
+			(?P<fs_classifier>[\x60-\x7e])
+			(?P<fs_final>[\x20-\x7e])
+		)  
+	)
+	""",
+    flags=re.VERBOSE,
+)
+""" 
+Regular expression that matches all classes of escape sequences.
+
+More specifically, it recognizes **nF**, **Fp**, **Fe** and **Fs** [#]_ 
+classes. Useful for removing the sequences as well as for granular search 
+thanks to named match groups, which include:
+
+    ``escape_byte``
+        first byte of every sequence -- ``ESC``, or :hex:`0x1B`.
+        
+    ``data``
+        remaining bytes of the sequence, excluding escape byte; contains
+        no more than one of the following groups:
+        
+    ``nf_class_seq``, ``fp_class_seq``, ``fe_class_seq``, ``fs_class_seq``
+        groups that contain ``data`` bytes. each of these is split to more
+        specific groups including:
+        
+        - ``nf_interm`` and ``nf_final`` for **nF**-class sequences,
+        - ``fp_classifier`` and ``fp_param`` for **Fp**-class sequences,
+        - ``fe_classifier``, ``fe_param``, ``fe_interm`` and ``fe_terminator`` 
+          for **Fe**-class sequences (including :term:`SGRs <SGR>`),
+        - ``fs_classifier`` and ``fs_interm`` for **Fs**-class sequences.
+
+.. [#] `ECMA-35 specification <https://ecma-international.org/publications-and-standards/standards/ecma-35/>`_
+
+:meta hide-value:
+"""
+
+SGR_SEQ_REGEX = re.compile(r"(\x1b)(\[)([0-9;:]*)(m)")
+"""
+Regular expression that matches :term:`SGR` sequences. Group 3 can be used for 
+sequence params extraction.
+
+:meta hide-value:
+"""
+
+CSI_SEQ_REGEX = re.compile(r"(\x1b)(\[)(([0-9;:<=>?])*)([@A-Za-z])")
+"""
+Regular expression that matches CSI sequences (a superset which includes 
+:term:`SGRs <SGR>`). 
+
+:meta hide-value:
+"""
+
+
+
 class RGB(t.NamedTuple):
     red: int
-    """ Red channel value (0-255) """
+    """ Red channel value (0—255) """
     green: int
-    """ Green channel value (0-255) """
+    """ Green channel value (0—255) """
     blue: int
-    """ Blue channel value (0-255) """
+    """ Blue channel value (0—255) """
 
     def __str__(self):  # RGB(R=128, G=0, B=0)
         attrs = map(self._format_channel, ['red', 'green', 'blue'])
@@ -40,17 +112,51 @@ class RGB(t.NamedTuple):
 
 class HSV(t.NamedTuple):
     hue: float
-    """ Hue channel value (0-360) """
+    """ Hue channel value (0—360) """
     saturation: float
-    """ Saturation channel value (0.0-1.0) """
+    """ Saturation channel value (0.0—1.0) """
     value: float
-    """ Value channel value (0.0-1.0) """
+    """ Value channel value (0.0—1.0) """
 
-    def __str__(self):  # HSV(H=0.0° S=100.0% V=50.2%)
+    def __str__(self):  # HSV(H=0° S=100% V=50%)
         attrs = [
-            f"H={self.hue:.1f}°",
-            f"S={100*self.saturation:.1f}%",
-            f"V={100*self.value:.1f}%",
+            f"H={self.hue:.0f}°",
+            f"S={100*self.saturation:.0f}%",
+            f"V={100*self.value:.0f}%",
+        ]
+        return f"{self.__class__.__name__}({' '.join(attrs)})"
+
+
+class XYZ(t.NamedTuple):
+    x: float
+    """ X channel value (0.0—1.0+) """
+    y: float
+    """ Luminance (0.0—1.0) """
+    z: float
+    """ Quasi-equal to blue (0.0—1.0+) """
+
+    def __str__(self):  # XYZ(X=0.95 Y=1.00 Z=1.08)
+        attrs = [
+            f"X={self.x:.3f}",
+            f"Y={self.y:.3f}%",
+            f"Z={self.z:.3f}",
+        ]
+        return f"{self.__class__.__name__}({' '.join(attrs)})"
+
+
+class LAB(t.NamedTuple):
+    L: float
+    """ Luminance (0—100) """
+    a: float
+    """ Green–magenta axis (-100—100 in general, but can be less/more) """
+    b: float
+    """ Blue–yellow axis (-100—100 in general, but can be less/more) """
+
+    def __str__(self):  # LAB(L=100% a=100 b=-100)
+        attrs = [
+            f"L={self.L:.3f}%",
+            f"a={self.a:.3f}",
+            f"b={self.b:.3f}",
         ]
         return f"{self.__class__.__name__}({' '.join(attrs)})"
 

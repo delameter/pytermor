@@ -18,8 +18,8 @@ import yaml
 
 import pytermor as pt
 import pytermor.common
-import pytermor.utilstr
-import pytermor.utilmisc
+import pytermor.filter
+import pytermor.conv
 from pytermor import Text, HtmlRenderer
 
 
@@ -29,7 +29,7 @@ def _sorter_by_name(cdef: _IColorRGB) -> str:
 
 def _sorter_by_hue(cdef: _IColorRGB) -> t.Tuple[float, ...]:
     # partitioning by hue, sat and val, grayscale group first:
-    h, s, v = pytermor.utilmisc.hex_to_hsv(cdef.hex_value)
+    h, s, v = pytermor.conv.hex_to_hsv(cdef.hex_value)
     result = (h // 18 if s > 0 else -v), h // 18, s * 5 // 1, v * 20 // 1
     return result
 
@@ -140,7 +140,7 @@ class _RgbListPrinter:
     MAX_ORIG_L = 30
 
     def print(self, colors: t.Sequence[_IColorRGB]):
-        for idx, c in enumerate(sorted(colors, key=_sorter_by_name)):
+        for idx, c in enumerate(sorted(colors, key=_sorter_by_hue)):
             pad = "".ljust(2)
             vari_style = pt.Style(fg=pt.cv.GRAY_42)
             orig_style = pt.Style(fg=pt.cv.GRAY_30)

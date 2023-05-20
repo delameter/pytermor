@@ -19,9 +19,7 @@
 
    .. autosummary::
    
-      assemble_hyperlink
-      contains_sgr
-      decompose_report_cursor_position
+      compose_hyperlink
       enclose
       get_closing_seq
       make_clear_display
@@ -38,7 +36,7 @@
       make_erase_in_display
       make_erase_in_line
       make_hide_cursor
-      make_hyperlink_part
+      make_hyperlink
       make_move_cursor_down
       make_move_cursor_left
       make_move_cursor_right
@@ -64,17 +62,19 @@
 
    .. autosummary::
    
+      ColorTarget
       ISequence
-      ISequenceFe
       IntCode
       SeqIndex
       SequenceCSI
+      SequenceFe
       SequenceFp
       SequenceFs
       SequenceNf
       SequenceOSC
       SequenceSGR
       SequenceST
+      SubtypedParam
    
    
 

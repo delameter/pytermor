@@ -1,4 +1,4 @@
-from pytermor.utilnum import StaticFormatter
+from pytermor.numfmt import StaticFormatter
 
 StaticFormatter(
     max_value_len=6, allow_fractional=False,

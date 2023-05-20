@@ -30,10 +30,10 @@ from .common import (
     ALIGN_CENTER,
     chunk,
     get_terminal_width,
+    ESCAPE_SEQ_REGEX,
+    SGR_SEQ_REGEX,
+    CSI_SEQ_REGEX
 )
-
-
-# @TODO -> "filter.py"
 
 
 def pad(n: int) -> str:
@@ -105,87 +105,6 @@ codecs.register_error("replace_with_qmark", lambda e: ("?", e.start + 1))
 
 # =============================================================================
 # Filters
-
-# fmt: off
-ESCAPE_SEQ_REGEX = re.compile(
-    R"""
-	(?P<escape_char>\x1b)
-	(?P<data>
-		(?P<nf_class_seq>
-			(?P<nf_interm>[\x20-\x2f]+)
-			(?P<nf_final>[\x30-\x7e])
-		)|
-		(?P<fp_class_seq>
-			(?P<fp_classifier>[\x30-\x3f])
-			(?P<fp_param>[\x20-\x7e]*)
-		)|
-		(?P<fe_class_seq>
-			(?P<fe_classifier>[\x40-\x5f])
-			(?P<fe_param>[\x30-\x3f]*)
-			(?P<fe_interm>[\x20-\x2f]*)
-			(?P<fe_terminator>[\x40-\x7e])
-		)|
-		(?P<fs_class_seq>
-			(?P<fs_classifier>[\x60-\x7e])
-			(?P<fs_param>[\x20-\x7e]*)
-		)  
-	)
-	""",
-    flags=re.VERBOSE,
-)
-""" 
-Regular expression that matches all classes of escape sequences.
-
-More specifically, it recognizes **nF**, **Fp**, **Fe** and **Fs** [#]_ 
-classes. Useful for removing the sequences as well as for granular search 
-thanks to named match groups, which include:
-
-    ``escape_byte``
-        first byte of every sequence -- ``ESC``, or :hex:`0x1B`.
-        
-    ``data``
-        remaining bytes of the sequence, excluding escape byte; contains
-        no more than one of the following groups:
-        
-    ``nf_class_seq``, ``fp_class_seq``, ``fe_class_seq``, ``fs_class_seq``
-        groups that contain ``data`` bytes. each of these is split to more
-        specific groups including:
-        
-        - ``nf_interm`` and ``nf_final`` for **nF**-class sequences,
-        - ``fp_classifier`` and ``fp_param`` for **Fp**-class sequences,
-        - ``fe_classifier``, ``fe_param``, ``fe_interm`` and ``fe_terminator`` 
-          for **Fe**-class sequences (including :term:`SGRs <SGR>`),
-        - ``fs_classifier`` and ``fs_param`` for **Fs**-class sequences.
-
-.. [#] `ECMA-35 specification <https://ecma-international.org/wp-content/uploads/ECMA-35_6th_edition_december_1994.pdf>`_
-
-:meta hide-value:
-"""
-# fmt: οn
-
-SGR_SEQ_REGEX = re.compile(r"(\x1b)(\[)([0-9;]*)(m)")
-"""
-Regular expression that matches :term:`SGR` sequences. Group 3 can be used for 
-sequence params extraction.
-
-:meta hide-value:
-"""
-
-CSI_SEQ_REGEX = re.compile(r"(\x1b)(\[)(([0-9;:<=>?])*)([@A-Za-z])")
-"""
-Regular expression that matches CSI sequences (a superset which includes 
-:term:`SGRs <SGR>`). 
-
-:meta hide-value:
-"""
-
-RCP_REGEX = re.compile(R"\x1b\[(\d+);(\d+)R")
-"""
-Regular expression for :abbr:`RCP (Report Cursor Position)` sequence parsing. 
-See `decompose_report_cursor_position()`.
-
-:meta hide-value:
-"""
 
 CONTROL_CHARS = [*range(0x00, 0x08 + 1), *range(0x0E, 0x1F + 1), 0x7F]
 """
@@ -346,6 +265,7 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
         result = str(offset).rjust(self._state.inp_size_len)
         if len(result) > 4:
             return result[4:] + ":" + result[:4]
+        return result.rjust(4)
 
     def _format_line_separator(
         self, fill: str, label_left: str = "", label_right: str = ""

@@ -1,7 +1,7 @@
-﻿pytermor.utilmisc
-=================
+﻿pytermor.conv
+=============
 
-.. automodule:: pytermor.utilmisc
+.. automodule:: pytermor.conv
 
    
    
@@ -13,19 +13,16 @@
 
    .. autosummary::
    
-      confirm
-      get_char_width
-      guess_char_width
       hex_to_hsv
       hex_to_rgb
       hsv_to_hex
       hsv_to_rgb
-      lab_to_rgb
-      measure_char_width
+      lab_to_xyz
       rgb_to_hex
       rgb_to_hsv
-      total_size
-      wait_key
+      rgb_to_xyz
+      xyz_to_lab
+      xyz_to_rgb
    
    
 

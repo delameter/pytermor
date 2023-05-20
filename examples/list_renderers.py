@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 import pytermor as pt
-from pytermor.utilstr import ljust_sgr
+from pytermor.filter import ljust_sgr
 from pytermor import get_terminal_width
 
 

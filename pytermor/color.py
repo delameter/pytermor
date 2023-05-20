@@ -14,7 +14,7 @@ import re
 import typing as t
 from abc import abstractmethod, ABCMeta
 
-from .utilmisc import hex_to_rgb, hex_to_hsv
+from .conv import hex_to_rgb, hex_to_hsv
 from .ansi import (
     SequenceSGR,
     NOOP_SEQ,
@@ -23,6 +23,7 @@ from .ansi import (
     make_color_256,
     make_color_rgb,
     SeqIndex,
+    ColorTarget,
 )
 from .common import LogicError, HSV, RGB
 from .config import get_config
@@ -281,12 +282,13 @@ class IColor(metaclass=_ColorMeta):
         return hex_to_rgb(self._hex_value)
 
     @abstractmethod
-    def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
+    def to_sgr(
+        self, target: ColorTarget = ColorTarget.FG, upper_bound: t.Type[IColor] = None
+    ) -> SequenceSGR:
         """
         Make an `SGR sequence<SequenceSGR>` out of ``IColor``. Used by `SgrRenderer`.
 
-        :param bg: Set to *True* if required SGR should change the background color, or
-                   *False* for the foreground (=text) color.
+        :param target
         :param upper_bound: Required result ``IColor`` type upper boundary, i.e., the
                             maximum acceptable color class, which will be the basis for
                             SGR being made. See `Color256.to_sgr()` for the details.
@@ -294,13 +296,12 @@ class IColor(metaclass=_ColorMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def to_tmux(self, bg: bool) -> str:
+    def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
         """
         Make a tmux markup directive, which will change the output color to
         this color's value (after tmux processes and prints it). Used by `TmuxRenderer`.
 
-        :param bg: Set to *True* if required tmux directive should change the background
-                   color, or *False* for the foreground (=text) color.
+        :param target:
         """
         raise NotImplementedError
 
@@ -465,18 +466,28 @@ class Color16(IColor):
         params = " ".join(map(str, filter(None, [value, self._name])))
         return f"{code}({params})"
 
-    def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
-        if bg:
-            return SequenceSGR(self._code_bg)
-        return SequenceSGR(self._code_fg)
+    def to_sgr(
+        self, target: ColorTarget = ColorTarget.FG, upper_bound: t.Type[IColor] = None
+    ) -> SequenceSGR:
+        if code := self._target_to_code(target):
+            return SequenceSGR(code)
+        return NOOP_SEQ
 
-    def to_tmux(self, bg: bool) -> str:
+    def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
         if self._name is None:
             raise LogicError("Translation to tmux format failed: color name required")
-        code = self._code_bg if bg else self._code_fg
+        if not (code := self._target_to_code(target)):
+            raise NotImplementedError(f"No tmux equivalent for {target}")
         is_hi = code in HI_COLORS or code in BG_HI_COLORS
         tmux_name = ("bright" if is_hi else "") + self._name.lower().replace("hi-", "")
         return tmux_name
+
+    def _target_to_code(self, target: ColorTarget) -> int|None:
+        if target == ColorTarget.FG:
+            return self._code_fg
+        if target == ColorTarget.BG:
+            return self._code_bg
+        return None  # no equivalent for underline color
 
 
 class Color256(IColor):
@@ -520,7 +531,9 @@ class Color256(IColor):
             self._color16_equiv = Color16.get_by_code(color16_equiv.code_fg)
         self._register(self._code, register, index, aliases)
 
-    def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
+    def to_sgr(
+        self, target: ColorTarget = ColorTarget.FG, upper_bound: t.Type[IColor] = None
+    ) -> SequenceSGR:
         """
         Make an `SGR sequence<SequenceSGR>` out of ``IColor``. Used by `SgrRenderer`.
 
@@ -539,26 +552,25 @@ class Color256(IColor):
         behaviour by overriding the renderers' output mode. See `SgrRenderer` and
         `OutputMode` docs.
 
-        :param bg: Set to *True* if required SGR should change the background color, or
-                   *False* for the foreground (=text) color.
+        :param target:
         :param upper_bound: Required result ``IColor`` type upper boundary, i.e., the
                             maximum acceptable color class, which will be the basis for
                             SGR being made.
         """
         if upper_bound is ColorRGB:
             if get_config().prefer_rgb:
-                return make_color_rgb(*self.to_rgb(), bg)
-            return make_color_256(self._code, bg)
+                return make_color_rgb(*self.to_rgb(), target=target)
+            return make_color_256(self._code, target)
 
         if upper_bound is Color256 or upper_bound is None:
-            return make_color_256(self._code, bg)
+            return make_color_256(self._code, target)
 
         if self._color16_equiv:
-            return self._color16_equiv.to_sgr(bg, upper_bound)
+            return self._color16_equiv.to_sgr(target, upper_bound)
 
-        return Color16.find_closest(self.hex_value).to_sgr(bg, upper_bound)
+        return Color16.find_closest(self.hex_value).to_sgr(target, upper_bound)
 
-    def to_tmux(self, bg: bool) -> str:
+    def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
         return f"colour{self._code}"
 
     @property
@@ -631,13 +643,14 @@ class ColorRGB(IColor):
         self._make_variations(variation_map)
         self._register(None, register, index, aliases)
 
-    def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
+    def to_sgr(
+        self, target: ColorTarget = ColorTarget.FG, upper_bound: t.Type[IColor] = None
+    ) -> SequenceSGR:
         if upper_bound is ColorRGB or upper_bound is None:
-            return make_color_rgb(*self.to_rgb(), bg)
+            return make_color_rgb(*self.to_rgb(), target=target)
+        return Color256.find_closest(self._hex_value).to_sgr(target, upper_bound)
 
-        return Color256.find_closest(self._hex_value).to_sgr(bg, upper_bound)
-
-    def to_tmux(self, bg: bool) -> str:  # rgb hex format should be lower-cased!
+    def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
         return self.format_value("#").lower()
 
     def __eq__(self, other) -> bool:
@@ -675,10 +688,12 @@ class _NoopColor(IColor):
     def __bool__(self) -> bool:
         return False
 
-    def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
+    def to_sgr(
+        self, target: ColorTarget = ColorTarget.FG, upper_bound: t.Type[IColor] = None
+    ) -> SequenceSGR:
         return NOOP_SEQ
 
-    def to_tmux(self, bg: bool) -> str:
+    def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
         return ""
 
     @property
@@ -693,13 +708,19 @@ class _NoopColor(IColor):
 
 
 class _DefaultColor(IColor):
+    _SGR_MAP = {
+        ColorTarget.FG:        SeqIndex.COLOR_OFF,
+        ColorTarget.BG:        SeqIndex.BG_COLOR_OFF,
+        ColorTarget.UNDERLINE: SeqIndex.UNDERLINED_OFF
+    }
+
     def __init__(self):
         super().__init__(0)
 
-    def to_sgr(self, bg: bool, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
-        return SeqIndex.BG_COLOR_OFF if bg else SeqIndex.COLOR_OFF
+    def to_sgr(self, target: ColorTarget = ColorTarget.FG, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
+        return self._SGR_MAP.get(target, NOOP_SEQ)
 
-    def to_tmux(self, bg: bool) -> str:
+    def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
         return "default"
 
     @property

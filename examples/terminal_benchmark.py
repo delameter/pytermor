@@ -18,7 +18,7 @@ from timeit import timeit
 
 import pytermor as pt
 from pytermor import SgrRenderer, wait_key, Highlighter
-from pytermor.utilmisc import confirm
+from pytermor.term import confirm
 from pytermor.common import UserAbort, UserCancel
 
 
@@ -167,26 +167,26 @@ class Printer:
     PREFIXES_SI_UPPER = list(
         map(
             lambda s: s.upper() if s else None,
-            pt.utilnum.StaticFormatter.PREFIXES_SI_DEC,
+            pt.numfmt.StaticFormatter.PREFIXES_SI_DEC,
         )
     )
     PROGBAR_WIDTH = 15
     TABLE_WIDTH = 100
 
-    size_formatter = pt.utilnum.StaticFormatter(
+    size_formatter = pt.numfmt.StaticFormatter(
         max_value_len=4, allow_fractional=False
     )
-    total_size_formatter = pt.utilnum.StaticFormatter(
+    total_size_formatter = pt.numfmt.StaticFormatter(
         max_value_len=4,
         allow_fractional=True,
         unit="b",
         unit_separator=" ",
         prefixes=PREFIXES_SI_UPPER,
     )
-    speed_formatter = pt.utilnum.StaticFormatter(
+    speed_formatter = pt.numfmt.StaticFormatter(
         max_value_len=4, unit="b/s", unit_separator=" ", prefixes=PREFIXES_SI_UPPER
     )
-    int_formatter = pt.utilnum.StaticFormatter(
+    int_formatter = pt.numfmt.StaticFormatter(
         max_value_len=4, allow_fractional=False, prefixes=[None, "K", "M", "G"], unit_separator=""
     )
 

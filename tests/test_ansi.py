@@ -18,10 +18,10 @@ from pytermor.ansi import (
     make_color_rgb,
     make_color_256,
     make_erase_in_line,
-    make_hyperlink_part,
-    assemble_hyperlink,
-    contains_sgr,
+    compose_hyperlink,
+    ColorTarget,
 )
+from pytermor import contains_sgr
 from . import format_test_params
 
 
@@ -100,12 +100,12 @@ class TestSequenceSGR(unittest.TestCase):
         self.assertEqual(s1, s2)
 
     def test_make_color_256_background(self):
-        s1 = make_color_256(255, bg=True)
+        s1 = make_color_256(255, target=ColorTarget.BG)
         s2 = SequenceSGR(IntCode.BG_COLOR_EXTENDED, IntCode.EXTENDED_MODE_256, 255)
         self.assertEqual(s1, s2)
 
     def test_make_color_256_invalid(self):
-        self.assertRaises(ValueError, make_color_256, 266, bg=True)
+        self.assertRaises(ValueError, make_color_256, 266, target=ColorTarget.BG)
 
     def test_make_color_rgb_foreground(self):
         s1 = make_color_rgb(10, 20, 30)
@@ -113,7 +113,7 @@ class TestSequenceSGR(unittest.TestCase):
         self.assertEqual(s1, s2)
 
     def test_make_color_rgb_background(self):
-        s1 = make_color_rgb(50, 70, 90, bg=True)
+        s1 = make_color_rgb(50, 70, 90, target=ColorTarget.BG)
         s2 = SequenceSGR(
             IntCode.BG_COLOR_EXTENDED, IntCode.EXTENDED_MODE_RGB, 50, 70, 90
         )
@@ -122,7 +122,7 @@ class TestSequenceSGR(unittest.TestCase):
     def test_make_color_rgb_invalid(self):
         self.assertRaises(ValueError, make_color_rgb, 10, 310, 30)
         self.assertRaises(ValueError, make_color_rgb, 310, 10, 130)
-        self.assertRaises(ValueError, make_color_rgb, 0, 0, 256, bg=True)
+        self.assertRaises(ValueError, make_color_rgb, 0, 0, 256, target=ColorTarget.BG)
 
 
 class TestContainsSgr:
@@ -184,12 +184,8 @@ class TestSequenceCSI(unittest.TestCase):
 
 
 class TestSequenceOSC(unittest.TestCase):
-    def test_make_hyperlink_part(self):
-        s = make_hyperlink_part("http://example.test")
-        self.assertIn("http://example.test", s.assemble())
-
-    def test_assemble_hyperlink(self):
-        s = assemble_hyperlink("http://example.test", "label")
+    def test_compose_hyperlink(self):
+        s = compose_hyperlink("http://example.test", "label")
         self.assertIn("http://example.test", s)
         self.assertIn("label", s)
 
@@ -204,10 +200,10 @@ class TestSgrRegistry:
             (SeqIndex.UNDERLINED, SeqIndex.UNDERLINED_OFF),
             (SeqIndex.BOLD + SeqIndex.RED, SeqIndex.BOLD_DIM_OFF + SeqIndex.COLOR_OFF),
             (SeqIndex.DIM, SeqIndex.BOLD_DIM_OFF),
-            (make_color_256(128, False), SeqIndex.COLOR_OFF),
-            (make_color_256(128, True), SeqIndex.BG_COLOR_OFF),
-            (make_color_rgb(128, 0, 128, False), SeqIndex.COLOR_OFF),
-            (make_color_rgb(128, 0, 128, True), SeqIndex.BG_COLOR_OFF),
+            (make_color_256(128), SeqIndex.COLOR_OFF),
+            (make_color_256(128, target=ColorTarget.BG), SeqIndex.BG_COLOR_OFF),
+            (make_color_rgb(128, 0, 128), SeqIndex.COLOR_OFF),
+            (make_color_rgb(128, 0, 128, target=ColorTarget.BG), SeqIndex.BG_COLOR_OFF),
             (make_erase_in_line(0), NOOP_SEQ),
         ],
     )

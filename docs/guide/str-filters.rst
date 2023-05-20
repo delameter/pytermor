@@ -9,7 +9,7 @@ String filters
 
    .. grid-item::
 
-      .. inheritance-diagram::   pytermor.utilstr
+      .. inheritance-diagram::   pytermor.filter
          :parts: 1
-         :top-classes:           pytermor.utilstr.IFilter
+         :top-classes:           pytermor.filter.IFilter
          :caption:               `IFilter` inheritance tree

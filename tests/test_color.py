@@ -24,6 +24,7 @@ from pytermor import (
     cv,
     IColor, find_closest, approximate,
 )
+from pytermor.ansi import ColorTarget
 from pytermor.color import (
     ColorNameConflictError,
     ColorCodeConflictError,
@@ -335,32 +336,32 @@ class TestColor16:
 
     def test_to_sgr_without_upper_bound_results_in_sgr_16(self):
         col = Color16(0x800000, IntCode.RED, IntCode.BG_RED)
-        assert col.to_sgr(False) == SequenceSGR(31)
-        assert col.to_sgr(True) == SequenceSGR(41)
+        assert col.to_sgr(ColorTarget.FG) == SequenceSGR(31)
+        assert col.to_sgr(ColorTarget.BG) == SequenceSGR(41)
 
     def test_to_sgr_with_rgb_upper_bound_results_in_sgr_16(self):
         col = Color16(0x800000, IntCode.RED, IntCode.BG_RED)
-        assert col.to_sgr(False, upper_bound=ColorRGB) == SequenceSGR(31)
-        assert col.to_sgr(True, upper_bound=ColorRGB) == SequenceSGR(41)
+        assert col.to_sgr(ColorTarget.FG, upper_bound=ColorRGB) == SequenceSGR(31)
+        assert col.to_sgr(ColorTarget.BG, upper_bound=ColorRGB) == SequenceSGR(41)
 
     def test_to_sgr_with_256_upper_bound_results_in_sgr_16(self):
         col = Color16(0x800000, IntCode.RED, IntCode.BG_RED)
-        assert col.to_sgr(False, upper_bound=Color256) == SequenceSGR(31)
-        assert col.to_sgr(True, upper_bound=Color256) == SequenceSGR(41)
+        assert col.to_sgr(ColorTarget.FG, upper_bound=Color256) == SequenceSGR(31)
+        assert col.to_sgr(ColorTarget.BG, upper_bound=Color256) == SequenceSGR(41)
 
     def test_to_sgr_with_16_upper_bound_results_in_sgr_16(self):
         col = Color16(0x800000, IntCode.RED, IntCode.BG_RED)
-        assert col.to_sgr(False, upper_bound=Color16) == SequenceSGR(31)
-        assert col.to_sgr(True, upper_bound=Color16) == SequenceSGR(41)
+        assert col.to_sgr(ColorTarget.FG, upper_bound=Color16) == SequenceSGR(31)
+        assert col.to_sgr(ColorTarget.BG, upper_bound=Color16) == SequenceSGR(41)
 
     def test_to_tmux(self):
         col = Color16(0xF00000, IntCode.RED, IntCode.BG_RED, "ultrared")
-        assert col.to_tmux(False) == "ultrared"
-        assert col.to_tmux(True) == "ultrared"
+        assert col.to_tmux(ColorTarget.FG) == "ultrared"
+        assert col.to_tmux(ColorTarget.BG) == "ultrared"
 
     @pytest.mark.xfail(raises=LogicError)
     def test_to_tmux_without_name_fails(self):
-        Color16(0x800000, IntCode.RED, IntCode.BG_RED).to_tmux(False)
+        Color16(0x800000, IntCode.RED, IntCode.BG_RED).to_tmux(ColorTarget.FG)
 
     def test_format_value(self):
         assert Color16(0x800000, 133, 143).format_value() == "0x800000"
@@ -405,35 +406,35 @@ class TestColor256:
 
     def test_to_sgr_without_upper_bound_results_in_sgr_256(self):
         col = Color256(0xFFCC01, 1)
-        assert col.to_sgr(False) == SequenceSGR(38, 5, 1)
-        assert col.to_sgr(True) == SequenceSGR(48, 5, 1)
+        assert col.to_sgr(ColorTarget.FG) == SequenceSGR(38, 5, 1)
+        assert col.to_sgr(ColorTarget.BG) == SequenceSGR(48, 5, 1)
 
     def test_to_sgr_with_rgb_upper_bound_results_in_sgr_256(self):
         col = Color256(0xFFCC01, 1)
-        assert col.to_sgr(False, upper_bound=ColorRGB) == SequenceSGR(38, 5, 1)
-        assert col.to_sgr(True, upper_bound=ColorRGB) == SequenceSGR(48, 5, 1)
+        assert col.to_sgr(ColorTarget.FG, upper_bound=ColorRGB) == SequenceSGR(38, 5, 1)
+        assert col.to_sgr(ColorTarget.BG, upper_bound=ColorRGB) == SequenceSGR(48, 5, 1)
 
     @pytest.mark.setup(prefer_rgb=True)
     def test_to_sgr_with_rgb_upper_bound_results_in_sgr_rgb_if_preferred(self):
         col = Color256(0xFFCC01, 1)
-        assert col.to_sgr(False, upper_bound=ColorRGB) == SequenceSGR(38, 2, 255, 204, 1)
-        assert col.to_sgr(True, upper_bound=ColorRGB) == SequenceSGR(48, 2, 255, 204, 1)
+        assert col.to_sgr(ColorTarget.FG, upper_bound=ColorRGB) == SequenceSGR(38, 2, 255, 204, 1)
+        assert col.to_sgr(ColorTarget.BG, upper_bound=ColorRGB) == SequenceSGR(48, 2, 255, 204, 1)
 
     def test_to_sgr_with_256_upper_bound_results_in_sgr_256(self):
         col = Color256(0xFFCC01, 1)
-        assert col.to_sgr(False, upper_bound=Color256) == SequenceSGR(38, 5, 1)
-        assert col.to_sgr(True, upper_bound=Color256) == SequenceSGR(48, 5, 1)
+        assert col.to_sgr(ColorTarget.FG, upper_bound=Color256) == SequenceSGR(38, 5, 1)
+        assert col.to_sgr(ColorTarget.BG, upper_bound=Color256) == SequenceSGR(48, 5, 1)
 
     def test_to_sgr_with_16_upper_bound_results_in_sgr_16(self):
         col = Color256(0xFFCC01, 1)
-        assert col.to_sgr(False, upper_bound=Color16) == SequenceSGR(93)
-        assert col.to_sgr(True, upper_bound=Color16) == SequenceSGR(103)
+        assert col.to_sgr(ColorTarget.FG, upper_bound=Color16) == SequenceSGR(93)
+        assert col.to_sgr(ColorTarget.BG, upper_bound=Color16) == SequenceSGR(103)
 
     def test_to_sgr_with_16_upper_bound_results_in_sgr_16_equiv(self):
         col16 = Color16(0xFFCC00, 132, 142, index=True)
         col = Color256(0xFFCC01, 1, color16_equiv=col16)
-        assert col16.to_sgr(False) == col.to_sgr(False, upper_bound=Color16)
-        assert col16.to_sgr(True) == col.to_sgr(True, upper_bound=Color16)
+        assert col16.to_sgr(ColorTarget.FG) == col.to_sgr(ColorTarget.FG, upper_bound=Color16)
+        assert col16.to_sgr(ColorTarget.BG) == col.to_sgr(ColorTarget.BG, upper_bound=Color16)
 
     def test_to_tmux(self):
         col = Color256(0xFF00FF, 258)
@@ -480,25 +481,25 @@ class TestColor256:
 class TestColorRGB:
     def test_to_sgr_without_upper_bound_results_in_sgr_rgb(self):
         col = ColorRGB(0xFF33FF)
-        assert col.to_sgr(False) == SequenceSGR(38, 2, 255, 51, 255)
-        assert col.to_sgr(True) == SequenceSGR(48, 2, 255, 51, 255)
+        assert col.to_sgr(ColorTarget.FG) == SequenceSGR(38, 2, 255, 51, 255)
+        assert col.to_sgr(ColorTarget.BG) == SequenceSGR(48, 2, 255, 51, 255)
 
     def test_to_sgr_with_rgb_upper_bound_results_in_sgr_rgb(self):
         col = ColorRGB(0xFF33FF)
-        assert col.to_sgr(False, upper_bound=ColorRGB) == SequenceSGR(
+        assert col.to_sgr(ColorTarget.FG, upper_bound=ColorRGB) == SequenceSGR(
             38, 2, 255, 51, 255
         )
-        assert col.to_sgr(True, upper_bound=ColorRGB) == SequenceSGR(48, 2, 255, 51, 255)
+        assert col.to_sgr(ColorTarget.BG, upper_bound=ColorRGB) == SequenceSGR(48, 2, 255, 51, 255)
 
     def test_to_sgr_with_256_upper_bound_results_in_sgr_256(self):
         col = ColorRGB(0xFF33FF)
-        assert col.to_sgr(False, upper_bound=Color256) == SequenceSGR(38, 5, 207)
-        assert col.to_sgr(True, upper_bound=Color256) == SequenceSGR(48, 5, 207)
+        assert col.to_sgr(ColorTarget.FG, upper_bound=Color256) == SequenceSGR(38, 5, 207)
+        assert col.to_sgr(ColorTarget.BG, upper_bound=Color256) == SequenceSGR(48, 5, 207)
 
     def test_to_sgr_with_16_upper_bound_results_in_sgr_16(self):
         col = ColorRGB(0xFF33FF)
-        assert col.to_sgr(False, upper_bound=Color16) == SequenceSGR(95)
-        assert col.to_sgr(True, upper_bound=Color16) == SequenceSGR(105)
+        assert col.to_sgr(ColorTarget.FG, upper_bound=Color16) == SequenceSGR(95)
+        assert col.to_sgr(ColorTarget.BG, upper_bound=Color16) == SequenceSGR(105)
 
     def test_to_tmux(self):
         col = ColorRGB(0xFF00FF)
@@ -542,8 +543,8 @@ class TestColorRGB:
 
 class TestNoopColor:
     def test_equality(self):
-        assert NOOP_COLOR.to_sgr(True, Color16) == NOOP_SEQ
-        assert NOOP_COLOR.to_sgr(False, ColorRGB) == NOOP_SEQ
+        assert NOOP_COLOR.to_sgr(ColorTarget.BG, Color16) == NOOP_SEQ
+        assert NOOP_COLOR.to_sgr(ColorTarget.FG, ColorRGB) == NOOP_SEQ
 
     def test_format_value(self):
         assert NOOP_COLOR.format_value() == "NOP"
@@ -574,15 +575,15 @@ class TestDefaultColor:
         assert repr(DEFAULT_COLOR) == "<_DefaultColor[DEF]>"
 
     def test_default_resets_text_color(self):
-        assert str(IntCode.COLOR_OFF.value) in DEFAULT_COLOR.to_sgr(bg=False).assemble()
+        assert str(IntCode.COLOR_OFF.value) in DEFAULT_COLOR.to_sgr().assemble()
 
     def test_default_resets_bg_color(self):
         assert (
-            str(IntCode.BG_COLOR_OFF.value) in DEFAULT_COLOR.to_sgr(bg=True).assemble()
+            str(IntCode.BG_COLOR_OFF.value) in DEFAULT_COLOR.to_sgr(ColorTarget.BG).assemble()
         )
 
     def test_default_resets_text_color_tmux(self):
-        assert "default" in DEFAULT_COLOR.to_tmux(bg=False)
+        assert "default" in DEFAULT_COLOR.to_tmux()
 
     def test_default_resets_bg_color_tmux(self):
-        assert "default" in DEFAULT_COLOR.to_tmux(bg=True)
+        assert "default" in DEFAULT_COLOR.to_tmux(ColorTarget.BG)

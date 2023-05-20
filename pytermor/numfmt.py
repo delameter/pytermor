@@ -20,8 +20,6 @@ from .cval import CVAL as cv
 from .style import Style, Styles, merge_styles
 from .text import Text, Fragment, IRenderable, RT
 
-# @TODO -> 'numformat.py'|'numfmt.py'|'formatter.py'
-
 _OVERFLOW_CHAR = "!"
 
 # fmt: off

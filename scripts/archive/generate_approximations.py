@@ -5,7 +5,7 @@ from typing import Tuple
 
 import PIL.ImageFont
 
-from pytermor import color, Seqs, ColorRGB, ColorIndexed256, ColorIndexed16
+from pytermor import color, SeqIndex, ColorRGB, Color256, Color16, conv
 from math import floor
 import profile
 import gc
@@ -103,7 +103,7 @@ def hsv_to_rgb(h, s, v):
     if i == 5: return (v, p, q)
 
 
-reset = Seqs.RESET.assemble()
+reset = SeqIndex.RESET.assemble()
 
 
 
@@ -163,14 +163,14 @@ def run_image():
 if __name__ == '__main__':
     LABEL_HEIGHT = 50
 
-    inp = Image.open('../../docs/_generated/approx/input-bgwhite.png', 'r')
+    inp = Image.open('../../docs/generated/approx/input-bgwhite.png', 'r')
     samples = [
         (None, '(16M colors)'),
-        (ColorIndexed256, '(256 colors)'),
-        (ColorIndexed16, '(16 colors)'),
+        (Color256, '(256 colors)'),
+        (Color16, '(16 colors)'),
     ]
-    font_header = PIL.ImageFont.truetype('../docs/_static/fonts/mononoki-Bold.ttf', size=16)
-    font_default = PIL.ImageFont.truetype('../docs/_static/fonts/mononoki-Regular.ttf', size=12)
+    font_header = PIL.ImageFont.truetype('../../docs/_static/fonts/asm-bold.woff', size=16)
+    font_default = PIL.ImageFont.truetype('../../docs/_static/fonts/asm-regular.woff', size=12)
 
     im = Image.new('RGB', size=(inp.width * len(samples), inp.height + LABEL_HEIGHT), color=(255, 255, 255))
     for ids, (s, caption) in enumerate(samples):
@@ -186,7 +186,7 @@ if __name__ == '__main__':
                 for vb in range(0, inp.height, 1):
                     (r, g, b) = inp.getpixel((va, vb))
                     c = s.find_closest((r << 16) + (g << 8) + b)
-                    im.putpixel((x1 + va, y1 + vb), c.hex_value_to_rgb_channels(c.hex_value))
+                    im.putpixel((x1 + va, y1 + vb), pytermor.conv.hex_to_rgb(c.hex_value))
 
                 if va%(inp.width//100) == 0:
                     perc = 1+round(100*va/inp.width)
@@ -204,4 +204,4 @@ if __name__ == '__main__':
             anchor='mm', font=font_default, fill=(0, 0, 0),
             text=caption)
 
-    im.save('_generated/approx/output-bgwhite.png')
+    im.save('../../docs/generated/approx/output-bgwhite.png')

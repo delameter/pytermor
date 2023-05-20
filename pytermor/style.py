@@ -78,13 +78,19 @@ class Style:
     :param crosslined:  Strikethrough.
     :param double_underlined:
                         Double underline.
+    :param curly_underlined:
+                        Curly underline.
+    :param underline_color:
+                        Underline color, if applicable.
     :param inversed:    Swap foreground and background colors.
     :param blink:       Blinking effect.
+    :param framed:      Enclosed in a rectangle border.
     :param class_name:  Custom class name for the element.
     """
 
     _fg: IColor = field(default=None, init=False)
     _bg: IColor = field(default=None, init=False)
+    _underline_color: IColor = field(default=None, init=False)
 
     @property
     def fg(self) -> IColor:
@@ -102,6 +108,14 @@ class Style:
         """
         return self._bg
 
+    @property
+    def underline_color(self) -> IColor:
+        """
+        Underline color. Can be set as `CDT` or ``IColor``, stored always
+        as ``IColor``.
+        """
+        return self._underline_color
+
     @fg.setter
     def fg(self, val: CDT | IColor):
         self._fg: IColor = self._resolve_color(val)
@@ -109,6 +123,10 @@ class Style:
     @bg.setter
     def bg(self, val: CDT | IColor):
         self._bg: IColor = self._resolve_color(val)
+
+    @underline_color.setter
+    def underline_color(self, val: CDT | IColor):
+        self._underline_color: IColor = self._resolve_color(val)
 
     bold: bool
     """ Bold or increased intensity (depending on terminal settings)."""
@@ -135,6 +153,8 @@ class Style:
     """ Strikethrough."""
     double_underlined: bool
     """ Double underline. """
+    curly_underlined: bool
+    """ Curly underline. """
     inversed: bool
     """ 
     Swap foreground and background colors. When inversed effect is active, 
@@ -144,6 +164,12 @@ class Style:
     blink: bool
     """ 
     Blinking effect. Supported by a limited set of `renderers <IRenderer>`.
+    """
+    framed: bool
+    """ 
+    Add a rectangular border around the text; the border color is equal to 
+    the text color. Supported by a limited set of `renderers <IRenderer>` and 
+    (even more) limited amount of terminal emulators.
     """
 
     class_name: str
@@ -164,8 +190,11 @@ class Style:
             "overlined",
             "crosslined",
             "double_underlined",
+            "curly_underlined",
+            "underline_color",
             "inversed",
             "blink",
+            "framed",
         ]
     )
 
@@ -187,14 +216,19 @@ class Style:
         overlined: bool = None,
         crosslined: bool = None,
         double_underlined: bool = None,
+        curly_underlined: bool = None,
+        underline_color: CDT | IColor = None,
         inversed: bool = None,
         blink: bool = None,
+        framed: bool = None,
         class_name: str = None,
     ):
-        if fg is not None:
-            self._fg = self._resolve_color(fg)
+        if fg is not None:  # invoke setters
+            self.fg = fg
         if bg is not None:
-            self._bg = self._resolve_color(bg)
+            self.bg = bg
+        if underline_color is not None:
+            self.underline_color = underline_color
 
         self.bold = bold
         self.dim = dim
@@ -203,8 +237,10 @@ class Style:
         self.overlined = overlined
         self.crosslined = crosslined
         self.double_underlined = double_underlined
+        self.curly_underlined = curly_underlined
         self.inversed = inversed
         self.blink = blink
+        self.framed = framed
         self.class_name = class_name
 
         if fallback is not None:
@@ -214,6 +250,8 @@ class Style:
             self._fg = NOOP_COLOR
         if self._bg is None:
             self._bg = NOOP_COLOR
+        if self._underline_color is None:
+            self._underline_color = NOOP_COLOR
 
         self._frozen = frozen
 
