@@ -209,6 +209,11 @@ from .numfmt import format_time_delta_longest as format_time_delta_longest
 from .numfmt import format_time_delta_shortest as format_time_delta_shortest
 from .numfmt import format_time_ms as format_time_ms
 from .numfmt import format_time_ns as format_time_ns
+from .numfmt import formatter_bytes_human as formatter_bytes_human
+from .numfmt import formatter_si as formatter_si
+from .numfmt import formatter_si_binary as formatter_si_binary
+from .numfmt import formatter_time as formatter_time
+from .numfmt import formatter_time_ms as formatter_time_ms
 from .numfmt import highlight as highlight
 
 from .parser import contains_sgr as contains_sgr

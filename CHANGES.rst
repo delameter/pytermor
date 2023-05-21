@@ -41,8 +41,9 @@ pending
 - |NEW| `Style`, ``SgrRenderer` and `TmuxRenderer` support of all the above
 - |DRAFT| `parser` module
 - |REWORK| `util*` -> `numfmt`, `filter`, `conv`
+- |REFACTOR|  split `commons` into `log` and `excepiton` modules
 
-.. <@pending:f70fdf7>
+.. <@pending:5f96115>
 .. ^ blank line before should be kept
 
 
