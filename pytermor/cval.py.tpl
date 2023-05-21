@@ -12,10 +12,25 @@ from .color import Color16, Color256, ColorRGB
 from .ansi import IntCode
 
 
-class CVAL:
+class ColorValuesXterm:
     """
-
+    ColorValuesXterm
     """
     # fmt: off
-${defs}
+${defs_xterm_16}
+
+${defs_xterm_256}
     # fmt: on
+
+
+class ColorValuesRGB:
+    """
+    ColorValuesRGB
+    """
+    # fmt: off
+${defs_rgb}
+    # fmt: on
+
+
+cv = ColorValuesXterm
+cvr = ColorValuesRGB

@@ -12,7 +12,7 @@ from os import stat
 from os.path import dirname, join
 from datetime import datetime
 
-from pytermor._version import __version__
+from pytermor._version import __version__, __updated__
 
 
 class Main:
@@ -31,41 +31,39 @@ class Main:
             print(f"ERROR: Invalid argument/option: {arg}")
             print(Main.__doc__)
             exit(1)
+        self.run(short)
 
-        _iter_fns: t.List[t.Callable] = [
-            self._get_version_from_fs,
+    def run(self, short: bool) -> None:
+        errors = []
+        iter_fns: t.List[t.Callable] = [
+            self._get_version_from_package,
             self._get_version_from_git,
         ]
-        while len(_iter_fns) > 0:
-            fn = _iter_fns.pop(0)
-            if (result := fn()) is not None:
-                if short:
-                    result = result[:1]
-                print(":".join(result))
-                return
-        print("Failed to determine the version")
+        while iter_fns and (fn := iter_fns.pop(0)):
+            try:
+                if gen := [*fn(short)]:
+                    print("\n".join(gen))
+                    return
+            except (FileNotFoundError, CalledProcessError, UnicodeDecodeError) as e:
+                errors.append(f"ERROR: {e.__class__.__name__}: {e}")
+        print("\n".join((*errors, f"Failed to determine the version")))
+
+    def _get_version_from_package(self, short: bool) -> t.Generator[str]:
+        yield __version__
+        if short:
+            return
+        yield __updated__
+
+    def _get_version_from_git(self, short: bool) -> t.Iterable[str]:
+        yield self._call_git("describe", "--tags")
+        if short:
+            return
+        yield self._call_git("show", "-s", "--format=%cd", "--date=format:%-e-%b-%y")
 
     def _call_git(self, *args) -> str:
         gitdir = dirname(__file__)
         cp = run(["git", "-C", gitdir, *args], stdout=PIPE, stderr=DEVNULL, check=True)
         return cp.stdout.strip().decode()
-
-    def _get_version_from_git(self) -> t.Tuple[str, str]|None:
-        try:
-            v = self._call_git("describe", "--tags")
-            dt = self._call_git("show", "-s", "--format=%cd", "--date=format:%b-%y")
-            return v, dt
-        except (FileNotFoundError, CalledProcessError, UnicodeDecodeError):
-            return None
-
-    def _get_version_from_fs(self) -> t.Tuple[str, str]|None:
-        try:
-            vfile = join(dirname(__file__), "_version.py")
-            mtime = stat(vfile).st_mtime
-            dt = datetime.fromtimestamp(mtime).strftime("%b-%y")
-            return __version__, dt
-        except FileNotFoundError:
-            return None
 
 
 if __name__ == "__main__":

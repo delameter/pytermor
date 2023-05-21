@@ -23,9 +23,10 @@ from .ansi import (
     make_color_256,
     make_color_rgb,
     SeqIndex,
-    ColorTarget,
 )
-from .common import LogicError, HSV, RGB
+from .ansi import ColorTarget
+from .exception import LogicError
+from .conv import RGB, HSV
 from .config import get_config
 
 
@@ -288,7 +289,7 @@ class IColor(metaclass=_ColorMeta):
         """
         Make an `SGR sequence<SequenceSGR>` out of ``IColor``. Used by `SgrRenderer`.
 
-        :param target
+        :param target:
         :param upper_bound: Required result ``IColor`` type upper boundary, i.e., the
                             maximum acceptable color class, which will be the basis for
                             SGR being made. See `Color256.to_sgr()` for the details.

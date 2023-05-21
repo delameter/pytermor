@@ -28,6 +28,15 @@
 
    
    
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      HSV
+      LAB
+      RGB
+      XYZ
+   
    
 
    

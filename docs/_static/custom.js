@@ -8,6 +8,7 @@ $(document).ready(function () {
     transformReferences();
     formatEnvLists();
     formatEscCharLabels();
+    squashNeighbourCodeSetions();
     removeBadgeBrackets();
     setExternalHrefOpenMethodToBlank();
     setXtermPaletteClickHandler();
@@ -44,6 +45,15 @@ function transformReferences() {
 
 function formatEnvLists() {
     $(".env-list dt").each((idx, el) => el.classList.add("sig"));
+}
+
+function squashNeighbourCodeSetions() {
+    // find "highlight-adjacent"s _preceeded_ by a "highlight-default"s
+    // and add adjacent classes to the latter. as of 2023 ":has" selector
+    // is not guaranteed to work in ALL browsers, but to hell with that
+    $("div.highlight-default:has(+ div.highlight-adjacent)").each(
+        (idx, el) => el.classList.add("highlight-adjacent")
+    );
 }
 
 function formatEscCharLabels() {

@@ -1,22 +1,26 @@
-#!/bin/sh
+#!/bin/bash
 #------------------------------------------------------------------------------
 # pytermor [ANSI formatted terminal output toolset]                           -
 # (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>                          -
 # Licensed under GNU Lesser General Public License v3.0                       -
 #------------------------------------------------------------------------------
 
-cmd="$1"
-shift
+main () {
+    local cmd="$1"
+    shift
 
-if [ -z "$FORCE_VENV" ] && command -v hatch >/dev/null ; then
-    env="${PT_ENV:?PT_ENV required}"
-    [ -n "$PT_QUIET" ] && output_opt="-q" || output_opt="-v"
-    hatch $output_opt run "$env:$cmd" "$@"
-    return
-elif [ -x venv/bin/python ] ; then
-    PYTHONPATH=. "venv/bin/$cmd" "$@"
-    return
-else
-    echo "Failed to determine executor" >&2
-    return 1
-fi
+    if [ -z "$FORCE_VENV" ] && command -v hatch >/dev/null ; then
+        env="${PT_ENV:?PT_ENV required}"
+        [ -n "$PT_QUIET" ] && output_opt="-q" || output_opt="-v"
+        hatch $output_opt run "$env:$cmd" "$@"
+        return
+    elif [ -x venv/bin/python ] ; then
+        PYTHONPATH=. "venv/bin/$cmd" "$@"
+        return
+    else
+        echo "Failed to determine executor" >&2
+        return 1
+    fi
+}
+
+main "$@"

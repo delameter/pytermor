@@ -30,6 +30,7 @@
       RendererManager
       SgrDebugger
       SgrRenderer
+      TemplateRenderer
       TmuxRenderer
    
    

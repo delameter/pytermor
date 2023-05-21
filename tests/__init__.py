@@ -9,8 +9,9 @@ from datetime import timedelta
 from math import isclose
 from typing import overload, TypeVar
 
-from pytermor import Style, get_qname, apply_filters, SgrStringReplacer, \
+from pytermor import Style, apply_filters, SgrStringReplacer, \
     NonPrintsOmniVisualizer, RGB, HSV, LAB, XYZ
+from pytermor.log import get_qname
 from .fixtures import *  # noqa
 
 

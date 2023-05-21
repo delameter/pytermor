@@ -38,11 +38,11 @@
       make_hide_cursor
       make_hyperlink
       make_move_cursor_down
+      make_move_cursor_down_to_start
       make_move_cursor_left
       make_move_cursor_right
-      make_move_cursor_to_start_and_down
-      make_move_cursor_to_start_and_up
       make_move_cursor_up
+      make_move_cursor_up_to_start
       make_query_cursor_position
       make_reset_cursor
       make_restore_cursor_position

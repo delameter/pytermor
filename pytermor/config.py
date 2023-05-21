@@ -12,7 +12,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
-from .common import logger
+import logging
 
 
 def _bool_field(key: str, default: bool = False):
@@ -41,7 +41,7 @@ class Config:
     :param renderer_class: renderer_class
     :param output_mode:    output_mode
     :param trace_renders:  Set to *True* to log hex dumps of rendered strings.
-                           Note that default logger is :class:`logging.NullHandler` with
+                           Note that default handler is :class:`logging.NullHandler` with
                            ``WARNING`` level, so in order to see the traces
                            attached handler is required.
     :param prefer_rgb:     By default SGR renderer transforms `Color256` instances
@@ -63,7 +63,7 @@ class Config:
 
     def __post_init__(self):
         attr_dict = {k: getattr(self, k) for k in self.ATTRS}
-        logger.info(f"Config initialized with: {attr_dict!s}")
+        logging.info(f"Config initialized with: {attr_dict!s}")
 
 
 _config = Config()

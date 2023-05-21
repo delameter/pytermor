@@ -15,8 +15,10 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from math import floor, log10, trunc, log, isclose
 
-from .common import logger, Align, ConflictError
-from .cval import CVAL as cv
+import logging
+from .exception import ConflictError
+from .filter import Align
+from .cval import cv
 from .style import Style, Styles, merge_styles
 from .text import Text, Fragment, IRenderable, RT
 
@@ -246,7 +248,12 @@ class StaticFormatter(NumFormatter):
 
         .. default-role:: math
 
-        :param fallback: Take missing (i.e., *None*) attribute values from this instance.
+        :param fallback:
+            For any (constructing) instance attribute without a value (=\ *None*):
+            look up for this attribute in ``fallback`` instance, and if the value is
+            specified, take it and save as yours own; if the attribute is undefined in
+            ``fallback`` as well, use the default class' value for this attribute instead.
+
         :param int max_value_len:
             [default: 4] Target string length. Must be at least **3**, because it's a
             minimum requirement for formatting values from 0 to 999.
@@ -460,7 +467,7 @@ class StaticFormatter(NumFormatter):
             val_str = f"{trunc(eff_val):d}"
 
         if len(val_str) > self._max_value_len:
-            logger.warning(
+            logging.warning(
                 "Inconsistent result -- max val length %d exceeded (%d): '%s' <- %f"
                 % (self._max_value_len, len(val_str), val_str, origin_val)
             )
@@ -1353,11 +1360,11 @@ def format_bytes_human(val: int, auto_color: bool = False) -> RT:
         ============== ============== =========== =============
         1568           '1.57 kB'      '1.53 KiB'  '1.57k'
         218371331      '218 MB'       '208 MiB'   '218M'
-        0.25           '250 mB' [1]_  '0 B'       '0'
+        0.25           '250 mB' [#]_  '0 B'       '0'
         -1218371331232 '-1.2 TB'      '0 B'       '0'
         ============== ============== =========== =============
 
-    .. [1] 250 millibytes is not something you would see every day
+    .. [#] 250 millibytes is not something you would see every day
 
     .. code-block:: python
         :caption: Extending the formatter

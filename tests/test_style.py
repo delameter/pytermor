@@ -9,16 +9,15 @@ import typing
 from math import isclose
 
 import pytest
-
+from pytermor.cval import cv
 from pytermor import (
     Style,
     IntCode,
     NOOP_STYLE,
     Color16,
     DEFAULT_COLOR,
-    LogicError,
-    cv,
-    NOOP_COLOR, Color256, ColorRGB, ArgTypeError, IColor, make_style, )
+    NOOP_COLOR, Color256, ColorRGB, IColor, make_style, )
+from pytermor.exception import LogicError, ArgTypeError
 
 from . import format_test_params
 
@@ -181,14 +180,14 @@ class TestStyle:
         lambda: Style(frozen=True),
         lambda: NOOP_STYLE.__class__(),
     ])
-    @pytest.mark.xfail(raises=LogicError)
     def test_frozen_style_immutability(
         self,
         label: str,
         instantiate_fn: typing.Callable[[], Style],
         change_fn: typing.Callable[[Style], None],
     ):
-        change_fn(instantiate_fn())
+        with pytest.raises(LogicError, match="is immutable"):
+            change_fn(instantiate_fn())
 
     @pytest.mark.parametrize(
         "expected, style",
@@ -273,6 +272,6 @@ class TestStyleMerging:
     def test_style_merging_fallback(self, expected: Style, base: Style, fallback: Style):
         assert base.merge_fallback(fallback) == expected
 
-    @pytest.mark.xfail(raises=LogicError)
     def test_noop_style_immutability(self):
-        NOOP_STYLE.merge_fallback(Style(bold=False))
+        with pytest.raises(LogicError, match="is immutable"):
+            NOOP_STYLE.merge_fallback(Style(bold=False))

@@ -9,6 +9,9 @@
 
    .. autosummary::
    
+      ESCAPE_SEQ_REGEX
+      SGR_SEQ_REGEX
+      CSI_SEQ_REGEX
       RCP_REGEX
    
    

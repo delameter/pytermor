@@ -11,8 +11,7 @@ from dataclasses import dataclass
 import pytest
 
 import pytermor as pt
-from pytermor import XYZ
-from pytermor.common import RGB, HSV, LAB
+from pytermor import RGB, HSV, XYZ, LAB
 
 from . import assert_close
 
@@ -29,7 +28,13 @@ class Value:
         return f"0x{self.hex:06x}"
 
 
-SPACES = ["hex", "rgb", "hsv", "xyz", "lab"]
+SPACES = [
+    "hex",
+    "rgb",
+    "hsv",
+    "xyz",
+    "lab",
+]
 
 
 # fmt: off
@@ -40,9 +45,9 @@ Value(0xFF0000, RGB(255, 0,   0),   HSV(0.0,   1.0, 1.0),   XYZ(0.4124, 21.26, 0
 Value(0x00FF00, RGB(0,   255, 0),   HSV(120.0, 1.0, 1.0),   XYZ(0.3576, 0.7152, 0.1192),   LAB(0.877, -0.8618, 0.8318)),
 Value(0x0000FF, RGB(0,   0,   255), HSV(240.0, 1.0, 1.0),   XYZ(0.1805, 0.0722,  0.9505),   LAB(0.323, 0.7919, -1.0786)),
 Value(0x010000, RGB(1,   0,   0),   HSV(0.0,   1.0, 1/256), XYZ(1.2e-4, 0.0000,  5.86e-5),  LAB(0.0006, 0.00261, 0.00092)),
-Value(0x000080, RGB(0,   0,   128), HSV(240.0, 1.0, 0.5),   XYZ(0.0389, 0.0156,  0.2052),   LAB(0.1297, 0.4751, -0.6470)),
+Value(0x000080, RGB(0,   0,  128), HSV(240.0, 1.0, 0.5),   XYZ(0.0389, 0.0156,  0.2052),   LAB(0.1297, 0.4751, -0.6470)),
 ]  # noqa
-# fmt: οn
+# fmt: on
 
 VALUES_HEX = [v.hex for v in VALUES]
 VALUES_RGB = [v.rgb for v in VALUES]
@@ -51,17 +56,18 @@ VALUES_XYZ = [v.xyz for v in VALUES]
 VALUES_LAB = [v.lab for v in VALUES]
 
 
-@pytest.mark.skip
 class TestColorTransform:
     @pytest.mark.parametrize("value", VALUES, ids=lambda val: str(val))
     @pytest.mark.parametrize(
-        'spaces',
+        "spaces",
         itertools.permutations(SPACES, 2),
-        ids=lambda val: f"[{val[0]}->{val[1]}]"
+        ids=lambda val: f"[{val[0]}->{val[1]}]",
     )
     def test_transforms(self, value: Value, spaces: tuple[str, str]):
         s_from, s_to = spaces
-        fname = f'{s_from}_to_{s_to}'
+        if "xyz" in spaces or "lab" in spaces:
+            pytest.skip("Not implemented")
+        fname = f"{s_from}_to_{s_to}"
         if not hasattr(pt.conv, fname):
             return
         input = getattr(value, s_from)

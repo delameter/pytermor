@@ -17,10 +17,10 @@ from os.path import abspath, join, dirname
 import yaml
 
 import pytermor as pt
-import pytermor.common
 import pytermor.filter
 import pytermor.conv
-from pytermor import Text, HtmlRenderer
+import pytermor.term
+from pytermor import Text
 
 
 def _sorter_by_name(cdef: _IColorRGB) -> str:
@@ -174,7 +174,7 @@ class _RgbTablePrinter:
     def __init__(self, cell_size: int = None, cell_height: int = None):
         self._cell_padding_x = 2
         self._cell_padding_y = 2
-        self._term_width = pytermor.common.get_terminal_width()
+        self._term_width = pytermor.term.get_terminal_width()
         self._term_height = shutil.get_terminal_size().lines
 
         if not cell_size:
@@ -250,7 +250,7 @@ class _RgbTablePrinter:
 
             for pid, part in enumerate(parts):
                 part = (
-                    pt.render(pytermor.utilstr.center_sgr(part, self._cell_width), style)
+                    pt.render(pytermor.center_sgr(part, self._cell_width), style)
                     + self._cell_margin_x
                 )
                 lines[pid] += part

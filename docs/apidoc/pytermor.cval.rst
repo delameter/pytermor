@@ -17,7 +17,10 @@
 
    .. autosummary::
    
-      CVAL
+      ColorValuesRGB
+      ColorValuesXterm
+      cv
+      cvr
    
    
 

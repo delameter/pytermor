@@ -10,6 +10,7 @@ of styled strings before the rendering, text alignment and wrapping, etc.
 """
 from __future__ import annotations
 
+import itertools
 import logging
 import math
 import re
@@ -19,23 +20,19 @@ import time
 import typing as t
 from abc import abstractmethod, ABC
 from collections import deque
+from copy import copy
 from functools import update_wrapper
 from typing import overload
 
+from .log import LOGGING_TRACE
 from .color import IColor
-from .common import (
-    LogicError,
-    Align,
-    ArgTypeError,
-    logger,
-    flatten1,
-    get_terminal_width,
-    get_preferable_wrap_width, LOGGING_TRACE, F,
-)
 from .config import get_config
-from .renderer import IRenderer, RendererManager
-from .style import Style, make_style, NOOP_STYLE, FT
+from .exception import LogicError, ArgTypeError
+from .filter import Align
 from .filter import StringLinearizer, dump, apply_filters, OmniSanitizer
+from .renderer import IRenderer, RendererManager, SgrRenderer, OutputMode
+from .style import Style, make_style, NOOP_STYLE, FT, Styles
+from .term import get_terminal_width, get_preferable_wrap_width
 
 RT = t.TypeVar("RT", str, "IRenderable")
 """
@@ -68,7 +65,7 @@ class IRenderable(t.Sized, ABC):
 
     @abstractmethod
     def _as_fragments(self) -> t.List[Fragment]:
-        """ a-s """
+        """a-s"""
         ...
 
     @abstractmethod
@@ -105,7 +102,7 @@ class IRenderable(t.Sized, ABC):
     def _ensure_fragments(self, *args: Fragment):
         for arg in args:
             if not isinstance(arg, Fragment):
-                raise ArgTypeError(actual_type=type(arg))
+                raise ArgTypeError("arg", "args")
 
 
 class Fragment(IRenderable):
@@ -322,7 +319,7 @@ class FrozenText(IRenderable):
         return [*self._fragments]
 
     def raw(self) -> str:
-        return ''.join(f.raw() for f in self._fragments)
+        return "".join(f.raw() for f in self._fragments)
 
     def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
         max_len = len(self) + self._pad
@@ -426,8 +423,6 @@ class FrozenText(IRenderable):
         raise LogicError("FrozenText is immutable")
 
 
-
-
 class Text(FrozenText):
     def __iadd__(self, other: str | Fragment) -> FrozenText:
         return self.append(*as_fragments(other))
@@ -446,13 +441,15 @@ class Text(FrozenText):
         self._width = width
 
     def split_by_spaces(self):
-        split_fragments = [*self._split_by_spaces()]
-        self._fragments.clear()
-        self._fragments.extend(*split_fragments)
+        self.split(regex=SELECT_WORDS_REGEX)
 
-    def _split_by_spaces(self) -> t.Iterable[Fragment]:
-        for frag in self._fragments:
-            yield TemplateEngine.split_by_spaces(frag.raw(), st=frag.style)
+    def split(self, regex: t.Pattern):
+        origin_fragments = copy(self._fragments)
+        self._fragments.clear()
+
+        for frag in origin_fragments:
+            self._fragments += apply_style_selective(regex, frag.raw(), frag.style)
+        origin_fragments.clear()
 
 
 class Composite(IRenderable):
@@ -465,6 +462,7 @@ class Composite(IRenderable):
     :param parts: text parts in any format implementing
                   `IRenderable` interface.
     """
+
     def __init__(self, *parts: IRenderable):
         super().__init__()
         self._parts: deque[IRenderable] = deque(parts)
@@ -493,7 +491,7 @@ class Composite(IRenderable):
         return flatten1([as_fragments(p) for p in self._parts])
 
     def raw(self) -> str:
-        return ''.join(p.raw() for p in self._parts)
+        return "".join(p.raw() for p in self._parts)
 
     def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
         return "".join(p.render(self._resolve_renderer(renderer)) for p in self._parts)
@@ -663,124 +661,7 @@ class SimpleTable(IRenderable):
         return sum(len(c) for c in row if not fixed_only or c.has_width)
 
 
-class _TemplateTag:
-    def __init__(
-        self,
-        set: str | None,
-        add: str | None,
-        comment: str | None,
-        split: str | None,
-        close: str | None,
-        style: str | None,
-    ):
-        self.set: str | None = set.replace("@", "") if set else None
-        self.add: bool = bool(add)
-        self.comment: bool = bool(comment)
-        self.split: bool = bool(split)
-        self.close: bool = bool(close)
-        self.style: str | None = style
-
-
-class TemplateEngine:
-    _TAG_REGEXP = re.compile(
-        r"""
-        (?:
-          (?P<set>@\w+)?
-          (?P<add>:)
-          |
-          (?P<comment>_)
-        )
-        (?![^\\]\\) (?# ignore [ escaped with single backslash, but not double)
-        \[
-          (?P<split>\|)?
-          (?P<close>-)?
-          (?P<style>[\w =]+)
-        \]
-        """,
-        re.VERBOSE,
-    )
-
-    ESCAPE_REGEXP = re.compile(r"([^\\])\\\[")
-    SPLIT_REGEXP = re.compile(r"(\S+)?(\s*)")
-    # SPLIT_REGEXP = re.compile(r"([^\s,]+)?([\s,]*)")
-
-    def __init__(self, custom_styles: t.Dict[str, Style] = None):
-        self._custom_styles: t.Dict[str, Style] = custom_styles or {}
-
-    def parse(self, tpl: str) -> Text:
-        result = Text()
-        tpl_cursor = 0
-        style_buffer = NOOP_STYLE
-        split_style = False
-        logger.debug(f"Parsing the template ({len(tpl)})")
-
-        for tag_match in self._TAG_REGEXP.finditer(tpl):
-            span = tag_match.span()
-            tpl_part = self.ESCAPE_REGEXP.sub(r"\1[", tpl[tpl_cursor: span[0]])
-            if len(tpl_part) > 0 or style_buffer != NOOP_STYLE:
-                if split_style:
-                    for part in self.split_by_spaces(tpl_part, st=style_buffer):
-                        result += part
-                    # add open style for engine to properly handle the :[-closing] tag:
-                    tpl_part = ""
-                result += Fragment(tpl_part, style_buffer, close_this=False)
-
-            tpl_cursor = span[1]
-            style_buffer = NOOP_STYLE
-            split_style = False
-
-            tag = _TemplateTag(**tag_match.groupdict())
-            style = self._tag_to_style(tag)
-            if tag.set:
-                self._custom_styles[tag.set] = style
-            elif tag.add:
-                if tag.close:
-                    result += Fragment("", style, close_prev=True)
-                else:
-                    style_buffer = style
-                    split_style = tag.split
-            elif tag.comment:
-                pass
-            else:
-                raise ValueError(f"Unknown tag operand: {_TemplateTag}")
-
-        result += tpl[tpl_cursor:]
-        return result
-
-    def _tag_to_style(self, tag: _TemplateTag) -> Style | None:
-        if tag.comment:
-            return None
-
-        style_attrs = {}
-        base_style = NOOP_STYLE
-
-        for style_attr in tag.style.split(" "):
-            if style_attr in self._custom_styles.keys():
-                if base_style != NOOP_STYLE:
-                    raise LogicError(
-                        f"Only one custom style per tag is allowed: ({tag.style})"
-                    )
-                base_style = self._custom_styles[style_attr]
-                continue
-            if style_attr.startswith("fg=") or style_attr.startswith("bg="):
-                style_attrs.update({k: v for k, v in (style_attr.split("="),)})
-                continue
-            if style_attr in Style.renderable_attributes:
-                style_attrs.update({style_attr: True})
-                continue
-            raise ValueError(f'Unknown style name or attribute: "{style_attr}"')
-        return Style(base_style, **style_attrs)
-
-    @staticmethod
-    def split_by_spaces(*parts: str, st: Style) -> t.Sequence[Fragment]:
-        for word, sep in TemplateEngine.SPLIT_REGEXP.findall("".join(parts)):
-            if len(word) > 0:
-                yield Fragment(word, st, close_this=True)
-            if len(sep) > 0:
-                yield Fragment(sep)
-
-
-template_engine = TemplateEngine()
+F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
 
 def _trace(enabled: bool = True, level: int = LOGGING_TRACE, label: str = "Dump"):
@@ -789,7 +670,7 @@ def _trace(enabled: bool = True, level: int = LOGGING_TRACE, label: str = "Dump"
             result = origin(*args, **kwargs)
 
             if enabled and not kwargs.get("no_log", False):
-                logger.log(level=level, msg=dump(result, label))
+                logging.log(level=level, msg=dump(result, label))
             return result
 
         return update_wrapper(t.cast(F, new_func), origin)
@@ -803,14 +684,14 @@ def _measure(level: int = logging.DEBUG, template: str = "Done in %s"):
     def wrapper(origin: F) -> F:
         def format_sec(val: float) -> str:
             if val >= 2:
-                return f'{val:.1f}s'
+                return f"{val:.1f}s"
             if val >= 2e-3:
-                return f'{val*1e3:.0f}ms'
+                return f"{val*1e3:.0f}ms"
             if val >= 2e-6:
-                return f'{val*1e6:.0f}µs'
+                return f"{val*1e6:.0f}µs"
             if val >= 1e-9:
-                return f'{val*1e9:.0f}ns'
-            return '<1ns'
+                return f"{val*1e9:.0f}ns"
+            return "<1ns"
 
         def new_func(*args, **kwargs):
             before_s = time.time_ns() / 1e9
@@ -823,7 +704,7 @@ def _measure(level: int = logging.DEBUG, template: str = "Done in %s"):
             preview = apply_filters(f"'{result!s}'", OmniSanitizer, StringLinearizer)
             if len(preview) > MAX_PREVIEW_LEN - 2:
                 preview = preview[: MAX_PREVIEW_LEN - 2] + ".."
-            logger.log(
+            logging.log(
                 level=level,
                 msg=template % format_sec(after_s - before_s)
                 + f" ({preview:.{MAX_PREVIEW_LEN}s})",
@@ -841,7 +722,6 @@ def render(
     string: RT | t.Iterable[RT] = "",
     fmt: FT = NOOP_STYLE,
     renderer: IRenderer = None,
-    parse_template: bool = False,
     *,
     no_log: bool = False,  # noqa
 ) -> str | t.List[str]:
@@ -851,24 +731,14 @@ def render(
     :param string: 2
     :param fmt: 2
     :param renderer: 2
-    :param parse_template: 2
     :param no_log: 2
     :return:
     """
     if string == "" and not fmt:
         return ""
 
-    if parse_template:
-        if not isinstance(string, str):
-            raise ValueError("Template parsing is supported for raw strings only.")
-        try:
-            string = template_engine.parse(string)
-        except (ValueError, LogicError) as e:
-            string += f" [pytermor] Template parsing failed with {e}"
-        return render(string, fmt, renderer, parse_template=False)
-
     if isinstance(string, t.Sequence) and not isinstance(string, str):
-        return [render(s, fmt, renderer, parse_template) for s in string]
+        return [render(s, fmt, renderer) for s in string]
 
     if isinstance(string, str):
         if not fmt:
@@ -878,14 +748,13 @@ def render(
     if isinstance(string, IRenderable):
         return string.render(renderer)
 
-    raise ArgTypeError(type(string), "string", fn=render)
+    raise ArgTypeError("string")
 
 
 def echo(
     string: RT | t.Iterable[RT] = "",
     fmt: FT = NOOP_STYLE,
     renderer: IRenderer = None,
-    parse_template: bool = False,
     *,
     nl: bool = True,
     file: t.IO = sys.stdout,
@@ -900,7 +769,6 @@ def echo(
     :param string:
     :param fmt:
     :param renderer:
-    :param parse_template:
     :param nl:
     :param file:
     :param flush:
@@ -909,7 +777,7 @@ def echo(
     :param indent_subseq:
     """
     end = "\n" if nl else ""
-    result = render(string, fmt, renderer, parse_template=parse_template)
+    result = render(string, fmt, renderer)
 
     if wrap or indent_first or indent_subseq:
         force_width = wrap if isinstance(wrap, int) else None
@@ -923,7 +791,6 @@ def echoi(
     string: RT | t.Iterable[RT] = "",
     fmt: FT = NOOP_STYLE,
     renderer: IRenderer = None,
-    parse_template: bool = False,
     *,
     file: t.IO = sys.stdout,
     flush: bool = True,
@@ -934,12 +801,11 @@ def echoi(
     :param string:
     :param fmt:
     :param renderer:
-    :param parse_template:
     :param file:
     :param flush:
     :return:
     """
-    echo(string, fmt, renderer, parse_template, nl=False, file=file, flush=flush)
+    echo(string, fmt, renderer, nl=False, file=file, flush=flush)
 
 
 # fmt: off
@@ -1031,4 +897,82 @@ def as_fragments(string: RT) -> t.List[Fragment]:
         return [Fragment(string)]
     elif isinstance(string, IRenderable):
         return string._as_fragments()
-    raise ArgTypeError(type(string), "string", as_fragments)
+    raise ArgTypeError("string")
+
+
+SELECT_WORDS_REGEX = re.compile(r"(\S+)?(\s*)")
+
+
+def apply_style_words_selective(string: str, st: Style) -> t.Sequence[Fragment]:
+    """
+
+    """
+    return apply_style_selective(SELECT_WORDS_REGEX, string, st)
+
+
+def apply_style_selective(
+    regex: t.Pattern, string: str, st: Style = NOOP_STYLE
+) -> t.Sequence[Fragment]:
+    """
+    Main purpose: application of under(over|cross)lined styles to strings
+    containing more than one word. Although the method can be used with any style and
+    splitting rule provided. The result is a sequence of `Fragments <Fragment>`
+    with styling applied only to specified parts of the original string.
+
+    Regex should consist of two groups, first for parts to apply style to, second
+    for parts to return without any style (see `NOOP_STYLE`). This regex is
+    used internally for python's `re.findall()` method.
+
+    The example below demonstrates how to color all the capital letters in the string
+    in red color:
+
+        >>> render([
+        ...     *apply_style_selective(
+        ...         re.compile(R'([A-Z]+)([^A-Z]+|$)'),
+        ...         "A few CAPITALs",
+        ...         Style(fg='red'),
+        ...     )
+        ... ], renderer=SgrRenderer(OutputMode.XTERM_16))
+        ['\x1b[31mA\x1b[39m', ' few ', '\x1b[31mCAPITAL\x1b[39m', 's']
+
+        .. only:: html
+
+            .. raw:: html
+                :file: ../docs/demo/text.apply_style_selective.html
+
+        .. only:: latex
+
+            .. figure:: /demo/text.apply_style_selective.svg
+               :align: center
+
+    :param regex:
+    :param string:
+    :param st:
+    """
+    for part, sep in regex.findall(string):
+        if len(part) > 0:
+            yield Fragment(part, st, close_this=True)
+        if len(sep) > 0:
+            yield Fragment(sep)
+
+
+T = t.TypeVar("T")
+
+
+def flatten1(items: t.Iterable[t.Iterable[T]]) -> t.List[T]:
+    """
+    Take a list of nested lists and unpack all nested elements one level up.
+
+    >>> flatten1([[1, 2, 3], [4, 5, 6], [[10, 11, 12]]])
+    [1, 2, 3, 4, 5, 6, [10, 11, 12]]
+
+    :param items:  Input lists.
+    """
+    return list(itertools.chain.from_iterable(items))
+
+
+def flatten(items: t.Iterable[t.Iterable[T]]) -> t.List[T]:
+    """
+    @TODO @DRAFT didnt test it yet
+    """
+    return [*(flatten(f) for f in flatten1(items))]

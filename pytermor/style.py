@@ -13,9 +13,9 @@ import typing as t
 from dataclasses import dataclass, field
 from typing import Any
 
+from .cval import cv
 from .color import IColor, NOOP_COLOR, resolve_color, CDT
-from .cval import CVAL as cv
-from .common import ArgTypeError, LogicError
+from .exception import LogicError, ArgTypeError
 
 FT = t.TypeVar("FT", int, str, IColor, "Style", None)
 """
@@ -117,15 +117,15 @@ class Style:
         return self._underline_color
 
     @fg.setter
-    def fg(self, val: CDT | IColor):
+    def fg(self, val: CDT | IColor | None):
         self._fg: IColor = self._resolve_color(val)
 
     @bg.setter
-    def bg(self, val: CDT | IColor):
+    def bg(self, val: CDT | IColor | None):
         self._bg: IColor = self._resolve_color(val)
 
     @underline_color.setter
-    def underline_color(self, val: CDT | IColor):
+    def underline_color(self, val: CDT | IColor | None):
         self._underline_color: IColor = self._resolve_color(val)
 
     bold: bool
@@ -230,6 +230,8 @@ class Style:
         if underline_color is not None:
             self.underline_color = underline_color
 
+        self._frozen = False
+
         self.bold = bold
         self.dim = dim
         self.italic = italic
@@ -244,6 +246,11 @@ class Style:
         self.class_name = class_name
 
         if fallback is not None:
+            if not isinstance(fallback, Style):
+                suggestion = None
+                if isinstance(fallback, (int, str, IColor)):
+                    suggestion = "To set a fg without fallback use Style(fg=<color>)"
+                raise ArgTypeError("fallback", suggestion=suggestion)
             self.merge_fallback(fallback)
 
         if self._fg is None:
@@ -388,14 +395,14 @@ class Style:
         if hasattr(self, '_frozen') and self._frozen:
             raise LogicError(f"{self.__class__.__qualname__} is immutable")
 
-    def _resolve_color(self, arg: str | int | IColor | None) -> IColor | None:
+    def _resolve_color(self, arg: CDT | IColor | None) -> IColor | None:
         if arg is None:
             return NOOP_COLOR
         if isinstance(arg, IColor):
             return arg
         if isinstance(arg, (str, int)):
             return resolve_color(arg)
-        raise ArgTypeError(type(arg), "arg", fn=self._resolve_color)
+        raise ArgTypeError("arg")
 
     def __setattr__(self, name: str, value: Any) -> None:
         self._ensure_not_frozen()
@@ -518,7 +525,7 @@ def make_style(fmt: FT = None) -> Style:
         return fmt
     if isinstance(fmt, (str, int, IColor)):
         return Style(fg=fmt)
-    raise ArgTypeError(type(fmt), "fmt", fn=make_style)
+    raise ArgTypeError("fmt")
 
 
 def merge_styles(

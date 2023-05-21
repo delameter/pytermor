@@ -156,6 +156,8 @@ Commands like the ones below can be used for quick experimenting without loading
          </div>
       </div>
 
+   .. todo :: Find a solution for embedding colored text into PDF (as SVG -> PNG maybe?)
+
  - One-liner for virtual environment (`venv`) with `pytermor` pre-installed (see `Installation`_)
    :comment:`(note that the library source code root folder should be used as current working directory)`:
 

@@ -1,3 +1,4 @@
+#!/bin/bash
 #------------------------------------------------------------------------------
 # pytermor [ANSI formatted terminal output toolset]                           -
 # (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>                          -
@@ -21,17 +22,17 @@ run --rmprefix "${PROJECT_NAME}". \
     --no-output \
     --rankdir TB \
     --show-dot \
-    -xx pytermor pytermor._version \
+    -xx pytermor pytermor._version pytermor.log pytermor.exception \
     | tee "${DOCS_IN_PATH}/generated/module.dot"
 
 run --rmprefix "${PROJECT_NAME}". \
-    --start-color 120 \
+    --start-color 0 \
     --only "${PROJECT_NAME}" \
      --no-show \
     -o "${DEPENDS_PATH}/structure.svg"
 
 run --rmprefix "${PROJECT_NAME}". \
-    --start-color 120 \
+    --start-color 0 \
     --show-cycle \
      --no-show \
     -o "${DEPENDS_PATH}/cycles.svg"

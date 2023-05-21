@@ -19,7 +19,7 @@ from timeit import timeit
 import pytermor as pt
 from pytermor import SgrRenderer, wait_key, Highlighter
 from pytermor.term import confirm
-from pytermor.common import UserAbort, UserCancel
+from pytermor.exception import UserCancel, UserAbort
 
 
 @dataclass

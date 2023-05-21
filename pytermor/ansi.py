@@ -19,15 +19,16 @@ Can be used for creating a variety of sequences including:
 """
 from __future__ import annotations
 
-from abc import abstractmethod, ABCMeta
-from copy import copy
 import enum
 import typing as t
+from abc import abstractmethod, ABCMeta
+from copy import copy
+from enum import unique
 from functools import total_ordering
-from typing import Any, ClassVar, overload
+from typing import Any, ClassVar
 
-from .common import LogicError, get_qname, RGB
-from .common import ConflictError
+from .log import get_qname
+from .exception import LogicError, ConflictError
 
 
 class _ClassMap(dict):
@@ -126,7 +127,7 @@ class ISequence(t.Sized, metaclass=_SequenceMeta):
         return self._params == other._params
 
     def __repr__(self) -> str:
-        params = ",".join([str(p) for p in self._params])
+        params = ",".join([str(p) for p in (self._params or "")])
         return f"<{self._abbr}[{params}]>"
 
 
@@ -383,6 +384,7 @@ class SequenceSGR(SequenceCSI):
     """
 
     _CLASSIFIER = SequenceCSI._CLASSIFIER
+    _PAIRITY_REGISTRY: ClassVar[_SgrPairityRegistry]
 
     def __init__(self, *params: str | int | SubtypedParam | SequenceSGR):
         """
@@ -463,6 +465,7 @@ class SequenceSGR(SequenceCSI):
             raise ValueError(
                 f"Invalid color value: expected range [0-255], got: {value}"
             )
+
 
 class _NoOpSequenceSGR(SequenceSGR):
     def __init__(self):
@@ -651,6 +654,20 @@ class IntCode(enum.IntEnum):
 
     EXTENDED_MODE_256 = 5
     EXTENDED_MODE_RGB = 2
+
+
+@unique
+class ColorTarget(enum.Enum):
+    FG = enum.auto()
+    BG = enum.auto()
+    UNDERLINE = enum.auto()
+
+
+_COLOR_TARGET_MAP: t.Dict[ColorTarget, IntCode] = {
+    ColorTarget.FG:        IntCode.COLOR_EXTENDED,
+    ColorTarget.BG:        IntCode.BG_COLOR_EXTENDED,
+    ColorTarget.UNDERLINE: IntCode.UNDERLINE_COLOR_EXTENDED,
+}
 
 
 class SeqIndex:
@@ -949,16 +966,9 @@ class _SgrPairityRegistry:
             yield (kp.value if isinstance(kp, SubtypedParam) else kp)
 
 
-_SGR_PAIRITY_REGISTRY = _SgrPairityRegistry()
-
+SequenceSGR._PAIRITY_REGISTRY = _SgrPairityRegistry()
 
 # SGR sequences assembly ------------------------------------------------------
-
-
-class ColorTarget(enum.IntEnum):
-    FG = IntCode.COLOR_EXTENDED
-    BG = IntCode.BG_COLOR_EXTENDED
-    UNDERLINE = IntCode.UNDERLINE_COLOR_EXTENDED
 
 
 def get_closing_seq(opening_seq: SequenceSGR) -> SequenceSGR:
@@ -967,7 +977,7 @@ def get_closing_seq(opening_seq: SequenceSGR) -> SequenceSGR:
     :param opening_seq:
     :return:
     """
-    return _SGR_PAIRITY_REGISTRY.get_closing_seq(opening_seq)
+    return SequenceSGR._PAIRITY_REGISTRY.get_closing_seq(opening_seq)
 
 
 def enclose(opening_seq: SequenceSGR, string: str) -> str:
@@ -997,22 +1007,10 @@ def make_color_256(code: int, target: ColorTarget = ColorTarget.FG) -> SequenceS
     """
 
     SequenceSGR.validate_extended_color(code)
-    return SequenceSGR(target.value, IntCode.EXTENDED_MODE_256, code)
+    return SequenceSGR(_COLOR_TARGET_MAP.get(target), IntCode.EXTENDED_MODE_256, code)
 
 
-@overload
-def make_color_rgb(rgb: RGB, target: ColorTarget = ColorTarget.FG) -> SequenceSGR:
-    ...
-
-
-@overload
-def make_color_rgb(
-    r: int, g: int, b: int, target: ColorTarget = ColorTarget.FG
-) -> SequenceSGR:
-    ...
-
-
-def make_color_rgb(*args, target: ColorTarget = ColorTarget.FG) -> SequenceSGR:
+def make_color_rgb(r: int, g: int, b: int, target: ColorTarget = ColorTarget.FG) -> SequenceSGR:
     """
     Wrapper for creation of `SequenceSGR` operating in True Color mode (16M).
     Valid values for ``r``, ``g`` and ``b`` are in range of [0; 255]. This range
@@ -1032,10 +1030,9 @@ def make_color_rgb(*args, target: ColorTarget = ColorTarget.FG) -> SequenceSGR:
     :param target:
     :example:  ``ESC [38;2;255;51;0m``
     """
-    r, g, b = args if len(args) > 1 else args[0]
 
     [SequenceSGR.validate_extended_color(color) for color in [r, g, b]]
-    return SequenceSGR(target.value, IntCode.EXTENDED_MODE_RGB, r, g, b)
+    return SequenceSGR(_COLOR_TARGET_MAP.get(target), IntCode.EXTENDED_MODE_RGB, r, g, b)
 
 
 # CSI / Cursor position control sequences assembly ----------------------------
@@ -1117,7 +1114,7 @@ def make_move_cursor_right(columns: int = 1) -> SequenceCSI:
     return SequenceCSI("C", columns, abbr="CUF")
 
 
-def make_move_cursor_to_start_and_up(lines: int = 1) -> SequenceCSI:
+def make_move_cursor_up_to_start(lines: int = 1) -> SequenceCSI:
     """
     Create :abbr:`CPL (Cursor Previous Line)` sequence that moves the cursor
     to the beginning of the line and up by specified amount of `lines`.
@@ -1128,7 +1125,7 @@ def make_move_cursor_to_start_and_up(lines: int = 1) -> SequenceCSI:
     return SequenceCSI("F", lines, abbr="CPL")
 
 
-def make_move_cursor_to_start_and_down(lines: int = 1) -> SequenceCSI:
+def make_move_cursor_down_to_start(lines: int = 1) -> SequenceCSI:
     """
     Create :abbr:`CNL (Cursor Next Line)` sequence that moves the cursor
     to the beginning of the line and down by specified amount of `lines`.

@@ -30,8 +30,19 @@ pending
 - |REFACTOR| color resolver
 - |MAINTAIN| add `updated` field in _version.py
 - |MAINTAIN|  add `__updated__` field to init file
+- |NEW| implement missing 1st-level sequence classes
+- |NEW| add `ColorTarget` enum as there are three extended color modes instead of two
+- |NEW| add `SubtypedParam` support that allows specifying SGRs with subparams like 'ESC[4:3m'
+- |NEW| `LAB`, `XYZ` named tuples + conversions
+- |FIX| `filter.AbstractTracer` faulty offset rendering
+- |REFACTOR| sequence internal composition
+- |NEW| IntCodes: ``FRAMED`` (+``_OFF``), ``UNDERLINE_COLOR_EXTENDED`` (+``_OFF``)
+- |NEW| SeqIndex: ``CURLY_UNDERLINED``, ``FRAMED``, ``FRAMED_OFF``
+- |NEW| `Style`, ``SgrRenderer` and `TmuxRenderer` support of all the above
+- |DRAFT| `parser` module
+- |REWORK| `util*` -> `numfmt`, `filter`, `conv`
 
-.. <@pending:b410c6a>
+.. <@pending:f70fdf7>
 .. ^ blank line before should be kept
 
 

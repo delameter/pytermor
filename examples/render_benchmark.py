@@ -8,14 +8,52 @@ from __future__ import annotations
 import random
 import time
 import typing as t
+import math
 
+import pytermor
 import pytermor as pt
 import pytermor.color
-import pytermor.common
+import pytermor.log
 import pytermor.style
-from pytermor import NOOP_STYLE, Fragment
+import pytermor.term
+from pytermor import NOOP_STYLE, Fragment, ColorTarget
 from pytermor.renderer import NoOpRenderer
-from pytermor.common import percentile
+
+
+def percentile(
+    N: t.Sequence[float], percent: float, key: t.Callable[[float], float] = lambda x: x
+) -> float:
+    """
+    Find the percentile of a list of values.
+
+    :param N:        List of values. MUST BE already sorted.
+    :param percent:  Float value from 0.0 to 1.0.
+    :param key:      Optional key function to compute value from each element of N.
+    """
+    # origin: https://code.activestate.com/recipes/511478/
+
+    if not N:
+        raise ValueError("N should be a non-empty sequence of floats")
+    k = (len(N) - 1) * percent
+    f = math.floor(k)
+    c = math.ceil(k)
+    if f == c:
+        return key(N[int(k)])
+    d0 = key(N[int(f)]) * (c - k)
+    d1 = key(N[int(c)]) * (k - f)
+    return d0 + d1
+
+
+def median(N: t.Sequence[float], key: t.Callable[[float], float] = lambda x: x) -> float:
+    """
+    Find the median of a list of values.
+    Wrapper around `percentile()` with fixed ``percent`` argument (=0.5).
+
+    :param N:    List of values. MUST BE already sorted.
+    :param key:  Optional key function to compute value from each element of N.
+    """
+    return percentile(N, percent=0.5, key=key)
+
 
 
 class Main:
@@ -58,7 +96,6 @@ class RenderBemchmarker:
             pad=True,
             prefix_refpoint_shift=-3,
             unit="s",
-            color=True,
             value_mapping={0.0: "--"},
         )
 
@@ -141,7 +178,7 @@ class RenderBemchmarker:
             pt.echo(
                 pt.Text(
                     f"Sample #{idx+1}/{len(self.sources)}",
-                    width=pytermor.common.get_terminal_width(),
+                    width=pytermor.term.get_terminal_width(),
                     align="center",
                     fill='-'
                 )
@@ -182,7 +219,7 @@ class RenderBemchmarker:
                             or (end - self.prev_frame_ts) > 0.4 * 1e9
                         ):
                             add_st = NOOP_STYLE
-                            q = pt.Fragment(pytermor.common.get_qname(class_), pt.Style(bold=True))
+                            q = pt.Fragment(pytermor.log.get_qname(class_), pt.Style(ColorTarget.BG))
                             if class_ is str:
                                 add_st = "gray50"
                                 q = pt.Fragment("[CONTROL] ", add_st) + q

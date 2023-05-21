@@ -61,7 +61,16 @@ with open("include/_prolog.rsti", "rt") as f:
     rst_prolog = f.read()
 
 templates_path = ["_templates"]
-exclude_patterns = ["_build", "depreacted", "_static", ".static.sources", "examples", "generated", "include"]
+exclude_patterns = [
+    "_build",
+    "depreacted",
+    "_static",
+    ".static.sources",
+    "examples",
+    "generated",
+    "demo",
+    "include",
+]
 
 # -- HTML ---------------------------------------------------------------------
 
@@ -88,7 +97,7 @@ copybutton_prompt_text = ">>> "
 # -- LaTeX / PDF --------------------------------------------------------------
 
 latex_logo = "_static/logo-96.png"
-latex_show_urls = "footnote"
+#latex_show_urls = "footnote"
 
 # noinspection SpellCheckingInspection
 latex_elements = {
@@ -111,6 +120,8 @@ latex_elements = {
         r'\renewcommand\FmN[1]{}',
     "printindex": r"\footnotesize\raggedright\printindex",  # decrease font for index
 }
+
+image_converter_args=["-density", "80"]
 
 # -- autodoc ------------------------------------------------------------------
 

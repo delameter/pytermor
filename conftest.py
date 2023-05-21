@@ -20,6 +20,8 @@ pytest_collect_file = Sybil(
 ).pytest()
 
 
-def pytest_assertrepr_compare(op, left, right):
-    if isinstance(left, int) and isinstance(right, int) and op == "==":
-        return [f"{left} (0x{left:06x}) != {right} (0x{right:06x})"]
+# def pytest_assertrepr_compare(op, left, right):
+#     a = 4
+#     if isinstance(left, int) and isinstance(right, int):
+#         return [f"{left} (0x{left:06x}) != {right} (0x{right:06x})"]
+#     return None

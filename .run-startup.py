@@ -3,6 +3,7 @@
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
+import sys
 
 import pytermor as pt
 
@@ -22,6 +23,9 @@ print(ren.render("imported", st) + " pytermor " + ren.render("as", st) + " pt")
 pt.echo(pt.Fragment("imported ", st) + pt.Fragment("examples.*"))
 
 # or use templates
-pt.echo(
-    f":[fg=HiCyan]pytermor :[bold]{pt.__version__}:[-fg]:[-bold]", parse_template=True
-)
+te = pt.TemplateEngine()
+pt.echo(te.substitute(
+    f"@name:[fg=icathian_yellow]@version:[fg=superuser]"
+    f":[name bold]pytermor :[version]{pt.__version__}:[-version]:[-bold] {pt.__updated__}:[-name]"
+))
+

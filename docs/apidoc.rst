@@ -9,7 +9,9 @@ API reference
 .. only:: latex
 
    .. graphviz:: /generated/module.dot
-      :caption: Module dependency graph
+      :caption: Module dependency graph [#]_
+
+   .. [#] Overly common modules ``exception`` and ``log`` are not shown, as they turn the graph into a mess. Same applies to internal modules which name starts with ``_``.
 
 
 .. autosummary::
@@ -17,15 +19,17 @@ API reference
 
    ansi
    color
-   common
    config
    conv
    cval
+   exception
    filter
    numfmt
+   log
    parser
    renderer
    style
+   template
    term
    text
 
@@ -33,4 +37,7 @@ API reference
 .. only:: html
 
    .. graphviz:: /generated/module.dot
-      :caption: Module dependency graph
+      :caption: Module dependency graph [#]_
+
+
+   .. [#] Overly common modules ``exception`` and ``log`` are not shown, as they turn the graph into a mess. Same applies to internal modules which name starts with ``_``.

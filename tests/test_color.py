@@ -9,7 +9,7 @@ import typing as t
 from copy import copy
 
 import pytest
-
+from pytermor.cval import cv
 from pytermor import (
     NOOP_SEQ,
     SequenceSGR,
@@ -21,17 +21,14 @@ from pytermor import (
     Color16,
     Color256,
     ColorRGB,
-    cv,
-    IColor, find_closest, approximate,
-)
-from pytermor.ansi import ColorTarget
+    IColor, find_closest, approximate, ColorTarget, )
+from pytermor.exception import LogicError
 from pytermor.color import (
     ColorNameConflictError,
     ColorCodeConflictError,
     _ColorRegistry,
     _ColorIndex,
 )
-from pytermor.common import LogicError
 from . import assert_close, format_test_params
 
 NON_EXISTING_COLORS = [

@@ -102,13 +102,16 @@ docker-docs-pdf: build-image make-docs-out-dir
 	$(call _docker_cp_docs)
 
 make-docs-out-dir:
-	mkdir -p ${DOCS_OUT_PATH}/${VERSION}
+	@mkdir -p ${DOCS_OUT_PATH}/${VERSION}
+
+_ensure_x11 = ([ -n "${DISPLAY}" ] && return; echo 'ERROR: No $$DISPLAY'; return 1)
+
 
 ##
 ## Automation
 
 pre-build:  ## Run full cycle of automatic operations (done on docker image building)
-	export PT_ENV=build
+	@export PT_ENV=build
 	./.invoke python -m pytermor  # for hatch to prepare environment
 	./.invoke python scripts/preprocess_rgb.py
 	./.invoke python scripts/build_cval.py
@@ -146,14 +149,14 @@ set-current-date: ## Update timestamp in version file
 	@$(call _set_current_date)
 
 update-changelist:  ## Auto-update with new commits  <@CHANGES.rst>
-	./update-changelist.sh
+	@./update-changelist.sh
 
 
 ##
 ## Testing
 
 test: ## Run pytest
-	@PT_ENV=test ./.invoke pytest --quiet --tb=no
+	@PT_ENV=test ./.invoke pytest --quiet --tb=line -rs
 
 test-verbose: ## Run pytest with detailed output
 	@PT_ENV=test ./.invoke pytest -v --failed-first
@@ -164,44 +167,54 @@ test-trace: ## Run pytest with detailed output  <@last_test_trace.log>
 
 
 ##
+## Profiling
+
+profile-import-tuna:  ## Profile imports
+	@PT_ENV=test \
+		./.invoke python -X importtime -m pytermor 2> ./import.log && \
+		tuna ./import.log
+
+
+##
 ## Coverage / dependencies
 
 cover: ## Run coverage and make a report
-	export PT_ENV=test
-	rm -v coverage-report/*
-	./.invoke coverage run -m pytest
+	@export PT_ENV=test
+	@rm -v coverage-report/*
+	./.invoke coverage run -m pytest -- --maxfail 100
 	./.invoke coverage html
 	./.invoke coverage json
 	./.invoke coverage report
 
-	if [ -d "${LOCALHOST_WRITE_PATH}" ] ; then \
+	@if [ -d "${LOCALHOST_WRITE_PATH}" ] ; then \
     	mkdir -p ${LOCALHOST_WRITE_PATH}/coverage-report && \
 	    cp -au coverage-report/* ${LOCALHOST_WRITE_PATH}/coverage-report/
 	fi
 
 open-coverage:  ## Open coverage report in browser
-	if [ -z "${DISPLAY}" ] ; then echo 'ERROR: No $$DISPLAY' && return 1 ; fi
-	if [ -d localhost ] ; then xdg-open ${LOCALHOST_URL}/coverage-report ; else xdg-open coverage-report/index.html ; fi
+	@$(call _ensure_x11) || return
+	@[ -d localhost ] && xdg-open ${LOCALHOST_URL}/coverage-report || xdg-open coverage-report/index.html
 
 update-coveralls:  ## Manually send last coverage statistics  <coveralls.io>
-	if [ -n "${SKIP_COVERALLS_UPDATE}" ] ; then echo "DISABLED" && return 0 ; fi
+	@if [ -n "${SKIP_COVERALLS_UPDATE}" ] ; then echo "DISABLED" && return 0 ; fi
 	@PT_ENV=test ./.invoke coveralls
 
 
 depends:  ## Build module dependency graphs
-	rm -vrf ${DEPENDS_PATH}
-	mkdir -p ${DEPENDS_PATH}
-	./pydeps.sh ${PROJECT_NAME} ${DEPENDS_PATH}
+	@rm -vrf ${DEPENDS_PATH}
+	@mkdir -p ${DEPENDS_PATH}
+	@./pydeps.sh ${PROJECT_NAME} ${DEPENDS_PATH}
 
 open-depends:  ## Open dependency graph output directory
-	xdg-open ./${DEPENDS_PATH}
+	@$(call _ensure_x11) || return
+	@xdg-open ./${DEPENDS_PATH}
 
 ##
 ## Documentation
 
 reinit-docs: ## Purge and recreate docs with auto table of contents
-	export PT_ENV=build
-	rm -rfv ${DOCS_IN_PATH}/*
+	@export PT_ENV=build
+	@rm -rfv ${DOCS_IN_PATH}/*
 	./.invoke sphinx-apidoc --force --separate --module-first --tocfile index --output-dir ${DOCS_IN_PATH} ${PROJECT_NAME}
 
 demolish-docs:  ## Purge docs temp output folder
@@ -213,37 +226,37 @@ docs: depends demolish-docs docs-html
 _build_html = (./.invoke sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b html -d ${DOCS_IN_PATH}/_cache -n)
 _build_pdf = (yes "" | ./.invoke sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -d ${DOCS_IN_PATH}/_cache $1)
 _build_man = (./.invoke sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b man -d ${DOCS_IN_PATH}/_cache -n )
-_notify = (if command -v es7s ; then es7s exec notify -s $1 'pytermor ${VERSION}' '$2 ${NOW}' ; fi)
+_notify = (command -v es7s >/dev/null && es7s exec notify -s $1 'pytermor ${VERSION}' '$2 ${NOW}')
 
 docs-html: ## Build HTML documentation  <caching allowed>
-	export PT_ENV=build
-	mkdir -p ${DOCS_OUT_PATH}/${VERSION}
+	@export PT_ENV=build
+	@mkdir -p ${DOCS_OUT_PATH}/${VERSION}
 	$(call _build_html) || { $(call _notify,error,HTML docs build failed) ; return 1 ; }
-	cp -auv ${DOCS_IN_PATH}/_build/* ${DOCS_OUT_PATH}/${VERSION}/ ; \
+	@cp -auv ${DOCS_IN_PATH}/_build/* ${DOCS_OUT_PATH}/${VERSION}/ ; \
 	if [ -d localhost ] ; then \
     	mkdir -p ${LOCALHOST_WRITE_PATH}/docs && \
 		cp -auv ${DOCS_IN_PATH}/_build/* ${LOCALHOST_WRITE_PATH}/docs/ ; \
     fi
-	$(call _notify,success,HTML docs updated)
+	@$(call _notify,success,HTML docs updated) || return 0
 	#find docs/_build -type f -name '*.html' | sort | xargs -n1 grep -HnT ^ | sed s@^docs/_build/@@ > docs-build/${PROJECT_NAME}.html.dump
 
 docs-pdf: ## Build PDF documentation  <caching allowed>
-	export PT_ENV=build
-	mkdir -p docs-build
+	@export PT_ENV=build
+	@mkdir -p docs-build
 	[ ! -f ${DOCS_IN_PATH}/_build/latex/${PROJECT_NAME}.toc ] && $(call _build_pdf,-n) 	# @FIXME broken unicode
 	$(call _build_pdf)  # 2nd time for TOC and INDEX building
 	$(call _build_pdf)  # 3rd time for TOC rebuilding (to include INDEX, mama-mia)
-	cp -v ${DOCS_IN_PATH}/_build/latex/${PROJECT_NAME}.pdf ${DOCS_OUT_PATH}/${VERSION}.pdf
-	$(call _notify,success,PDF docs updated)
+	@cp -v ${DOCS_IN_PATH}/_build/latex/${PROJECT_NAME}.pdf ${DOCS_OUT_PATH}/${VERSION}.pdf
+	@$(call _notify,success,PDF docs updated) || return 0
 
 docs-man: ## Build man pages  <caching allowed>
-	export PT_ENV=build
-	mkdir -p docs-build
-	sed -i.bak -Ee 's/^.+<<<MAKE_DOCS_MAN<<</#&/' ${DOCS_IN_PATH}/conf.py
+	@export PT_ENV=build
+	@mkdir -p docs-build
+	@sed -i.bak -Ee 's/^.+<<<MAKE_DOCS_MAN<<</#&/' ${DOCS_IN_PATH}/conf.py
 	$(call _build_man) || { $(call _notify,error,MAN docs build failed) ; return 1 ; }
-	mv ${DOCS_IN_PATH}/conf.py.bak ${DOCS_IN_PATH}/conf.py
-	cp ${DOCS_IN_PATH}/_build/${PROJECT_NAME}.1 ${DOCS_OUT_PATH}/${VERSION}.1
-	$(call _notify,success,MAN docs updated)
+	@mv ${DOCS_IN_PATH}/conf.py.bak ${DOCS_IN_PATH}/conf.py
+	@cp ${DOCS_IN_PATH}/_build/${PROJECT_NAME}.1 ${DOCS_OUT_PATH}/${VERSION}.1
+	@$(call _notify,success,MAN docs updated) || return 0
 
 print-man:
 	COLUMNS=120 man ${DOCS_OUT_PATH}/${PROJECT_NAME}.1 2>/dev/null | sed -Ee '/корректность/d' | lpr -p  # @TODO ебаный стыд
@@ -252,12 +265,12 @@ docs-all: ## (Re)build documentation in all formats  <no cache>
 docs-all: depends demolish-docs docs docs-pdf docs-man
 
 open-docs-html:  ## Open HTML docs in browser
-	if [ -z "${DISPLAY}" ] ; then echo 'ERROR: No $$DISPLAY' && return 1 ; fi
-	if [ -d localhost ] ; then xdg-open ${LOCALHOST_URL}/docs ; else xdg-open ${DOCS_IN_PATH}/_build/index.html ; fi
+	@$(call _ensure_x11) || return
+	@[ -d localhost ] && xdg-open ${LOCALHOST_URL}/docs || xdg-open ${DOCS_IN_PATH}/_build/index.html
 
 open-docs-pdf:  ## Open PDF docs in reader
-	if [ -z "${DISPLAY}" ] ; then echo 'ERROR: No $$DISPLAY' && return 1 ; fi
-	xdg-open ${DOCS_OUT_PATH}/${VERSION}.pdf
+	@$(call _ensure_x11) || return
+	@xdg-open ${DOCS_OUT_PATH}/${VERSION}.pdf
 
 ##
 ## Building / Packaging
@@ -288,7 +301,7 @@ install-test: ## Install latest build from test repo  <system>
 ### release
 
 publish: ## Upload last build (=> PRIMARY registry)   <hatch>
-	if [ -n "${SKIP_MODULE_UPLOAD}" ] ; then return 0 ; fi
+	@[ -n "${SKIP_MODULE_UPLOAD}" ] && return 0
 	hatch -e build publish -u "${PYPI_USERNAME}" -a "${PYPI_PASSWORD}"
 
 install: ## Install latest build from PRIMARY repo  <system>

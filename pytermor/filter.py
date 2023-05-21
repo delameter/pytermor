@@ -12,6 +12,9 @@ Library methods rewritten for correct work with strings containing control seque
 from __future__ import annotations
 
 import codecs
+import enum
+import itertools
+import logging
 import math
 import os
 import re
@@ -22,18 +25,80 @@ from functools import reduce
 from math import ceil
 from typing import Union
 
-from .common import (
-    ArgTypeError,
-    Align,
-    ALIGN_LEFT,
-    ALIGN_RIGHT,
-    ALIGN_CENTER,
-    chunk,
-    get_terminal_width,
-    ESCAPE_SEQ_REGEX,
-    SGR_SEQ_REGEX,
-    CSI_SEQ_REGEX
-)
+from .exception import ArgTypeError
+from .parser import ESCAPE_SEQ_REGEX, SGR_SEQ_REGEX, CSI_SEQ_REGEX
+from .term import get_terminal_width
+
+
+T = t.TypeVar("T")
+
+
+class ExtendedEnum(enum.Enum):
+    """Standard `Enum` with a few additional methods on top."""
+
+    @classmethod
+    def list(cls):
+        """
+        Return all enum values as list.
+
+        >>> Align.list()
+        ['<', '>', '^']
+
+        """
+        return list(map(lambda c: c.value, cls))
+
+    @classmethod
+    def dict(cls):
+        """
+        Return mapping of all enum keys to corresponding enum values.
+
+        >>> Align.dict()
+        {<Align.LEFT: '<'>: '<', <Align.RIGHT: '>'>: '>', <Align.CENTER: '^'>: '^'}
+
+        """
+        return dict(map(lambda c: (c, c.value), cls))
+
+class Align(str, ExtendedEnum):
+    """
+    Align type.
+    """
+
+    LEFT = "<"
+    RIGHT = ">"
+    CENTER = "^"
+
+    @classmethod
+    def resolve(cls, input: str | Align | None, fallback: Align = LEFT):
+        if input is None:
+            return fallback
+        if isinstance(input, cls):
+            return input
+        for k, v in cls.dict().items():
+            if v == input:
+                return k
+        try:
+            return cls[input.upper()]
+        except KeyError:
+            logging.warning(f"Invalid align name: {input}")
+            return fallback
+
+
+def chunk(items: t.Iterable[T], size: int) -> t.Iterator[t.Tuple[T, ...]]:
+    """
+    Split item list into chunks of size ``size`` and return these
+    chunks as *tuples*.
+
+    >>> for c in chunk(range(5), 2):
+    ...     print(c)
+    (0, 1)
+    (2, 3)
+    (4,)
+
+    :param items:  Input elements.
+    :param size:   Chunk size.
+    """
+    arr_range = iter(items)
+    return iter(lambda: tuple(itertools.islice(arr_range, size)), ())
 
 
 def pad(n: int) -> str:
@@ -202,14 +267,14 @@ class StringAligner(IFilter[str, str]):
     """
 
     ALIGN_FUNCS_SGR: t.Dict[Align, t.Callable[[str, int], str]] = {
-        ALIGN_LEFT: ljust_sgr,
-        ALIGN_CENTER: center_sgr,
-        ALIGN_RIGHT: rjust_sgr,
+        Align.LEFT: ljust_sgr,
+        Align.CENTER: center_sgr,
+        Align.RIGHT: rjust_sgr,
     }
     ALIGN_FUNCS_RAW: t.Dict[Align, t.Callable[[str, int], str]] = {
-        ALIGN_LEFT: lambda inp, w: inp.ljust(w),
-        ALIGN_CENTER: lambda inp, w: inp.center(w),
-        ALIGN_RIGHT: lambda inp, w: inp.rjust(w),
+        Align.LEFT: lambda inp, w: inp.ljust(w),
+        Align.CENTER: lambda inp, w: inp.center(w),
+        Align.RIGHT: lambda inp, w: inp.rjust(w),
     }
 
     def __init__(self, align: Align, width: int, *, sgr_aware: bool = True):
@@ -642,7 +707,7 @@ class OmniMapper(IFilter[IT, IT]):
         if override is None:
             return default_map
         if not isinstance(override, dict):
-            raise ArgTypeError(type(override), "override", self.__init__)
+            raise ArgTypeError("override")
 
         if not all(isinstance(k, int) and 0 <= k <= 255 for k in override.keys()):
             raise TypeError("Mapper keys should be ints such as: 0 <= key <= 255")
@@ -812,4 +877,3 @@ def dump(data: t.Any, label: str = None, max_len_shift: int = None) -> str | Non
     _dump_printers_cache[printer_t] = printer
 
     return printer.apply(data, TracerExtra(label))
-

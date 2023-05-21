@@ -29,6 +29,7 @@
    
       apply_filters
       center_sgr
+      chunk
       dump
       ljust_sgr
       pad
@@ -45,9 +46,11 @@
    
       AbstractStringTracer
       AbstractTracer
+      Align
       BytesTracer
       CsiStringReplacer
       EscSeqStringReplacer
+      ExtendedEnum
       IFilter
       NonPrintsOmniVisualizer
       NonPrintsStringVisualizer

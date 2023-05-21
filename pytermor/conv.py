@@ -10,15 +10,30 @@ A
 from __future__ import annotations
 
 import math
+import typing as t
 from typing import overload
-
-from .common import HSV, RGB, LAB, XYZ
 
 CIE_E = 216.0 / 24389.0  # 0.008856451679035631  # see http://brucelindbloom.com/
 CIE_K = 24389.0 / 27.0  # 903.2962962962963
 
 # -----------------------------------------------------------------------------
 # HEX <-> RGB
+
+class RGB(t.NamedTuple):
+    red: int
+    """ Red channel value (0—255) """
+    green: int
+    """ Green channel value (0—255) """
+    blue: int
+    """ Blue channel value (0—255) """
+
+    def __str__(self):  # RGB(R=128, G=0, B=0)
+        attrs = map(self._format_channel, ['red', 'green', 'blue'])
+        return f"{self.__class__.__name__}({' '.join(attrs)})"
+
+    def _format_channel(self, attr: str) -> str:
+        return f'{attr[0].upper()}={getattr(self, attr):d}'
+
 
 def hex_to_rgb(hex_value: int) -> RGB:
     """
@@ -77,6 +92,23 @@ def rgb_to_hex(*args) -> int:
 
 # -----------------------------------------------------------------------------
 # HSV <-> RGB
+
+
+class HSV(t.NamedTuple):
+    hue: float
+    """ Hue channel value (0—360) """
+    saturation: float
+    """ Saturation channel value (0.0—1.0) """
+    value: float
+    """ Value channel value (0.0—1.0) """
+
+    def __str__(self):  # HSV(H=0° S=100% V=50%)
+        attrs = [
+            f"H={self.hue:.0f}°",
+            f"S={100*self.saturation:.0f}%",
+            f"V={100*self.value:.0f}%",
+        ]
+        return f"{self.__class__.__name__}({' '.join(attrs)})"
 
 
 @overload
@@ -232,6 +264,23 @@ def hsv_to_hex(*args) -> int:
 # RGB <-> XYZ
 
 
+class XYZ(t.NamedTuple):
+    x: float
+    """ X channel value (0.0—1.0+) """
+    y: float
+    """ Luminance (0.0—1.0) """
+    z: float
+    """ Quasi-equal to blue (0.0—1.0+) """
+
+    def __str__(self):  # XYZ(X=0.95 Y=1.00 Z=1.08)
+        attrs = [
+            f"X={self.x:.3f}",
+            f"Y={self.y:.3f}%",
+            f"Z={self.z:.3f}",
+        ]
+        return f"{self.__class__.__name__}({' '.join(attrs)})"
+
+
 @overload
 def rgb_to_xyz(rgb: RGB) -> XYZ:
     ...
@@ -295,6 +344,23 @@ def xyz_to_rgb(*args) -> RGB:
 
 # -----------------------------------------------------------------------------
 # LAB <-> XYZ
+
+
+class LAB(t.NamedTuple):
+    L: float
+    """ Luminance (0—100) """
+    a: float
+    """ Green–magenta axis (-100—100 in general, but can be less/more) """
+    b: float
+    """ Blue–yellow axis (-100—100 in general, but can be less/more) """
+
+    def __str__(self):  # LAB(L=100% a=100 b=-100)
+        attrs = [
+            f"L={self.L:.3f}%",
+            f"a={self.a:.3f}",
+            f"b={self.b:.3f}",
+        ]
+        return f"{self.__class__.__name__}({' '.join(attrs)})"
 
 
 @overload

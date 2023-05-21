@@ -42,18 +42,17 @@ class IndexBuilder(TaskRunner):
         self._colors_count = 0
 
     def _run(self) -> int:
-        result = ""
+        result = {k: "" for k in self.MODE_TO_SORTER_MAP.keys()}
         counts = ""
         for mode, sorter in self.MODE_TO_SORTER_MAP.items():
             self._colors_mode_class = ""
             self._colors_mode_count = 0
             self._colors_mode_unique = 0
             mode_results = [*self._run_mode(mode, sorter)]
-            result += "\n".join(mode_results) + "\n\n"
+            result[mode] += ("\n".join(mode_results) + "\n\n").rstrip()
             counts += f"\n - {self._colors_mode_count:4d}x " \
                       f"`{self._colors_mode_class}` " \
                       f"({self._colors_mode_unique} unique)"
-        result = result.rstrip()
 
         now = datetime.datetime.now().isoformat()
         with open(self.OUTPUT_TPL_PATH, "rt") as fin:
@@ -61,7 +60,7 @@ class IndexBuilder(TaskRunner):
                 fout.write(Template(fin.read()).safe_substitute({
                     'created_at': now,
                     'counts': counts,
-                    'defs': result,
+                    **{f"defs_{k}": v for k, v in result.items()}
                 }))
                 self._print_fout_result(fout, self.OUTPUT_DEST_PATH)
         return self._colors_count
@@ -96,12 +95,10 @@ class IndexBuilder(TaskRunner):
             if mode == "xterm_256" and (color16_equiv := color.get("color16_equiv")):
                 color16_equiv = color.get("color16_equiv")
 
-            col_var_name = None
-            if mode != "rgb":
-                if color16_equiv:
-                    col_var_name = f"__256A_16_{color16_equiv}".ljust(longest_name_len) + "= "
-                else:
-                    col_var_name = f"{var_name}".ljust(longest_name_len) + "= "
+            if color16_equiv:
+                col_var_name = f"__256A_16_{color16_equiv}".ljust(longest_name_len) + "= "
+            else:
+                col_var_name = f"{var_name}".ljust(longest_name_len) + "= "
 
             col_value = "0x{:06x}, ".format(color.get("value"))
             color_values.add(color.get("value"))

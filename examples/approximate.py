@@ -14,8 +14,7 @@ import typing as t
 
 import pytermor as pt
 import pytermor.conv
-from pytermor import StaticFormatter
-from pytermor.common import HSV
+from pytermor import StaticFormatter, HSV
 
 
 class Main:
@@ -51,7 +50,11 @@ class Approximator:
                 else:
                     raise ValueError(f"Failed to resolve: '{arg}'")
                 self.input_values.append(input_color)
+
             except ValueError as e:
+                if len(argv) > 1:
+                    pt.echo(f"WARNING: {e}", pt.Styles.WARNING)
+                    continue
                 pt.echo("USAGE:")
                 pt.echo(
                     [
@@ -75,23 +78,30 @@ class Approximator:
         if len(self.input_values) > 0 or self._extended_mode:
             return
 
+        def fmt_arg_examples(*s: str) -> pt.Text:
+            text = pt.Text()
+            for w in s:
+                text.append(pt.Fragment(w, pt.Style(bold=True, underlined=True)))
+            text.split(re.compile("([^ _]+)([ _]+|$)"))
+            return text
+
         pt.echo(
             [
-                "In this example the library assumes that your terminal supports "
+                pt.render("Note: In this example the library assumes that your terminal supports "
                 "all color modes including 256-color and True Color, and forces "
                 "the renderer to act accordingly. If that's not the case, weird "
                 "results may (and will) happen. Run 'examples/terminal_color_mode.py' "
-                "for the details.",
+                "for the details.", pt.cv.GRAY_30),
                 "",
                 "Basic usage:",
                 *self.usage,
                 "You can specify any amount of colors as arguments, and they will be "
                 "approximated instead of the default (random) one. Required format is "
                 "a string 1-6 characters long representing an integer(s) in a hexadecimal "
-                "form: 'FFFFFF' (case insensitive), or a name of the color:",
+                "form: 'FFFFFF' (case insensitive), or a name of the color in any format:",
                 "",
-                f"  venv/bin/python {sys.argv[0]} 3AEBA1 0bceeb 666",
-                f"  venv/bin/python {sys.argv[0]} red dark-red icathian-yellow",
+                f"  venv/bin/python {sys.argv[0]} " + fmt_arg_examples("3AEBA1 0bceeb 666"),
+                f"  venv/bin/python {sys.argv[0]} " + fmt_arg_examples("red DARK_RED icathian-yellow"),
             ],
             wrap=True,
             indent_first=2,

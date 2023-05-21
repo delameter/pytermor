@@ -20,8 +20,44 @@ from .ansi import (
     make_set_cursor_column,
     make_clear_line,
 )
-from .common import UserAbort, UserCancel
+from .exception import UserCancel, UserAbort
 from .parser import decompose_report_cursor_position
+
+
+def get_terminal_width(fallback: int = 80, pad: int = 2) -> int:
+    """
+    Return current terminal width with an optional "safety buffer", which
+    ensures that no unwanted line wrapping will happen.
+
+    :param fallback: Default value when shutil is unavailable and environment
+                     variable COLUMNS is unset.
+    :param pad:      Additional safety space to prevent unwanted line wrapping.
+    """
+    try:
+        import shutil as _shutil
+
+        return _shutil.get_terminal_size().columns - pad
+    except ImportError:
+        pass
+
+    try:
+        return int(os.environ.get("COLUMNS", fallback))
+    except ValueError:
+        pass
+
+    return fallback
+
+
+def get_preferable_wrap_width(force_width: int = None) -> int:
+    """
+    Return preferable terminal width for comfort reading of wrapped text (max=120).
+
+    :param force_width:
+               Ignore current terminal width and use this value as a result.
+    """
+    if isinstance(force_width, int) and force_width > 1:
+        return force_width
+    return min(120, get_terminal_width())
 
 
 def wait_key(block: bool = True) -> t.AnyStr | None:
@@ -267,4 +303,5 @@ def guess_char_width(c: str) -> int:
         return 2
 
     return 1
+
 

@@ -16,10 +16,11 @@ import typing as t
 from abc import abstractmethod, ABCMeta
 from functools import reduce
 from hashlib import md5
-
-from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose, ColorTarget
+import logging
+from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose
+from .ansi import ColorTarget
 from .color import IColor, Color16, Color256, ColorRGB, NOOP_COLOR
-from .common import logger, get_qname
+from .log import get_qname
 from .config import get_config
 from .style import Style, NOOP_STYLE, Styles, make_style, FT
 
@@ -85,7 +86,10 @@ class RendererManager:
             cls._default = renderer
             return
 
-        renderer_class: t.Type = getattr(__import__(__package__), get_config().renderer_class)
+        renderer_classname: str = get_config().renderer_class
+        if not (renderer_class := getattr(__import__(__package__), renderer_classname)):
+            logging.warning(f"Renderer class does not exist: '{renderer_classname}'")
+            renderer_class = SgrRenderer
         cls._default = renderer_class()
 
     @classmethod
@@ -160,11 +164,11 @@ class IRenderer(metaclass=ABCMeta):
                  renderer settings.
         """
 
-    @abstractmethod
     def clone(self: T, *args: t.Any, **kwargs: t.Any) -> T:
         """
         Make a copy of the renderer with the same setup.
         """
+        return self.__class__()
 
     def __repr__(self):
         return self.__class__.__qualname__ + "[]"
@@ -258,7 +262,7 @@ class SgrRenderer(IRenderer):
             self._output_mode, None
         )
 
-        logger.debug(
+        logging.debug(
             f"Instantiated {self.__class__.__qualname__}"
             f"[{self._output_mode.name}, "
             f"upper bound {get_qname(self._color_upper_bound)}]"
@@ -301,22 +305,22 @@ class SgrRenderer(IRenderer):
 
     def _determine_output_mode(self, arg_value: OutputMode, io: t.IO) -> OutputMode:
         if arg_value is not OutputMode.AUTO:
-            logger.debug(f"Using explicitly set output mode: {arg_value}")
+            logging.debug(f"Using explicitly set output mode: {arg_value}")
             return arg_value
 
         config_value = OutputMode[get_config().output_mode]
         if config_value is not OutputMode.AUTO:
-            logger.debug(f"Using output mode set in environment: {config_value}")
+            logging.debug(f"Using output mode set in environment: {config_value}")
             return config_value
 
         isatty = io.isatty()
         term = os.environ.get("TERM", None)
         colorterm = os.environ.get("COLORTERM", None)
 
-        logger.debug(f"Determining output mode automatically: {config_value}")
-        logger.debug(f"{get_qname(io)} is a terminal: {isatty}")
-        logger.debug(f"Environment: TERM='{term}'")
-        logger.debug(f"Environment: COLORTERM='{colorterm}'")
+        logging.debug(f"Determining output mode automatically: {config_value}")
+        logging.debug(f"{get_qname(io)} is a terminal: {isatty}")
+        logging.debug(f"Environment: TERM='{term}'")
+        logging.debug(f"Environment: COLORTERM='{colorterm}'")
 
         if not isatty:
             return OutputMode.NO_ANSI
@@ -418,9 +422,6 @@ class TmuxRenderer(IRenderer):
             rendered_text += command_open + line + command_close
         return rendered_text
 
-    def clone(self) -> TmuxRenderer:
-        return TmuxRenderer()
-
     def _render_attributes(self, style: Style) -> t.Tuple[str, ...]:
         cmd_open: t.List[t.Tuple[str, str]] = []
         cmd_close: t.List[t.Tuple[str, str]] = []
@@ -489,12 +490,9 @@ class NoOpRenderer(IRenderer):
         :param string: String to :strike:`format` ignore.
         :param fmt:    Style or color to :strike:`appl`  discard.
         """
-        if isinstance(string, str):
-            return string
-        return string.string
-
-    def clone(self) -> NoOpRenderer:
-        return NoOpRenderer()
+        # if not isinstance(string, str):
+        # return string.string   # ?? @why
+        return string
 
 
 class HtmlRenderer(IRenderer):
@@ -538,9 +536,6 @@ class HtmlRenderer(IRenderer):
         style = make_style(fmt)
         opening_tag, closing_tag = self._render_attributes(style)
         return f"{opening_tag}{string}{closing_tag}"  # @TODO  # attribues
-
-    def clone(self) -> HtmlRenderer:
-        return HtmlRenderer()
 
     def _render_attributes(self, style: Style = NOOP_STYLE) -> t.Tuple[str, str]:
         if style == NOOP_STYLE:
@@ -665,6 +660,23 @@ class SgrDebugger(SgrRenderer):
         Force disabling of all output formatting.
         """
         self._format_override = False
+
+
+class TemplateRenderer(IRenderer):
+    @property
+    def is_caching_allowed(self) -> bool:
+        return True
+
+    @property
+    def is_format_allowed(self) -> bool:
+        """
+        :returns: Always *True*, because template renderer is not expected to
+                  put the results directly to a tty.
+        """
+        return True
+
+    def render(self, string: str, fmt: FT = None) -> str:
+        pass
 
 
 def init_renderer():

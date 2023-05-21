@@ -9,7 +9,9 @@ import typing as t
 
 import pytest
 
+import pytermor
 import pytermor as pt
+import pytermor.exception
 import pytermor.text
 from pytermor import Text, FrozenText, Fragment, IRenderable, Style, RT
 from pytermor.renderer import NoOpRenderer
@@ -133,7 +135,7 @@ class TestAdding:
         assert len(renderable) == 6
         assert renderable.render(NoOpRenderer).endswith("qwe")
 
-    @pytest.mark.xfail(raises=pt.LogicError)
+    @pytest.mark.xfail(raises=pytermor.exception.LogicError)
     def test_incremental_adding_fails_for_immutables(self):
         ftext = FrozenText("123", "red")
         ftext += "qwe"
@@ -160,7 +162,7 @@ class TestAdding:
     @pytest.mark.parametrize(
         "item1, item2", [(Text(frag1), 123), (Text(frag1), [frag2])]
     )
-    @pytest.mark.xfail(raises=(TypeError, pt.ArgTypeError))
+    @pytest.mark.xfail(raises=(TypeError, pytermor.exception.ArgTypeError))
     def test_adding_fails(self, item1: IRenderable, item2: IRenderable):
         assert item1 + item2
 
