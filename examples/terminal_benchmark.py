@@ -21,6 +21,19 @@ from pytermor import SgrRenderer, wait_key, Highlighter
 from pytermor.term import confirm
 from pytermor.exception import UserCancel, UserAbort
 
+runner: TestRunner
+printer: Printer
+
+class Main:
+    def __init__(self):
+        global runner, printer
+        init_logging()
+        runner = TestRunner()
+        printer = Printer()
+        runner.run()
+        printer.print_results(runner.test_sets)
+        runner._truncate_file()
+
 
 @dataclass
 class TestSet:
@@ -167,7 +180,7 @@ class Printer:
     PREFIXES_SI_UPPER = list(
         map(
             lambda s: s.upper() if s else None,
-            pt.numfmt.StaticFormatter.PREFIXES_SI_DEC,
+            pt.numfmt.PREFIXES_SI_DEC,
         )
     )
     PROGBAR_WIDTH = 15
@@ -447,9 +460,4 @@ def init_logging():
 
 
 if __name__ == "__main__":
-    init_logging()
-    runner = TestRunner()
-    printer = Printer()
-    runner.run()
-    printer.print_results(runner.test_sets)
-    runner._truncate_file()
+    Main()

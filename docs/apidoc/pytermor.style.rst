@@ -31,6 +31,7 @@
 
    .. autosummary::
    
+      MergeMode
       Style
       Styles
    

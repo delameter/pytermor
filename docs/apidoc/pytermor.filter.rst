@@ -50,7 +50,6 @@
       BytesTracer
       CsiStringReplacer
       EscSeqStringReplacer
-      ExtendedEnum
       IFilter
       NonPrintsOmniVisualizer
       NonPrintsStringVisualizer

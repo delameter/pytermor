@@ -11,6 +11,7 @@ from sybil import Sybil
 from sybil.parsers.codeblock import PythonCodeBlockParser
 from sybil.parsers.doctest import DocTestParser
 
+import pytermor as pt
 
 pytest_plugins = ["tests.fixtures"]
 
@@ -20,8 +21,7 @@ pytest_collect_file = Sybil(
 ).pytest()
 
 
-# def pytest_assertrepr_compare(op, left, right):
-#     a = 4
-#     if isinstance(left, int) and isinstance(right, int):
-#         return [f"{left} (0x{left:06x}) != {right} (0x{right:06x})"]
-#     return None
+def pytest_assertrepr_compare(op, left, right):
+    if isinstance(left, pt.Style) and isinstance(right, pt.Style) and op == "==":
+        return [repr(left) + " != " + repr(right)]
+    return []

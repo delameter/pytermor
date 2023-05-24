@@ -17,6 +17,8 @@ from abc import abstractmethod, ABCMeta
 from functools import reduce
 from hashlib import md5
 import logging
+
+from .ansi import get_closing_seq, make_clear_line_after_cursor
 from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose
 from .ansi import ColorTarget
 from .color import IColor, Color16, Color256, ColorRGB, NOOP_COLOR
@@ -290,15 +292,20 @@ class SgrRenderer(IRenderer):
             + self._render_color(style.bg, ColorTarget.BG)
             + self._render_color(style.underline_color, ColorTarget.UNDERLINE)
         )
+        closing_seq = get_closing_seq(opening_seq)
+        prefix = ""
+        if style.bg != NOOP_COLOR:
+            prefix = make_clear_line_after_cursor().assemble()
 
         # in case there are line breaks -- split text to lines and apply
         # SGRs for each line separately. it increases the chances that style
         # will be correctly displayed regardless of implementation details of
         # user's pager, multiplexer, terminal emulator etc.
-        rendered_text = ""
-        for line in string.splitlines(keepends=True):
-            rendered_text += enclose(opening_seq, line)
-        return rendered_text
+        def _render_lines():
+            for line in string.splitlines(keepends=True):
+                yield f'{opening_seq}{prefix}{line}{closing_seq}'
+
+        return "".join(_render_lines())
 
     def clone(self) -> SgrRenderer:
         return SgrRenderer(self._output_mode)

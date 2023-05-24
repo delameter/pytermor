@@ -6,26 +6,31 @@
 import sys
 
 import pytermor as pt
+from examples import *
 
 # --- usage: low-level ---
 
+print(pt.make_clear_display(), end='')
+print(pt.make_reset_cursor(), end='')
 print(f"{pt.SeqIndex.CYAN}imported{pt.SeqIndex.RESET} sys")
 
-# --- usage: mid-level ---
+# --- usage: high-level --- #
 
+# render by parts
 st = pt.Style(fg="cyan")
 ren = pt.renderer.SgrRenderer()
 print(ren.render("imported", st) + " pytermor " + ren.render("as", st) + " pt")
 
-# --- usage: high-level --- #
-
-# build manually
+# build as fragments
 pt.echo(pt.Fragment("imported ", st) + pt.Fragment("examples.*"))
 
 # or use templates
 te = pt.TemplateEngine()
+pt.RendererManager.set_default_format_always()
 pt.echo(te.substitute(
-    f"@name:[fg=icathian_yellow]@version:[fg=superuser]"
-    f":[name bold]pytermor :[version]{pt.__version__}:[-version]:[-bold] {pt.__updated__}:[-name]"
+    f"@name:[icathian-yellow]" "@v:[superuser]" "@upd:[dim]"
+    f":[name bold]pytermor:[-] "
+    f":[v]{pt.__version__}:[-] "
+    f":[upd]({pt.__updated__}):[-]"
 ))
 

@@ -22,7 +22,11 @@ run --rmprefix "${PROJECT_NAME}". \
     --no-output \
     --rankdir TB \
     --show-dot \
-    -xx pytermor pytermor._version pytermor.log pytermor.exception \
+    -xx pytermor \
+        pytermor._version \
+        pytermor.common \
+        pytermor.exception \
+        pytermor.log \
     | tee "${DOCS_IN_PATH}/generated/module.dot"
 
 run --rmprefix "${PROJECT_NAME}". \

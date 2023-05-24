@@ -18,6 +18,7 @@
    .. autosummary::
    
       TemplateEngine
+      TemplateTagOption
    
    
 

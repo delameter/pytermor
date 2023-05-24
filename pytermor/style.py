@@ -9,6 +9,7 @@
 """
 from __future__ import annotations
 
+import enum
 import typing as t
 from dataclasses import dataclass, field
 from typing import Any
@@ -22,6 +23,12 @@ FT = t.TypeVar("FT", int, str, IColor, "Style", None)
 :abbr:`FT (Format type)` is a style descriptor. Used as a shortcut precursor for actual 
 styles. Primary handler is `make_style()`.
 """
+
+
+class MergeMode(str, enum.Enum):
+    FALLBACK = "?"
+    OVERWRITE = "!"
+    REPLACE = "@"
 
 
 @dataclass()
@@ -200,7 +207,7 @@ class Style:
 
     @property
     def _attributes(self) -> t.FrozenSet:
-        return frozenset({*self.__dict__.keys(), "_fg", "_bg"})
+        return frozenset({*self.__dict__.keys(), "_fg", "_bg"} - {"_MERGE_FN_MAP"})
 
     def __init__(
         self,
@@ -223,6 +230,12 @@ class Style:
         framed: bool = None,
         class_name: str = None,
     ):
+        self._MERGE_FN_MAP: t.Dict[MergeMode, t.Callable[[Style], Style]] = {
+            MergeMode.FALLBACK: self.merge_fallback,
+            MergeMode.OVERWRITE: self.merge_overwrite,
+            MergeMode.REPLACE: self.merge_replace,
+        }
+
         if fg is not None:  # invoke setters
             self.fg = fg
         if bg is not None:
@@ -266,7 +279,7 @@ class Style:
         """
         Make a copy of the instance. Note that a copy is mutable by default
         even if an original was frozen.
-        
+
         :param frozen: Set to *True* to make an immutable instance.
         """
         return Style(self, frozen=frozen)
@@ -303,6 +316,21 @@ class Style:
         self._ensure_not_frozen()
         self._fg, self._bg = self._bg, self._fg
         return self
+
+    def merge(self, mode: MergeMode, other: Style) -> Style:
+        """
+        Method that allows specifying merging mode as an argument. Initially
+        designed for template substitutions done by `TemplateEngine`. Invokes
+        either of these (depending on ``mode`` value):
+
+            - `merge_fallback()`
+            - `merge_overwrite()`
+            - `merge_replace()`
+
+        :param mode:    Merge mode to use.
+        :param other:   Style to merge the attributes with.
+        """
+        return self._MERGE_FN_MAP.get(mode)(other)
 
     def merge_fallback(self, fallback: Style) -> Style:
         """
@@ -391,8 +419,37 @@ class Style:
                 setattr(self, attr, overwrite_val)
         return self
 
+    def merge_replace(self, replacement: Style) -> Style:
+        """
+        Not an actual "merge": discard all the attributes of the current 
+        instance and replace them with the values from  `replacement`. Generally 
+        speaking, it makes sense only in `TemplateEngine` context, as style 
+        management using the template tags is quite limited, while there are 
+        far more elegant ways to do the same from the regular python code.
+        
+        Modifies the instance in-place and returns it as well (for chained calls).
+
+        .. code-block ::
+            :caption: Merging different values in replace mode
+
+                    BASE(SELF)   REPLACE     RESULT
+                     +------+   +-------+  +-------+
+            ATTR-1   | False =Ø | True --->| True  |  REPLACE val is in priority
+            ATTR-2   | True ==Ø | False -->| False |  REPLACE val is in priority
+            ATTR-3   | None |   | False -->| False |  REPLACE val is in priority
+            ATTR-4   | True ==Ø | None --->| None  |   ... even when it is unset
+                     +------+   +-------+  +-------+
+        
+        :param replacement:  Style to merge the attributes with.
+        """ ""
+        self._ensure_not_frozen()
+        for attr in self.renderable_attributes:
+            replacement_val = getattr(replacement, attr)
+            setattr(self, attr, replacement_val)
+        return self
+
     def _ensure_not_frozen(self) -> None:
-        if hasattr(self, '_frozen') and self._frozen:
+        if hasattr(self, "_frozen") and self._frozen:
             raise LogicError(f"{self.__class__.__qualname__} is immutable")
 
     def _resolve_color(self, arg: CDT | IColor | None) -> IColor | None:
@@ -416,7 +473,7 @@ class Style:
         )
 
     def __repr__(self) -> str:
-        frozen = '*' if self._frozen else ''
+        frozen = "*" if self._frozen else ""
         return f"<{frozen}{self.__class__.__name__}[{self.repr_attrs(False)}]>"
 
     def repr_attrs(self, verbose: bool) -> str:
@@ -427,7 +484,7 @@ class Style:
             for attr_name in ("fg", "bg"):
                 val: IColor = getattr(self, attr_name)
                 prefix = "" if attr_name == "fg" else "|"
-                valstr = prefix+val.repr_attrs(verbose)
+                valstr = prefix + val.repr_attrs(verbose)
                 if not valstr.endswith("NOP"):
                     colors.append(valstr)
 
@@ -435,7 +492,7 @@ class Style:
         for attr_name in self.renderable_attributes:
             attr = getattr(self, attr_name)
             if isinstance(attr, bool):
-                prefix = ("+" if attr else "-")
+                prefix = "+" if attr else "-"
                 prop = attr_name.upper()
                 if not verbose:
                     prop = prop[:4]
@@ -446,7 +503,7 @@ class Style:
 class _NoOpStyle(Style):
     def __init__(self):
         super().__init__(frozen=True)
-    
+
     def __bool__(self) -> bool:
         return False
 
@@ -470,7 +527,7 @@ internal state of the style, which is referenced all over the library, which cou
 lead to the changes appearing in an unexpected places.  
 
 To be safe from this outcome one could merge styles via frontend method `merge_styles`, 
-which always makes a copy of ``base`` argument and thus cannot lead to such results.
+which always makes a copy of ``origin`` argument and thus cannot lead to such results.
 """
 
 
@@ -529,19 +586,21 @@ def make_style(fmt: FT = None) -> Style:
 
 
 def merge_styles(
-    base: Style = NOOP_STYLE,
+    origin: Style = NOOP_STYLE,
     *,
     fallbacks: t.Iterable[Style] = (),
     overwrites: t.Iterable[Style] = (),
 ) -> Style:
     """
     Bulk style merging method. First merge `fallbacks` `styles <Style>` with the
-    ``base`` in the same order they are iterated, using `merge_fallback()` algorithm;
+    ``origin`` in the same order they are iterated, using `merge_fallback()` algorithm;
     then do the same for `overwrites` styles, but using `merge_overwrite()` merge
     method.
 
-    The original `base` is left untouched, as all the operations are performed on
-    its clone.
+    .. important ::
+        The original `origin` is left untouched, as all the operations are performed on
+        its clone. To make things clearer the name of the argument differs from the ones
+        that are modified in-place (``base`` and ``origin``).
 
     .. code-block ::
        :caption: Dual mode merge diagram
@@ -562,8 +621,8 @@ def merge_styles(
 
     :(A),(B):
         Iterate ``fallback`` styles one by one; discard all the attributes of a
-        current ``fallback`` style, that are already set in ``base`` style
-        (i.e., that are not *Nones*). Update all ``base`` style empty attributes
+        current ``fallback`` style, that are already set in ``origin`` style
+        (i.e., that are not *Nones*). Update all ``origin`` style empty attributes
         with corresponding ``fallback`` values, if they exist and are not empty.
         Repeat these steps for the next ``fallback`` in the list, until the list
         is empty.
@@ -571,20 +630,20 @@ def merge_styles(
         .. code-block :: python
             :caption: Fallback merge algorithm example №1
 
-            >>> base = Style(fg='red')
+            >>> origin = Style(fg='red')
             ...
             >>> fallbacks = [Style(fg='blue'), Style(bold=True), Style(bold=False)]
             ...
-            >>> merge_styles(base, fallbacks=fallbacks)
+            >>> merge_styles(origin, fallbacks=fallbacks)
             <Style[red +BOLD]>
 
         In the example above:
 
             - the first fallback will be ignored, as `fg` is already set;
-            - the second fallback will be applied (``base`` style will now have `bold`
+            - the second fallback will be applied (``origin`` style will now have `bold`
               set to *True*;
             - which will make the handler ignore third fallback completely; if third
-              fallback was encountered earlier than the 2nd one, ``base`` `bold` attribute
+              fallback was encountered earlier than the 2nd one, ``origin`` `bold` attribute
               would have been set to *False*, but alas.
 
         .. note ::
@@ -596,7 +655,7 @@ def merge_styles(
 
             Instead of using ``Style(st, bold=True)`` the merging algorithm is invoked.
             This changes the logic of "bold" attribute application -- if there is a
-            necessity to explicitly forbid bold text at base/parent level, one could write::
+            necessity to explicitly forbid bold text at origin/parent level, one could write::
 
                 STYLE_NUL = Style(STYLE_DEFAULT, cv.GRAY, bold=False)
                 STYLE_PRC = Style(STYLE_DEFAULT, cv.MAGENTA)
@@ -616,9 +675,9 @@ def merge_styles(
 
 
     :(C),(D),(E):
-        Iterate ``overwrite`` styles one by one; discard all the attributes of a ``base``
+        Iterate ``overwrite`` styles one by one; discard all the attributes of a ``origin``
         style that have a non-empty counterpart in ``overwrite`` style, and put
-        corresponding ``overwrite`` attribute values instead of them. Keep ``base``
+        corresponding ``overwrite`` attribute values instead of them. Keep ``origin``
         attribute values that have no counterpart in current ``overwrite`` style (i.e.,
         if attribute value is *None*). Then pick next ``overwrite`` style from the input
         list and repeat all these steps.
@@ -626,26 +685,28 @@ def merge_styles(
         .. code-block :: python
             :caption: Overwrite merge algorithm example
 
-            >>> base = Style(fg='red')
+            >>> origin = Style(fg='red')
             ...
             >>> overwrites = [Style(fg='blue'), Style(bold=True), Style(bold=False)]
             ...
-            >>> merge_styles(base, overwrites=overwrites)
+            >>> merge_styles(origin, overwrites=overwrites)
             <Style[blue -BOLD]>
 
         In the example above all the ``overwrites`` will be applied in order they were
         put into *list*, and the result attribute values are equal to the last
         encountered non-empty values in ``overwrites`` list.
 
-    :param base:       Basis style instance.
-    :param fallbacks:  List of styles to be used as a backup attribute storage, when
-                       there is no value set for the attribute in question. Uses
-                       `merge_fallback()` merging strategy.
+    :param origin:     Initial style, or the source of attributes.
+    :param fallbacks:  List of styles to be used as a backup attribute storage, or.
+                       in other words, to be "merged up" with the origin; affects the unset
+                       attributes of the current style and replaces these values with its
+                       own. Uses `merge_fallback()` merging strategy.
     :param overwrites: List of styles to be used as attribute storage force override
-                       regardless of actual `base` attribute valuse.
-    :return:           Clone of ``base`` style with all specified styles merged into.
+                       regardless of actual `origin` attribute valuse (so called
+                       "merging down" with the origin).
+    :return:           Clone of ``origin`` style with all specified styles merged into.
     """
-    result = base.clone()
+    result = origin.clone()
     for fallback in fallbacks:
         result.merge_fallback(fallback)
     for overwrite in overwrites:

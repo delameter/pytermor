@@ -12,7 +12,6 @@ Library methods rewritten for correct work with strings containing control seque
 from __future__ import annotations
 
 import codecs
-import enum
 import itertools
 import logging
 import math
@@ -25,6 +24,7 @@ from functools import reduce
 from math import ceil
 from typing import Union
 
+from .common import ExtendedEnum
 from .exception import ArgTypeError
 from .parser import ESCAPE_SEQ_REGEX, SGR_SEQ_REGEX, CSI_SEQ_REGEX
 from .term import get_terminal_width
@@ -32,31 +32,6 @@ from .term import get_terminal_width
 
 T = t.TypeVar("T")
 
-
-class ExtendedEnum(enum.Enum):
-    """Standard `Enum` with a few additional methods on top."""
-
-    @classmethod
-    def list(cls):
-        """
-        Return all enum values as list.
-
-        >>> Align.list()
-        ['<', '>', '^']
-
-        """
-        return list(map(lambda c: c.value, cls))
-
-    @classmethod
-    def dict(cls):
-        """
-        Return mapping of all enum keys to corresponding enum values.
-
-        >>> Align.dict()
-        {<Align.LEFT: '<'>: '<', <Align.RIGHT: '>'>: '>', <Align.CENTER: '^'>: '^'}
-
-        """
-        return dict(map(lambda c: (c, c.value), cls))
 
 class Align(str, ExtendedEnum):
     """

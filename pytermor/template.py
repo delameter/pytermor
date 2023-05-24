@@ -6,82 +6,85 @@
 
 from __future__ import annotations
 
-import re
-import typing as t
-
 import logging
+import re
+from dataclasses import dataclass
+
+from .ansi import *
 from .exception import LogicError
-from .style import Style, NOOP_STYLE, merge_styles
+from .color import resolve_color
+from .common import ExtendedEnum
+from .style import Style, NOOP_STYLE, MergeMode
 from .text import Text, Fragment, apply_style_words_selective
 
 
-class _TemplateTag:
-    def __init__(
-        self,
-        setf: str | None,
-        seto: str | None,
-        setx: str | None,
-        add: str | None,
-        comment: str | None,
-        split: str | None,
-        close: str | None,
-        style: str | None,
-    ):
-        self.setf: str | None = setf.replace("?", "") if setf else None
-        self.seto: str | None = seto.replace("!", "") if seto else None
-        self.setx: str | None = setx.replace("@", "") if setx else None
-        self.add: bool = bool(add)
-        self.comment: bool = bool(comment)
-        self.split: bool = bool(split)
-        self.close: bool = bool(close)
-        self.style: str | None = style
+class TemplateTagOption(str, ExtendedEnum):
+    STYLE_WORDS_SELECTIVE = "|"
 
-# USE CASES
-#  f"@name:[fg=icathian_yellow]@version:[fg=superuser]"
-#     f":[name bold]pytermor :[version]{pt.__version__}:[-version]:[-bold] {pt.__updated__}:[-name]"
-#
-#  @Todo: ':[-version -bold]'  WHY YOU NO WORK
+
+@dataclass(frozen=True)
+class _TemplateTagRaw:
+    persist: str | None
+    name: str | None
+    options: str
+    action: str
+    attrs: str
+    pos: str
+    clear: str
 
 
 class TemplateEngine:
     _TAG_REGEXP = re.compile(
-        r"""
-        (?: (?# instruction type)
-          (?: (?# reg prefix)
-               (?P<setf>\?\w+)  (?#    register new style in fallback mode)
-              |(?P<seto>!\w+)   (?# or register new style in overwrite mode)
-              |(?P<setx>@\w+)   (?# or register new style in exact mode)
-          )?  (?# or use it right away) 
-          (?P<add>:)       (?# insert style rendered as SGRs)
-          |(?P<comment>\#)  (?# ignoted by parser)
-        )
-        (?![^\\]\\)  (?# ignore [ escaped with single backslash, but not double)
-        \[
-          (?P<split>\|)?
-          (?P<close>-)?
-          (?P<style>[\w =]+)
-        \]
+        r"""                  ##### TAG PREFIX #######
+        ((?P<persist>[?!@])   # save tag to local map as fallback/overwrite/explicitly
+         (?P<name>[\w-]+)     # … under specified name  
+        )?                    # … or make a one-use tag
+        :                     # … and assemble the SGR and insert the bytes
+        (?![^\\]\\)           # ignore escaped with single backslash, but not double
+        \[(?:                 ####### TAG BODY #######
+            (?P<pos>0)            # reset cursor
+            |                     # … OR clear current line / the whole screen
+            (?P<clear>(<<|<|<>|<<>>|>|>>))  #
+            |
+            (?P<options>[|]*)     # … OR /with options/ 
+            (?P<action>[+-]?)     # … open or close style  /empty=open/
+            (?P<attrs>[a-zA-Z][\w =-]*|)   # … add style attributes OR close last  
+            
+        )\]
         """,
         re.VERBOSE,
     )
-
     _ESCAPE_REGEXP = re.compile(r"([^\\])\\\[")
 
+    PERSIST_TO_MERGE_MODE = {
+        "?": MergeMode.FALLBACK,
+        "!": MergeMode.OVERWRITE,
+        "@": MergeMode.REPLACE,
+    }
+    CLEAR_TO_SEQ = {
+        "<>": make_clear_line().assemble(),
+        "<<>>": make_clear_display().assemble(),
+        "<": make_clear_line_before_cursor().assemble(),
+        ">": make_clear_line_after_cursor().assemble(),
+        "<<": make_clear_display_before_cursor().assemble(),
+        ">>": make_clear_display_after_cursor().assemble(),
+    }
+
     def __init__(self, custom_styles: t.Dict[str, Style] = None):
-        self._custom_styles: t.Dict[str, Style] = custom_styles or {}
+        self._user_styles: t.Dict[str, Style] = custom_styles or {}
 
     def substitute(self, tpl: str) -> Text:
         result = Text()
         tpl_cursor = 0
         style_buffer = NOOP_STYLE
-        split_style = False
+        st_opts = []
         logging.debug(f"Parsing the template ({len(tpl)})")
 
         for tag_match in self._TAG_REGEXP.finditer(tpl):
             span = tag_match.span()
-            tpl_part = self._ESCAPE_REGEXP.sub(r"\1[", tpl[tpl_cursor: span[0]])
+            tpl_part = self._ESCAPE_REGEXP.sub(r"\1[", tpl[tpl_cursor : span[0]])
             if len(tpl_part) > 0 or style_buffer != NOOP_STYLE:
-                if split_style:
+                if TemplateTagOption.STYLE_WORDS_SELECTIVE in st_opts:
                     for part in apply_style_words_selective(tpl_part, style_buffer):
                         result += part
                     # add open style for engine to properly handle the :[-closing] tag:
@@ -89,57 +92,71 @@ class TemplateEngine:
                 result += Fragment(tpl_part, style_buffer, close_this=False)
 
             tpl_cursor = span[1]
-            style_buffer = NOOP_STYLE
-            split_style = False
+            tagr = _TemplateTagRaw(**tag_match.groupdict())
+            if tagr.action == "-" and not tagr.attrs:
+                result += Fragment("", style_buffer, close_prev=True)
+            elif tagr.pos:
+                result += Fragment(make_reset_cursor().assemble(), None)
+            elif tagr.clear:
+                result += Fragment(self.CLEAR_TO_SEQ.get(tagr.clear, NOOP_SEQ), None)
 
-            tag = _TemplateTag(**tag_match.groupdict())
-            style = self._tag_to_style(tag)
-            if tagp := (tag.setf or tag.seto):
-                self._custom_styles[tagp] = merge_styles(
-                    self._custom_styles.get(tagp, NOOP_STYLE),
-                    fallbacks=[tag.setf or NOOP_STYLE],
-                    overwrites=[tag.seto or NOOP_STYLE],
-                )
-            elif tag.setx:
-                self._custom_styles[tag.setx] = style
-            elif tag.add:
-                if tag.close:
-                    result += Fragment("", style, close_prev=True)
-                else:
-                    style_buffer = style
-                    split_style = tag.split
-            elif tag.comment:
-                pass
+            style_buffer = NOOP_STYLE
+            st_opts = []
+
+            input_style = self._tag_to_style(tagr, self._user_styles)
+            if merge_mode := self.PERSIST_TO_MERGE_MODE.get(tagr.persist):
+                self._user_styles[tagr.name] = self._user_styles.get(
+                    tagr.name, NOOP_STYLE.clone()
+                ).merge(merge_mode, input_style)
+                continue
+
+            if tagr.action == "-":
+                result += Fragment("", input_style, close_prev=True)
             else:
-                raise ValueError(f"Unknown tag operand: {_TemplateTag}")
+                style_buffer = input_style
+                st_opts = [
+                    TemplateTagOption.dict().values().index(opt)
+                    for opt in (tagr.options or [])
+                ]
+            continue
 
         result += tpl[tpl_cursor:]
         return result
 
-    def _tag_to_style(self, tag: _TemplateTag) -> Style | None:
-        if tag.comment:
-            return None
-
+    def _tag_to_style(
+        self, raw: _TemplateTagRaw, custom_styles: t.Dict[str, Style]
+    ) -> Style | None:
         style_attrs = {}
         base_style = NOOP_STYLE
+        if raw.attrs:
+            for style_attr in raw.attrs.split(" "):
+                if not style_attr:
+                    continue
+                if style_attr in custom_styles.keys():
+                    if base_style != NOOP_STYLE:
+                        raise LogicError(
+                            f"Only one custom style per tag is allowed: ({style_attr})"
+                        )
+                    base_style = custom_styles[style_attr]
+                    continue
 
-        for style_attr in tag.style.split(" "):
-            if style_attr in self._custom_styles.keys():
-                if base_style != NOOP_STYLE:
-                    raise LogicError(
-                        f"Only one custom style per tag is allowed: ({tag.style})"
-                    )
-                base_style = self._custom_styles[style_attr]
-                continue
-            if style_attr.startswith("fg=") or style_attr.startswith("bg="):
-                style_attrs.update({k: v for k, v in (style_attr.split("="),)})
-                continue
-            if style_attr in Style.renderable_attributes:
-                style_attrs.update({style_attr: True})
-                continue
-            raise ValueError(f'Unknown style name or attribute: "{style_attr}"')
+                if style_attr.startswith("fg=") or style_attr.startswith("bg="):
+                    style_attrs.update({k: v for k, v in (style_attr.split("="),)})
+                    continue
+
+                if style_attr in Style.renderable_attributes:
+                    style_attrs.update({style_attr: True})
+                    continue
+
+                try:
+                    if color := resolve_color(style_attr):
+                        style_attrs.update({"fg": color})
+                        continue
+                except LookupError:
+                    pass
+
+                raise ValueError(f'Unknown style name or attribute: "{style_attr}"')
         return Style(base_style, **style_attrs)
 
 
 _template_engine = TemplateEngine()
-

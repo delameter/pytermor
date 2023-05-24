@@ -28,7 +28,7 @@ ESCAPE_SEQ_REGEX = re.compile(
 			(?P<fe_classifier>[\x40-\x5f])
 			(?P<fe_param>[\x30-\x3f]*)
 			(?P<fe_interm>[\x20-\x2f]*)
-			(?P<fe_final>[\x40-\x7e]*)
+			(?P<fe_final>[\x40-\x7e]?)
 		)|
 		(?P<fs_class_seq>
 			(?P<fs_classifier>[\x60-\x7e])

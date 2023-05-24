@@ -11,7 +11,7 @@ API reference
    .. graphviz:: /generated/module.dot
       :caption: Module dependency graph [#]_
 
-   .. [#] Overly common modules ``exception`` and ``log`` are not shown, as they turn the graph into a mess. Same applies to internal modules which name starts with ``_``.
+   .. [#] Overly common modules (``exception``, ``log`` and ``common`` itself) are not shown, as they turn the graph into a mess. Same applies to internal modules which name starts with ``_``.
 
 
 .. autosummary::
@@ -40,4 +40,4 @@ API reference
       :caption: Module dependency graph [#]_
 
 
-   .. [#] Overly common modules ``exception`` and ``log`` are not shown, as they turn the graph into a mess. Same applies to internal modules which name starts with ``_``.
+   .. [#] Overly common modules (``exception``, ``log`` and ``common`` itself) are not shown, as they turn the graph into a mess. Same applies to internal modules which name starts with ``_``.

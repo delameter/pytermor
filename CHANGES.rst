@@ -42,8 +42,9 @@ pending
 - |DRAFT| `parser` module
 - |REWORK| `util*` -> `numfmt`, `filter`, `conv`
 - |REFACTOR|  split `commons` into `log` and `excepiton` modules
+- |FIX| `numfmt` exports
 
-.. <@pending:5f96115>
+.. <@pending:f690eff>
 .. ^ blank line before should be kept
 
 
