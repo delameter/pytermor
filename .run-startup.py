@@ -26,7 +26,6 @@ pt.echo(pt.Fragment("imported ", st) + pt.Fragment("examples.*"))
 
 # or use templates
 te = pt.TemplateEngine()
-pt.RendererManager.set_default_format_always()
 pt.echo(te.substitute(
     f"@name:[icathian-yellow]" "@v:[superuser]" "@upd:[dim]"
     f":[name bold]pytermor:[-] "

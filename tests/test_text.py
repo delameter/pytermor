@@ -30,7 +30,7 @@ def format_test_rt_params(val) -> str | None:
     return None
 
 
-@pytest.mark.setup(output_mode="TRUE_COLOR")
+@pytest.mark.setup(force_output_mode="true_color")
 class TestText:
     def test_style_applying_works(self):
         assert Text("123", Style(fg="red")).render() == "\x1b[31m" "123" "\x1b[39m"
@@ -64,11 +64,11 @@ class TestText:
             Fragment("6"),
         )
         expected = (
-            "\x1b[1;31;40m"   + "\x1b[0K" + "1" + "\x1b[22;39;49m"
-            "\x1b[1;4;33;42m" + "\x1b[0K" + "2" + "\x1b[22;24;39;49m"
-            "\x1b[1;4;33;42m" + "\x1b[0K" + "3" + "\x1b[22;24;39;49m"
-            "\x1b[1;4;33;42m" + "\x1b[0K" + "4" + "\x1b[22;24;39;49m"
-            "\x1b[1;31;40m"   + "\x1b[0K" + "5" + "\x1b[22;39;49m" + "6"
+            "\x1b[1;31;40m"   + "1" + "\x1b[22;39;49m"
+            "\x1b[1;4;33;42m" + "2" + "\x1b[22;24;39;49m"
+            "\x1b[1;4;33;42m" + "3" + "\x1b[22;24;39;49m"
+            "\x1b[1;4;33;42m" + "4" + "\x1b[22;24;39;49m"
+            "\x1b[1;31;40m"   + "5" + "\x1b[22;39;49m" + "6"
         )
         assert text.render() == expected
 

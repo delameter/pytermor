@@ -8,7 +8,6 @@ Output formatters. Default global renderer type is `SgrRenderer`.
 """
 from __future__ import annotations
 
-import enum
 import os
 import re
 import sys
@@ -18,10 +17,11 @@ from functools import reduce
 from hashlib import md5
 import logging
 
-from .ansi import get_closing_seq, make_clear_line_after_cursor
-from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex, enclose
+from .ansi import get_closing_seq
+from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex
 from .ansi import ColorTarget
 from .color import IColor, Color16, Color256, ColorRGB, NOOP_COLOR
+from .common import ExtendedEnum
 from .log import get_qname
 from .config import get_config
 from .style import Style, NOOP_STYLE, Styles, make_style, FT
@@ -176,7 +176,7 @@ class IRenderer(metaclass=ABCMeta):
         return self.__class__.__qualname__ + "[]"
 
 
-class OutputMode(enum.Enum):
+class OutputMode(ExtendedEnum):
     """
     Determines what types of SGR sequences are allowed to use in the output.
     """
@@ -206,6 +206,14 @@ class OutputMode(enum.Enum):
     Lets the renderer select the most suitable mode by itself.
     See `SgrRenderer` constructor documentation for the details. 
     """
+
+    @classmethod
+    def resolve_by_value(cls, val: str) -> OutputMode:
+        vk = {v: k for k ,v in cls.dict().items()}
+        if val in vk.keys():
+            return vk[val]
+        vals_str = ', '.join(vk.keys())
+        raise LookupError(f"Invalid output mode: {val}, should be one of: {vals_str}")
 
 
 class SgrRenderer(IRenderer):
@@ -258,6 +266,20 @@ class SgrRenderer(IRenderer):
         OutputMode.TRUE_COLOR: ColorRGB,
     }
 
+    _STYLE_ATTR_TO_SGR: t.Dict[str, SequenceSGR] = {
+        "blink":             SeqIndex.BLINK_SLOW,
+        "bold":              SeqIndex.BOLD,
+        "crosslined":        SeqIndex.CROSSLINED,
+        "dim":               SeqIndex.DIM,
+        "double_underlined": SeqIndex.DOUBLE_UNDERLINED,
+        "curly_underlined":  SeqIndex.CURLY_UNDERLINED,
+        "inversed":          SeqIndex.INVERSED,
+        "italic":            SeqIndex.ITALIC,
+        "overlined":         SeqIndex.OVERLINED,
+        "underlined":        SeqIndex.UNDERLINED,
+        "framed":            SeqIndex.FRAMED,
+    }
+
     def __init__(self, output_mode: OutputMode = OutputMode.AUTO, io: t.IO = sys.stdout):
         self._output_mode: OutputMode = self._determine_output_mode(output_mode, io)
         self._color_upper_bound: t.Type[IColor] | None = self._COLOR_UPPER_BOUNDS.get(
@@ -287,37 +309,33 @@ class SgrRenderer(IRenderer):
     def render(self, string: str, fmt: FT = None) -> str:
         style = make_style(fmt)
         opening_seq = (
-            self._render_attributes(style, squash=True)
+            self._render_attributes(style)
             + self._render_color(style.fg, ColorTarget.FG)
             + self._render_color(style.bg, ColorTarget.BG)
             + self._render_color(style.underline_color, ColorTarget.UNDERLINE)
         )
         closing_seq = get_closing_seq(opening_seq)
-        prefix = ""
-        if style.bg != NOOP_COLOR:
-            prefix = make_clear_line_after_cursor().assemble()
+        rendered_text = ""
 
         # in case there are line breaks -- split text to lines and apply
         # SGRs for each line separately. it increases the chances that style
         # will be correctly displayed regardless of implementation details of
         # user's pager, multiplexer, terminal emulator etc.
-        def _render_lines():
-            for line in string.splitlines(keepends=True):
-                yield f'{opening_seq}{prefix}{line}{closing_seq}'
-
-        return "".join(_render_lines())
+        for line in string.splitlines(keepends=True):
+            rendered_text += f'{opening_seq}{line}{closing_seq}'
+        return rendered_text
 
     def clone(self) -> SgrRenderer:
         return SgrRenderer(self._output_mode)
 
     def _determine_output_mode(self, arg_value: OutputMode, io: t.IO) -> OutputMode:
         if arg_value is not OutputMode.AUTO:
-            logging.debug(f"Using explicitly set output mode: {arg_value}")
+            logging.debug(f"Using explicitly set output mode (as arg): {arg_value}")
             return arg_value
 
-        config_value = OutputMode[get_config().output_mode]
+        config_value = OutputMode.resolve_by_value(get_config().force_output_mode)
         if config_value is not OutputMode.AUTO:
-            logging.debug(f"Using output mode set in environment: {config_value}")
+            logging.debug(f"Using explicitly set output mode (from env): {config_value}")
             return config_value
 
         isatty = io.isatty()
@@ -337,41 +355,20 @@ class SgrRenderer(IRenderer):
             return OutputMode.XTERM_16
         if colorterm in ("truecolor", "24bit"):
             return OutputMode.TRUE_COLOR
-        return OutputMode.XTERM_256
+        return OutputMode.resolve_by_value(get_config().auto_output_mode)
 
-    def _render_attributes(
-        self, style: Style, squash: bool
-    ) -> t.List[SequenceSGR] | SequenceSGR:
+    def _render_attributes(self, style: Style) -> t.List[SequenceSGR] | SequenceSGR:
         if not self.is_format_allowed:
-            return NOOP_SEQ if squash else [NOOP_SEQ]
+            return NOOP_SEQ
 
         result = []
-        if style.blink:
-            result += [SeqIndex.BLINK_SLOW]
-        if style.bold:
-            result += [SeqIndex.BOLD]
-        if style.crosslined:
-            result += [SeqIndex.CROSSLINED]
-        if style.dim:
-            result += [SeqIndex.DIM]
-        if style.double_underlined:
-            result += [SeqIndex.DOUBLE_UNDERLINED]
-        if style.curly_underlined:
-            result += [SeqIndex.CURLY_UNDERLINED]
-        if style.inversed:
-            result += [SeqIndex.INVERSED]
-        if style.italic:
-            result += [SeqIndex.ITALIC]
-        if style.overlined:
-            result += [SeqIndex.OVERLINED]
-        if style.underlined:
-            result += [SeqIndex.UNDERLINED]
-        if style.framed:
-            result += [SeqIndex.FRAMED]
+        for attr_name, sgr in self._STYLE_ATTR_TO_SGR.items():
+            if getattr(style, attr_name):
+                result.append(sgr)
+        if not result:
+            return NOOP_SEQ
 
-        if squash:
-            return reduce(lambda p, c: p + c, result, NOOP_SEQ)
-        return result
+        return reduce(lambda p, c: p + c, result, NOOP_SEQ)
 
     def _render_color(self, color: IColor, target: ColorTarget) -> SequenceSGR:
         if not self.is_format_allowed or color == NOOP_COLOR:

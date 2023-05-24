@@ -17,7 +17,7 @@ class TestStringFilter:  # @TODO
         assert actual == expected
 
 
-@pytest.mark.setup(output_mode='TRUE_COLOR')
+@pytest.mark.setup(force_output_mode='true_color')
 class TestStringAligner:
     @pytest.mark.parametrize('expected,align,width', [
         ("\x1b[31m" "123" "\x1b[39m\x1b[34m" "456" "\x1b[39m" "   ", Align.LEFT, 9),

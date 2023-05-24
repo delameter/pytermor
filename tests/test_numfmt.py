@@ -287,7 +287,7 @@ class TestStaticFormatter:
         ],
         ids=format_test_params,
     )
-    @pytest.mark.setup(output_mode="TRUE_COLOR")
+    @pytest.mark.setup(force_output_mode="true_color")
     def test_colorizing(self, expected: str, value: float):
         assert format_si(value, unit="m", auto_color=True).render() == expected
 
@@ -715,7 +715,7 @@ class TestDynamicFormatter:
         ],
         ids=format_test_params,
     )
-    @pytest.mark.setup(output_mode="TRUE_COLOR")
+    @pytest.mark.setup(force_output_mode="true_color")
     def test_colorizing(self, expected: str, value: int):
         assert format_time(value, auto_color=True).render() == expected
 
@@ -874,7 +874,7 @@ class TestDualFormatter:
         ],
         ids=format_test_params,
     )
-    @pytest.mark.setup(output_mode="TRUE_COLOR")
+    @pytest.mark.setup(force_output_mode="true_color")
     def test_colorizing(self, expected: str, delta: timedelta):
         formatter = dual_registry.find_matching(10)
         actual = formatter.format(delta.total_seconds(), auto_color=True)
