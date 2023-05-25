@@ -115,7 +115,7 @@ class TemplateEngine:
             else:
                 style_buffer = input_style
                 st_opts = [
-                    TemplateTagOption.dict().values().index(opt)
+                    {v: k for k, v in TemplateTagOption.dict().items()}.get(opt)
                     for opt in (tagr.options or [])
                 ]
             continue

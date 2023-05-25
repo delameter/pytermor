@@ -43,8 +43,11 @@ pending
 - |REWORK| `util*` -> `numfmt`, `filter`, `conv`
 - |REFACTOR|  split `commons` into `log` and `excepiton` modules
 - |FIX| `numfmt` exports
+- |FIX| `ESC_SEQ_REGEX`
+- |REFACTOR| `TemplateEngine`
+- |REFACTOR| split ``PYTERMOR_OUTPUT_MODE`` env var into ``PYTERMOR_FORCE_OUTPUT_MODE`` and ``PYTERMOR_AUTO_OUTPUT_MODE``
 
-.. <@pending:f690eff>
+.. <@pending:bd56f43>
 .. ^ blank line before should be kept
 
 

@@ -4,15 +4,17 @@
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
 import sys
-
 import pytermor as pt
 from examples import *
 
+pt.init_config()
+pt.init_renderer()
+
 # --- usage: low-level ---
 
-print(pt.make_clear_display(), end='')
-print(pt.make_reset_cursor(), end='')
-print(f"{pt.SeqIndex.CYAN}imported{pt.SeqIndex.RESET} sys")
+pt.echo(pt.make_clear_display().assemble(), nl=False)
+pt.echo(pt.make_reset_cursor().assemble(), nl=False)
+pt.echo(f"{pt.SeqIndex.CYAN}imported{pt.SeqIndex.RESET} sys")
 
 # --- usage: high-level --- #
 
@@ -27,8 +29,9 @@ pt.echo(pt.Fragment("imported ", st) + pt.Fragment("examples.*"))
 # or use templates
 te = pt.TemplateEngine()
 pt.echo(te.substitute(
-    f"@name:[icathian-yellow]" "@v:[superuser]" "@upd:[dim]"
-    f":[name bold]pytermor:[-] "
+    f"@name:[icathian-yellow bold]" "@v:[superuser]" "@upd:[dim]"
+    f""
+    f":[name]pytermor:[-] "
     f":[v]{pt.__version__}:[-] "
     f":[upd]({pt.__updated__}):[-]"
 ))
