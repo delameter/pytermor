@@ -46,8 +46,9 @@ pending
 - |FIX| `ESC_SEQ_REGEX`
 - |REFACTOR| `TemplateEngine`
 - |REFACTOR| split ``PYTERMOR_OUTPUT_MODE`` env var into ``PYTERMOR_FORCE_OUTPUT_MODE`` and ``PYTERMOR_AUTO_OUTPUT_MODE``
+- |FIX| `template` options parsing issue
 
-.. <@pending:bd56f43>
+.. <@pending:d7fed9e>
 .. ^ blank line before should be kept
 
 

@@ -4600,6 +4600,9 @@ colors:
   - name: sky-magenta
     original_name: Sky magenta
     value: 0xcf71af
+  - name: skylight-blue
+    original_name: skylight blue
+    value: 0x0395f3
   - name: slate
     original_name: Slate (Atlassian)
     value: 0x091e42
