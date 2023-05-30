@@ -28,25 +28,46 @@ from functools import total_ordering
 from typing import Any, ClassVar
 
 from .log import get_qname
-from .exception import LogicError, ConflictError
+from .exception import LogicError, ConflictError, ParseError
 
 
-class _ClassMap(dict):
-    def add(self, cls: type, parents: tuple[type], introducer: t.Iterable[str]):
-        for c in introducer:
+class _ClassMap(dict[str, type['ISequence']]):
+    def add(self, cls: type[ISequence], parents: tuple[type], introducer: t.Iterable[str | int]):
+        for i in introducer:
+            c = i if isinstance(i, str) else chr(i)
             if (existing := self.get(c)) in parents or not existing:
                 self[c] = cls
-            else:
+            else:  # pragma: no cover
                 raise LogicError(
                     f"Mapping ('{c}' -> {get_qname(existing)}) is already defined. "
                     f"Overwriting of class' mappings is allowed to its' descendants "
                     f"only, while {cls} is not."
                 )
 
+    def from_dict(self, groupdict: dict) -> ISequence:
+        classifier = (
+            groupdict.get("nf_classifier")
+            or groupdict.get("st_classifier")
+            or groupdict.get("osc_classifier")
+            or groupdict.get("csi_classifier")
+            or groupdict.get("fe_classifier")
+            or groupdict.get("fp_classifier")
+            or groupdict.get("fs_classifier")
+        )
+        if cls := self.get(classifier):
+            return cls.from_dict(groupdict)
+        raise LogicError(f"Unknown classifier in {groupdict}")  # pragma: no cover
+
+
+_CLASSMAP = _ClassMap()
+
+def seq_from_dict(groupdict: dict) -> 'ISequence':
+    return _CLASSMAP.from_dict(groupdict)
+
 
 class _SequenceMeta(ABCMeta):
     def __new__(
-        __mcls: type[_SequenceMeta],
+        __mcls: type[type[ISequence]],
         __name: str,
         __bases: tuple[type, ...],
         __namespace: dict[str, Any],
@@ -54,9 +75,9 @@ class _SequenceMeta(ABCMeta):
     ) -> _SequenceMeta:
         new = super().__new__(__mcls, __name, __bases, __namespace, **kwargs)
         if classifier := getattr(new, "_CLASSIFIER", None):
-            ISequence._CLASSMAP.add(new, __bases, [classifier])
+            _CLASSMAP.add(new, __bases, [classifier])
         elif classifier_range := getattr(new, "_CLASSIFIER_RANGE", None):
-            ISequence._CLASSMAP.add(new, __bases, [*classifier_range])
+            _CLASSMAP.add(new, __bases, [*classifier_range])
         return new
 
 
@@ -64,8 +85,6 @@ class ISequence(t.Sized, metaclass=_SequenceMeta):
     """
     Abstract ancestor of all escape sequences.
     """
-
-    _CLASSMAP: ClassVar[_ClassMap] = _ClassMap()
 
     ESC_CHARACTER = "\x1b"
     PARAM_SEPARATOR = ";"
@@ -97,6 +116,18 @@ class ISequence(t.Sized, metaclass=_SequenceMeta):
     def from_dict(cls, data: dict) -> ISequence:
         raise NotImplementedError
 
+    @classmethod
+    def cast_params(cls, data: dict, key: str, require_int: bool) -> t.Iterable[str|int, ...]:
+        if not (params_raw := data.get(key)):
+            return
+        for param_spl in params_raw.split(cls.PARAM_SEPARATOR):
+            try:
+                yield int(param_spl)
+            except ValueError:
+                if require_int:
+                    raise ParseError(data)
+                yield param_spl
+
     def assemble(self) -> str:
         return (
             self.ESC_CHARACTER
@@ -122,13 +153,13 @@ class ISequence(t.Sized, metaclass=_SequenceMeta):
         return 0
 
     def __eq__(self, other: ISequence):
-        if type(self) != type(other):
+        if type(self) != type(other):  # pragma: no cover
             return False
         return self._params == other._params
 
     def __repr__(self) -> str:
-        params = ",".join([str(p) for p in (self._params or "")])
-        return f"<{self._abbr}[{params}]>"
+        params = self.PARAM_SEPARATOR.join(map(str, self._params or []))
+        return f"<{self._abbr}[{params}{self._interm or ''}{self._final or ''}]>"
 
 
 class SequenceNf(ISequence):
@@ -140,23 +171,27 @@ class SequenceNf(ISequence):
     ``&``, ``'``, ``(``, ``)``, ``*``, ``+``, ``,``, ``-``, ``.``, ``/``).
     """
 
-    _CLASSIFIER_RANGE = (0x20, 0x2F)
+    _CLASSIFIER_RANGE = range(0x20, 0x30)
 
-    def __init__(self, final: str, interm: str = None, abbr: str = "nF"):
+    def __init__(self, classifier: str, final: str, interm: str = None, abbr: str = "nF"):
         """
         :param interm: intermediate bytes :hex:`0x20-0x2F`
         """
-        super().__init__(None, interm, final, abbr)
+        super().__init__(classifier, interm, final, abbr)
 
     def assemble(self) -> str:
         """
         Build up actual byte sequence and return as an ASCII-encoded string.
         """
-        return self.ESC_CHARACTER + (self._interm or None) + self._final
+        return self.ESC_CHARACTER + self._classifier + (self._interm or None) + self._final
 
     @classmethod
     def from_dict(cls, data: dict) -> SequenceNf:
-        return cls(final=data.get("nf_final"), interm=data.get("nf_interm"))
+        return SequenceNf(
+            data.get("nf_classifier"),
+            data.get("nf_final"),
+            data.get("nf_interm") or None,
+        )
 
 
 class SequenceFp(ISequence):
@@ -168,17 +203,17 @@ class SequenceFp(ISequence):
     ``?``).
     """
 
-    _CLASSIFIER_RANGE = (0x30, 0x3F)
+    _CLASSIFIER_RANGE = range(0x30, 0x40)
 
-    def __init__(self, classifier: str, interm: str = None, abbr="Fp"):
+    def __init__(self, classifier: str, abbr="Fp"):
         """
         .
         """
-        super().__init__(classifier, interm, abbr=abbr)
+        super().__init__(classifier, abbr=abbr)
 
     @classmethod
     def from_dict(cls, data: dict) -> SequenceFp:
-        return cls(data.get("fp_classifier"), *data.get("fp_param"))
+        return SequenceFp(data.get("fp_classifier"))
 
 
 class SequenceFs(ISequence):
@@ -189,17 +224,17 @@ class SequenceFs(ISequence):
     :hex:`0x60-0x7E` (``\u0060``, ``a``-``z``, ``{``, ``|``, ``}``).
     """
 
-    _CLASSIFIER_RANGE = (0x60, 0x7E)
+    _CLASSIFIER_RANGE = range(0x60, 0x7F)
 
-    def __init__(self, classifier: str, final: str, abbr="Fs"):
+    def __init__(self, classifier: str, abbr="Fs"):
         """
         .
         """
-        super().__init__(classifier, final=final, abbr=abbr)
+        super().__init__(classifier, abbr=abbr)
 
     @classmethod
     def from_dict(cls, data: dict) -> SequenceFs:
-        return cls(data.get("fs_classifier"), data.get("fs_final"))
+        return SequenceFs(data.get("fs_classifier"))
 
 
 class SequenceFe(ISequence):
@@ -212,22 +247,24 @@ class SequenceFe(ISequence):
     and capital letters ``A``-``Z``).
     """
 
-    _CLASSIFIER_RANGE = (0x40, 0x5F)
+    _CLASSIFIER_RANGE = range(0x40, 0x60)
 
     def __init__(
-        self, classifier: str, interm: str = None, final: str = None, abbr="Fe"
+        self, classifier: str, *params: int|str, interm: str = None, final: str = None, abbr="Fe"
     ):
         """
         .
         """
         super().__init__(classifier, interm, final, abbr)
+        self._assign_params(*params)
 
     @classmethod
     def from_dict(cls, data: dict) -> SequenceFe:
-        return cls(
+        return SequenceFe(
             data.get("fe_classifier"),
-            interm=data.get("fe_interm"),
-            final=data.get("fe_final"),
+            *cls.cast_params(data, "fe_param", False),
+            interm=data.get("fe_interm") or None,
+            final=data.get("fe_final") or None,
         )
 
 
@@ -242,6 +279,10 @@ class SequenceST(SequenceFe):
     def __init__(self):
         super().__init__(self._CLASSIFIER, abbr="ST")
 
+    @classmethod
+    def from_dict(cls, data: dict) -> SequenceFe:
+        return SequenceST()
+
 
 class SequenceOSC(SequenceFe):
     """
@@ -254,23 +295,15 @@ class SequenceOSC(SequenceFe):
 
     _CLASSIFIER = "]"
 
-    def __init__(self, interm: str, *params: str):
+    def __init__(self, *params: int|str, interm: str = None):
         super().__init__(self._CLASSIFIER, interm=interm, abbr="OSC")
         self._assign_params(*params)
 
-    def assemble(self) -> str:
-        return (
-            self.ESC_CHARACTER
-            + (self._classifier or "")
-            + (self._interm or "")
-            + self._assemble_params()
-        )
-
     @classmethod
     def from_dict(cls, data: dict) -> SequenceFe:
-        return cls(
-            interm=data.get("fe_interm"),
-            *data.get("fe_param").split(cls.PARAM_SEPARATOR),
+        return SequenceOSC(
+            *cls.cast_params(data, "osc_param", False),
+            interm=data.get("osc_interm"),
         )
 
 
@@ -292,22 +325,30 @@ class SequenceCSI(SequenceFe):
     def __init__(
         self,
         final: str = None,
-        *params: str | int,
+        *params: int,
         interm: str = None,
         abbr: str = "CSI",
     ):
         """
         .
         """
-        super().__init__(self._CLASSIFIER, interm, final, abbr)
-        self._assign_params(*params)
+        super().__init__(self._CLASSIFIER, *params, interm=interm, final=final, abbr=abbr)
+
+    def assemble(self) -> str:
+        return (
+            self.ESC_CHARACTER
+            + (self._classifier or "")
+            + (self._interm or "")
+            + self._assemble_params()
+            + (self._final or "")
+        )
 
     @classmethod
     def from_dict(cls, data: dict) -> SequenceFe:
-        return cls(
-            final=data.get("fe_final"),
-            *data.get("fe_param").split(cls.PARAM_SEPARATOR),
-            interm=data.get("fe_interm"),
+        return SequenceCSI(
+            data.get("csi_final") or None,
+            *cls.cast_params(data, "csi_param", True),
+            interm=data.get("csi_interm") or None,
         )
 
     @staticmethod
@@ -340,7 +381,7 @@ class SequenceSGR(SequenceCSI):
     making it bold or blinking etc.
 
         >>> SequenceSGR(IntCode.HI_CYAN, 'underlined', 1)
-        <SGR[96,4,1]>
+        <SGR[96;4;1m]>
 
     To encode into control sequence byte-string invoke `assemble()` method or cast
     the instance to *str*, which internally does the same (this actually applies
@@ -357,10 +398,8 @@ class SequenceSGR(SequenceCSI):
         '\x1b[31mshould be red\x1b[0m'
 
     .. note ::
-        `SequenceSGR` with zero params was specifically implemented to
-        translate into empty string and not into ``ESC [m``, which would have
-        made sense, but also would be entangling, as this sequence is the equivalent
-        of ``ESC [0m`` -- hard reset sequence. The empty-string-sequence is
+        `SequenceSGR` with zero params ``ESC [m`` is interpreted by terminal emulators
+        as ``ESC [0m``, which is *hard* reset sequence. The empty-string-sequence is
         predefined at module level as `NOOP_SEQ`.
 
     .. note ::
@@ -379,11 +418,12 @@ class SequenceSGR(SequenceCSI):
     with merged params:
 
         >>> SequenceSGR('blue') + SequenceSGR('italic')
-        <SGR[34,3]>
+        <SGR[34;3m]>
 
     """
 
     _CLASSIFIER = SequenceCSI._CLASSIFIER
+    _FINAL = 'm'
     _PAIRITY_REGISTRY: ClassVar[_SgrPairityRegistry]
 
     def __init__(self, *params: str | int | SubtypedParam | SequenceSGR):
@@ -398,7 +438,7 @@ class SequenceSGR(SequenceCSI):
                       * *SubtypeParam*
                       * another `SequenceSGR` instance (params will be extracted).
         """
-        super().__init__(final="m", abbr="SGR")
+        super().__init__(final=self._FINAL, abbr="SGR")
         self._assign_params(*params)
 
     def _assign_params(self, *params: int | str | SubtypedParam | SequenceSGR):
@@ -421,15 +461,6 @@ class SequenceSGR(SequenceCSI):
 
         self._params: list[int | SubtypedParam] = [*(process_params(*params))]
 
-    def assemble(self) -> str:
-        """
-        Build up actual byte sequence and return as an ASCII-encoded string.
-        """
-        if len(self._params) == 0:  # NOOP
-            return ""
-
-        return super().assemble()
-
     @property
     def params(self) -> t.List[int | SubtypedParam]:
         """
@@ -441,18 +472,32 @@ class SequenceSGR(SequenceCSI):
         return int.from_bytes(self.assemble().encode(), byteorder="big")
 
     def __add__(self, other: SequenceSGR) -> SequenceSGR:
-        self._ensure_sequence(other)
+        try:
+            self._ensure_sequence(other)
+        except TypeError:
+            return NotImplemented
         return SequenceSGR(*self._params, *other._params)
-
-    def __radd__(self, other: SequenceSGR) -> SequenceSGR:
-        return other.__add__(self)
 
     def __iadd__(self, other: SequenceSGR) -> SequenceSGR:
         return self.__add__(other)
 
     @classmethod
     def from_dict(cls, data: dict) -> SequenceFe:
-        return cls(*data.get("fe_param").split(cls.PARAM_SEPARATOR))
+        if data.get("csi_final") == cls._FINAL:
+            if not (csi_param := data.get("csi_param")):
+                return SequenceSGR()
+            params_raw: list[str] = csi_param.split(cls.PARAM_SEPARATOR)
+            params: list[int|SubtypedParam] = []
+            try:
+                for param_raw in params_raw:
+                    if (subsep := SubtypedParam._SEPARATOR) in param_raw:
+                        params.append(SubtypedParam(*map(int, param_raw.split(subsep))))
+                    else:
+                        params.append(int(param_raw))
+            except ValueError:
+                raise ParseError(data)
+            return SequenceSGR(*params)
+        return super().from_dict(data)
 
     @staticmethod
     def _ensure_sequence(subject: t.Any):
@@ -470,15 +515,34 @@ class SequenceSGR(SequenceCSI):
 class _NoOpSequenceSGR(SequenceSGR):
     def __init__(self):
         super().__init__()
-        self._abbr = "SGR[NOP]"
 
     def __bool__(self) -> bool:
         return False
 
-    def __eq__(self, other: SequenceSGR) -> bool:
-        if not isinstance(other, SequenceSGR):
-            return False
-        return self._params == other._params
+    def __eq__(self, other: _NoOpSequenceSGR) -> bool:
+        return isinstance(other, _NoOpSequenceSGR)
+
+    def __repr__(self) -> str:
+        return f"<SGR/NOP>"
+
+    def __add__(self, other: SequenceSGR) -> SequenceSGR:
+        try:
+            self._ensure_sequence(other)
+        except TypeError:
+            return NotImplemented
+        if params := [*self._params, *other._params]:
+            return SequenceSGR(*params)
+        return _NoOpSequenceSGR()
+
+    def __iadd__(self, other: SequenceSGR) -> SequenceSGR:
+        return self.__add__(other)
+
+    def assemble(self) -> str:
+        return ""
+
+    @classmethod
+    def from_dict(cls, data: dict) -> SequenceFe:
+        return super().from_dict(data)  # no equivalent
 
 
 NOOP_SEQ = _NoOpSequenceSGR()
@@ -503,9 +567,9 @@ Can be safely added to regular `SequenceSGR` from any side, as internally
 items, rather than modifies state of either of them:
 
     >>> NOOP_SEQ + SequenceSGR(1)
-    <SGR[1]>
+    <SGR[1m]>
     >>> SequenceSGR(3) + NOOP_SEQ
-    <SGR[3]>
+    <SGR[3m]>
 
 """
 
@@ -521,11 +585,11 @@ class SubtypedParam:
 
     @property
     def value(self) -> int:
-        return self.value
+        return self._value
 
     @property
     def subtype(self) -> int:
-        return self.subtype
+        return self._subtype
 
     def __str__(self):
         return f"{self._value}{self._SEPARATOR}{self._subtype}"
@@ -664,8 +728,8 @@ class ColorTarget(enum.Enum):
 
 
 _COLOR_TARGET_MAP: t.Dict[ColorTarget, IntCode] = {
-    ColorTarget.FG:        IntCode.COLOR_EXTENDED,
-    ColorTarget.BG:        IntCode.BG_COLOR_EXTENDED,
+    ColorTarget.FG: IntCode.COLOR_EXTENDED,
+    ColorTarget.BG: IntCode.BG_COLOR_EXTENDED,
     ColorTarget.UNDERLINE: IntCode.UNDERLINE_COLOR_EXTENDED,
 }
 
@@ -903,7 +967,7 @@ class _SgrPairityRegistry:
         )
 
     def _bind_regular(self, starter_code: int | t.Tuple[int, ...], resetter_code: int):
-        if starter_code in self._code_to_resetter_map:
+        if starter_code in self._code_to_resetter_map:  # pragma: no cover
             raise ConflictError(f"SGR {starter_code} already has a registered resetter")
 
         self._code_to_resetter_map[starter_code] = SequenceSGR(resetter_code)
@@ -913,7 +977,7 @@ class _SgrPairityRegistry:
     ):
         self._bind_regular(starter_codes, resetter_code)
 
-        if starter_codes in self._complex_code_def:
+        if starter_codes in self._complex_code_def:  # pragma: no cover
             raise ConflictError(f"SGR {starter_codes} already has a registered resetter")
 
         self._complex_code_def[starter_codes] = param_len
@@ -922,6 +986,10 @@ class _SgrPairityRegistry:
         )
 
     def get_closing_seq(self, opening_seq: SequenceSGR) -> SequenceSGR:
+        if not isinstance(opening_seq, SequenceSGR):
+            raise TypeError(f"Not a SGR sequence: {opening_seq}")
+        if isinstance(opening_seq, _NoOpSequenceSGR):
+            return NOOP_SEQ
         closing_seq_params: t.List[int] = []
         opening_params = copy(opening_seq.params)
 
@@ -953,13 +1021,13 @@ class _SgrPairityRegistry:
 
             closing_seq_params.extend(self._code_to_resetter_map[key_params].params)
 
+        if not closing_seq_params:
+            return NOOP_SEQ
         return SequenceSGR(*closing_seq_params)
 
     def expand_subtypes(
         self, key_params: int | SubtypedParam | t.Tuple[int | SubtypedParam, ...] | None
     ) -> t.Iterable[int]:
-        if not key_params:
-            return key_params
         if not isinstance(key_params, t.Iterable):
             key_params = (key_params,)
         for kp in key_params:
@@ -996,7 +1064,7 @@ def make_color_256(code: int, target: ColorTarget = ColorTarget.FG) -> SequenceS
     (or background) to one of 256-color palette value.:
 
         >>> make_color_256(141)
-        <SGR[38,5,141]>
+        <SGR[38;5;141m]>
 
     .. seealso ::
         `Color256` class.
@@ -1010,7 +1078,9 @@ def make_color_256(code: int, target: ColorTarget = ColorTarget.FG) -> SequenceS
     return SequenceSGR(_COLOR_TARGET_MAP.get(target), IntCode.EXTENDED_MODE_256, code)
 
 
-def make_color_rgb(r: int, g: int, b: int, target: ColorTarget = ColorTarget.FG) -> SequenceSGR:
+def make_color_rgb(
+    r: int, g: int, b: int, target: ColorTarget = ColorTarget.FG
+) -> SequenceSGR:
     """
     Wrapper for creation of `SequenceSGR` operating in True Color mode (16M).
     Valid values for ``r``, ``g`` and ``b`` are in range of [0; 255]. This range
@@ -1019,7 +1089,7 @@ def make_color_rgb(r: int, g: int, b: int, target: ColorTarget = ColorTarget.FG)
     :hex:`#ff3300` can be created with::
 
         >>> make_color_rgb(255, 51, 0)
-        <SGR[38,2,255,51,0]>
+        <SGR[38;2;255;51;0m]>
 
     .. seealso ::
         `ColorRGB` class.
@@ -1173,7 +1243,7 @@ def make_query_cursor_position() -> SequenceCSI:
     :example:   ``ESC [6n``
     """
 
-    return SequenceCSI("n", interm="6", abbr="QCP")
+    return SequenceCSI("n", 6, abbr="QCP")
 
 
 # CSI / Erase sequences assembly ----------------------------------------------
@@ -1299,42 +1369,42 @@ def make_show_cursor() -> SequenceCSI:
     """
     C
     """
-    return SequenceCSI("h", interm="?25")
+    return SequenceCSI("h", 25, interm="?")
 
 
 def make_hide_cursor() -> SequenceCSI:
     """
     C
     """
-    return SequenceCSI("l", interm="?25")
+    return SequenceCSI("l", 25, interm="?")
 
 
 def make_save_screen() -> SequenceCSI:
     """
     C
     """
-    return SequenceCSI("h", interm="?47")
+    return SequenceCSI("h", 47, interm="?")
 
 
 def make_restore_screen() -> SequenceCSI:
     """
     C
     """
-    return SequenceCSI("l", interm="?47")
+    return SequenceCSI("l", 47, interm="?")
 
 
 def make_enable_alt_screen_buffer() -> SequenceCSI:
     """
     C
     """
-    return SequenceCSI("h", interm="?1049")
+    return SequenceCSI("h", 1049, interm="?")
 
 
 def make_disable_alt_screen_buffer() -> SequenceCSI:
     """
     C
     """
-    return SequenceCSI("l", interm="?1049")
+    return SequenceCSI("l", 1049, interm="?")
 
 
 # OSC sequences assembly ------------------------------------------------------
@@ -1349,7 +1419,7 @@ def make_hyperlink() -> SequenceOSC:
     .. seealso ::
         compose_hyperlink()`.
     """
-    return SequenceOSC("8", "", "", "")
+    return SequenceOSC(8, "", "")
 
 
 def compose_hyperlink(url: str, label: str = None) -> str:

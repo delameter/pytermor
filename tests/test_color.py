@@ -6,9 +6,12 @@
 from __future__ import annotations
 
 import typing as t
+from typing import overload
 from copy import copy
 
 import pytest
+from _pytest.mark import ParameterSet
+
 from pytermor.cval import cv
 from pytermor import (
     NOOP_SEQ,
@@ -21,7 +24,10 @@ from pytermor import (
     Color16,
     Color256,
     ColorRGB,
-    IColor, find_closest, approximate, ColorTarget, )
+    IColor,
+    approximate,
+    ColorTarget,
+)
 from pytermor.exception import LogicError
 from pytermor.color import (
     ColorNameConflictError,
@@ -31,16 +37,12 @@ from pytermor.color import (
 )
 from . import assert_close, format_test_params
 
-NON_EXISTING_COLORS = [
-    0xFEDCBA,
-    0xfa0ccc,
-    *range(1, 7),
-]
+NON_EXISTING_COLORS = [0xFEDCBA, 0xFA0CCC, *range(1, 7)]
 
-@pytest.mark.parametrize('value', NON_EXISTING_COLORS, ids=format_test_params)
+
+@pytest.mark.parametrize("value", NON_EXISTING_COLORS, ids=format_test_params)
 def test_non_existing_colors_do_not_exist(value: int):
     assert approximate(value)[0].color.hex_value != value
-
 
 
 class TestResolving:
@@ -107,23 +109,27 @@ class TestResolving:
         assert isinstance(col, ColorRGB)
 
     def test_param_enables_cache(self):
-        NEW_COLOR = 0xfa0ccc
+        NEW_COLOR = 0xFA0CCC
         assert NEW_COLOR not in Color256._approx_cache.keys()
         resolve_color(NEW_COLOR, Color256, approx_cache=True)
         assert NEW_COLOR in Color256._approx_cache.keys()
 
     def test_param_disables_cache(self):
-        NEW_COLOR = 0xfa0ccc
+        NEW_COLOR = 0xFA0CCC
         assert NEW_COLOR not in Color256._approx_cache.keys()
         resolve_color(NEW_COLOR, Color256, approx_cache=False)
         assert NEW_COLOR not in Color256._approx_cache.keys()
 
-    @pytest.mark.parametrize("ctype, expected_text", [
-        (Color16, "Color16"),
-        (Color256, "Color256"),
-        (ColorRGB, "ColorRGB"),
-        (None, "any"),
-    ], ids=format_test_params)
+    @pytest.mark.parametrize(
+        "ctype, expected_text",
+        [
+            (Color16, "Color16"),
+            (Color256, "Color256"),
+            (ColorRGB, "ColorRGB"),
+            (None, "any"),
+        ],
+        ids=format_test_params,
+    )
     def test_exception_message(self, ctype: t.Type[IColor], expected_text: str):
         try:
             non_existing_value = -1
@@ -325,36 +331,61 @@ class TestColor:
         assert len([*ctype.names()]) == len([*ctype._registry.names()])
 
 
+
+@overload
+def get_underline_not_impl_param() -> ParameterSet:
+    ...
+@overload
+def get_underline_not_impl_param(ub: t.Type[IColor] | None) -> ParameterSet:
+    ...
+def get_underline_not_impl_param(*args: t.Any) -> ParameterSet:
+    params = (*args, ColorTarget.UNDERLINE, None)
+    return pytest.param(*params, marks=pytest.mark.xfail(raises=NotImplementedError))
+
+
 class TestColor16:
     def test_get_code(self):
         col = Color16(0xF00000, IntCode.RED, IntCode.BG_RED)
         assert col.code_fg == IntCode.RED
         assert col.code_bg == IntCode.BG_RED
 
-    def test_to_sgr_without_upper_bound_results_in_sgr_16(self):
-        col = Color16(0x800000, IntCode.RED, IntCode.BG_RED)
-        assert col.to_sgr(ColorTarget.FG) == SequenceSGR(31)
-        assert col.to_sgr(ColorTarget.BG) == SequenceSGR(41)
+    @pytest.mark.parametrize(
+        "upper_bound, target, expected_result",
+        [
+            (None, ColorTarget.FG, SequenceSGR(31)),
+            (None, ColorTarget.BG, SequenceSGR(41)),
+            get_underline_not_impl_param(None),
+            (ColorRGB, ColorTarget.FG, SequenceSGR(31)),
+            (ColorRGB, ColorTarget.BG, SequenceSGR(41)),
+            get_underline_not_impl_param(ColorRGB),
+            (Color256, ColorTarget.FG, SequenceSGR(31)),
+            (Color256, ColorTarget.BG, SequenceSGR(41)),
+            get_underline_not_impl_param(Color256),
+            (Color16, ColorTarget.FG, SequenceSGR(31)),
+            (Color16, ColorTarget.BG, SequenceSGR(41)),
+            get_underline_not_impl_param(Color16),
+        ],
+    )
+    def test_to_sgr(
+        self,
+        upper_bound: type[IColor] | None,
+        target: ColorTarget,
+        expected_result: str | None,
+    ):
+        c = Color16(0x800000, IntCode.RED, IntCode.BG_RED)
+        assert c.to_sgr(target, upper_bound) == expected_result
 
-    def test_to_sgr_with_rgb_upper_bound_results_in_sgr_16(self):
-        col = Color16(0x800000, IntCode.RED, IntCode.BG_RED)
-        assert col.to_sgr(ColorTarget.FG, upper_bound=ColorRGB) == SequenceSGR(31)
-        assert col.to_sgr(ColorTarget.BG, upper_bound=ColorRGB) == SequenceSGR(41)
-
-    def test_to_sgr_with_256_upper_bound_results_in_sgr_16(self):
-        col = Color16(0x800000, IntCode.RED, IntCode.BG_RED)
-        assert col.to_sgr(ColorTarget.FG, upper_bound=Color256) == SequenceSGR(31)
-        assert col.to_sgr(ColorTarget.BG, upper_bound=Color256) == SequenceSGR(41)
-
-    def test_to_sgr_with_16_upper_bound_results_in_sgr_16(self):
-        col = Color16(0x800000, IntCode.RED, IntCode.BG_RED)
-        assert col.to_sgr(ColorTarget.FG, upper_bound=Color16) == SequenceSGR(31)
-        assert col.to_sgr(ColorTarget.BG, upper_bound=Color16) == SequenceSGR(41)
-
-    def test_to_tmux(self):
-        col = Color16(0xF00000, IntCode.RED, IntCode.BG_RED, "ultrared")
-        assert col.to_tmux(ColorTarget.FG) == "ultrared"
-        assert col.to_tmux(ColorTarget.BG) == "ultrared"
+    @pytest.mark.parametrize(
+        "target, expected_result",
+        [
+            (ColorTarget.FG, "ultrared"),
+            (ColorTarget.BG, "ultrared"),
+            get_underline_not_impl_param(),
+        ],
+    )
+    def test_to_tmux(self, target: ColorTarget, expected_result: str | None):
+        color = Color16(0xF00000, IntCode.RED, IntCode.BG_RED, "ultrared")
+        assert color.to_tmux(target) == expected_result
 
     @pytest.mark.xfail(raises=LogicError)
     def test_to_tmux_without_name_fails(self):
@@ -401,42 +432,62 @@ class TestColor256:
         col = Color256(0xF00000, 257)
         assert 257 == col.code
 
-    def test_to_sgr_without_upper_bound_results_in_sgr_256(self):
-        col = Color256(0xFFCC01, 1)
-        assert col.to_sgr(ColorTarget.FG) == SequenceSGR(38, 5, 1)
-        assert col.to_sgr(ColorTarget.BG) == SequenceSGR(48, 5, 1)
+    @pytest.mark.parametrize(
+        "upper_bound, target, expected_result",
+        [
+            (None, ColorTarget.FG, SequenceSGR(38, 5, 1)),
+            (None, ColorTarget.BG, SequenceSGR(48, 5, 1)),
+            (None, ColorTarget.UNDERLINE, SequenceSGR(58, 5, 1)),
+            (ColorRGB, ColorTarget.FG, SequenceSGR(38, 5, 1)),
+            (ColorRGB, ColorTarget.BG, SequenceSGR(48, 5, 1)),
+            (ColorRGB, ColorTarget.UNDERLINE, SequenceSGR(58, 5, 1)),
+            (Color256, ColorTarget.FG, SequenceSGR(38, 5, 1)),
+            (Color256, ColorTarget.BG, SequenceSGR(48, 5, 1)),
+            (Color256, ColorTarget.UNDERLINE, SequenceSGR(58, 5, 1)),
+            (Color16, ColorTarget.FG, SequenceSGR(93)),
+            (Color16, ColorTarget.BG, SequenceSGR(103)),
+            (Color16, ColorTarget.UNDERLINE, NOOP_SEQ),
+        ],
+    )
+    def test_to_sgr(
+        self,
+        upper_bound: type[IColor] | None,
+        target: ColorTarget,
+        expected_result: str | None,
+    ):
+        c = Color256(0xFFCC01, 1)
+        assert c.to_sgr(target, upper_bound) == expected_result
 
-    def test_to_sgr_with_rgb_upper_bound_results_in_sgr_256(self):
-        col = Color256(0xFFCC01, 1)
-        assert col.to_sgr(ColorTarget.FG, upper_bound=ColorRGB) == SequenceSGR(38, 5, 1)
-        assert col.to_sgr(ColorTarget.BG, upper_bound=ColorRGB) == SequenceSGR(48, 5, 1)
-
+    @pytest.mark.parametrize(
+        "target, expected_result",
+        [
+            (ColorTarget.FG, SequenceSGR(38, 2, 255, 204, 1)),
+            (ColorTarget.BG, SequenceSGR(48, 2, 255, 204, 1)),
+            (ColorTarget.UNDERLINE, SequenceSGR(58, 2, 255, 204, 1)),
+        ],
+    )
     @pytest.mark.setup(prefer_rgb=True)
-    def test_to_sgr_with_rgb_upper_bound_results_in_sgr_rgb_if_preferred(self):
+    def test_to_sgr_with_rgb_upper_bound_results_in_sgr_rgb_if_preferred(self, target: ColorTarget, expected_result: str | None):
         col = Color256(0xFFCC01, 1)
-        assert col.to_sgr(ColorTarget.FG, upper_bound=ColorRGB) == SequenceSGR(38, 2, 255, 204, 1)
-        assert col.to_sgr(ColorTarget.BG, upper_bound=ColorRGB) == SequenceSGR(48, 2, 255, 204, 1)
-
-    def test_to_sgr_with_256_upper_bound_results_in_sgr_256(self):
-        col = Color256(0xFFCC01, 1)
-        assert col.to_sgr(ColorTarget.FG, upper_bound=Color256) == SequenceSGR(38, 5, 1)
-        assert col.to_sgr(ColorTarget.BG, upper_bound=Color256) == SequenceSGR(48, 5, 1)
-
-    def test_to_sgr_with_16_upper_bound_results_in_sgr_16(self):
-        col = Color256(0xFFCC01, 1)
-        assert col.to_sgr(ColorTarget.FG, upper_bound=Color16) == SequenceSGR(93)
-        assert col.to_sgr(ColorTarget.BG, upper_bound=Color16) == SequenceSGR(103)
+        assert col.to_sgr(target, upper_bound=ColorRGB) == expected_result
 
     def test_to_sgr_with_16_upper_bound_results_in_sgr_16_equiv(self):
         col16 = Color16(0xFFCC00, 132, 142, index=True)
         col = Color256(0xFFCC01, 1, color16_equiv=col16)
-        assert col16.to_sgr(ColorTarget.FG) == col.to_sgr(ColorTarget.FG, upper_bound=Color16)
-        assert col16.to_sgr(ColorTarget.BG) == col.to_sgr(ColorTarget.BG, upper_bound=Color16)
+        assert col.to_sgr(ColorTarget.FG, upper_bound=Color16) == col16.to_sgr(ColorTarget.FG)
+        assert col.to_sgr(ColorTarget.BG, upper_bound=Color16) == col16.to_sgr(ColorTarget.BG)
+        assert col.to_sgr(ColorTarget.UNDERLINE, upper_bound=Color16) == NOOP_SEQ
 
-    def test_to_tmux(self):
-        col = Color256(0xFF00FF, 258)
-        assert col.to_tmux(False) == "colour258"
-        assert col.to_tmux(True) == "colour258"
+    @pytest.mark.parametrize(
+        "target, expected_result",
+        [
+            (ColorTarget.FG, "colour258"),
+            (ColorTarget.BG, "colour258"),
+            get_underline_not_impl_param(),
+        ],
+    )
+    def test_to_tmux(self, target: ColorTarget, expected_result: str | None):
+        assert Color256(0xFF00FF, 258).to_tmux(target) == expected_result
 
     def test_format_value(self):
         assert Color256(0xFF00FF, 259).format_value() == "0xff00ff"
@@ -476,32 +527,46 @@ class TestColor256:
 
 
 class TestColorRGB:
-    def test_to_sgr_without_upper_bound_results_in_sgr_rgb(self):
+    @pytest.mark.parametrize(
+        "upper_bound, target, expected_result",
+        [
+            (None, ColorTarget.FG, SequenceSGR(38, 2, 255, 51, 255)),
+            (None, ColorTarget.BG, SequenceSGR(48, 2, 255, 51, 255)),
+            (None, ColorTarget.UNDERLINE, SequenceSGR(58, 2, 255, 51, 255)),
+            (ColorRGB, ColorTarget.FG, SequenceSGR(38, 2, 255, 51, 255)),
+            (ColorRGB, ColorTarget.BG, SequenceSGR(48, 2, 255, 51, 255)),
+            (ColorRGB, ColorTarget.UNDERLINE, SequenceSGR(58, 2, 255, 51, 255)),
+            (Color256, ColorTarget.FG, SequenceSGR(38, 5, 207)),
+            (Color256, ColorTarget.BG, SequenceSGR(48, 5, 207)),
+            (Color256, ColorTarget.UNDERLINE, SequenceSGR(58, 5, 207)),
+            (Color16, ColorTarget.FG, SequenceSGR(95)),
+            (Color16, ColorTarget.BG, SequenceSGR(105)),
+            (Color16, ColorTarget.UNDERLINE, NOOP_SEQ),
+        ],
+    )
+    def test_to_sgr(
+        self,
+        upper_bound: type[IColor] | None,
+        target: ColorTarget,
+        expected_result: str | None,
+    ):
         col = ColorRGB(0xFF33FF)
-        assert col.to_sgr(ColorTarget.FG) == SequenceSGR(38, 2, 255, 51, 255)
-        assert col.to_sgr(ColorTarget.BG) == SequenceSGR(48, 2, 255, 51, 255)
+        assert col.to_sgr(target, upper_bound) == expected_result
 
-    def test_to_sgr_with_rgb_upper_bound_results_in_sgr_rgb(self):
-        col = ColorRGB(0xFF33FF)
-        assert col.to_sgr(ColorTarget.FG, upper_bound=ColorRGB) == SequenceSGR(
-            38, 2, 255, 51, 255
-        )
-        assert col.to_sgr(ColorTarget.BG, upper_bound=ColorRGB) == SequenceSGR(48, 2, 255, 51, 255)
-
-    def test_to_sgr_with_256_upper_bound_results_in_sgr_256(self):
-        col = ColorRGB(0xFF33FF)
-        assert col.to_sgr(ColorTarget.FG, upper_bound=Color256) == SequenceSGR(38, 5, 207)
-        assert col.to_sgr(ColorTarget.BG, upper_bound=Color256) == SequenceSGR(48, 5, 207)
-
-    def test_to_sgr_with_16_upper_bound_results_in_sgr_16(self):
-        col = ColorRGB(0xFF33FF)
-        assert col.to_sgr(ColorTarget.FG, upper_bound=Color16) == SequenceSGR(95)
-        assert col.to_sgr(ColorTarget.BG, upper_bound=Color16) == SequenceSGR(105)
-
-    def test_to_tmux(self):
-        col = ColorRGB(0xFF00FF)
-        assert col.to_tmux(False) == "#ff00ff"
-        assert col.to_tmux(True) == "#ff00ff"
+    @pytest.mark.parametrize(
+        "target, expected_result",
+        [
+            (ColorTarget.FG, "#ff00ff"),
+            (ColorTarget.BG, "#ff00ff"),
+            pytest.param(
+                ColorTarget.UNDERLINE,
+                None,
+                marks=pytest.mark.xfail(raises=NotImplementedError),
+            ),
+        ],
+    )
+    def test_to_tmux(self, target: ColorTarget, expected_result: str | None):
+        assert ColorRGB(0xFF00FF).to_tmux(target) == expected_result
 
     def test_format_value(self):
         assert ColorRGB(0xFF00FF).format_value() == "0xff00ff"
@@ -549,9 +614,20 @@ class TestNoopColor:
     def test_repr(self):
         assert repr(NOOP_COLOR) == "<_NoopColor[NOP]>"
 
-    def test_to_tmux(self):
-        assert NOOP_COLOR.to_tmux(False) == ""
-        assert NOOP_COLOR.to_tmux(True) == ""
+    @pytest.mark.parametrize(
+        "target, expected_result",
+        [
+            (ColorTarget.FG, ""),
+            (ColorTarget.BG, ""),
+            pytest.param(
+                ColorTarget.UNDERLINE,
+                None,
+                marks=pytest.mark.xfail(raises=NotImplementedError),
+            ),
+        ],
+    )
+    def test_to_tmux(self, target: ColorTarget, expected_result: str | None):
+        assert NOOP_COLOR.to_tmux(target) == expected_result
 
     @pytest.mark.xfail(raises=LogicError)
     def test_getting_hex_value_fails(self):
@@ -576,11 +652,21 @@ class TestDefaultColor:
 
     def test_default_resets_bg_color(self):
         assert (
-            str(IntCode.BG_COLOR_OFF.value) in DEFAULT_COLOR.to_sgr(ColorTarget.BG).assemble()
+            str(IntCode.BG_COLOR_OFF.value)
+            in DEFAULT_COLOR.to_sgr(ColorTarget.BG).assemble()
         )
 
-    def test_default_resets_text_color_tmux(self):
-        assert "default" in DEFAULT_COLOR.to_tmux()
-
-    def test_default_resets_bg_color_tmux(self):
-        assert "default" in DEFAULT_COLOR.to_tmux(ColorTarget.BG)
+    @pytest.mark.parametrize(
+        "target, expected_result",
+        [
+            (ColorTarget.FG, "default"),
+            (ColorTarget.BG, "default"),
+            pytest.param(
+                ColorTarget.UNDERLINE,
+                None,
+                marks=pytest.mark.xfail(raises=NotImplementedError),
+            ),
+        ],
+    )
+    def test_to_tmux(self, target: ColorTarget, expected_result: str | None):
+        assert DEFAULT_COLOR.to_tmux(target) == expected_result

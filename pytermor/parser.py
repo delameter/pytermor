@@ -10,29 +10,38 @@ import typing as t
 from functools import lru_cache
 
 from .ansi import make_color_256, ISequence
-from .ansi import ColorTarget
+from .ansi import ColorTarget, seq_from_dict
 
 ESCAPE_SEQ_REGEX = re.compile(
     R"""
 	(?P<escape_byte>\x1b)
 	(?P<data>
 		(?P<nf_class_seq>
-			(?P<nf_interm>[\x20-\x2f]+)
+			(?P<nf_classifier>[\x20-\x2f])
+			(?P<nf_interm>[\x20-\x2f]*)
 			(?P<nf_final>[\x30-\x7e])
 		)|
 		(?P<fp_class_seq>
 			(?P<fp_classifier>[\x30-\x3f])
-			(?P<fp_interm>[\x20-\x7e]*)
 		)|
 		(?P<fe_class_seq>
-			(?P<fe_classifier>[\x40-\x5f])
+		    (?P<st_classifier>\\)
+		    |
+		    (?P<osc_classifier>\])
+		    (?P<osc_param>[\x30-\x3f]*;;?)
+		    |
+		    (?P<csi_classifier>\[)
+			(?P<csi_interm>[?!]?)
+			(?P<csi_param>[\x30-\x3f]*)
+			(?P<csi_final>[\x40-\x7e])
+		    |
+			(?P<fe_classifier>[\x40-\x5a\x5e\x5f])
 			(?P<fe_param>[\x30-\x3f]*)
-			(?P<fe_interm>[\x20-\x2f]*)
+			(?P<fe_interm>[\x20-\x2f]?)
 			(?P<fe_final>[\x40-\x7e]?)
 		)|
 		(?P<fs_class_seq>
 			(?P<fs_classifier>[\x60-\x7e])
-			(?P<fs_final>[\x20-\x7e])
 		)  
 	)
 	""",
@@ -54,11 +63,14 @@ thanks to named match groups, which include:
         ``fe_class_seq`` or ``fs_class_seq``; each of these splits further to
         even more specific subgroups:
         
-        - ``nf_interm`` and ``nf_final`` as parts of **nF**-class sequences,
-        - ``fp_classifier`` and ``fp_interm`` for **Fp**-class sequences,
-        - ``fe_classifier``, ``fe_param``, ``fe_interm`` and ``fe_final`` 
-          for **Fe**-class sequences (including :term:`SGRs <SGR>`),
-        - ``fs_classifier`` and ``fs_final`` for **Fs**-class sequences.
+        - ``nf_classifier``, ``nf_interm`` and ``nf_final`` as parts of 
+          **nF**-class sequences,
+        - ``fp_classifier`` for **Fp**-class sequences,
+        - ``st_classifier``, ``osc_classifier``, ``osc_param``,  ``csi_classifier``, 
+          ``csi_interm``, ``csi_param``, ``csi_final``, ``fe_classifier``, ``fe_param``, 
+          ``fe_interm`` and ``fe_final`` for **Fe**-class generic sequences and 
+          subtypes (including :term:`SGRs <SGR>`),
+        - ``fs_classifier`` for **Fs**-class sequences.
 
 .. [#] `ECMA-35 specification <https://ecma-international.org/publications-and-standards/standards/ecma-35/>`_
 
@@ -104,7 +116,7 @@ def contains_sgr(string: str, *codes: int) -> re.Match | None:
     The match object has one group (or, technically, two):
 
         - Group #0: the whole matched SGR sequence;
-        - Group #1: the requested code bytes only.
+        - Group #1: the requested params bytes only.
 
     Example regex used for searching: :regex:`\\x1b\\[(?:|[\\d;]*;)(48;5)(?:|;[\\d;]*)m`.
 
@@ -121,11 +133,15 @@ def contains_sgr(string: str, *codes: int) -> re.Match | None:
     return _compile_contains_sgr_regex(*codes).search(string)
 
 
-def parse(string: str) -> list[ISequence|str]:
-    for part in SGR_SEQ_REGEX.split(string):
-        if isinstance(part, t.Match):
-            groups = part.groupdict()
-            Classi
+def parse(string: str) -> t.Iterable[ISequence|str]:
+    cursor = 0
+    for match in ESCAPE_SEQ_REGEX.finditer(string):
+        if (mstart := match.start()) > cursor:
+            yield string[cursor:mstart]
+        cursor = match.end()
+        yield seq_from_dict(match.groupdict())
+    if last_str := string[cursor:]:
+        yield last_str
 
 def decompose_report_cursor_position(string: str) -> t.Tuple[int, int] | None:
     """

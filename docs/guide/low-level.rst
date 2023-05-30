@@ -102,11 +102,9 @@ You can use any of predefined sequences from `SeqIndex` registry or create your 
 argument values as well as preset constants are described in `ansi-presets` page.
 
 .. important::
-  ``SequenceSGR`` with zero params was specifically implemented to translate into an empty string and not
-  into ``ESC [m``, which would make sense, but also could be very entangling, as terminal emulators interpret
-  that sequence as ``ESC [0m``, which is *hard* reset sequence.
+  `SequenceSGR` with zero params ``ESC [m`` is interpreted by terminal emulators as ``ESC [0m``, which is *hard* reset sequence.
 
-There is also a set of methods for dynamic ``SequenceSGR`` creation:
+There is also a set of methods for dynamic `SequenceSGR` creation:
 
 - `make_color_256()` will produce sequence operating in 256-colors mode (for a complete list
   see `ansi-presets`);

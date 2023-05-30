@@ -142,6 +142,7 @@ from .ansi import make_set_cursor as make_set_cursor
 from .ansi import make_set_cursor_column as make_set_cursor_column
 from .ansi import make_set_cursor_line as make_set_cursor_line
 from .ansi import make_show_cursor as make_show_cursor
+from .ansi import seq_from_dict as seq_from_dict
 
 from .color import ApxResult as ApxResult
 from .color import approximate as approximate

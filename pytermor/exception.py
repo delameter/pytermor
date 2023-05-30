@@ -14,12 +14,18 @@ class LogicError(Exception):
     pass
 
 
+class ParseError(Exception):
+    def __init__(self, groupdict: dict):
+        self.groupdict = groupdict
+        msg = f"Failed to match sequence class for: '{self.groupdict}'"
+        super().__init__(msg)
+
 class ConflictError(Exception):
     pass
 
 
 class ArgTypeError(Exception):
-    """ """
+    """ . """
 
     def __init__(self, var_name: str, arg_name: str = None, suggestion: str = None):
         arg_name = arg_name or var_name
@@ -29,6 +35,7 @@ class ArgTypeError(Exception):
             "arg_val": None,
             "var_val": None,
             "fn": None,
+            "fname": None,
             "expected_type": None,
         }
         try:
@@ -45,7 +52,7 @@ class ArgTypeError(Exception):
             except:
                 fn = getattr(fb.f_locals.get("self"), ff.function)
                 assert fn
-            self.context.update(dict(fn=fn))
+            self.context.update(dict(fn=fn, fname=fn.__name__))
 
             fas = inspect.getfullargspec(fn)
             expected_type = fas.annotations.get(arg_name, None)
@@ -57,18 +64,20 @@ class ArgTypeError(Exception):
         params = {
             "type": "Argument",
             "name": arg_name,
-            "fname": self.context["fn"].__name__,
+            "fname": self.context["fname"],
             "expected_type": self.context['expected_type'],
             "actual_type": get_qname(self.context["var_val"]),
         }
         if var_name != arg_name:
             params.update({"type": "Var", "name": var_name})
 
-        msg = "%(type)s '%(name)s' of %(fname)s(): "
+        msg = "%(type)s '%(name)s'"
+        if self.context["fname"]:
+            msg += "of %(fname)s()"
         if self.context["expected_type"]:
-            msg += "expected <%(expected_type)s>, got <%(actual_type)s>"
+            msg += ": expected <%(expected_type)s>, got <%(actual_type)s>"
         else:
-            msg += "unexpected <%(actual_type)s>"
+            msg += ": unexpected <%(actual_type)s>"
 
         msg %= params
         if self.suggestion:

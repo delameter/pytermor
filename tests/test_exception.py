@@ -32,7 +32,7 @@ class TestArgTypeError:
                 lambda: pt.make_style(pt.Style),
             ),
             (
-                ["Var", "arg", "_ensure_fragments()", "Fragment", "list"],
+                ["Var", "arg",  "list"],
                 lambda: pt.Text().append([]),
             ),
             (

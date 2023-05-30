@@ -472,7 +472,7 @@ class Color16(IColor):
     ) -> SequenceSGR:
         if code := self._target_to_code(target):
             return SequenceSGR(code)
-        return NOOP_SEQ
+        raise NotImplementedError(f"No color-16 equivalent for {target}")
 
     def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
         if self._name is None:
@@ -566,13 +566,25 @@ class Color256(IColor):
         if upper_bound is Color256 or upper_bound is None:
             return make_color_256(self._code, target)
 
+        # underline color can be defined as Color256 (58;5;x) or ColorRGB (58;2;r;g;b),
+        # but not as Color16 (no equivalent SGR code);
+        if target == ColorTarget.UNDERLINE:
+            return NOOP_SEQ
+            # that's why we should not raise NotImplemented here, as it will result in an
+            # unpredictable behaviour depending on user's terminal mode, i.e., underlined
+            # color working as expected in xterm-256color mode, but throwing an exception
+            # in xterm-color mode; whereas Color16.to_sgr(target=UNDERLINE) will raise an
+            # error regardless of terminal mode, which allows to detect and fix it early.
+
         if self._color16_equiv:
             return self._color16_equiv.to_sgr(target, upper_bound)
 
         return Color16.find_closest(self.hex_value).to_sgr(target, upper_bound)
 
     def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
-        return f"colour{self._code}"
+        if target in [ColorTarget.FG, ColorTarget.BG]:
+            return f"colour{self._code}"
+        raise NotImplementedError(f"No tmux equivalent for {target}")
 
     @property
     def code(self) -> int:
@@ -652,7 +664,9 @@ class ColorRGB(IColor):
         return Color256.find_closest(self._hex_value).to_sgr(target, upper_bound)
 
     def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
-        return self.format_value("#").lower()
+        if target in [ColorTarget.FG, ColorTarget.BG]:
+            return self.format_value("#").lower()
+        raise NotImplementedError(f"No tmux equivalent for {target}")
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, self.__class__):
@@ -695,7 +709,9 @@ class _NoopColor(IColor):
         return NOOP_SEQ
 
     def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
-        return ""
+        if target in [ColorTarget.FG, ColorTarget.BG]:
+            return ""
+        raise NotImplementedError(f"No tmux equivalent for {target}")
 
     @property
     def hex_value(self) -> int:
@@ -722,7 +738,9 @@ class _DefaultColor(IColor):
         return self._SGR_MAP.get(target, NOOP_SEQ)
 
     def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
-        return "default"
+        if target in [ColorTarget.FG, ColorTarget.BG]:
+            return "default"
+        raise NotImplementedError(f"No tmux equivalent for {target}")
 
     @property
     def hex_value(self) -> int:  # pragma: no cover

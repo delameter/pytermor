@@ -90,16 +90,16 @@ class IRenderable(t.Sized, ABC):
     def allows_width_setup(self) -> bool:
         """return False"""
 
-    def _resolve_renderer(
-        self, renderer: IRenderer | t.Type[IRenderer] = None
-    ) -> IRenderer:
+    @staticmethod
+    def _resolve_renderer(renderer: IRenderer | t.Type[IRenderer] = None) -> IRenderer:
         if isinstance(renderer, type):
             return renderer()
         if renderer is None:
             return RendererManager.get_default()
         return renderer
 
-    def _ensure_fragments(self, *args: Fragment):
+    @staticmethod
+    def _ensure_fragments(*args: Fragment):
         for arg in args:
             if not isinstance(arg, Fragment):
                 raise ArgTypeError("arg", "args")
@@ -168,7 +168,10 @@ class Fragment(IRenderable):
     def __add__(self, other: str | Fragment) -> Fragment | Text:
         if isinstance(other, str):
             return Fragment(self._string + other, self._style)
-        self._ensure_fragments(other)
+        try:
+            self._ensure_fragments(other)
+        except ArgTypeError:
+            return NotImplemented
         return Text(self, other)
 
     def __iadd__(self, other: str | Fragment) -> Fragment | Text:
@@ -177,7 +180,10 @@ class Fragment(IRenderable):
     def __radd__(self, other: str | Fragment) -> Fragment | Text:
         if isinstance(other, str):
             return Fragment(other + self._string, self._style)
-        self._ensure_fragments(other)
+        try:
+            self._ensure_fragments(other)
+        except ArgTypeError:
+            return NotImplemented
         return Text(other, self)
 
     def __format__(self, format_spec: str) -> str:
@@ -904,9 +910,7 @@ SELECT_WORDS_REGEX = re.compile(r"(\S+)?(\s*)")
 
 
 def apply_style_words_selective(string: str, st: Style) -> t.Sequence[Fragment]:
-    """
-
-    """
+    """ """
     return apply_style_selective(SELECT_WORDS_REGEX, string, st)
 
 

@@ -10,7 +10,7 @@ from math import isclose
 from typing import overload, TypeVar
 
 from pytermor import Style, apply_filters, SgrStringReplacer, \
-    NonPrintsOmniVisualizer, RGB, HSV, LAB, XYZ
+    NonPrintsOmniVisualizer, RGB, HSV, LAB, XYZ, ISequence
 from pytermor.log import get_qname
 from .fixtures import *  # noqa
 
@@ -35,6 +35,8 @@ def format_test_params(val) -> str | None:
         return format_timedelta(val)
     if isinstance(val, Style):
         return "%s(%s)" % (get_qname(val), val.repr_attrs(False))
+    if isinstance(val, ISequence):
+        return repr(val)
     return None
 
 def format_timedelta(val: timedelta) -> str:
@@ -57,16 +59,25 @@ def assert_close(a: TT, b: TT):
 def assert_close(a: float|int, b: float|int):
     ...
 def assert_close(a, b):
-    def are_instances(t):
-        return isinstance(a, t) and isinstance(b, t)
+    def get_base_type(v) -> type:
+        if isinstance(v, int):
+            return int
+        elif isinstance(v, float):
+            return float
+        elif isinstance(v, tuple):
+            return tuple
+        return type(v)
 
-    if are_instances((float, int)):
-        assert isclose(a, b, abs_tol=0.01)
-    elif are_instances(tuple):
+    types = {get_base_type(a), get_base_type(b)}
+    if types == {float} or types == {int, float}:
+        assert isclose(a, b, abs_tol=0.01), f"{a:.3f} !≈ {b:.3f}"
+    elif types == {int}:
+        assert a == b, f"0x{a:06x} != 0x{b:06x}"
+    elif types == {tuple}:
         for (pa, pb) in zip(a, b):
             try:
                 assert_close(pa, pb)
             except AssertionError as e:
                 raise AssertionError(a, b) from e
     else:
-        raise TypeError
+        raise TypeError(f"Cannot compare {a} and {b} ({', '.join(map(str, types))})")

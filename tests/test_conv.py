@@ -11,7 +11,7 @@ from dataclasses import dataclass
 import pytest
 
 import pytermor as pt
-from pytermor import RGB, HSV, XYZ, LAB
+from pytermor import RGB, HSV, XYZ, LAB, hex_to_rgb
 
 from . import assert_close
 
@@ -25,7 +25,7 @@ class Value:
     lab: LAB
 
     def __str__(self):
-        return f"0x{self.hex:06x}"
+        return f"0x{self.hex:06x}-{self.rgb}"
 
 
 SPACES = [
@@ -38,22 +38,22 @@ SPACES = [
 
 
 # fmt: off
-VALUES = [
-Value(0x000000, RGB(0,   0,   0),   HSV(0.0,   0.0, 0.0),   XYZ(0.0000, 0.00,  0.00),     LAB(0.00, 0.00, 0.00)),
-Value(0xFFFFFF, RGB(255, 255, 255), HSV(0.0,   0.0, 1.0),   XYZ(0.9505, 100.0, 1.089),      LAB(0.01, 0.00, 0.00)),
-Value(0xFF0000, RGB(255, 0,   0),   HSV(0.0,   1.0, 1.0),   XYZ(0.4124, 21.26, 0.019),    LAB(0.532, 0.8011, 0.6722)),
-Value(0x00FF00, RGB(0,   255, 0),   HSV(120.0, 1.0, 1.0),   XYZ(0.3576, 0.7152, 0.1192),   LAB(0.877, -0.8618, 0.8318)),
-Value(0x0000FF, RGB(0,   0,   255), HSV(240.0, 1.0, 1.0),   XYZ(0.1805, 0.0722,  0.9505),   LAB(0.323, 0.7919, -1.0786)),
-Value(0x010000, RGB(1,   0,   0),   HSV(0.0,   1.0, 1/256), XYZ(1.2e-4, 0.0000,  5.86e-5),  LAB(0.0006, 0.00261, 0.00092)),
-Value(0x000080, RGB(0,   0,  128), HSV(240.0, 1.0, 0.5),   XYZ(0.0389, 0.0156,  0.2052),   LAB(0.1297, 0.4751, -0.6470)),
-]  # noqa
+VALUES = [ # _hex_      _r_  _g_  _b_        __h__ __s__ __v__        __x__   __y__   __z__        __l__    __a__    __b__     # noqa
+    Value(0x000000, RGB(  0,   0,   0), HSV(  0.00, 0.00, 0.00), XYZ(  0.00,   0.00,   0.00), LAB(  0.00,    0.00,    0.00)),  # noqa
+    Value(0xFFFFFF, RGB(255, 255, 255), HSV(  0.00, 0.00, 1.00), XYZ( 95.05,  100.0, 108.88), LAB( 100.0, 0.00526, 0.00184)),  # noqa
+    Value(0xFF0000, RGB(255,   0,   0), HSV(  0.00, 1.00, 1.00), XYZ( 41.24,  21.26,  1.930), LAB(53.232,  80.109,   67.22)),  # noqa
+    Value(0x00FF00, RGB(  0, 255,   0), HSV( 120.0, 1.00, 1.00), XYZ( 35.76,  71.52,  11.92), LAB(87.737, -86.184,  83.181)),  # noqa
+    Value(0x0000FF, RGB(  0,   0, 255), HSV( 240.0, 1.00, 1.00), XYZ( 18.05,   7.22,  95.03), LAB(32.302,  79.197, -107.85)),  # noqa
+    Value(0x100000, RGB( 16,   0,   0), HSV(  0.00, 1.00, 1/16), XYZ(0.2137,   0.11,   0.01), LAB( 0.995,   4.464,  1.5726)),  # noqa
+    Value(0xc02040, RGB(192,  32,  64), HSV( 348.0,  5/6,  3/4), XYZ(23.180,  12.61,  6.062), LAB(42.169,   61.66,  23.924)),  # noqa
+    Value(0x00ff80, RGB(  0, 255, 128), HSV(150.11, 1.00, 1.00), XYZ(39.656,  73.08,  32.43), LAB(88.485, -76.749,  46.577)),  # noqa
+    Value(0x000080, RGB(  0,   0, 128), HSV( 240.0, 1.00,  1/2), XYZ( 3.896,  1.558,  20.51), LAB(12.975,  47.508, -64.704)),  # noqa
+    Value(0xffccab, RGB(255, 204, 171), HSV( 23.57,  1/3, 1.00), XYZ(70.183,  67.39,  47.83), LAB(85.698,  13.572,  23.309)),  # noqa
+    Value(0x406080, RGB( 64,  96, 128), HSV( 210.0,  1/2,  1/2), XYZ(10.194, 11.014,  22.01), LAB(39.601, -2.1089, -21.501)),  # noqa
+    Value(0x20181c, RGB( 32,  24,  28), HSV( 330.0,  1/4,  1/8), XYZ(1.1319, 1.0442, 1.2403), LAB(9.3542,  4.8953,  -1.286)),  # noqa
+    Value(0x2d0a50, RGB( 45,  10,  80), HSV( 270.0,  7/8, 5/16), XYZ(2.6387, 1.3542, 7.7101), LAB(11.649, 32.2209, -35.072)),  # noqa
+]
 # fmt: on
-
-VALUES_HEX = [v.hex for v in VALUES]
-VALUES_RGB = [v.rgb for v in VALUES]
-VALUES_HSV = [v.hsv for v in VALUES]
-VALUES_XYZ = [v.xyz for v in VALUES]
-VALUES_LAB = [v.lab for v in VALUES]
 
 
 class TestColorTransform:
@@ -65,8 +65,6 @@ class TestColorTransform:
     )
     def test_transforms(self, value: Value, spaces: tuple[str, str]):
         s_from, s_to = spaces
-        if "xyz" in spaces or "lab" in spaces:
-            pytest.skip("Not implemented")
         fname = f"{s_from}_to_{s_to}"
         if not hasattr(pt.conv, fname):
             return
@@ -74,3 +72,8 @@ class TestColorTransform:
         expected_output = getattr(value, s_to)
         print(input, expected_output)
         assert_close(getattr(pt.conv, fname)(input), expected_output)
+
+    @pytest.mark.xfail(raises=TypeError)
+    def test_hex_to_rgb_fails_on_invalid_arg(self):
+        # noinspection PyTypeChecker
+        hex_to_rgb("123")
