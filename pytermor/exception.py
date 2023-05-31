@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import inspect
+import typing as t
 
 from .log import get_qname
 
@@ -91,3 +92,15 @@ class UserCancel(Exception):
 
 class UserAbort(Exception):
     pass
+
+
+class ColorNameConflictError(Exception):
+    def __init__(self, tokens: t.Tuple[str], existing_color, new_color):
+        msg = f"Color '{new_color.name}' -> {tokens} already exists"
+        super().__init__(msg, [existing_color, new_color])
+
+
+class ColorCodeConflictError(Exception):
+    def __init__(self, code: int, existing_color, new_color):
+        msg = f"Color #{code} already exists"
+        super().__init__(msg, existing_color, new_color)

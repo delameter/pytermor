@@ -34,7 +34,7 @@ class _TemplateTagRaw:
 
 
 class TemplateEngine:
-    _TAG_REGEXP = re.compile(
+    _TAG_REGEX = re.compile(
         r"""                  ##### TAG PREFIX #######
         ((?P<persist>[?!@])   # save tag to local map as fallback/overwrite/explicitly
          (?P<name>[\w-]+)     # … under specified name  
@@ -54,7 +54,8 @@ class TemplateEngine:
         """,
         re.VERBOSE,
     )
-    _ESCAPE_REGEXP = re.compile(r"([^\\])\\\[")
+    _COMMENT_REGEX = re.compile(r"#\[.*?\]")
+    _ESCAPE_REGEX = re.compile(r"([^\\])\\\[")
 
     PERSIST_TO_MERGE_MODE = {
         "?": MergeMode.FALLBACK,
@@ -80,9 +81,10 @@ class TemplateEngine:
         st_opts = []
         logging.debug(f"Parsing the template ({len(tpl)})")
 
-        for tag_match in self._TAG_REGEXP.finditer(tpl):
+        tpl_nocom = self._COMMENT_REGEX.sub("", tpl)
+        for tag_match in self._TAG_REGEX.finditer(tpl_nocom):
             span = tag_match.span()
-            tpl_part = self._ESCAPE_REGEXP.sub(r"\1[", tpl[tpl_cursor : span[0]])
+            tpl_part = self._ESCAPE_REGEX.sub(r"\1[", tpl[tpl_cursor: span[0]])
             if len(tpl_part) > 0 or style_buffer != NOOP_STYLE:
                 if TemplateTagOption.STYLE_WORDS_SELECTIVE in st_opts:
                     for part in apply_style_words_selective(tpl_part, style_buffer):
@@ -120,7 +122,7 @@ class TemplateEngine:
                 ]
             continue
 
-        result += tpl[tpl_cursor:]
+        result += tpl_nocom[tpl_cursor:]
         return result
 
     def _tag_to_style(

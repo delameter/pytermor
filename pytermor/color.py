@@ -25,7 +25,7 @@ from .ansi import (
     SeqIndex,
 )
 from .ansi import ColorTarget
-from .exception import LogicError
+from .exception import LogicError, ColorNameConflictError, ColorCodeConflictError
 from .conv import RGB, HSV
 from .config import get_config
 
@@ -932,15 +932,3 @@ def approximate(
              (if any) and corresponding distance value, etc.
     """
     return (color_type or Color256).approximate(hex_value, max_results)
-
-
-class ColorNameConflictError(Exception):
-    def __init__(self, tokens: t.Tuple[str], existing_color: CT, new_color: CT):
-        msg = f"Color '{new_color.name}' -> {tokens} already exists"
-        super().__init__(msg, [existing_color, new_color])
-
-
-class ColorCodeConflictError(Exception):
-    def __init__(self, code: int, existing_color: CT, new_color: CT):
-        msg = f"Color #{code} already exists"
-        super().__init__(msg, existing_color, new_color)

@@ -48,8 +48,9 @@ pending
 - |REFACTOR| split ``PYTERMOR_OUTPUT_MODE`` env var into ``PYTERMOR_FORCE_OUTPUT_MODE`` and ``PYTERMOR_AUTO_OUTPUT_MODE``
 - |FIX| `template` options parsing issue
 - |NEW| 'skylight-blue' named color
+- |TESTS| 83% coverage
 
-.. <@pending:ae9afaa>
+.. <@pending:181f7b2>
 .. ^ blank line before should be kept
 
 

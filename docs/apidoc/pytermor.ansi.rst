@@ -53,6 +53,7 @@
       make_set_cursor_column
       make_set_cursor_line
       make_show_cursor
+      seq_from_dict
    
    
 

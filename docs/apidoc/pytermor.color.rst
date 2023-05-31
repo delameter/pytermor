@@ -44,13 +44,6 @@
 
    
    
-   .. rubric:: Exceptions
-
-   .. autosummary::
-   
-      ColorCodeConflictError
-      ColorNameConflictError
-   
    
 
 

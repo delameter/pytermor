@@ -22,8 +22,11 @@
    .. autosummary::
    
       ArgTypeError
+      ColorCodeConflictError
+      ColorNameConflictError
       ConflictError
       LogicError
+      ParseError
       UserAbort
       UserCancel
    

@@ -28,10 +28,8 @@ from pytermor import (
     approximate,
     ColorTarget,
 )
-from pytermor.exception import LogicError
+from pytermor.exception import LogicError, ColorNameConflictError, ColorCodeConflictError
 from pytermor.color import (
-    ColorNameConflictError,
-    ColorCodeConflictError,
     _ColorRegistry,
     _ColorIndex,
 )
