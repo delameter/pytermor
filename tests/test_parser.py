@@ -23,7 +23,7 @@ from pytermor import (
 )
 from pytermor.ansi import ISequence, SequenceOSC, SequenceFp
 from pytermor.exception import ParseError
-from . import format_test_params
+from . import format_test_params, load_data_file
 
 
 def read_file(filename: str) -> str:
@@ -171,7 +171,7 @@ class TestParser:
         assert [*parse(input)] == expected_output
 
     def test_all_escapes_recognized(self):
-        input = read_file("hyperlink-demo.txt")
+        input = load_data_file("test_all_escapes_inp.txt")
         for part in parse(input):
             if isinstance(part, str):
                 assert "\x1b" not in part

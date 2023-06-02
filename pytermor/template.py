@@ -57,12 +57,12 @@ class TemplateEngine:
     _COMMENT_REGEX = re.compile(r"#\[.*?\]")
     _ESCAPE_REGEX = re.compile(r"([^\\])\\\[")
 
-    PERSIST_TO_MERGE_MODE = {
+    _PERSIST_TO_MERGE_MODE = {
         "?": MergeMode.FALLBACK,
         "!": MergeMode.OVERWRITE,
         "@": MergeMode.REPLACE,
     }
-    CLEAR_TO_SEQ = {
+    _CLEAR_TO_SEQ = {
         "<>": make_clear_line().assemble(),
         "<<>>": make_clear_display().assemble(),
         "<": make_clear_line_before_cursor().assemble(),
@@ -100,13 +100,13 @@ class TemplateEngine:
             elif tagr.pos:
                 result += Fragment(make_reset_cursor().assemble(), None)
             elif tagr.clear:
-                result += Fragment(self.CLEAR_TO_SEQ.get(tagr.clear, NOOP_SEQ), None)
+                result += Fragment(self._CLEAR_TO_SEQ.get(tagr.clear, NOOP_SEQ), None)
 
             style_buffer = NOOP_STYLE
             st_opts = []
 
             input_style = self._tag_to_style(tagr, self._user_styles)
-            if merge_mode := self.PERSIST_TO_MERGE_MODE.get(tagr.persist):
+            if merge_mode := self._PERSIST_TO_MERGE_MODE.get(tagr.persist):
                 self._user_styles[tagr.name] = self._user_styles.get(
                     tagr.name, NOOP_STYLE.clone()
                 ).merge(merge_mode, input_style)

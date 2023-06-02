@@ -19,6 +19,7 @@ API reference
 
    ansi
    color
+   common
    config
    conv
    cval

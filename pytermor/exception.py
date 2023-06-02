@@ -8,7 +8,7 @@ from __future__ import annotations
 import inspect
 import typing as t
 
-from .log import get_qname
+from .common import get_qname
 
 
 class LogicError(Exception):
@@ -20,6 +20,7 @@ class ParseError(Exception):
         self.groupdict = groupdict
         msg = f"Failed to match sequence class for: '{self.groupdict}'"
         super().__init__(msg)
+
 
 class ConflictError(Exception):
     pass

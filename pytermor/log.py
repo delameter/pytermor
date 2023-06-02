@@ -19,21 +19,3 @@ logger.addHandler(logging.NullHandler())  # discards logs by default
 #   logger.addHandler(handler)
 #   logger.setLevel(logging.DEBUG)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - >8-
-
-
-def get_qname(obj) -> str:
-    """
-    Convenient method for getting a class name for class instances
-    as well as for the classes themselves.
-
-    >>> get_qname("aaa")
-    'str'
-    >>> get_qname(logging.Logger)
-    '<Logger>'
-
-    """
-    if isinstance(obj, type):
-        return "<" + obj.__name__ + ">"
-    if isinstance(obj, object):
-        return obj.__class__.__qualname__
-    return str(obj)

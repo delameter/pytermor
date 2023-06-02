@@ -22,7 +22,7 @@ from .ansi import SequenceSGR, NOOP_SEQ, SeqIndex
 from .ansi import ColorTarget
 from .color import IColor, Color16, Color256, ColorRGB, NOOP_COLOR
 from .common import ExtendedEnum
-from .log import get_qname
+from .common import get_qname
 from .config import get_config
 from .style import Style, NOOP_STYLE, Styles, make_style, FT
 

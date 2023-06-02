@@ -49,8 +49,9 @@ pending
 - |FIX| `template` options parsing issue
 - |NEW| 'skylight-blue' named color
 - |TESTS| 83% coverage
+- |NEW| `TemplateEngine` comment support
 
-.. <@pending:181f7b2>
+.. <@pending:58abd1e>
 .. ^ blank line before should be kept
 
 

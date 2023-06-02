@@ -10,7 +10,6 @@ of styled strings before the rendering, text alignment and wrapping, etc.
 """
 from __future__ import annotations
 
-import itertools
 import logging
 import math
 import re
@@ -24,6 +23,7 @@ from copy import copy
 from functools import update_wrapper
 from typing import overload
 
+from .common import flatten1
 from .log import LOGGING_TRACE
 from .color import IColor
 from .config import get_config
@@ -958,25 +958,3 @@ def apply_style_selective(
             yield Fragment(part, st, close_this=True)
         if len(sep) > 0:
             yield Fragment(sep)
-
-
-T = t.TypeVar("T")
-
-
-def flatten1(items: t.Iterable[t.Iterable[T]]) -> t.List[T]:
-    """
-    Take a list of nested lists and unpack all nested elements one level up.
-
-    >>> flatten1([[1, 2, 3], [4, 5, 6], [[10, 11, 12]]])
-    [1, 2, 3, 4, 5, 6, [10, 11, 12]]
-
-    :param items:  Input lists.
-    """
-    return list(itertools.chain.from_iterable(items))
-
-
-def flatten(items: t.Iterable[t.Iterable[T]]) -> t.List[T]:
-    """
-    @TODO @DRAFT didnt test it yet
-    """
-    return [*(flatten(f) for f in flatten1(items))]

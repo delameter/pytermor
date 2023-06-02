@@ -7,12 +7,10 @@
 Formatters for prettier output and utility classes to avoid writing boilerplate
 code when dealing with escape sequences. Also includes several Python Standard
 Library methods rewritten for correct work with strings containing control sequences.
-
 """
 from __future__ import annotations
 
 import codecs
-import itertools
 import logging
 import math
 import os
@@ -20,17 +18,18 @@ import re
 import typing as t
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
-from functools import reduce
-from math import ceil
+from functools import reduce, lru_cache
+from math import ceil, floor
 from typing import Union
 
-from .common import ExtendedEnum
+from .common import ExtendedEnum, chunk
 from .exception import ArgTypeError
 from .parser import ESCAPE_SEQ_REGEX, SGR_SEQ_REGEX, CSI_SEQ_REGEX
 from .term import get_terminal_width
 
-
-T = t.TypeVar("T")
+codecs.register_error(
+    "replace_with_qmark", lambda e: ("?", e.start + 1)
+)  # pragma: no cover
 
 
 class Align(str, ExtendedEnum):
@@ -58,24 +57,6 @@ class Align(str, ExtendedEnum):
             return fallback
 
 
-def chunk(items: t.Iterable[T], size: int) -> t.Iterator[t.Tuple[T, ...]]:
-    """
-    Split item list into chunks of size ``size`` and return these
-    chunks as *tuples*.
-
-    >>> for c in chunk(range(5), 2):
-    ...     print(c)
-    (0, 1)
-    (2, 3)
-    (4,)
-
-    :param items:  Input elements.
-    :param size:   Chunk size.
-    """
-    arr_range = iter(items)
-    return iter(lambda: tuple(itertools.islice(arr_range, size)), ())
-
-
 def pad(n: int) -> str:
     """
     Convenient method to use instead of ``\"\".ljust(n)``.
@@ -90,58 +71,48 @@ def padv(n: int) -> str:
     return "\n" * n
 
 
-def ljust_sgr(s: str, width: int, fillchar: str = " ", actual_len: int = None) -> str:
+def ljust_sgr(string: str, width: int, fillchar: str = " ") -> str:
     """
     SGR-formatting-aware implementation of ``str.ljust``.
 
     Return a left-justified string of length ``width``. Padding is done
     using the specified fill character (default is a space).
     """
-    if actual_len is None:
-        actual_len = len(SgrStringReplacer().apply(s))
-    return s + fillchar * max(0, width - actual_len)
+    actual_len = len(apply_filters(string, SgrStringReplacer))
+    return string + fillchar * max(0, width - actual_len)
 
 
-def rjust_sgr(s: str, width: int, fillchar: str = " ", actual_len: int = None) -> str:
+def rjust_sgr(string: str, width: int, fillchar: str = " ") -> str:
     """
     SGR-formatting-aware implementation of ``str.rjust``.
 
     Return a right-justified string of length ``width``. Padding is done
     using the specified fill character (default is a space).
     """
-    if actual_len is None:
-        actual_len = len(SgrStringReplacer().apply(s))
-    return fillchar * max(0, width - actual_len) + s
+    actual_len = len(apply_filters(string, SgrStringReplacer))
+    return fillchar * max(0, width - actual_len) + string
 
 
-def center_sgr(s: str, width: int, fillchar: str = " ", actual_len: int = None) -> str:
+def center_sgr(string: str, width: int, fillchar: str = " ") -> str:
     """
     SGR-formatting-aware implementation of ``str.center``.
 
     Return a centered string of length ``width``. Padding is done using the
     specified fill character (default is a space).
-
-    .. todo ::
-
-        поверить корректность работы в случае эмодзи (напр. 🔋)
-        если алгоритм поедет -- можно заменить на f-стринги
     """
-    if actual_len is None:
-        actual_len = len(SgrStringReplacer().apply(s))
+    actual_len = len(apply_filters(string, SgrStringReplacer))
 
     fill_len = max(0, width - actual_len)
     if fill_len == 0:
-        return s
+        return string
 
     if actual_len % 2 == 1:
         right_fill_len = math.ceil(fill_len / 2)
     else:
         right_fill_len = math.floor(fill_len / 2)
     left_fill_len = fill_len - right_fill_len
-    return (fillchar * left_fill_len) + s + (fillchar * right_fill_len)
+    return (fillchar * left_fill_len) + string + (fillchar * right_fill_len)
 
-
-codecs.register_error("replace_with_qmark", lambda e: ("?", e.start + 1))
 
 # =============================================================================
 # Filters
@@ -173,6 +144,22 @@ Set of bytes that are invalid in ASCII-7 context: :hex:`0x80-0xFF`.
 :meta hide-value: 
 """
 
+UCS_2_CHAR_CP = re.compile(r"[\u0000-\u00ff]")
+UCS_4_CHAR_CP = re.compile(r"[\u0100-\uffff]")
+UCS_6_CHAR_CP = re.compile(r"[\U00010000-\U0010ffff]")
+UCS_CHAR_CPS = {UCS_6_CHAR_CP: 6, UCS_4_CHAR_CP: 4, UCS_2_CHAR_CP: 2}
+
+UTF8_1_BYTE_CHAR = re.compile(r"[\x00-\x7f]")
+UTF8_2_BYTES_CHAR = re.compile(r"[\u0080-\u07ff]")
+UTF8_3_BYTES_CHAR = re.compile(r"[\u0800-\uffff]")
+UTF8_4_BYTES_CHAR = re.compile(r"[\U00010000-\U0010ffff]")
+UTF8_BYTES_CHARS = {
+    UTF8_4_BYTES_CHAR: 4,
+    UTF8_3_BYTES_CHAR: 3,
+    UTF8_2_BYTES_CHAR: 2,
+    UTF8_1_BYTE_CHAR: 1,
+}
+
 IT = t.TypeVar("IT", str, bytes)
 """ input-type """
 OT = t.TypeVar("OT", str, bytes)
@@ -183,8 +170,6 @@ RPT = Union[OT, t.Callable[[t.Match[OT]], OT]]
 """ replacer type """
 MPT = t.Dict[int, IT]
 """ # map """
-
-_dump_printers_cache: t.Dict[t.Type["AbstractTracer"], "AbstractTracer"] = dict()
 
 
 class IFilter(t.Generic[IT, OT], metaclass=ABCMeta):
@@ -272,27 +257,35 @@ class StringAligner(IFilter[str, str]):
 
 
 class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
-    def __init__(self, char_per_line: int):
-        self._char_per_line = char_per_line
+    def __init__(self, max_output_width: int = None):
+        self._max_output_width: int = max_output_width or get_terminal_width()
         self._state: _TracerState = _TracerState()
 
     def apply(self, inp: IT, extra: TracerExtra = None) -> str:
         if not inp or len(inp) == 0:
             return "\n"
 
-        self._state.reset(inp)
-        self._state.inp_size_len = len(str(self._state.inp_size))
-        self._state.offset_len = len(self._format_offset(self._state.inp_size))
+        self._state.reset(inp, self.get_max_chars_per_line(inp))
+        if self._state.char_per_line < 1:
+            raise ValueError(
+                f"Maximum output width ({self._max_output_width}) "
+                f"is too low, cant fit even one char/group per line"
+            )
+        self._state.inp_size_len = self._get_input_size_len()
+        self._state.address_len = len(self._format_address(self._state.inp_size))
 
         while len(inp) > 0:
-            inp, part = inp[self._char_per_line :], inp[: self._char_per_line]
+            inp, part = (
+                inp[self._state.char_per_line :],
+                inp[: self._state.char_per_line],
+            )
             self._process(part)
             self._state.lineno += 1
-            self._state.offset += self._char_per_line
+            self._state.address += self._state.char_per_line
 
         header = self._format_line_separator("_", f"{extra.label}" if extra else "")
         footer = self._format_line_separator(
-            "-", label_right="(" + self._format_offset(self._state.inp_size) + ")"
+            "-", label_right="(" + self._format_address(self._state.inp_size) + ")"
         )
 
         result = header + "\n"
@@ -300,12 +293,10 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
         result += "\n" + footer + "\n"
         return result
 
-    def _format_offset(self, override: int = None) -> str:
-        offset = override or self._state.offset
-        result = str(offset).rjust(self._state.inp_size_len)
-        if len(result) > 4:
-            return result[4:] + ":" + result[:4]
-        return result.rjust(4)
+    def _format_address(self, override: int = None) -> str:
+        address = override or self._state.address
+        result = str(address).rjust(self._state.inp_size_len)
+        return result
 
     def _format_line_separator(
         self, fill: str, label_left: str = "", label_right: str = ""
@@ -328,6 +319,9 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
     def _get_vert_sep_char(self):
         return "|"
 
+    def _get_input_size_len(self) -> int:
+        return len(str(self._state.inp_size))
+
     def _get_output_line_len(self) -> int:
         # useless before processing
         if self._state.cols_max_len is None:
@@ -338,8 +332,8 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
     def _process(self, part: IT) -> str:
         raise NotImplementedError
 
-    @classmethod
-    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
+    @abstractmethod
+    def get_max_chars_per_line(self, inp: IT) -> int:
         raise NotImplementedError
 
 
@@ -347,17 +341,17 @@ class BytesTracer(AbstractTracer[bytes]):
     """
     str/bytes as byte hex codes, grouped by 4
 
-    .. code-block:: hexdump
+    .. code-block:: PtTracerDump
        :caption: Example output
 
-        0000  0A 20 32 31 36 20 20 20  E2 94 82 20 20 75 70 6C  |a
-        0010  20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 20  |a
+         0x00 | 35 30 20 35  34 20 35 35  20 C2 B0 43  20 20 33 39  20 2B 30 20
+         0x14 | 20 20 33 39  6D 73 20 31  20 52 55 20  20 E2 88 86  20 35 68 20
+         0x28 | 31 38 6D 20  20 20 EE 8C  8D 20 E2 80  8E 20 2B 32  30 C2 B0 43
+         0x3C | 20 20 54 68  20 30 31 20  4A 75 6E 20  20 31 36 20  32 38 20 20
+         0x50 | E2 96 95 E2  9C 94 E2 96  8F 46 55 4C  4C 20
     """
 
     GROUP_SIZE = 4
-
-    def __init__(self, char_per_line: int = 32):
-        super().__init__(self.GROUP_SIZE * ceil(char_per_line / self.GROUP_SIZE))
 
     def _process(self, part: IT):
         self._state.add_row(self._make_row(part))
@@ -365,55 +359,143 @@ class BytesTracer(AbstractTracer[bytes]):
     def _make_row(self, part: IT) -> t.List[str]:
         return [
             " ",
-            self._format_offset(),
-            " " + self._get_vert_sep_char() + "  ",
+            self._format_address(),
+            " ",
+            self._get_vert_sep_char(),
+            " ",
             *self._format_main(part),
         ]
 
-    def _format_offset(self, override: int = None) -> str:
-        offset = override or self._state.offset
-        size_len = 2 * ceil(self._state.inp_size_len / 2)
-        return f"{offset:0{size_len}X}"
+    def _format_address(self, override: int = None) -> str:
+        return f"0x{override or self._state.address:0{self._state.inp_size_len}X}"
 
     def _format_main(self, part: bytes) -> t.Iterable[str]:
         for c in chunk(part, self.GROUP_SIZE):
             yield (" ".join([f"{b:02X}" for b in (*c,)])).ljust(3 * self.GROUP_SIZE + 1)
 
+    def _get_input_size_len(self) -> int:
+        return 2 * ceil(len(f"{self._state.inp_size:X}") / 2)
+
+    def get_max_chars_per_line(self, inp: bytes) -> int:
+        """
+        .. default-role:: math
+
+        The amount of characters that will fit into one line (with taking into account
+        all the formatting and the fact that chars are displayed in groups of `4`)
+        depends on terminal width and on max address value (the latter determines the
+        size of the leftmost field -- current line address). Let's express output line
+        length `L_O` in a general way -- through `C_L` (characters per line) and
+        `L_{adr}` (length of maximum address value for given input):
+
+        .. math ::
+                 L_O& = L_{spc} + L_{sep} + L_{adr} + L_{hex},                      \\\\\\\\
+             L_{adr}& = 2 + 2 \\cdot ceil(\\frac{L_{Ihex}}{2}), \\qquad\\qquad (1) \\\\\\\\
+             L_{hex}& = 3C_L + floor(\\frac{C_L}{4}),
+
+        where:
+
+            - `L_{spc} = 3` is static whitespace total length,
+            - `L_{sep} = 1` is separator (``"|"``) length,
+            - `L_{Ihex} = len(L_I)` is *length* of (hexadecimal) *length* of input.
+              Here is an example, consider input data `I` `10` bytes long:
+
+                    .. math ::
+                            L_I& = len(I) = 10_{10} = A_{16},    \\\\\\\\
+                       L_{Ihex}& = len(L_I) = len(A_{16}) = 1,   \\\\\\\\
+                        L_{adr}& = 2 + 2 \\cdot ceil(\\frac{1}{2}) = 4,
+
+              which corresponds to address formatted as :hex:`0x0A`. One more example --
+              input data `1000` bytes long:
+
+                    .. math ::
+                              L_I& = len(I) = 1000_{10} = 3E8_{16},    \\\\\\\\
+                         L_{Ihex}& = len(L_I) = len(3E8_{16}) = 3 ,    \\\\\\\\
+                          L_{adr}& = 2 + 2 \\cdot ceil(\\frac{3}{2})  = 6 ,
+
+              which matches the length of an actual address :hex:`0x03E8`). Note that the
+              expression `2 \\cdot ceil(\\frac{L_{Ihex}}{2})` is used for rounding `L_{adr}` up
+              to next even integer to avoid printing the addresses in :hex:`0x301` form,
+              and displaying them more or less aligned instead. The first constant item
+              `2` in `(1)` represents :hex:`0x` prefix.
+            - `L_{hex}` represents amount of chars required to display `C_L` hexadecimal bytes.
+              First item `3C_L` is trivial and corresponds to every byte's hexadecimal value
+              plus a space after (giving us `2+1=3`, e.g. ``"34 "``), while the second one
+              represents one extra space character per each 4-byte group.
+
+        Let's introduce `L_T` as current terminal width, then `\\boxed{L_O \\leqslant L_T}`, which
+        leads to the following inequation:
+
+        .. math ::
+             L_{spc} + L_{sep} + L_{adr} + L_{hex} \\leqslant L_T .
+
+        Substitute the variables:
+
+        .. math ::
+            3 + 1 + 2 + 2 \\cdot ceil(\\frac{L_{Ihex}}{2}) + 3C_L + floor(\\frac{C_L}{4}) \\leqslant L_T .
+
+        Suppose we limit `C_L` values to the integer factor of `4`, then:
+
+        .. math ::
+            3C_L + floor(\\frac{C_L}{4}) = 3.25C_L \\qquad \\forall C_L \\in [4, 8, 12..) , \\qquad (2)
+
+        which gives us:
+
+        .. math ::
+            6 + 2 \\cdot ceil(\\frac{L_{Ihex}}{2}) + 3.25C_L \\leqslant L_T  &,  \\\\\\\\
+            3.25C_L \\leqslant  L_T - 2 \\cdot ceil(\\frac{L_{Ihex}}{2}) - 6 &,  \\\\\\\\
+            13C_L \\leqslant 4L_T - 8 \\cdot ceil(\\frac{L_{Ihex}}{2}) - 24  &.
+
+        Therefore:
+
+        .. math ::
+            C_{Lmax} = floor(\\frac{4L_T - 4 \\cdot ceil(\\frac{L_{Ihex}}{2}) - 24}{13}) .
+
+        Last step would be to round the result (down) to the nearest integer
+        factor of `4` as we have agreed earlier in `(2)`.
+
+        .. default-role:: any
+
+        :param inp:
+        """
+        l_ihex = len(f"{len(inp):x}")
+        l_t = self._max_output_width
+        c_lmax = self.GROUP_SIZE * floor((l_t - ceil(l_ihex / 2) - 6) / 13)
+        return self._round_chars_per_line(c_lmax)
+
     @classmethod
-    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
-        space_len = 4
-        sep_len = 1
-        offset_len = len(str(inp_size))
-        main_len = (3 * char_per_line * cls.GROUP_SIZE) + (
-            char_per_line // cls.GROUP_SIZE
-        )
-        return space_len + sep_len + offset_len + main_len
+    def _round_chars_per_line(cls, cpl: int) -> int:
+        return cls.GROUP_SIZE * floor(cpl / cls.GROUP_SIZE)
 
 
 class AbstractStringTracer(AbstractTracer[str], metaclass=ABCMeta):
-    def __init__(self, char_per_line: int):
+    def __init__(self, max_output_width: int = None):
         self._output_filters: t.List[IFilter] = []
-        super().__init__(char_per_line)
+        super().__init__(max_output_width)
 
     def _format_output_text(self, text: str) -> str:
-        return apply_filters(text, *self._output_filters).ljust(self._char_per_line)
+        return apply_filters(text, *self._output_filters).ljust(
+            self._state.char_per_line
+        )
 
 
 class StringTracer(AbstractStringTracer):
     """
     str as byte hex codes (UTF-8), grouped by characters
 
-    .. code-block:: hexdump
+    .. code-block:: PtTracerDump
        :caption: Example output
 
-       0056  45 4D 20 43 50 55     20     4F 56 48 20 4E   45 3E 0A 20  |E|
-       0072  20 20 20 20 20 20 E29482     20 20 20 20 20   20 20 20 20  |␣|
-       0088  20 20 20 20 37 20     2B     30 20 20 20 20 CE94 20 32 68  |␣|
-       0104  20 33 33 6D 20 20     20 EFAA8F 20 2D 35 20 C2B0 43 20 20  |␣|
+          0 |     35     30     20 35 34 20 35     35     20   c2b0 43 20 |50␣54␣55␣°C␣
+         12 |     20     33     39 20 2b 30 20     20     20     33 39 6d |␣39␣+0␣␣␣39m
+         24 |     73     20     31 20 52 55 20     20 e28886     20 35 68 |s␣1␣RU␣␣∆␣5h
+         36 |     20     31     38 6d 20 20 20 ee8c8d     20 e2808e 20 2b |␣18m␣␣␣␣‎␣+
+         48 |     32     30   c2b0 43 20 20 54     68     20     30 31 20 |20°C␣␣Th␣01␣
+         60 |     4a     75     6e 20 20 31 36     20     32     38 20 20 |Jun␣␣16␣28␣␣
+         72 | e29695 e29c94 e2968f 46 55 4c 4c     20                     |▕✔▏FULL␣
     """
 
-    def __init__(self, char_per_line: int = 16):
-        super().__init__(char_per_line)
+    def __init__(self, max_output_width: int = None):
+        super().__init__(max_output_width)
         self._output_filters = [NonPrintsStringVisualizer(keep_newlines=False)]
 
     def _process(self, part: IT):
@@ -422,9 +504,9 @@ class StringTracer(AbstractStringTracer):
     def _make_row(self, part: str) -> t.List[str]:
         return [
             " ",
-            self._format_offset(),
-            " " + self._get_vert_sep_char(),
-            "0x",
+            self._format_address(),
+            " ",
+            self._get_vert_sep_char(),
             " ",
             *self._format_main(part),
             self._get_vert_sep_char(),
@@ -433,38 +515,119 @@ class StringTracer(AbstractStringTracer):
 
     def _format_main(self, part: str) -> t.Iterable[str]:
         for s in part:
-            yield "".join(f"{b:02X}" for b in s.encode())
+            yield "".join(f"{b:02x}" for b in s.encode())
             yield " "
-        yield from [""] * 2 * (self._char_per_line - len(part))
+        yield from [""] * 2 * (self._state.char_per_line - len(part))
 
-    @classmethod
-    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
-        space_len = 3
-        sep_len = 6
-        prefix_len = 2
-        offset_len = len(str(inp_size))
-        main_len = (8 + 1) * char_per_line
-        return space_len + sep_len + prefix_len + offset_len + main_len
+    def get_max_chars_per_line(self, inp: str) -> int:
+        """
+        For more detials on math behind these calculations see
+        `BytesTracer <BytesTracer.get_max_chars_per_line()>`.
+
+        .. default-role:: math
+
+        Calculations for this class are different, although the base
+        formula for output line length `L_O` is the same:
+
+        .. math ::
+                 L_O& = L_{spc} + L_{sep} + L_{adr} + L_{hex},   \\\\\\\\
+             L_{adr}& = len(L_I),                                \\\\\\\\
+             L_{hex}& = (2C_{Umax} + 1) \\cdot C_L
+
+        where:
+
+            - `L_{spc} = 3` is static whitespace total length,
+            - `L_{sep} = 2` is separators ``"|"`` total length,
+            - `L_{adr}` is length of maximum address value and is equal to *length*
+              of *length* of input data without any transformations (because the
+              output is decimal, in contrast with :py:class:`BytesTracer`),
+            - `L_{hex}` is hex representation length (`2` chars multiplied to
+              `C_{Umax}` plus `1` for space separator per each character),
+            - `C_{Umax}` is maximum UTF-8 bytes amount for a single codepoint
+              encountered in the input (for example, `C_{Umax}` equals to `1` for
+              input string consisting of ASCII-7 characters only, like ``"ABCDE"``,
+              `2` for ``"эйцукен"``, `3` for ``"硸馆邚"`` and `4` for ``"􏿿"``,
+              which is :hex:`U+10FFFF`),
+            - `L_{chr} = C_L` is char representation length (equals to `C_L`), and
+            - `C_L` is chars per line setting.
+
+        Then the condition of fitting the data to a terminal can be written as:
+
+        .. math ::
+            L_{spc} + L_{sep} + L_{adr} + L_{hex} + L_{chr} \\leqslant L_T ,
+
+        where `L_T` is current terminal width. Next:
+
+        .. math ::
+            3 + 2 + L_{adr} + (2C_{Umax}+1) \\cdot C_L + C_L ,& \\leqslant L_T \\\\\\\\
+                      L_{adr} + 5 + (2C_{Umax}+2) \\cdot C_L ,& \\leqslant L_T
+
+        Express `C_L` through `L_T`, `L_{adr}` and `C_{Umax}`:
+
+        .. math ::
+            (2C_{Umax}+2) \\cdot C_L \\leqslant L_T - L_{adr} - 5 ,
+
+        Therefore maximum chars per line equals to:
+
+        .. math ::
+            C_{Lmax} = floor(\\frac{L_T - L_{adr} - 5}{2C_{Umax}+2}).
+
+        .. rubric:: Example
+
+        Consider terminal width is `80`, input data is `64` characters long
+        and consists of :hex:`U+10FFFF` codepoints only (`C_{Umax}=4`). Then:
+
+         .. math ::
+             L_{adr} &= len(L_I) = len(64) = 2, \\\\
+             C_{Lmax} &= floor(\\frac{78 - 2 - 5}{8+2}), \\\\
+                      &= floor(7.1) = 7.
+
+        .. note ::
+            Max width value used in calculations is slightly smaller than real one,
+            that's why output lines are `78` characters long (instead of `80`) --
+            there is a `2`-char reserve to ensure that the output will fit to the
+            terminal window regardless of terminal emulator type and implementation.
+
+        The calculations always consider the maximum possible length of input
+        data chars, and even if it will consist of the highest order codepoints
+        only, it will be perfectly fine.
+
+        .. code-block:: PtTracerDump
+
+               0 | f4808080 f4808080 f4808080 f4808080 f4808080 f4808080 f4808080 |􀀀􀀀􀀀􀀀􀀀􀀀􀀀
+               7 | f4808080 f4808080 f4808080 f4808080 f4808080 f4808080 f4808080 |􀀀􀀀􀀀􀀀􀀀􀀀􀀀
+              14 | ...
+
+        .. default-role:: any
+
+        More realistic example with various byte lengths is given in `class <StringTracer>`
+        documentation above.
+
+        :param inp:
+        """
+        l_off = len(str(len(inp)))
+        l_t = self._max_output_width
+        c_umax = get_max_utf8_bytes_char_length(inp)
+        result = floor((l_t - l_off - 5) / (2 * c_umax + 2))
+        return result
 
 
 class StringUcpTracer(AbstractStringTracer):
     """
     str as Unicode codepoints
 
-    .. todo::
-        venv/lib/python3.8/site-packages/pygments/lexers/hexdump.py
-
-    .. code-block:: bash
+    .. code-block:: PtTracerDump
        :caption: Example output
 
-        56 |U+ 45 4d 20 43 50 55   20   4f 56 48 20 4e  45 3e 0a 20 | EM␣CPU␣OVH␣NE>↵␣
-        72 |U+ 20 20 20 20 20 20 2502   20 20 20 20 20  20 20 20 20 | ␣␣␣␣␣␣│␣␣␣␣␣␣␣␣␣
-        88 |U+ 20 20 20 20 37 20   2b   30 20 20 20 20 394 20 32 68 | ␣␣␣␣7␣+0␣␣␣␣Δ␣2h
-       104 |U+ 20 33 33 6d 20 20   20 fa8f 20 2d 35 20  b0 43 20 20 | ␣33m␣␣␣摒␣-5␣°C␣␣
+          0 |U+   20   34   36 20 34 36 20 34   36   20 B0 43 20 20 33   39 20 2B |␣46␣46␣46␣°C␣␣39␣+
+         18 |U+   30   20   20 20 35 20 6D 73   20   31 20 52 55 20 20 2206 20 37 |0␣␣␣5␣ms␣1␣RU␣␣∆␣7
+         36 |U+   68   20   32 33 6D 20 20 20 FA93 200E 20 2B 31 33 B0   43 20 20 |h␣23m␣␣␣望‎␣+13°C␣␣
+         54 |U+   46   72   20 30 32 20 4A 75   6E   20 20 30 32 3A 34   38 20 20 |Fr␣02␣Jun␣␣02:48␣␣
+         72 |U+ 2595 2714 258F 46 55 4C 4C 20                                     |▕✔▏FULL␣          
     """
 
-    def __init__(self, char_per_line: int = 16):
-        super().__init__(char_per_line)
+    def __init__(self, max_output_width: int = None):
+        super().__init__(max_output_width)
         self._output_filters = [NonPrintsStringVisualizer(keep_newlines=False)]
 
     def _process(self, part: IT):
@@ -473,8 +636,9 @@ class StringUcpTracer(AbstractStringTracer):
     def _make_row(self, part: str) -> t.List[str]:
         return [
             " ",
-            self._format_offset(),
-            " " + self._get_vert_sep_char(),
+            self._format_address(),
+            " ",
+            self._get_vert_sep_char(),
             "U+",
             " ",
             *self._format_main(part),
@@ -484,17 +648,33 @@ class StringUcpTracer(AbstractStringTracer):
 
     def _format_main(self, part: str) -> t.Iterable[str]:
         for s in part:
-            yield from [f"{ord(s):>02x}", " "]
-        yield from [""] * 2 * (self._char_per_line - len(part))
+            yield from [f"{ord(s):>02X}", " "]
+        yield from [""] * 2 * (self._state.char_per_line - len(part))
 
-    @classmethod
-    def estimate_line_len(cls, char_per_line: int, inp_size: int) -> int:
-        space_len = 3
-        sep_len = 2
-        prefix_len = 2
-        offset_len = len(str(inp_size))
-        main_len = (5 + 1) * char_per_line
-        return space_len + sep_len + prefix_len + offset_len + main_len
+    def get_max_chars_per_line(self, inp: str) -> int:
+        """
+        Calculations for `StringUcpTracer` are almost the same as for `StringTracer`,
+        expect that sum of static parts of :math:`L_O` equals to :math:`7` instead
+        of :math:`5` (because of "U+" prefix being displayed).
+
+        .. default-role:: math
+
+        The second difference is using `C_{UCmax}` instead of `C_{Umax}`; the former 
+        variable is the amount of "n" in :hex:`U+nnnn` identifier of the character, 
+        while the latter is amount of bytes required to encode the character in UTF-8.
+        Final formula is:
+
+        .. math ::
+            C_{Lmax} = floor(\\frac{L_T - L_{adr} - 7}{C_{UCmax}+2}).
+
+        :param inp:
+        :type inp:
+        """
+        l_off = len(str(len(inp)))
+        l_t = self._max_output_width
+        c_ucmax = get_max_ucs_chars_cp_length(inp)
+        result = floor((l_t - l_off - 7) / (c_ucmax + 2))
+        return result
 
 
 @dataclass
@@ -506,21 +686,23 @@ class TracerExtra:
 class _TracerState:
     inp_size: int = field(init=False, default=None)
     lineno: int = field(init=False, default=None)
-    offset: int = field(init=False, default=None)
+    address: int = field(init=False, default=None)
 
+    char_per_line: int = field(init=False, default=None)
     inp_size_len: int = field(init=False, default=None)
-    offset_len: int = field(init=False, default=None)
+    address_len: int = field(init=False, default=None)
 
     rows: t.List[t.List[str]] = field(init=False, default=None)
     cols_max_len: t.List[int] | None = field(init=False, default=None)
 
-    def reset(self, inp: IT):
+    def reset(self, inp: IT, char_per_line: int):
         self.inp_size = len(inp)
         self.lineno = 0
-        self.offset = 0
+        self.address = 0
 
+        self.char_per_line = char_per_line
         self.inp_size_len = 0
-        self.offset_len = 0
+        self.address_len = 0
 
         self.rows = []
         self.cols_max_len = None
@@ -796,7 +978,42 @@ class OmniSanitizer(OmniMapper):
 
 
 # -----------------------------------------------------------------------------
-# misc
+
+
+@lru_cache
+def _get_tracer(tracer_cls: t.Type[AbstractTracer], max_width: int) -> AbstractTracer:
+    return tracer_cls(max_width)
+
+
+# @TODO  - special handling of one-line input
+#        - squash repeating lines
+def dump(
+    data: t.Any, label: str = None, tracer_cls: t.Type[AbstractTracer] = StringUcpTracer
+) -> str:
+    """
+    .
+    """
+    if not isinstance(data, (str, bytes)):
+        data = str(data)
+
+    tracer = _get_tracer(tracer_cls, get_terminal_width())
+    return tracer.apply(data, TracerExtra(label))
+
+
+def get_max_ucs_chars_cp_length(string: str) -> int:
+    """ . """
+    for regex, length in UCS_CHAR_CPS.items():
+        if regex.search(string):
+            return length
+    return 0
+
+
+def get_max_utf8_bytes_char_length(string: str) -> int:
+    """ cc """
+    for regex, length in UTF8_BYTES_CHARS.items():
+        if regex.search(string):
+            return length
+    return 0
 
 
 def apply_filters(inp: IT, *args: Union[IFilter, t.Type[IFilter]]) -> OT:
@@ -826,29 +1043,3 @@ def apply_filters(inp: IT, *args: Union[IFilter, t.Type[IFilter]]) -> OT:
         return f() if isinstance(f, type) else f
 
     return reduce(lambda s, f: instantiate(f)(s), args, inp)
-
-
-def dump(data: t.Any, label: str = None, max_len_shift: int = None) -> str | None:
-    """
-    .. todo ::
-        - format selection
-        - special handling of one-line input
-        - squash repeating lines
-    """
-    printer_t = StringUcpTracer
-    printer = _dump_printers_cache.get(printer_t, None)
-
-    if not printer and max_len_shift is not None:
-        max_len = get_terminal_width() + max_len_shift
-        for chars_per_line in [8, 12, 16, 20, 24, 32, 40, 48, 64]:
-            est_len = printer_t.estimate_line_len(chars_per_line, len(data))
-            if est_len < max_len:
-                printer = printer_t(chars_per_line)
-                continue
-            break
-
-    if not printer:
-        printer = printer_t()
-    _dump_printers_cache[printer_t] = printer
-
-    return printer.apply(data, TracerExtra(label))

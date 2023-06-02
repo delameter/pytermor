@@ -53,7 +53,9 @@ init-system-pdf:  ## [host] Prepare environment for pdf rendering
 	sudo apt install texlive-latex-recommended \
 					 texlive-fonts-recommended \
 					 texlive-latex-extra \
-					 latexmk
+					 latexmk \
+					 dvipng \
+					 dvisvgm
 
 cli: ## [host] Launch python interpreter  <hatch>
 	hatch run python -uq
@@ -162,9 +164,9 @@ test-verbose: ## Run pytest with detailed output
 	@PT_ENV=test ./.invoke pytest -v --failed-first
 
 test-trace: ## Run pytest with detailed output  <@last_test_trace.log>
-	@PT_ENV=test PYTERMOR_TRACE_RENDERS=1 \
-      ./.invoke pytest -v --failed-first --log-file-level=1 --log-file=last_test_trace.log
-
+	@PT_ENV=test ./.invoke pytest -v --failed-first --log-file-level=1 --log-file=last_test_trace.log
+	/usr/bin/ls --size --si last_test_trace.log
+	# optional: PYTERMOR_TRACE_RENDERS=1
 
 ##
 ## Profiling

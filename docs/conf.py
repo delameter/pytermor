@@ -7,6 +7,8 @@ import datetime
 import os
 import sys
 
+from pygments.lexers import load_lexer_from_file
+
 # -- Path setup ---------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -47,6 +49,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
     "sphinx_design",  # <<<MAKE_DOCS_MAN<<<
+    "sphinx.ext.imgmath",
     #"sphinx_toolbox.more_autodoc.regex",
     #"sphinx_toolbox.more_autodoc.overloads",
     # "sphinx_toolbox.more_autodoc.generic_bases",
@@ -92,7 +95,16 @@ from docs.conf_extras.html_theme_options import html_theme_options  # noqa
 pygments_style = "tango"
 pygments_dark_style = "github-dark"
 
+from docs.conf_extras import tracer_dump_lexer
+
+
 copybutton_prompt_text = ">>> "
+
+imgmath_image_format = "png"
+imgmath_font_size = 14
+imgmath_add_tooltips = False
+imgmath_embed = True
+imgmath_use_preview = True
 
 # -- LaTeX / PDF --------------------------------------------------------------
 

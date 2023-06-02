@@ -130,7 +130,7 @@ exclude_lines = [
     "raise AssertionError",
     "raise NotImplementedError",
     "if 0:",
-    "\\.\\.\\.",
+    "^\\s*\\.\\.\\.\\s*$",
     "if __name__ == .__main__.:",
     "[A-Z0-9_]+ *= *((Sequence|Color|Style)\\w*\\([]' ,.\\w=[]+\\)?|[A-Z0-9_]+)(\\s*#.+)?$",
 ]

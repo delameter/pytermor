@@ -108,6 +108,7 @@ p.rubric,
 dd p.rubric {
     font-size: 1.125em;
     font-weight: 700;
+    text-transform: none;
 }
 
 /** Layout **/
@@ -230,7 +231,9 @@ a.image-reference img {
 }
 
 body[data-theme="dark"] div.graphviz > img,
-body[data-theme="dark"] div.graphviz > object {
+body[data-theme="dark"] div.graphviz > object,
+body[data-theme="dark"] div.math img,
+body[data-theme="dark"] img.math {
     filter: invert(1);
 }
 

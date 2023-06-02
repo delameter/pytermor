@@ -27,12 +27,17 @@ from enum import unique
 from functools import total_ordering
 from typing import Any, ClassVar
 
-from .log import get_qname
+from .common import get_qname
 from .exception import LogicError, ConflictError, ParseError
 
 
-class _ClassMap(dict[str, type['ISequence']]):
-    def add(self, cls: type[ISequence], parents: tuple[type], introducer: t.Iterable[str | int]):
+class _ClassMap(t.Dict[str, t.Type["ISequence"]]):
+    def add(
+        self,
+        cls: t.Type[ISequence],
+        parents: t.Tuple[type],
+        introducer: t.Iterable[str | int],
+    ):
         for i in introducer:
             c = i if isinstance(i, str) else chr(i)
             if (existing := self.get(c)) in parents or not existing:
@@ -61,16 +66,17 @@ class _ClassMap(dict[str, type['ISequence']]):
 
 _CLASSMAP = _ClassMap()
 
-def seq_from_dict(groupdict: dict) -> 'ISequence':
+
+def seq_from_dict(groupdict: dict) -> "ISequence":
     return _CLASSMAP.from_dict(groupdict)
 
 
 class _SequenceMeta(ABCMeta):
     def __new__(
-        __mcls: type[type[ISequence]],
+        __mcls: t.Type[t.Type[ISequence]],
         __name: str,
-        __bases: tuple[type, ...],
-        __namespace: dict[str, Any],
+        __bases: t.Tuple[type, ...],
+        __namespace: t.Dict[str, Any],
         **kwargs: Any,
     ) -> _SequenceMeta:
         new = super().__new__(__mcls, __name, __bases, __namespace, **kwargs)
@@ -117,7 +123,9 @@ class ISequence(t.Sized, metaclass=_SequenceMeta):
         raise NotImplementedError
 
     @classmethod
-    def cast_params(cls, data: dict, key: str, require_int: bool) -> t.Iterable[str|int, ...]:
+    def cast_params(
+        cls, data: dict, key: str, require_int: bool
+    ) -> t.Iterable[str | int, ...]:
         if not (params_raw := data.get(key)):
             return
         for param_spl in params_raw.split(cls.PARAM_SEPARATOR):
@@ -173,7 +181,9 @@ class SequenceNf(ISequence):
 
     _CLASSIFIER_RANGE = range(0x20, 0x30)
 
-    def __init__(self, classifier: str, final: str, interm: str = None, abbr: str = "nF"):
+    def __init__(
+        self, classifier: str, final: str, interm: str = None, abbr: str = "nF"
+    ):
         """
         :param interm: intermediate bytes :hex:`0x20-0x2F`
         """
@@ -183,7 +193,9 @@ class SequenceNf(ISequence):
         """
         Build up actual byte sequence and return as an ASCII-encoded string.
         """
-        return self.ESC_CHARACTER + self._classifier + (self._interm or None) + self._final
+        return (
+            self.ESC_CHARACTER + self._classifier + (self._interm or None) + self._final
+        )
 
     @classmethod
     def from_dict(cls, data: dict) -> SequenceNf:
@@ -250,7 +262,12 @@ class SequenceFe(ISequence):
     _CLASSIFIER_RANGE = range(0x40, 0x60)
 
     def __init__(
-        self, classifier: str, *params: int|str, interm: str = None, final: str = None, abbr="Fe"
+        self,
+        classifier: str,
+        *params: int | str,
+        interm: str = None,
+        final: str = None,
+        abbr="Fe",
     ):
         """
         .
@@ -295,15 +312,14 @@ class SequenceOSC(SequenceFe):
 
     _CLASSIFIER = "]"
 
-    def __init__(self, *params: int|str, interm: str = None):
+    def __init__(self, *params: int | str, interm: str = None):
         super().__init__(self._CLASSIFIER, interm=interm, abbr="OSC")
         self._assign_params(*params)
 
     @classmethod
     def from_dict(cls, data: dict) -> SequenceFe:
         return SequenceOSC(
-            *cls.cast_params(data, "osc_param", False),
-            interm=data.get("osc_interm"),
+            *cls.cast_params(data, "osc_param", False), interm=data.get("osc_interm")
         )
 
 
@@ -323,16 +339,14 @@ class SequenceCSI(SequenceFe):
     _CLASSIFIER = "["
 
     def __init__(
-        self,
-        final: str = None,
-        *params: int,
-        interm: str = None,
-        abbr: str = "CSI",
+        self, final: str = None, *params: int, interm: str = None, abbr: str = "CSI"
     ):
         """
         .
         """
-        super().__init__(self._CLASSIFIER, *params, interm=interm, final=final, abbr=abbr)
+        super().__init__(
+            self._CLASSIFIER, *params, interm=interm, final=final, abbr=abbr
+        )
 
     def assemble(self) -> str:
         return (
@@ -423,7 +437,7 @@ class SequenceSGR(SequenceCSI):
     """
 
     _CLASSIFIER = SequenceCSI._CLASSIFIER
-    _FINAL = 'm'
+    _FINAL = "m"
     _PAIRITY_REGISTRY: ClassVar[_SgrPairityRegistry]
 
     def __init__(self, *params: str | int | SubtypedParam | SequenceSGR):
@@ -487,7 +501,7 @@ class SequenceSGR(SequenceCSI):
             if not (csi_param := data.get("csi_param")):
                 return SequenceSGR()
             params_raw: list[str] = csi_param.split(cls.PARAM_SEPARATOR)
-            params: list[int|SubtypedParam] = []
+            params: list[int | SubtypedParam] = []
             try:
                 for param_raw in params_raw:
                     if (subsep := SubtypedParam._SEPARATOR) in param_raw:

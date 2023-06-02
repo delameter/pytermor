@@ -36,3 +36,4 @@ pt.echo(te.substitute(
     f":[upd]({pt.__updated__}):[-]"
 ))
 
+p=lambda s: print('\n'.join(s[:10]+['...']+s[-10:]))

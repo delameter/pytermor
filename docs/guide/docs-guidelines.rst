@@ -38,32 +38,36 @@ General
    .. math::
       d_{min} = 350*10^{-3}
 
-- Hexadecimal numbers should be displayed using ``:hex:`` role (applies to all
-  examples below except the last one). In general, when the characters are
-  supposed to be typed manually, or when the result length is 6+ chars, it's
-  better to use lower case; when the numbers are distinct or "U+" notation is
-  used, the upper case is acceptable:
+=================
+Hexadecimals
+=================
 
-   separate bytes
-      :hex:`0x1B 0x23 0x88`
+Hexadecimal numbers should be displayed using ``:hex:`` role (applies to all
+examples below except the last one). In general, when the characters are
+supposed to be typed manually, or when the result length is 6+ chars, it's
+better to use lower case; when the numbers are distinct or "U+" notation is
+used, the upper case is acceptable:
 
-   Unicode codepoints
-      :hex:`U+21BC` ; :hex:`U+F0909`
+separate bytes
+   :hex:`0x1B 0x23 0x88`
 
-   hex dump
-      :hex:`"0x 00AF 00BB 96CA"` ; :hex:`"0x 80 80 11 BD AA B5"`
+Unicode codepoints
+   :hex:`U+21BC` ; :hex:`U+F0909`
 
-   memory address or size
-      :hex:`0000:9cf0`
+hex dump
+   :hex:`"0x 00 AF 00 BB  11 BD AA B5"`
 
-   RGB colors (*int*/*str* forms)
-      :hex:`0xeb0c0c` ; :hex:`#ff00ff`
+UTF-8
+   :hex:`e0a489 efbfbe efbfaf f0af8cb3`
 
-   escaped strings
+RGB colors (*int*/*str* forms)
+   :hex:`0xeb0c0c` ; :hex:`#ff00ff`
 
-      .. code-block:: python
+escaped strings
 
-         "\u21bc", "\U000f0909", re.compile(R"\x1b\[[0-9;]*m")
+   .. code-block:: python
+
+      "\u21bc", "\U000f0909", re.compile(R"\x1b\[[0-9;]*m")
 
 
 ==================

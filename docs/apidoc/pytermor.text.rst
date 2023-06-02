@@ -25,8 +25,6 @@
       distribute_padded
       echo
       echoi
-      flatten
-      flatten1
       render
       wrap_sgr
    

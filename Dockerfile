@@ -24,6 +24,8 @@ RUN set -ex && \
         texlive-latex-recommended \
         texlive-fonts-recommended \
         texlive-latex-extra \
+        dvipng \
+        dvisvgm \
         && \
     rm -rf /var/lib/apt/lists/*
 

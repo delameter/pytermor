@@ -5,13 +5,13 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
+import os.path
 from datetime import timedelta
 from math import isclose
-from typing import overload, TypeVar
+from typing import overload, TypeVar, AnyStr
 
 from pytermor import Style, apply_filters, SgrStringReplacer, \
-    NonPrintsOmniVisualizer, RGB, HSV, LAB, XYZ, ISequence
-from pytermor.log import get_qname
+    NonPrintsOmniVisualizer, RGB, HSV, LAB, XYZ, ISequence, get_qname
 from .fixtures import *  # noqa
 
 
@@ -81,3 +81,14 @@ def assert_close(a, b):
                 raise AssertionError(a, b) from e
     else:
         raise TypeError(f"Cannot compare {a} and {b} ({', '.join(map(str, types))})")
+
+
+def load_data_file(data_filename: str) -> AnyStr:
+    data_filepath = os.path.join(os.path.dirname(__file__), "data", data_filename)
+    try:
+        with open(data_filepath, "rt") as f:
+            return f.read()
+    except UnicodeError:
+        with open(data_filepath, "rb") as f:
+            return f.read()
+

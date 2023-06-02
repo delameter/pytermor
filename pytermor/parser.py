@@ -12,6 +12,7 @@ from functools import lru_cache
 from .ansi import make_color_256, ISequence
 from .ansi import ColorTarget, seq_from_dict
 
+
 ESCAPE_SEQ_REGEX = re.compile(
     R"""
 	(?P<escape_byte>\x1b)
@@ -142,6 +143,7 @@ def parse(string: str) -> t.Iterable[ISequence|str]:
         yield seq_from_dict(match.groupdict())
     if last_str := string[cursor:]:
         yield last_str
+
 
 def decompose_report_cursor_position(string: str) -> t.Tuple[int, int] | None:
     """

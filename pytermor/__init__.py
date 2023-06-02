@@ -20,6 +20,12 @@ from . import log
 
 # ========================= COMMONS =================================
 
+from .common import chunk as chunk
+from .common import flatten as flatten
+from .common import flatten1 as flatten1
+from .common import get_qname as get_qname
+from .common import ExtendedEnum as ExtendedEnum
+
 # exceptions:
 from .exception import ArgTypeError as ArgTypeError
 from .exception import LogicError as LogicError
@@ -44,15 +50,15 @@ from .ansi import NOOP_SEQ as NOOP_SEQ
 from .style import NOOP_STYLE as NOOP_STYLE
 from .color import NOOP_COLOR as NOOP_COLOR
 from .color import DEFAULT_COLOR as DEFAULT_COLOR
-from .parser import RCP_REGEX as RCP_REGEX
-from .parser import ESCAPE_SEQ_REGEX as ESCAPE_SEQ_REGEX
-from .parser import SGR_SEQ_REGEX as SGR_SEQ_REGEX
-from .parser import CSI_SEQ_REGEX as CSI_SEQ_REGEX
-from .text import SELECT_WORDS_REGEX as SELECT_WORDS_REGEX
 from .filter import CONTROL_CHARS as CONTROL_CHARS
 from .filter import NON_ASCII_CHARS as NON_ASCII_CHARS
 from .filter import PRINTABLE_CHARS as PRINTABLE_CHARS
 from .filter import WHITESPACE_CHARS as WHITESPACE_CHARS
+from .parser import CSI_SEQ_REGEX as CSI_SEQ_REGEX
+from .parser import ESCAPE_SEQ_REGEX as ESCAPE_SEQ_REGEX
+from .parser import RCP_REGEX as RCP_REGEX
+from .parser import SGR_SEQ_REGEX as SGR_SEQ_REGEX
+from .text import SELECT_WORDS_REGEX as SELECT_WORDS_REGEX
 
 # enums:
 from .ansi import ColorTarget as ColorTarget
@@ -108,7 +114,6 @@ from .ansi import SequenceFs as SequenceFs
 from .ansi import SequenceNf as SequenceNf
 from .ansi import SequenceOSC as SequenceOSC
 from .ansi import SequenceST as SequenceST
-
 from .ansi import SubtypedParam as SubtypedParam
 from .ansi import compose_hyperlink as compose_hyperlink
 from .ansi import enclose as enclose
@@ -183,8 +188,9 @@ from .filter import StringUcpTracer as StringUcpTracer
 from .filter import TracerExtra as TracerExtra
 from .filter import WhitespaceRemover as WhitespaceRemover
 from .filter import center_sgr as center_sgr
-from .filter import chunk as chunk
 from .filter import dump as dump
+from .filter import get_max_ucs_chars_cp_length as get_max_ucs_chars_cp_length
+from .filter import get_max_utf8_bytes_char_length as get_max_utf8_bytes_char_length
 from .filter import ljust_sgr as ljust_sgr
 from .filter import pad as pad
 from .filter import padv as padv

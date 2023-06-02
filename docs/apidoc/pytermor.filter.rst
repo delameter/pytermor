@@ -29,8 +29,9 @@
    
       apply_filters
       center_sgr
-      chunk
       dump
+      get_max_ucs_chars_cp_length
+      get_max_utf8_bytes_char_length
       ljust_sgr
       pad
       padv
