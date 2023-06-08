@@ -4,8 +4,10 @@
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
 """
-.. todo ::
-    S
+Reusable data classes that control the appearance of the output -- colors
+(text/background/underline) and attributes (*bold*, *underlined*, *italic*, etc.).
+Instances can inherit attributes from each other, which allows to avoid meaningless
+definition repetitions; multiple inheritance is also supported.
 """
 from __future__ import annotations
 
@@ -14,9 +16,9 @@ import typing as t
 from dataclasses import dataclass, field
 from typing import Any
 
+from .color import CDT, IColor, NOOP_COLOR, resolve_color
 from .cval import cv
-from .color import IColor, NOOP_COLOR, resolve_color, CDT
-from .exception import LogicError, ArgTypeError
+from .exception import ArgTypeError, LogicError
 
 FT = t.TypeVar("FT", int, str, IColor, "Style", None)
 """

@@ -7,7 +7,7 @@ import datetime
 import os
 import sys
 
-from pygments.lexers import load_lexer_from_file
+import yaml
 
 # -- Path setup ---------------------------------------------------------------
 
@@ -17,7 +17,7 @@ from pygments.lexers import load_lexer_from_file
 
 # sys.path.insert(0, os.path.abspath("/usr/bin/python3.8"))
 sys.path.insert(0, os.path.abspath(".."))
-root_doc = "index"
+root_doc = "pages/index"
 
 # -- Project information ------------------------------------------------------
 
@@ -60,19 +60,18 @@ extensions = [
 # sphinx-design breaks building docs in man format, so `make` comments that
 # line before building it and uncomments it afterwards (yeah I know it's ugly)
 
-with open("include/_prolog.rsti", "rt") as f:
+with open("_include/_prolog.rsti", "rt") as f:
     rst_prolog = f.read()
 
 templates_path = ["_templates"]
 exclude_patterns = [
     "_build",
-    "depreacted",
     "_static",
     ".static.sources",
     "examples",
-    "generated",
+    "_generated",
     "demo",
-    "include",
+    "_include",
 ]
 
 # -- HTML ---------------------------------------------------------------------
@@ -85,12 +84,18 @@ html_copy_source = False
 html_last_updated_fmt = '%d %b %Y'
 
 html_static_path = ["_static"]
-html_css_files = ["custom.css", "custom-furo.css", "hint.css"]
+html_css_files = [
+    "custom.css",
+    "custom-furo.css",
+    "hint.css",
+    "fork-awesome-1.2.0.min.css",
+]
 html_js_files = ["custom.js"]
 html_favicon = "_static/logo-96.svg"
 html_logo = "_static/logo-96.svg"
 
-from docs.conf_extras.html_theme_options import html_theme_options  # noqa
+with open('conf_extras/html_theme_options.yml') as f:
+    html_theme_options = yaml.safe_load(f)
 
 pygments_style = "tango"
 pygments_dark_style = "github-dark"

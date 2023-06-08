@@ -7,12 +7,10 @@ from __future__ import annotations
 
 import sys
 import typing as t
-from subprocess import PIPE, run, CalledProcessError, DEVNULL
-from os import stat
-from os.path import dirname, join
-from datetime import datetime
+from os.path import dirname
+from subprocess import CalledProcessError, DEVNULL, PIPE, run
 
-from pytermor._version import __version__, __updated__
+from pytermor._version import __updated__, __version__
 
 
 class Main:
@@ -22,10 +20,11 @@ class Main:
 
     Print library version.
     """
+
     def __init__(self):
         short = False
         for arg in sys.argv[1:]:
-            if arg in ('-s', '--short'):
+            if arg in ("-s", "--short"):
                 short = True
                 continue
             print(f"ERROR: Invalid argument/option: {arg}")

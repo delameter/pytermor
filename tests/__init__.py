@@ -8,9 +8,9 @@ from __future__ import annotations
 import os.path
 from datetime import timedelta
 from math import isclose
-from typing import overload, TypeVar, AnyStr
+from typing import cast, overload, TypeVar, AnyStr
 
-from pytermor import Style, apply_filters, SgrStringReplacer, \
+from pytermor import IFilter, Style, apply_filters, SgrStringReplacer, \
     NonPrintsOmniVisualizer, RGB, HSV, LAB, XYZ, ISequence, get_qname
 from .fixtures import *  # noqa
 
@@ -37,6 +37,9 @@ def format_test_params(val) -> str | None:
         return "%s(%s)" % (get_qname(val), val.repr_attrs(False))
     if isinstance(val, ISequence):
         return repr(val)
+    if isinstance(val, type):
+        if issubclass(val, IFilter):
+            return '<'+val.get_abbrev_name()+ '>'
     return None
 
 def format_timedelta(val: timedelta) -> str:

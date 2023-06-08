@@ -55,6 +55,7 @@ extra-dependencies = [
     "flake8~=5.0",
     "pytest~=7.1",
     "sybil~=3.0",
+    "typing-extensions~=4.6",
 ]
 
 [tool.hatch.envs.test.scripts]
@@ -98,6 +99,7 @@ testpaths = [
 ]
 addopts = [
     "-p", "no:doctest",
+    "-W", "ignore:SimpleTable:DeprecationWarning",
     "--strict-config",
     "--strict-markers",
     "--maxfail", "5",

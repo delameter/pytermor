@@ -11,11 +11,11 @@ import re
 from dataclasses import dataclass
 
 from .ansi import *
-from .exception import LogicError
 from .color import resolve_color
 from .common import ExtendedEnum
-from .style import Style, NOOP_STYLE, MergeMode
-from .text import Text, Fragment, apply_style_words_selective
+from .exception import LogicError
+from .style import MergeMode, NOOP_STYLE, Style
+from .text import Fragment, Text, apply_style_words_selective
 
 
 class TemplateTagOption(str, ExtendedEnum):
@@ -84,7 +84,7 @@ class TemplateEngine:
         tpl_nocom = self._COMMENT_REGEX.sub("", tpl)
         for tag_match in self._TAG_REGEX.finditer(tpl_nocom):
             span = tag_match.span()
-            tpl_part = self._ESCAPE_REGEX.sub(r"\1[", tpl[tpl_cursor: span[0]])
+            tpl_part = self._ESCAPE_REGEX.sub(r"\1[", tpl[tpl_cursor : span[0]])
             if len(tpl_part) > 0 or style_buffer != NOOP_STYLE:
                 if TemplateTagOption.STYLE_WORDS_SELECTIVE in st_opts:
                     for part in apply_style_words_selective(tpl_part, style_buffer):

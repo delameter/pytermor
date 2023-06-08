@@ -4,7 +4,12 @@
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
 """
-Color main classes and helper functions.
+Abstractions for color definitions in three primary modes: 4-bit, 8-bit and
+24-bit (``xterm-16``, ``xterm-256`` and ``True Color/RGB``, respectively).
+Provides a global registry for color searching by names and codes, as well as
+approximation algorithms, which are used for output devices with limited advanced
+color modes support. Renderers do that automatically and transparently for the
+developer, but the manual control over this process is also an option.
 """
 from __future__ import annotations
 
@@ -12,23 +17,21 @@ import dataclasses
 import math
 import re
 import typing as t
-from abc import abstractmethod, ABCMeta
+from abc import ABCMeta, abstractmethod
 
-from .conv import hex_to_rgb, hex_to_hsv
 from .ansi import (
-    SequenceSGR,
-    NOOP_SEQ,
-    HI_COLORS,
     BG_HI_COLORS,
+    ColorTarget,
+    HI_COLORS,
+    NOOP_SEQ,
+    SeqIndex,
+    SequenceSGR,
     make_color_256,
     make_color_rgb,
-    SeqIndex,
 )
-from .ansi import ColorTarget
-from .exception import LogicError, ColorNameConflictError, ColorCodeConflictError
-from .conv import RGB, HSV
 from .config import get_config
-
+from .conv import HSV, RGB, hex_to_hsv, hex_to_rgb
+from .exception import ColorCodeConflictError, ColorNameConflictError, LogicError
 
 CDT = t.TypeVar("CDT", int, str)
 """
@@ -483,7 +486,7 @@ class Color16(IColor):
         tmux_name = ("bright" if is_hi else "") + self._name.lower().replace("hi-", "")
         return tmux_name
 
-    def _target_to_code(self, target: ColorTarget) -> int|None:
+    def _target_to_code(self, target: ColorTarget) -> int | None:
         if target == ColorTarget.FG:
             return self._code_fg
         if target == ColorTarget.BG:
@@ -726,15 +729,19 @@ class _NoopColor(IColor):
 
 class _DefaultColor(IColor):
     _SGR_MAP = {
-        ColorTarget.FG:        SeqIndex.COLOR_OFF,
-        ColorTarget.BG:        SeqIndex.BG_COLOR_OFF,
-        ColorTarget.UNDERLINE: SeqIndex.UNDERLINED_OFF
+        ColorTarget.FG: SeqIndex.COLOR_OFF,
+        ColorTarget.BG: SeqIndex.BG_COLOR_OFF,
+        ColorTarget.UNDERLINE: SeqIndex.UNDERLINED_OFF,
     }
 
     def __init__(self):
         super().__init__(0)
 
-    def to_sgr(self, target: ColorTarget = ColorTarget.FG, upper_bound: t.Type[IColor] = None) -> SequenceSGR:
+    def to_sgr(
+        self,
+        target: ColorTarget = ColorTarget.FG,
+        upper_bound: t.Type[IColor] = None,
+    ) -> SequenceSGR:
         return self._SGR_MAP.get(target, NOOP_SEQ)
 
     def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:

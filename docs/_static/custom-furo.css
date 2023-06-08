@@ -60,11 +60,10 @@ a.reference.internal code,
 .xterm-palette,
 .field-list dd.field-odd strong,
 .field-list dd.field-odd em,
-.std-term,
-dl.env-list dt {
+#configuration dl.glossary dt {
     font-family: "Iose7ka Terminal", monospace;
 }
-dl.env-list dt {
+dl.glossary dt {
     font-weight: bold;
 }
 pre, .pre, kbd,
@@ -89,6 +88,23 @@ th abbr {
 .comment {
     font-size: var(--font-size--small);
     font-style: italic;
+}
+
+td > * > .aux {
+    font-size: var(--font-size--small--2);
+    font-style: italic;
+    text-align: center;
+    display: block;
+}
+
+.env {
+    background-color: var(--color-pt-env-background);
+    border: 1px solid var(--color-pt-env-border);
+}
+.env::before {
+    content: '\f013';
+    font-family: 'ForkAwesome';
+    margin-inline: 0.25em;
 }
 
 .strike {  text-decoration: 1px line-through solid; }
@@ -185,7 +201,8 @@ button.copybtn {
 
 /** Hyperlinks **/
 
-a {
+a,
+.bottom-of-page .icons a:hover {
     text-decoration: none !important;
 }
 a:hover,
@@ -289,8 +306,7 @@ article[role=main] dl.py {
 /*article[role=main] > section > dl.class {*/
 /*    margin-top: 2.0rem;*/
 /*}*/
-article[role=main] dt.sig,
-article[role=main] dl.env-list dt {
+article[role=main] dt.sig {
     border-radius: 0;
     margin-bottom: 0.5rem;
 }
@@ -335,8 +351,6 @@ dl.data > dt:hover {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
-dl.env-list > dt,
-dl.env-list > dt:hover,
 dl.attribute > dt,
 dl.attribute > dt:hover {
     width: fit-content;
@@ -355,6 +369,13 @@ dl.method > dt:hover {
     background: var(--color-pt-method-background);
     border-left: var(--api-header-border) var(--color-pt-method-border);
 }
+#configuration dl.glossary > dt,
+#configuration dl.glossary > dt:hover {
+    width: fit-content;
+    background: var(--color-pt-config-background);
+    border-left: var(--api-header-border) var(--color-pt-config-border);
+    text-indent: 1em;
+}
 
 dl.class > dt.sig:target,
 dl.function > dt.sig:target,
@@ -362,7 +383,8 @@ dl.exception > dt.sig:target,
 dl.data > dt.sig:target,
 dl.attribute > dt.sig:target,
 dl.property > dt.sig:target,
-dl.method > dt.sig:target {
+dl.method > dt.sig:target,
+#configuration dl.glossary > dt.sig:target {
     border-color: var(--color-pt-highlight-target-border) !important;
 }
 

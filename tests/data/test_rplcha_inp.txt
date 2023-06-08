@@ -1,0 +1,19 @@
+Name                    Stmts   Miss Branch BrPart  Cover
+---------------------------------------------------------
+pytermor/ansi.py          478      0     94      0   100%
+pytermor/color.py         355      0     96      0   100%
+pytermor/common.py         25      2     12      1    86%
+pytermor/config.py         31      0      6      0   100%
+pytermor/conv.py          191      0     36      0   100%
+pytermor/exception.py      60      0      8      0   100%
+pytermor/filter.py        380     21     94     11    93%
+pytermor/log.py             4      0      0      0   100%
+pytermor/numfmt.py        440     37    160     13    91%
+pytermor/parser.py         33      0     10      0   100%
+pytermor/renderer.py      274     46     84     19    80%
+pytermor/style.py         207      8     66      3    95%
+pytermor/template.py       93     61     40      0    26%
+pytermor/term.py          109     89     40      0    13%
+pytermor/text.py          462     72    158     16    83%
+---------------------------------------------------------
+TOTAL                    3142    336    904     63    87%

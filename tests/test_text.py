@@ -13,7 +13,7 @@ import pytermor
 import pytermor as pt
 import pytermor.exception
 import pytermor.text
-from pytermor import Text, FrozenText, Fragment, IRenderable, Style, RT
+from pytermor import OutputMode, Text, FrozenText, Fragment, IRenderable, Style, RT
 from pytermor.renderer import NoOpRenderer
 
 from . import format_test_params
@@ -30,7 +30,7 @@ def format_test_rt_params(val) -> str | None:
     return None
 
 
-@pytest.mark.setup(force_output_mode="true_color")
+@pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
 class TestText:
     def test_style_applying_works(self):
         assert Text("123", Style(fg="red")).render() == "\x1b[31m" "123" "\x1b[39m"
@@ -167,11 +167,8 @@ class TestAdding:
         assert item1 + item2
 
 
+@pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
 class TestFragmentFormatting:
-    @classmethod
-    def setup_class(cls) -> None:
-        pt.RendererManager.set_default_format_always()
-
     def setup_method(self) -> None:
         self.fragment = Fragment("123456789")
 
@@ -211,10 +208,10 @@ class TestFragmentFormatting:
         assert f"{self.fragment:{format_type}}"
 
 
+@pytest.mark.setup(force_output_mode=OutputMode.XTERM_16)
 class TestTextFormatting:
     @classmethod
     def setup_class(cls) -> None:
-        cls.renderer = pt.SgrRenderer(pt.OutputMode.XTERM_16)
         cls.renderer_no_sgr = pt.renderer.NoOpRenderer()
         cls.fragments = [Fragment("123"), Fragment("456", "red"), Fragment("789")]
 
@@ -318,15 +315,12 @@ class TestTextFormatting:
     def test_format(self, kwargs: dict, expected: str):
         text = Text(*self.fragments, **kwargs)
         expected_no_sgr = pt.SgrStringReplacer().apply(expected)
-        assert pt.render(text, renderer=self.renderer) == expected
+        assert pt.render(text) == expected
         assert pt.render(text, renderer=self.renderer_no_sgr) == expected_no_sgr
 
 
+@pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
 class TestSimpleTable:
-    @classmethod
-    def setup_class(cls) -> None:
-        pt.RendererManager.set_default_format_always()
-
     def setup_method(self) -> None:
         self.style = Style(fg="yellow")
         self.table = pt.SimpleTable(width=30, sep="|")
@@ -362,6 +356,7 @@ class TestSplitting:
         input.split_by_spaces()
         assert input == expected
 
+
 class TestMisc:
     @pytest.mark.parametrize(
         "expected,max_len,args,kwargs",
@@ -382,9 +377,10 @@ class TestMisc:
             ("1234  56  ", 10, (Fragment("1234", "red"), "56"), {"pad_right": True}),
         ],
     )
+    @pytest.mark.setup(renderer_class=NoOpRenderer.__name__)
     def test_distribute_padded(self, expected: str, max_len: int, args, kwargs):
         result = pt.distribute_padded(max_len, *args, **kwargs)
-        result_rendered = pt.render(result, renderer=NoOpRenderer())
+        result_rendered = pt.render(result)
         assert len(result) == max_len
         assert len(result_rendered) == max_len
         assert result_rendered == expected

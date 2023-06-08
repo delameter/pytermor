@@ -4,9 +4,10 @@
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
 """
-"Front-end" module of the library. Contains classes supporting high-level
-operations such as nesting-aware style application, concatenating and cropping
-of styled strings before the rendering, text alignment and wrapping, etc.
+"Front-end" module of the library. Contains *renderables* -- classes supporting
+high-level operations such as nesting-aware style application, concatenating and
+cropping of styled strings before the rendering, text alignment and wrapping, etc.
+Also provides rendering entrypoints `render()` and `echo()`.
 """
 from __future__ import annotations
 
@@ -17,22 +18,23 @@ import sys
 import textwrap
 import time
 import typing as t
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 from collections import deque
 from copy import copy
 from functools import update_wrapper
 from typing import overload
 
-from .common import flatten1
-from .log import LOGGING_TRACE
+from typing_extensions import deprecated
+
 from .color import IColor
+from .common import flatten1
 from .config import get_config
-from .exception import LogicError, ArgTypeError
-from .filter import Align
-from .filter import StringLinearizer, dump, apply_filters, OmniSanitizer
-from .renderer import IRenderer, RendererManager, SgrRenderer, OutputMode
-from .style import Style, make_style, NOOP_STYLE, FT, Styles
-from .term import get_terminal_width, get_preferable_wrap_width
+from .exception import ArgTypeError, LogicError
+from .filter import Align, OmniSanitizer, StringLinearizer, apply_filters, dump
+from .log import LOGGING_TRACE
+from .renderer import IRenderer, OutputMode, RendererManager, SgrRenderer
+from .style import FT, NOOP_STYLE, Style, make_style
+from .term import get_preferable_wrap_width, get_terminal_width
 
 RT = t.TypeVar("RT", str, "IRenderable")
 """
@@ -40,6 +42,23 @@ RT = t.TypeVar("RT", str, "IRenderable")
 implementations.
 """
 
+# suggestion on @rewriting the renderables:
+# -----------------------------------------------------------------------
+# class Fragment(collections.UserString):       # <- this is a base class
+#    _fmt: pytermor.FT
+#
+#    @overload
+#    def __add__(self: Fragment, other: str) -> Fragment: ...
+#    @overload
+#    def __add__(self: Fragment, other: Fragment) -> Fragment|Text: ...
+#    @overload
+#    def __add__(self: Fragment, other: Text) -> Text: ...
+#    ...
+#
+# class Text(collections.UserString):       # <- this is a container class
+#    _frags: deque[Fragments]
+#   ...
+#
 
 class IRenderable(t.Sized, ABC):
     """
@@ -514,6 +533,8 @@ class Composite(IRenderable):
         return False
 
 
+@deprecated("SimpleTable is discouraged to use as it has very limited application and "
+            "will be replaced with something much more generic in the future.")
 class SimpleTable(IRenderable):
     """
     Table class with dynamic (not bound to each other) rows. By defualt expands to

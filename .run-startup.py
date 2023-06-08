@@ -1,39 +1,79 @@
+#!venv/bin/python
 # -----------------------------------------------------------------------------
 #  pytermor [ANSI formatted terminal output toolset]
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
-import sys
+# In this example we implement the output of several lines of formatted text at
+# the moment of this script execution, using different approaches from the lib.
+# In general the result should look like this (except that it will be colored):
+#
+#   imported rich.inspect as _
+#   imported pytermor as pt
+#   imported examples.*
+#   python   3.10.11 (main, Apr  5 2023, 14:15:10)
+#   pytermor 2.75.0.dev0 (2023-06-02 20:56:27+03:00)
+#   >>>
+#
+# To launch it, run this command: './run-cli' from the project root.
+# If you didn't initialized venv, the script will try to do it by itself.
+# -----------------------------------------------------------------------------
+
+import re
+import os
 import pytermor as pt
 from examples import *
+from rich import inspect as _
 
 pt.init_config()
 pt.init_renderer()
 
-# --- usage: low-level ---
 
-pt.echo(pt.make_clear_display().assemble(), nl=False)
+# EXAMPLE USAGE / LOW LEVEL
+# ---------------------------------------------------------
+
+# (1) build sequence instances directly (don't):
+print(pt.SequenceCSI('J', 2).assemble(), end='')   # clears the whole terminal
+
+# (2) assemble and combine sequences manually:
 pt.echo(pt.make_reset_cursor().assemble(), nl=False)
-pt.echo(f"{pt.SeqIndex.CYAN}imported{pt.SeqIndex.RESET} sys")
+print(f"{pt.SeqIndex.CYAN}imported{pt.SeqIndex.RESET} rich.inspect", end='')
 
-# --- usage: high-level --- #
+# (3) or semi-automatically (renderer terminates the formatting):
+pt.echo(pt.enclose(pt.SeqIndex.CYAN, " as ")+"_")
 
-# render by parts
+
+# EXAMPLE USAGE / HIGH ABSTRACTION LEVEL
+# ---------------------------------------------------------
+
+# 4) render separately and combine..
 st = pt.Style(fg="cyan")
 ren = pt.renderer.SgrRenderer()
 print(ren.render("imported", st) + " pytermor " + ren.render("as", st) + " pt")
 
-# build as fragments
-pt.echo(pt.Fragment("imported ", st) + pt.Fragment("examples.*"))
+# 5) or build as fragments..
+pt.echo(
+    pt.Fragment("imported ", st) +
+    pt.Fragment("examples.") +
+    pt.Fragment("*", pt.Style(st, bold=True))
+)
 
-# or use templates
+# 6) or replace regex groups..
+pt.echo(re.sub(
+    r'^(\w+)|([\d.]{5,})|(\(.+?\))|\[.+?\]',
+    pt.render(r'\1', 'hi-green') +
+    pt.render(r'\2', 'green') +
+    pt.render(r'\3', 'gray50'),
+    'python   '+os.sys.version)
+)
+
+# 7) or utilize the templates
 te = pt.TemplateEngine()
 pt.echo(te.substitute(
-    f"@name:[icathian-yellow bold]" "@v:[superuser]" "@upd:[dim]"
+    f"@name:[icathian-yellow bold]" "@v:[superuser]" "@upd:[gray50]"
     f""
     f":[name]pytermor:[-] "
     f":[v]{pt.__version__}:[-] "
     f":[upd]({pt.__updated__}):[-]"
 ))
 
-p=lambda s: print('\n'.join(s[:10]+['...']+s[-10:]))

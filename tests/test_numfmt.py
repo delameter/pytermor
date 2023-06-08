@@ -9,6 +9,7 @@ from datetime import timedelta
 
 import pytest
 
+from pytermor import OutputMode
 from pytermor.numfmt import (
     format_thousand_sep,
     format_auto_float,
@@ -287,7 +288,7 @@ class TestStaticFormatter:
         ],
         ids=format_test_params,
     )
-    @pytest.mark.setup(force_output_mode="true_color")
+    @pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
     def test_colorizing(self, expected: str, value: float):
         assert format_si(value, unit="m", auto_color=True).render() == expected
 
@@ -715,7 +716,7 @@ class TestDynamicFormatter:
         ],
         ids=format_test_params,
     )
-    @pytest.mark.setup(force_output_mode="true_color")
+    @pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
     def test_colorizing(self, expected: str, value: int):
         assert format_time(value, auto_color=True).render() == expected
 
@@ -874,7 +875,7 @@ class TestDualFormatter:
         ],
         ids=format_test_params,
     )
-    @pytest.mark.setup(force_output_mode="true_color")
+    @pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
     def test_colorizing(self, expected: str, delta: timedelta):
         formatter = dual_registry.find_matching(10)
         actual = formatter.format(delta.total_seconds(), auto_color=True)

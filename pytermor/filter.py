@@ -17,14 +17,16 @@ import os
 import re
 import typing as t
 from abc import ABCMeta, abstractmethod
+from collections import deque
 from dataclasses import dataclass, field
-from functools import reduce, lru_cache
+from functools import lru_cache, reduce
 from math import ceil, floor
 from typing import Union
 
+from . import LogicError
 from .common import ExtendedEnum, chunk
 from .exception import ArgTypeError
-from .parser import ESCAPE_SEQ_REGEX, SGR_SEQ_REGEX, CSI_SEQ_REGEX
+from .parser import CSI_SEQ_REGEX, ESCAPE_SEQ_REGEX, SGR_SEQ_REGEX
 from .term import get_terminal_width
 
 codecs.register_error(
@@ -144,20 +146,20 @@ Set of bytes that are invalid in ASCII-7 context: :hex:`0x80-0xFF`.
 :meta hide-value: 
 """
 
-UCS_2_CHAR_CP = re.compile(r"[\u0000-\u00ff]")
-UCS_4_CHAR_CP = re.compile(r"[\u0100-\uffff]")
-UCS_6_CHAR_CP = re.compile(r"[\U00010000-\U0010ffff]")
-UCS_CHAR_CPS = {UCS_6_CHAR_CP: 6, UCS_4_CHAR_CP: 4, UCS_2_CHAR_CP: 2}
+UCS_CHAR_CPS = {
+    re.compile(r"[\U000fffff-\U0010ffff]"): 6,
+    re.compile(r"[\U00010000-\U000fffff]"): 5,
+    re.compile(r"[\u1000-\uffff]"): 4,
+    re.compile(r"[\u0100-\u0fff]"): 3,
+    re.compile(r"[\u0010-\u00ff]"): 2,
+    re.compile(r"[\u0000-\u000f]"): 1,
+}
 
-UTF8_1_BYTE_CHAR = re.compile(r"[\x00-\x7f]")
-UTF8_2_BYTES_CHAR = re.compile(r"[\u0080-\u07ff]")
-UTF8_3_BYTES_CHAR = re.compile(r"[\u0800-\uffff]")
-UTF8_4_BYTES_CHAR = re.compile(r"[\U00010000-\U0010ffff]")
 UTF8_BYTES_CHARS = {
-    UTF8_4_BYTES_CHAR: 4,
-    UTF8_3_BYTES_CHAR: 3,
-    UTF8_2_BYTES_CHAR: 2,
-    UTF8_1_BYTE_CHAR: 1,
+    re.compile(r"[\U00010000-\U0010ffff]"): 4,
+    re.compile(r"[\u0800-\uffff]"): 3,
+    re.compile(r"[\u0080-\u07ff]"): 2,
+    re.compile(r"[\x00-\x7f]"): 1,
 }
 
 IT = t.TypeVar("IT", str, bytes)
@@ -178,11 +180,39 @@ class IFilter(t.Generic[IT, OT], metaclass=ABCMeta):
     possible working with filters like with objects rather than with functions/lambdas.
     """
 
+    _CLASS_NAME_LAST_SUBST = {
+        "Noop": "Nop",
+        "Whitespace": "Ws",
+        "NonPrints": "Np",
+    }
+    _WORD_SPLIT_REGEX = re.compile(r"([A-Z][a-z]*)(?=[A-Z])")
+    _VOWELS_FILTER_REGEX = re.compile(r"[aeui](?!$)")
+
+    _stack: t.ClassVar[t.Deque[str]] = deque()
+    _default_inst: t.ClassVar[IFilter]
+    _name_max_len: t.ClassVar[int] = 0
+
+    def __new__(cls: t.Type[IFilter], *args, **kwargs) -> IFilter:
+        IFilter._name_max_len = max(IFilter._name_max_len, len(str(cls)))
+        if not len(args) and not len(kwargs):
+            if not hasattr(cls, "_default_inst"):
+                cls._default_inst = super().__new__(cls)
+            return cls._default_inst
+        return super().__new__(cls)
+
+    def __init__(self) -> None:
+        super().__init__()
+
     def __call__(self, s: IT) -> OT:
         """Can be used instead of `apply()`"""
         return self.apply(s)
 
-    @abstractmethod
+    def __repr__(self) -> str:
+        prefix = " "
+        if self is getattr(self.__class__, "_default_inst", ""):
+            prefix = "*"
+        return prefix + self.__class__.__name__
+
     def apply(self, inp: IT, extra: t.Any = None) -> OT:
         """
         Apply the filter to input *str* or *bytes*.
@@ -192,27 +222,60 @@ class IFilter(t.Generic[IT, OT], metaclass=ABCMeta):
         :return: transformed string; the type can match the input type,
                  as well as be different -- that depends on filter type.
         """
+        IFilter._stack.append(self.get_abbrev_name())
+        logging.debug(
+            f"Applying filter [{len(IFilter._stack)}] {self!r:20.20s} ({'.'.join(IFilter._stack)})"
+        )
+        result = self._apply(inp, extra)
+        IFilter._stack.pop()
+        return result
+
+    @classmethod
+    def get_abbrev_name(cls) -> str:
+        def _process_word(*w) -> str:
+            widx, word = w
+            if widx == len(words) - 1:
+                return word[:3]  # + (word.replace('e', ''))[-2:]
+            word = cls._VOWELS_FILTER_REGEX.sub("", word)
+            if widx == 0:
+                return word[:4]
+            return word[:3]  # 1..(n-1)
+
+        name = reduce(
+            lambda s, c: s.replace(*c),
+            cls._CLASS_NAME_LAST_SUBST.items(),
+            cls.__name__,
+        )
+        words = cls._WORD_SPLIT_REGEX.split(name)
+        return "".join(_process_word(*w) for w in enumerate(words))
+
+    @classmethod
+    def get_name_max_len(cls) -> int:
+        return min(cls._name_max_len, 20)
+
+    @abstractmethod
+    def _apply(self, inp: IT, extra: t.Any = None) -> OT:
         raise NotImplementedError
 
 
 class NoopFilter(IFilter[IT, OT]):
     """ """
 
-    def apply(self, inp: IT, extra: t.Any = None) -> OT:
+    def _apply(self, inp: IT, extra: t.Any = None) -> OT:
         return inp
 
 
 class OmniDecoder(IFilter[IT, str]):
     """ """
 
-    def apply(self, inp: IT, extra: t.Any = None) -> str:
+    def _apply(self, inp: IT, extra: t.Any = None) -> str:
         return inp.decode() if isinstance(inp, bytes) else inp
 
 
 class OmniEncoder(IFilter[IT, bytes]):
     """ """
 
-    def apply(self, inp: IT, extra: t.Any = None) -> bytes:
+    def _apply(self, inp: IT, extra: t.Any = None) -> bytes:
         return inp.encode() if isinstance(inp, str) else inp
 
 
@@ -238,10 +301,11 @@ class StringAligner(IFilter[str, str]):
     }
 
     def __init__(self, align: Align, width: int, *, sgr_aware: bool = True):
+        super().__init__()
         self._align_fn = self._get_align_fn(align, sgr_aware)
         self._width = width
 
-    def apply(self, inp: str, extra: t.Any = None) -> str:
+    def _apply(self, inp: str, extra: t.Any = None) -> str:
         return self._align_fn(inp, self._width)
 
     def _get_align_fn(
@@ -258,10 +322,11 @@ class StringAligner(IFilter[str, str]):
 
 class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
     def __init__(self, max_output_width: int = None):
+        super().__init__()
         self._max_output_width: int = max_output_width or get_terminal_width()
         self._state: _TracerState = _TracerState()
 
-    def apply(self, inp: IT, extra: TracerExtra = None) -> str:
+    def _apply(self, inp: IT, extra: TracerExtra = None) -> str:
         if not inp or len(inp) == 0:
             return "\n"
 
@@ -325,7 +390,7 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
     def _get_output_line_len(self) -> int:
         # useless before processing
         if self._state.cols_max_len is None:
-            return 0
+            raise LogicError
         return sum(ml for ml in self._state.cols_max_len)
 
     @abstractmethod
@@ -478,6 +543,7 @@ class AbstractStringTracer(AbstractTracer[str], metaclass=ABCMeta):
         )
 
 
+# noinspection NonAsciiCharacters
 class StringTracer(AbstractStringTracer):
     """
     str as byte hex codes (UTF-8), grouped by characters
@@ -519,6 +585,7 @@ class StringTracer(AbstractStringTracer):
             yield " "
         yield from [""] * 2 * (self._state.char_per_line - len(part))
 
+    # noinspection NonAsciiCharacters
     def get_max_chars_per_line(self, inp: str) -> int:
         """
         For more detials on math behind these calculations see
@@ -612,6 +679,7 @@ class StringTracer(AbstractStringTracer):
         return result
 
 
+# noinspection NonAsciiCharacters
 class StringUcpTracer(AbstractStringTracer):
     """
     str as Unicode codepoints
@@ -623,7 +691,7 @@ class StringUcpTracer(AbstractStringTracer):
          18 |U+   30   20   20 20 35 20 6D 73   20   31 20 52 55 20 20 2206 20 37 |0␣␣␣5␣ms␣1␣RU␣␣∆␣7
          36 |U+   68   20   32 33 6D 20 20 20 FA93 200E 20 2B 31 33 B0   43 20 20 |h␣23m␣␣␣望‎␣+13°C␣␣
          54 |U+   46   72   20 30 32 20 4A 75   6E   20 20 30 32 3A 34   38 20 20 |Fr␣02␣Jun␣␣02:48␣␣
-         72 |U+ 2595 2714 258F 46 55 4C 4C 20                                     |▕✔▏FULL␣          
+         72 |U+ 2595 2714 258F 46 55 4C 4C 20                                     |▕✔▏FULL␣
     """
 
     def __init__(self, max_output_width: int = None):
@@ -659,8 +727,8 @@ class StringUcpTracer(AbstractStringTracer):
 
         .. default-role:: math
 
-        The second difference is using `C_{UCmax}` instead of `C_{Umax}`; the former 
-        variable is the amount of "n" in :hex:`U+nnnn` identifier of the character, 
+        The second difference is using `C_{UCmax}` instead of `C_{Umax}`; the former
+        variable is the amount of "n" in :hex:`U+nnnn` identifier of the character,
         while the latter is amount of bytes required to encode the character in UTF-8.
         Final formula is:
 
@@ -725,17 +793,28 @@ class StringReplacer(IFilter[str, str]):
     """
 
     def __init__(self, pattern: PTT[str], repl: RPT[str]):
+        super().__init__()
+
         if isinstance(pattern, str):
             self._pattern: t.Pattern[str] = re.compile(pattern)
         else:
             self._pattern: t.Pattern[str] = pattern
         self._repl = repl
 
-    def apply(self, inp: str, extra: t.Any = None) -> str:
-        return self._replace(inp)
-
-    def _replace(self, inp: str) -> str:
+    def _apply(self, inp: str, extra: t.Any = None) -> str:
         return self._pattern.sub(self._repl, inp)
+
+
+class StringReplacerChain(StringReplacer):
+    def __init__(self, pattern: PTT[str], *repls: IFilter[str, str]):
+        super().__init__(pattern, lambda m: m.group(0))
+        self._repls: t.Deque[IFilter[str, str]] = deque(repls)
+
+    def _apply(self, inp: str, extra: t.Any = None) -> str:
+        return self._pattern.sub(self._replace_wrapper, inp)
+
+    def _replace_wrapper(self, m: t.Match) -> str:
+        return reduce(lambda s, c: c.apply(s), self._repls, self._repl(m))
 
 
 class EscSeqStringReplacer(StringReplacer):
@@ -823,6 +902,7 @@ class OmniMapper(IFilter[IT, IT]):
     """
 
     def __init__(self, override: MPT = None):
+        super().__init__()
         self._make_maps(override)
 
     def _get_default_keys(self) -> t.List[int]:
@@ -889,7 +969,7 @@ class OmniMapper(IFilter[IT, IT]):
         destmap = b"".join(premap.values())
         return srcmap, destmap
 
-    def apply(self, inp: IT, extra: t.Any = None) -> IT:
+    def _apply(self, inp: IT, extra: t.Any = None) -> IT:
         return inp.translate(self._maps[type(inp)])
 
     def _transcode(self, inp: IT, target: t.Type[RPT]) -> RPT:
@@ -906,10 +986,10 @@ class StringMapper(OmniMapper[str]):
     def _make_maps(self, override: MPT | None):
         self._maps = {str: str.maketrans(self._make_premap(str, override))}
 
-    def apply(self, inp: str, extra: t.Any = None) -> str:
+    def _apply(self, inp: str, extra: t.Any = None) -> str:
         if isinstance(inp, bytes):
             raise TypeError("String mappers allow 'str' as input only")
-        return super().apply(inp, extra)
+        return super()._apply(inp, extra)
 
 
 class NonPrintsOmniVisualizer(OmniMapper):
@@ -988,7 +1068,9 @@ def _get_tracer(tracer_cls: t.Type[AbstractTracer], max_width: int) -> AbstractT
 # @TODO  - special handling of one-line input
 #        - squash repeating lines
 def dump(
-    data: t.Any, label: str = None, tracer_cls: t.Type[AbstractTracer] = StringUcpTracer
+    data: t.Any,
+    label: str = None,
+    tracer_cls: t.Type[AbstractTracer] = StringUcpTracer,
 ) -> str:
     """
     .
@@ -1001,7 +1083,7 @@ def dump(
 
 
 def get_max_ucs_chars_cp_length(string: str) -> int:
-    """ . """
+    """."""
     for regex, length in UCS_CHAR_CPS.items():
         if regex.search(string):
             return length
@@ -1009,7 +1091,7 @@ def get_max_ucs_chars_cp_length(string: str) -> int:
 
 
 def get_max_utf8_bytes_char_length(string: str) -> int:
-    """ cc """
+    """cc"""
     for regex, length in UTF8_BYTES_CHARS.items():
         if regex.search(string):
             return length

@@ -27,7 +27,7 @@ class ConflictError(Exception):
 
 
 class ArgTypeError(Exception):
-    """ . """
+    """."""
 
     def __init__(self, var_name: str, arg_name: str = None, suggestion: str = None):
         arg_name = arg_name or var_name
@@ -42,10 +42,12 @@ class ArgTypeError(Exception):
         }
         try:
             fb = inspect.currentframe().f_back
-            self.context.update(dict(
-                arg_val=fb.f_locals.get(arg_name),
-                var_val=fb.f_locals.get(var_name),
-            ))
+            self.context.update(
+                dict(
+                    arg_val=fb.f_locals.get(arg_name),
+                    var_val=fb.f_locals.get(var_name),
+                )
+            )
 
             ff = inspect.getframeinfo(fb)
             try:
@@ -67,7 +69,7 @@ class ArgTypeError(Exception):
             "type": "Argument",
             "name": arg_name,
             "fname": self.context["fname"],
-            "expected_type": self.context['expected_type'],
+            "expected_type": self.context["expected_type"],
             "actual_type": get_qname(self.context["var_val"]),
         }
         if var_name != arg_name:
@@ -75,7 +77,7 @@ class ArgTypeError(Exception):
 
         msg = "%(type)s '%(name)s'"
         if self.context["fname"]:
-            msg += "of %(fname)s()"
+            msg += " of %(fname)s()"
         if self.context["expected_type"]:
             msg += ": expected <%(expected_type)s>, got <%(actual_type)s>"
         else:

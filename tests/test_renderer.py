@@ -10,7 +10,7 @@ import sys
 import pytest
 
 import pytermor as pt
-from pytermor import SgrRenderer, OutputMode, Style
+from pytermor import SgrRenderer, OutputMode, Style, TmuxRenderer
 
 
 class TestRendererConfiguration:
@@ -33,7 +33,7 @@ class TestRendererConfiguration:
             assert result == "12345"
 
 
-@pytest.mark.setup(renderer_class="TmuxRenderer")
+@pytest.mark.setup(renderer_class=TmuxRenderer.__name__)
 class TestTmuxRenderer:
     def test_basic_render_works(self):
         result = pt.render("12345", Style(fg="red", bg="black", bold=True))

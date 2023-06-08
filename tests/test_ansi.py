@@ -8,9 +8,11 @@ from __future__ import annotations
 import typing
 
 import pytest
+from pytest import mark
 
 from pytermor.ansi import *
 from . import format_test_params
+
 
 class TestSequenceNf:
     def test_assembling(self):
@@ -29,6 +31,18 @@ class TestSequenceOSC:
 class TestSequenceCSI:
     def test_intcode_param_cast(self):
         assert SequenceCSI(None, IntCode.WHITE) == SequenceCSI(None, 37)
+
+    @mark.parametrize(
+        "line, exp_seq",
+        [(None, f"\x1b[1G"), (1, f"\x1b[1;1H"), (10, f"\x1b[10;1H")],
+        ids=format_test_params,
+    )
+    def test_compose_clear_line_fill_bg(self, line: int | None, exp_seq: str):
+        s = compose_clear_line_fill_bg(SeqIndex.BG_BLACK, line)
+
+        assert exp_seq in s
+        assert f"\x1b[2K" in s
+        assert SeqIndex.BG_BLACK.assemble() in s
 
 
 class TestSequenceSGR:
@@ -86,7 +100,9 @@ class TestSequenceSGR:
         SequenceSGR(1) + 2
 
     def test_build_code_args(self):
-        assert SequenceSGR(1, 31, 43) == SequenceSGR(IntCode.BOLD, IntCode.RED, IntCode.BG_YELLOW)
+        assert SequenceSGR(1, 31, 43) == SequenceSGR(
+            IntCode.BOLD, IntCode.RED, IntCode.BG_YELLOW
+        )
 
     @pytest.mark.xfail(raises=KeyError)
     def test_build_key_args_invalid(self):
@@ -133,11 +149,14 @@ class TestSequenceSGR:
         )
         assert s1 == s2
 
-    @pytest.mark.parametrize("args", [
-        (10, 310, 30),
-        (310, 10, 130),
-        (0, 0, 256, ColorTarget.BG),
-    ])
+    @pytest.mark.parametrize(
+        "args",
+        [
+            (10, 310, 30),
+            (310, 10, 130),
+            (0, 0, 256, ColorTarget.BG),
+        ],
+    )
     @pytest.mark.xfail(raises=ValueError)
     def test_make_color_rgb_invalid(self, args: tuple):
         make_color_rgb(*args)
@@ -187,12 +206,15 @@ class TestSgrRegistry:
         ],
         ids=format_test_params,
     )
-    def test_unknown_opening_seq_gets_noop_pair(self, opening: SequenceSGR, expected_closing: SequenceSGR):
+    def test_unknown_opening_seq_gets_noop_pair(
+        self, opening: SequenceSGR, expected_closing: SequenceSGR
+    ):
         assert SequenceSGR._PAIRITY_REGISTRY.get_closing_seq(opening) == expected_closing
 
     def test_enclose(self):
         opening_seq = SequenceSGR(31, 42)
         assert enclose(opening_seq, "text") == "\x1b[31;42mtext\x1b[39;49m"
+
 
 class TestMaking:
     @pytest.mark.parametrize(

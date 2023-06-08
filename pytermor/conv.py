@@ -13,16 +13,17 @@ import math
 import typing as t
 from typing import overload
 
-
 CIE_E: float = 216.0 / 24389.0  # 0.008856451679035631  # see http://brucelindbloom.com/
 
 REF_X: float = 95.047  # Observer= 2°, Illuminant= D65
 REF_Y: float = 100.000
 REF_Z: float = 108.883
 
+ColorValue = t.TypeVar("ColorValue", 'RGB', 'HSV', 'LAB', 'XYZ')
 
 # -----------------------------------------------------------------------------
 # HEX <-> RGB
+
 
 class RGB(t.NamedTuple):
     red: int
@@ -33,11 +34,11 @@ class RGB(t.NamedTuple):
     """ Blue channel value (0—255) """
 
     def __str__(self):  # RGB(R=128, G=0, B=0)
-        attrs = map(self._format_channel, ['red', 'green', 'blue'])
+        attrs = map(self._format_channel, ["red", "green", "blue"])
         return f"{self.__class__.__name__}({' '.join(attrs)})"
 
     def _format_channel(self, attr: str) -> str:
-        return f'{attr[0].upper()}={getattr(self, attr):d}'
+        return f"{attr[0].upper()}={getattr(self, attr):d}"
 
 
 def hex_to_rgb(hex_value: int) -> RGB:
@@ -69,6 +70,8 @@ def rgb_to_hex(rgb: RGB) -> int:
     :return: RGB value.
     """
     ...
+
+
 @overload
 def rgb_to_hex(r: int, g: int, b: int) -> int:
     """
@@ -78,6 +81,8 @@ def rgb_to_hex(r: int, g: int, b: int) -> int:
     :return: RGB value.
     """
     ...
+
+
 def rgb_to_hex(*args) -> int:
     """
     Transforms RGB value in a three-integers form ([0; 255], [0; 255], [0; 255])
@@ -92,8 +97,10 @@ def rgb_to_hex(*args) -> int:
     r, g, b = args if len(args) > 1 else args[0]
     return (r << 16) + (g << 8) + b
 
+
 # -----------------------------------------------------------------------------
 # RGB <-> HSV
+
 
 class HSV(t.NamedTuple):
     hue: float
@@ -119,6 +126,8 @@ def hsv_to_rgb(hsv: HSV) -> RGB:
     :return: tuple with R, G, B channel values.
     """
     ...
+
+
 @overload
 def hsv_to_rgb(h: float, s: float, v: float) -> RGB:
     """
@@ -128,6 +137,8 @@ def hsv_to_rgb(h: float, s: float, v: float) -> RGB:
     :return: tuple with R, G, B channel values.
     """
     ...
+
+
 def hsv_to_rgb(*args) -> RGB:
     """
     Transforms HSV value in three-floats form (where 0 <= h < 360, 0 <= s <= 1,
@@ -167,9 +178,13 @@ def hsv_to_rgb(*args) -> RGB:
 @overload
 def rgb_to_hsv(rgb: RGB) -> HSV:
     ...
+
+
 @overload
 def rgb_to_hsv(r: int, g: int, b: int) -> HSV:
     ...
+
+
 def rgb_to_hsv(*args) -> HSV:
     """
     Transforms RGB value in a three-integers form ([0; 255], [0; 255], [0; 255]) to an
@@ -207,9 +222,11 @@ def rgb_to_hsv(*args) -> HSV:
     return HSV(hue=h, saturation=s, value=v)
     # fmt: on
 
+
 # -----------------------------------------------------------------------------
 # HEX <-<RGB>-> HSV
 #
+
 
 def hex_to_hsv(hex_value: int) -> HSV:
     """
@@ -229,9 +246,13 @@ def hex_to_hsv(hex_value: int) -> HSV:
 @overload
 def hsv_to_hex(hsv: HSV) -> int:
     ...
+
+
 @overload
 def hsv_to_hex(h: float, s: float, v: float) -> int:
     ...
+
+
 def hsv_to_hex(*args) -> int:
     """
     Transforms HSV value in three-floats form (where 0 <= h < 360, 0 <= s <= 1,
@@ -247,8 +268,10 @@ def hsv_to_hex(*args) -> int:
     """
     return rgb_to_hex(hsv_to_rgb(*args))
 
+
 # -----------------------------------------------------------------------------
 # RGB <-> XYZ
+
 
 class XYZ(t.NamedTuple):
     x: float
@@ -270,9 +293,13 @@ class XYZ(t.NamedTuple):
 @overload
 def rgb_to_xyz(rgb: RGB) -> XYZ:
     ...
+
+
 @overload
 def rgb_to_xyz(r: int, g: int, b: int) -> XYZ:
     ...
+
+
 def rgb_to_xyz(*args) -> XYZ:
     def f(v):
         if v <= 0.04045:
@@ -280,7 +307,7 @@ def rgb_to_xyz(*args) -> XYZ:
         return ((v + 0.055) / 1.055) ** 2.4
 
     r, g, b = args if len(args) > 1 else args[0]
-    R, G, B = (100.0*f(v / 255) for v in (r, g, b))
+    R, G, B = (100.0 * f(v / 255) for v in (r, g, b))
 
     x: float = 0.4124 * R + 0.3576 * G + 0.1805 * B  # sRGB D65 -> XYZ D50
     y: float = 0.2126 * R + 0.7152 * G + 0.0722 * B
@@ -292,26 +319,32 @@ def rgb_to_xyz(*args) -> XYZ:
 @overload
 def xyz_to_rgb(xyz: XYZ) -> RGB:
     ...
+
+
 @overload
 def xyz_to_rgb(x: float, y: float, z: float) -> RGB:
     ...
+
+
 def xyz_to_rgb(*args) -> RGB:
     def f(v) -> float:
         if v <= 0.0031308:
             return 12.92 * v
-        return 1.055 * (v**(1/2.4)) - 0.055
+        return 1.055 * (v ** (1 / 2.4)) - 0.055
 
     X, Y, Z = args if len(args) > 1 else args[0]
-    x, y, z = (v/100.0 for v in (X, Y, Z))
+    x, y, z = (v / 100.0 for v in (X, Y, Z))
 
-    r: int = round(255*f(x * 3.2406 + y * -1.5372 + z * -0.4986))  # sRGB
-    g: int = round(255*f(x * -0.9689 + y * 1.8758 + z * 0.0415))
-    b: int = round(255*f(x * 0.0557 + y * -0.2040 + z * 1.0570))
+    r: int = round(255 * f(x * 3.2406 + y * -1.5372 + z * -0.4986))  # sRGB
+    g: int = round(255 * f(x * -0.9689 + y * 1.8758 + z * 0.0415))
+    b: int = round(255 * f(x * 0.0557 + y * -0.2040 + z * 1.0570))
 
     return RGB(r, g, b)
 
+
 # -----------------------------------------------------------------------------
 # XYZ <-> LAB
+
 
 class LAB(t.NamedTuple):
     L: float
@@ -333,15 +366,19 @@ class LAB(t.NamedTuple):
 @overload
 def lab_to_xyz(lab: LAB) -> XYZ:
     ...
+
+
 @overload
 def lab_to_xyz(L: float, a: float, b: float) -> XYZ:
     ...
+
+
 def lab_to_xyz(*args) -> XYZ:
     def f(v: float) -> float:
         if (v3 := v**3) > CIE_E:
             return v3
         else:
-            return (v - 16.0/116.0) / 7.787
+            return (v - 16.0 / 116.0) / 7.787
 
     L, a, b = args if len(args) > 1 else args[0]
 
@@ -361,9 +398,13 @@ def lab_to_xyz(*args) -> XYZ:
 @overload
 def xyz_to_lab(xyz: XYZ) -> LAB:
     ...
+
+
 @overload
 def xyz_to_lab(x: float, y: float, z: float) -> LAB:
     ...
+
+
 def xyz_to_lab(*args) -> LAB:
     def f(v: float) -> float:
         if v > CIE_E:
@@ -393,9 +434,13 @@ def xyz_to_lab(*args) -> LAB:
 @overload
 def lab_to_rgb(lab: LAB) -> RGB:
     ...
+
+
 @overload
 def lab_to_rgb(L: float, a: float, b: float) -> RGB:
     ...
+
+
 def lab_to_rgb(*args) -> RGB:
     """
     @TODO
@@ -411,8 +456,12 @@ def lab_to_rgb(*args) -> RGB:
 @overload
 def rgb_to_lab(rgb: RGB) -> LAB:
     ...
+
+
 @overload
 def rgb_to_lab(r: int, g: int, b: int) -> LAB:
     ...
+
+
 def rgb_to_lab(*args) -> LAB:
     return xyz_to_lab(rgb_to_xyz(*args))

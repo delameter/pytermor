@@ -9,11 +9,10 @@ import itertools
 from dataclasses import dataclass
 
 import pytest
-
+import typing as t
 import pytermor as pt
-from pytermor import RGB, HSV, XYZ, LAB, hex_to_rgb
-
-from . import assert_close
+from pytermor import HSV, LAB, RGB, XYZ, hex_to_rgb, ColorValue
+from . import assert_close, format_test_params
 
 
 @dataclass
@@ -26,15 +25,6 @@ class Value:
 
     def __str__(self):
         return f"0x{self.hex:06x}-{self.rgb}"
-
-
-SPACES = [
-    "hex",
-    "rgb",
-    "hsv",
-    "xyz",
-    "lab",
-]
 
 
 # fmt: off
@@ -55,6 +45,16 @@ VALUES = [ # _hex_      _r_  _g_  _b_        __h__ __s__ __v__        __x__   __
 ]
 # fmt: on
 
+SPACES = [*VALUES[-1].__dict__.keys()]
+
+
+class TestColorDTOs:
+    @pytest.mark.parametrize("cls", [RGB, HSV, XYZ, LAB], ids=format_test_params)
+    def test_to_str(self, cls: t.Type[ColorValue]):
+        col = cls(1, 1, 1)
+        col_str = str(col)
+        assert str(cls.__name__) in col_str
+        assert col_str.count('=') == 3
 
 class TestColorTransform:
     @pytest.mark.parametrize("value", VALUES, ids=lambda val: str(val))
@@ -70,7 +70,6 @@ class TestColorTransform:
             return
         input = getattr(value, s_from)
         expected_output = getattr(value, s_to)
-        print(input, expected_output)
         assert_close(getattr(pt.conv, fname)(input), expected_output)
 
     @pytest.mark.xfail(raises=TypeError)

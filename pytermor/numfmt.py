@@ -8,19 +8,19 @@ utilnum
 """
 from __future__ import annotations
 
+import logging
 import math
 import re
 import typing as t
 from abc import abstractmethod
 from dataclasses import dataclass
-from math import floor, log10, trunc, log, isclose
+from math import floor, isclose, log, log10, trunc
 
-import logging
+from .cval import cv
 from .exception import ConflictError
 from .filter import Align
-from .cval import cv
 from .style import Style, Styles, merge_styles
-from .text import Text, Fragment, IRenderable, RT
+from .text import Fragment, IRenderable, RT, Text
 
 _OVERFLOW_CHAR = "!"
 

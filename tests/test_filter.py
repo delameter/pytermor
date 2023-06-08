@@ -8,8 +8,9 @@ from __future__ import annotations
 import pytest
 from pytest import mark
 
-from pytermor import render, Fragment
+from pytermor import Fragment, Style, render
 from pytermor.ansi import SeqIndex
+from pytermor.common import get_qname, get_subclasses
 from pytermor.filter import *
 from . import format_test_params, load_data_file
 
@@ -50,7 +51,6 @@ class TestStdlibExtensions:
         sgr_string = raw_string.replace("123", f"1{SeqIndex.RED}2{SeqIndex.COLOR_OFF}3")
         actual = fns[1](raw_string, width, ".")
         expected = SgrStringReplacer().apply(fns[0](sgr_string, width, "."))
-        print(actual)
         assert actual == expected
 
 
@@ -148,16 +148,19 @@ class TestReplacers:  # @TODO
 
 class TestTracers:
     # fmt: off
+    _TRACER_PARAMS = [
+        ( 80, "test_tracer_exp-btracer80.txt",   BytesTracer,     "test_tracer_inp-btracer.dat"),
+        (140, "test_tracer_exp-btracer140.txt",  BytesTracer,     "test_tracer_inp-btracer.dat"),
+        ( 80, "test_tracer_exp-stracer80.txt",   StringTracer,    "test_tracer_inp-stracer.txt"),
+        (140, "test_tracer_exp-stracer140.txt",  StringTracer,    "test_tracer_inp-stracer.txt"),
+        ( 80, "test_tracer_exp-sutracer80.txt",  StringUcpTracer, "test_tracer_inp-stracer.txt"),
+        (140, "test_tracer_exp-sutracer140.txt", StringUcpTracer, "test_tracer_inp-stracer.txt"),
+    ]
+    
     @mark.parametrize(
         "width, exp_data_filename, cls, inp_filename",
-        [
-            ( 80, "test_tracer_exp-btracer80.txt",   BytesTracer,     "test_tracer_inp-btracer.dat"),
-            (140, "test_tracer_exp-btracer140.txt",  BytesTracer,     "test_tracer_inp-btracer.dat"),
-            ( 80, "test_tracer_exp-stracer80.txt",   StringTracer,    "test_tracer_inp-stracer.txt"),
-            (140, "test_tracer_exp-stracer140.txt",  StringTracer,    "test_tracer_inp-stracer.txt"),
-            ( 80, "test_tracer_exp-sutracer80.txt",  StringUcpTracer, "test_tracer_inp-stracer.txt"),
-            (140, "test_tracer_exp-sutracer140.txt", StringUcpTracer, "test_tracer_inp-stracer.txt"),
-        ],
+        _TRACER_PARAMS,
+        ids=format_test_params,
     )
     # fmt: on
     def test_tracer(
@@ -171,15 +174,33 @@ class TestTracers:
         actual = cls(width).apply(input, TracerExtra("label"))
         assert actual.rstrip("\n") == load_data_file(exp_data_filename).rstrip("\n")
 
+    @mark.parametrize(
+        "width, exp_data_filename, cls, inp_filename",
+        [tp for tp in _TRACER_PARAMS if tp[0] == 80],
+        ids=format_test_params,
+    )
+    def test_dump(
+        self,
+        width: int,
+        exp_data_filename: str,
+        cls: t.Type[AbstractTracer],
+        inp_filename: str,
+    ):
+        input = load_data_file(inp_filename)
+        actual = dump(input, tracer_cls=cls, label="label")
+        assert actual.rstrip("\n") == load_data_file(exp_data_filename).rstrip("\n")
+
     @mark.parametrize("max_width", [None, 40, 60, 80, 100, 120, 160, 240])
     @mark.parametrize(
         "input",
         ["f" * 64, "qй" * 32, "晦࢈ຮ" * 16, "·＊🐶𑼑􏿿" * 8],
         ids=lambda s: "UTF8x" + str(get_max_utf8_bytes_char_length(s)),
     )
-    @mark.parametrize("cls", [BytesTracer, StringTracer, StringUcpTracer])
+    @mark.parametrize(
+        "cls", [BytesTracer, StringTracer, StringUcpTracer], ids=format_test_params
+    )
     def test_line_len_doesnt_exceed_max(
-        self, max_width: int|None, input: t.AnyStr, cls: t.Type[AbstractTracer]
+        self, max_width: int | None, input: t.AnyStr, cls: t.Type[AbstractTracer]
     ):
         if cls == BytesTracer:
             input = input.encode()
@@ -188,3 +209,70 @@ class TestTracers:
         output = cls(max_width).apply(input)
         actual = max(map(len, output.splitlines()))
         assert actual <= max_width
+
+    def test_empty_input(self):
+        assert StringTracer().apply("").rstrip("\n") == ""
+
+    def test_input_cast(self):
+        assert dump([1, 2, 3], "input cast", StringTracer) == (
+            "input cast_________________________________________\n"
+            " 0 | 5b 31 2c 20 32 2c 20 33 5d |[1,␣2,␣3]         \n"
+            "------------------------------------------------(9)\n"
+        )
+
+    @mark.xfail(raises=ValueError)
+    def test_too_low_limit(self):
+        assert StringTracer(1).apply(".")
+
+    @mark.parametrize("input_cp, expected", [
+        [0, 1],
+    ])
+    def test_offset_max_ucs_chars_cp_length(self, input_cp: int, expected: int):
+        assert get_max_ucs_chars_cp_length(chr(input_cp)) == expected
+
+
+class TestReplacerChain:
+    @mark.parametrize(
+        "input_fname, expected_fname",
+        [
+            ["test_rplcha_inp.txt", "test_rplcha_exp.ansi"],
+        ],
+    )
+    @mark.setup(force_output_mode="xterm_16")
+    def test_replacer_chain(self, input_fname: str, expected_fname: str):
+        class RenderingReplacer(StringReplacer):
+            def __init__(self, pattern: PTT[str], st: Style):
+                self._st = st
+                super().__init__(pattern, self._render)
+
+            def _render(self, m: t.Match) -> str:
+                return render(m.group(0), self._st)
+
+        filters = [
+            StringReplacerChain(
+                re.compile(R".*pytermor.*"),
+                StringReplacer(R".py", "   "),
+                NonPrintsStringVisualizer(),
+                StringReplacer(R"\B(␣+)\B", lambda m: len(m[0]) * "."),
+                StringReplacer(R"␣", lambda m: " "),
+                RenderingReplacer(R"(?<=pytermor/)\w+", Style(bg="black", bold=True)),
+                RenderingReplacer("100%", Style(fg="green")),
+                RenderingReplacer(R"(?<=\D)([89]\d%).*", Style(fg="yellow")),
+                RenderingReplacer(R"\s([^89]\d%).*", Style(fg="red")),
+            ),
+            RenderingReplacer("%", Style(dim=True)),
+        ]
+        output = apply_filters(load_data_file(input_fname), *filters).rstrip("\n")
+        assert output == load_data_file(expected_fname).rstrip("\n")
+
+
+_ifnml = IFilter.get_name_max_len()
+
+class TestAbbrevNames:
+    @mark.parametrize(
+        "cls",
+        sorted(get_subclasses(IFilter), key=lambda c: get_qname(c)),
+        ids=lambda c: f"{get_qname(c):>{_ifnml}.{_ifnml}s} -> {format_test_params(c)}",
+    )
+    def test_abbrev_name(self, cls: t.Type[IFilter]):
+        assert cls.get_abbrev_name()

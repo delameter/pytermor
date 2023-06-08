@@ -1,0 +1,69 @@
+.. currentmodule:: pytermor
+
+.. role:: term
+    :class: std-term
+
+.. role:: strike
+    :class: strike
+
+.. role:: date
+    :class: date
+
+.. role:: comment
+    :class: comment
+
+.. role:: aux
+    :class: aux
+
+.. role:: hex
+    :class: hex
+
+.. role:: env
+    :class: guilabel pre env
+
+.. role:: u
+    :class: underline
+
+.. role:: seealso
+
+.. default-role:: any
+.. include:: <isonum.txt>
+
+.. |nbspt| unicode:: 0xA0
+   :trim:
+
+.. role:: badge
+    :class: badge
+
+.. role:: badge-new
+    :class: hidden badge badge-new
+
+.. role:: badge-update
+    :class: hidden badge badge-update
+
+.. role:: badge-fix
+    :class: hidden badge badge-fix
+
+.. role:: badge-doc
+    :class: hidden badge badge-doc
+
+.. role:: badge-test
+    :class: hidden badge badge-test
+
+.. role:: badge-refactor
+    :class: hidden badge badge-refactor
+
+.. role:: badge-rework
+    :class: hidden badge badge-rework
+
+.. |[]| replace:: :badge:`\ `
+.. |NEW| replace:: :badge-new:`[NEW]`
+.. |UPDATE| replace:: :badge-new:`[UPDATE]`
+.. |FIX| replace:: :badge-fix:`[FIX]`
+.. |DOCS| replace:: :badge-doc:`[DOCS]`
+.. |TESTS| replace:: :badge-test:`[TESTS]`
+.. |REFACTOR| replace:: :badge-refactor:`[REFACTOR]`
+.. |REWORK| replace:: :badge-rework:`[REWORK]`
+.. |MAINTAIN| replace:: :badge:`\ `
+
+.. .. end

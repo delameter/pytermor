@@ -4,7 +4,7 @@
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
 """
-Classes for working with ANSI sequences on lower level.
+Classes for working with ANSI escape sequences on a lower level.
 Can be used for creating a variety of sequences including:
 
     - :abbr:`SGR (Select Graphic Rendition)` sequences (text and background
@@ -13,22 +13,28 @@ Can be used for creating a variety of sequences including:
       selective screen clearing);
     - :abbr:`OSC (Operating System Command)` sequences (various system commands).
 
-.. important ::
-    blah-blah-blah low-level @TODO
-
+Provides a bunch of ready-to-use sequence makers, as well as core method
+`get_closing_seq()` that queries SGR pairs registry and composes "counterpart"
+sequence for a specified one: every attribute that the latter modifies, will be
+changed back by the one that's being created, while keeping the other attributes
+untouched. This method is used by `SgrRenderer` and is essential for nested style
+processing, as regular `RESET` sequence cancels all the formatting applied to
+the output at the moment it's getting introduced to a terminal emulator, and
+is near to impossible to use because of that (at least when there is a need to
+perform partial attribute termination, e.g. for overlapping styles rendering).
 """
 from __future__ import annotations
 
 import enum
 import typing as t
-from abc import abstractmethod, ABCMeta
+from abc import ABCMeta, abstractmethod
 from copy import copy
 from enum import unique
 from functools import total_ordering
 from typing import Any, ClassVar
 
 from .common import get_qname
-from .exception import LogicError, ConflictError, ParseError
+from .exception import ConflictError, LogicError, ParseError
 
 
 class _ClassMap(t.Dict[str, t.Type["ISequence"]]):
@@ -651,8 +657,6 @@ class IntCode(enum.IntEnum):
     def __repr__(self) -> str:
         return f"<{self.value}|{self.name}>"
 
-    # -- SGR: default attributes and colors -----------------------------------
-
     RESET = 0  # hard reset code
     BOLD = 1
     DIM = 2
@@ -728,8 +732,6 @@ class IntCode(enum.IntEnum):
     # 60-65: ideogram attributes
     # 73-75: superscript and subscript
 
-    # -- SGR: extended modifiers ----------------------------------------------
-
     EXTENDED_MODE_256 = 5
     EXTENDED_MODE_RGB = 2
 
@@ -753,8 +755,6 @@ class SeqIndex:
     Registry of static sequences that can be utilized without implementing
     an extra logic.
     """
-
-    # -- SGR ------------------------------------------------------------------
 
     RESET = SequenceSGR(IntCode.RESET)
     """
@@ -1050,8 +1050,8 @@ class _SgrPairityRegistry:
 
 SequenceSGR._PAIRITY_REGISTRY = _SgrPairityRegistry()
 
-# SGR sequences assembly ------------------------------------------------------
 
+# SGR sequences assembly ------------------------------------------------------
 
 def get_closing_seq(opening_seq: SequenceSGR) -> SequenceSGR:
     """
@@ -1374,6 +1374,19 @@ def make_clear_line() -> SequenceCSI:
     :example:     ``ESC [2K``
     """
     return make_erase_in_line(2)
+
+
+def compose_clear_line_fill_bg(basis: SequenceSGR, line: int = None) -> str:
+    """
+
+    :param basis:
+    :param line:
+    """
+    if line is not None:
+        result = make_set_cursor(line, 1)
+    else:
+        result = make_set_cursor_column(1)
+    return f'{result}{basis}{make_clear_line()}'
 
 
 # CSI / Private mode sequences assembly ---------------------------------------

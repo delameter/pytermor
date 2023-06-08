@@ -11,14 +11,15 @@ Color preset list:
  -  256x `Color256` (247 unique)
  - 1650x `ColorRGB` (1645 unique)
 """
-from .color import Color16, Color256, ColorRGB
 from .ansi import IntCode
+from .color import Color16, Color256, ColorRGB
 
 
 class ColorValuesXterm:
     """
     ColorValuesXterm
     """
+
     # fmt: off
     BLACK       = Color16(0x000000, IntCode.BLACK,       IntCode.BG_BLACK,       "black",        register=True, index=True)
     RED         = Color16(0x800000, IntCode.RED,         IntCode.BG_RED,         "red",          register=True, index=True)
@@ -300,6 +301,7 @@ class ColorValuesRGB:
     """
     ColorValuesRGB
     """
+
     # fmt: off
     ABSOLUTE_ZERO                        = ColorRGB(0x0048ba, "absolute-zero",                         register=True, index=True)
     ACAJOU                               = ColorRGB(0x4c2f27, "acajou",                                register=True, index=True)

@@ -4,12 +4,13 @@
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
 from __future__ import annotations
-import itertools
+
 import enum
+import itertools
 import typing as t
 
-
 T = t.TypeVar("T")
+TT = t.TypeVar("TT", bound=type)
 
 
 class ExtendedEnum(enum.Enum):
@@ -91,3 +92,18 @@ def get_qname(obj) -> str:
     if isinstance(obj, object):
         return obj.__class__.__qualname__
     return str(obj)
+
+
+def get_subclasses(cls: TT) -> t.Iterable[TT]:
+    visited: t.Set[TT] = set()
+
+    def fn(cls: TT):
+        if cls in visited:
+            return
+        visited.add(cls)
+
+        for subcls in cls.__subclasses__():
+            fn(subcls)
+
+    fn(cls)
+    return visited

@@ -4,7 +4,7 @@
    <img src="https://user-images.githubusercontent.com/50381946/219900171-660d4309-c290-424d-95f8-8d0e5958511d.png" width="400" height="64">
 </p>
 <p>
-  <img src="https://img.shields.io/badge/python-3.8-3776AB?logo=python&logoColor=white&labelColor=333333">
+  <img src="https://img.shields.io/badge/python-3.10-3776AB?logo=python&logoColor=white&labelColor=333333">
   <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
   <br>
   <a href="https://pypi.org/project/pytermor/"><img alt="PyPI" src="https://img.shields.io/pypi/v/pytermor"></a>

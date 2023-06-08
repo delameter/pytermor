@@ -45,6 +45,7 @@ function transformReferences() {
 
 function formatEnvLists() {
     $(".env-list dt").each((idx, el) => el.classList.add("sig"));
+    $(".env-list .env").each((idx, el) => el.setAttribute("title", "Environment var"));
 }
 
 function squashNeighbourCodeSetions() {

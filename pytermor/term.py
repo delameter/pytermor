@@ -15,12 +15,8 @@ import typing as t
 import unicodedata
 from io import StringIO
 
-from .ansi import (
-    make_query_cursor_position,
-    make_set_cursor_column,
-    make_clear_line,
-)
-from .exception import UserCancel, UserAbort
+from .ansi import make_clear_line, make_query_cursor_position, make_set_cursor_column
+from .exception import UserAbort, UserCancel
 from .parser import decompose_report_cursor_position
 
 
@@ -303,5 +299,3 @@ def guess_char_width(c: str) -> int:
         return 2
 
     return 1
-
-

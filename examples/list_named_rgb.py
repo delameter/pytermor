@@ -266,7 +266,7 @@ class _RgbTablePrinter:
 
 class Main():
     def __init__(self):
-        pt.RendererManager.set_default_format_always()
+        pt.force_ansi_rendering()
         #pt.RendererManager.set_default(HtmlRenderer)
 
         config_list = [*_ConfigLoader().load()]

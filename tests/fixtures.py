@@ -5,7 +5,7 @@
 # -----------------------------------------------------------------------------
 import pytest
 
-from pytermor import RendererManager
+from pytermor import ExtendedEnum, OutputMode, RendererManager
 from pytermor.config import init_config, replace_config, Config
 
 _default_config = Config()
@@ -26,7 +26,12 @@ def config(request):
     setup = request.node.get_closest_marker("setup")
 
     if setup is not None:
-        current_config = Config(**setup.kwargs)
+        kwargs = dict()
+        for k, v in setup.kwargs.items():
+            if isinstance(v, ExtendedEnum):
+                v = v.value
+            kwargs[k] = v
+        current_config = Config(**kwargs)
 
     replace_config(current_config)
     RendererManager.set_default()

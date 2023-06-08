@@ -39,6 +39,7 @@ RESET  := $(shell printf '\e[m')
 
 help:   ## [any] Show this help
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s?(\s*#?[^#]+)#*\s*(.*)/\1${YELLOW}\2${RESET}#\3/; s/(.+):(#|\s)+(.+)/##   ${GREEN}\1${RESET}#\3/; s/\*(\w+)\*/${BOLD}\1${RESET}/g; 2~1s/<([ )*<@>.A-Za-z0-9_(-]+)>/${DIM}\1${RESET}/gi' -e 's/(\x1b\[)33m#/\136m/' | column -ts# | sed -Ee 's/ {3}>/ >/'
+	PYTERMOR_FORCE_OUTPUT_MODE=xterm_256 ${VENV_LOCAL_PATH}/bin/python .run-startup.py | tail -2 ; echo
 
 init-venv:  ## [host] Prepare manual environment  <venv>
 	${HOST_DEFAULT_PYTHON} -m venv --clear ${VENV_LOCAL_PATH}
@@ -161,7 +162,7 @@ test: ## Run pytest
 	@PT_ENV=test ./.invoke pytest --quiet --tb=line -rs
 
 test-verbose: ## Run pytest with detailed output
-	@PT_ENV=test ./.invoke pytest -v --failed-first
+	@PT_ENV=test ./.invoke pytest -v --failed-first --log-level=10
 
 test-trace: ## Run pytest with detailed output  <@last_test_trace.log>
 	@PT_ENV=test ./.invoke pytest -v --failed-first --log-file-level=1 --log-file=last_test_trace.log

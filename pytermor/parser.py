@@ -9,9 +9,7 @@ import re
 import typing as t
 from functools import lru_cache
 
-from .ansi import make_color_256, ISequence
-from .ansi import ColorTarget, seq_from_dict
-
+from .ansi import ColorTarget, ISequence, make_color_256, seq_from_dict
 
 ESCAPE_SEQ_REGEX = re.compile(
     R"""
@@ -119,7 +117,7 @@ def contains_sgr(string: str, *codes: int) -> re.Match | None:
         - Group #0: the whole matched SGR sequence;
         - Group #1: the requested params bytes only.
 
-    Example regex used for searching: :regex:`\\x1b\\[(?:|[\\d;]*;)(48;5)(?:|;[\\d;]*)m`.
+    Example regex used for searching: :regexp:`\\x1b\\[(?:|[\\d;]*;)(48;5)(?:|;[\\d;]*)m`.
 
         >>> contains_sgr(make_color_256(128).assemble(), 38)
         <re.Match object; span=(0, 11), match='\x1b[38;5;128m'>
@@ -134,7 +132,7 @@ def contains_sgr(string: str, *codes: int) -> re.Match | None:
     return _compile_contains_sgr_regex(*codes).search(string)
 
 
-def parse(string: str) -> t.Iterable[ISequence|str]:
+def parse(string: str) -> t.Iterable[ISequence | str]:
     cursor = 0
     for match in ESCAPE_SEQ_REGEX.finditer(string):
         if (mstart := match.start()) > cursor:
@@ -165,4 +163,3 @@ def decompose_report_cursor_position(string: str) -> t.Tuple[int, int] | None:
     if match := RCP_REGEX.match(string):
         return int(match.group(1)), int(match.group(2))
     return None
-

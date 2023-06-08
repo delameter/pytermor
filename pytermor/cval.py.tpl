@@ -8,14 +8,15 @@
 Color preset list:
 ${counts}
 """
-from .color import Color16, Color256, ColorRGB
 from .ansi import IntCode
+from .color import Color16, Color256, ColorRGB
 
 
 class ColorValuesXterm:
     """
     ColorValuesXterm
     """
+
     # fmt: off
 ${defs_xterm_16}
 
@@ -27,6 +28,7 @@ class ColorValuesRGB:
     """
     ColorValuesRGB
     """
+
     # fmt: off
 ${defs_rgb}
     # fmt: on

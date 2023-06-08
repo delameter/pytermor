@@ -27,7 +27,7 @@ run --rmprefix "${PROJECT_NAME}". \
         pytermor.common \
         pytermor.exception \
         pytermor.log \
-    | tee "${DOCS_IN_PATH}/generated/module.dot"
+    | tee "${DOCS_IN_PATH}/_generated/module.dot"
 
 run --rmprefix "${PROJECT_NAME}". \
     --start-color 0 \

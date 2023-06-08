@@ -1,0 +1,43 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# pytermor [ANSI formatted terminal output toolset]                           -
+# (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>                          -
+# Licensed under GNU Lesser General Public License v3.0                       -
+#------------------------------------------------------------------------------
+
+main() {
+    if [[ ! -f venv/bin/python ]] ; then
+        echo "[ERROR] virtual environment is not present"
+        echo "initialize it in '$PWD/venv'?"
+        read -r -n1 -p'(y/n): ' yn
+        case "$yn" in
+            [Yy]*) init-venv || exit 1 ;;
+                *) echo && exit 2 ;;
+        esac
+    fi
+
+    if [[ -f .run-startup.py ]] ; then
+        PYTHONSTARTUP=.run-startup.py PYTHONPATH=. venv/bin/python -q "$@"
+    else
+        printf '%s\n' "import pytermor as pt" "print('imported pytermor %s as pt' % pt.__version__)" > /tmp/ptstartup
+        PYTHONSTARTUP=/tmp/ptstartup PYTHONPATH=. venv/bin/python -q "$@"
+        rm /tmp/ptstartup
+    fi
+}
+
+init-venv() {
+    echo
+    if ! python -m venv venv ; then
+        echo "[CRITICAL] python 3.8 or higher is required, as well as installed 'virtualenv' package"
+        return 1
+    fi
+    venv/bin/python -m pip install . && return 0
+
+    echo "[ERROR] failed to install source-distributed 'pytermor' into created venv. ensure that the script working dir is same as the project root. trying to install from package registry..."
+    if ! venv/bin/python -m pip install pytermor ; then
+        echo "[CRITICAL] failed to install 'pytermor' even from the registry // ToT"
+        return 1
+    fi
+}
+
+main "$@"
