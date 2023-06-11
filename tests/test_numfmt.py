@@ -27,7 +27,7 @@ from pytermor.numfmt import (
     format_time_delta_shortest,
     format_time_delta_longest, DualFormatterRegistry,
 )
-from . import format_test_params
+from tests import format_test_params
 
 
 class TestFormatThousandSep:

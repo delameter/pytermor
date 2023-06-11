@@ -33,7 +33,7 @@ from pytermor.color import (
     _ColorRegistry,
     _ColorIndex,
 )
-from . import assert_close, format_test_params
+from tests import assert_close, format_test_params
 
 NON_EXISTING_COLORS = [0xFEDCBA, 0xFA0CCC, *range(1, 7)]
 

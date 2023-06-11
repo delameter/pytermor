@@ -8,6 +8,7 @@ from __future__ import annotations
 import enum
 import itertools
 import typing as t
+from collections.abc import Iterable
 
 T = t.TypeVar("T")
 TT = t.TypeVar("TT", bound=type)
@@ -39,7 +40,23 @@ class ExtendedEnum(enum.Enum):
         return dict(map(lambda c: (c, c.value), cls))
 
 
-def chunk(items: t.Iterable[T], size: int) -> t.Iterator[t.Tuple[T, ...]]:
+def only(cls: t.Type, inp: Iterable[T]) -> t.List[T]:
+    return [*(a for a in inp if isinstance(a, cls))]
+
+
+def but(cls: t.Type, inp: Iterable[T]) -> t.List[T]:
+    return [*(a for a in inp if not isinstance(a, cls))]
+
+
+def ours(cls: t.Type, inp: Iterable[T]) -> t.List[T]:
+    return [*(a for a in inp if issubclass(type(a), cls))]
+
+
+def others(cls: t.Type, inp: Iterable[T]) -> t.List[T]:
+    return [*(a for a in inp if not issubclass(type(a), cls))]
+
+
+def chunk(items: Iterable[T], size: int) -> t.Iterator[t.Tuple[T, ...]]:
     """
     Split item list into chunks of size ``size`` and return these
     chunks as *tuples*.
@@ -57,23 +74,69 @@ def chunk(items: t.Iterable[T], size: int) -> t.Iterator[t.Tuple[T, ...]]:
     return iter(lambda: tuple(itertools.islice(arr_range, size)), ())
 
 
-def flatten1(items: t.Iterable[t.Iterable[T]]) -> t.List[T]:
+def isiterable(arg) -> bool:  # pragma: no cover
+    return isinstance(arg, Iterable) and not isinstance(arg, (str, bytes))
+
+
+def flatten1(items: Iterable[Iterable[T]]) -> t.List[T]:
     """
     Take a list of nested lists and unpack all nested elements one level up.
 
-    >>> flatten1([[1, 2, 3], [4, 5, 6], [[10, 11, 12]]])
-    [1, 2, 3, 4, 5, 6, [10, 11, 12]]
+    >>> flatten1([1, 2, [3, 4], [[5, 6]]])
+    [1, 2, 3, 4, [5, 6]]
 
-    :param items:  Input lists.
     """
-    return list(itertools.chain.from_iterable(items))
+    return flatten(items, level_limit=1)
 
 
-def flatten(items: t.Iterable[t.Iterable[T]]) -> t.List[T]:
+def flatten(items: Iterable[T | Iterable[T]], level_limit: int = None) -> t.List[T]:
     """
-    @TODO @DRAFT didnt test it yet
+    Unpack a list with any amount of nested lists to 1d-array, or flat list,
+    eliminating all the nesting. Note that nesting can be irregular, i.e. one part
+    of initial list can have deepest elemenets on 3rd level, while the other --
+    on 5th level.
+
+    >>> flatten([1, 2, [3, [4, [[5]], [6, 7, [8]]]]])
+    [1, 2, 3, 4, 5, 6, 7, 8]
+
+    :param items:       An iterable to unpack.
+    :param level_limit: Adjust how many levels deep can unpacking proceed, e.g.
+                        if set to 1, only 2nd-level elements will be raised up
+                        to level 1, but not the deeper ones. If set to 2, the
+                        first two levels will be unpacked, while keeping the 3rd
+                        and others. 0 or *None* disables the limit.
     """
-    return [*(flatten(f) for f in flatten1(items))]
+
+    def _flatten(parent, lvl=0) -> Iterable[T | Iterable[T]]:
+        if isiterable(parent):
+            for child in parent:
+                if isiterable(child):  # 2nd+ level, e.g. parent = [[1]]
+                    if not level_limit or lvl < level_limit - 1:  # while below limit
+                        yield from _flatten(child, lvl + 1)  # unpack recursively
+                    else:  # keep the structure if limit exceeded
+                        yield from child
+                else:  # 1st level, e.g. parent = [1]
+                    yield child
+        else:  # 0th level, e.g. parent = 1
+            yield parent
+
+    return [*_flatten(items)]
+
+
+def char_range(c1, c2):
+    """
+    Generates the characters from `c1` to `c2`, inclusive.
+    """
+    i1 = ord(c1)
+    i2 = ord(c2) + 1
+
+    # manually excluding UTF-16 surrogates from the range if there is
+    # an intersection, as otherwise python will die with unicode error
+    if i1 < 0xd800 and i2 > 0xdfff:
+        irange = (*range(i1, 0xd800), *range(0xe000, i2))
+    else:
+        irange = range(i1, i2)
+    yield from map(chr, irange)
 
 
 def get_qname(obj) -> str:
@@ -91,14 +154,14 @@ def get_qname(obj) -> str:
         return "<" + obj.__name__ + ">"
     if isinstance(obj, object):
         return obj.__class__.__qualname__
-    return str(obj)
+    return str(obj)  # pragma: no cover
 
 
-def get_subclasses(cls: TT) -> t.Iterable[TT]:
+def get_subclasses(cls: TT) -> Iterable[TT]:
     visited: t.Set[TT] = set()
 
     def fn(cls: TT):
-        if cls in visited:
+        if cls in visited:  # pragma: no cover
             return
         visited.add(cls)
 

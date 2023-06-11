@@ -13,11 +13,17 @@
 
    .. autosummary::
    
+      but
+      char_range
       chunk
       flatten
       flatten1
       get_qname
       get_subclasses
+      isiterable
+      only
+      others
+      ours
    
    
 

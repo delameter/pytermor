@@ -12,7 +12,7 @@ import pytest
 import typing as t
 import pytermor as pt
 from pytermor import HSV, LAB, RGB, XYZ, hex_to_rgb, ColorValue
-from . import assert_close, format_test_params
+from tests import assert_close, format_test_params
 
 
 @dataclass

@@ -48,10 +48,8 @@ light_css_variables:
   color-pt-highlight-target-foreground: var(--color-api-keyword)
   color-pt-config-background: hsla(40, 100%, 90%, 0.5)
   color-pt-config-border: hsl(30, 100%, 75%)
-  color-pt-env-background: hsla(120, 40%, 95%, 0.5)
-  color-pt-env-border: hsl(120, 20%, 85%, 0.5)
-  color-pt-badge-border: none
-  color-pt-badge-background: none
+#  color-pt-badge-border: none
+#  color-pt-badge-background: none
   color-pt-badge-foreground: inherit
   color-pt-badge-text-shadow: inherit
 
@@ -87,9 +85,7 @@ dark_css_variables:
   color-pt-highlight-target-foreground: hsla(50, 100%, 50%, 75%)
   color-pt-config-background: hsla(30, 70%, 25%, 0.25)
   color-pt-config-border: hsla(40, 100%, 35%, 0.5)
-  color-pt-env-background: hsla(120, 25%, 25%, 0.5)
-  color-pt-env-border: hsl(120, 67%, 35%, 0.5)
-  color-pt-badge-border: inherit
-  color-pt-badge-background: black
+#  color-pt-badge-border: inherit
+#  color-pt-badge-background: black
   color-pt-badge-foreground: inherit
   color-pt-badge-text-shadow: none

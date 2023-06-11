@@ -55,7 +55,10 @@ h6 { font-size: 1rem; }
     font-weight: bold;
     text-align: center;
 }
-pre, .pre, kbd,
+pre,
+.pre,
+kbd,
+.env,
 a.reference.internal code,
 .xterm-palette,
 .field-list dd.field-odd strong,
@@ -97,14 +100,19 @@ td > * > .aux {
     display: block;
 }
 
-.env {
-    background-color: var(--color-pt-env-background);
-    border: 1px solid var(--color-pt-env-border);
+.std-term {
+    font-weight: bold;
 }
-.env::before {
-    content: '\f013';
-    font-family: 'ForkAwesome';
+.env {
+    font-size: 0.9em;
+}
+.env:before {
+    font-family: "ForkAwesome";
     margin-inline: 0.25em;
+}
+body[data-theme="dark"] .env:before {
+    color: rgb(255 228 196 / .50);
+    text-shadow: -1px -1px wheat;
 }
 
 .strike {  text-decoration: 1px line-through solid; }
@@ -569,34 +577,34 @@ span.badge {
     font-family: 'ASM-Bold';
     font-weight: 700;
     vertical-align: middle;
-    border: thin outset var(--color-pt-badge-border, #333);;
-    border-radius: 5px;
+    /*border: thin outset var(--color-pt-badge-border, #333);;*/
+    /*border-radius: 5px;*/
     color: #666;
     font-size: 95%;
     text-shadow: 1px 1px 0px var(--color-pt-badge-text-shadow, black);
 }
 span.badge-new, span.badge-update {
-    background: var(--color-pt-badge-background, #7fff7f40);
+    /*background: var(--color-pt-badge-background, #7fff7f40);*/
     color: var(--color-pt-badge-foreground, #7fff7f);
 }
 span.badge-fix {
-    background: var(--color-pt-badge-background, #FF7F7F40);
+    /*background: var(--color-pt-badge-background, #FF7F7F40);*/
     color: var(--color-pt-badge-foreground, #FF7F7F);
 }
 span.badge-doc {
-    background: var(--color-pt-badge-background, #ffaf5f40);
+    /*background: var(--color-pt-badge-background, #ffaf5f40);*/
     color: var(--color-pt-badge-foreground, #ffaf5f);
 }
 span.badge-test {
-    background: var(--color-pt-badge-background, #be79ff40);
+    /*background: var(--color-pt-badge-background, #be79ff40);*/
     color: var(--color-pt-badge-foreground, #be79ff);
 }
 span.badge-refactor {
-    background: var(--color-pt-badge-background, #5f7fff40);
+    /*background: var(--color-pt-badge-background, #5f7fff40);*/
     color: var(--color-pt-badge-foreground, #5f7fff);
 }
 span.badge-rework {
-    background: var(--color-pt-badge-background, #ffd15e40);
+    /*background: var(--color-pt-badge-background, #ffd15e40);*/
     color: var(--color-pt-badge-foreground, #ffdf5f);
 }
 

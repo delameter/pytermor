@@ -16,7 +16,7 @@ import pytermor.text
 from pytermor import OutputMode, Text, FrozenText, Fragment, IRenderable, Style, RT
 from pytermor.renderer import NoOpRenderer
 
-from . import format_test_params
+from tests import format_test_params
 
 def format_test_rt_params(val) -> str | None:
     if isinstance(val, str):

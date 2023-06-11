@@ -125,5 +125,3 @@ Class hierarchy
    :parts: 1
    :top-classes:          pytermor.ansi.ISequence
    :caption:              `ISequence` inheritance tree
-
------

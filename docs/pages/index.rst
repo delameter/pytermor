@@ -8,7 +8,7 @@ pytermor
 
 :comment:`(yet another)` Python library initially designed for formatting terminal output using ANSI escape codes.
 
-Provides `high-level <guide.high-level>` methods for working with text sections, colors, formats, alignment and wrapping, as well as `low-level <guide.low-level>` `ansi` module which allows operating with :abbr:`SGR (Select Graphic Rendition)` `sequences<SequenceSGR>` and also implements automatic "soft" format termination. Depending on the context and technical requirements either approach can be used. Also includes a set of additional number/string/date formatters for pretty output.
+Provides `high-level <guide.high-level>` methods for working with text sections, colors, formats, alignment and wrapping, as well as `low-level <guide.low-level>` `ansi` module which allows operating with :term:`SGR (Select Graphic Rendition)` `SGR` and also implements automatic "soft" format termination. Depending on the context and technical requirements either approach can be used. Also includes a set of additional number/string/date formatters for pretty output.
 
 Key feature of this library is extendability and a variety of formatters (called `renderers<guide.renderers>`), which determine the output syntax:
 

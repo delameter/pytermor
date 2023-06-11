@@ -332,7 +332,7 @@ class SgrRenderer(IRenderer):
             logging.debug(f"Using forced value from env/config: {config_forced_value}")
             return config_forced_value
 
-        isatty = io.isatty()
+        isatty = io.isatty() if not io.closed else None
         term = os.environ.get("TERM", None)
         colorterm = os.environ.get("COLORTERM", None)
 
@@ -677,6 +677,9 @@ class TemplateRenderer(IRenderer):
     def render(self, string: str, fmt: FT = None) -> str:
         pass
 
+# @todo
+# class Win32Renderer
+
 
 def force_ansi_rendering():
     """
@@ -688,6 +691,7 @@ def force_ansi_rendering():
     as well as the ones that will be created afterwards, are unaffected.
     """
     RendererManager.set_default(SgrRenderer(OutputMode.TRUE_COLOR))
+
 
 def force_no_ansi_rendering():
     """

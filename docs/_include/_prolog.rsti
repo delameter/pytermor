@@ -19,7 +19,10 @@
     :class: hex
 
 .. role:: env
-    :class: guilabel pre env
+    :class: env fa-gear
+
+.. role:: def
+    :class: std-term
 
 .. role:: u
     :class: underline

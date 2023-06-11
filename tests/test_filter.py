@@ -12,7 +12,7 @@ from pytermor import Fragment, Style, render
 from pytermor.ansi import SeqIndex
 from pytermor.common import get_qname, get_subclasses
 from pytermor.filter import *
-from . import format_test_params, load_data_file
+from tests import format_test_params, load_data_file
 
 
 @mark.setup(force_output_mode="true_color")
@@ -266,13 +266,11 @@ class TestReplacerChain:
         assert output == load_data_file(expected_fname).rstrip("\n")
 
 
-_ifnml = IFilter.get_name_max_len()
-
 class TestAbbrevNames:
     @mark.parametrize(
         "cls",
         sorted(get_subclasses(IFilter), key=lambda c: get_qname(c)),
-        ids=lambda c: f"{get_qname(c):>{_ifnml}.{_ifnml}s} -> {format_test_params(c)}",
+        ids=format_test_params,
     )
     def test_abbrev_name(self, cls: t.Type[IFilter]):
         assert cls.get_abbrev_name()

@@ -23,9 +23,8 @@ from functools import lru_cache, reduce
 from math import ceil, floor
 from typing import Union
 
-from . import LogicError
 from .common import ExtendedEnum, chunk
-from .exception import ArgTypeError
+from .exception import ArgTypeError, LogicError
 from .parser import CSI_SEQ_REGEX, ESCAPE_SEQ_REGEX, SGR_SEQ_REGEX
 from .term import get_terminal_width
 
@@ -806,6 +805,9 @@ class StringReplacer(IFilter[str, str]):
 
 
 class StringReplacerChain(StringReplacer):
+    """
+    .
+    """
     def __init__(self, pattern: PTT[str], *repls: IFilter[str, str]):
         super().__init__(pattern, lambda m: m.group(0))
         self._repls: t.Deque[IFilter[str, str]] = deque(repls)
@@ -818,7 +820,7 @@ class StringReplacerChain(StringReplacer):
 
 
 class EscSeqStringReplacer(StringReplacer):
-    """ """
+    """ , """
 
     def __init__(self, repl: RPT[str] = ""):
         super().__init__(ESCAPE_SEQ_REGEX, repl)

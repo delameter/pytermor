@@ -23,7 +23,7 @@ from pytermor import (
 )
 from pytermor.ansi import ISequence, SequenceOSC, SequenceFp
 from pytermor.exception import ParseError
-from . import format_test_params, load_data_file
+from tests import format_test_params, load_data_file
 
 
 def read_file(filename: str) -> str:

@@ -24,7 +24,8 @@ from copy import copy
 from functools import update_wrapper
 from typing import overload
 
-from typing_extensions import deprecated
+# from typing_extensions import deprecated
+# waiting till it will make its way to stdlib
 
 from .color import IColor
 from .common import flatten1
@@ -533,8 +534,8 @@ class Composite(IRenderable):
         return False
 
 
-@deprecated("SimpleTable is discouraged to use as it has very limited application and "
-            "will be replaced with something much more generic in the future.")
+# @deprecated("SimpleTable is discouraged to use as it has very limited application and "
+#             "will be replaced with something much more generic in the future.")
 class SimpleTable(IRenderable):
     """
     Table class with dynamic (not bound to each other) rows. By defualt expands to

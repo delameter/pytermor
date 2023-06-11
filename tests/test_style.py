@@ -19,7 +19,7 @@ from pytermor import (
     NOOP_COLOR, Color256, ColorRGB, IColor, make_style, )
 from pytermor.exception import LogicError, ArgTypeError
 
-from . import format_test_params
+from tests import format_test_params
 
 
 class TestStyle:

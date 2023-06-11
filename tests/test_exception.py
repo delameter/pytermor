@@ -12,7 +12,7 @@ import pytest
 
 import pytermor as pt
 from pytermor import ArgTypeError
-from . import format_test_params
+from tests import format_test_params
 
 
 def words_to_regex(words: t.Iterable[str]) -> t.Pattern:
@@ -32,7 +32,7 @@ class TestArgTypeError:
                 lambda: pt.make_style(pt.Style),
             ),
             (
-                ["Var", "arg",  "list"],
+                ["Var", "arg", "list"],
                 lambda: pt.Text().append([]),
             ),
             (

@@ -3,56 +3,67 @@
 
 pending
 ------------------
-- |UPDATE| Update coverage.yml
-- |MAINTAIN| pdf documentation
-- |MAINTAIN| cleanup
-- |MAINTAIN| (c) update
-- |FIX| `flake8`
-- |NEW|  `IRenderable.raw()` method
-- |NEW| `cval` atlassian colors
-- |REFACTOR| made `measure` and `trace` private
-- |NEW| `utilmisc` color transform methods overloaded
-- |DOCS| a lot
-- |FIX| `pydeps` invocation
-- |FIX|  `ESCAPE_SEQ_REGEX`
-- |NEW| `contains_sgr` method
-- |NEW|  `Text.split_by_spaces()`, `Composite`
-- |NEW| +3 base sequence classes, +26 preset sequences
-- |TESTS| `Style`/`IColor` reprs
-- |FIX| `make_clear_display_and_history()` -> `make_clear_history()`
-- |MAINTAIN| CI coverage now running on python 3.10 (was 3.8)
+
+.. <@pending:28ad52d>
+.. ^ blank line before should be kept
+
+
+v2.75-dev
+------------------
+:date:`Jun 23`
+
 - |DOCS| fixed pydoc escaped spaces to stop python's warnings whining that breaks the CI
-- |MAINTAIN| upload to coveralls debug mode !@#$
-- |MAINTAIN| replaced GITHUB_TOKEN secret to COVERALLS_REPO_TOKEN
-- |MAINTAIN| disabled verbose mode on CI
-- |NEW| "frozen" `Style` attribute
-- |NEW| `__str__` methods override for named tuples `RGB`, `HSV`
-- |REFACTOR| color resolver
-- |MAINTAIN| add `updated` field in _version.py
+- |FIX|  `ESCAPE_SEQ_REGEX`
+- |FIX| `ESC_SEQ_REGEX`
+- |FIX| `filter.AbstractTracer` faulty offset rendering
+- |FIX| `flake8`
+- |FIX| `make_clear_display_and_history()` -> `make_clear_history()`
+- |FIX| `numfmt` exports
+- |FIX| `pydeps` invocation
+- |FIX| `template` options parsing issue
 - |MAINTAIN|  add `__updated__` field to init file
-- |NEW| implement missing 1st-level sequence classes
+- |MAINTAIN| add `updated` field in _version.py
+- |MAINTAIN| CI coverage now running on python 3.10 (was 3.8)
+- |MAINTAIN| cleanup
+- |MAINTAIN| disabled verbose mode on CI
+- |MAINTAIN| pdf documentation
+- |MAINTAIN| replaced GITHUB_TOKEN secret to COVERALLS_REPO_TOKEN
+- |MAINTAIN| upload to coveralls debug mode !@#$
+- |NEW|  `IRenderable.raw()` method
+- |NEW|  `Text.split_by_spaces()`, `Composite`
+- |NEW| "frozen" `Style` attribute
+- |NEW| 'skylight-blue' named color
+- |NEW| +3 base sequence classes, +26 preset sequences
+- |NEW| `__str__` methods override for named tuples `RGB`, `HSV`
+- |NEW| `contains_sgr` method
+- |NEW| `cval` atlassian colors
+- |NEW| `parser` module
+- |NEW| `force_ansi_rendering`, `force_no_ansi_rendering`
+- |NEW| `LAB`, `XYZ` named tuples + conversions
+- |NEW| `StringReplacerChain` filter
+- |NEW| `Style`, ``SgrRenderer` and `TmuxRenderer` support of all the above
+- |NEW| `TemplateEngine` comment support
+- |NEW| `Tracers` auto-width mode
+- |NEW| `utilmisc` color transform methods overloaded
 - |NEW| add `ColorTarget` enum as there are three extended color modes instead of two
 - |NEW| add `SubtypedParam` support that allows specifying SGRs with subparams like 'ESC[4:3m'
-- |NEW| `LAB`, `XYZ` named tuples + conversions
-- |FIX| `filter.AbstractTracer` faulty offset rendering
-- |REFACTOR| sequence internal composition
+- |NEW| implement missing 1st-level sequence classes
 - |NEW| IntCodes: ``FRAMED`` (+``_OFF``), ``UNDERLINE_COLOR_EXTENDED`` (+``_OFF``)
+- |NEW| math rendering as png
 - |NEW| SeqIndex: ``CURLY_UNDERLINED``, ``FRAMED``, ``FRAMED_OFF``
-- |NEW| `Style`, ``SgrRenderer` and `TmuxRenderer` support of all the above
-- |DRAFT| `parser` module
-- |REWORK| `util*` -> `numfmt`, `filter`, `conv`
 - |REFACTOR|  split `commons` into `log` and `excepiton` modules
-- |FIX| `numfmt` exports
-- |FIX| `ESC_SEQ_REGEX`
 - |REFACTOR| `TemplateEngine`
+- |REFACTOR| color resolver
+- |REFACTOR| made `measure` and `trace` private
+- |REFACTOR| sequence internal composition
 - |REFACTOR| split ``PYTERMOR_OUTPUT_MODE`` env var into ``PYTERMOR_FORCE_OUTPUT_MODE`` and ``PYTERMOR_AUTO_OUTPUT_MODE``
-- |FIX| `template` options parsing issue
-- |NEW| 'skylight-blue' named color
+- |REWORK| `util*` -> `numfmt`, `filter`, `conv`
+- |REWORK| doc pages tree
 - |TESTS| 83% coverage
-- |NEW| `TemplateEngine` comment support
-
-.. <@pending:58abd1e>
-.. ^ blank line before should be kept
+- |TESTS| `Style`/`IColor` reprs
+- |TESTS| coverage 87%
+- |TESTS| moar
+- |UPDATE| Update coverage.yml
 
 
 v2.48-dev

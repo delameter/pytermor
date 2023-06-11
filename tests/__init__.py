@@ -7,11 +7,23 @@ from __future__ import annotations
 
 import os.path
 from datetime import timedelta
+from inspect import isclass
 from math import isclose
 from typing import cast, overload, TypeVar, AnyStr
-
-from pytermor import IFilter, Style, apply_filters, SgrStringReplacer, \
-    NonPrintsOmniVisualizer, RGB, HSV, LAB, XYZ, ISequence, get_qname
+import typing as t
+from pytermor import (
+    IFilter,
+    Style,
+    apply_filters,
+    SgrStringReplacer,
+    NonPrintsOmniVisualizer,
+    RGB,
+    HSV,
+    LAB,
+    XYZ,
+    ISequence,
+    get_qname,
+)
 from .fixtures import *  # noqa
 
 
@@ -20,15 +32,16 @@ str_filters = [
     NonPrintsOmniVisualizer,
 ]
 
+
 def format_test_params(val) -> str | None:
     if isinstance(val, str):
         return apply_filters(val, *str_filters)
     if isinstance(val, int):
         return f"0x{val:06x}"
     if isinstance(val, (RGB, HSV, LAB, XYZ)):
-        return str(val).replace('°', '')
+        return str(val).replace("°", "")
     if isinstance(val, (list, tuple)):
-        return "("+",".join(map(str, val))+")"
+        return "(" + ",".join(map(str, val)) + ")"
     if isinstance(val, dict):
         return f"(" + (" ".join((k + "=" + str(v)) for k, v in val.items())) + ")"
     if isinstance(val, timedelta):
@@ -37,10 +50,8 @@ def format_test_params(val) -> str | None:
         return "%s(%s)" % (get_qname(val), val.repr_attrs(False))
     if isinstance(val, ISequence):
         return repr(val)
-    if isinstance(val, type):
-        if issubclass(val, IFilter):
-            return '<'+val.get_abbrev_name()+ '>'
     return None
+
 
 def format_timedelta(val: timedelta) -> str:
     args = []
@@ -55,12 +66,17 @@ def format_timedelta(val: timedelta) -> str:
 
 TT = TypeVar("TT", bound=tuple)
 
+
 @overload
 def assert_close(a: TT, b: TT):
     ...
+
+
 @overload
-def assert_close(a: float|int, b: float|int):
+def assert_close(a: float | int, b: float | int):
     ...
+
+
 def assert_close(a, b):
     def get_base_type(v) -> type:
         if isinstance(v, int):
@@ -94,4 +110,3 @@ def load_data_file(data_filename: str) -> AnyStr:
     except UnicodeError:
         with open(data_filepath, "rb") as f:
             return f.read()
-

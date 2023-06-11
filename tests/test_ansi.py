@@ -11,7 +11,7 @@ import pytest
 from pytest import mark
 
 from pytermor.ansi import *
-from . import format_test_params
+from tests import format_test_params
 
 
 class TestSequenceNf:
