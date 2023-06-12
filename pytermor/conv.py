@@ -21,6 +21,20 @@ REF_Z: float = 108.883
 
 ColorValue = t.TypeVar("ColorValue", 'RGB', 'HSV', 'LAB', 'XYZ')
 
+@overload
+def _normalize(max_val: int, val: float | int) -> int:
+    ...
+
+@overload
+def _normalize(max_val: float, val: float | int) -> float:
+    ...
+
+def _normalize(max_val, val: float | int) -> int | float:
+    if isinstance(max_val, int):
+        val = round(val)
+    return max(0, min(val, max_val))
+
+
 # -----------------------------------------------------------------------------
 # HEX <-> RGB
 
@@ -33,8 +47,21 @@ class RGB(t.NamedTuple):
     blue: int
     """ Blue channel value (0—255) """
 
+    @classmethod
+    def from_ratios(cls, rr: float, gr: float, br: float) -> RGB:
+        """
+        d
+        :param rr:
+        :param gr:
+        :param br:
+        """
+        return RGB(rr * 255, gr * 255, br * 255).apply_thresholds()
+
+    def apply_thresholds(self) -> RGB:
+        return RGB(**{k: _normalize(255, v) for k, v in self._asdict().items()})
+
     def __str__(self):  # RGB(R=128, G=0, B=0)
-        attrs = map(self._format_channel, ["red", "green", "blue"])
+        attrs = map(self._format_channel, self._asdict().keys())
         return f"{self.__class__.__name__}({' '.join(attrs)})"
 
     def _format_channel(self, attr: str) -> str:
@@ -109,6 +136,11 @@ class HSV(t.NamedTuple):
     """ Saturation channel value (0.0—1.0) """
     value: float
     """ Value channel value (0.0—1.0) """
+
+    def apply_thresholds(self):
+        self.hue = _normalize(360.0, self.hue)
+        self.saturation = _normalize(1.0, self.saturation)
+        self.value = _normalize(1.0, self.value)
 
     def __str__(self):  # HSV(H=0° S=100% V=50%)
         attrs = [
@@ -281,6 +313,9 @@ class XYZ(t.NamedTuple):
     z: float
     """ Quasi-equal to blue (0—100+) """
 
+    def apply_thresholds(self):
+        self.y = _normalize(100.00, self.y)
+
     def __str__(self):  # XYZ(X=0.95 Y=1.00 Z=1.08)
         attrs = [
             f"X={self.x:.2f}",
@@ -353,6 +388,9 @@ class LAB(t.NamedTuple):
     """ Green–magenta axis (-100—100 in general, but can be less/more) """
     b: float
     """ Blue–yellow axis (-100—100 in general, but can be less/more) """
+
+    def apply_thresholds(self):
+        self.L = _normalize(100.00, self.L)
 
     def __str__(self):  # LAB(L=100% a=100 b=-100)
         attrs = [

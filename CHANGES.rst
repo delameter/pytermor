@@ -3,8 +3,11 @@
 
 pending
 ------------------
+- |NEW| `common` helpers: `only`, `but`, `ours`, `others`, `isiterable`, `flatten`, `char_range`
+- |DOCS|  `Renderers` and `ANSI sequences review` pages
+- |TESTS|  `common` module
 
-.. <@pending:28ad52d>
+.. <@pending:5f16aa1>
 .. ^ blank line before should be kept
 
 
