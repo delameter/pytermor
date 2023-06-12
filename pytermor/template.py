@@ -6,7 +6,6 @@
 
 from __future__ import annotations
 
-import logging
 import re
 from dataclasses import dataclass
 
@@ -14,6 +13,7 @@ from .ansi import *
 from .color import resolve_color
 from .common import ExtendedEnum
 from .exception import LogicError
+from .log import logger
 from .style import MergeMode, NOOP_STYLE, Style
 from .text import Fragment, Text, apply_style_words_selective
 
@@ -79,7 +79,7 @@ class TemplateEngine:
         tpl_cursor = 0
         style_buffer = NOOP_STYLE
         st_opts = []
-        logging.debug(f"Parsing the template ({len(tpl)})")
+        logger.debug(f"Parsing the template ({len(tpl)})")
 
         tpl_nocom = self._COMMENT_REGEX.sub("", tpl)
         for tag_match in self._TAG_REGEX.finditer(tpl_nocom):

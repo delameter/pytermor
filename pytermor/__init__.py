@@ -132,6 +132,7 @@ from .filter import StringAligner as StringAligner
 from .filter import StringLinearizer as StringLinearizer
 from .filter import StringMapper as StringMapper
 from .filter import StringReplacer as StringReplacer
+from .filter import StringReplacerChain as StringReplacerChain
 from .filter import StringTracer as StringTracer
 from .filter import StringUcpTracer as StringUcpTracer
 from .filter import TracerExtra as TracerExtra
@@ -146,7 +147,8 @@ from .filter import ljust_sgr as ljust_sgr
 from .filter import pad as pad
 from .filter import padv as padv
 from .filter import rjust_sgr as rjust_sgr
-from .log import LOGGING_TRACE
+from .log import LOGGING_TRACE as LOGGING_TRACE
+from .log import logger as logger
 from .numfmt import BaseUnit as BaseUnit
 from .numfmt import DualBaseUnit as DualBaseUnit
 from .numfmt import DualFormatter as DualFormatter

@@ -10,7 +10,6 @@ depending on renderer type. Default global renderer type is `SgrRenderer`.
 """
 from __future__ import annotations
 
-import logging
 import os
 import re
 import sys
@@ -23,6 +22,7 @@ from .ansi import ColorTarget, NOOP_SEQ, SeqIndex, SequenceSGR, get_closing_seq
 from .color import Color16, Color256, ColorRGB, IColor, NOOP_COLOR
 from .common import ExtendedEnum, get_qname
 from .config import get_config
+from .log import logger
 from .style import FT, NOOP_STYLE, Style, Styles, make_style
 
 T = t.TypeVar("T", bound="IRenderer")
@@ -65,7 +65,7 @@ class RendererManager:
 
         renderer_classname: str = get_config().renderer_class
         if not (renderer_class := getattr(__import__(__package__), renderer_classname)):
-            logging.warning(f"Renderer class does not exist: '{renderer_classname}'")
+            logger.warning(f"Renderer class does not exist: '{renderer_classname}'")
             renderer_class = SgrRenderer
         cls._default = renderer_class()
 
@@ -280,7 +280,7 @@ class SgrRenderer(IRenderer):
             self._output_mode, None
         )
 
-        logging.debug(
+        logger.debug(
             f"Instantiated {self.__class__.__qualname__}"
             f"[{self._output_mode.name}, "
             f"upper bound {get_qname(self._color_upper_bound)}]"
@@ -324,22 +324,22 @@ class SgrRenderer(IRenderer):
 
     def _determine_output_mode(self, arg_value: OutputMode, io: t.IO) -> OutputMode:
         if arg_value is not OutputMode.AUTO:
-            logging.debug(f"Using explicit value from the constructor arg: {arg_value}")
+            logger.debug(f"Using explicit value from the constructor arg: {arg_value}")
             return arg_value
 
         config_forced_value = OutputMode.resolve_by_value(get_config().force_output_mode)
         if config_forced_value is not OutputMode.AUTO:
-            logging.debug(f"Using forced value from env/config: {config_forced_value}")
+            logger.debug(f"Using forced value from env/config: {config_forced_value}")
             return config_forced_value
 
         isatty = io.isatty() if not io.closed else None
         term = os.environ.get("TERM", None)
         colorterm = os.environ.get("COLORTERM", None)
 
-        logging.debug(f"Determining output mode automatically: {config_forced_value}")
-        logging.debug(f"{get_qname(io)} is a terminal: {isatty}")
-        logging.debug(f"Environment: TERM='{term}'")
-        logging.debug(f"Environment: COLORTERM='{colorterm}'")
+        logger.debug(f"Determining output mode automatically: {config_forced_value}")
+        logger.debug(f"{get_qname(io)} is a terminal: {isatty}")
+        logger.debug(f"Environment: TERM='{term}'")
+        logger.debug(f"Environment: COLORTERM='{colorterm}'")
 
         if not isatty:
             return OutputMode.NO_ANSI
@@ -676,6 +676,7 @@ class TemplateRenderer(IRenderer):
 
     def render(self, string: str, fmt: FT = None) -> str:
         pass
+
 
 # @todo
 # class Win32Renderer

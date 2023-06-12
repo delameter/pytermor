@@ -6,8 +6,9 @@ pending
 - |NEW| `common` helpers: `only`, `but`, `ours`, `others`, `isiterable`, `flatten`, `char_range`
 - |DOCS|  `Renderers` and `ANSI sequences review` pages
 - |TESTS|  `common` module
+- |NEW| auto-normalization of RGB values
 
-.. <@pending:5f16aa1>
+.. <@pending:a37cfc3>
 .. ^ blank line before should be kept
 
 

@@ -11,7 +11,6 @@ Library methods rewritten for correct work with strings containing control seque
 from __future__ import annotations
 
 import codecs
-import logging
 import math
 import os
 import re
@@ -25,6 +24,7 @@ from typing import Union
 
 from .common import ExtendedEnum, chunk
 from .exception import ArgTypeError, LogicError
+from .log import logger
 from .parser import CSI_SEQ_REGEX, ESCAPE_SEQ_REGEX, SGR_SEQ_REGEX
 from .term import get_terminal_width
 
@@ -54,7 +54,7 @@ class Align(str, ExtendedEnum):
         try:
             return cls[input.upper()]
         except KeyError:
-            logging.warning(f"Invalid align name: {input}")
+            logger.warning(f"Invalid align name: {input}")
             return fallback
 
 
@@ -222,7 +222,7 @@ class IFilter(t.Generic[IT, OT], metaclass=ABCMeta):
                  as well as be different -- that depends on filter type.
         """
         IFilter._stack.append(self.get_abbrev_name())
-        logging.debug(
+        logger.debug(
             f"Applying filter [{len(IFilter._stack)}] {self!r:20.20s} ({'.'.join(IFilter._stack)})"
         )
         result = self._apply(inp, extra)
@@ -808,6 +808,7 @@ class StringReplacerChain(StringReplacer):
     """
     .
     """
+
     def __init__(self, pattern: PTT[str], *repls: IFilter[str, str]):
         super().__init__(pattern, lambda m: m.group(0))
         self._repls: t.Deque[IFilter[str, str]] = deque(repls)
@@ -820,7 +821,7 @@ class StringReplacerChain(StringReplacer):
 
 
 class EscSeqStringReplacer(StringReplacer):
-    """ , """
+    ""","""
 
     def __init__(self, repl: RPT[str] = ""):
         super().__init__(ESCAPE_SEQ_REGEX, repl)

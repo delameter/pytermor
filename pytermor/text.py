@@ -24,18 +24,18 @@ from copy import copy
 from functools import update_wrapper
 from typing import overload
 
-# from typing_extensions import deprecated
-# waiting till it will make its way to stdlib
-
 from .color import IColor
 from .common import flatten1
 from .config import get_config
 from .exception import ArgTypeError, LogicError
 from .filter import Align, OmniSanitizer, StringLinearizer, apply_filters, dump
-from .log import LOGGING_TRACE
+from .log import LOGGING_TRACE, logger
 from .renderer import IRenderer, OutputMode, RendererManager, SgrRenderer
 from .style import FT, NOOP_STYLE, Style, make_style
 from .term import get_preferable_wrap_width, get_terminal_width
+
+# from typing_extensions import deprecated
+# waiting till it will make its way to stdlib
 
 RT = t.TypeVar("RT", str, "IRenderable")
 """
@@ -60,6 +60,7 @@ implementations.
 #    _frags: deque[Fragments]
 #   ...
 #
+
 
 class IRenderable(t.Sized, ABC):
     """
@@ -698,7 +699,7 @@ def _trace(enabled: bool = True, level: int = LOGGING_TRACE, label: str = "Dump"
             result = origin(*args, **kwargs)
 
             if enabled and not kwargs.get("no_log", False):
-                logging.log(level=level, msg=dump(result, label))
+                logger.log(level=level, msg=dump(result, label))
             return result
 
         return update_wrapper(t.cast(F, new_func), origin)
@@ -732,7 +733,7 @@ def _measure(level: int = logging.DEBUG, template: str = "Done in %s"):
             preview = apply_filters(f"'{result!s}'", OmniSanitizer, StringLinearizer)
             if len(preview) > MAX_PREVIEW_LEN - 2:
                 preview = preview[: MAX_PREVIEW_LEN - 2] + ".."
-            logging.log(
+            logger.log(
                 level=level,
                 msg=template % format_sec(after_s - before_s)
                 + f" ({preview:.{MAX_PREVIEW_LEN}s})",

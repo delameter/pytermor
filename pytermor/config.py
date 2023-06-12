@@ -9,9 +9,10 @@ Library fine tuning.
 
 from __future__ import annotations
 
-import logging
 import os
 from dataclasses import dataclass, field
+
+from .log import logger
 
 
 def _bool_field(key: str, default: bool = False):
@@ -73,7 +74,7 @@ class Config:
 
     def __post_init__(self):
         attr_dict = {k: v for (k, v) in self.__dict__.items()}
-        logging.info(f"Config initialized with: {attr_dict!s}")
+        logger.info(f"Config initialized with: {attr_dict!s}")
 
 
 _config = Config()

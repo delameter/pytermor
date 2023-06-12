@@ -8,7 +8,7 @@ utilnum
 """
 from __future__ import annotations
 
-import logging
+from .log import logger
 import math
 import re
 import typing as t
@@ -467,7 +467,7 @@ class StaticFormatter(NumFormatter):
             val_str = f"{trunc(eff_val):d}"
 
         if len(val_str) > self._max_value_len:
-            logging.warning(
+            logger.warning(
                 "Inconsistent result -- max val length %d exceeded (%d): '%s' <- %f"
                 % (self._max_value_len, len(val_str), val_str, origin_val)
             )
