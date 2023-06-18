@@ -17,3 +17,4 @@ misc/depends
 *.bak
 scripts/fileWatchers
 scripts/runConfigurations
+.wakatime-project

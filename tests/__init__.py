@@ -12,6 +12,7 @@ from math import isclose
 from typing import cast, overload, TypeVar, AnyStr
 import typing as t
 from pytermor import (
+    IColorType,
     IFilter,
     Style,
     apply_filters,
@@ -41,7 +42,7 @@ def format_test_params(val) -> str | None:
     if isinstance(val, (RGB, HSV, LAB, XYZ)):
         return str(val).replace("°", "")
     if isinstance(val, (list, tuple)):
-        return "(" + ",".join(map(str, val)) + ")"
+        return "(" + ",".join(map(repr, val)) + ")"
     if isinstance(val, dict):
         return f"(" + (" ".join((k + "=" + str(v)) for k, v in val.items())) + ")"
     if isinstance(val, timedelta):
@@ -64,19 +65,15 @@ def format_timedelta(val: timedelta) -> str:
     return "%s(%s)" % ("", " ".join(args))
 
 
-TT = TypeVar("TT", bound=tuple)
+TT = TypeVar("TT", tuple, IColorType)
 
 
 @overload
 def assert_close(a: TT, b: TT):
     ...
-
-
 @overload
 def assert_close(a: float | int, b: float | int):
     ...
-
-
 def assert_close(a, b):
     def get_base_type(v) -> type:
         if isinstance(v, int):
@@ -92,7 +89,7 @@ def assert_close(a, b):
         assert isclose(a, b, abs_tol=0.01), f"{a:.3f} !≈ {b:.3f}"
     elif types == {int}:
         assert a == b, f"0x{a:06x} != 0x{b:06x}"
-    elif types == {tuple}:
+    elif types == {tuple} or (len(types) == 1 and issubclass(types.pop(), IColorType)):
         for (pa, pb) in zip(a, b):
             try:
                 assert_close(pa, pb)

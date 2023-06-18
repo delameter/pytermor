@@ -32,20 +32,12 @@ class TestArgTypeError:
                 lambda: pt.make_style(pt.Style),
             ),
             (
-                ["Var", "arg", "list"],
-                lambda: pt.Text().append([]),
-            ),
-            (
                 ["Argument", "arg", "_resolve_color()", "CDT", "IColor", "list"],
                 lambda: setattr(pt.Style(), "fg", [None]),
             ),
             (
                 ["Argument", "override", "_make_premap()", "MPT", "None", "float"],
                 lambda: pt.OmniMapper(14.88),
-            ),
-            (
-                ["Argument", "string", "as_fragments()", "RT", "module"],
-                lambda: pt.as_fragments(pt),
             ),
             (
                 ["Argument", "fallback", "__init__()", "Style", "Color256"],

@@ -8,6 +8,10 @@
 PROJECT_NAME="${1:?Project name required}"
 DEPENDS_PATH="${2:?Output path required}"
 
+LOW_LEVEL_GROUP_COLOR=5f819d
+INTERM_LEVEL_GROUP_COLOR=5e8d87
+HIGH_LEVEL_GROUP_COLOR=769440
+
 run() {
     # args: [cmd-option]...
     export PT_ENV=build
@@ -15,6 +19,20 @@ run() {
     set -- ./.invoke pydeps "${PROJECT_NAME}" "$@"
     echo "$*" >&2
     "$@"
+}
+
+postprocess_module() {
+    local tpl_path="${DOCS_IN_PATH}/_generated/module.dot.tpl"
+    declare -i placheolder_lineno=$(grep -nm1 -Ee '^\s*%s\s*$' < "$tpl_path" | cut -f1 -d:)
+    {
+        head -n $((placheolder_lineno-1)) "$tpl_path"
+        sed -Ee '/^\s*pytermor/!d;'\
+             -e '/_ansi|_conv|_config|_color|_parser|_term/ s/(fillcolor="#)[0-9a-f]+(")/group="low",\1'$LOW_LEVEL_GROUP_COLOR'\2/;'\
+             -e '/_cval/ s/(fillcolor="#)[0-9a-f]+(")/group="high",\1'$INTERM_LEVEL_GROUP_COLOR'\2/;'\
+             -e '/_style|_filter|_renderer|_text|_numfmt|_template/ s/(fillcolor="#)[0-9a-f]+(")/group="high",\1'$HIGH_LEVEL_GROUP_COLOR'\2/;'\
+             -e '/->/ s/group="[a-z]+",//g; '
+        tail -n +$((placheolder_lineno+1)) "$tpl_path"
+    } | tee "${DOCS_IN_PATH}/_generated/module.dot"
 }
 
 run --rmprefix "${PROJECT_NAME}". \
@@ -27,7 +45,8 @@ run --rmprefix "${PROJECT_NAME}". \
         pytermor.common \
         pytermor.exception \
         pytermor.log \
-    | tee "${DOCS_IN_PATH}/_generated/module.dot"
+        pytermor.config \
+    | postprocess_module
 
 run --rmprefix "${PROJECT_NAME}". \
     --start-color 0 \

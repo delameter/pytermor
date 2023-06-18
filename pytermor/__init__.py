@@ -34,6 +34,7 @@ from .ansi import compose_clear_line_fill_bg as compose_clear_line_fill_bg
 from .ansi import compose_hyperlink as compose_hyperlink
 from .ansi import enclose as enclose
 from .ansi import get_closing_seq as get_closing_seq
+from .ansi import get_resetter_codes as get_resetter_codes
 from .ansi import make_clear_display as make_clear_display
 from .ansi import make_clear_display_after_cursor as make_clear_display_after_cursor
 from .ansi import make_clear_display_before_cursor as make_clear_display_before_cursor
@@ -88,11 +89,11 @@ from .config import Config as Config
 from .config import get_config as get_config
 from .config import init_config as init_config
 from .config import replace_config as replace_config
-from .conv import HSV
-from .conv import LAB
-from .conv import RGB
-from .conv import XYZ
-from .conv import ColorValue
+from .conv import IColorType as IColorType
+from .conv import HSV as HSV
+from .conv import LAB as LAB
+from .conv import RGB as RGB
+from .conv import XYZ as XYZ
 from .conv import hex_to_hsv as hex_to_hsv
 from .conv import hex_to_rgb as hex_to_rgb
 from .conv import hsv_to_hex as hsv_to_hex
@@ -113,11 +114,16 @@ from .exception import LogicError as LogicError
 from .exception import UserAbort as UserAbort
 from .exception import UserCancel as UserCancel
 from .filter import Align as Align
+from .filter import AbstractNamedGroupsRefilter as AbstractNamedGroupsRefilter
+from .filter import AbstractRegexValRefilter as AbstractRegexValRefilter
+from .filter import AbstractStringTracer as AbstractStringTracer
+from .filter import AbstractTracer as AbstractTracer
 from .filter import BytesTracer as BytesTracer
 from .filter import CONTROL_CHARS as CONTROL_CHARS
 from .filter import CsiStringReplacer as CsiStringReplacer
 from .filter import EscSeqStringReplacer as EscSeqStringReplacer
 from .filter import IFilter as IFilter
+from .filter import IRefilter as IRefilter
 from .filter import NON_ASCII_CHARS as NON_ASCII_CHARS
 from .filter import NonPrintsOmniVisualizer as NonPrintsOmniVisualizer
 from .filter import NonPrintsStringVisualizer as NonPrintsStringVisualizer
@@ -125,6 +131,7 @@ from .filter import NoopFilter as NoopFilter
 from .filter import OmniDecoder as OmniDecoder
 from .filter import OmniEncoder as OmniEncoder
 from .filter import OmniMapper as OmniMapper
+from .filter import OmniPadder as OmniPadder
 from .filter import OmniSanitizer as OmniSanitizer
 from .filter import PRINTABLE_CHARS as PRINTABLE_CHARS
 from .filter import SgrStringReplacer as SgrStringReplacer
@@ -140,7 +147,9 @@ from .filter import WHITESPACE_CHARS as WHITESPACE_CHARS
 from .filter import WhitespaceRemover as WhitespaceRemover
 from .filter import apply_filters as apply_filters
 from .filter import center_sgr as center_sgr
+from .filter import cut as cut
 from .filter import dump as dump
+from .filter import fit as fit
 from .filter import get_max_ucs_chars_cp_length as get_max_ucs_chars_cp_length
 from .filter import get_max_utf8_bytes_char_length as get_max_utf8_bytes_char_length
 from .filter import ljust_sgr as ljust_sgr
@@ -201,6 +210,7 @@ from .style import Styles as Styles
 from .style import make_style as make_style
 from .style import merge_styles as merge_styles
 from .template import TemplateEngine as TemplateEngine
+from .template import substitute as substitute
 from .term import confirm as confirm
 from .term import get_char_width as get_char_width
 from .term import get_preferable_wrap_width as get_preferable_wrap_width
@@ -218,7 +228,6 @@ from .text import SimpleTable as SimpleTable
 from .text import Text as Text
 from .text import apply_style_selective as apply_style_selective
 from .text import apply_style_words_selective as apply_style_words_selective
-from .text import as_fragments as as_fragments
 from .text import distribute_padded as distribute_padded
 from .text import echo as echo
 from .text import echoi as echoi

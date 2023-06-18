@@ -26,6 +26,9 @@ FT = t.TypeVar("FT", int, str, IColor, "Style", None)
 styles. Primary handler is `make_style()`.
 """
 
+def is_ft(arg) -> bool:
+    return isinstance(arg, (type(None), int, str, IColor, Style))
+
 
 class MergeMode(str, enum.Enum):
     FALLBACK = "?"

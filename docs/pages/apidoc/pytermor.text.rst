@@ -21,10 +21,10 @@
    
       apply_style_selective
       apply_style_words_selective
-      as_fragments
       distribute_padded
       echo
       echoi
+      is_rt
       render
       wrap_sgr
    

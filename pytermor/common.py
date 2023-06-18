@@ -10,8 +10,8 @@ import itertools
 import typing as t
 from collections.abc import Iterable
 
-T = t.TypeVar("T")
-TT = t.TypeVar("TT", bound=type)
+_T = t.TypeVar("_T")
+_TT = t.TypeVar("_TT", bound=type)
 
 
 class ExtendedEnum(enum.Enum):
@@ -40,23 +40,23 @@ class ExtendedEnum(enum.Enum):
         return dict(map(lambda c: (c, c.value), cls))
 
 
-def only(cls: t.Type, inp: Iterable[T]) -> t.List[T]:
+def only(cls: t.Type, inp: Iterable[_T]) -> t.List[_T]:
     return [*(a for a in inp if isinstance(a, cls))]
 
 
-def but(cls: t.Type, inp: Iterable[T]) -> t.List[T]:
+def but(cls: t.Type, inp: Iterable[_T]) -> t.List[_T]:
     return [*(a for a in inp if not isinstance(a, cls))]
 
 
-def ours(cls: t.Type, inp: Iterable[T]) -> t.List[T]:
+def ours(cls: t.Type, inp: Iterable[_T]) -> t.List[_T]:
     return [*(a for a in inp if issubclass(type(a), cls))]
 
 
-def others(cls: t.Type, inp: Iterable[T]) -> t.List[T]:
+def others(cls: t.Type, inp: Iterable[_T]) -> t.List[_T]:
     return [*(a for a in inp if not issubclass(type(a), cls))]
 
 
-def chunk(items: Iterable[T], size: int) -> t.Iterator[t.Tuple[T, ...]]:
+def chunk(items: Iterable[_T], size: int) -> t.Iterator[t.Tuple[_T, ...]]:
     """
     Split item list into chunks of size ``size`` and return these
     chunks as *tuples*.
@@ -78,7 +78,7 @@ def isiterable(arg) -> bool:  # pragma: no cover
     return isinstance(arg, Iterable) and not isinstance(arg, (str, bytes))
 
 
-def flatten1(items: Iterable[Iterable[T]]) -> t.List[T]:
+def flatten1(items: Iterable[Iterable[_T]]) -> t.List[_T]:
     """
     Take a list of nested lists and unpack all nested elements one level up.
 
@@ -89,7 +89,7 @@ def flatten1(items: Iterable[Iterable[T]]) -> t.List[T]:
     return flatten(items, level_limit=1)
 
 
-def flatten(items: Iterable[T | Iterable[T]], level_limit: int = None) -> t.List[T]:
+def flatten(items: Iterable[_T | Iterable[_T]], level_limit: int = None) -> t.List[_T]:
     """
     Unpack a list with any amount of nested lists to 1d-array, or flat list,
     eliminating all the nesting. Note that nesting can be irregular, i.e. one part
@@ -107,7 +107,7 @@ def flatten(items: Iterable[T | Iterable[T]], level_limit: int = None) -> t.List
                         and others. 0 or *None* disables the limit.
     """
 
-    def _flatten(parent, lvl=0) -> Iterable[T | Iterable[T]]:
+    def _flatten(parent, lvl=0) -> Iterable[_T | Iterable[_T]]:
         if isiterable(parent):
             for child in parent:
                 if isiterable(child):  # 2nd+ level, e.g. parent = [[1]]
@@ -157,10 +157,10 @@ def get_qname(obj) -> str:
     return str(obj)  # pragma: no cover
 
 
-def get_subclasses(cls: TT) -> Iterable[TT]:
-    visited: t.Set[TT] = set()
+def get_subclasses(cls: _TT) -> Iterable[_TT]:
+    visited: t.Set[_TT] = set()
 
-    def fn(cls: TT):
+    def fn(cls: _TT):
         if cls in visited:  # pragma: no cover
             return
         visited.add(cls)

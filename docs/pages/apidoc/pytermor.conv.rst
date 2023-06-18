@@ -35,6 +35,7 @@
    .. autosummary::
    
       HSV
+      IColorType
       LAB
       RGB
       XYZ

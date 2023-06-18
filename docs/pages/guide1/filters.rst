@@ -4,9 +4,9 @@
 Filters
 ##########################
 
-==================
-Class hierarchy
-==================
+=======================
+Filter class hierarchy
+=======================
 
 .. grid:: 1
    :class-container: inheritance-columns

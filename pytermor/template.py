@@ -18,7 +18,7 @@ from .style import MergeMode, NOOP_STYLE, Style
 from .text import Fragment, Text, apply_style_words_selective
 
 
-class TemplateTagOption(str, ExtendedEnum):
+class _TemplateTagOption(str, ExtendedEnum):
     STYLE_WORDS_SELECTIVE = "|"
 
 
@@ -84,9 +84,9 @@ class TemplateEngine:
         tpl_nocom = self._COMMENT_REGEX.sub("", tpl)
         for tag_match in self._TAG_REGEX.finditer(tpl_nocom):
             span = tag_match.span()
-            tpl_part = self._ESCAPE_REGEX.sub(r"\1[", tpl[tpl_cursor : span[0]])
+            tpl_part = self._ESCAPE_REGEX.sub(r"\1[", tpl_nocom[tpl_cursor : span[0]])
             if len(tpl_part) > 0 or style_buffer != NOOP_STYLE:
-                if TemplateTagOption.STYLE_WORDS_SELECTIVE in st_opts:
+                if _TemplateTagOption.STYLE_WORDS_SELECTIVE in st_opts:
                     for part in apply_style_words_selective(tpl_part, style_buffer):
                         result += part
                     # add open style for engine to properly handle the :[-closing] tag:
@@ -117,7 +117,7 @@ class TemplateEngine:
             else:
                 style_buffer = input_style
                 st_opts = [
-                    {v: k for k, v in TemplateTagOption.dict().items()}.get(opt)
+                    {v: k for k, v in _TemplateTagOption.dict().items()}.get(opt)
                     for opt in (tagr.options or [])
                 ]
             continue
@@ -162,3 +162,4 @@ class TemplateEngine:
 
 
 _template_engine = TemplateEngine()
+substitute = _template_engine.substitute

@@ -29,7 +29,9 @@
    
       apply_filters
       center_sgr
+      cut
       dump
+      fit
       get_max_ucs_chars_cp_length
       get_max_utf8_bytes_char_length
       ljust_sgr
@@ -45,6 +47,8 @@
 
    .. autosummary::
    
+      AbstractNamedGroupsRefilter
+      AbstractRegexValRefilter
       AbstractStringTracer
       AbstractTracer
       Align
@@ -52,12 +56,14 @@
       CsiStringReplacer
       EscSeqStringReplacer
       IFilter
+      IRefilter
       NonPrintsOmniVisualizer
       NonPrintsStringVisualizer
       NoopFilter
       OmniDecoder
       OmniEncoder
       OmniMapper
+      OmniPadder
       OmniSanitizer
       SgrStringReplacer
       StringAligner

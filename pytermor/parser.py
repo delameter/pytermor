@@ -76,7 +76,7 @@ thanks to named match groups, which include:
 :meta hide-value:
 """
 
-SGR_SEQ_REGEX = re.compile(r"(\x1b)(\[)([0-9;:]*)(m)")
+SGR_SEQ_REGEX = re.compile(R"(?P<esc>\x1b)(?P<csi>\[)(?P<param>[0-9;:]*)(?P<final>m)")
 """
 Regular expression that matches :term:`SGR` sequences. Group 3 can be used for 
 sequence params extraction.
@@ -84,7 +84,7 @@ sequence params extraction.
 :meta hide-value:
 """
 
-CSI_SEQ_REGEX = re.compile(r"(\x1b)(\[)(([0-9;:<=>?])*)([@A-Za-z])")
+CSI_SEQ_REGEX = re.compile(R"(?P<esc>\x1b)(?P<csi>\[)(?P<param>([0-9;:<=>?])*)(?P<final>[@A-Za-z])")
 """
 Regular expression that matches CSI sequences (a superset which includes 
 :term:`SGRs <SGR>`). 

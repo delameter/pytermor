@@ -13,10 +13,11 @@ import pytermor
 import pytermor as pt
 import pytermor.exception
 import pytermor.text
-from pytermor import OutputMode, Text, FrozenText, Fragment, IRenderable, Style, RT
+from pytermor import FT, OutputMode, Text, FrozenText, Fragment, IRenderable, Style, RT
 from pytermor.renderer import NoOpRenderer
 
 from tests import format_test_params
+
 
 def format_test_rt_params(val) -> str | None:
     if isinstance(val, str):
@@ -24,7 +25,7 @@ def format_test_rt_params(val) -> str | None:
         sample = val[:max_sl] + ("‥" * (len(val) > max_sl))
         return f'<str>[({len(val)}, "{sample}")]'
     if isinstance(val, Text):
-        return repr(val)[:16]+".."
+        return repr(val)[:16] + ".."
     if isinstance(val, IRenderable):
         return repr(val)
     return None
@@ -64,11 +65,11 @@ class TestText:
             Fragment("6"),
         )
         expected = (
-            "\x1b[1;31;40m"   + "1" + "\x1b[22;39;49m"
+            "\x1b[1;31;40m" + "1" + "\x1b[22;39;49m"
             "\x1b[1;4;33;42m" + "2" + "\x1b[22;24;39;49m"
             "\x1b[1;4;33;42m" + "3" + "\x1b[22;24;39;49m"
             "\x1b[1;4;33;42m" + "4" + "\x1b[22;24;39;49m"
-            "\x1b[1;31;40m"   + "5" + "\x1b[22;39;49m" + "6"
+            "\x1b[1;31;40m" + "5" + "\x1b[22;39;49m" + "6"
         )
         assert text.render() == expected
 
@@ -83,7 +84,7 @@ class TestText:
             Fragment("5", style1, close_prev=True),
             Fragment("6"),
         )
-        assert text.raw() == '123456'
+        assert text.raw() == "123456"
 
     def test_as_fragments_works(self):
         style1 = Style(fg="red", bg="black", bold=True)
@@ -97,7 +98,51 @@ class TestText:
             Fragment("6"),
         ]
         text = Text(*fragments)
-        assert pt.text.as_fragments(text) == fragments
+        assert text.as_fragments() == fragments
+
+
+class TestFargsFlow:
+    Fg = Fragment
+
+    @pytest.mark.parametrize(
+        "input_fargs, expected_fragments",
+        [
+            ([], []),
+            ([""], [Fg()]),
+            (
+                ["1", "red"],
+                [Fg("1", pt.cv.RED)],
+            ),
+            (
+                ["1", "red", "2"],
+                [Fg("1", pt.cv.RED), Fg("2", pt.NOOP_STYLE)],
+            ),
+            (
+                ["1", "red", "2", "blue"],
+                [Fg("1", pt.cv.RED), Fg("2", pt.cv.BLUE)],
+            ),
+            pytest.param(
+                ["1", "red", "2", "3", "blue"],
+                None,
+                marks=pytest.mark.xfail(raises=LookupError),
+            ),
+            (
+                ["1", pt.cv.DARK_RED_2],
+                [Fg("1", pt.cv.DARK_RED_2)],
+            ),
+            (
+                ["1", 0x5d8aa8],
+                [Fg("1", pt.cvr.AIR_FORCE_BLUE)],
+            ),
+        ],
+        ids=format_test_rt_params,
+    )
+    def test_general(
+        self,
+        input_fargs: t.Iterable[RT | FT],
+        expected_fragments: t.Iterable[Fragment] | None,
+    ):
+        assert Text(*input_fargs).as_fragments() == expected_fragments
 
 
 class TestAdding:
@@ -107,19 +152,19 @@ class TestAdding:
     @pytest.mark.parametrize(
         "items, expected",
         [
-            (["123", frag2], Fragment("123456", "blue")),
-            ([frag1, "456"], Fragment("123456", "red")),
+            (["123", frag2], Text(Fragment("123"), frag2)),
+            ([frag1, "456"], Text(frag1, "456")),
             ([frag1, frag2], Text(frag1, frag2)),
             ([FrozenText(frag1), "456"], FrozenText(frag1, Fragment("456"))),
             ([FrozenText(frag1), frag2], FrozenText(frag1, frag2)),
             ([Text(frag1), frag2], Text(frag1, frag2)),
-            (["123", frag2, "789"], Fragment("123456789", "blue")),
+            (["123", frag2, "789"], Text(Fragment("123"), frag2, Fragment("789"))),
             (
                 ["123", FrozenText(frag2), "789"],
                 FrozenText(Fragment("123"), frag2, Fragment("789")),
             ),
             (["123", Text(frag2), "789"], Text(Fragment("123"), frag2, Fragment("789"))),
-        ],
+        ], ids=format_test_rt_params
     )
     def test_left_adding_works(
         self, items: t.Sequence[IRenderable], expected: IRenderable
@@ -159,10 +204,8 @@ class TestAdding:
     def test_adding_works(self, expected: RT, item1: RT, item2: RT):
         assert item1 + item2 == expected
 
-    @pytest.mark.parametrize(
-        "item1, item2", [(Text(frag1), 123), (Text(frag1), [frag2])]
-    )
-    @pytest.mark.xfail(raises=(TypeError, pytermor.exception.ArgTypeError))
+    @pytest.mark.parametrize("item1, item2", [(Text(frag1), set()), (Text(frag1), 2.33)])
+    @pytest.mark.xfail(raises=TypeError)
     def test_adding_fails(self, item1: IRenderable, item2: IRenderable):
         assert item1 + item2
 
@@ -338,19 +381,21 @@ class TestSimpleTable:
 class TestSplitting:
     @pytest.mark.parametrize(
         "expected, input",
-        [(
-            Text(
-                Fragment("Testing", pt.Style(underlined=True)),
-                Fragment(" "),
-                Fragment("started", pt.Style(underlined=True)),
-                Fragment(" "),
-                Fragment("at", pt.Style(underlined=True)),
-                Fragment(" "),
-                Fragment("23:24", pt.Style(underlined=True)),
-            ),
-            Text(Fragment("Testing started at 23:24", pt.Style(underlined=True))),
-        )],
-        ids=format_test_rt_params
+        [
+            (
+                Text(
+                    Fragment("Testing", pt.Style(underlined=True)),
+                    Fragment(" "),
+                    Fragment("started", pt.Style(underlined=True)),
+                    Fragment(" "),
+                    Fragment("at", pt.Style(underlined=True)),
+                    Fragment(" "),
+                    Fragment("23:24", pt.Style(underlined=True)),
+                ),
+                Text(Fragment("Testing started at 23:24", pt.Style(underlined=True))),
+            )
+        ],
+        ids=format_test_rt_params,
     )
     def test_splitting_works(self, expected: Text, input: Text):
         input.split_by_spaces()

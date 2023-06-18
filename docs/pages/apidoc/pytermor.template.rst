@@ -9,6 +9,12 @@
 
    
    
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      substitute
+   
    
 
    
@@ -18,7 +24,6 @@
    .. autosummary::
    
       TemplateEngine
-      TemplateTagOption
    
    
 

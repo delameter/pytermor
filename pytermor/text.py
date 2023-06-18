@@ -31,17 +31,30 @@ from .exception import ArgTypeError, LogicError
 from .filter import Align, OmniSanitizer, StringLinearizer, apply_filters, dump
 from .log import LOGGING_TRACE, logger
 from .renderer import IRenderer, OutputMode, RendererManager, SgrRenderer
-from .style import FT, NOOP_STYLE, Style, make_style
+from .style import FT, NOOP_STYLE, Style, is_ft, make_style
 from .term import get_preferable_wrap_width, get_terminal_width
 
 # from typing_extensions import deprecated
 # waiting till it will make its way to stdlib
+
+SELECT_WORDS_REGEX = re.compile(r"(\S+)?(\s*)")
+
+_PRIVATE_REPLACER = "\U000E5750"
+
+
+_F = t.TypeVar("_F", bound=t.Callable[..., t.Any])
+
 
 RT = t.TypeVar("RT", str, "IRenderable")
 """
 :abbr:`RT (Renderable type)` includes regular *str*\\ s as well as `IRenderable` 
 implementations.
 """
+
+
+def is_rt(arg) -> bool:
+    return isinstance(arg, (str, IRenderable))
+
 
 # suggestion on @rewriting the renderables:
 # -----------------------------------------------------------------------
@@ -85,7 +98,7 @@ class IRenderable(t.Sized, ABC):
         ...
 
     @abstractmethod
-    def _as_fragments(self) -> t.List[Fragment]:
+    def as_fragments(self) -> t.List[Fragment]:
         """a-s"""
         ...
 
@@ -118,12 +131,6 @@ class IRenderable(t.Sized, ABC):
         if renderer is None:
             return RendererManager.get_default()
         return renderer
-
-    @staticmethod
-    def _ensure_fragments(*args: Fragment):
-        for arg in args:
-            if not isinstance(arg, Fragment):
-                raise ArgTypeError("arg", "args")
 
 
 class Fragment(IRenderable):
@@ -188,11 +195,8 @@ class Fragment(IRenderable):
 
     def __add__(self, other: str | Fragment) -> Fragment | Text:
         if isinstance(other, str):
-            return Fragment(self._string + other, self._style)
-        try:
-            self._ensure_fragments(other)
-        except ArgTypeError:
-            return NotImplemented
+            #return Fragment(self._string + other, self._style)
+            other = Fragment(other)
         return Text(self, other)
 
     def __iadd__(self, other: str | Fragment) -> Fragment | Text:
@@ -200,18 +204,15 @@ class Fragment(IRenderable):
 
     def __radd__(self, other: str | Fragment) -> Fragment | Text:
         if isinstance(other, str):
-            return Fragment(other + self._string, self._style)
-        try:
-            self._ensure_fragments(other)
-        except ArgTypeError:
-            return NotImplemented
+            #return Fragment(other + self._string, self._style)
+            other = Fragment(other)
         return Text(other, self)
 
     def __format__(self, format_spec: str) -> str:
         formatted = self._string.__format__(format_spec)
         return self._resolve_renderer().render(formatted, self._style)
 
-    def _as_fragments(self) -> t.List[Fragment]:
+    def as_fragments(self) -> t.List[Fragment]:
         return [self]
 
     def raw(self) -> str:
@@ -249,12 +250,9 @@ class FrozenText(IRenderable):
     :param align: default is left
     """
 
-    @overload
     def __init__(
         self,
-        string: str,
-        fmt: FT = NOOP_STYLE,
-        *,
+        *fargs: RT | FT,
         width: int = None,
         align: str | Align = None,
         fill: str = " ",
@@ -262,41 +260,7 @@ class FrozenText(IRenderable):
         pad: int = 0,
         pad_styled: bool = True,
     ):
-        ...
-
-    @overload
-    def __init__(
-        self,
-        *fragments: Fragment,
-        width: int = None,
-        align: str | Align = None,
-        fill: str = " ",
-        overflow: str = "",
-        pad: int = 0,
-        pad_styled: bool = True,
-    ):
-        ...
-
-    def __init__(
-        self,
-        *args,
-        width: int = None,
-        align: str | Align = None,
-        fill: str = " ",
-        overflow: str = "",
-        pad: int = 0,
-        pad_styled: bool = True,
-    ):
-        self._fragments: deque[Fragment] = deque()
-        if len(args):
-            if isinstance(args[0], str) and (
-                len(args) == 1
-                or isinstance(args[1], (type(None), int, str, IColor, Style))
-            ):
-                self._fragments.append(Fragment(*args[0:2]))
-            else:
-                self._ensure_fragments(*args)
-                self._fragments.extend(args)
+        self._fragments: deque[Fragment] = deque(self._parse_fargs(fargs))
 
         self._width = width
         self._align = Align.resolve(align)
@@ -334,15 +298,49 @@ class FrozenText(IRenderable):
         return result % (", " + ", ".join([repr(f) for f in self._fragments]))
 
     def __add__(self, other: str | Fragment) -> FrozenText:
-        return self.append(*as_fragments(other))
+        return self.append(other)
 
     def __iadd__(self, other: str | Fragment) -> FrozenText:
         raise LogicError("FrozenText is immutable")
 
     def __radd__(self, other: str | Fragment) -> FrozenText:
-        return self.prepend(*as_fragments(other))
+        return self.prepend(other)
 
-    def _as_fragments(self) -> t.List[Fragment]:
+    @classmethod
+    def _parse_fargs(cls, fargs: t.Iterable[RT | FT]) -> t.Iterable[Fragment]:
+        """
+        str FT prohibited unless on odd place
+
+        :param fargs:
+        :type fargs:
+        :return:
+        :rtype:
+        """
+        fargs = [*fargs]
+        str_stack = deque()
+
+        def ss_unload() -> str:
+            result = "".join(str_stack)
+            str_stack.clear()
+            return result
+
+        while len(fargs) or str_stack:
+            if not len(fargs):
+                yield Fragment(ss_unload())
+                continue
+
+            farg = fargs.pop(0)
+            if isinstance(farg, IRenderable):
+                yield from farg.as_fragments()
+            elif is_ft(farg):
+                if isinstance(farg, str) and not str_stack:
+                    str_stack.append(farg)
+                else:
+                    yield Fragment(ss_unload(), farg)
+            else:
+                raise TypeError(f"Expected RT|FT, got {type(farg)}: {farg}")
+
+    def as_fragments(self) -> t.List[Fragment]:
         return [*self._fragments]
 
     def raw(self) -> str:
@@ -438,30 +436,26 @@ class FrozenText(IRenderable):
     def has_width(self) -> bool:
         return self._width is not None
 
-    def append(self, *fragments: Fragment) -> FrozenText:
-        self._ensure_fragments(*fragments)
-        return FrozenText(*self._fragments, *fragments)
+    def append(self, *args: RT | FT) -> FrozenText:
+        return FrozenText(*self._fragments, *self._parse_fargs(args))
 
-    def prepend(self, *fragments: Fragment) -> FrozenText:
-        self._ensure_fragments(*fragments)
-        return FrozenText(*fragments, *self._fragments)
+    def prepend(self, *args: RT | FT) -> FrozenText:
+        return FrozenText(*self._parse_fargs(args), *self._fragments)
 
     def set_width(self, width: int):
         raise LogicError("FrozenText is immutable")
 
 
 class Text(FrozenText):
-    def __iadd__(self, other: str | Fragment) -> FrozenText:
-        return self.append(*as_fragments(other))
+    def __iadd__(self, other: str | Fragment) -> Text:
+        return self.append(other)
 
-    def append(self, *fragments: Fragment) -> Text:
-        self._ensure_fragments(*fragments)
-        self._fragments.extend(fragments)
+    def append(self, *args: RT | FT) -> Text:
+        self._fragments.extend(self._parse_fargs(args))
         return self
 
-    def prepend(self, *fragments: Fragment) -> Text:
-        self._ensure_fragments(*fragments)
-        self._fragments.extendleft(fragments)
+    def prepend(self, *args: RT | FT) -> Text:
+        self._fragments.extendleft(self._parse_fargs(args))
         return self
 
     def set_width(self, width: int):
@@ -514,8 +508,8 @@ class Composite(IRenderable):
         self._parts.appendleft(other)
         return self
 
-    def _as_fragments(self) -> t.List[Fragment]:
-        return flatten1([as_fragments(p) for p in self._parts])
+    def as_fragments(self) -> t.List[Fragment]:
+        return flatten1([p.as_fragments() for p in self._parts])
 
     def raw(self) -> str:
         return "".join(p.raw() for p in self._parts)
@@ -604,7 +598,7 @@ class SimpleTable(IRenderable):
         result = f"<{self.__class__.__qualname__}>[R={len(self._rows)}, F={frags}]"
         return result
 
-    def _as_fragments(self) -> t.List[Fragment]:
+    def as_fragments(self) -> t.List[Fragment]:
         raise NotImplementedError
 
     def raw(self) -> str:
@@ -690,11 +684,8 @@ class SimpleTable(IRenderable):
         return sum(len(c) for c in row if not fixed_only or c.has_width)
 
 
-F = t.TypeVar("F", bound=t.Callable[..., t.Any])
-
-
 def _trace(enabled: bool = True, level: int = LOGGING_TRACE, label: str = "Dump"):
-    def wrapper(origin: F) -> F:
+    def wrapper(origin: _F) -> _F:
         def new_func(*args, **kwargs):
             result = origin(*args, **kwargs)
 
@@ -702,7 +693,7 @@ def _trace(enabled: bool = True, level: int = LOGGING_TRACE, label: str = "Dump"
                 logger.log(level=level, msg=dump(result, label))
             return result
 
-        return update_wrapper(t.cast(F, new_func), origin)
+        return update_wrapper(t.cast(_F, new_func), origin)
 
     return wrapper
 
@@ -710,7 +701,7 @@ def _trace(enabled: bool = True, level: int = LOGGING_TRACE, label: str = "Dump"
 def _measure(level: int = logging.DEBUG, template: str = "Done in %s"):
     MAX_PREVIEW_LEN = 10
 
-    def wrapper(origin: F) -> F:
+    def wrapper(origin: _F) -> _F:
         def format_sec(val: float) -> str:
             if val >= 2:
                 return f"{val:.1f}s"
@@ -740,7 +731,7 @@ def _measure(level: int = logging.DEBUG, template: str = "Done in %s"):
             )
             return result
 
-        return update_wrapper(t.cast(F, new_func), origin)
+        return update_wrapper(t.cast(_F, new_func), origin)
 
     return wrapper
 
@@ -875,8 +866,6 @@ def distribute_padded(max_len: int, *values, pad_left: int = 0, pad_right: int =
     return result
 
 
-_PRIVATE_REPLACER = "\U000E5750"
-
 
 def wrap_sgr(
     raw_input: str | list[str], width: int, indent_first: int = 0, indent_subseq: int = 0
@@ -920,16 +909,6 @@ def wrap_sgr(
         result += final_line + "\n"
     return result
 
-
-def as_fragments(string: RT) -> t.List[Fragment]:
-    if isinstance(string, str):
-        return [Fragment(string)]
-    elif isinstance(string, IRenderable):
-        return string._as_fragments()
-    raise ArgTypeError("string")
-
-
-SELECT_WORDS_REGEX = re.compile(r"(\S+)?(\s*)")
 
 
 def apply_style_words_selective(string: str, st: Style) -> t.Sequence[Fragment]:

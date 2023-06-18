@@ -117,9 +117,9 @@ One instance of `SequenceSGR` can be added to another. This will result in a new
 .. ..literalinclude:: /examples/ex_80_combined.py
    :linenos:
 
-==================
-Class hierarchy
-==================
+==========================
+Sequence class hierarchy
+==========================
 
 .. inheritance-diagram::  pytermor.ansi
    :parts: 1

@@ -25,7 +25,7 @@ from .config import get_config
 from .log import logger
 from .style import FT, NOOP_STYLE, Style, Styles, make_style
 
-T = t.TypeVar("T", bound="IRenderer")
+_T = t.TypeVar("_T", bound="IRenderer")
 
 
 def _digest(fingerprint: str) -> int:
@@ -122,7 +122,7 @@ class IRenderer(metaclass=ABCMeta):
                  renderer settings.
         """
 
-    def clone(self: T, *args: t.Any, **kwargs: t.Any) -> T:
+    def clone(self: _T, *args: t.Any, **kwargs: t.Any) -> _T:
         """
         Make a copy of the renderer with the same setup.
         """

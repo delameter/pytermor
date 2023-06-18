@@ -31,10 +31,16 @@ from abc import ABCMeta, abstractmethod
 from copy import copy
 from enum import unique
 from functools import total_ordering
-from typing import Any, ClassVar
+from typing import Any
 
 from .common import get_qname
 from .exception import ConflictError, LogicError, ParseError
+
+COLORS = list(range(30, 39))
+BG_COLORS = list(range(40, 49))
+HI_COLORS = list(range(90, 98))
+BG_HI_COLORS = list(range(100, 108))
+ALL_COLORS = COLORS + BG_COLORS + HI_COLORS + BG_HI_COLORS
 
 
 class _ClassMap(t.Dict[str, t.Type["ISequence"]]):
@@ -444,7 +450,6 @@ class SequenceSGR(SequenceCSI):
 
     _CLASSIFIER = SequenceCSI._CLASSIFIER
     _FINAL = "m"
-    _PAIRITY_REGISTRY: ClassVar[_SgrPairityRegistry]
 
     def __init__(self, *params: str | int | SubtypedParam | SequenceSGR):
         """
@@ -563,35 +568,6 @@ class _NoOpSequenceSGR(SequenceSGR):
     @classmethod
     def from_dict(cls, data: dict) -> SequenceFe:
         return super().from_dict(data)  # no equivalent
-
-
-NOOP_SEQ = _NoOpSequenceSGR()
-"""
-Special sequence in case one *has to* provide one or another SGR, but does 
-not want any control sequences to be actually included in the output. 
-
-``NOOP_SEQ.assemble()`` returns empty string, ``NOOP_SEQ.params`` 
-returns empty list:
-
-    >>> NOOP_SEQ.assemble()
-    ''
-    >>> NOOP_SEQ.params
-    []
-
-.. important ::
-    Casting to *bool* results in **False** for all ``NOOP`` instances in the 
-    library (`NOOP_SEQ`, `NOOP_COLOR` and `NOOP_STYLE`). This is intended. 
-
-Can be safely added to regular `SequenceSGR` from any side, as internally
-`SequenceSGR` always makes a new instance with concatenated params from both 
-items, rather than modifies state of either of them:
-
-    >>> NOOP_SEQ + SequenceSGR(1)
-    <SGR[1m]>
-    >>> SequenceSGR(3) + NOOP_SEQ
-    <SGR[3m]>
-
-"""
 
 
 @total_ordering
@@ -741,13 +717,6 @@ class ColorTarget(enum.Enum):
     FG = enum.auto()
     BG = enum.auto()
     UNDERLINE = enum.auto()
-
-
-_COLOR_TARGET_MAP: t.Dict[ColorTarget, IntCode] = {
-    ColorTarget.FG: IntCode.COLOR_EXTENDED,
-    ColorTarget.BG: IntCode.BG_COLOR_EXTENDED,
-    ColorTarget.UNDERLINE: IntCode.UNDERLINE_COLOR_EXTENDED,
-}
 
 
 class SeqIndex:
@@ -927,24 +896,17 @@ class SeqIndex:
     """ Set background color to :hex:`0xffffff`. """
 
 
-COLORS = list(range(30, 39))
-BG_COLORS = list(range(40, 49))
-HI_COLORS = list(range(90, 98))
-BG_HI_COLORS = list(range(100, 108))
-ALL_COLORS = COLORS + BG_COLORS + HI_COLORS + BG_HI_COLORS
-
-
 class _SgrPairityRegistry:
     """
     Internal class providing methods for mapping SGRs to a
     complement (closing) SGRs, also referred to as "resetters".
     """
-
-    _code_to_resetter_map: t.Dict[int | t.Tuple[int, ...], SequenceSGR] = dict()
-    _complex_code_def: t.Dict[int | t.Tuple[int, ...], int] = dict()
-    _complex_code_max_len: int = 0
-
     def __init__(self):
+        self._code_to_resetter_map: t.Dict[int | t.Tuple[int, ...], SequenceSGR] = dict()
+        self._resetter_codes: t.Set[int] = set()
+        self._complex_code_def: t.Dict[int | t.Tuple[int, ...], int] = dict()
+        self._complex_code_max_len: int = 0
+
         _regulars = [
             (IntCode.BOLD, IntCode.BOLD_DIM_OFF),
             (IntCode.DIM, IntCode.BOLD_DIM_OFF),
@@ -985,6 +947,7 @@ class _SgrPairityRegistry:
             raise ConflictError(f"SGR {starter_code} already has a registered resetter")
 
         self._code_to_resetter_map[starter_code] = SequenceSGR(resetter_code)
+        self._resetter_codes.add(resetter_code)
 
     def _bind_complex(
         self, starter_codes: t.Tuple[int, ...], param_len: int, resetter_code: int
@@ -1045,10 +1008,10 @@ class _SgrPairityRegistry:
         if not isinstance(key_params, t.Iterable):
             key_params = (key_params,)
         for kp in key_params:
-            yield (kp.value if isinstance(kp, SubtypedParam) else kp)
+            yield kp.value if isinstance(kp, SubtypedParam) else kp
 
-
-SequenceSGR._PAIRITY_REGISTRY = _SgrPairityRegistry()
+    def get_resetter_codes(self) -> t.Set[int]:
+        return self._resetter_codes
 
 
 # SGR sequences assembly ------------------------------------------------------
@@ -1059,7 +1022,7 @@ def get_closing_seq(opening_seq: SequenceSGR) -> SequenceSGR:
     :param opening_seq:
     :return:
     """
-    return SequenceSGR._PAIRITY_REGISTRY.get_closing_seq(opening_seq)
+    return _PAIRITY_REGISTRY.get_closing_seq(opening_seq)
 
 
 def enclose(opening_seq: SequenceSGR, string: str) -> str:
@@ -1070,6 +1033,10 @@ def enclose(opening_seq: SequenceSGR, string: str) -> str:
     :return:
     """
     return f"{opening_seq}{string}{get_closing_seq(opening_seq)}"
+
+
+def get_resetter_codes() -> t.Set[int]:
+    return _PAIRITY_REGISTRY.get_resetter_codes()
 
 
 def make_color_256(code: int, target: ColorTarget = ColorTarget.FG) -> SequenceSGR:
@@ -1480,3 +1447,42 @@ def make_restore_cursor_position() -> SequenceFp:
     :example:  ``ESC 8``
     """
     return SequenceFp("8", abbr="DECRC")
+
+
+# -----------------------------------------------------------------------------
+
+NOOP_SEQ = _NoOpSequenceSGR()
+"""
+Special sequence in case one *has to* provide one or another SGR, but does 
+not want any control sequences to be actually included in the output. 
+
+``NOOP_SEQ.assemble()`` returns empty string, ``NOOP_SEQ.params`` 
+returns empty list:
+
+    >>> NOOP_SEQ.assemble()
+    ''
+    >>> NOOP_SEQ.params
+    []
+
+.. important ::
+    Casting to *bool* results in **False** for all ``NOOP`` instances in the 
+    library (`NOOP_SEQ`, `NOOP_COLOR` and `NOOP_STYLE`). This is intended. 
+
+Can be safely added to regular `SequenceSGR` from any side, as internally
+`SequenceSGR` always makes a new instance with concatenated params from both 
+items, rather than modifies state of either of them:
+
+    >>> NOOP_SEQ + SequenceSGR(1)
+    <SGR[1m]>
+    >>> SequenceSGR(3) + NOOP_SEQ
+    <SGR[3m]>
+
+"""
+
+_PAIRITY_REGISTRY = _SgrPairityRegistry()
+
+_COLOR_TARGET_MAP: t.Dict[ColorTarget, IntCode] = {
+    ColorTarget.FG: IntCode.COLOR_EXTENDED,
+    ColorTarget.BG: IntCode.BG_COLOR_EXTENDED,
+    ColorTarget.UNDERLINE: IntCode.UNDERLINE_COLOR_EXTENDED,
+}

@@ -30,9 +30,9 @@ Time delta formatter
    :align: center
    :class: no-scaled-link
 
-==================
-Class hierarchy
-==================
+=============================
+NumFormatter class hierarchy
+=============================
 
 
 .. grid:: 1

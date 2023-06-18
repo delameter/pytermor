@@ -6,9 +6,9 @@ Renderers
 
 .. _guide.renderer_setup:
 
----------------------------
+===========================
 Renderer setup
----------------------------
+===========================
 
 The library provides options to select the output format, and that option
 comes in the form of :term:`renderers <rendering>`.
@@ -43,9 +43,9 @@ To unconditionally print formatted message to standard output, call
 
 .. _guide.renderer_priority:
 
----------------------------
+===========================
 Default renderers priority
----------------------------
+===========================
 
 When it comes to the rendering, `RendererManager` will use the first non-empty
 renderer from the list below, skipping the undefined elements:
@@ -62,9 +62,9 @@ renderer from the list below, skipping the undefined elements:
    Argument > RendererManager > Config > Environment > Library's default
 
 
-----------------
-Class hierarchy
-----------------
+===========================
+Renderer class hierarchy
+===========================
 
 .. inheritance-diagram::  pytermor.renderer
    :parts: 1

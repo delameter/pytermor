@@ -27,9 +27,9 @@ Color mode fallbacks
       Color approximations for indexed modes
 
 
-==================
-Class hierarchy
-==================
+======================
+Color class hierarchy
+======================
 
 
 .. grid:: 1

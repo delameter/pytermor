@@ -11,7 +11,7 @@ from dataclasses import dataclass
 import pytest
 import typing as t
 import pytermor as pt
-from pytermor import HSV, LAB, RGB, XYZ, hex_to_rgb, ColorValue
+from pytermor import HSV, LAB, RGB, XYZ, hex_to_rgb, IColorType
 from tests import assert_close, format_test_params
 
 
@@ -50,7 +50,7 @@ SPACES = [*VALUES[-1].__dict__.keys()]
 
 class TestColorDTOs:
     @pytest.mark.parametrize("cls", [RGB, HSV, XYZ, LAB], ids=format_test_params)
-    def test_to_str(self, cls: t.Type[ColorValue]):
+    def test_to_str(self, cls: t.Type[IColorType]):
         col = cls(1, 1, 1)
         col_str = str(col)
         assert str(cls.__name__) in col_str
@@ -70,7 +70,13 @@ class TestColorTransform:
             return
         input = getattr(value, s_from)
         expected_output = getattr(value, s_to)
-        assert_close(getattr(pt.conv, fname)(input), expected_output)
+        actual_output: IColorType|int = getattr(pt.conv, fname)(input)
+        if isinstance(actual_output, IColorType):
+            actual_output.apply_thresholds()
+        assert_close(actual_output, expected_output)
+
+    def test_rgb_from_ratios(self):
+        assert_close(RGB.from_ratios(0, 0.5, 1.0), RGB(0, 128, 255))
 
     @pytest.mark.xfail(raises=TypeError)
     def test_hex_to_rgb_fails_on_invalid_arg(self):

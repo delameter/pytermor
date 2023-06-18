@@ -20,6 +20,7 @@
 
    .. autosummary::
    
+      is_ft
       make_style
       merge_styles
    

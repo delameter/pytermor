@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import math
 import typing as t
+from abc import ABCMeta, abstractmethod
+from dataclasses import asdict, dataclass
 from typing import overload
 
 CIE_E: float = 216.0 / 24389.0  # 0.008856451679035631  # see http://brucelindbloom.com/
@@ -19,7 +21,121 @@ REF_X: float = 95.047  # Observer= 2°, Illuminant= D65
 REF_Y: float = 100.000
 REF_Z: float = 108.883
 
-ColorValue = t.TypeVar("ColorValue", 'RGB', 'HSV', 'LAB', 'XYZ')
+
+T = t.TypeVar("T")
+
+class IColorType(metaclass=ABCMeta):
+    @abstractmethod
+    def apply_thresholds(self) -> t.Self:
+        ...
+
+
+@dataclass
+class RGB(IColorType):
+    red: int
+    """ Red channel value (0—255) """
+    green: int
+    """ Green channel value (0—255) """
+    blue: int
+    """ Blue channel value (0—255) """
+
+    @classmethod
+    def from_ratios(cls, rr: float, gr: float, br: float) -> RGB:
+        """
+        d
+        :param rr:
+        :param gr:
+        :param br:
+        """
+        return RGB(round(rr * 255), round(gr * 255), round(br * 255)).apply_thresholds()
+
+    def apply_thresholds(self) -> RGB:
+        return RGB(**{k: _normalize(255, v) for k, v in asdict(self).items()})
+
+    def __str__(self):  # RGB(R=128, G=0, B=0)
+        attrs = map(self._format_channel, asdict(self).keys())
+        return f"{self.__class__.__name__}({' '.join(attrs)})"
+
+    def __iter__(self) -> t.Iterator[int] :
+        return iter((self.red, self.green, self.blue))
+
+    def _format_channel(self, attr: str) -> str:
+        return f"{attr[0].upper()}={getattr(self, attr):d}"
+
+
+@dataclass
+class HSV(IColorType):
+    hue: float
+    """ Hue channel value (0—360) """
+    saturation: float
+    """ Saturation channel value (0.0—1.0) """
+    value: float
+    """ Value channel value (0.0—1.0) """
+
+    def apply_thresholds(self):
+        self.hue = _normalize(360.0, self.hue)
+        self.saturation = _normalize(1.0, self.saturation)
+        self.value = _normalize(1.0, self.value)
+
+    def __str__(self):  # HSV(H=0° S=100% V=50%)
+        attrs = [
+            f"H={self.hue:.0f}°",
+            f"S={100*self.saturation:.0f}%",
+            f"V={100*self.value:.0f}%",
+        ]
+        return f"{self.__class__.__name__}({' '.join(attrs)})"
+
+    def __iter__(self) -> t.Iterator[float] :
+        return iter((self.hue, self.saturation, self.value))
+
+
+@dataclass
+class XYZ(IColorType):
+    x: float
+    """ X channel value (0—100+) """
+    y: float
+    """ Luminance (0—100) """
+    z: float
+    """ Quasi-equal to blue (0—100+) """
+
+    def apply_thresholds(self):
+        self.y = _normalize(100.00, self.y)
+
+    def __str__(self):  # XYZ(X=0.95 Y=1.00 Z=1.08)
+        attrs = [
+            f"X={self.x:.2f}",
+            f"Y={self.y:.2f}%",
+            f"Z={self.z:.2f}",
+        ]
+        return f"{self.__class__.__name__}({' '.join(attrs)})"
+
+    def __iter__(self) -> t.Iterator[float] :
+        return iter((self.x, self.y, self.z))
+
+
+@dataclass
+class LAB(IColorType):
+    L: float
+    """ Luminance (0—100) """
+    a: float
+    """ Green–magenta axis (-100—100 in general, but can be less/more) """
+    b: float
+    """ Blue–yellow axis (-100—100 in general, but can be less/more) """
+
+    def apply_thresholds(self):
+        self.L = _normalize(100.00, self.L)
+
+    def __str__(self):  # LAB(L=100% a=100 b=-100)
+        attrs = [
+            f"L={self.L:.3f}%",
+            f"a={self.a:.3f}",
+            f"b={self.b:.3f}",
+        ]
+        return f"{self.__class__.__name__}({' '.join(attrs)})"
+
+    def __iter__(self) -> t.Iterator[float] :
+        return iter((self.L, self.a, self.b))
+
 
 @overload
 def _normalize(max_val: int, val: float | int) -> int:
@@ -39,35 +155,6 @@ def _normalize(max_val, val: float | int) -> int | float:
 # HEX <-> RGB
 
 
-class RGB(t.NamedTuple):
-    red: int
-    """ Red channel value (0—255) """
-    green: int
-    """ Green channel value (0—255) """
-    blue: int
-    """ Blue channel value (0—255) """
-
-    @classmethod
-    def from_ratios(cls, rr: float, gr: float, br: float) -> RGB:
-        """
-        d
-        :param rr:
-        :param gr:
-        :param br:
-        """
-        return RGB(rr * 255, gr * 255, br * 255).apply_thresholds()
-
-    def apply_thresholds(self) -> RGB:
-        return RGB(**{k: _normalize(255, v) for k, v in self._asdict().items()})
-
-    def __str__(self):  # RGB(R=128, G=0, B=0)
-        attrs = map(self._format_channel, self._asdict().keys())
-        return f"{self.__class__.__name__}({' '.join(attrs)})"
-
-    def _format_channel(self, attr: str) -> str:
-        return f"{attr[0].upper()}={getattr(self, attr):d}"
-
-
 def hex_to_rgb(hex_value: int) -> RGB:
     """
     Transforms ``hex_value`` in *int* format into a tuple of three
@@ -81,7 +168,7 @@ def hex_to_rgb(hex_value: int) -> RGB:
     :returns: tuple with R, G, B channel values.
     """
     if not isinstance(hex_value, int):
-        raise TypeError(f"Argument type should be 'int', got: {type(hex_value)}")
+         raise TypeError(f"Argument type should be 'int', got: {type(hex_value)}")
 
     return RGB(
         red=(hex_value & 0xFF0000) >> 16,
@@ -127,29 +214,6 @@ def rgb_to_hex(*args) -> int:
 
 # -----------------------------------------------------------------------------
 # RGB <-> HSV
-
-
-class HSV(t.NamedTuple):
-    hue: float
-    """ Hue channel value (0—360) """
-    saturation: float
-    """ Saturation channel value (0.0—1.0) """
-    value: float
-    """ Value channel value (0.0—1.0) """
-
-    def apply_thresholds(self):
-        self.hue = _normalize(360.0, self.hue)
-        self.saturation = _normalize(1.0, self.saturation)
-        self.value = _normalize(1.0, self.value)
-
-    def __str__(self):  # HSV(H=0° S=100% V=50%)
-        attrs = [
-            f"H={self.hue:.0f}°",
-            f"S={100*self.saturation:.0f}%",
-            f"V={100*self.value:.0f}%",
-        ]
-        return f"{self.__class__.__name__}({' '.join(attrs)})"
-
 
 @overload
 def hsv_to_rgb(hsv: HSV) -> RGB:
@@ -305,26 +369,6 @@ def hsv_to_hex(*args) -> int:
 # RGB <-> XYZ
 
 
-class XYZ(t.NamedTuple):
-    x: float
-    """ X channel value (0—100+) """
-    y: float
-    """ Luminance (0—100) """
-    z: float
-    """ Quasi-equal to blue (0—100+) """
-
-    def apply_thresholds(self):
-        self.y = _normalize(100.00, self.y)
-
-    def __str__(self):  # XYZ(X=0.95 Y=1.00 Z=1.08)
-        attrs = [
-            f"X={self.x:.2f}",
-            f"Y={self.y:.2f}%",
-            f"Z={self.z:.2f}",
-        ]
-        return f"{self.__class__.__name__}({' '.join(attrs)})"
-
-
 @overload
 def rgb_to_xyz(rgb: RGB) -> XYZ:
     ...
@@ -379,26 +423,6 @@ def xyz_to_rgb(*args) -> RGB:
 
 # -----------------------------------------------------------------------------
 # XYZ <-> LAB
-
-
-class LAB(t.NamedTuple):
-    L: float
-    """ Luminance (0—100) """
-    a: float
-    """ Green–magenta axis (-100—100 in general, but can be less/more) """
-    b: float
-    """ Blue–yellow axis (-100—100 in general, but can be less/more) """
-
-    def apply_thresholds(self):
-        self.L = _normalize(100.00, self.L)
-
-    def __str__(self):  # LAB(L=100% a=100 b=-100)
-        attrs = [
-            f"L={self.L:.3f}%",
-            f"a={self.a:.3f}",
-            f"b={self.b:.3f}",
-        ]
-        return f"{self.__class__.__name__}({' '.join(attrs)})"
 
 
 @overload

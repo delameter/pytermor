@@ -23,6 +23,7 @@
       compose_hyperlink
       enclose
       get_closing_seq
+      get_resetter_codes
       make_clear_display
       make_clear_display_after_cursor
       make_clear_display_before_cursor

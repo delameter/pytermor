@@ -8,6 +8,8 @@ utilnum
 """
 from __future__ import annotations
 
+from collections.abc import Iterable
+
 from .log import logger
 import math
 import re
@@ -37,6 +39,7 @@ from :math:`10^{-30}` to :math:`10^{32}`. Note lower-cased 'k' prefix.
 # fmt: on
 
 
+# noinspection NonAsciiCharacters
 class Highlighter:
     """
     S
@@ -66,17 +69,17 @@ class Highlighter:
         (?= []\s\b()[] | $ )
         """,
         flags=re.IGNORECASE | re.VERBOSE,
-    )
-                                                # |_PW_|_G.MULT___G.DIV______TIME______
-    STYLE_DEFAULT = Style(bold=False)           # |    | misc.               second
-    STYLE_NUL = Style(fg=cv.GRAY, bold=False)   # |  0 | zero
-    STYLE_PRC = Style(fg=cv.MAGENTA)            # |  2 |          percent
-    STYLE_KIL = Style(fg=cv.BLUE)               # |  3 | Kilo-    milli-     minute
-    STYLE_MEG = Style(fg=cv.CYAN)               # |  6 | Mega-    micro-     hour
-    STYLE_GIG = Style(fg=cv.GREEN)              # |  9 | Giga-    nano-      day
-    STYLE_TER = Style(fg=cv.YELLOW)             # | 12 | Tera-    pico-      week
-    STYLE_MON = Style(fg=cv.HI_YELLOW)          # |    |                     month
-    STYLE_PET = Style(fg=cv.RED)                # | 15 | Peta-               year
+    )                                           # | OOM | (+) GENERICS (-) |(+) TIME (-)|
+                                                # |-----|------------------|------------|
+    STYLE_DEFAULT = Style(bold=False)           # |     | misc.            | sec.       |
+    STYLE_NUL = Style(fg=cv.GRAY, bold=False)   # |   0 | zero             |            |
+    STYLE_PRC = Style(fg=cv.MAGENTA)            # |   2 |            perc. |            |
+    STYLE_KIL = Style(fg=cv.BLUE)               # |   3 | Kilo-     milli- | min.    ms |
+    STYLE_MEG = Style(fg=cv.CYAN)               # |   6 | Mega-     micro- | hour    μs |
+    STYLE_GIG = Style(fg=cv.GREEN)              # |   9 | Giga-      nano- | day     ns |
+    STYLE_TER = Style(fg=cv.YELLOW)             # |  12 | Tera-      pico- | week    ps |
+    STYLE_MON = Style(fg=cv.HI_YELLOW)          # |     |                  | month      |
+    STYLE_PET = Style(fg=cv.RED)                # |  15 | Peta-            | year       |
 
     _PREFIX_MAP = {
         '%': STYLE_PRC,
@@ -96,6 +99,12 @@ class Highlighter:
         'M': STYLE_MON,  'mo': STYLE_MON,    'mon': STYLE_MON, 'month': STYLE_MON,
         'y': STYLE_PET,  'yr': STYLE_PET,   'year': STYLE_PET,
     }
+    _OOM_MAP = {
+        0: STYLE_DEFAULT,  3: STYLE_KIL,   6: STYLE_MEG,
+        9: STYLE_GIG,     12: STYLE_TER,  15: STYLE_PET,
+    }
+
+    _UNITLESS_LENGTH_THRESHOLD = 6
     # fmt: on
 
     def colorize(self, string: str) -> Text:
@@ -127,16 +136,24 @@ class Highlighter:
         :param unit:
         :return:
         """
-        unit_norm = re.sub(r"^\s*(.)+s?\s*$", r"\1", unit)  # @TODO test this
-        st = self.STYLE_DEFAULT
-        if pfx:
-            st = self._get_prefix_style(pfx)
-        elif unit_norm:
-            st = self._get_time_unit_style(unit_norm)
-
         digits = intp + frac[1:]
+        unit_norm = re.sub(r"^\s*(.)+s?\s*$", r"\1", unit)  # @TODO test this
+
+        st = self.STYLE_DEFAULT
         if set(digits) == {"0"}:
             st = self.STYLE_NUL
+        elif pfx:
+            st = self._PREFIX_MAP.get(pfx, self.STYLE_DEFAULT)
+        elif unit_norm:
+            st = self._TIME_UNIT_MAP.get(unit_norm, self.STYLE_DEFAULT)
+        elif len(digits) > self._UNITLESS_LENGTH_THRESHOLD:
+            return [
+                *self._multiapply(intp),
+                *self._multiapply(frac, reverse=True),
+                Fragment(sep),
+                # Fragment(pfx),   # both should be empty
+                # Fragment(unit),  # in this branch
+            ]
 
         int_st = merge_styles(st, fallbacks=[Style(bold=True)])
         # bold unless style prohibits (STYLE_NUL)
@@ -152,14 +169,26 @@ class Highlighter:
             Fragment(unit, unit_st),
         ]
 
-    def _get_prefix_style(self, pfx: str) -> Style:
-        return self._PREFIX_MAP.get(pfx, self.STYLE_DEFAULT)
+    def _multiapply(self, num: str, *, reverse: bool = False) -> Iterable[Fragment]:
+        def _get_style(oom: int, fade: int) -> Style:
+            base = self._OOM_MAP.get(abs(oom), self.STYLE_DEFAULT)
+            if 1 <= fade <= 3:
+                return Style(base, bold=True)
+            return Style(self.STYLE_DEFAULT, dim=(fade % 6 < 3))
 
-    def _get_time_unit_style(self, unit: str) -> Style:
-        return self._TIME_UNIT_MAP.get(unit, self.STYLE_DEFAULT)
+        def _iter(numpart: str, oom=0, maxfade=0) -> Fragment:
+            st = _get_style(oom, maxfade - oom)
+            if len(numpart) > 3:
+                if reverse:
+                    yield Fragment(numpart[:3], st)
+                    yield from _iter(numpart[3:], oom - 3, maxfade)
+                else:
+                    yield from _iter(numpart[:-3], oom + 3, maxfade)
+                    yield Fragment(numpart[-3:], st)
+            else:
+                yield Fragment(numpart, st)
 
-
-_HIGHLIGHTER = Highlighter()
+        yield from _iter(num, 0, len(num))
 
 
 class SupportsFallback:
@@ -179,8 +208,11 @@ class SupportsFallback:
 
 
 class NumFormatter(SupportsFallback):
-    def __init__(self, auto_color: bool, highlighter: Highlighter):
+    def __init__(self, auto_color: bool, highlighter: t.Type[Highlighter] | Highlighter):
         self._auto_color: bool = auto_color
+
+        if isinstance(highlighter, type):
+            highlighter = highlighter()
         self._highlighter: Highlighter = highlighter
 
     @abstractmethod
@@ -239,7 +271,7 @@ class StaticFormatter(NumFormatter):
         prefixes: t.List[str | None] = None,
         prefix_refpoint_shift: int = None,
         value_mapping: t.Dict[float, RT] | t.Callable[[float], RT] = None,  # @TODO
-        highlighter: Highlighter = None,
+        highlighter: t.Type[Highlighter] | Highlighter = None,
     ):
         """
         .. note ::
@@ -249,10 +281,10 @@ class StaticFormatter(NumFormatter):
         .. default-role:: math
 
         :param fallback:
-            For any (constructing) instance attribute without a value (=\ *None*):
+            For any (constructing) instance attribute without a value (=\\ *None*):
             look up for this attribute in ``fallback`` instance, and if the value is
             specified, take it and save as yours own; if the attribute is undefined in
-            ``fallback`` as well, use the default class' value for this attribute instead.
+            ``fallback`` as well, use the default class value for this attribute instead.
 
         :param int max_value_len:
             [default: 4] Target string length. Must be at least **3**, because it's a
@@ -493,6 +525,7 @@ class StaticFormatter(NumFormatter):
         return self.__class__.__qualname__
 
 
+# noinspection PyProtectedMember
 StaticFormatter._set_defaults(
     StaticFormatter(
         max_value_len=4,
@@ -508,7 +541,7 @@ StaticFormatter._set_defaults(
         prefixes=PREFIXES_SI_DEC,
         prefix_refpoint_shift=0,
         value_mapping=dict(),
-        highlighter=_HIGHLIGHTER,
+        highlighter=Highlighter,
     )
 )
 
@@ -529,7 +562,7 @@ class DynamicFormatter(NumFormatter):
         allow_fractional: bool = None,
         unit_separator: str = None,
         oom_shift: int = None,
-        highlighter: Highlighter = None,
+        highlighter: t.Type[Highlighter] = None,
     ):
         """
         .. note ::
@@ -602,13 +635,14 @@ class DynamicFormatter(NumFormatter):
         return "".join(result)
 
 
+# noinspection PyProtectedMember
 DynamicFormatter._set_defaults(
     DynamicFormatter(
         auto_color=False,
         allow_fractional=True,
         unit_separator=" ",
         oom_shift=0,
-        highlighter=_HIGHLIGHTER,
+        highlighter=Highlighter,
     )
 )
 
@@ -667,7 +701,7 @@ class DualFormatter(NumFormatter):
         pad: bool = None,
         plural_suffix: str = None,
         overflow_msg: str = None,
-        highlighter: Highlighter = None,
+        highlighter: t.Type[Highlighter] = None,
     ):
         super().__init__(auto_color, highlighter)
 
@@ -842,6 +876,7 @@ class DualFormatter(NumFormatter):
         self._max_len = max_len
 
 
+# noinspection PyProtectedMember
 DualFormatter._set_defaults(
     DualFormatter(
         units=[],
@@ -852,7 +887,7 @@ DualFormatter._set_defaults(
         pad=False,
         plural_suffix=None,
         overflow_msg="OVERFLOW",
-        highlighter=_HIGHLIGHTER,
+        highlighter=Highlighter,
     )
 )
 
@@ -1063,18 +1098,6 @@ dual_registry.register(
 # -----------------------------------------------------------------------------
 
 
-def highlight(string: str) -> RT:
-    """
-    .. todo ::
-
-        @TODO
-
-    :max output len:    *same as input*
-    :param string:      input text
-    """
-    return _HIGHLIGHTER.colorize(string)
-
-
 def format_thousand_sep(val: int | float, separator: str = " ") -> str:
     """
     Returns input ``val`` with integer part split into groups of three digits,
@@ -1087,7 +1110,8 @@ def format_thousand_sep(val: int | float, separator: str = " ") -> str:
 
     :max output len:  :math:`(L + max(0, floor(M/3)))`,
 
-                       where *L* is ``val`` length, and *M* is order of magnitude of ``val``
+                       where *L* is ``val`` length, and *M* is
+                       order of magnitude of ``val``
     :param val:       value to format
     :param separator: character(s) to use as thousand separators
     """
@@ -1203,9 +1227,9 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
         significand = abs_value / pow(10, oom)
         max_significand_len = req_len - exponent_len
 
-        # max_significand_len can be 0, in that case significand_str will be empty; that
-        # means we cannot fit it the significand, but still can display approximate number power
-        # using the 'eN'/'-eN' output format:  -52515050000 -> '-e10'
+        # max_significand_len can be 0, in that case significand_str will be empty;
+        # that means we cannot fit it the significand, but still can display approximate
+        # number power using the 'eN'/'-eN' output format:  -52515050000 -> '-e10'
         significand_str = format_auto_float(
             significand, max_significand_len, allow_exp_form=False
         )
@@ -1534,3 +1558,18 @@ def format_time_delta_longest(val_sec: float, auto_color: bool = None) -> RT:
                         value [*False* by default].
     """
     return dual_registry.get_longest().format(val_sec, auto_color)
+
+
+_highlighter = Highlighter()
+
+
+def highlight(string: str) -> RT:
+    """
+    .. todo ::
+
+        @TODO
+
+    :max output len:    *same as input*
+    :param string:      input text
+    """
+    return _highlighter.colorize(string)

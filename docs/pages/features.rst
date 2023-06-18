@@ -4,9 +4,6 @@
 Features
 #####################
 
-.. toctree::
-   :hidden:
-
 One of the core concepts of the library is `Span` class. ``Span`` is a combination of two control sequences;
 it wraps specified string with pre-defined leading and trailing SGR definitions.
 

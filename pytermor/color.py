@@ -760,37 +760,6 @@ class _DefaultColor(IColor):
         return self.format_value()
 
 
-NOOP_COLOR = _NoopColor()
-"""
-Special ``IColor`` instance always rendering into empty string.
-
-.. important ::
-    Casting to *bool* results in **False** for all ``NOOP`` instances in the 
-    library (`NOOP_SEQ`, `NOOP_COLOR` and `NOOP_STYLE`). This is intended. 
-
-"""
-
-DEFAULT_COLOR = _DefaultColor()
-"""
-Special ``IColor`` instance rendering to SGR sequence telling the terminal
-to reset fg or bg color; same for `TmuxRenderer`. Useful when you inherit
-some `Style` with fg or bg color which you don't need, but at the same time
-you don't actually want to set up any color whatsoever (as using `NOOP_COLOR`
-will result in an inheritance of parent style color instead of terminal default).
-
-	>>> DEFAULT_COLOR.to_sgr(bg=False)
-	<SGR[39]>
-
-	>>> import pytermor as pt
-	>>> pt.Style(pt.Styles.CRITICAL, fg=NOOP_COLOR)
-	<Style[hi-white:X160[D70000]]>
-	
-	>>> pt.Style(pt.Styles.CRITICAL, fg=DEFAULT_COLOR)
-	<Style[DEF:X160[D70000]]>
-	
-"""
-
-
 def resolve_color(subject: CDT, color_type: t.Type[CT] = None, approx_cache=True) -> CT:
     """
     Suggested usage is to transform the user input in a free form in an attempt
@@ -939,3 +908,34 @@ def approximate(
              (if any) and corresponding distance value, etc.
     """
     return (color_type or Color256).approximate(hex_value, max_results)
+
+
+NOOP_COLOR = _NoopColor()
+"""
+Special ``IColor`` instance always rendering into empty string.
+
+.. important ::
+    Casting to *bool* results in **False** for all ``NOOP`` instances in the 
+    library (`NOOP_SEQ`, `NOOP_COLOR` and `NOOP_STYLE`). This is intended. 
+
+"""
+
+DEFAULT_COLOR = _DefaultColor()
+"""
+Special ``IColor`` instance rendering to SGR sequence telling the terminal
+to reset fg or bg color; same for `TmuxRenderer`. Useful when you inherit
+some `Style` with fg or bg color which you don't need, but at the same time
+you don't actually want to set up any color whatsoever (as using `NOOP_COLOR`
+will result in an inheritance of parent style color instead of terminal default).
+
+	>>> DEFAULT_COLOR.to_sgr(bg=False)
+	<SGR[39]>
+
+	>>> import pytermor as pt
+	>>> pt.Style(pt.Styles.CRITICAL, fg=NOOP_COLOR)
+	<Style[hi-white:X160[D70000]]>
+	
+	>>> pt.Style(pt.Styles.CRITICAL, fg=DEFAULT_COLOR)
+	<Style[DEF:X160[D70000]]>
+	
+"""

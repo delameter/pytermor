@@ -11,6 +11,7 @@ import pytest
 from pytest import mark
 
 from pytermor.ansi import *
+from pytermor.ansi import _PAIRITY_REGISTRY
 from tests import format_test_params
 
 
@@ -196,7 +197,7 @@ class TestSgrRegistry:
         ids=format_test_params,
     )
     def test_closing_seq(self, opening: SequenceSGR, expected_closing: SequenceSGR):
-        assert SequenceSGR._PAIRITY_REGISTRY.get_closing_seq(opening) == expected_closing
+        assert _PAIRITY_REGISTRY.get_closing_seq(opening) == expected_closing
 
     @pytest.mark.parametrize(
         "opening, expected_closing",
@@ -209,7 +210,7 @@ class TestSgrRegistry:
     def test_unknown_opening_seq_gets_noop_pair(
         self, opening: SequenceSGR, expected_closing: SequenceSGR
     ):
-        assert SequenceSGR._PAIRITY_REGISTRY.get_closing_seq(opening) == expected_closing
+        assert _PAIRITY_REGISTRY.get_closing_seq(opening) == expected_closing
 
     def test_enclose(self):
         opening_seq = SequenceSGR(31, 42)

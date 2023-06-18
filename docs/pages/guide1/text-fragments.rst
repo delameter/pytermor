@@ -4,9 +4,9 @@
 Text fragments
 ########################
 
-==================
-Class hierarchy
-==================
+===========================
+Renderable class hierarchy
+===========================
 
 .. inheritance-diagram:: pytermor.text
    :parts: 1

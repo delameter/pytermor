@@ -1,52 +1,64 @@
-
 digraph G {
+    pad = 0.25;
     concentrate = true;
+    ranksep = .5;
+    pack = 0;
+    rankdir = BT;
 
-    rankdir = TB;
-    node [style=filled,fillcolor="#ffffff",fontcolor="#000000",fontname=Helvetica,fontsize=10];
+    node [style="filled",fontname="ElementaCyr-Bold",margin="0.2,0.0",fontsize=12,shape=folder,width=1.0,height=.5];
 
-    pytermor_ansi [fillcolor="#f31616",fontcolor="#ffffff",label="ansi"];
-    pytermor_color [fillcolor="#d31717",fontcolor="#ffffff",label="color"];
-    pytermor_config [fillcolor="#ce3b3b",fontcolor="#ffffff",label="config"];
-    pytermor_conv [fillcolor="#b65353",fontcolor="#ffffff",label="conv"];
-    pytermor_cval [fillcolor="#b83d3d",fontcolor="#ffffff",label="cval"];
-    pytermor_filter [fillcolor="#b83d3d",fontcolor="#ffffff",label="filter"];
-    pytermor_numfmt [fillcolor="#924e4e",fontcolor="#ffffff",label="numfmt"];
-    pytermor_parser [fillcolor="#c04040",fontcolor="#ffffff",label="parser"];
-    pytermor_renderer [fillcolor="#9d4343",fontcolor="#ffffff",label="renderer"];
-    pytermor_style [fillcolor="#d02424",fontcolor="#ffffff",label="style"];
-    pytermor_template [fillcolor="#924e4e",fontcolor="#ffffff",label="template"];
-    pytermor_term [fillcolor="#b83d3d",fontcolor="#ffffff",label="term"];
-    pytermor_text [fillcolor="#993333",fontcolor="#ffffff",label="text"];
-    pytermor_ansi -> pytermor_color [fillcolor="#f31616"];
-    pytermor_ansi -> pytermor_cval [fillcolor="#f31616"];
-    pytermor_ansi -> pytermor_parser [fillcolor="#f31616"];
-    pytermor_ansi -> pytermor_renderer [fillcolor="#f31616"];
-    pytermor_ansi -> pytermor_template [fillcolor="#f31616"];
-    pytermor_ansi -> pytermor_term [fillcolor="#f31616"];
-    pytermor_color -> pytermor_cval [fillcolor="#d31717"];
-    pytermor_color -> pytermor_renderer [fillcolor="#d31717"];
-    pytermor_color -> pytermor_style [fillcolor="#d31717"];
-    pytermor_color -> pytermor_template [fillcolor="#d31717"];
-    pytermor_color -> pytermor_text [fillcolor="#d31717"];
-    pytermor_config -> pytermor_color [fillcolor="#ce3b3b"];
-    pytermor_config -> pytermor_renderer [fillcolor="#ce3b3b"];
-    pytermor_config -> pytermor_text [fillcolor="#ce3b3b"];
-    pytermor_conv -> pytermor_color [fillcolor="#b65353"];
-    pytermor_cval -> pytermor_numfmt [fillcolor="#b83d3d"];
-    pytermor_cval -> pytermor_style [fillcolor="#b83d3d"];
-    pytermor_filter -> pytermor_numfmt [fillcolor="#b83d3d"];
-    pytermor_filter -> pytermor_text [fillcolor="#b83d3d"];
-    pytermor_parser -> pytermor_filter [fillcolor="#c04040"];
-    pytermor_parser -> pytermor_term [fillcolor="#c04040"];
-    pytermor_renderer -> pytermor_text [fillcolor="#9d4343"];
-    pytermor_style -> pytermor_numfmt [fillcolor="#d02424"];
-    pytermor_style -> pytermor_renderer [fillcolor="#d02424"];
-    pytermor_style -> pytermor_template [fillcolor="#d02424"];
-    pytermor_style -> pytermor_text [fillcolor="#d02424"];
-    pytermor_term -> pytermor_filter [fillcolor="#b83d3d"];
-    pytermor_term -> pytermor_text [fillcolor="#b83d3d"];
-    pytermor_text -> pytermor_numfmt [fillcolor="#993333"];
-    pytermor_text -> pytermor_template [fillcolor="#993333"];
+    subgraph legend {
+        node [fontname="Finlandica",fontsize=14];
+        edge [style="invis"];
+
+        legend_name [shape=plain,fontcolor="#000000",fillcolor="none",label="Abstraction level"];
+        legend_low [shape=plain,fontcolor="#000000",fillcolor="none",label="Low"];
+        legend_high [shape=plain,fontcolor="#000000",fillcolor="none",label="High"];
+        icon_low [shape=folder,label="",fillcolor="#5f819d",width=.35,height=.2]
+        icon_high [shape=tab,label="",fillcolor="#769440",width=.35,height=.2];
+
+        icon_low -> legend_low [constraint=true,minlen=0];
+        icon_high -> legend_high [constraint=true,minlen=0];
+    }
+
+    pytermor_ansi [group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="ansi"];
+    pytermor_color [group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="color"];
+    pytermor_conv [group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="conv"];
+    pytermor_cval [group="high",fillcolor="#5e8d87",fontcolor="#ffffff",label="cval"];
+    pytermor_filter [group="high",fillcolor="#769440",fontcolor="#ffffff",label="filter"];
+    pytermor_numfmt [group="high",fillcolor="#769440",fontcolor="#ffffff",label="numfmt"];
+    pytermor_parser [group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="parser"];
+    pytermor_renderer [group="high",fillcolor="#769440",fontcolor="#ffffff",label="renderer"];
+    pytermor_style [group="high",fillcolor="#769440",fontcolor="#ffffff",label="style"];
+    pytermor_template [group="high",fillcolor="#769440",fontcolor="#ffffff",label="template"];
+    pytermor_term [group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="term"];
+    pytermor_text [group="high",fillcolor="#769440",fontcolor="#ffffff",label="text"];
+    pytermor_ansi -> pytermor_color [fillcolor="#5f819d"];
+    pytermor_ansi -> pytermor_cval [fillcolor="#5e8d87"];
+    pytermor_ansi -> pytermor_parser [fillcolor="#5f819d"];
+    pytermor_ansi -> pytermor_renderer [fillcolor="#769440"];
+    pytermor_ansi -> pytermor_template [fillcolor="#769440"];
+    pytermor_ansi -> pytermor_term [fillcolor="#5f819d"];
+    pytermor_color -> pytermor_cval [fillcolor="#5e8d87"];
+    pytermor_color -> pytermor_renderer [fillcolor="#769440"];
+    pytermor_color -> pytermor_style [fillcolor="#769440"];
+    pytermor_color -> pytermor_template [fillcolor="#769440"];
+    pytermor_color -> pytermor_text [fillcolor="#769440"];
+    pytermor_conv -> pytermor_color [fillcolor="#5f819d"];
+    pytermor_cval -> pytermor_numfmt [fillcolor="#769440"];
+    pytermor_cval -> pytermor_style [fillcolor="#769440"];
+    pytermor_filter -> pytermor_numfmt [fillcolor="#769440"];
+    pytermor_filter -> pytermor_text [fillcolor="#769440"];
+    pytermor_parser -> pytermor_filter [fillcolor="#769440"];
+    pytermor_parser -> pytermor_term [fillcolor="#5f819d"];
+    pytermor_renderer -> pytermor_text [fillcolor="#769440"];
+    pytermor_style -> pytermor_filter [fillcolor="#769440"];
+    pytermor_style -> pytermor_numfmt [fillcolor="#769440"];
+    pytermor_style -> pytermor_renderer [fillcolor="#769440"];
+    pytermor_style -> pytermor_template [fillcolor="#769440"];
+    pytermor_style -> pytermor_text [fillcolor="#769440"];
+    pytermor_term -> pytermor_filter [fillcolor="#769440"];
+    pytermor_term -> pytermor_text [fillcolor="#769440"];
+    pytermor_text -> pytermor_numfmt [fillcolor="#769440"];
+    pytermor_text -> pytermor_template [fillcolor="#769440"];
 }
-
