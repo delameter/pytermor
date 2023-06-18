@@ -15,21 +15,6 @@ from pytermor.filter import *
 from tests import format_test_params, load_data_file
 
 
-@mark.setup(force_output_mode="true_color")
-class TestStringAligner:
-    @mark.parametrize(
-        "expected,align,width",
-        [
-            ("\x1b[31m" "123" "\x1b[39m\x1b[34m" "456" "\x1b[39m" "   ", Align.LEFT, 9),
-            ("  \x1b[31m" "123" "\x1b[39m\x1b[34m" "456" "\x1b[39m ", Align.CENTER, 9),
-            ("   \x1b[31m" "123" "\x1b[39m\x1b[34m" "456" "\x1b[39m", Align.RIGHT, 9),
-        ],
-    )
-    def test_sgr_aware_mode(self, expected: str, align: Align, width: int):
-        inp = render(Fragment("123", "red") + Fragment("456", "blue"))
-        actual = StringAligner(align, width, sgr_aware=True).apply(inp)
-        assert actual == expected
-
 
 class TestStdlibExtensions:
     _TEST_STRING = "123_456_789_0💩晥abc_def_"  # noqa

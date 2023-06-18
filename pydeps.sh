@@ -27,10 +27,11 @@ postprocess_module() {
     {
         head -n $((placheolder_lineno-1)) "$tpl_path"
         sed -Ee '/^\s*pytermor/!d;'\
-             -e '/_ansi|_conv|_config|_color|_parser|_term/ s/(fillcolor="#)[0-9a-f]+(")/group="low",\1'$LOW_LEVEL_GROUP_COLOR'\2/;'\
-             -e '/_cval/ s/(fillcolor="#)[0-9a-f]+(")/group="high",\1'$INTERM_LEVEL_GROUP_COLOR'\2/;'\
-             -e '/_style|_filter|_renderer|_text|_numfmt|_template/ s/(fillcolor="#)[0-9a-f]+(")/group="high",\1'$HIGH_LEVEL_GROUP_COLOR'\2/;'\
-             -e '/->/ s/group="[a-z]+",//g; '
+             -e '/_ansi|_conv|_config|_color|_parser|_term/ s/(fillcolor="#)[0-9a-f]+(")/group="",\1'$LOW_LEVEL_GROUP_COLOR'\2/;'\
+             -e '/_cval/ s/(fillcolor="#)[0-9a-f]+(")/shape="component",group="",\1'$INTERM_LEVEL_GROUP_COLOR'\2/;'\
+             -e '/_style|_filter|_renderer|_text|_numfmt|_template/ s/(fillcolor="#)[0-9a-f]+(")/shape="tab",group="",\1'$HIGH_LEVEL_GROUP_COLOR'\2/;'\
+             -e '/->/ s/group="[a-z]+",//g; ' \
+             -e 's/(label=")(renderer|text|style)(")/\1☢️ \2\3/g; '
         tail -n +$((placheolder_lineno+1)) "$tpl_path"
     } | tee "${DOCS_IN_PATH}/_generated/module.dot"
 }
@@ -38,7 +39,7 @@ postprocess_module() {
 run --rmprefix "${PROJECT_NAME}". \
     --only "${PROJECT_NAME}" \
     --no-output \
-    --rankdir TB \
+    --rankdir BT \
     --show-dot \
     -xx pytermor \
         pytermor._version \

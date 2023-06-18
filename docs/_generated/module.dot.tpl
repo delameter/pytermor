@@ -11,14 +11,22 @@ digraph G {
         node [fontname="Finlandica",fontsize=14];
         edge [style="invis"];
 
-        legend_name [shape=plain,fontcolor="#000000",fillcolor="none",label="Abstraction level"];
+        legend_title [shape=plain,fontcolor="#000000",fillcolor="none",label="Abstraction level"];
+
         legend_low [shape=plain,fontcolor="#000000",fillcolor="none",label="Low"];
         legend_high [shape=plain,fontcolor="#000000",fillcolor="none",label="High"];
         icon_low [shape=folder,label="",fillcolor="#5f819d",width=.35,height=.2]
         icon_high [shape=tab,label="",fillcolor="#769440",width=.35,height=.2];
+        icon_core [shape=plain,label="☢️",fillcolor=none,width=.35,height=.2];
 
+         legend_low -> legend_title [constraint=1,minlen=1,headport=e];
+        legend_high -> legend_low  [constraint=1,minlen=1];
         icon_low -> legend_low [constraint=true,minlen=0];
         icon_high -> legend_high [constraint=true,minlen=0];
+        icon_core -> legend_core [constraint=true,minlen=0];
+        legend_core [label=" Core",shape=plain,fillcolor=none];
+        legend_core -> legend_high [constraint=1,minlen=2];
+
     }
 
     %s

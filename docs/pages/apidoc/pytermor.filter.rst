@@ -48,10 +48,8 @@
    .. autosummary::
    
       AbstractNamedGroupsRefilter
-      AbstractRegexValRefilter
       AbstractStringTracer
       AbstractTracer
-      Align
       BytesTracer
       CsiStringReplacer
       EscSeqStringReplacer
@@ -66,7 +64,6 @@
       OmniPadder
       OmniSanitizer
       SgrStringReplacer
-      StringAligner
       StringLinearizer
       StringMapper
       StringReplacer

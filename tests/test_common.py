@@ -18,7 +18,6 @@ from pytermor import Color256, IFilter, StringReplacer
 from pytermor.common import ExtendedEnum, but, char_range, chunk, flatten, get_qname, \
     only, others, \
     ours
-from pytermor.text import _trace
 from tests import format_test_params
 
 

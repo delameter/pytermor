@@ -30,8 +30,6 @@ from .ansi import SequenceOSC as SequenceOSC
 from .ansi import SequenceSGR as SequenceSGR
 from .ansi import SequenceST as SequenceST
 from .ansi import SubtypedParam as SubtypedParam
-from .ansi import compose_clear_line_fill_bg as compose_clear_line_fill_bg
-from .ansi import compose_hyperlink as compose_hyperlink
 from .ansi import enclose as enclose
 from .ansi import get_closing_seq as get_closing_seq
 from .ansi import get_resetter_codes as get_resetter_codes
@@ -79,6 +77,7 @@ from .color import NOOP_COLOR as NOOP_COLOR
 from .color import approximate as approximate
 from .color import find_closest as find_closest
 from .color import resolve_color as resolve_color
+from .common import Align as Align
 from .common import ExtendedEnum as ExtendedEnum
 from .common import chunk as chunk
 from .common import flatten as flatten
@@ -113,9 +112,7 @@ from .exception import ConflictError as ConflictError
 from .exception import LogicError as LogicError
 from .exception import UserAbort as UserAbort
 from .exception import UserCancel as UserCancel
-from .filter import Align as Align
 from .filter import AbstractNamedGroupsRefilter as AbstractNamedGroupsRefilter
-from .filter import AbstractRegexValRefilter as AbstractRegexValRefilter
 from .filter import AbstractStringTracer as AbstractStringTracer
 from .filter import AbstractTracer as AbstractTracer
 from .filter import BytesTracer as BytesTracer
@@ -135,7 +132,6 @@ from .filter import OmniPadder as OmniPadder
 from .filter import OmniSanitizer as OmniSanitizer
 from .filter import PRINTABLE_CHARS as PRINTABLE_CHARS
 from .filter import SgrStringReplacer as SgrStringReplacer
-from .filter import StringAligner as StringAligner
 from .filter import StringLinearizer as StringLinearizer
 from .filter import StringMapper as StringMapper
 from .filter import StringReplacer as StringReplacer
@@ -211,6 +207,8 @@ from .style import make_style as make_style
 from .style import merge_styles as merge_styles
 from .template import TemplateEngine as TemplateEngine
 from .template import substitute as substitute
+from .term import compose_clear_line_fill_bg as compose_clear_line_fill_bg
+from .term import compose_hyperlink as compose_hyperlink
 from .term import confirm as confirm
 from .term import get_char_width as get_char_width
 from .term import get_preferable_wrap_width as get_preferable_wrap_width

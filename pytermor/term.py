@@ -15,7 +15,10 @@ import typing as t
 import unicodedata
 from io import StringIO
 
-from .ansi import make_clear_line, make_query_cursor_position, make_set_cursor_column
+from . import SequenceSGR, SequenceST, make_clear_line, make_set_cursor, \
+    make_set_cursor_column
+from .ansi import make_clear_line, make_hyperlink, make_query_cursor_position, \
+    make_set_cursor_column
 from .exception import UserAbort, UserCancel
 from .parser import decompose_report_cursor_position
 
@@ -299,3 +302,32 @@ def guess_char_width(c: str) -> int:
         return 2
 
     return 1
+
+
+def compose_clear_line_fill_bg(basis: SequenceSGR, line: int = None) -> str:
+    """
+
+    :param basis:
+    :param line:
+    """
+    if line is not None:
+        result = make_set_cursor(line, 1)
+    else:
+        result = make_set_cursor_column(1)
+    return f'{result}{basis}{make_clear_line()}'
+
+
+def compose_hyperlink(url: str, label: str = None) -> str:
+    """
+    Syntax: ``(OSC 8 ; ;) (url) (ST) (label) (OSC 8 ; ;) (ST)``, where
+    `OSC <SequenceOSC>` is ``ESC ]``.
+
+    :param url:
+    :param label:
+    :example:  ``ESC ]8;;http://localhost ESC \\Text ESC ]8;; ESC \\``
+    """
+
+    return (
+        f"{make_hyperlink()}{url}{SequenceST()}{label or url}"
+        f"{make_hyperlink()}{SequenceST()}"
+    )

@@ -20,7 +20,7 @@ from math import floor, isclose, log, log10, trunc
 
 from .cval import cv
 from .exception import ConflictError
-from .filter import Align
+from .common import Align
 from .style import Style, Styles, merge_styles
 from .text import Fragment, IRenderable, RT, Text
 

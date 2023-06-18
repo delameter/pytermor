@@ -13,6 +13,8 @@
 
    .. autosummary::
    
+      compose_clear_line_fill_bg
+      compose_hyperlink
       confirm
       get_char_width
       get_preferable_wrap_width

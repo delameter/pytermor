@@ -11,20 +11,22 @@ Library methods rewritten for correct work with strings containing control seque
 from __future__ import annotations
 
 import codecs
+import logging
 import math
 import os
 import re
+import time
 import typing as t
 from abc import ABCMeta, abstractmethod
 from collections import deque
 from dataclasses import dataclass, field
-from functools import lru_cache, reduce
+from functools import lru_cache, reduce, update_wrapper
 from math import ceil, floor
 from typing import Union
 
-from .common import ExtendedEnum, chunk
+from .common import chunk, Align
 from .exception import ArgTypeError, LogicError
-from .log import logger
+from .log import logger, LOGGING_TRACE
 from .style import FT, Style
 from .parser import CSI_SEQ_REGEX, ESCAPE_SEQ_REGEX, SGR_SEQ_REGEX
 from .term import get_terminal_width
@@ -32,31 +34,6 @@ from .term import get_terminal_width
 codecs.register_error(
     "replace_with_qmark", lambda e: ("?", e.start + 1)
 )  # pragma: no cover
-
-
-class Align(str, ExtendedEnum):
-    """
-    Align type.
-    """
-
-    LEFT = "<"
-    RIGHT = ">"
-    CENTER = "^"
-
-    @classmethod
-    def resolve(cls, input: str | Align | None, fallback: Align = LEFT):
-        if input is None:
-            return fallback
-        if isinstance(input, cls):
-            return input
-        for k, v in cls.dict().items():
-            if v == input:
-                return k
-        try:
-            return cls[input.upper()]
-        except KeyError:
-            logger.warning(f"Invalid align name: {input}")
-            return fallback
 
 
 def pad(n: int) -> str:
@@ -157,7 +134,6 @@ def rjust_sgr(string: str, width: int, fillchar: str = " ") -> str:
     return fillchar * max(0, width - actual_len) + string
 
 
-
 # =============================================================================
 # Filters
 
@@ -203,6 +179,9 @@ UTF8_BYTES_CHARS = {
     re.compile(r"[\u0080-\u07ff]"): 2,
     re.compile(r"[\x00-\x7f]"): 1,
 }
+
+
+_F = t.TypeVar("_F", bound=t.Callable[..., t.Any])
 
 IT = t.TypeVar("IT", str, bytes)
 """ input-type """
@@ -330,43 +309,6 @@ class OmniEncoder(IFilter[IT, bytes]):
         return inp.encode() if isinstance(inp, str) else inp
 
 
-class StringAligner(IFilter[str, str]):
-    """
-    .. note ::
-        ``sgr_aware`` is *kwonly*-type arg.
-
-    :param align:
-    :param width:
-    :param sgr_aware:
-    """
-
-    ALIGN_FUNCS_SGR: t.Dict[Align, t.Callable[[str, int], str]] = {
-        Align.LEFT: ljust_sgr,
-        Align.CENTER: center_sgr,
-        Align.RIGHT: rjust_sgr,
-    }
-    ALIGN_FUNCS_RAW: t.Dict[Align, t.Callable[[str, int], str]] = {
-        Align.LEFT: lambda inp, w: inp.ljust(w),
-        Align.CENTER: lambda inp, w: inp.center(w),
-        Align.RIGHT: lambda inp, w: inp.rjust(w),
-    }
-
-    def __init__(self, align: Align, width: int, *, sgr_aware: bool = True):
-        super().__init__()
-        self._align_fn = self._get_align_fn(align, sgr_aware)
-        self._width = width
-
-    def _apply(self, inp: str, extra: t.Any = None) -> str:
-        return self._align_fn(inp, self._width)
-
-    def _get_align_fn(
-        self, align: Align, sgr_aware: bool
-    ) -> t.Callable[[str, int], str]:
-        if sgr_aware:
-            return self.ALIGN_FUNCS_SGR.get(align)
-        return self.ALIGN_FUNCS_SGR.get(align)
-
-
 class OmniPadder(IFilter[IT, IT]):
     def __init__(self, width: int = 1):
         self._padding: t.Dict[t.Type[IT], IT] = {
@@ -480,12 +422,12 @@ class WhitespaceRemover(StringLinearizer):
         super().__init__("")
 
 
-class AbstractNamedGroupsRefilter(StringReplacer, IRefilter, metaclass=ABCMeta):
+class AbstractNamedGroupsRefilter(IRefilter[str], StringReplacer, metaclass=ABCMeta):
     """
     Refilters -> rendering filters (str output)
     """
 
-    def __init__(self, pattern: t.Pattern[str], group_st_map: dict[str, FT]):
+    def __init__(self, pattern: PTT[str], group_st_map: dict[str, FT]):
         """
         :param group_st_map:  keys should be group names. "" matches any group
         """
@@ -493,7 +435,8 @@ class AbstractNamedGroupsRefilter(StringReplacer, IRefilter, metaclass=ABCMeta):
         self._groups_name_index: dict[int, str] = {
             v: k for k, v in pattern.groupindex.items()
         }
-        super().__init__(pattern, self._replace_by_key)
+        super(AbstractNamedGroupsRefilter, self).__init__(pattern, self._replace_by_key)
+        super(StringReplacer, self).__init__()
 
     def _replace_by_key(self, m: re.Match) -> str:
         return "".join(
@@ -507,11 +450,6 @@ class AbstractNamedGroupsRefilter(StringReplacer, IRefilter, metaclass=ABCMeta):
         if k == "noop" or k not in self._group_st_map.keys():
             return v
         return self._render(v, self._group_st_map.get(k))
-
-
-class AbstractRegexValRefilter(AbstractNamedGroupsRefilter, metaclass=ABCMeta):
-    def __init__(self, pattern: t.Pattern[str], val_st: Style):
-        super().__init__(pattern, {"val": val_st})
 
 
 # -----------------------------------------------------------------------------
@@ -1159,6 +1097,58 @@ class _TracerState:
         for col_idx, col_val in enumerate(row):
             self.cols_max_len[col_idx] = max(self.cols_max_len[col_idx], len(col_val))
         self.rows.append(row)
+
+
+def _trace(enabled: bool = True, level: int = LOGGING_TRACE, label: str = "Dump"):
+    def wrapper(origin: _F) -> _F:
+        def new_func(*args, **kwargs):
+            result = origin(*args, **kwargs)
+
+            if enabled and not kwargs.get("no_log", False):
+                logger.log(level=level, msg=dump(result, label))
+            return result
+
+        return update_wrapper(t.cast(_F, new_func), origin)
+
+    return wrapper
+
+
+def _measure(level: int = logging.DEBUG, template: str = "Done in %s"):
+    MAX_PREVIEW_LEN = 10
+
+    def wrapper(origin: _F) -> _F:
+        def format_sec(val: float) -> str:
+            if val >= 2:
+                return f"{val:.1f}s"
+            if val >= 2e-3:
+                return f"{val*1e3:.0f}ms"
+            if val >= 2e-6:
+                return f"{val*1e6:.0f}µs"
+            if val >= 1e-9:
+                return f"{val*1e9:.0f}ns"
+            return "<1ns"
+
+        def new_func(*args, **kwargs):
+            before_s = time.time_ns() / 1e9
+            result = origin(*args, **kwargs)
+            after_s = time.time_ns() / 1e9
+
+            if kwargs.get("no_log", False):
+                return result
+
+            preview = apply_filters(f"'{result!s}'", OmniSanitizer, StringLinearizer)
+            if len(preview) > MAX_PREVIEW_LEN - 2:
+                preview = preview[: MAX_PREVIEW_LEN - 2] + ".."
+            logger.log(
+                level=level,
+                msg=template % format_sec(after_s - before_s)
+                    + f" ({preview:.{MAX_PREVIEW_LEN}s})",
+            )
+            return result
+
+        return update_wrapper(t.cast(_F, new_func), origin)
+
+    return wrapper
 
 
 # -----------------------------------------------------------------------------

@@ -9,7 +9,14 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from .ansi import *
+from .ansi import (
+    make_clear_display,
+    make_clear_display_after_cursor,
+    make_clear_display_before_cursor,
+    make_clear_line,
+    make_clear_line_after_cursor,
+    make_clear_line_before_cursor,
+)
 from .color import resolve_color
 from .common import ExtendedEnum
 from .exception import LogicError

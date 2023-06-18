@@ -40,6 +40,30 @@ class ExtendedEnum(enum.Enum):
         return dict(map(lambda c: (c, c.value), cls))
 
 
+class Align(str, ExtendedEnum):
+    """
+    Align type.
+    """
+
+    LEFT = "<"
+    RIGHT = ">"
+    CENTER = "^"
+
+    @classmethod
+    def resolve(cls, input: str | Align | None, fallback: Align = LEFT):
+        if input is None:
+            return fallback
+        if isinstance(input, cls):
+            return input
+        for k, v in cls.dict().items():
+            if v == input:
+                return k
+        try:
+            return cls[input.upper()]
+        except KeyError as e:
+            raise KeyError(f"Invalid align name: {input}") from e
+
+
 def only(cls: t.Type, inp: Iterable[_T]) -> t.List[_T]:
     return [*(a for a in inp if isinstance(a, cls))]
 

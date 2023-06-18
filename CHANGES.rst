@@ -7,8 +7,15 @@ pending
 - |DOCS|  `Renderers` and `ANSI sequences review` pages
 - |TESTS|  `common` module
 - |NEW| auto-normalization of RGB values
+- |FIX| logging
+- |NEW| substitute, is_rt, cut, fit
+- |NEW| AbstractNamedGroupsRefilter, AbstractRegexValRefilter, AbstractStringTracer, AbstractTracer, IRefilter, OmniPadder
+- |NEW| highlighter._multiapply
+- |NEW| `Text` constructor fragment in args autodetect
+- |NEW| TestSgrVisualizer
+- |NEW| automated customizing of library structure diagram generation
 
-.. <@pending:a37cfc3>
+.. <@pending:99e2e7c>
 .. ^ blank line before should be kept
 
 

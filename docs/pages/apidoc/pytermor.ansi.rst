@@ -19,8 +19,6 @@
 
    .. autosummary::
    
-      compose_clear_line_fill_bg
-      compose_hyperlink
       enclose
       get_closing_seq
       get_resetter_codes

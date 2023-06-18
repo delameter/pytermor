@@ -1343,19 +1343,6 @@ def make_clear_line() -> SequenceCSI:
     return make_erase_in_line(2)
 
 
-def compose_clear_line_fill_bg(basis: SequenceSGR, line: int = None) -> str:
-    """
-
-    :param basis:
-    :param line:
-    """
-    if line is not None:
-        result = make_set_cursor(line, 1)
-    else:
-        result = make_set_cursor_column(1)
-    return f'{result}{basis}{make_clear_line()}'
-
-
 # CSI / Private mode sequences assembly ---------------------------------------
 
 
@@ -1414,22 +1401,6 @@ def make_hyperlink() -> SequenceOSC:
         compose_hyperlink()`.
     """
     return SequenceOSC(8, "", "")
-
-
-def compose_hyperlink(url: str, label: str = None) -> str:
-    """
-    Syntax: ``(OSC 8 ; ;) (url) (ST) (label) (OSC 8 ; ;) (ST)``, where
-    `OSC <SequenceOSC>` is ``ESC ]``.
-
-    :param url:
-    :param label:
-    :example:  ``ESC ]8;;http://localhost ESC \\Text ESC ]8;; ESC \\``
-    """
-
-    return (
-        f"{make_hyperlink()}{url}{SequenceST()}{label or url}"
-        f"{make_hyperlink()}{SequenceST()}"
-    )
 
 
 # Fp sequences assembly -------------------------------------------------------
