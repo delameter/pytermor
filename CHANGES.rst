@@ -14,8 +14,9 @@ pending
 - |NEW| `Text` constructor fragment in args autodetect
 - |NEW| TestSgrVisualizer
 - |NEW| automated customizing of library structure diagram generation
+- |REMOVE| `AbstractRegexValRefilter`, `StringAligner`
 
-.. <@pending:99e2e7c>
+.. <@pending:2814a6d>
 .. ^ blank line before should be kept
 
 

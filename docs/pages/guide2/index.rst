@@ -37,8 +37,8 @@ Core methods
 .. autosummary::
 
    ansi.SequenceSGR
-   ansi.make_color_256
-   ansi.make_color_rgb
+   term.make_color_256
+   term.make_color_rgb
    color.Color256.to_sgr
 
 

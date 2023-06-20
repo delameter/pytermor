@@ -21,7 +21,6 @@ API reference
    filter
    log
    numfmt
-   parser
    renderer
    style
    template

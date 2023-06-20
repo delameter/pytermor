@@ -17,6 +17,7 @@ from time import perf_counter_ns
 from timeit import timeit
 
 import pytermor as pt
+import pytermor.term
 from pytermor import SgrRenderer, wait_key, Highlighter
 from pytermor.term import confirm
 from pytermor.exception import UserCancel, UserAbort
@@ -255,7 +256,7 @@ class Printer:
             return
         self.prev_update_time = time.time_ns()
 
-        status = "\r" + pt.ansi.make_clear_line().assemble()
+        status = "\r" + pytermor.term.make_clear_line().assemble()
         status += f" RUN "
         status += pt.render(f"{self.int_formatter.format(run):<3s}" + " [")
         status += (

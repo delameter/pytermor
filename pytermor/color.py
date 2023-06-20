@@ -19,19 +19,11 @@ import re
 import typing as t
 from abc import ABCMeta, abstractmethod
 
-from .ansi import (
-    BG_HI_COLORS,
-    ColorTarget,
-    HI_COLORS,
-    NOOP_SEQ,
-    SeqIndex,
-    SequenceSGR,
-    make_color_256,
-    make_color_rgb,
-)
+from .ansi import BG_HI_COLORS, ColorTarget, HI_COLORS, NOOP_SEQ, SequenceSGR
 from .config import get_config
 from .conv import HSV, RGB, hex_to_hsv, hex_to_rgb
 from .exception import ColorCodeConflictError, ColorNameConflictError, LogicError
+from .term import make_color_256, make_color_rgb
 
 CDT = t.TypeVar("CDT", int, str)
 """
@@ -728,12 +720,6 @@ class _NoopColor(IColor):
 
 
 class _DefaultColor(IColor):
-    _SGR_MAP = {
-        ColorTarget.FG: SeqIndex.COLOR_OFF,
-        ColorTarget.BG: SeqIndex.BG_COLOR_OFF,
-        ColorTarget.UNDERLINE: SeqIndex.UNDERLINED_OFF,
-    }
-
     def __init__(self):
         super().__init__(0)
 
@@ -742,7 +728,7 @@ class _DefaultColor(IColor):
         target: ColorTarget = ColorTarget.FG,
         upper_bound: t.Type[IColor] = None,
     ) -> SequenceSGR:
-        return self._SGR_MAP.get(target, NOOP_SEQ)
+        return target.resetter
 
     def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
         if target in [ColorTarget.FG, ColorTarget.BG]:

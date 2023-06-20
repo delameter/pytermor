@@ -7,21 +7,23 @@
 from __future__ import annotations
 
 import re
+import typing as t
 from dataclasses import dataclass
 
-from .ansi import (
+from .color import resolve_color
+from .common import ExtendedEnum
+from .exception import LogicError
+from .log import _logger, measure
+from .style import MergeMode, NOOP_STYLE, Style
+from .term import (
     make_clear_display,
     make_clear_display_after_cursor,
     make_clear_display_before_cursor,
     make_clear_line,
     make_clear_line_after_cursor,
     make_clear_line_before_cursor,
+    make_reset_cursor,
 )
-from .color import resolve_color
-from .common import ExtendedEnum
-from .exception import LogicError
-from .log import logger
-from .style import MergeMode, NOOP_STYLE, Style
 from .text import Fragment, Text, apply_style_words_selective
 
 
@@ -81,12 +83,16 @@ class TemplateEngine:
     def __init__(self, custom_styles: t.Dict[str, Style] = None):
         self._user_styles: t.Dict[str, Style] = custom_styles or {}
 
+    @measure(
+        template_enter_fn=lambda tpl: f"Substituting the template ({len(tpl)})",
+        template_exit="Substituted in %s",
+    )
     def substitute(self, tpl: str) -> Text:
         result = Text()
         tpl_cursor = 0
         style_buffer = NOOP_STYLE
         st_opts = []
-        logger.debug(f"Parsing the template ({len(tpl)})")
+        _logger.debug(f"Substituting the template ({len(tpl)})")
 
         tpl_nocom = self._COMMENT_REGEX.sub("", tpl)
         for tag_match in self._TAG_REGEX.finditer(tpl_nocom):
@@ -107,7 +113,7 @@ class TemplateEngine:
             elif tagr.pos:
                 result += Fragment(make_reset_cursor().assemble(), None)
             elif tagr.clear:
-                result += Fragment(self._CLEAR_TO_SEQ.get(tagr.clear, NOOP_SEQ), None)
+                result += Fragment(self._CLEAR_TO_SEQ.get(tagr.clear, ""), None)
 
             style_buffer = NOOP_STYLE
             st_opts = []

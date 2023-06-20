@@ -11,24 +11,22 @@ Library methods rewritten for correct work with strings containing control seque
 from __future__ import annotations
 
 import codecs
-import logging
 import math
 import os
 import re
-import time
 import typing as t
 from abc import ABCMeta, abstractmethod
 from collections import deque
 from dataclasses import dataclass, field
-from functools import lru_cache, reduce, update_wrapper
+from functools import lru_cache, reduce
 from math import ceil, floor
 from typing import Union
 
-from .common import chunk, Align
+from .ansi import ESCAPE_SEQ_REGEX
+from .common import Align, chunk
 from .exception import ArgTypeError, LogicError
-from .log import logger, LOGGING_TRACE
+from .log import get_logger
 from .style import FT, Style
-from .parser import CSI_SEQ_REGEX, ESCAPE_SEQ_REGEX, SGR_SEQ_REGEX
 from .term import get_terminal_width
 
 codecs.register_error(
@@ -50,7 +48,7 @@ def padv(n: int) -> str:
     return "\n" * n
 
 
-def cut(s: str, max_len: int, align: Align | str = Align.LEFT, overflow="…") -> str :
+def cut(s: str, max_len: int, align: Align | str = Align.LEFT, overflow="…") -> str:
     """
     cut
 
@@ -136,6 +134,24 @@ def rjust_sgr(string: str, width: int, fillchar: str = " ") -> str:
 
 # =============================================================================
 # Filters
+
+SGR_SEQ_REGEX = re.compile(R"(?P<esc>\x1b)(?P<csi>\[)(?P<param>[0-9;:]*)(?P<final>m)")
+"""
+Regular expression that matches :term:`SGR` sequences. Group 3 can be used for 
+sequence params extraction.
+
+:meta hide-value:
+"""
+
+CSI_SEQ_REGEX = re.compile(
+    R"(?P<esc>\x1b)(?P<csi>\[)(?P<param>([0-9;:<=>?])*)(?P<final>[@A-Za-z])"
+)
+"""
+Regular expression that matches CSI sequences (a superset which includes 
+:term:`SGRs <SGR>`). 
+
+:meta hide-value:
+"""
 
 CONTROL_CHARS = [*range(0x00, 0x08 + 1), *range(0x0E, 0x1F + 1), 0x7F]
 """
@@ -244,8 +260,10 @@ class IFilter(t.Generic[IT, OT], metaclass=ABCMeta):
                  as well as be different -- that depends on filter type.
         """
         IFilter._stack.append(self.get_abbrev_name())
-        logger.debug(
-            f"Applying filter [{len(IFilter._stack)}] {self!r:20.20s} ({'.'.join(IFilter._stack)})"
+        get_logger().debug(
+            f"Applying filter [{len(IFilter._stack)}] "
+            f"{fit(repr(self), 20)} "
+            f"({'.'.join(IFilter._stack)})"
         )
         result = self._apply(inp, extra)
         IFilter._stack.pop()
@@ -283,6 +301,7 @@ class IRefilter(IFilter[IT, str], metaclass=ABCMeta):
     """
     Refilters -> rendering filters (str output)
     """
+
     @abstractmethod
     def _render(self, v: IT, st: Style) -> str:
         ...
@@ -1099,61 +1118,6 @@ class _TracerState:
         self.rows.append(row)
 
 
-def _trace(enabled: bool = True, level: int = LOGGING_TRACE, label: str = "Dump"):
-    def wrapper(origin: _F) -> _F:
-        def new_func(*args, **kwargs):
-            result = origin(*args, **kwargs)
-
-            if enabled and not kwargs.get("no_log", False):
-                logger.log(level=level, msg=dump(result, label))
-            return result
-
-        return update_wrapper(t.cast(_F, new_func), origin)
-
-    return wrapper
-
-
-def _measure(level: int = logging.DEBUG, template: str = "Done in %s"):
-    MAX_PREVIEW_LEN = 10
-
-    def wrapper(origin: _F) -> _F:
-        def format_sec(val: float) -> str:
-            if val >= 2:
-                return f"{val:.1f}s"
-            if val >= 2e-3:
-                return f"{val*1e3:.0f}ms"
-            if val >= 2e-6:
-                return f"{val*1e6:.0f}µs"
-            if val >= 1e-9:
-                return f"{val*1e9:.0f}ns"
-            return "<1ns"
-
-        def new_func(*args, **kwargs):
-            before_s = time.time_ns() / 1e9
-            result = origin(*args, **kwargs)
-            after_s = time.time_ns() / 1e9
-
-            if kwargs.get("no_log", False):
-                return result
-
-            preview = apply_filters(f"'{result!s}'", OmniSanitizer, StringLinearizer)
-            if len(preview) > MAX_PREVIEW_LEN - 2:
-                preview = preview[: MAX_PREVIEW_LEN - 2] + ".."
-            logger.log(
-                level=level,
-                msg=template % format_sec(after_s - before_s)
-                    + f" ({preview:.{MAX_PREVIEW_LEN}s})",
-            )
-            return result
-
-        return update_wrapper(t.cast(_F, new_func), origin)
-
-    return wrapper
-
-
-# -----------------------------------------------------------------------------
-
-
 @lru_cache
 def _get_tracer(tracer_cls: t.Type[AbstractTracer], max_width: int) -> AbstractTracer:
     return tracer_cls(max_width)
@@ -1190,6 +1154,9 @@ def get_max_utf8_bytes_char_length(string: str) -> int:
         if regex.search(string):
             return length
     return 0
+
+
+# -----------------------------------------------------------------------------
 
 
 def apply_filters(inp: IT, *args: Union[IFilter, t.Type[IFilter]]) -> OT:

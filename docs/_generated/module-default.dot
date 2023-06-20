@@ -1,7 +1,7 @@
 # placeholders:
 #   %s (nodes and edges)
-#   $EDGE_COLOR
-#   $LABEL_COLOR
+#   #101010
+#   #000000
 
 digraph G {
     pad = 0.25;
@@ -11,10 +11,10 @@ digraph G {
     rankdir = BT;
 
     node [style="filled",fontname="ProFont for Powerline",margin="0.2,0.0",fontsize=12,shape=folder,width=1.0,height=.5];
-    edge [color="$EDGE_COLOR"];
+    edge [color="#101010"];
 
     subgraph legend {
-        node [fontsize=14,fontcolor="$LABEL_COLOR"];
+        node [fontsize=14,fontcolor="#000000"];
         edge [style="invis"];
 
         legend_title [shape=plain,fillcolor="none",label="Abstraction level"];

@@ -10,9 +10,9 @@ import typing
 import pytest
 from pytest import mark
 
-from pytermor import compose_clear_line_fill_bg, compose_hyperlink
 from pytermor.ansi import *
 from pytermor.ansi import _PAIRITY_REGISTRY
+from pytermor.term import *
 from tests import format_test_params
 
 

@@ -22,7 +22,7 @@ from copy import copy
 from typing import overload
 
 from .color import IColor
-from .common import flatten1, Align
+from .common import Align, flatten1
 from .exception import ArgTypeError, LogicError
 from .renderer import IRenderer, OutputMode, RendererManager, SgrRenderer
 from .style import FT, NOOP_STYLE, Style, is_ft, make_style
@@ -189,7 +189,6 @@ class Fragment(IRenderable):
 
     def __add__(self, other: str | Fragment) -> Fragment | Text:
         if isinstance(other, str):
-            #return Fragment(self._string + other, self._style)
             other = Fragment(other)
         return Text(self, other)
 
@@ -198,7 +197,6 @@ class Fragment(IRenderable):
 
     def __radd__(self, other: str | Fragment) -> Fragment | Text:
         if isinstance(other, str):
-            #return Fragment(other + self._string, self._style)
             other = Fragment(other)
         return Text(other, self)
 
@@ -682,8 +680,6 @@ def render(
     string: RT | t.Iterable[RT] = "",
     fmt: FT = NOOP_STYLE,
     renderer: IRenderer = None,
-    *,
-    no_log: bool = False,  # noqa
 ) -> str | t.List[str]:
     """
     .
@@ -691,7 +687,6 @@ def render(
     :param string: 2
     :param fmt: 2
     :param renderer: 2
-    :param no_log: 2
     :return:
     """
     if string == "" and not fmt:
@@ -848,7 +843,6 @@ def wrap_sgr(
         final_line = re.sub(_PRIVATE_REPLACER, lambda _: sgrs.pop(0), wrapped_line)
         result += final_line + "\n"
     return result
-
 
 
 def apply_style_words_selective(string: str, st: Style) -> t.Sequence[Fragment]:

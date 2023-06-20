@@ -9,6 +9,14 @@
 
    
    
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_logger
+      init_logger
+      measure
+   
    
 
    

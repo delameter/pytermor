@@ -8,19 +8,18 @@ utilnum
 """
 from __future__ import annotations
 
-from collections.abc import Iterable
-
-from .log import logger
 import math
 import re
 import typing as t
 from abc import abstractmethod
+from collections.abc import Iterable
 from dataclasses import dataclass
 from math import floor, isclose, log, log10, trunc
 
+from .common import Align
 from .cval import cv
 from .exception import ConflictError
-from .common import Align
+from .log import get_logger
 from .style import Style, Styles, merge_styles
 from .text import Fragment, IRenderable, RT, Text
 
@@ -104,7 +103,7 @@ class Highlighter:
         9: STYLE_GIG,     12: STYLE_TER,  15: STYLE_PET,
     }
 
-    _UNITLESS_LENGTH_THRESHOLD = 6
+    _UNITLESS_LENGTH_THRESHOLD = 3
     # fmt: on
 
     def colorize(self, string: str) -> Text:
@@ -149,7 +148,8 @@ class Highlighter:
         elif len(digits) > self._UNITLESS_LENGTH_THRESHOLD:
             return [
                 *self._multiapply(intp),
-                *self._multiapply(frac, reverse=True),
+                Fragment(frac[:1]),
+                *self._multiapply(frac[1:], reverse=True),
                 Fragment(sep),
                 # Fragment(pfx),   # both should be empty
                 # Fragment(unit),  # in this branch
@@ -172,12 +172,14 @@ class Highlighter:
     def _multiapply(self, num: str, *, reverse: bool = False) -> Iterable[Fragment]:
         def _get_style(oom: int, fade: int) -> Style:
             base = self._OOM_MAP.get(abs(oom), self.STYLE_DEFAULT)
+            if abs(oom) < 3:
+                return base
             if 1 <= fade <= 3:
                 return Style(base, bold=True)
-            return Style(self.STYLE_DEFAULT, dim=(fade % 6 < 3))
+            return Style(self.STYLE_DEFAULT, dim=((oom-1)%6) < 3)
 
         def _iter(numpart: str, oom=0, maxfade=0) -> Fragment:
-            st = _get_style(oom, maxfade - oom)
+            st = _get_style(oom, maxfade-oom)
             if len(numpart) > 3:
                 if reverse:
                     yield Fragment(numpart[:3], st)
@@ -499,7 +501,7 @@ class StaticFormatter(NumFormatter):
             val_str = f"{trunc(eff_val):d}"
 
         if len(val_str) > self._max_value_len:
-            logger.warning(
+            get_logger().warning(
                 "Inconsistent result -- max val length %d exceeded (%d): '%s' <- %f"
                 % (self._max_value_len, len(val_str), val_str, origin_val)
             )

@@ -9,6 +9,8 @@
 
    .. autosummary::
    
+      SGR_SEQ_REGEX
+      CSI_SEQ_REGEX
       CONTROL_CHARS
       WHITESPACE_CHARS
       PRINTABLE_CHARS

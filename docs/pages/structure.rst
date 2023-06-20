@@ -6,7 +6,7 @@ Library structure
 
 .. only:: latex
 
-   .. graphviz:: /_generated/module.dot
+   .. graphviz:: /_generated/module-default.dot
       :caption: Module dependency graph [#]_
 
    .. [#] Overly common modules (``exception``, ``log``, ``config`` and ``common`` itself) are not shown, as they turn the graph into a mess. Same applies to internal modules which name starts with ``_``.
@@ -14,8 +14,12 @@ Library structure
 
 .. only:: html
 
-   .. graphviz:: /_generated/module.dot
+   .. graphviz:: /_generated/module-dark.dot
+      :class: graphviz-dark
+
+   .. graphviz:: /_generated/module-default.dot
       :caption: Module dependency graph [#]_
+      :class: graphviz-default
 
 
    .. [#] Overly common modules (``exception``, ``log``, ``config`` and ``common`` itself) are not shown, as they turn the graph into a mess. Same applies to internal modules which name starts with ``_``.
@@ -33,7 +37,6 @@ Library structure
    filter
    log
    numfmt
-   parser
    renderer
    style
    template

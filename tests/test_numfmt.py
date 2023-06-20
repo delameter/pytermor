@@ -11,22 +11,21 @@ import pytest
 
 from pytermor import Fragment, OutputMode, Style, Text, render
 from pytermor.numfmt import (
-    format_thousand_sep,
-    format_auto_float,
-    format_time_delta,
-    DualFormatter,
     DualBaseUnit,
+    DualFormatter,
+    DualFormatterRegistry,
+    StaticFormatter,
     dual_registry,
+    format_auto_float,
+    format_bytes_human,
     format_si,
     format_si_binary,
-    format_bytes_human,
-    StaticFormatter,
-    formatter_si,
-    format_time_ms,
     format_time,
-    format_time_delta_shortest,
+    format_time_delta,
     format_time_delta_longest,
-    DualFormatterRegistry,
+    format_time_delta_shortest,
+    format_time_ms,
+    formatter_si,
     highlight,
 )
 from tests import format_test_params
@@ -42,6 +41,73 @@ class TestHighlighter:
             ("0", [Fragment("0", Style(fg="gray"))]),
             ("-0", ["-" + Fragment("0", Style(fg="gray"))]),
             (
+                "0.000",
+                [
+                    Fragment("0", Style(fg="gray")),
+                    Fragment(".000", Style(fg="gray", dim=True)),
+                ],
+            ),
+            (
+                "0.0001",
+                [
+                    Fragment("0.000"),
+                    Fragment("1", Style(dim=True)),
+                ],
+            ),
+            (
+                "890.789",
+                [
+                    Fragment("890"),
+                    Fragment(".789"),
+                ],
+            ),
+            (
+                "8456.78901",
+                [
+                    Fragment("8", Style(fg="blue", bold=True)),
+                    Fragment("456"),
+                    Fragment(".789"),
+                    Fragment("01", DIM),
+                ],
+            ),
+            (
+                "567890",
+                [
+                    Fragment("567", Style(fg="blue", bold=True)),
+                    Fragment("890"),
+                ],
+            ),
+            (
+                "234567890",
+                [
+                    Fragment("234", Style(fg="cyan", bold=True)),
+                    Fragment("567", DIM),
+                    Fragment("890"),
+                ],
+            ),
+            (
+                "890123456.78901234567890",
+                [
+                    Fragment("890", Style(fg="cyan", bold=True)),
+                    Fragment("123", DIM),
+                    Fragment("456"),
+                    Fragment(".789"),
+                    Fragment("012", DIM),
+                    Fragment("345"),
+                    Fragment("678", DIM),
+                    Fragment("90"),
+                ],
+            ),
+            (
+                "901234567890",
+                [
+                    Fragment("901", Style(fg="green", bold=True)),
+                    Fragment("234"),
+                    Fragment("567", DIM),
+                    Fragment("890"),
+                ],
+            ),
+            (
                 "678901234567890",
                 [
                     Fragment("678", Style(fg="yellow", bold=True)),
@@ -52,33 +118,11 @@ class TestHighlighter:
                 ],
             ),
             (
-                "901234567890",
-                [
-                    Fragment("901", Style(fg="green", bold=True)),
-                    Fragment("234", DIM),
-                    Fragment("567"),
-                    Fragment("890", DIM),
-                ],
-            ),
-            (
                 "-345678901234567890",
                 [
                     Fragment("-"),
                     Fragment("345", Style(fg="red", bold=True)),
-                    Fragment("678", DIM),
-                    Fragment("901"),
-                    Fragment("234", DIM),
-                    Fragment("567"),
-                    Fragment("890", DIM),
-                ],
-            ),
-            (
-                "890123456.78901234567890",
-                [
-                    Fragment("890", Style(fg="cyan", bold=True)),
-                    Fragment("123", DIM),
-                    Fragment("456"),
-                    Fragment(".78"),
+                    Fragment("678"),
                     Fragment("901", DIM),
                     Fragment("234"),
                     Fragment("567", DIM),

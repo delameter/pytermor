@@ -45,7 +45,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.inheritance_diagram",
     "sphinx.ext.graphviz",
-    # "sphinx.ext.doctest",  # replaced with sybil
+    "sphinx.ext.doctest",  # replaced with sybil
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
     "sphinx_design",  # <<<MAKE_DOCS_MAN<<<
@@ -231,7 +231,7 @@ intersphinx_disabled_reftypes = ["*"]  # 'py:*'
 # graphviz_output_format = "svg"
 graphviz_output_format = "png"
 
-graphviz_dot_args = ["-Gbgcolor=transparent", "-Nfontname=ASM-Bold"]
+graphviz_dot_args = ["-Gbgcolor=transparent"] # "-Nfontname=ASM-Bold"
 
 # -- Inheritance graph --------------------------------------------------------
 

@@ -22,7 +22,7 @@ from .ansi import ColorTarget, NOOP_SEQ, SeqIndex, SequenceSGR, get_closing_seq
 from .color import Color16, Color256, ColorRGB, IColor, NOOP_COLOR
 from .common import ExtendedEnum, get_qname
 from .config import get_config
-from .log import logger
+from .log import _trace_render, get_logger
 from .style import FT, NOOP_STYLE, Style, Styles, make_style
 
 _T = t.TypeVar("_T", bound="IRenderer")
@@ -65,7 +65,9 @@ class RendererManager:
 
         renderer_classname: str = get_config().renderer_class
         if not (renderer_class := getattr(__import__(__package__), renderer_classname)):
-            logger.warning(f"Renderer class does not exist: '{renderer_classname}'")
+            get_logger().warning(
+                f"Renderer class does not exist: '{renderer_classname}'"
+            )
             renderer_class = SgrRenderer
         cls._default = renderer_class()
 
@@ -129,7 +131,7 @@ class IRenderer(metaclass=ABCMeta):
         return self.__class__()
 
     def __repr__(self):
-        return self.__class__.__qualname__ + "[]"
+        return get_qname(self) + "[]"
 
 
 class OutputMode(ExtendedEnum):
@@ -279,18 +281,20 @@ class SgrRenderer(IRenderer):
         self._color_upper_bound: t.Type[IColor] | None = self._COLOR_UPPER_BOUNDS.get(
             self._output_mode, None
         )
-
-        logger.debug(
-            f"Instantiated {self.__class__.__qualname__}"
-            f"[{self._output_mode.name}, "
-            f"upper bound {get_qname(self._color_upper_bound)}]"
-        )
+        get_logger().debug(f"Instantiated {self!r} => {getattr(io, 'name', repr(io))}")
 
     def __hash__(self) -> int:
         # although this renderer is immutable, its state can be set up differently
         # on initialization. ``_color_upper_bound`` is a derived variable from
         # ``_output_mode`` with one-to-one mapping, thus it can be omitted.
         return _digest(self.__class__.__qualname__ + "." + self._output_mode.value)
+
+    def __repr__(self):
+        attrs = [
+            self._output_mode.name,
+            get_qname(self._color_upper_bound),
+        ]
+        return f"{get_qname(self)}[{', '.join(attrs)}]"
 
     @property
     def is_caching_allowed(self) -> bool:
@@ -300,6 +304,7 @@ class SgrRenderer(IRenderer):
     def is_format_allowed(self) -> bool:
         return self._output_mode is not OutputMode.NO_ANSI
 
+    @_trace_render
     def render(self, string: str, fmt: FT = None) -> str:
         style = make_style(fmt)
         opening_seq = (
@@ -323,6 +328,8 @@ class SgrRenderer(IRenderer):
         return SgrRenderer(self._output_mode)
 
     def _determine_output_mode(self, arg_value: OutputMode, io: t.IO) -> OutputMode:
+        logger = get_logger()
+        ioname = "<" + getattr(io, "name", "?").strip("<>") + ">"
         if arg_value is not OutputMode.AUTO:
             logger.debug(f"Using explicit value from the constructor arg: {arg_value}")
             return arg_value
@@ -336,10 +343,10 @@ class SgrRenderer(IRenderer):
         term = os.environ.get("TERM", None)
         colorterm = os.environ.get("COLORTERM", None)
 
-        logger.debug(f"Determining output mode automatically: {config_forced_value}")
-        logger.debug(f"{get_qname(io)} is a terminal: {isatty}")
-        logger.debug(f"Environment: TERM='{term}'")
-        logger.debug(f"Environment: COLORTERM='{colorterm}'")
+        logger.debug(f"{ioname} Determining output mode automatically: {config_forced_value}")
+        logger.debug(f"{ioname} {get_qname(io)} is a terminal: {isatty}")
+        logger.debug(f"{ioname} Environment: TERM='{term}'")
+        logger.debug(f"{ioname} Environment: COLORTERM='{colorterm}'")
 
         if not isatty:
             return OutputMode.NO_ANSI
@@ -412,6 +419,7 @@ class TmuxRenderer(IRenderer):
         """
         return True
 
+    @_trace_render
     def render(self, string: str, fmt: FT = None) -> str:
         style = make_style(fmt)
         command_open, command_close = self._render_attributes(style)
@@ -530,6 +538,7 @@ class HtmlRenderer(IRenderer):
         """
         return True
 
+    @_trace_render
     def render(self, string: str, fmt: FT = None) -> str:
         style = make_style(fmt)
         opening_tag, closing_tag = self._render_attributes(style)
@@ -632,6 +641,7 @@ class SgrDebugger(SgrRenderer):
             return self._format_override
         return super().is_format_allowed
 
+    @_trace_render
     def render(self, string: str, fmt: FT = None) -> str:
         origin = super().render(string, fmt)
         return self.REPLACE_REGEX.sub(r"(ǝ\1)", origin)
@@ -674,6 +684,7 @@ class TemplateRenderer(IRenderer):
         """
         return True
 
+    @_trace_render
     def render(self, string: str, fmt: FT = None) -> str:
         pass
 

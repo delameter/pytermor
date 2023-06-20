@@ -12,8 +12,6 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
-from .log import logger
-
 
 def _bool_field(key: str, default: bool = False):
     return field(default_factory=lambda k=key, d=default: os.getenv(k, d))
@@ -74,10 +72,11 @@ class Config:
 
     def __post_init__(self):
         attr_dict = {k: v for (k, v) in self.__dict__.items()}
-        logger.info(f"Config initialized with: {attr_dict!s}")
+        from .log import get_logger
+        get_logger().info(f"Config initialized with: {attr_dict!s}")
 
 
-_config = Config()
+_config = None
 
 
 def get_config() -> Config:

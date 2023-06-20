@@ -26,11 +26,12 @@ perform partial attribute termination, e.g. for overlapping styles rendering).
 from __future__ import annotations
 
 import enum
+import re
 import typing as t
 from abc import ABCMeta, abstractmethod
 from copy import copy
 from enum import unique
-from functools import total_ordering
+from functools import lru_cache, total_ordering
 from typing import Any
 
 from .common import get_qname
@@ -343,6 +344,7 @@ class SequenceCSI(SequenceFe):
     Sequences of this type are used to control text formatting,
     change cursor position, erase screen and more.
 
+    >>> from pytermor import *
     >>> make_clear_line().assemble()
     '\x1b[2K'
 
@@ -603,6 +605,8 @@ class SubtypedParam:
         return self._value == other._value and self._subtype == other._subtype
 
 
+# -----------------------------------------------------------------------------
+
 class IntCode(enum.IntEnum):
     """
     Complete or almost complete list of reliably working SGR param integer codes.
@@ -712,13 +716,6 @@ class IntCode(enum.IntEnum):
     EXTENDED_MODE_RGB = 2
 
 
-@unique
-class ColorTarget(enum.Enum):
-    FG = enum.auto()
-    BG = enum.auto()
-    UNDERLINE = enum.auto()
-
-
 class SeqIndex:
     """
     Registry of static sequences that can be utilized without implementing
@@ -798,6 +795,9 @@ class SeqIndex:
 
     OVERLINED_OFF = SequenceSGR(IntCode.OVERLINED_OFF)
     """ Disable overlining. """
+
+    UNDERLINE_COLOR_OFF = SequenceSGR(IntCode.UNDERLINE_COLOR_OFF)
+    """ Reset underline color. """
 
     # text colors
 
@@ -901,6 +901,7 @@ class _SgrPairityRegistry:
     Internal class providing methods for mapping SGRs to a
     complement (closing) SGRs, also referred to as "resetters".
     """
+
     def __init__(self):
         self._code_to_resetter_map: t.Dict[int | t.Tuple[int, ...], SequenceSGR] = dict()
         self._resetter_codes: t.Set[int] = set()
@@ -1014,7 +1015,20 @@ class _SgrPairityRegistry:
         return self._resetter_codes
 
 
-# SGR sequences assembly ------------------------------------------------------
+
+@unique
+class ColorTarget(enum.Enum):
+    FG = (IntCode.COLOR_EXTENDED, SeqIndex.COLOR_OFF)
+    BG = (IntCode.BG_COLOR_EXTENDED, SeqIndex.BG_COLOR_OFF)
+    UNDERLINE = (IntCode.UNDERLINE_COLOR_EXTENDED, SeqIndex.UNDERLINE_COLOR_OFF)
+
+    def __init__(self, open_code: int, resetter: SequenceSGR = None):
+        self.open_code = open_code
+        self.resetter = resetter
+
+
+_PAIRITY_REGISTRY = _SgrPairityRegistry()
+
 
 def get_closing_seq(opening_seq: SequenceSGR) -> SequenceSGR:
     """
@@ -1037,387 +1051,6 @@ def enclose(opening_seq: SequenceSGR, string: str) -> str:
 
 def get_resetter_codes() -> t.Set[int]:
     return _PAIRITY_REGISTRY.get_resetter_codes()
-
-
-def make_color_256(code: int, target: ColorTarget = ColorTarget.FG) -> SequenceSGR:
-    """
-    Wrapper for creation of `SequenceSGR` that sets foreground
-    (or background) to one of 256-color palette value.:
-
-        >>> make_color_256(141)
-        <SGR[38;5;141m]>
-
-    .. seealso ::
-        `Color256` class.
-
-    :param code:  Index of the color in the palette, 0 -- 255.
-    :param target:
-    :example:     ``ESC [38;5;141m``
-    """
-
-    SequenceSGR.validate_extended_color(code)
-    return SequenceSGR(_COLOR_TARGET_MAP.get(target), IntCode.EXTENDED_MODE_256, code)
-
-
-def make_color_rgb(
-    r: int, g: int, b: int, target: ColorTarget = ColorTarget.FG
-) -> SequenceSGR:
-    """
-    Wrapper for creation of `SequenceSGR` operating in True Color mode (16M).
-    Valid values for ``r``, ``g`` and ``b`` are in range of [0; 255]. This range
-    linearly translates into [:hex:`0x00`; :hex:`0xFF`] for each channel. The result
-    value is composed as ":hex:`#RRGGBB`". For example, a sequence with color of
-    :hex:`#ff3300` can be created with::
-
-        >>> make_color_rgb(255, 51, 0)
-        <SGR[38;2;255;51;0m]>
-
-    .. seealso ::
-        `ColorRGB` class.
-
-    :param r:  Red channel value, 0 -- 255.
-    :param g:  Blue channel value, 0 -- 255.
-    :param b:  Green channel value, 0 -- 255.
-    :param target:
-    :example:  ``ESC [38;2;255;51;0m``
-    """
-
-    [SequenceSGR.validate_extended_color(color) for color in [r, g, b]]
-    return SequenceSGR(_COLOR_TARGET_MAP.get(target), IntCode.EXTENDED_MODE_RGB, r, g, b)
-
-
-# CSI / Cursor position control sequences assembly ----------------------------
-
-
-def make_reset_cursor() -> SequenceCSI:
-    """
-    Create :abbr:`CUP (Cursor Position)` sequence without params, which moves
-    the cursor to top left corner of the screen. See `make_set_cursor()`.
-
-    :example:  ``ESC [H``
-    """
-    return make_set_cursor()
-
-
-def make_set_cursor(line: int = 1, column: int = 1) -> SequenceCSI:
-    """
-    Create :abbr:`CUP (Cursor Position)` sequence that moves the cursor to
-    specified amount `line` and `column`. The values are 1-based, i.e. (1; 1)
-    is top left corner of the screen.
-
-    .. note ::
-        Both sequence params are optional and defaults to 1 if omitted, e.g.
-        ``ESC [;3H`` is effectively ``ESC [1;3H``, and ``ESC [4H`` is the
-        same as ``ESC [4;H`` or ``ESC [4;1H``.
-
-    :example:  ``ESC [9;15H``
-    """
-    SequenceCSI.validate_line_abs_value(line)
-    SequenceCSI.validate_column_abs_value(column)
-    return SequenceCSI("H", line, column, abbr="CUP")
-
-
-def make_move_cursor_up(lines: int = 1) -> SequenceCSI:
-    """
-    Create :abbr:`CUU (Cursor Up)` sequence that moves the cursor up by
-    specified amount of `lines`. If the cursor is already at the top of the
-    screen, this has no effect.
-
-    :example:  ``ESC [2A``
-    """
-    SequenceCSI.validate_line_rel_value(lines)
-    return SequenceCSI("A", lines, abbr="CUU")
-
-
-def make_move_cursor_down(lines: int = 1) -> SequenceCSI:
-    """
-    Create :abbr:`CUD (Cursor Down)` sequence that moves the cursor down by
-    specified amount of `lines`. If the cursor is already at the bottom of the
-    screen, this has no effect.
-
-    :example:  ``ESC [3B``
-    """
-    SequenceCSI.validate_line_rel_value(lines)
-    return SequenceCSI("B", lines, abbr="CUD")
-
-
-def make_move_cursor_left(columns: int = 1) -> SequenceCSI:
-    """
-    Create :abbr:`CUB (Cursor Back)` sequence that moves the cursor left by
-    specified amount of `columns`. If the cursor is already at the left edge of
-    the screen, this has no effect.
-
-    :example:  ``ESC [4D``
-    """
-    SequenceCSI.validate_column_rel_value(columns)
-    return SequenceCSI("D", columns, abbr="CUB")
-
-
-def make_move_cursor_right(columns: int = 1) -> SequenceCSI:
-    """
-    Create :abbr:`CUF (Cursor Forward)` sequence that moves the cursor right by
-    specified amount of `columns`. If the cursor is already at the right edge
-    of the screen, this has no effect.
-
-    :example:  ``ESC [5C``
-    """
-    SequenceCSI.validate_column_rel_value(columns)
-    return SequenceCSI("C", columns, abbr="CUF")
-
-
-def make_move_cursor_up_to_start(lines: int = 1) -> SequenceCSI:
-    """
-    Create :abbr:`CPL (Cursor Previous Line)` sequence that moves the cursor
-    to the beginning of the line and up by specified amount of `lines`.
-
-    :example:  ``ESC [2F``
-    """
-    SequenceCSI.validate_line_rel_value(lines)
-    return SequenceCSI("F", lines, abbr="CPL")
-
-
-def make_move_cursor_down_to_start(lines: int = 1) -> SequenceCSI:
-    """
-    Create :abbr:`CNL (Cursor Next Line)` sequence that moves the cursor
-    to the beginning of the line and down by specified amount of `lines`.
-
-    :example:  ``ESC [3E``
-    """
-    SequenceCSI.validate_line_rel_value(lines)
-    return SequenceCSI("E", lines, abbr="CNL")
-
-
-def make_set_cursor_line(line: int = 1) -> SequenceCSI:
-    """
-    Create :abbr:`VPA (Vertical Position Absolute)` sequence that sets
-    cursor vertical position to `line`.
-
-    :example:       ``ESC [9d``
-    """
-    SequenceCSI.validate_line_abs_value(line)
-    return SequenceCSI("d", line, abbr="VPA")
-
-
-def make_set_cursor_column(column: int = 1) -> SequenceCSI:
-    """
-    Create :abbr:`CHA (Cursor Character Absolute)` sequence that sets
-    cursor horizontal position to `column`.
-
-    :param column:  New cursor horizontal position.
-    :example:       ``ESC [15G``
-    """
-    SequenceCSI.validate_column_abs_value(column)
-    return SequenceCSI("G", column, abbr="CHA")
-
-
-def make_query_cursor_position() -> SequenceCSI:
-    """
-    Create :abbr:`QCP (Query Cursor Position)` sequence that requests an output
-    device to respond with a structure containing current cursor coordinates
-    (`RCP <decompose_request_cursor_position()>`).
-
-    .. warning ::
-
-        Sending this sequence to the terminal may **block** infinitely. Consider
-        using a thread or set a timeout for the main thread using a signal.
-
-    :example:   ``ESC [6n``
-    """
-
-    return SequenceCSI("n", 6, abbr="QCP")
-
-
-# CSI / Erase sequences assembly ----------------------------------------------
-
-
-def make_erase_in_display(mode: int = 0) -> SequenceCSI:
-    """
-    Create :abbr:`ED (Erase in Display)` sequence that clears a part of the screen
-    or the entire screen. Cursor position does not change.
-
-    :param mode:  .. ::
-
-                  Sequence operating mode.
-
-                     - If set to 0, clear from cursor to the end of the screen.
-                     - If set to 1, clear from cursor to the beginning of the screen.
-                     - If set to 2, clear the entire screen.
-                     - If set to 3, clear terminal history (xterm only).
-
-    :example:     ``ESC [0J``
-    """
-    if not (0 <= mode <= 3):
-        raise ValueError(f"Invalid mode: {mode}, expected [0;3]")
-    return SequenceCSI("J", mode, abbr="ED")
-
-
-def make_clear_display_after_cursor() -> SequenceCSI:
-    """
-    Create :abbr:`ED (Erase in Display)` sequence that clears a part of the screen
-    from cursor to the end of the screen. Cursor position does not change.
-
-    :example:     ``ESC [0J``
-    """
-    return make_erase_in_display(0)
-
-
-def make_clear_display_before_cursor() -> SequenceCSI:
-    """
-    Create :abbr:`ED (Erase in Display)` sequence that clears a part of the screen
-    from cursor to the beginning of the screen. Cursor position does not change.
-
-    :example:     ``ESC [1J``
-    """
-    return make_erase_in_display(1)
-
-
-def make_clear_display() -> SequenceCSI:
-    """
-    Create :abbr:`ED (Erase in Display)` sequence that clears an entire screen.
-    Cursor position does not change.
-
-    :example:     ``ESC [2J``
-    """
-    return make_erase_in_display(2)
-
-
-def make_clear_history() -> SequenceCSI:
-    """
-    Create :abbr:`ED (Erase in Display)` sequence that clears history, i.e.,
-    invisible lines on the top that can be scrolled back down. Cursor position
-    does not change. This is a xterm extension.
-
-    :example:     ``ESC [3J``
-    """
-    return make_erase_in_display(3)
-
-
-def make_erase_in_line(mode: int = 0) -> SequenceCSI:
-    """
-    Create :abbr:`EL (Erase in Line)` sequence that clears a part of the line
-    or the entire line at the cursor position. Cursor position does not change.
-
-    :param mode:  .. ::
-
-                  Sequence operating mode.
-
-                     - If set to 0, clear from cursor to the end of the line.
-                     - If set to 1, clear from cursor to the beginning of the line.
-                     - If set to 2, clear the entire line.
-
-    :example:     ``ESC [0K``
-    """
-    if not (0 <= mode <= 2):
-        raise ValueError(f"Invalid mode: {mode}, expected [0;2]")
-    return SequenceCSI("K", mode, abbr="EL")
-
-
-def make_clear_line_after_cursor() -> SequenceCSI:
-    """
-    Create :abbr:`EL (Erase in Line)` sequence that clears a part of the line
-    from cursor to the end of the same line. Cursor position does not change.
-
-    :example:     ``ESC [0K``
-    """
-    return make_erase_in_line(0)
-
-
-def make_clear_line_before_cursor() -> SequenceCSI:
-    """
-    Create :abbr:`EL (Erase in Line)` sequence that clears a part of the line
-    from cursor to the beginning of the same line. Cursor position does not
-    change.
-
-    :example:     ``ESC [1K``
-    """
-    return make_erase_in_line(1)
-
-
-def make_clear_line() -> SequenceCSI:
-    """
-    Create :abbr:`EL (Erase in Line)` sequence that clears an entire line
-    at the cursor position. Cursor position does not change.
-
-    :example:     ``ESC [2K``
-    """
-    return make_erase_in_line(2)
-
-
-# CSI / Private mode sequences assembly ---------------------------------------
-
-
-def make_show_cursor() -> SequenceCSI:
-    """
-    C
-    """
-    return SequenceCSI("h", 25, interm="?")
-
-
-def make_hide_cursor() -> SequenceCSI:
-    """
-    C
-    """
-    return SequenceCSI("l", 25, interm="?")
-
-
-def make_save_screen() -> SequenceCSI:
-    """
-    C
-    """
-    return SequenceCSI("h", 47, interm="?")
-
-
-def make_restore_screen() -> SequenceCSI:
-    """
-    C
-    """
-    return SequenceCSI("l", 47, interm="?")
-
-
-def make_enable_alt_screen_buffer() -> SequenceCSI:
-    """
-    C
-    """
-    return SequenceCSI("h", 1049, interm="?")
-
-
-def make_disable_alt_screen_buffer() -> SequenceCSI:
-    """
-    C
-    """
-    return SequenceCSI("l", 1049, interm="?")
-
-
-# OSC sequences assembly ------------------------------------------------------
-
-
-def make_hyperlink() -> SequenceOSC:
-    """
-    Create a hyperlink in the text *(supported by limited amount of terminals)*.
-    Note that a complete set of commands to define a hyperlink consists of 4
-    oh them (two `OSC-8 <SequenceOSC>` and two `ST <SequenceST>`).
-
-    .. seealso ::
-        compose_hyperlink()`.
-    """
-    return SequenceOSC(8, "", "")
-
-
-# Fp sequences assembly -------------------------------------------------------
-
-
-def make_save_cursor_position() -> SequenceFp:
-    """
-    :example:  ``ESC 7``
-    """
-    return SequenceFp("7", abbr="DECSC")
-
-
-def make_restore_cursor_position() -> SequenceFp:
-    """
-    :example:  ``ESC 8``
-    """
-    return SequenceFp("8", abbr="DECRC")
 
 
 # -----------------------------------------------------------------------------
@@ -1450,10 +1083,114 @@ items, rather than modifies state of either of them:
 
 """
 
-_PAIRITY_REGISTRY = _SgrPairityRegistry()
 
-_COLOR_TARGET_MAP: t.Dict[ColorTarget, IntCode] = {
-    ColorTarget.FG: IntCode.COLOR_EXTENDED,
-    ColorTarget.BG: IntCode.BG_COLOR_EXTENDED,
-    ColorTarget.UNDERLINE: IntCode.UNDERLINE_COLOR_EXTENDED,
-}
+ESCAPE_SEQ_REGEX = re.compile(
+    R"""
+	(?P<escape_byte>\x1b)
+	(?P<data>
+		(?P<nf_class_seq>
+			(?P<nf_classifier>[\x20-\x2f])
+			(?P<nf_interm>[\x20-\x2f]*)
+			(?P<nf_final>[\x30-\x7e])
+		)|
+		(?P<fp_class_seq>
+			(?P<fp_classifier>[\x30-\x3f])
+		)|
+		(?P<fe_class_seq>
+		    (?P<st_classifier>\\)
+		    |
+		    (?P<osc_classifier>\])
+		    (?P<osc_param>[\x30-\x3f]*;;?)
+		    |
+		    (?P<csi_classifier>\[)
+			(?P<csi_interm>[?!]?)
+			(?P<csi_param>[\x30-\x3f]*)
+			(?P<csi_final>[\x40-\x7e])
+		    |
+			(?P<fe_classifier>[\x40-\x5a\x5e\x5f])
+			(?P<fe_param>[\x30-\x3f]*)
+			(?P<fe_interm>[\x20-\x2f]?)
+			(?P<fe_final>[\x40-\x7e]?)
+		)|
+		(?P<fs_class_seq>
+			(?P<fs_classifier>[\x60-\x7e])
+		)  
+	)
+	""",
+    flags=re.VERBOSE,
+)
+""" 
+Regular expression that matches all classes of escape sequences.
+
+More specifically, it recognizes **nF**, **Fp**, **Fe** and **Fs** [#]_ 
+classes. Useful for removing the sequences as well as for granular search 
+thanks to named match groups, which include:
+
+    ``escape_byte``
+        first byte of every sequence -- ``ESC``, or :hex:`0x1B`.
+        
+    ``data``
+        remaining bytes of the sequence (without escape byte) represented as 
+        one of the following groups: ``nf_class_seq``, ``fp_class_seq``, 
+        ``fe_class_seq`` or ``fs_class_seq``; each of these splits further to
+        even more specific subgroups:
+        
+        - ``nf_classifier``, ``nf_interm`` and ``nf_final`` as parts of 
+          **nF**-class sequences,
+        - ``fp_classifier`` for **Fp**-class sequences,
+        - ``st_classifier``, ``osc_classifier``, ``osc_param``,  ``csi_classifier``, 
+          ``csi_interm``, ``csi_param``, ``csi_final``, ``fe_classifier``, ``fe_param``, 
+          ``fe_interm`` and ``fe_final`` for **Fe**-class generic sequences and 
+          subtypes (including :term:`SGRs <SGR>`),
+        - ``fs_classifier`` for **Fs**-class sequences.
+
+.. [#] `ECMA-35 specification <https://ecma-international.org/publications-and-standards/standards/ecma-35/>`_
+
+:meta hide-value:
+"""
+
+
+@lru_cache
+def _compile_contains_sgr_regex(*codes: int) -> re.Pattern:
+    return re.compile(Rf'\x1b\[(?:|[\d;]*;)({";".join(map(str, codes))})(?:|;[\d;]*)m')
+
+
+def contains_sgr(string: str, *codes: int) -> re.Match | None:
+    """
+    Return the first match of :term:`SGR` sequence in ``string`` with specified
+    ``codes`` as params, strictly inside a single sequence in specified order,
+    or *None* if nothing was found.
+
+    The match object has one group (or, technically, two):
+
+        - Group #0: the whole matched SGR sequence;
+        - Group #1: the requested params bytes only.
+
+    Example regex used for searching: :regexp:`\\x1b\\[(?:|[\\d;]*;)(48;5)(?:|;[\\d;]*)m`.
+
+        >>> contains_sgr(make_color_256(128).assemble(), 38)
+        <re.Match object; span=(0, 11), match='\x1b[38;5;128m'>
+        >>> contains_sgr(make_color_256(84, ColorTarget.BG).assemble(), 48, 5)
+        <re.Match object; span=(0, 10), match='\x1b[48;5;84m'>
+
+    :param string: String to search the SGR in.
+    :param codes:  Integer SGR codes to find.
+    """
+    if not string:
+        return None
+    return _compile_contains_sgr_regex(*codes).search(string)
+
+
+def parse(string: str) -> t.Iterable[ISequence | str]:
+    """
+    parse
+    :param string:
+    """
+    cursor = 0
+    for match in ESCAPE_SEQ_REGEX.finditer(string):
+        if (mstart := match.start()) > cursor:
+            yield string[cursor:mstart]
+        cursor = match.end()
+        yield seq_from_dict(match.groupdict())
+    if last_str := string[cursor:]:
+        yield last_str

@@ -20,10 +20,11 @@
 # -----------------------------------------------------------------------------
 
 import re
-import os
+import sys
+
 import pytermor as pt
-from examples import *
-from rich import inspect as _
+from examples import *  # noqa
+from rich import inspect as _  # noqa
 
 pt.init_config()
 pt.init_renderer()
@@ -64,7 +65,7 @@ pt.echo(re.sub(
     pt.render(r'\1', 'hi-green') +
     pt.render(r'\2', 'green') +
     pt.render(r'\3', 'gray50'),
-    'python   '+os.sys.version)
+    'python   '+sys.version)
 )
 
 # 7) or utilize the templates
@@ -76,4 +77,3 @@ pt.echo(te.substitute(
     f":[v]{pt.__version__}:[-] "
     f":[upd]({pt.__updated__}):[-]"
 ))
-
