@@ -11,17 +11,18 @@ import typing as t
 import pytest
 
 from pytermor import (
-    parse,
-    SequenceSGR,
     SeqIndex,
     SequenceCSI,
+    SequenceFe,
+    SequenceFs,
+    SequenceNf,
+    SequenceSGR,
     SequenceST,
     contains_sgr,
-    SequenceNf,
-    SequenceFe,
-    SequenceFs, decompose_report_cursor_position,
+    decompose_report_cursor_position,
+    parse,
 )
-from pytermor.ansi import ISequence, SequenceOSC, SequenceFp
+from pytermor.ansi import ISequence, SequenceFp, SequenceOSC
 from pytermor.exception import ParseError
 from tests import format_test_params, load_data_file
 

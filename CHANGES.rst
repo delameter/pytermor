@@ -15,8 +15,11 @@ pending
 - |NEW| TestSgrVisualizer
 - |NEW| automated customizing of library structure diagram generation
 - |REMOVE| `AbstractRegexValRefilter`, `StringAligner`
+- |REFACTOR| transferred `make_*` methods from `ansi` to `term`. and `parser` to `ansi`
+- |REFACTOR| moved `trace()` from `filter` to  `log`
+- |DOCS| library structure diagram optimized for dark mode
 
-.. <@pending:2814a6d>
+.. <@pending:10f22ac>
 .. ^ blank line before should be kept
 
 

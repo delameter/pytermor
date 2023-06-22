@@ -458,9 +458,8 @@ def decompose_report_cursor_position(string: str) -> t.Tuple[int, int] | None:
     a terminal as a response to `QCP <make_query_cursor_position>` sequence and
     contains a cursor's current line and column.
 
-    .. note ::
-        As the library in general provides sequence assembling methods, but not
-        the disassembling ones, there is no dedicated class for RCP sequences yet.
+    .. todo ::
+        make a separate Seq class for this?
 
     >>> decompose_report_cursor_position('\x1b[9;15R')
     (9, 15)

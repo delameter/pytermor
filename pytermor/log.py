@@ -102,7 +102,7 @@ def measure(
     *,
     template_enter_fn: Callable[..., str] = None,
     template_exit="Done in %s",
-    level=logging.DEBUG,
+    level=TRACE,
 ) -> Callable[[_F], _F]:
     ...
 
@@ -112,7 +112,7 @@ def measure(
     *,
     template_enter_fn: Callable[..., str] = None,
     template_exit="Done in %s",
-    level=logging.DEBUG,
+    level=TRACE,
 ):
     """
     Decorrator
