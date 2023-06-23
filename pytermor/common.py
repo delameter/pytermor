@@ -59,8 +59,8 @@ class Align(str, ExtendedEnum):
             if v == input:
                 return k
         try:
-            return cls[input.upper()]
-        except KeyError as e:
+            return cls[str(input).upper()]
+        except KeyError as e:  # pragma: no cover
             raise KeyError(f"Invalid align name: {input}") from e
 
 
@@ -174,8 +174,12 @@ def get_qname(obj) -> str:
     '<ExtendedEnum>'
 
     """
+    if obj is None:
+        return 'None'
+    if isinstance(obj, t.TypeVar) or hasattr(obj, '_typevar_types'):
+        return f"<{obj!s}>"
     if isinstance(obj, type):
-        return "<" + obj.__name__ + ">"
+        return f"<{obj.__name__}>"
     if isinstance(obj, object):
         return obj.__class__.__qualname__
     return str(obj)  # pragma: no cover

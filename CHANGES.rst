@@ -18,8 +18,9 @@ pending
 - |REFACTOR| transferred `make_*` methods from `ansi` to `term`. and `parser` to `ansi`
 - |REFACTOR| moved `trace()` from `filter` to  `log`
 - |DOCS| library structure diagram optimized for dark mode
+- |REFACTOR| render tracing log level
 
-.. <@pending:10f22ac>
+.. <@pending:9f31cb0>
 .. ^ blank line before should be kept
 
 

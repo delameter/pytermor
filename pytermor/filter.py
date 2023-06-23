@@ -20,7 +20,7 @@ from collections import deque
 from dataclasses import dataclass, field
 from functools import lru_cache, reduce
 from math import ceil, floor
-from typing import Union
+from typing import Optional, Union
 
 from .ansi import ESCAPE_SEQ_REGEX
 from .common import Align, chunk
@@ -425,30 +425,34 @@ class StringLinearizer(StringReplacer):
     :param repl: Replacement character(s).
     """
 
-    REGEX = re.compile(r"\s+")
-
     def __init__(self, repl: RPT[str] = " "):
-        super().__init__(self.REGEX, repl)
+        super().__init__(re.compile(r"\s+"), repl)
 
 
-class WhitespaceRemover(StringLinearizer):
+class WhitespaceRemover(StringReplacer):
     """
     Special case of `StringLinearizer`. Removes all the whitespaces from the
     input string.
     """
 
     def __init__(self):
-        super().__init__("")
+        super().__init__(re.compile(r"\s+"), "")
 
 
 class AbstractNamedGroupsRefilter(IRefilter[str], StringReplacer, metaclass=ABCMeta):
     """
-    Refilters -> rendering filters (str output)
+    Refilters -> rendering filters (str output),
+
+    Apply styles defined in ``group_st_map`` depending on group name (which also should
+    be an argument keys). Anonymous groups are kept unstyled, unless there is an empty
+    string key in map, in which case its value is applied to all anonymous groups.
+    Unmatched group names (without a key in a map) are kept unstyled. Matched
+    non-capturing groups and characters out of groups are thrown away.
     """
 
     def __init__(self, pattern: PTT[str], group_st_map: dict[str, FT]):
         """
-        :param group_st_map:  keys should be group names. "" matches any group
+        :param group_st_map:
         """
         self._group_st_map = group_st_map
         self._groups_name_index: dict[int, str] = {
@@ -466,7 +470,7 @@ class AbstractNamedGroupsRefilter(IRefilter[str], StringReplacer, metaclass=ABCM
         if not v:
             return ""
         k = self._groups_name_index.get(idx, "")
-        if k == "noop" or k not in self._group_st_map.keys():
+        if k not in self._group_st_map.keys():
             return v
         return self._render(v, self._group_st_map.get(k))
 
@@ -479,7 +483,7 @@ class OmniMapper(IFilter[IT, IT]):
     """
     Input type: *str*, *bytes*. Abstract mapper. Replaces every character found in
     map keys to corresponding map value. Map should be a dictionary of this type:
-    ``dict[int, str|bytes|None]``; moreover, length of *str*/*bytes* must be strictly 1
+    ``dict[int, str|bytes]``; moreover, length of *str*/*bytes* must be strictly 1
     character (ASCII codepage). If there is a necessity to map Unicode characters,
     `StringMapper` should be used instead.
 
@@ -491,7 +495,7 @@ class OmniMapper(IFilter[IT, IT]):
     manually compose a replacement map with every character you want to replace.
 
     :param override: a dictionary with mappings: keys must be *ints*, values must be
-                     either a single-char *strs* or *bytes*, or None.
+                     either a single-char *strs* or *bytes*.
     :see: `NonPrintsOmniVisualizer`
     """
 
@@ -538,15 +542,12 @@ class OmniMapper(IFilter[IT, IT]):
         if override is None:
             return default_map
         if not isinstance(override, dict):
-            raise ArgTypeError("override")
+            raise ArgTypeError(override, "override", MPT, None)
 
         if not all(isinstance(k, int) and 0 <= k <= 255 for k in override.keys()):
             raise TypeError("Mapper keys should be ints such as: 0 <= key <= 255")
-        if not all(isinstance(v, (str, bytes)) or v is None for v in override.values()):
-            raise TypeError(
-                "Each map value should be either a single char"
-                " in 'str' or 'bytes' form, or None"
-            )
+        if not all(isinstance(v, (str, bytes)) for v in override.values()):
+            raise TypeError("Map values should be either 'str' or 'bytes' single chars")
         for i, v in override.items():
             default_map.update({i: self._transcode(v, inp_type)})
         return default_map
@@ -708,7 +709,7 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
         )
 
     def _render_rows(self) -> t.Iterable[str]:
-        if self._state.cols_max_len is None:
+        if self._state.cols_max_len is None:  # pragma: no cover
             return
         for row in self._state.rows:
             row_str = ""
@@ -724,7 +725,7 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
 
     def _get_output_line_len(self) -> int:
         # useless before processing
-        if self._state.cols_max_len is None:
+        if self._state.cols_max_len is None:  # pragma: no cover
             raise LogicError
         return sum(ml for ml in self._state.cols_max_len)
 

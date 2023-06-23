@@ -299,7 +299,10 @@ class FrozenText(IRenderable):
         return self.prepend(other)
 
     @classmethod
-    def _parse_fargs(cls, fargs: t.Iterable[RT | FT]) -> t.Iterable[Fragment]:
+    def _parse_fargs(
+        cls,
+        fargs: t.Iterable[RT | FT | t.Tuple[str, FT]],
+    ) -> t.Iterable[Fragment]:
         """
         str FT prohibited unless on odd place
 
@@ -316,13 +319,24 @@ class FrozenText(IRenderable):
             str_stack.clear()
             return result
 
+        def ss_frag() -> Fragment:
+            return Fragment(ss_unload())
+
         while len(fargs) or str_stack:
             if not len(fargs):
-                yield Fragment(ss_unload())
+                yield ss_frag()
                 continue
 
             farg = fargs.pop(0)
-            if isinstance(farg, IRenderable):
+            if isinstance(farg, tuple):
+                if str_stack:  # discharge stack
+                    yield ss_frag()
+                if not (1 <= len(farg) <= 2):
+                    raise TypeError("Tuples should consist of 1 or 2 elements")
+                yield Fragment(*farg)
+            elif isinstance(farg, IRenderable):
+                if str_stack:  # discharge stack
+                    yield ss_frag()
                 yield from farg.as_fragments()
             elif is_ft(farg):
                 if isinstance(farg, str) and not str_stack:
@@ -679,7 +693,7 @@ class SimpleTable(IRenderable):
 def render(
     string: RT | t.Iterable[RT] = "",
     fmt: FT = NOOP_STYLE,
-    renderer: IRenderer = None,
+    renderer: IRenderer | t.Type[IRenderer] = None,
 ) -> str | t.List[str]:
     """
     .
@@ -703,7 +717,7 @@ def render(
     if isinstance(string, IRenderable):
         return string.render(renderer)
 
-    raise ArgTypeError("string")
+    raise ArgTypeError(string, "string", RT, t.Iterable[RT])
 
 
 def echo(
@@ -799,7 +813,6 @@ def distribute_padded(max_len: int, *values, pad_left: int = 0, pad_right: int =
         spaces_amount -= gape_len
 
     return result
-
 
 
 def wrap_sgr(

@@ -268,7 +268,7 @@ class Style:
                 suggestion = None
                 if isinstance(fallback, (int, str, IColor)):
                     suggestion = "To set a fg without fallback use Style(fg=<color>)"
-                raise ArgTypeError("fallback", suggestion=suggestion)
+                raise ArgTypeError(fallback, "fallback", Style, suggestion=suggestion)
             self.merge_fallback(fallback)
 
         if self._fg is None:
@@ -464,7 +464,7 @@ class Style:
             return arg
         if isinstance(arg, (str, int)):
             return resolve_color(arg)
-        raise ArgTypeError("arg")
+        raise ArgTypeError(arg, "arg", CDT, IColor, None)
 
     def __setattr__(self, name: str, value: Any) -> None:
         self._ensure_not_frozen()
@@ -587,7 +587,7 @@ def make_style(fmt: FT = None) -> Style:
         return fmt
     if isinstance(fmt, (str, int, IColor)):
         return Style(fg=fmt)
-    raise ArgTypeError("fmt")
+    raise ArgTypeError(fmt, "fmt", FT, None)
 
 
 def merge_styles(

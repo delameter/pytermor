@@ -103,37 +103,26 @@ class TestText:
 
 class TestFargsFlow:
     Fg = Fragment
+    lperr = pytest.mark.xfail(raises=LookupError)
 
     @pytest.mark.parametrize(
         "input_fargs, expected_fragments",
         [
             ([], []),
             ([""], [Fg()]),
-            (
-                ["1", "red"],
-                [Fg("1", pt.cv.RED)],
-            ),
-            (
-                ["1", "red", "2"],
-                [Fg("1", pt.cv.RED), Fg("2", pt.NOOP_STYLE)],
-            ),
-            (
-                ["1", "red", "2", "blue"],
-                [Fg("1", pt.cv.RED), Fg("2", pt.cv.BLUE)],
-            ),
-            pytest.param(
-                ["1", "red", "2", "3", "blue"],
-                None,
-                marks=pytest.mark.xfail(raises=LookupError),
-            ),
-            (
-                ["1", pt.cv.DARK_RED_2],
-                [Fg("1", pt.cv.DARK_RED_2)],
-            ),
-            (
-                ["1", 0x5d8aa8],
-                [Fg("1", pt.cvr.AIR_FORCE_BLUE)],
-            ),
+            (["1", "red"], [Fg("1", pt.cv.RED)]),
+            (["1", "red", "2"], [Fg("1", pt.cv.RED), Fg("2", pt.NOOP_STYLE)]),
+            (["1", "red", "2", "blue"], [Fg("1", pt.cv.RED), Fg("2", pt.cv.BLUE)]),
+            pytest.param(["1", "red", "2", "3", "blue"], None, marks=lperr),
+            (["1", pt.cv.DARK_RED_2], [Fg("1", pt.cv.DARK_RED_2)]),
+            (["1", 0x5D8AA8], [Fg("1", pt.cvr.AIR_FORCE_BLUE)]),
+            (["a", ("b",), "c"], [Fg("a"), Fg("b"), Fg("c")]),
+            (["a", ("b", "green"), "c"], [Fg("a"), Fg("b", pt.cv.GREEN), Fg("c")]),
+            ([("a",), ("b", "green"), "c"], [Fg("a"), Fg("b", pt.cv.GREEN), Fg("c")]),
+            ([("a", "red"), "b", "blue"], [Fg("a", pt.cv.RED), Fg("b", pt.cv.BLUE)]),
+            ([("a", "red"), ("b", "blue")], [Fg("a", pt.cv.RED), Fg("b", pt.cv.BLUE)]),
+            (["a", Fg("b", "green"), "c"], [Fg("a"), Fg("b", pt.cv.GREEN), Fg("c")]),
+            pytest.param(["a", "b", "blue"], None, marks=lperr),
         ],
         ids=format_test_rt_params,
     )
@@ -164,7 +153,8 @@ class TestAdding:
                 FrozenText(Fragment("123"), frag2, Fragment("789")),
             ),
             (["123", Text(frag2), "789"], Text(Fragment("123"), frag2, Fragment("789"))),
-        ], ids=format_test_rt_params
+        ],
+        ids=format_test_rt_params,
     )
     def test_left_adding_works(
         self, items: t.Sequence[IRenderable], expected: IRenderable

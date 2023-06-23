@@ -8,12 +8,20 @@ from __future__ import annotations
 import pytest
 from pytest import mark
 
-from pytermor import Fragment, Style, render
+from pytermor import (
+    FrozenText,
+    RT,
+    SgrRenderer,
+    Styles,
+    cv,
+    make_clear_line,
+    make_set_cursor_column,
+    render,
+)
 from pytermor.ansi import SeqIndex
 from pytermor.common import get_qname, get_subclasses
 from pytermor.filter import *
 from tests import format_test_params, load_data_file
-
 
 
 class TestStdlibExtensions:
@@ -37,6 +45,140 @@ class TestStdlibExtensions:
         actual = fns[1](raw_string, width, ".")
         expected = SgrStringReplacer().apply(fns[0](sgr_string, width, "."))
         assert actual == expected
+
+
+class TestCutAndFit:
+    @mark.parametrize(
+        "input, max_len, align, overflow, expected_fit",
+        [
+            ("1234567890", 12, None, "…", "1234567890  "),
+            ("1234567890", 10, None, "…", "1234567890"),
+            ("1234567890", 9, None, "…", "12345678…"),
+            ("1234567890", 5, None, "…", "1234…"),
+            ("1234567890", 2, None, "…", "1…"),
+            ("1234567890", 1, None, "…", "…"),
+            ("1234567890", 0, None, "…", ""),
+            ("1234567890", 12, Align.CENTER, "…", " 1234567890 "),
+            ("1234567890", 10, Align.CENTER, "…", "1234567890"),
+            ("1234567890", 9, Align.CENTER, "…", "1234…7890"),
+            ("1234567890", 5, Align.CENTER, "…", "12…90"),
+            ("1234567890", 2, Align.CENTER, "…", "…0"),
+            ("1234567890", 1, Align.CENTER, "…", "…"),
+            ("1234567890", 0, Align.CENTER, "…", ""),
+            ("1234567890", 12, Align.RIGHT, "…", "  1234567890"),
+            ("1234567890", 10, Align.RIGHT, "…", "1234567890"),
+            ("1234567890", 9, Align.RIGHT, "…", "…34567890"),
+            ("1234567890", 5, Align.RIGHT, "…", "…7890"),
+            ("1234567890", 2, Align.RIGHT, "…", "…0"),
+            ("1234567890", 1, Align.RIGHT, "…", "…"),
+            ("1234567890", 0, Align.RIGHT, "…", ""),
+            ("1234567890", 0, Align.LEFT, "...", ""),
+            ("1234567890", 1, Align.LEFT, "..?", "."),
+            ("1234567890", 2, Align.LEFT, "..?", ".."),
+            ("1234567890", 3, Align.LEFT, "..?", "..?"),
+            ("1234567890", 4, Align.LEFT, "..?", "1..?"),
+            ("1234567890", 5, Align.LEFT, "..?", "12..?"),
+            ("1234567890", 9, Align.LEFT, "..?", "123456..?"),
+            ("1234567890", 10, Align.LEFT, "..?", "1234567890"),
+            ("1234567890", 12, Align.LEFT, "..?", "1234567890  "),
+            ("1234567890", 0, Align.CENTER, "...", ""),
+            ("1234567890", 1, Align.CENTER, "..?", "."),
+            ("1234567890", 2, Align.CENTER, "..?", ".."),
+            ("1234567890", 3, Align.CENTER, "..?", "..?"),
+            ("1234567890", 4, Align.CENTER, "..?", "..?0"),
+            ("1234567890", 5, Align.CENTER, "..?", "1..?0"),
+            ("1234567890", 9, Align.CENTER, "..?", "123..?890"),
+            ("1234567890", 10, Align.CENTER, "..?", "1234567890"),
+            ("1234567890", 12, Align.CENTER, "..?", " 1234567890 "),
+            ("1234567890", 0, Align.CENTER, "...", ""),
+            ("1234567890", 1, Align.RIGHT, "..?", "."),
+            ("1234567890", 2, Align.RIGHT, "..?", ".."),
+            ("1234567890", 3, Align.RIGHT, "..?", "..?"),
+            ("1234567890", 4, Align.RIGHT, "..?", "..?0"),
+            ("1234567890", 5, Align.RIGHT, "..?", "..?90"),
+            ("1234567890", 9, Align.RIGHT, "..?", "..?567890"),
+            ("1234567890", 10, Align.RIGHT, "..?", "1234567890"),
+            ("1234567890", 12, Align.RIGHT, "..?", "  1234567890"),
+        ],
+        ids=format_test_params,
+    )
+    def test_fit(
+        self,
+        input: str,
+        max_len: int,
+        align: Align | str,
+        overflow: str,
+        expected_fit: str,
+    ):
+        actual_fit = fit(input, max_len, align, overflow)
+        assert len(actual_fit) <= max_len
+        assert actual_fit == expected_fit
+
+    @mark.parametrize(
+        "input, max_len, align, overflow, expected_cut",
+        [
+            ("1234567890", 12, None, "…", "1234567890"),
+            ("1234567890", 10, None, "…", "1234567890"),
+            ("1234567890", 9, None, "…", "12345678…"),
+            ("1234567890", 5, None, "…", "1234…"),
+            ("1234567890", 2, None, "…", "1…"),
+            ("1234567890", 1, None, "…", "…"),
+            ("1234567890", 0, None, "…", ""),
+            ("1234567890", 12, Align.CENTER, "…", "1234567890"),
+            ("1234567890", 10, Align.CENTER, "…", "1234567890"),
+            ("1234567890", 9, Align.CENTER, "…", "1234…7890"),
+            ("1234567890", 5, Align.CENTER, "…", "12…90"),
+            ("1234567890", 2, Align.CENTER, "…", "…0"),
+            ("1234567890", 1, Align.CENTER, "…", "…"),
+            ("1234567890", 0, Align.CENTER, "…", ""),
+            ("1234567890", 12, Align.RIGHT, "…", "1234567890"),
+            ("1234567890", 10, Align.RIGHT, "…", "1234567890"),
+            ("1234567890", 9, Align.RIGHT, "…", "…34567890"),
+            ("1234567890", 5, Align.RIGHT, "…", "…7890"),
+            ("1234567890", 2, Align.RIGHT, "…", "…0"),
+            ("1234567890", 1, Align.RIGHT, "…", "…"),
+            ("1234567890", 0, Align.RIGHT, "…", ""),
+            ("1234567890", 0, Align.LEFT, "...", ""),
+            ("1234567890", 1, Align.LEFT, "..?", "."),
+            ("1234567890", 2, Align.LEFT, "..?", ".."),
+            ("1234567890", 3, Align.LEFT, "..?", "..?"),
+            ("1234567890", 4, Align.LEFT, "..?", "1..?"),
+            ("1234567890", 5, Align.LEFT, "..?", "12..?"),
+            ("1234567890", 9, Align.LEFT, "..?", "123456..?"),
+            ("1234567890", 10, Align.LEFT, "..?", "1234567890"),
+            ("1234567890", 12, Align.LEFT, "..?", "1234567890"),
+            ("1234567890", 0, Align.CENTER, "...", ""),
+            ("1234567890", 1, Align.CENTER, "..?", "."),
+            ("1234567890", 2, Align.CENTER, "..?", ".."),
+            ("1234567890", 3, Align.CENTER, "..?", "..?"),
+            ("1234567890", 4, Align.CENTER, "..?", "..?0"),
+            ("1234567890", 5, Align.CENTER, "..?", "1..?0"),
+            ("1234567890", 9, Align.CENTER, "..?", "123..?890"),
+            ("1234567890", 10, Align.CENTER, "..?", "1234567890"),
+            ("1234567890", 12, Align.CENTER, "..?", "1234567890"),
+            ("1234567890", 0, Align.CENTER, "...", ""),
+            ("1234567890", 1, Align.RIGHT, "..?", "."),
+            ("1234567890", 2, Align.RIGHT, "..?", ".."),
+            ("1234567890", 3, Align.RIGHT, "..?", "..?"),
+            ("1234567890", 4, Align.RIGHT, "..?", "..?0"),
+            ("1234567890", 5, Align.RIGHT, "..?", "..?90"),
+            ("1234567890", 9, Align.RIGHT, "..?", "..?567890"),
+            ("1234567890", 10, Align.RIGHT, "..?", "1234567890"),
+            ("1234567890", 12, Align.RIGHT, "..?", "1234567890"),
+        ],
+        ids=format_test_params,
+    )
+    def test_cut(
+        self,
+        input: str,
+        max_len: int,
+        align: Align | str,
+        overflow: str,
+        expected_cut: str,
+    ):
+        actual_cut = cut(input, max_len, align, overflow)
+        assert len(actual_cut) <= max_len
+        assert actual_cut == expected_cut
 
 
 class TestPadding:
@@ -123,12 +265,157 @@ class TestGenericFilters:
     def test_omni_encoder(self, input: str, expected_output: bytes):
         assert OmniEncoder().apply(input) == expected_output
 
+    @mark.parametrize(
+        "input, expected",
+        [
+            ("", "    "),
+            (b"", b"    "),
+            ("123", "  123  "),
+            (b"123", b"  123  "),
+            ("1\n2", "  1\n2  "),
+            (b"1\n3", b"  1\n3  "),
+        ],
+        ids=format_test_params,
+    )
+    def test_omni_padder(self, input: t.AnyStr, expected: t.AnyStr):
+        assert OmniPadder(2).apply(input) == expected
 
-class TestReplacers:  # @TODO
+    def test_name_max_len(self):
+        class TestFilterWithOMFGLongVeryVeryLongName(IFilter):
+            def _apply(self, inp: IT, extra: t.Any = None) -> OT:
+                pass
+
+        TestFilterWithOMFGLongVeryVeryLongName()
+        assert IFilter.get_name_max_len() <= 20
+
+
+class TestReplacers:
+    def test_replace_esq_replacer(self):
+        actual = EscSeqStringReplacer(".").apply(
+            f"{make_clear_line()}1{make_set_cursor_column()}"
+        )
+        assert actual == ".1."
+
     def test_replace_sgr_filter(self):
-        actual = SgrStringReplacer().apply(f"{SeqIndex.RED}213{SeqIndex.RESET}")
-        expected = "213"
-        assert actual == expected
+        actual = SgrStringReplacer(".").apply(f"{SeqIndex.RED}213{SeqIndex.RESET}")
+        assert actual == ".213."
+
+    def test_replace_csi_filter(self):
+        actual = CsiStringReplacer(".").apply(f"{make_clear_line()}2{SeqIndex.RESET}")
+        assert actual == ".2."
+
+    def test_string_linearizer(self):
+        actual = StringLinearizer().apply(f"123\n4 5 6\n78\t 9\t01234\n\n\t\n5")
+        assert actual == "123 4 5 6 78 9 01234 5"
+
+    def test_wspace_remover(self):
+        actual = WhitespaceRemover().apply(f"123\n4 5 6\n78\t 9\t01234\n\n\t\n5")
+        assert actual == "123456789012345"
+
+
+class TestNamedGroupsRefilter:
+    class SgrNamedGroupsRefilter(AbstractNamedGroupsRefilter):
+        def _render(self, v: IT, st: Style) -> str:
+            return render(v, st, SgrRenderer)
+
+    @mark.parametrize(
+        "input, regex, style_map, expected",
+        [
+            (
+                "some text with some words",
+                re.compile(r"(some)"),
+                {"": cv.RED},
+                FrozenText("some", "red", (" text with ",), "some", "red", " words"),
+            ),
+            (
+                "some text with some words",
+                re.compile(r"(?P<accent>some)"),
+                {"accent": cv.RED},
+                FrozenText(("some", "red"), " text with ", ("some", "red"), " words"),
+            ),
+            (
+                "some text with some words",
+                re.compile(r"(?P<s1>so)(?:m)(e)"),  # noqa
+                {"s1": cv.BLUE},
+                FrozenText(("so", "blue"), "e text with ", ("so", "blue"), "e words"),
+            ),
+            (
+                "some text with some words",
+                re.compile(r"(?P<s1>some)(\s*)(?P<s2>\w+)()"),  # noqa
+                {"s1": cv.BLUE, "s2": cv.RED},
+                FrozenText(
+                    ("some", "blue"),
+                    " ",
+                    ("text", "red"),
+                    " with ",
+                    ("some", "blue"),
+                    " ",
+                    ("words", "red"),
+                ),
+            ),
+            (
+                "__123abcdef456qwert789:_",
+                re.compile(r"(?P<c1>\d+)(?P<no>\w+?)(\d+)(?:\w+)(?P<c2>\d+).+"),  # noqa
+                {"c1": Styles.ERROR, "c2": Styles.WARNING, "": Styles.CRITICAL},
+                FrozenText(
+                    "__",
+                    ("123", Styles.ERROR),
+                    "abcdef",
+                    ("456", Styles.CRITICAL),
+                    ("9", Styles.WARNING),
+                ),
+            ),
+        ],
+    )
+    @mark.setup(force_output_mode="xterm_256")
+    def test_ngrefilter(
+        self,
+        input: str,
+        regex: re.Pattern,
+        style_map: t.Dict[str, FT],
+        expected: RT,
+    ):
+        ngr = self.SgrNamedGroupsRefilter(regex, style_map)
+        actual = ngr.apply(input)
+        assert actual == render(expected)
+
+
+class TestMappers:
+    @mark.parametrize(
+        "input, cmap, expected",
+        [
+            (b"abc def ghi", {0x20: "."}, b"abc.def.ghi"),
+            ("abc def ghi", {0x20: "@"}, "abc@def@ghi"),
+            pytest.param("", {400: "@"}, "", marks=pytest.mark.xfail(raises=TypeError)),
+            pytest.param("", {32: "й"}, "", marks=pytest.mark.xfail(raises=ValueError)),
+            pytest.param("", {32: 3}, "", marks=pytest.mark.xfail(raises=TypeError)),
+            pytest.param("", {32: None}, "", marks=pytest.mark.xfail(raises=TypeError)),
+        ],
+        ids=format_test_params,
+    )
+    def test_omni_mapper(
+        self,
+        input: t.AnyStr,
+        cmap: t.Dict[int, t.AnyStr],
+        expected: t.AnyStr,
+    ):
+        assert OmniMapper(cmap).apply(input) == expected
+
+    @mark.parametrize(
+        "input, cmap, expected",
+        [
+            ("abc def ghi", {0x20: "."}, "abc.def.ghi"),
+            ("abc def ghi", {0x20: ""}, "abcdefghi"),
+            ("abc def ghi", {0x20: "Й"}, "abcЙdefЙghi"),  # noqa
+            pytest.param("", {400: "@"}, "", marks=pytest.mark.xfail(raises=TypeError)),
+            pytest.param("", {32: 3}, "", marks=pytest.mark.xfail(raises=TypeError)),
+            pytest.param("", {32: None}, "", marks=pytest.mark.xfail(raises=TypeError)),
+            pytest.param(b"", {32: "q"}, "", marks=pytest.mark.xfail(raises=TypeError)),
+        ],
+        ids=format_test_params,
+    )
+    def test_string_mapper(self, input: str, cmap: t.Dict[int, str], expected: str):
+        assert StringMapper(cmap).apply(input) == expected
 
 
 class TestTracers:
@@ -178,7 +465,7 @@ class TestTracers:
     @mark.parametrize("max_width", [None, 40, 60, 80, 100, 120, 160, 240])
     @mark.parametrize(
         "input",
-        ["f" * 64, "qй" * 32, "晦࢈ຮ" * 16, "·＊🐶𑼑􏿿" * 8],
+        ["f" * 64, "qй" * 32, "晦࢈ຮ" * 16, "·＊🐶𑼑􏿿" * 8],  # noqa
         ids=lambda s: "UTF8x" + str(get_max_utf8_bytes_char_length(s)),
     )
     @mark.parametrize(
@@ -209,11 +496,43 @@ class TestTracers:
     def test_too_low_limit(self):
         assert StringTracer(1).apply(".")
 
-    @mark.parametrize("input_cp, expected", [
-        [0, 1],
-    ])
-    def test_offset_max_ucs_chars_cp_length(self, input_cp: int, expected: int):
-        assert get_max_ucs_chars_cp_length(chr(input_cp)) == expected
+    @mark.parametrize(
+        "input, expected",
+        [
+            ["\x00", 1],
+            ["й", 2],
+            ["₿", 3],
+            ["𐍈", 4],
+            ["123", 1],
+            ["qё", 2],  # noqa
+            ["\x04█₼", 3],  # noqa
+            ["z𐊣", 4],  # noqa
+            ["", 0],
+        ],
+    )
+    def test_get_max_utf8_bytes_char_length(self, input: str, expected: int):
+        assert get_max_utf8_bytes_char_length(input) == expected
+
+    @mark.parametrize(
+        "input, expected",
+        [
+            ["\x00", 1],
+            ["a", 2],
+            ["й", 3],
+            ["ᄑ", 4],
+            ["𐨀", 5],
+            ["􁄑", 6],
+            ["\x0f\x00\x04", 1],
+            ["\x0a!@#", 2],
+            ["я90", 3],
+            ["\x01攲", 4],  # noqa
+            ["Й🚒0", 5],
+            ["𐍂0𐐑􀢈", 6],
+            ["", 0],
+        ],
+    )
+    def test_get_max_ucs_chars_cp_length(self, input: str, expected: int):
+        assert get_max_ucs_chars_cp_length(input) == expected
 
 
 class TestReplacerChain:

@@ -11,13 +11,15 @@ import typing as t
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 from collections.abc import Iterable
+from typing import Optional, Union
 
 import pytest
 
-from pytermor import Color256, IFilter, StringReplacer
+from pytermor import Align, Color256, IFilter, StringReplacer, FT, RT
 from pytermor.common import ExtendedEnum, but, char_range, chunk, flatten, get_qname, \
     only, others, \
     ours
+from pytermor.filter import IT, OT
 from tests import format_test_params
 
 
@@ -68,6 +70,19 @@ class TestExtendedEnum:
             cls.VALUE3: cls.VALUE3.value,
         }
 
+
+class TestAlign:
+    @pytest.mark.parametrize("input", [
+        Align.LEFT,
+        Align.CENTER,
+        Align.RIGHT,
+        '<',
+        None,
+        'LEFT',
+        pytest.param(2, marks=pytest.mark.xfail(raises=KeyError)),
+    ])
+    def test_align(self, input:str|Align):
+        assert isinstance(Align.resolve(input), (Align, str))
 
 class TestRelations:
     def test_only(self):
@@ -210,7 +225,7 @@ class TestGetQName:
         (type, "<type>"),
         (type(type), "<type>"),
         (Color256, "<Color256>"),
-        (None, "NoneType"),
+        (None, "None"),
         (type(None), "<NoneType>"),
         (round, "builtin_function_or_method"),
         (pytest, "module"),
@@ -221,15 +236,18 @@ class TestGetQName:
         (re.finditer("", ""), "callable_iterator"),
         (os.walk("."), "generator"),
         (staticmethod, "<staticmethod>"),
-        (T, "TypeVar"),
+        (T, "<~T>"),
         (t.Generic, "<Generic>"),
-        (t.Generic[T], "_GenericAlias"),
+        (t.Generic[T], "<typing.Generic[~T]>"),
         (t.Generic[T](), "Generic"),
         (IFilter, "<IFilter>"),
         (StringReplacer, "<StringReplacer>"),
         (StringReplacer("", ""), "StringReplacer"),
+        (list[T], "<list>"),
         (list[T](), "list"),
-        pytest.param(list[T], "<list>"),  # pytest fails to determine ID for list[T]
+        (Optional[IT], "<typing.Optional[~IT]>"),
+        (Union[FT, None], "<typing.Optional[~FT]>"),
+        (Union[RT, OT], "<typing.Union[~RT, ~OT]>"),
     ], ids=format_test_params)
     def test_get_qname(self, input: t.Any, expected: str):
         assert get_qname(input) == expected

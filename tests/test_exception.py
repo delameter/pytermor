@@ -26,25 +26,25 @@ class TestArgTypeError:
     @pytest.mark.parametrize(
         "exp_words, fn",
         [
-            (["Argument", "string", "render()", "int"], lambda: pt.render(0)),
+            (["Argument", "string", "int"], lambda: pt.render(0)),
             (
-                ["Argument", "fmt", "make_style()", "FT", "<Style>"],
+                ["Argument", "fmt", "FT", "<Style>"],
                 lambda: pt.make_style(pt.Style),
             ),
             (
-                ["Argument", "arg", "_resolve_color()", "CDT", "IColor", "list"],
+                ["Argument", "arg", "CDT", "IColor", "list"],
                 lambda: setattr(pt.Style(), "fg", [None]),
             ),
             (
-                ["Argument", "override", "_make_premap()", "MPT", "None", "float"],
+                ["Argument", "override", "Dict", "IT", "None", "float"],
                 lambda: pt.OmniMapper(14.88),
             ),
             (
-                ["Argument", "fallback", "__init__()", "Style", "Color256"],
+                ["Argument", "fallback", "Style", "Color256"],
                 lambda: pt.Style(pt.cv.RED_3),
             ),
             (
-                ["Argument", "fallback", "__init__()", "Style", "str"],
+                ["Argument", "fallback", "Style", "str"],
                 lambda: pt.Style("red"),
             ),
         ],

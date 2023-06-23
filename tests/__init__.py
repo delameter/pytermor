@@ -44,7 +44,7 @@ def format_test_params(val) -> str | None:
     if isinstance(val, (list, tuple)):
         return "(" + ",".join(map(repr, val)) + ")"
     if isinstance(val, dict):
-        return f"(" + (" ".join((k + "=" + str(v)) for k, v in val.items())) + ")"
+        return f"(" + (" ".join((str(k) + "=" + str(v)) for k, v in val.items())) + ")"
     if isinstance(val, timedelta):
         return format_timedelta(val)
     if isinstance(val, Style):
