@@ -5,12 +5,6 @@
 
    
    
-   .. rubric:: Module Attributes
-
-   .. autosummary::
-   
-      RT
-   
    
 
    

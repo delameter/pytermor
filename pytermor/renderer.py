@@ -20,10 +20,10 @@ from hashlib import md5
 
 from .ansi import ColorTarget, NOOP_SEQ, SeqIndex, SequenceSGR, get_closing_seq
 from .color import Color16, Color256, ColorRGB, IColor, NOOP_COLOR
-from .common import ExtendedEnum, get_qname
+from .common import ExtendedEnum, FT, get_qname
 from .config import get_config
 from .log import _trace_render, get_logger
-from .style import FT, NOOP_STYLE, Style, Styles, make_style
+from .style import NOOP_STYLE, Style, Styles, make_style
 
 _T = t.TypeVar("_T", bound="IRenderer")
 
@@ -343,7 +343,9 @@ class SgrRenderer(IRenderer):
         term = os.environ.get("TERM", None)
         colorterm = os.environ.get("COLORTERM", None)
 
-        logger.debug(f"{ioname} Determining output mode automatically: {config_forced_value}")
+        logger.debug(
+            f"{ioname} Determining output mode automatically: {config_forced_value}"
+        )
         logger.debug(f"{ioname} {get_qname(io)} is a terminal: {isatty}")
         logger.debug(f"{ioname} Environment: TERM='{term}'")
         logger.debug(f"{ioname} Environment: COLORTERM='{colorterm}'")

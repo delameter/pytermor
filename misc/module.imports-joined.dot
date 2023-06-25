@@ -1,0 +1,58 @@
+# placeholders:
+#   %s (nodes and edges)
+#   $SIZE
+#   $EDGE_COLOR
+#   $LABEL_COLOR
+
+digraph G {
+    dpi = 150;
+    #pad = 0.25;
+    #concentrate = true;
+    #ranksep = 1;
+    #pack = 1;
+    splines = spline;
+    rankdir = TB;
+    #TBbalance = min;
+    ratio=expand;
+    size="5";
+
+    node [style="filled",fontname="Literal Bold",margin="0.2,0.0",fontsize=10,shape=folder,width=1.0,height=.5];
+    edge [color="$EDGE_COLOR",penwidth=1.5];
+
+    pytermor_ansi [group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="ansi"];
+    pytermor_color [group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="color"];
+    pytermor_conv [group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="conv"];
+    pytermor_cval [shape="tab",group="",fillcolor="#769440",fontcolor="#ffffff",label="cval"];
+    pytermor_filter [shape="tab",group="",fillcolor="#769440",fontcolor="#ffffff",label="filter"];
+    pytermor_numfmt [shape="tab",group="",fillcolor="#769440",fontcolor="#ffffff",label="numfmt"];
+    pytermor_renderer [shape="tab",group="core",fillcolor="#a62400",fontcolor="#ffffff",label="☢️ renderer"];
+    pytermor_style [shape="tab",group="core",fillcolor="#a62400",fontcolor="#ffffff",label="☢️ style"];
+    pytermor_template [shape="tab",group="",fillcolor="#769440",fontcolor="#ffffff",label="template"];
+    pytermor_term [group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="term"];
+    pytermor_text [shape="tab",group="core",fillcolor="#a62400",fontcolor="#ffffff",label="☢️ text"];
+    #pytermor_ansi -> pytermor_color [fillcolor="#5f819d"];
+    #pytermor_ansi -> pytermor_cval [shape="tab",group="",fillcolor="#769440"];
+    #pytermor_ansi -> pytermor_filter [shape="tab",group="",fillcolor="#769440"];
+    #pytermor_ansi -> pytermor_renderer [shape="tab",group="",fillcolor="#a62400"];
+    pytermor_ansi -> pytermor_term [fillcolor="#5f819d",color="#5f819d:#5f819d:#5f819d:#5f819d"];
+    pytermor_color -> pytermor_cval [shape="tab",group="",fillcolor="#769440",color="#5f819d:#5f819d:#5f819d:#5f819d:#5f819d:#5f819d:#5f819d:#5f819d:#5f819d"];
+    #pytermor_color -> pytermor_renderer [shape="tab",group="",fillcolor="#a62400",color="#5f819d:#5f819d"];
+    #pytermor_color -> pytermor_style [shape="tab",group="",fillcolor="#a62400"];
+    #pytermor_color -> pytermor_template [shape="tab",group="",fillcolor="#769440"];
+    #pytermor_color -> pytermor_text [shape="tab",group="",fillcolor="#a62400"];
+    pytermor_conv -> pytermor_color [fillcolor="#5f819d",color="#5f819d"];
+    #pytermor_cval -> pytermor_numfmt [shape="tab",group="",fillcolor="#769440"];
+    pytermor_cval -> pytermor_style [shape="tab",group="",shape="tab",group="",fillcolor="#769440",color="#5f819d:#5f819d:#5f819d:#5f819d:#769440:#769440:#5f819d:#5f819d:#5f819d"];
+    pytermor_renderer -> pytermor_text [shape="tab",group="",fillcolor="#a62400",color="#a62400:#a62400:#a62400:#a62400:#5f819d:#5f819d:#769440:#5f819d:#5f819d"];
+    pytermor_style -> pytermor_filter [shape="tab",group="",shape="tab",group="",fillcolor="#769440",color="#a62400:#5f819d"];
+    #pytermor_style -> pytermor_numfmt [shape="tab",group="",shape="tab",group="",fillcolor="#769440"];
+    pytermor_style -> pytermor_renderer [shape="tab",group="",fillcolor="#a62400",color="#a62400:#a62400:#a62400:#a62400:#769440:#5f819d:#5f819d:#5f819d:#5f819d:#5f819d"];
+    #pytermor_style -> pytermor_template [shape="tab",group="",shape="tab",group="",fillcolor="#769440"];
+    #pytermor_style -> pytermor_text [shape="tab",group="",fillcolor="#a62400"];
+    pytermor_term -> pytermor_color [fillcolor="#5f819d",color="#5f819d:#5f819d:#5f819d:#5f819d:#5f819d:#5f819d:#5f819d"];
+    #pytermor_term -> pytermor_filter [shape="tab",group="",fillcolor="#769440",color="#5f819d:#5f819d"];
+    #pytermor_term -> pytermor_template [shape="tab",group="",fillcolor="#769440"];
+    #pytermor_term -> pytermor_text [shape="tab",group="",fillcolor="#a62400"];
+    pytermor_text -> pytermor_numfmt [shape="tab",group="",shape="tab",group="",fillcolor="#769440",color="#a62400:#769440:#a62400"];
+    pytermor_text -> pytermor_template [shape="tab",group="",shape="tab",group="",fillcolor="#769440",color="#a62400:#5f819d:#a62400:#5f819d"];
+}

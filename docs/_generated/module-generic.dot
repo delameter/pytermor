@@ -1,8 +1,8 @@
 # placeholders:
 #   %s (nodes and edges)
-#   4
-#   #101010
-#   #000000
+#   $SIZE
+#   $EDGE_COLOR
+#   $LABEL_COLOR
 
 digraph G {
     dpi = 150;
@@ -10,7 +10,7 @@ digraph G {
     rankdir = TB;
     #TBbalance = min;
     ratio=fill;
-    size="4";
+    size="$SIZE";
 
     node [
         style="filled",
@@ -21,7 +21,7 @@ digraph G {
         height=.5,
     ];
     edge [
-        color="#101010",
+        color="$EDGE_COLOR",
         penwidth=1.5,
     ];
 

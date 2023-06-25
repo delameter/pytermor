@@ -2331,6 +2331,21 @@ colors:
   - name: hot-pink
     original_name: Hot pink
     value: 0xff69b4
+  - name: http-delete
+    original_name: http delete
+    value: 0xc75450
+  - name: http-get
+    original_name: http get
+    value: 0x499c54
+  - name: http-patch
+    original_name: http patch
+    value: 0xabb2bf
+  - name: http-post
+    original_name: http post
+    value: 0xd9a343
+  - name: http-put
+    original_name: http put
+    value: 0x6897bb
   - name: huawei-red
     original_name: Huawei Red
     value: 0xcf0a2c

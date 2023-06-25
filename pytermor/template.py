@@ -84,7 +84,7 @@ class TemplateEngine:
         self._user_styles: t.Dict[str, Style] = custom_styles or {}
 
     @measure(
-        template_enter_fn=lambda tpl: f"Substituting the template ({len(tpl)})",
+        template_enter_fn=lambda _, tpl: f"Substituting the template ({len(tpl)})",
         template_exit="Substituted in %s",
     )
     def substitute(self, tpl: str) -> Text:

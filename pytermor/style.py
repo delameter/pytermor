@@ -16,18 +16,10 @@ import typing as t
 from dataclasses import dataclass, field
 from typing import Any
 
-from .color import CDT, IColor, NOOP_COLOR, resolve_color
+from .color import IColor, NOOP_COLOR, resolve_color
+from .common import CDT, FT
 from .cval import cv
 from .exception import ArgTypeError, LogicError
-
-FT = t.TypeVar("FT", int, str, IColor, "Style", None)
-"""
-:abbr:`FT (Format type)` is a style descriptor. Used as a shortcut precursor for actual 
-styles. Primary handler is `make_style()`.
-"""
-
-def is_ft(arg) -> bool:
-    return isinstance(arg, (type(None), int, str, IColor, Style))
 
 
 class MergeMode(str, enum.Enum):
@@ -562,6 +554,10 @@ class Styles:
     """ """
     CRITICAL_ACCENT = Style(CRITICAL_LABEL, frozen=True, blink=True)
     """ """
+
+
+def is_ft(arg) -> bool:
+    return isinstance(arg, (type(None), int, str, IColor, Style))
 
 
 def make_style(fmt: FT = None) -> Style:

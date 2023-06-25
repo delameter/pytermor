@@ -19,8 +19,11 @@ pending
 - |REFACTOR| moved `trace()` from `filter` to  `log`
 - |DOCS| library structure diagram optimized for dark mode
 - |REFACTOR| render tracing log level
+- |NEW| added tuple support into fargs-parsing
+- |REFACTOR| simplified `ArgTypeError`
+- |TESTS| covered `filter` module
 
-.. <@pending:9f31cb0>
+.. <@pending:fc8ace4>
 .. ^ blank line before should be kept
 
 

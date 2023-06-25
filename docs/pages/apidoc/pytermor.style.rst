@@ -9,7 +9,6 @@
 
    .. autosummary::
    
-      FT
       NOOP_STYLE
    
    

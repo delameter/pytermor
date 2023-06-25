@@ -63,6 +63,68 @@ renderer from the list below, skipping the undefined elements:
 
 
 ===========================
+Output mode auto-select
+===========================
+
+.. graphviz ::
+
+   digraph {
+       rankdir = TB;
+       nodesep = .2;
+       ranksep = .33;
+       splines=ortho;
+       ratio=expand;
+       size="8,6";
+
+       node [
+          fontname="Pragmasevka"
+           fontsize=12
+           margin=".125,.125"
+           style="filled"
+           color="#000000"
+           fillcolor="#fbf8f8"
+       ];
+       edge [fontname = "Pragmasevka"  fontsize=10 ];
+
+       start [shape=Mrecord label="START" style="filled,bold" fontname="ASM-Bold" fontsize=16 margin=".5,0"]
+       is_config_force [shape=diamond label="<config.force>\nis set?"]
+       is_a_tty [shape=diamond label="is a tty?" tailport=s]
+       is_true [shape=diamond label="TERM=xterm-256color &&\n(COLORTERM=truecolor ||\nCOLORTERM=24bit) ?"]
+       is_xterm [shape=diamond label="TERM=xterm ?"]
+       is_256 [shape=diamond label="TERM=*-256color ?"]
+       is_16 [shape=diamond label="TERM=xterm-color ?" ]
+
+       node [margin=".25,.125" style="filled,bold" fontname="ASM-Bold" ]
+
+       set_no_ansi [shape=Mrecord label="set\nNO_ANSI"]
+       set_true_color [shape=Mrecord label="set\nTRUE_COLOR"]
+       set_256 [shape=Mrecord label="set\nXTERM_256"]
+       set_16 [shape=Mrecord label="set\nXTERM_16"]
+       set_config_force [shape=Mrecord label="set\n\<config.force\>"]
+       set_config_default [shape=Mrecord label="set\n\<config.default\>"]
+
+       edge [labeldistance=1.5 labelangle=-45];
+
+       start -> is_config_force []
+       is_config_force -> is_a_tty [taillabel=no ]
+       is_a_tty -> is_true [taillabel=yes ]
+       is_true -> is_256 [taillabel=no ]
+       is_256 -> is_16 [taillabel=no ]
+       is_16 -> is_xterm [taillabel=no]
+
+       edge [labeldistance=1.5 labelangle=45];
+
+       is_xterm -> set_no_ansi [taillabel=yes minlen=1]
+       is_config_force -> set_config_force [taillabel=yes minlen=6 tailport=e]
+       is_a_tty -> set_no_ansi [taillabel=no]
+       is_true -> set_true_color [taillabel=yes minlen=4 ]
+       is_256 -> set_256 [taillabel=yes minlen=3]
+       is_16 -> set_16 [taillabel=yes minlen=2 ]
+       is_xterm -> set_config_default [taillabel=no]
+   }
+
+
+===========================
 Renderer class hierarchy
 ===========================
 

@@ -20,13 +20,12 @@ from collections import deque
 from dataclasses import dataclass, field
 from functools import lru_cache, reduce
 from math import ceil, floor
-from typing import Optional, Union
+from typing import Union
 
 from .ansi import ESCAPE_SEQ_REGEX
-from .common import Align, chunk
+from .common import Align, FT, chunk
 from .exception import ArgTypeError, LogicError
 from .log import get_logger
-from .style import FT, Style
 from .term import get_terminal_width
 
 codecs.register_error(
@@ -299,11 +298,11 @@ class IFilter(t.Generic[IT, OT], metaclass=ABCMeta):
 
 class IRefilter(IFilter[IT, str], metaclass=ABCMeta):
     """
-    Refilters -> rendering filters (str output)
+    *Refilters* are rendering filters (output is *str* with SGRs).
     """
 
     @abstractmethod
-    def _render(self, v: IT, st: Style) -> str:
+    def _render(self, v: IT, st: FT) -> str:
         ...
 
 
@@ -441,13 +440,32 @@ class WhitespaceRemover(StringReplacer):
 
 class AbstractNamedGroupsRefilter(IRefilter[str], StringReplacer, metaclass=ABCMeta):
     """
-    Refilters -> rendering filters (str output),
+    Substitute the input by applying following rules:
 
-    Apply styles defined in ``group_st_map`` depending on group name (which also should
-    be an argument keys). Anonymous groups are kept unstyled, unless there is an empty
-    string key in map, in which case its value is applied to all anonymous groups.
-    Unmatched group names (without a key in a map) are kept unstyled. Matched
-    non-capturing groups and characters out of groups are thrown away.
+      - Named groups which name is found in ``group_st_map`` keys are replaced with
+        themselves styled as specified in a corresponding map values.
+      - Regular/unnamed groups are kept as is, unless there is an "" (empty string) key
+        in ``group_st_map``, in which case a style corresponding to such key is applied
+        to all these groups.
+      - Groups with names not present in the map, as well as lookaheads and lookbehinds,
+        are kept as is (unstyled).
+      - Non-capturing groups' contents and matched characters not belonging to any group
+        are thrown away.
+      - Not matched parts of the input are kept as is.
+
+    .. code-block :: python
+
+        >>> import pytermor as pt
+        >>> class SgrNamedGroupsRefilter(AbstractNamedGroupsRefilter):
+        ...     def _render(self, v: IT, st: FT) -> str:
+        ...         return pt.render(v, st, pt.SgrRenderer(pt.OutputMode.XTERM_16))
+        ...
+        >>> SgrNamedGroupsRefilter(
+        ...     re.compile(r'<?(<)(?P<val>.+?)(>)>?'),
+        ...     {"val": pt.cv.GREEN},
+        ... ).apply("text <<link>> text")
+        'text <\x1b[32mlink\x1b[39m> text'
+
     """
 
     def __init__(self, pattern: PTT[str], group_st_map: dict[str, FT]):

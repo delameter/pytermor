@@ -9,9 +9,8 @@ PROJECT_NAME="${1:?Project name required}"
 DEPENDS_PATH="${2:?Output path required}"
 
 LOW_LEVEL_GROUP_COLOR=5f819d
-INTERM_LEVEL_GROUP_COLOR=5e8d87
 HIGH_LEVEL_GROUP_COLOR=769440
-CORE_LEVEL_GROUP_COLOR=a62400
+#CORE_LEVEL_GROUP_COLOR=a62400
 
 run() {
     # args: [cmd-option]...
@@ -23,18 +22,17 @@ run() {
 }
 
 postprocess_module() {
-    local tpl_path="${DOCS_IN_PATH}/_generated/module.dot.tpl"
+    local tpl_path="${DOCS_IN_PATH}/_generated/module.template"
     declare -i placheolder_lineno=$(grep -nm1 -Ee '^\s*%s\s*$' < "$tpl_path" | cut -f1 -d:)
     {
-        head -n $((placheolder_lineno-1)) "$tpl_path"
+        head -n $((placheolder_lineno-1)) "$tpl_path" | sed -Ee '/^#/d'
         sed -Ee '/^\s*pytermor/!d;'\
-             -e '/_ansi|_conv|_config|_color|_term/ s/(fillcolor="#)[0-9a-f]+(")/group="low",\1'$LOW_LEVEL_GROUP_COLOR'\2/;'\
-             -e '/_renderer|_text|_style/ s/(fillcolor="#)[0-9a-f]+(")/shape="tab",group="",\1'$CORE_LEVEL_GROUP_COLOR'\2/;'\
-             -e '/_cval|_filter|_numfmt|_template/ s/(fillcolor="#)[0-9a-f]+(")/shape="tab",group="",\1'$HIGH_LEVEL_GROUP_COLOR'\2/;'\
-             -e '/->/ s/group="[a-z]+",//g; ' \
+             -e '/(_ansi|_conv|_config|_color|_filter|_term).+(label|->)/ s/(fillcolor="#)[0-9a-f]+(")/shape="folder",group="low",\1'$LOW_LEVEL_GROUP_COLOR'\2/;'\
+             -e '/(_renderer|_text|_style|_cval|_numfmt|_template).+(label|->)/ s/(fillcolor="#)[0-9a-f]+(")/shape="tab",\1'$HIGH_LEVEL_GROUP_COLOR'\2/;'\
+             -e '/->/ s/(shape|group)="[a-z]*",//g; ' \
              -e 's/(label=")(renderer|text|style)(")/\1☢️ \2\3/g; '
         tail -n +$((placheolder_lineno+1)) "$tpl_path"
-    } | tee "${DOCS_IN_PATH}/_generated/module.generic.dot"
+    } | tee "${DOCS_IN_PATH}/_generated/module-generic.dot"
 }
 
 run --rmprefix "${PROJECT_NAME}". \
@@ -52,11 +50,22 @@ run --rmprefix "${PROJECT_NAME}". \
 
 export EDGE_COLOR="#101010"
 export LABEL_COLOR="#000000"
-envsubst < "${DOCS_IN_PATH}/_generated/module.generic.dot" > "${DOCS_IN_PATH}/_generated/module-default.dot"
+export SIZE="3"
+export LEGEND_SIZE="1.5,0.5"
+envsubst < "${DOCS_IN_PATH}/_generated/module-generic.dot" > "${DOCS_IN_PATH}/_generated/module-pdf.dot"
+envsubst < "${DOCS_IN_PATH}/_generated/module_legend.template" > "${DOCS_IN_PATH}/_generated/module_legend-pdf.dot"
+
+export EDGE_COLOR="#101010"
+export LABEL_COLOR="#000000"
+export SIZE="4"
+export LEGEND_SIZE="2,1"
+envsubst < "${DOCS_IN_PATH}/_generated/module-generic.dot" > "${DOCS_IN_PATH}/_generated/module-default.dot"
+envsubst < "${DOCS_IN_PATH}/_generated/module_legend.template" > "${DOCS_IN_PATH}/_generated/module_legend-default.dot"
 
 export EDGE_COLOR="#C0C0C0"
 export LABEL_COLOR="#dadada"
-envsubst < "${DOCS_IN_PATH}/_generated/module.generic.dot" > "${DOCS_IN_PATH}/_generated/module-dark.dot"
+envsubst < "${DOCS_IN_PATH}/_generated/module-generic.dot" > "${DOCS_IN_PATH}/_generated/module-dark.dot"
+envsubst < "${DOCS_IN_PATH}/_generated/module_legend.template" > "${DOCS_IN_PATH}/_generated/module_legend-dark.dot"
 
 run --rmprefix "${PROJECT_NAME}". \
     --start-color 0 \

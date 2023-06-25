@@ -13,6 +13,7 @@ import math
 import pytermor
 import pytermor as pt
 import pytermor.color
+import pytermor.common
 import pytermor.log
 import pytermor.style
 import pytermor.term
@@ -99,7 +100,7 @@ class RenderBemchmarker:
             value_mapping={0.0: "--"},
         )
 
-    def echo_meters(self, avg: bool = True, add_st: pytermor.style.FT = NOOP_STYLE):
+    def echo_meters(self, avg: bool = True, add_st: pytermor.common.FT = NOOP_STYLE):
         self._echo_meters(
             "Outer",
             RenderBemchmarker.outer_times_sum,
@@ -124,7 +125,7 @@ class RenderBemchmarker:
         times_sum: float,
         times: t.List[float],
         avg: bool = True,
-        add_st: pytermor.style.FT = NOOP_STYLE,
+        add_st: pytermor.common.FT = NOOP_STYLE,
     ):
         self._echo_meter(f"{label} ", add_st, times_sum, 2)
         if not avg:
@@ -140,7 +141,7 @@ class RenderBemchmarker:
         self._echo_meter("p501 ", add_st, exact_time_p50, 0)
         self._echo_meter("p991 ", add_st, exact_time_p99, 0)
 
-    def _echo_meter(self, label: str, add_st: pytermor.style.FT, val: float, pad: int):
+    def _echo_meter(self, label: str, add_st: pytermor.common.FT, val: float, pad: int):
         fmted = self.fmter.format(val, auto_color=not add_st)
         if not val:
             fmted = "--".center(self.fmter.get_max_len())

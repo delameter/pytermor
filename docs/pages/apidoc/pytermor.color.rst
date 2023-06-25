@@ -9,8 +9,6 @@
 
    .. autosummary::
    
-      CDT
-      CT
       NOOP_COLOR
       DEFAULT_COLOR
    

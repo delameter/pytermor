@@ -236,11 +236,18 @@ graphviz_dot_args = ["-Gbgcolor=transparent"] # "-Nfontname=ASM-Bold"
 # -- Inheritance graph --------------------------------------------------------
 
 inheritance_graph_attrs = dict(
-    rankdir="LR", size='"6.0, 8.0"', fontsize=14, ratio="compress"
+    rankdir="LR",
+    size='"8,5"',
+    fontsize=12,
+    ratio="compress",
+    splines="line",
 )
-inheritance_node_attrs = dict(fontname='"Iose7ka Terminal"')
+inheritance_node_attrs = dict(fontname='"Pragmasevka"')
 inheritance_edge_attrs = dict(
-    arrowsize=0.5, style='"setlinewidth(0.5)"', fillcolor="white"
+    arrowsize=0.5,
+    style='"setlinewidth(0.5)"',
+    fillcolor="white",
+    headport="w",
 )
 
 # limit members with specified module and list of allowed ascendants

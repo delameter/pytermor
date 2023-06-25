@@ -12,6 +12,7 @@ from pytermor import (
     FrozenText,
     RT,
     SgrRenderer,
+    Style,
     Styles,
     cv,
     make_clear_line,
@@ -315,7 +316,7 @@ class TestReplacers:
 
 class TestNamedGroupsRefilter:
     class SgrNamedGroupsRefilter(AbstractNamedGroupsRefilter):
-        def _render(self, v: IT, st: Style) -> str:
+        def _render(self, v: IT, st: FT) -> str:
             return render(v, st, SgrRenderer)
 
     @mark.parametrize(
@@ -363,6 +364,15 @@ class TestNamedGroupsRefilter:
                     "abcdef",
                     ("456", Styles.CRITICAL),
                     ("9", Styles.WARNING),
+                ),
+            ),
+            (
+                "data // comment",
+                re.compile(R"(?<=\s)//\s?(?P<val>.+)$"),
+                {"val": cv.GRAY},
+                FrozenText(
+                    "data ",
+                    ("comment", "gray"),
                 ),
             ),
         ],

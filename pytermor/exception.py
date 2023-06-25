@@ -5,7 +5,6 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
-import inspect
 import typing as t
 
 from .common import get_qname
@@ -40,7 +39,7 @@ class ArgTypeError(Exception):
     ):
         msg = self.MESSAGE_TPL % (
             arg_name,
-            '|'.join(get_qname(etype) for etype in expected_type),
+            "|".join(get_qname(etype) for etype in expected_type),
             get_qname((arg_value)),
         )
         if suggestion:

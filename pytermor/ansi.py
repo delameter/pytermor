@@ -607,6 +607,7 @@ class SubtypedParam:
 
 # -----------------------------------------------------------------------------
 
+
 class IntCode(enum.IntEnum):
     """
     Complete or almost complete list of reliably working SGR param integer codes.
@@ -1013,7 +1014,6 @@ class _SgrPairityRegistry:
 
     def get_resetter_codes(self) -> t.Set[int]:
         return self._resetter_codes
-
 
 
 @unique

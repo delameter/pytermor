@@ -15,14 +15,13 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import asdict, dataclass
 from typing import overload
 
+
 CIE_E: float = 216.0 / 24389.0  # 0.008856451679035631  # see http://brucelindbloom.com/
 
 REF_X: float = 95.047  # Observer= 2°, Illuminant= D65
 REF_Y: float = 100.000
 REF_Z: float = 108.883
 
-
-T = t.TypeVar("T")
 
 class IColorType(metaclass=ABCMeta):
     @abstractmethod
@@ -56,7 +55,7 @@ class RGB(IColorType):
         attrs = map(self._format_channel, asdict(self).keys())
         return f"{self.__class__.__name__}({' '.join(attrs)})"
 
-    def __iter__(self) -> t.Iterator[int] :
+    def __iter__(self) -> t.Iterator[int]:
         return iter((self.red, self.green, self.blue))
 
     def _format_channel(self, attr: str) -> str:
@@ -85,7 +84,7 @@ class HSV(IColorType):
         ]
         return f"{self.__class__.__name__}({' '.join(attrs)})"
 
-    def __iter__(self) -> t.Iterator[float] :
+    def __iter__(self) -> t.Iterator[float]:
         return iter((self.hue, self.saturation, self.value))
 
 
@@ -109,7 +108,7 @@ class XYZ(IColorType):
         ]
         return f"{self.__class__.__name__}({' '.join(attrs)})"
 
-    def __iter__(self) -> t.Iterator[float] :
+    def __iter__(self) -> t.Iterator[float]:
         return iter((self.x, self.y, self.z))
 
 
@@ -133,7 +132,7 @@ class LAB(IColorType):
         ]
         return f"{self.__class__.__name__}({' '.join(attrs)})"
 
-    def __iter__(self) -> t.Iterator[float] :
+    def __iter__(self) -> t.Iterator[float]:
         return iter((self.L, self.a, self.b))
 
 
@@ -141,9 +140,11 @@ class LAB(IColorType):
 def _normalize(max_val: int, val: float | int) -> int:
     ...
 
+
 @overload
 def _normalize(max_val: float, val: float | int) -> float:
     ...
+
 
 def _normalize(max_val, val: float | int) -> int | float:
     if isinstance(max_val, int):
@@ -168,7 +169,7 @@ def hex_to_rgb(hex_value: int) -> RGB:
     :returns: tuple with R, G, B channel values.
     """
     if not isinstance(hex_value, int):
-         raise TypeError(f"Argument type should be 'int', got: {type(hex_value)}")
+        raise TypeError(f"Argument type should be 'int', got: {type(hex_value)}")
 
     return RGB(
         red=(hex_value & 0xFF0000) >> 16,
@@ -214,6 +215,7 @@ def rgb_to_hex(*args) -> int:
 
 # -----------------------------------------------------------------------------
 # RGB <-> HSV
+
 
 @overload
 def hsv_to_rgb(hsv: HSV) -> RGB:

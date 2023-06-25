@@ -37,8 +37,6 @@ from .ansi import get_resetter_codes as get_resetter_codes
 from .ansi import parse as parse
 from .ansi import seq_from_dict as seq_from_dict
 from .color import ApxResult as ApxResult
-from .color import CDT as CDT
-from .color import CT as CT
 from .color import Color16 as Color16
 from .color import Color256 as Color256
 from .color import ColorRGB as ColorRGB
@@ -48,6 +46,10 @@ from .color import NOOP_COLOR as NOOP_COLOR
 from .color import approximate as approximate
 from .color import find_closest as find_closest
 from .color import resolve_color as resolve_color
+from .common import CDT as CDT
+from .common import CT as CT
+from .common import FT as FT
+from .common import RT as RT
 from .common import Align as Align
 from .common import ExtendedEnum as ExtendedEnum
 from .common import chunk as chunk
@@ -167,7 +169,6 @@ from .renderer import TmuxRenderer as TmuxRenderer
 from .renderer import force_ansi_rendering as force_ansi_rendering
 from .renderer import force_no_ansi_rendering as force_no_ansi_rendering
 from .renderer import init_renderer as init_renderer
-from .style import FT as FT
 from .style import NOOP_STYLE as NOOP_STYLE
 from .style import Style as Style
 from .style import Styles as Styles
@@ -220,7 +221,6 @@ from .text import Composite as Composite
 from .text import Fragment as Fragment
 from .text import FrozenText as FrozenText
 from .text import IRenderable as IRenderable
-from .text import RT as RT
 from .text import SELECT_WORDS_REGEX as SELECT_WORDS_REGEX
 from .text import SimpleTable as SimpleTable
 from .text import Text as Text

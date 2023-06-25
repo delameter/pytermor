@@ -1,6 +1,6 @@
 # placeholders:
 #   %s (nodes and edges)
-#   4
+#   3
 #   #101010
 #   #000000
 
@@ -10,7 +10,7 @@ digraph G {
     rankdir = TB;
     #TBbalance = min;
     ratio=fill;
-    size="4";
+    size="3";
 
     node [
         style="filled",

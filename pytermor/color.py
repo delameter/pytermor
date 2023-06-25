@@ -20,31 +20,11 @@ import typing as t
 from abc import ABCMeta, abstractmethod
 
 from .ansi import BG_HI_COLORS, ColorTarget, HI_COLORS, NOOP_SEQ, SequenceSGR
+from .common import CDT, CT
 from .config import get_config
 from .conv import HSV, RGB, hex_to_hsv, hex_to_rgb
 from .exception import ColorCodeConflictError, ColorNameConflictError, LogicError
 from .term import make_color_256, make_color_rgb
-
-CDT = t.TypeVar("CDT", int, str)
-"""
-:abbr:`CDT (Color descriptor type)` represents a RGB color value. Primary handler 
-is `resolve_color()`. Valid values include:
-
-    - *str* with a color name in any form distinguishable by the color resolver;
-      the color lists can be found at: `guide.ansi-presets` and `guide.es7s-colors`;
-    - *str* starting with a "#" and consisting of 6 more hexadecimal characters, case
-      insensitive (RGB regular form), e.g. ":hex:`#0b0cca`";
-    - *str* starting with a "#" and consisting of 3 more hexadecimal characters, case
-      insensitive (RGB short form), e.g. ":hex:`#666`";
-    - *int* in a [:hex:`0`; :hex:`0xffffff`] range.
-"""
-
-CT = t.TypeVar("CT", bound="IColor")
-""" 
-Any non-abstract ``IColor`` type.
-
-:meta public:
- """
 
 
 class _ColorRegistry(t.Generic[CT], t.Sized, t.Iterable):

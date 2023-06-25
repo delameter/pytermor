@@ -73,6 +73,7 @@ class Config:
     def __post_init__(self):
         attr_dict = {k: v for (k, v) in self.__dict__.items()}
         from .log import get_logger
+
         get_logger().info(f"Config initialized with: {attr_dict!s}")
 
 

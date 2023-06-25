@@ -16,12 +16,12 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from math import floor, isclose, log, log10, trunc
 
-from .common import Align
+from .common import Align, RT
 from .cval import cv
 from .exception import ConflictError
 from .log import get_logger
 from .style import Style, Styles, merge_styles
-from .text import Fragment, IRenderable, RT, Text
+from .text import Fragment, IRenderable, Text
 
 _OVERFLOW_CHAR = "!"
 
@@ -176,10 +176,10 @@ class Highlighter:
                 return base
             if 1 <= fade <= 3:
                 return Style(base, bold=True)
-            return Style(self.STYLE_DEFAULT, dim=((oom-1)%6) < 3)
+            return Style(self.STYLE_DEFAULT, dim=((oom - 1) % 6) < 3)
 
         def _iter(numpart: str, oom=0, maxfade=0) -> Fragment:
-            st = _get_style(oom, maxfade-oom)
+            st = _get_style(oom, maxfade - oom)
             if len(numpart) > 3:
                 if reverse:
                     yield Fragment(numpart[:3], st)

@@ -10,8 +10,44 @@ import itertools
 import typing as t
 from collections.abc import Iterable
 
+
 _T = t.TypeVar("_T")
+
 _TT = t.TypeVar("_TT", bound=type)
+
+
+CDT = t.TypeVar("CDT", int, str)
+"""
+:abbr:`CDT (Color descriptor type)` represents a RGB color value. Primary handler 
+is `resolve_color()`. Valid values include:
+
+    - *str* with a color name in any form distinguishable by the color resolver;
+      the color lists can be found at: `guide.ansi-presets` and `guide.es7s-colors`;
+    - *str* starting with a "#" and consisting of 6 more hexadecimal characters, case
+      insensitive (RGB regular form), e.g. ":hex:`#0b0cca`";
+    - *str* starting with a "#" and consisting of 3 more hexadecimal characters, case
+      insensitive (RGB short form), e.g. ":hex:`#666`";
+    - *int* in a [:hex:`0`; :hex:`0xffffff`] range.
+"""
+
+CT = t.TypeVar("CT", bound="IColor")
+""" 
+Any non-abstract ``IColor`` type.
+
+:meta public:
+ """
+
+FT = t.TypeVar("FT", int, str, "IColor", "Style", None)
+"""
+:abbr:`FT (Format type)` is a style descriptor. Used as a shortcut precursor for actual 
+styles. Primary handler is `make_style()`.
+"""
+
+RT = t.TypeVar("RT", str, "IRenderable")
+"""
+:abbr:`RT (Renderable type)` includes regular *str*\\ s as well as `IRenderable` 
+implementations.
+"""
 
 
 class ExtendedEnum(enum.Enum):
@@ -156,8 +192,8 @@ def char_range(c1, c2):
 
     # manually excluding UTF-16 surrogates from the range if there is
     # an intersection, as otherwise python will die with unicode error
-    if i1 < 0xd800 and i2 > 0xdfff:
-        irange = (*range(i1, 0xd800), *range(0xe000, i2))
+    if i1 < 0xD800 and i2 > 0xDFFF:
+        irange = (*range(i1, 0xD800), *range(0xE000, i2))
     else:
         irange = range(i1, i2)
     yield from map(chr, irange)
@@ -175,8 +211,8 @@ def get_qname(obj) -> str:
 
     """
     if obj is None:
-        return 'None'
-    if isinstance(obj, t.TypeVar) or hasattr(obj, '_typevar_types'):
+        return "None"
+    if isinstance(obj, t.TypeVar) or hasattr(obj, "_typevar_types"):
         return f"<{obj!s}>"
     if isinstance(obj, type):
         return f"<{obj.__name__}>"

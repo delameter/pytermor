@@ -21,33 +21,19 @@ from collections import deque
 from copy import copy
 from typing import overload
 
-from .color import IColor
-from .common import Align, flatten1
+from .common import Align, CT, FT, RT, flatten1
 from .exception import ArgTypeError, LogicError
 from .renderer import IRenderer, OutputMode, RendererManager, SgrRenderer
-from .style import FT, NOOP_STYLE, Style, is_ft, make_style
+from .style import NOOP_STYLE, Style, is_ft, make_style
 from .term import get_preferable_wrap_width, get_terminal_width
 
 # from typing_extensions import deprecated
 # waiting till it will make its way to stdlib
 
+
 SELECT_WORDS_REGEX = re.compile(r"(\S+)?(\s*)")
 
 _PRIVATE_REPLACER = "\U000E5750"
-
-
-_F = t.TypeVar("_F", bound=t.Callable[..., t.Any])
-
-
-RT = t.TypeVar("RT", str, "IRenderable")
-"""
-:abbr:`RT (Renderable type)` includes regular *str*\\ s as well as `IRenderable` 
-implementations.
-"""
-
-
-def is_rt(arg) -> bool:
-    return isinstance(arg, (str, IRenderable))
 
 
 # suggestion on @rewriting the renderables:
@@ -362,7 +348,7 @@ class FrozenText(IRenderable):
         cur_frag_idx = 0
         overflow_buf = self._overflow[:max_len]
         overflow_start = max_len - len(overflow_buf)
-        attrs_stack: t.Dict[str, t.List[bool | IColor | None]] = {
+        attrs_stack: t.Dict[str, t.List[bool | CT | None]] = {
             attr: [None] for attr in Style.renderable_attributes
         }
         renderer = self._resolve_renderer(renderer)
@@ -688,6 +674,10 @@ class SimpleTable(IRenderable):
 
     def _sum_len(self, *row: IRenderable, fixed_only: bool) -> int:
         return sum(len(c) for c in row if not fixed_only or c.has_width)
+
+
+def is_rt(arg) -> bool:
+    return isinstance(arg, (str, IRenderable))
 
 
 def render(
