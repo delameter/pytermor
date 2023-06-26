@@ -22,8 +22,10 @@ pending
 - |NEW| added tuple support into fargs-parsing
 - |REFACTOR| simplified `ArgTypeError`
 - |TESTS| covered `filter` module
+- |NEW| http colors
+- |REFACTOR| optimized imports
 
-.. <@pending:fc8ace4>
+.. <@pending:561f165>
 .. ^ blank line before should be kept
 
 

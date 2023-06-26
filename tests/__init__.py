@@ -7,26 +7,23 @@ from __future__ import annotations
 
 import os.path
 from datetime import timedelta
-from inspect import isclass
 from math import isclose
-from typing import cast, overload, TypeVar, AnyStr
-import typing as t
+from typing import AnyStr, TypeVar, overload
+
 from pytermor import (
+    HSV,
     IColorType,
-    IFilter,
-    Style,
-    apply_filters,
-    SgrStringReplacer,
+    ISequence,
+    LAB,
     NonPrintsOmniVisualizer,
     RGB,
-    HSV,
-    LAB,
+    SgrStringReplacer,
+    Style,
     XYZ,
-    ISequence,
+    apply_filters,
     get_qname,
 )
 from .fixtures import *  # noqa
-
 
 str_filters = [
     SgrStringReplacer(lambda m: "]" if "39" in m.group(3) else "["),

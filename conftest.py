@@ -50,10 +50,10 @@ def pytest_assertrepr_compare(op, left, right):
             print()
             print("  Actual: ", _sgr_visualizer.apply(left))
             print("Expected: ", _sgr_visualizer.apply(right))
-        return []
+        return None
     if isinstance(left, pt.Style) and isinstance(right, pt.Style) and op == "==":
         return [repr(left) + " != " + repr(right)]
-    return []
+    return None
 
 
 pytest_plugins = ["tests.fixtures"]

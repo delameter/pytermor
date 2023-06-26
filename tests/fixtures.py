@@ -5,8 +5,8 @@
 # -----------------------------------------------------------------------------
 import pytest
 
-from pytermor import ExtendedEnum, OutputMode, RendererManager
-from pytermor.config import init_config, replace_config, Config
+from pytermor import ExtendedEnum, RendererManager
+from pytermor.config import Config, init_config, replace_config
 
 _default_config = Config()
 

@@ -1,8 +1,3 @@
-# placeholders:
-#   %s (nodes and edges)
-#   4
-#   #C0C0C0
-#   #dadada
 
 digraph G {
     dpi = 150;

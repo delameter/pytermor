@@ -1161,24 +1161,25 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
         raise ValueError(f"Required length should be >= 0 (got {req_len})")
 
     sign = ""
+    req_len_eff = req_len
     if val < 0:
         sign = "-"
-        req_len -= 1
+        req_len_eff -= 1
 
-    if req_len == 0:
+    if req_len_eff == 0:
         return _OVERFLOW_CHAR * (len(sign))
 
     abs_value = abs(val)
-    if abs_value < 1 and req_len == 1:
+    if abs_value < 1 and req_len_eff == 1:
         # '0' is better than '-'
         return f"{sign}0"
 
     if val == 0.0:
-        return f"{sign}{0:{req_len}.0f}"
+        return f"{sign}{0:{req_len_eff}.0f}"
 
     oom = floor(log10(abs_value))  # order of magnitude
     exp_threshold_left = -2
-    exp_threshold_right = req_len - 1
+    exp_threshold_right = req_len_eff - 1
 
     # oom threshold depends on req
     # length on the right, and is
@@ -1222,12 +1223,12 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
 
     if require_exp_form:
         exponent_len = len(str(oom)) + 1  # 'e'
-        if req_len < exponent_len:
+        if req_len_eff < exponent_len:
             # there is no place even for exponent
-            return _OVERFLOW_CHAR * (len(sign) + req_len)
+            return _OVERFLOW_CHAR * (len(sign) + req_len_eff)
 
         significand = abs_value / pow(10, oom)
-        max_significand_len = req_len - exponent_len
+        max_significand_len = req_len_eff - exponent_len
 
         # max_significand_len can be 0, in that case significand_str will be empty;
         # that means we cannot fit it the significand, but still can display approximate
@@ -1238,27 +1239,38 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
         return f"{sign}{significand_str}e{oom}"
 
     integer_len = max(1, oom + 1)
-    if integer_len == req_len:
-        # special case when rounding
-        # can change the result length
+    if integer_len == req_len_eff:
+        # (*) special case when rounding
+        #     can change the result length
         integer_str = f"{abs_value:{req_len}.0f}"
 
         if len(integer_str) > integer_len:
-            # e.g. req_len = 1, abs_value = 9.9
+            # e.g. req_len_eff = 1, abs_value = 9.9
             #      => should be displayed as 9, not 10
-            integer_str = f"{trunc(abs_value):{req_len}d}"
+            integer_str = f"{trunc(abs_value):{req_len_eff}d}"
 
         return f"{sign}{integer_str}"
 
-    decimals_with_point_len = req_len - integer_len
-    decimals_len = decimals_with_point_len - 1
-
-    # dot without decimals makes no sense, but
-    # python's standard library handles
-    # this by itself: f'{12.3:.0f}' => '12'
+    decimals_with_point_len = req_len_eff - integer_len
+    decimals_len = max(0, decimals_with_point_len - 1)
     dot_str = f".{decimals_len!s}"
 
-    return f"{sign}{abs_value:{req_len}{dot_str}f}"
+    result = f"{abs_value:{dot_str}f}"
+    # special case №(don't even know which)               quick dirty fix :(     @FIXME
+    # +-----------------------------------------------------------------------------------
+    # | as it turns out, all of the logic above is not enough to get the required length
+    # | so we throw away all the excessive numbers after the decimal point and pray. the
+    # | condition below becomes true only when the rounding changes result length in the
+    # | context of fractional part of the value, while the code above with (*) mark only
+    # | checks for integer rounding cases; e.g. this:
+    # |     format_auto_float(9.99, req_len=3)
+    # | will cause the method to end up here, as integer_len=1 is not even remotely close
+    # | to req_len=3, but after rounding the result will be "10.00" which overflows (4>3)
+    if '.' in result and len(result) > req_len_eff > result.index('.'):
+        result = result[:req_len_eff]
+    return sign + result.removesuffix(".").rjust(req_len_eff)
+    # +-----------------------------------------------------------------------------------
+    # return f"{sign}{abs_value:{req_len}{dot_str}f}"
 
 
 def format_si(val: float, unit: str = None, auto_color: bool = None) -> RT:
