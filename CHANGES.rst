@@ -24,8 +24,9 @@ pending
 - |TESTS| covered `filter` module
 - |NEW| http colors
 - |REFACTOR| optimized imports
+- |FIX| `format_auto_float` edge case
 
-.. <@pending:561f165>
+.. <@pending:d0e5182>
 .. ^ blank line before should be kept
 
 

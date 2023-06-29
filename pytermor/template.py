@@ -24,11 +24,12 @@ from .term import (
     make_clear_line_before_cursor,
     make_reset_cursor,
 )
-from .text import Fragment, Text, apply_style_words_selective
+from .text import Fragment, Text, apply_style_words_selective, apply_style_selective
 
 
 class _TemplateTagOption(str, ExtendedEnum):
-    STYLE_WORDS_SELECTIVE = "|"
+    STYLE_WORDS_SELECTIVE_WSPACE = "|"
+    STYLE_WORDS_SELECTIVE_COMMA = ","
 
 
 @dataclass(frozen=True)
@@ -55,7 +56,7 @@ class TemplateEngine:
             |                     # … OR clear current line / the whole screen
             (?P<clear>(<<|<|<>|<<>>|>|>>))  #
             |
-            (?P<options>[|]*)     # … OR /with options/ 
+            (?P<options>[|,]*)    # … OR /with options/ 
             (?P<action>[+-]?)     # … open or close style  /empty=open/
             (?P<attrs>[a-zA-Z][\w =-]*|)   # … add style attributes OR close last  
             
@@ -99,8 +100,13 @@ class TemplateEngine:
             span = tag_match.span()
             tpl_part = self._ESCAPE_REGEX.sub(r"\1[", tpl_nocom[tpl_cursor : span[0]])
             if len(tpl_part) > 0 or style_buffer != NOOP_STYLE:
-                if _TemplateTagOption.STYLE_WORDS_SELECTIVE in st_opts:
-                    for part in apply_style_words_selective(tpl_part, style_buffer):
+                selective_fn = None
+                if _TemplateTagOption.STYLE_WORDS_SELECTIVE_WSPACE in st_opts:
+                    selective_fn = apply_style_words_selective(tpl_part, style_buffer)
+                elif _TemplateTagOption.STYLE_WORDS_SELECTIVE_COMMA in st_opts:
+                    selective_fn = apply_style_selective(re.compile(r'([^,]+)?([, ]*)'), tpl_part, style_buffer)
+                if selective_fn:
+                    for part in selective_fn:
                         result += part
                     # add open style for engine to properly handle the :[-closing] tag:
                     tpl_part = ""
