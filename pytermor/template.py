@@ -95,6 +95,7 @@ class TemplateEngine:
         st_opts = []
         _logger.debug(f"Substituting the template ({len(tpl)})")
 
+        #@TODO rework into stacked-type iter
         tpl_nocom = self._COMMENT_REGEX.sub("", tpl)
         for tag_match in self._TAG_REGEX.finditer(tpl_nocom):
             span = tag_match.span()
