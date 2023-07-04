@@ -3413,6 +3413,8 @@
   value: 0x0395f3
 - name: "macedonian orange"
   value: 0xe97f28
+- name: "cherry red"
+  value: 0x9f3334
 
 - name: "http get"
   value: 0x499c54

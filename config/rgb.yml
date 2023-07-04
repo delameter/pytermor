@@ -948,6 +948,9 @@ colors:
   - name: cherry-blossom-pink
     original_name: Cherry blossom pink
     value: 0xffb7c5
+  - name: cherry-red
+    original_name: cherry red
+    value: 0x9f3334
   - name: chestnut
     original_name: Chestnut
     value: 0x954535

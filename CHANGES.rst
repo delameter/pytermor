@@ -26,8 +26,9 @@ pending
 - |REFACTOR| optimized imports
 - |FIX| `format_auto_float` edge case
 - |NEW| `template` option STYLE_WORDS_SELECTIVE_COMMA
+- |NEW| +16 named colors
 
-.. <@pending:7945b80>
+.. <@pending:8426c44>
 .. ^ blank line before should be kept
 
 
