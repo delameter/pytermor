@@ -27,8 +27,9 @@ pending
 - |FIX| `format_auto_float` edge case
 - |NEW| `template` option STYLE_WORDS_SELECTIVE_COMMA
 - |NEW| +16 named colors
+- |NEW| +1 more named color
 
-.. <@pending:8426c44>
+.. <@pending:ba16db0>
 .. ^ blank line before should be kept
 
 

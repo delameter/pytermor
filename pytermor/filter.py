@@ -684,13 +684,14 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
         if not inp or len(inp) == 0:
             return "\n"
 
-        self._state.reset(inp, self.get_max_chars_per_line(inp))
+        addr_shift = extra.addr_shift if extra else 0
+        self._state.reset(inp, self.get_max_chars_per_line(inp, addr_shift), addr_shift)
         if self._state.char_per_line < 1:
             raise ValueError(
                 f"Maximum output width ({self._max_output_width}) "
                 f"is too low, cant fit even one char/group per line"
             )
-        self._state.inp_size_len = self._get_input_size_len()
+        self._state.inp_size_len = self._get_input_size_len(addr_shift)
         self._state.address_len = len(self._format_address(self._state.inp_size))
 
         while len(inp) > 0:
@@ -702,7 +703,7 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
             self._state.lineno += 1
             self._state.address += self._state.char_per_line
 
-        header = self._format_line_separator("_", f"{extra.label}" if extra else "")
+        header = self._format_line_separator("_", extra.label if extra else "")
         footer = self._format_line_separator(
             "-", label_right="(" + self._format_address(self._state.inp_size) + ")"
         )
@@ -738,8 +739,8 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
     def _get_vert_sep_char(self):
         return "|"
 
-    def _get_input_size_len(self) -> int:
-        return len(str(self._state.inp_size))
+    def _get_input_size_len(self, addr_shift: int) -> int:
+        return len(str(self._state.inp_size + addr_shift))
 
     def _get_output_line_len(self) -> int:
         # useless before processing
@@ -752,7 +753,7 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def get_max_chars_per_line(self, inp: IT) -> int:
+    def get_max_chars_per_line(self, inp: IT, addr_shift: int) -> int:
         raise NotImplementedError
 
 
@@ -776,6 +777,8 @@ class BytesTracer(AbstractTracer[bytes]):
         self._state.add_row(self._make_row(part))
 
     def _make_row(self, part: IT) -> t.List[str]:
+        if not isinstance(part, bytes):
+            raise ArgTypeError(part, 'inp', bytes)
         return [
             " ",
             self._format_address(),
@@ -792,10 +795,10 @@ class BytesTracer(AbstractTracer[bytes]):
         for c in chunk(part, self.GROUP_SIZE):
             yield (" ".join([f"{b:02X}" for b in (*c,)])).ljust(3 * self.GROUP_SIZE + 1)
 
-    def _get_input_size_len(self) -> int:
-        return 2 * ceil(len(f"{self._state.inp_size:X}") / 2)
+    def _get_input_size_len(self, addr_shift: int) -> int:
+        return 2 * ceil(len(f"{(self._state.inp_size+addr_shift):X}") / 2)
 
-    def get_max_chars_per_line(self, inp: bytes) -> int:
+    def get_max_chars_per_line(self, inp: bytes, addr_shift: int) -> int:
         """
         .. default-role:: math
 
@@ -876,7 +879,7 @@ class BytesTracer(AbstractTracer[bytes]):
 
         :param inp:
         """
-        l_ihex = len(f"{len(inp):x}")
+        l_ihex = len(f"{len(inp) + addr_shift:x}")
         l_t = self._max_output_width
         c_lmax = self.GROUP_SIZE * floor((l_t - ceil(l_ihex / 2) - 6) / 13)
         return self._round_chars_per_line(c_lmax)
@@ -940,7 +943,7 @@ class StringTracer(AbstractStringTracer):
         yield from [""] * 2 * (self._state.char_per_line - len(part))
 
     # noinspection NonAsciiCharacters
-    def get_max_chars_per_line(self, inp: str) -> int:
+    def get_max_chars_per_line(self, inp: str, addr_shift: int) -> int:
         """
         For more detials on math behind these calculations see
         `BytesTracer <BytesTracer.get_max_chars_per_line()>`.
@@ -1026,7 +1029,7 @@ class StringTracer(AbstractStringTracer):
 
         :param inp:
         """
-        l_off = len(str(len(inp)))
+        l_off = len(str(len(inp)+addr_shift))
         l_t = self._max_output_width
         c_umax = get_max_utf8_bytes_char_length(inp)
         result = floor((l_t - l_off - 5) / (2 * c_umax + 2))
@@ -1073,7 +1076,7 @@ class StringUcpTracer(AbstractStringTracer):
             yield from [f"{ord(s):>02X}", " "]
         yield from [""] * 2 * (self._state.char_per_line - len(part))
 
-    def get_max_chars_per_line(self, inp: str) -> int:
+    def get_max_chars_per_line(self, inp: str, addr_shift: int) -> int:
         """
         Calculations for `StringUcpTracer` are almost the same as for `StringTracer`,
         expect that sum of static parts of :math:`L_O` equals to :math:`7` instead
@@ -1092,16 +1095,17 @@ class StringUcpTracer(AbstractStringTracer):
         :param inp:
         :type inp:
         """
-        l_off = len(str(len(inp)))
+        l_off = len(str(len(inp)+addr_shift))
         l_t = self._max_output_width
         c_ucmax = get_max_ucs_chars_cp_length(inp)
         result = floor((l_t - l_off - 7) / (c_ucmax + 2))
         return result
 
 
-@dataclass
+@dataclass(frozen=True)
 class TracerExtra:
-    label: str
+    label: str = ''
+    addr_shift: int = 0
 
 
 @dataclass
@@ -1117,10 +1121,10 @@ class _TracerState:
     rows: t.List[t.List[str]] = field(init=False, default=None)
     cols_max_len: t.List[int] | None = field(init=False, default=None)
 
-    def reset(self, inp: IT, char_per_line: int):
+    def reset(self, inp: IT, char_per_line: int, addr_shift: int):
         self.inp_size = len(inp)
         self.lineno = 0
-        self.address = 0
+        self.address = addr_shift
 
         self.char_per_line = char_per_line
         self.inp_size_len = 0
@@ -1146,8 +1150,8 @@ def _get_tracer(tracer_cls: t.Type[AbstractTracer], max_width: int) -> AbstractT
 #        - squash repeating lines
 def dump(
     data: t.Any,
-    label: str = None,
     tracer_cls: t.Type[AbstractTracer] = StringUcpTracer,
+    extra: TracerExtra = None,
 ) -> str:
     """
     .
@@ -1156,7 +1160,7 @@ def dump(
         data = str(data)
 
     tracer = _get_tracer(tracer_cls, get_terminal_width())
-    return tracer.apply(data, TracerExtra(label))
+    return tracer.apply(data, extra)
 
 
 def get_max_ucs_chars_cp_length(string: str) -> int:

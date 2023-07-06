@@ -469,7 +469,7 @@ class TestTracers:
         inp_filename: str,
     ):
         input = load_data_file(inp_filename)
-        actual = dump(input, tracer_cls=cls, label="label")
+        actual = dump(input, cls, TracerExtra("label"))
         assert actual.rstrip("\n") == load_data_file(exp_data_filename).rstrip("\n")
 
     @mark.parametrize("max_width", [None, 40, 60, 80, 100, 120, 160, 240])
@@ -496,11 +496,51 @@ class TestTracers:
         assert StringTracer().apply("").rstrip("\n") == ""
 
     def test_input_cast(self):
-        assert dump([1, 2, 3], "input cast", StringTracer) == (
+        assert dump([1, 2, 3], StringTracer, TracerExtra("input cast")) == (
             "input cast_________________________________________\n"
             " 0 | 5b 31 2c 20 32 2c 20 33 5d |[1,␣2,␣3]         \n"
             "------------------------------------------------(9)\n"
         )
+
+    @mark.parametrize(
+        "cls, inp, shift, expected",
+        [
+            [
+                StringTracer,
+                "123456789123456789",
+                999999999,
+                """\
+___________________________________________________________________________
+  999999999 | 31 32 33 34 35 36 37 38 39 31 32 33 34 35 36 |123456789123456
+ 1000000014 | 37 38 39                                     |789            
+---------------------------------------------------------------(        18)
+""",
+            ],
+            [
+                BytesTracer,
+                b"123456789123456789",
+                0x80000000,
+                """\
+_______________________________________________________________________________
+ 0x80000000 | 31 32 33 34  35 36 37 38  39 31 32 33  34 35 36 37  38 39        
+-------------------------------------------------------------------(0x00000012)
+""",
+            ],
+            [
+                StringUcpTracer,
+                "123456789123456789",
+                -1000000001,
+                """\
+______________________________________________________________________________
+ -1000000001 |U+ 31 32 33 34 35 36 37 38 39 31 32 33 34 35 36 |123456789123456
+  -999999986 |U+ 37 38 39                                     |789            
+------------------------------------------------------------------(        18)
+""",
+            ],
+        ],
+    )
+    def test_addr_shift(self, cls: t.Type[AbstractTracer], inp: t.AnyStr, shift: int, expected: str):
+        assert dump(inp, cls, TracerExtra(addr_shift=shift)) == expected
 
     @mark.xfail(raises=ValueError)
     def test_too_low_limit(self):
