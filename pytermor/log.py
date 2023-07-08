@@ -30,7 +30,7 @@ _logger.addHandler(logging.NullHandler())  # discards logs by default
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - >8-
 
 
-def _format_sec(val: float) -> str:
+def _format_sec(val: float) -> str:  # pragma: no cover
     if val >= 2:
         return f"{val:.1f}s"
     if val >= 2e-3:
@@ -69,7 +69,7 @@ def _trace_render(origin: _F) -> _F:
             else:
                 _logger.log(level=TRACE, msg=f"│ IN  ({li:>{maxl}s}): {inp!r}")
                 _logger.log(level=TRACE, msg=f"│ OUT ({lo:>{maxl}s}): {result!r}")
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             _logger.exception(e)
         return result
 
@@ -80,7 +80,7 @@ def get_logger() -> logging.Logger:
     return _logger
 
 
-def init_logger():
+def init_logger():  # pragma: no cover
     from .config import get_config
 
     if get_config().trace_renders:
@@ -121,9 +121,9 @@ def measure(
     def decorator(origin: Callable[..., Any]):
         def wrapper(*args, **kwargs):
             try:
-                if template_enter := template_enter_fn(*args, **kwargs):
-                    _logger.log(level=level, msg=template_enter)
-            except Exception as e:
+                if template_enter_fn:
+                    _logger.log(level=level, msg=template_enter_fn(*args, **kwargs))
+            except Exception as e:  # pragma: no cover
                 _logger.exception(e)
 
             before_s = _now_s()
@@ -132,7 +132,7 @@ def measure(
 
             try:
                 _logger.log(level=level, msg=template_exit % _format_sec(delta_s))
-            except Exception as e:
+            except Exception as e:  # pragma: no cover
                 _logger.exception(e)
             return result
 

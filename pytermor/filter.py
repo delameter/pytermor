@@ -777,7 +777,7 @@ class BytesTracer(AbstractTracer[bytes]):
         self._state.add_row(self._make_row(part))
 
     def _make_row(self, part: IT) -> t.List[str]:
-        if not isinstance(part, bytes):
+        if not isinstance(part, bytes):  # pragma: no cover
             raise ArgTypeError(part, 'inp', bytes)
         return [
             " ",

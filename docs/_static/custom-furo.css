@@ -101,7 +101,7 @@ td > * > .aux {
 }
 
 .std-term {
-    font-weight: bold;
+    font-style: italic;
 }
 .env {
     font-size: 0.9em;

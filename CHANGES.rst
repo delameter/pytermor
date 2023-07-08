@@ -28,8 +28,9 @@ pending
 - |NEW| `template` option STYLE_WORDS_SELECTIVE_COMMA
 - |NEW| +16 named colors
 - |NEW| +1 more named color
+- |NEW| addr_offset param for `Tracers`
 
-.. <@pending:ba16db0>
+.. <@pending:751072d>
 .. ^ blank line before should be kept
 
 

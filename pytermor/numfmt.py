@@ -19,7 +19,7 @@ from math import floor, isclose, log, log10, trunc
 from .common import Align, RT
 from .cval import cv
 from .exception import ConflictError
-from .log import get_logger
+from .log import get_logger, measure
 from .style import Style, Styles, merge_styles
 from .text import Fragment, IRenderable, Text
 
@@ -50,22 +50,29 @@ class Highlighter:
     # fmt: off
     _PREFIX_UNIT_REGEX = re.compile(
         r"""
-        (?: ^ | (?<!\x1b\[)(?<=[]()\s\[-])\b )
-        (?P<intp>\d+)
-        (?P<frac>[.,]\d+)?
-        (?P<sep>\s?)
-        (?P<pfx>[kmgtpuμµn%])?
+        (?: ^ | (?<! \x1b\[ )
+                (?<= [](){}<>,.:/\s=\[-] )
+                \b 
+        )
+        (?P<intp> 
+            ( 0?x (?-i: [\dA-F]+ | [\da-f]+) )
+            | \d+ 
+        )
+        (?P<frac> [.,]\d+ )?
+        (?P<sep>  \s? )
+        (?P<pfx>  (?-i: [KkmMuμµGgnTpP%] ) )?
         (?P<unit>
-            i?b[/ip]?t?s?|
-            v|a|s(?:econd|ec|)s?|
-            m(?:inute|in|onth|on|o|)s?|
-            h(?:our|r|)s?|
-            d(?:ay|)s?|
-            w(?:eek|k|)s?|
-            y(?:ear|r|)s?|
-            hz
+            i?b[/ip]?t?s?
+          | s(econd|ec|)s?
+          | m(inute|in|onth|on|o|)s?
+          | h(our|r|)s?
+          | d(ay|)s?
+          | w(eek|k|)s?
+          | y(ear|r|)s?
+          | hz
+          | (?-i:[VA])
         )?
-        (?= []\s\b()[] | $ )
+        (?= [](){}<>,.:/\s\b\[-] | $ )
         """,
         flags=re.IGNORECASE | re.VERBOSE,
     )                                           # | OOM | (+) GENERICS (-) |(+) TIME (-)|
@@ -83,7 +90,7 @@ class Highlighter:
     _PREFIX_MAP = {
         '%': STYLE_PRC,
         'K': STYLE_KIL, 'k': STYLE_KIL, 'm': STYLE_KIL,
-        'M': STYLE_MEG,                 'μ': STYLE_MEG, 'µ': STYLE_MEG,
+        'M': STYLE_MEG,                 'u': STYLE_MEG, 'μ': STYLE_MEG, 'µ': STYLE_MEG,
         'G': STYLE_GIG, 'g': STYLE_GIG, 'n': STYLE_GIG,
         'T': STYLE_TER,                 'p': STYLE_TER,
         'P': STYLE_PET,
@@ -106,6 +113,7 @@ class Highlighter:
     _UNITLESS_LENGTH_THRESHOLD = 3
     # fmt: on
 
+    @measure
     def colorize(self, string: str) -> Text:
         """
         parse and highlight
@@ -135,8 +143,10 @@ class Highlighter:
         :param unit:
         :return:
         """
+        extra1, extra2, intp = intp.rpartition('x')
+        extra = extra1 + extra2
         digits = intp + frac[1:]
-        unit_norm = re.sub(r"^\s*(.)+s?\s*$", r"\1", unit)  # @TODO test this
+        unit_norm = re.sub(r"(.+?)s?", r"\1", unit.strip().lower())
 
         st = self.STYLE_DEFAULT
         if set(digits) == {"0"}:
@@ -147,6 +157,7 @@ class Highlighter:
             st = self._TIME_UNIT_MAP.get(unit_norm, self.STYLE_DEFAULT)
         elif len(digits) > self._UNITLESS_LENGTH_THRESHOLD:
             return [
+                extra,
                 *self._multiapply(intp),
                 Fragment(frac[:1]),
                 *self._multiapply(frac[1:], reverse=True),
@@ -162,12 +173,13 @@ class Highlighter:
         unit_st = pfx_st = merge_styles(st, fallbacks=[Style(dim=self._dim_units)])
         # dim unless style or instance settings prohibit
         return [
+            extra,
             Fragment(intp, int_st),
             Fragment(frac, frac_st),
             Fragment(sep),
             Fragment(pfx, pfx_st),
             Fragment(unit, unit_st),
-        ]
+            ]
 
     def _multiapply(self, num: str, *, reverse: bool = False) -> Iterable[Fragment]:
         def _get_style(oom: int, fade: int) -> Style:
@@ -226,8 +238,9 @@ class NumFormatter(SupportsFallback):
         if not unit_full or unit_full.isspace():
             sep = ""
 
+        val = val.strip()
         if not self._get_color_effective(auto_color):
-            return "".join((val.strip(), sep, unit_full))
+            return "".join((val, sep, unit_full))
 
         int_part, point, frac_part = val.strip().partition(".")
         args = dict(intp=int_part, frac=point + frac_part, sep=sep, pfx=pfx, unit=unit)
@@ -596,12 +609,14 @@ class DynamicFormatter(NumFormatter):
         :param auto_color:
         :return:
         """
+        result = self._format_raw(val, oom_shift)
+
         if self._get_color_effective(auto_color):
-            return self._colorize(auto_color, *self._format_raw(val, oom_shift, True))
-        return self._format_raw(val, oom_shift, False)
+            return self._colorize(auto_color, *result)
+        return "".join(result)
 
     def _format_raw(
-        self, val: float, oom_shift: int = None, as_tuple: bool = False
+        self, val: float, oom_shift: int = None
     ) -> str | t.Tuple[str, ...]:
         eff_oom_shift = self._oom_shift if oom_shift is None else oom_shift
         min_unit = self._units[-1]
@@ -631,10 +646,7 @@ class DynamicFormatter(NumFormatter):
         else:
             val_str = "{:>.1f}".format(val_mp)
 
-        result = (val_str, self._unit_separator, unit.prefix, unit.unit)
-        if as_tuple:
-            return result
-        return "".join(result)
+        return val_str, self._unit_separator, unit.prefix, unit.unit
 
 
 # noinspection PyProtectedMember
@@ -1000,8 +1012,8 @@ formatter_bytes_human = StaticFormatter(
 
 formatter_time = DynamicFormatter(
     units=[
-        BaseUnit(math.log10(60 * 60 * 24 * 365), "y"),
-        BaseUnit(math.log10(60 * 60 * 24 * 30), "M"),
+        BaseUnit(math.log10(60 * 60 * 24 * 365), "yr"),
+        BaseUnit(math.log10(60 * 60 * 24 * 30), "mo"),
         BaseUnit(math.log10(60 * 60 * 24 * 7), "w"),
         BaseUnit(math.log10(60 * 60 * 24), "d"),
         BaseUnit(math.log10(60 * 60), "h"),
@@ -1028,13 +1040,13 @@ dual_registry.register(
             DualBaseUnit("m", 60),
             DualBaseUnit("h", 24),
             DualBaseUnit("d", 30),
-            DualBaseUnit("M", overflow_after=9),
+            DualBaseUnit("mo", overflow_after=9),
         ],
         allow_negative=False,
         allow_fractional=True,
         unit_separator=None,
         plural_suffix=None,
-        overflow_msg="ERR",
+        overflow_msg="OVR",
     ),
     DualFormatter(
         units=[
@@ -1042,14 +1054,13 @@ dual_registry.register(
             DualBaseUnit("m", 60),
             DualBaseUnit("h", 24),
             DualBaseUnit("d", 30),
-            DualBaseUnit("M", 12),
-            DualBaseUnit("y", overflow_after=99),
+            DualBaseUnit("mo", overflow_after=9),
         ],
         allow_negative=False,
         allow_fractional=True,
         unit_separator=" ",
         plural_suffix=None,
-        overflow_msg="ERRO",
+        overflow_msg="OVRF",
     ),
     DualFormatter(
         units=[
@@ -1057,14 +1068,13 @@ dual_registry.register(
             DualBaseUnit("m", 60),
             DualBaseUnit("h", 24),
             DualBaseUnit("d", 30),
-            DualBaseUnit("M", 12),
-            DualBaseUnit("y", overflow_after=99),
+            DualBaseUnit("mo", overflow_after=9),
         ],
         allow_negative=True,
         allow_fractional=True,
         unit_separator=" ",
         plural_suffix=None,
-        overflow_msg="ERROR",
+        overflow_msg="OVERF",
     ),
     DualFormatter(
         units=[

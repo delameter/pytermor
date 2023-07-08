@@ -34,106 +34,71 @@ from tests import format_test_params
 @pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
 class TestHighlighter:
     DIM = Style(dim=True)
+    GRAY = Style(fg="gray")
+    BLUE_BLD = Style(fg="blue", bold=True)
+    CYAN_BLD = Style(fg="cyan", bold=True)
+    GREEN_BLD = Style(fg="green", bold=True)
+    YELLOW_BLD = Style(fg="yellow", bold=True)
+    RED_BLD = Style(fg="red", bold=True)
 
     @pytest.mark.parametrize(
         "input, expected",
         [
-            ("0", [Fragment("0", Style(fg="gray"))]),
-            ("-0", ["-" + Fragment("0", Style(fg="gray"))]),
-            (
-                "0.000",
-                [
-                    Fragment("0", Style(fg="gray")),
-                    Fragment(".000", Style(fg="gray", dim=True)),
-                ],
-            ),
-            (
-                "0.0001",
-                [
-                    Fragment("0.000"),
-                    Fragment("1", Style(dim=True)),
-                ],
-            ),
-            (
-                "890.789",
-                [
-                    Fragment("890"),
-                    Fragment(".789"),
-                ],
-            ),
-            (
-                "8456.78901",
-                [
-                    Fragment("8", Style(fg="blue", bold=True)),
-                    Fragment("456"),
-                    Fragment(".789"),
-                    Fragment("01", DIM),
-                ],
-            ),
-            (
-                "567890",
-                [
-                    Fragment("567", Style(fg="blue", bold=True)),
-                    Fragment("890"),
-                ],
-            ),
-            (
-                "234567890",
-                [
-                    Fragment("234", Style(fg="cyan", bold=True)),
-                    Fragment("567", DIM),
-                    Fragment("890"),
-                ],
-            ),
+            ("0", Text("0", GRAY)),
+            ("-0", Text("-", None, "0", GRAY)),
+            ("0.000", Text("0", GRAY, ".000", Style(GRAY, dim=True))),
+            ("0.0001", Text("0.000", None, "1", DIM)),
+            ("11.22", Text("11.22")),
+            ("890.789", Text("890.789")),
+            ("8456.78901", Text("8", BLUE_BLD, "456.789", None, "01", DIM)),
+            ("567890", Text("567", BLUE_BLD, "890")),
+            ("234567890", Text("234", CYAN_BLD, "567", DIM, "890")),
             (
                 "890123456.78901234567890",
-                [
-                    Fragment("890", Style(fg="cyan", bold=True)),
-                    Fragment("123", DIM),
-                    Fragment("456"),
-                    Fragment(".789"),
-                    Fragment("012", DIM),
-                    Fragment("345"),
-                    Fragment("678", DIM),
-                    Fragment("90"),
-                ],
+                Text(
+                    "890",
+                    CYAN_BLD,
+                    "123",
+                    DIM,
+                    "456.789",
+                    None,
+                    "012",
+                    DIM,
+                    "345",
+                    None,
+                    "678",
+                    DIM,
+                    "90",
+                ),
             ),
-            (
-                "901234567890",
-                [
-                    Fragment("901", Style(fg="green", bold=True)),
-                    Fragment("234"),
-                    Fragment("567", DIM),
-                    Fragment("890"),
-                ],
-            ),
+            ("901234567890", Text("901", GREEN_BLD, "234", None, "567", DIM, "890")),
             (
                 "678901234567890",
-                [
-                    Fragment("678", Style(fg="yellow", bold=True)),
-                    Fragment("901", DIM),
-                    Fragment("234"),
-                    Fragment("567", DIM),
-                    Fragment("890"),
-                ],
+                Text("678", YELLOW_BLD, "901", DIM, "234", None, "567", DIM, "890"),
             ),
             (
                 "-345678901234567890",
-                [
-                    Fragment("-"),
-                    Fragment("345", Style(fg="red", bold=True)),
-                    Fragment("678"),
-                    Fragment("901", DIM),
-                    Fragment("234"),
-                    Fragment("567", DIM),
-                    Fragment("890"),
-                ],
+                Text(
+                    "-",
+                    None,
+                    "345",
+                    RED_BLD,
+                    "678",
+                    None,
+                    "901",
+                    DIM,
+                    "234",
+                    None,
+                    "567",
+                    DIM,
+                    "890",
+                ),
             ),
         ],
         ids=format_test_params,
     )
-    def test_multiapplying(self, input, expected):
-        assert render(highlight(input)) == render(Text(*expected))
+    def test_multiapplying(self, input, expected: Text):
+        assert render(highlight(input)) == render(expected)
 
 
 # -- format_auto_float --------------------------------------------------------
@@ -713,8 +678,8 @@ class TestDynamicFormatter:
             ["12 h", 45200],
             ["1 d", 133_300],
             ["1 w", 1_048_576],
-            ["5 M", 13_048_576],
-            ["29 y", 932_048_576],
+            ["5 mo", 13_048_576],
+            ["29 yr", 932_048_576],
         ],
     )
     def test_format_time(self, expected: str, value: int):
@@ -828,12 +793,12 @@ class TestDynamicFormatter:
             ],
             [
                 "\x1b[1;93m" + "5" + "\x1b[22;39m" + " "
-                "\x1b[2;93m" + "M" + "\x1b[22;39m",
+                "\x1b[2;93m" + "mo" + "\x1b[22;39m",
                 13_048_576,
             ],
             [
                 "\x1b[1;31m" + "2" + "9\x1b[22;39m" + " "
-                "\x1b[2;31m" + "y" + "\x1b[22;39m",
+                "\x1b[2;31m" + "yr" + "\x1b[22;39m",
                 932_048_576,
             ],
         ],
@@ -855,70 +820,70 @@ class TestDualFormatter:
 
     # fmt: off
     TIMEDELTA_TEST_SET = [
-        [delta(d=-700000),        [  "ERR",  "ERRO", "ERROR",  "OVERFL",   "OVERFLOW"]],
-        [delta(d=-1000),          [  "ERR",   "2 y",  "-2 y",    "2 yr",   "-2 years"]],
-        [delta(d=-300),           [  "ERR",  "10 M", "-10 M",  "10 mon", "-10 months"]],
-        [delta(d=-300, s=1),      [   "9M",   "9 M",  "-9 M",   "9 mon",  "-9 months"]],
-        [delta(d=-100),           [   "3M",   "3 M",  "-3 M",   "3 mon",  "-3 months"]],
-        [delta(d=-9, h=-23),      [   "9d",   "9 d",  "-9 d",  "9d 23h",    "-9d 23h"]],
-        [delta(d=-5),             [   "5d",   "5 d",  "-5 d",   "5d 0h",     "-5d 0h"]],
-        [delta(d=-1, h=10, m=30), [  "13h",  "13 h", "-13 h",   "13 hr", "-13h 30min"]],
-        [delta(h=-1, m=15),       [  "45m",  "45 m", "-45 m",  "45 min",   "-45 mins"]],
-        [delta(m=-5),             [   "5m",   "5 m",  "-5 m",   "5 min",    "-5 mins"]],
-        [delta(s=-2.01),          [   "0s",    "0s", "-2.0s",      "0s",      "-2.0s"]],
-        [delta(s=-2),             [   "0s",    "0s", "-2.0s",      "0s",      "-2.0s"]],
-        [delta(s=-2, us=1),       [   "0s",    "0s", "-2.0s",      "0s",      "-2.0s"]],
-        [delta(s=-1.9),           [   "0s",    "0s", "-1.9s",      "0s",      "-1.9s"]],
-        [delta(s=-1.1),           [   "0s",    "0s", "-1.1s",      "0s",      "-1.1s"]],
-        [delta(s=-1.0),           [   "0s",    "0s", "-1.0s",      "0s",      "-1.0s"]],
-        [delta(us=-500),          [   "0s",    "0s",  "~0 s",      "0s",     "-500µs"]],
-        [delta(s=-0.5),           [   "0s",    "0s",  "~0 s",      "0s",     "-500ms"]],
-        [delta(ms=-50),           [   "0s",    "0s",  "~0 s",      "0s",     "- 50ms"]],
-        [delta(us=-199.12345),    [   "0s",    "0s",  "~0 s",      "0s",     "-199µs"]],
-        [delta(us=-100),          [   "0s",    "0s",  "~0 s",      "0s",     "-100µs"]],
-        [delta(us=-1),            [   "0s",    "0s",  "~0 s",      "0s",     "-1.0µs"]],
-        [delta(),                 [   "0s",    "0s",    "0s",      "0s",         "0s"]],
-        [delta(us=500),           [   "0s",   "0 s", "500µs",   "500µs",      "500µs"]],
-        [delta(ms=25),            [  "<1s",  "<1 s",  "<1 s",  "25.0ms",     "25.0ms"]],
-        [delta(s=0.1),            [  "<1s",  "<1 s", "100ms",   "100ms",      "100ms"]],
-        [delta(s=0.9),            [  "<1s",  "<1 s", "900ms",   "900ms",      "900ms"]],
-        [delta(s=1),              [   "1s",   "1 s", "1.00s",   "1.00s",      "1.00s"]],
-        [delta(s=1.0),            [   "1s",   "1 s", "1.00s",   "1.00s",      "1.00s"]],
-        [delta(s=1.1),            [   "1s",   "1 s", "1.10s",   "1.10s",      "1.10s"]],
-        [delta(s=1.9),            [   "1s",   "1 s", "1.90s",   "1.90s",      "1.90s"]],
-        [delta(s=2, us=-1),       [   "1s",   "1 s", "2.00s",   "2.00s",      "2.00s"]],
-        [delta(s=2),              [   "2s",   "2 s", "2.00s",   "2.00s",      "2.00s"]],
-        [delta(s=2.0),            [   "2s",   "2 s", "2.00s",   "2.00s",      "2.00s"]],
-        [delta(s=2.5),            [   "2s",   "2 s", "2.50s",   "2.50s",      "2.50s"]],
-        [delta(s=10),             [  "10s",  "10 s", "10.0s",   "10.0s",      "10.0s"]],
-        [delta(m=1),              [   "1m",   "1 m",   "1 m",   "1 min",      "1 min"]],
-        [delta(m=5),              [   "5m",   "5 m",   "5 m",   "5 min",     "5 mins"]],
-        [delta(m=15),             [  "15m",  "15 m",  "15 m",  "15 min",    "15 mins"]],
-        [delta(m=45),             [  "45m",  "45 m",  "45 m",  "45 min",    "45 mins"]],
-        [delta(h=1, m=30),        [   "1h",   "1 h",   "1 h",  "1h 30m",   "1h 30min"]],
-        [delta(h=4, m=15),        [   "4h",   "4 h",   "4 h",  "4h 15m",   "4h 15min"]],
-        [delta(h=8, m=59, s=59),  [   "8h",   "8 h",   "8 h",  "8h 59m",   "8h 59min"]],
-        [delta(h=12, m=30),       [  "12h",  "12 h",  "12 h",   "12 hr",  "12h 30min"]],
-        [delta(h=18, m=45),       [  "18h",  "18 h",  "18 h",   "18 hr",  "18h 45min"]],
-        [delta(h=23, m=50),       [  "23h",  "23 h",  "23 h",   "23 hr",  "23h 50min"]],
-        [delta(d=1),              [   "1d",   "1 d",   "1 d",   "1d 0h",      "1d 0h"]],
-        [delta(d=3, h=4),         [   "3d",   "3 d",   "3 d",   "3d 4h",      "3d 4h"]],
-        [delta(d=5, h=22, m=51),  [   "5d",   "5 d",   "5 d",  "5d 22h",     "5d 22h"]],
-        [delta(d=7, m=-1),        [   "6d",   "6 d",   "6 d",  "6d 23h",     "6d 23h"]],
-        [delta(d=9),              [   "9d",   "9 d",   "9 d",   "9d 0h",      "9d 0h"]],
-        [delta(d=12, h=18),       [  "12d",  "12 d",  "12 d",  "12 day",    "12 days"]],
-        [delta(d=16, h=2),        [  "16d",  "16 d",  "16 d",  "16 day",    "16 days"]],
-        [delta(d=30),             [   "1M",   "1 M",   "1 M",   "1 mon",    "1 month"]],
-        [delta(d=55),             [   "1M",   "1 M",   "1 M",   "1 mon",    "1 month"]],
-        [delta(d=70),             [   "2M",   "2 M",   "2 M",   "2 mon",   "2 months"]],
-        [delta(d=80),             [   "2M",   "2 M",   "2 M",   "2 mon",   "2 months"]],
-        [delta(d=200),            [   "6M",   "6 M",   "6 M",   "6 mon",   "6 months"]],
-        [delta(d=350),            [  "ERR",  "11 M",  "11 M",  "11 mon",  "11 months"]],
-        [delta(d=390),            [  "ERR",   "1 y",   "1 y",    "1 yr",     "1 year"]],
-        [delta(d=810),            [  "ERR",   "2 y",   "2 y",    "2 yr",    "2 years"]],
-        [delta(d=10000),          [  "ERR",  "27 y",  "27 y",   "27 yr",   "27 years"]],
-        [delta(d=100000),         [  "ERR",  "ERRO", "ERROR",  "OVERFL",  "277 years"]],
-        [delta(d=400000),         [  "ERR",  "ERRO", "ERROR",  "OVERFL",   "OVERFLOW"]],
+        [delta(d=-700000),        ["OVR",  "OVRF",  "OVERF",  "OVERFL",   "OVERFLOW"]],
+        [delta(d=-1000),          ["OVR",  "OVRF",  "OVERF",    "2 yr",   "-2 years"]],
+        [delta(d=-300),           ["OVR",  "OVRF",  "OVERF",  "10 mon", "-10 months"]],
+        [delta(d=-300, s=1),      ["9mo",  "9 mo",  "-9 mo",   "9 mon",  "-9 months"]],
+        [delta(d=-100),           ["3mo",  "3 mo",  "-3 mo",   "3 mon",  "-3 months"]],
+        [delta(d=-9, h=-23),      [ "9d",   "9 d",   "-9 d",  "9d 23h",    "-9d 23h"]],
+        [delta(d=-5),             [ "5d",   "5 d",   "-5 d",   "5d 0h",     "-5d 0h"]],
+        [delta(d=-1, h=10, m=30), ["13h",  "13 h",  "-13 h",   "13 hr", "-13h 30min"]],
+        [delta(h=-1, m=15),       ["45m",  "45 m",  "-45 m",  "45 min",   "-45 mins"]],
+        [delta(m=-5),             [ "5m",   "5 m",   "-5 m",   "5 min",    "-5 mins"]],
+        [delta(s=-2.01),          [ "0s",    "0s",  "-2.0s",      "0s",      "-2.0s"]],
+        [delta(s=-2),             [ "0s",    "0s",  "-2.0s",      "0s",      "-2.0s"]],
+        [delta(s=-2, us=1),       [ "0s",    "0s",  "-2.0s",      "0s",      "-2.0s"]],
+        [delta(s=-1.9),           [ "0s",    "0s",  "-1.9s",      "0s",      "-1.9s"]],
+        [delta(s=-1.1),           [ "0s",    "0s",  "-1.1s",      "0s",      "-1.1s"]],
+        [delta(s=-1.0),           [ "0s",    "0s",  "-1.0s",      "0s",      "-1.0s"]],
+        [delta(us=-500),          [ "0s",    "0s",   "~0 s",      "0s",     "-500µs"]],
+        [delta(s=-0.5),           [ "0s",    "0s",   "~0 s",      "0s",     "-500ms"]],
+        [delta(ms=-50),           [ "0s",    "0s",   "~0 s",      "0s",     "- 50ms"]],
+        [delta(us=-199.12345),    [ "0s",    "0s",   "~0 s",      "0s",     "-199µs"]],
+        [delta(us=-100),          [ "0s",    "0s",   "~0 s",      "0s",     "-100µs"]],
+        [delta(us=-1),            [ "0s",    "0s",   "~0 s",      "0s",     "-1.0µs"]],
+        [delta(),                 [ "0s",    "0s",     "0s",      "0s",         "0s"]],
+        [delta(us=500),           [ "0s",   "0 s",  "500µs",   "500µs",      "500µs"]],
+        [delta(ms=25),            ["<1s",  "<1 s",   "<1 s",  "25.0ms",     "25.0ms"]],
+        [delta(s=0.1),            ["<1s",  "<1 s",  "100ms",   "100ms",      "100ms"]],
+        [delta(s=0.9),            ["<1s",  "<1 s",  "900ms",   "900ms",      "900ms"]],
+        [delta(s=1),              [ "1s",   "1 s",  "1.00s",   "1.00s",      "1.00s"]],
+        [delta(s=1.0),            [ "1s",   "1 s",  "1.00s",   "1.00s",      "1.00s"]],
+        [delta(s=1.1),            [ "1s",   "1 s",  "1.10s",   "1.10s",      "1.10s"]],
+        [delta(s=1.9),            [ "1s",   "1 s",  "1.90s",   "1.90s",      "1.90s"]],
+        [delta(s=2, us=-1),       [ "1s",   "1 s",  "2.00s",   "2.00s",      "2.00s"]],
+        [delta(s=2),              [ "2s",   "2 s",  "2.00s",   "2.00s",      "2.00s"]],
+        [delta(s=2.0),            [ "2s",   "2 s",  "2.00s",   "2.00s",      "2.00s"]],
+        [delta(s=2.5),            [ "2s",   "2 s",  "2.50s",   "2.50s",      "2.50s"]],
+        [delta(s=10),             ["10s",  "10 s",  "10.0s",   "10.0s",      "10.0s"]],
+        [delta(m=1),              [ "1m",   "1 m",    "1 m",   "1 min",      "1 min"]],
+        [delta(m=5),              [ "5m",   "5 m",    "5 m",   "5 min",     "5 mins"]],
+        [delta(m=15),             ["15m",  "15 m",   "15 m",  "15 min",    "15 mins"]],
+        [delta(m=45),             ["45m",  "45 m",   "45 m",  "45 min",    "45 mins"]],
+        [delta(h=1, m=30),        [ "1h",   "1 h",    "1 h",  "1h 30m",   "1h 30min"]],
+        [delta(h=4, m=15),        [ "4h",   "4 h",    "4 h",  "4h 15m",   "4h 15min"]],
+        [delta(h=8, m=59, s=59),  [ "8h",   "8 h",    "8 h",  "8h 59m",   "8h 59min"]],
+        [delta(h=12, m=30),       ["12h",  "12 h",   "12 h",   "12 hr",  "12h 30min"]],
+        [delta(h=18, m=45),       ["18h",  "18 h",   "18 h",   "18 hr",  "18h 45min"]],
+        [delta(h=23, m=50),       ["23h",  "23 h",   "23 h",   "23 hr",  "23h 50min"]],
+        [delta(d=1),              [ "1d",   "1 d",    "1 d",   "1d 0h",      "1d 0h"]],
+        [delta(d=3, h=4),         [ "3d",   "3 d",    "3 d",   "3d 4h",      "3d 4h"]],
+        [delta(d=5, h=22, m=51),  [ "5d",   "5 d",    "5 d",  "5d 22h",     "5d 22h"]],
+        [delta(d=7, m=-1),        [ "6d",   "6 d",    "6 d",  "6d 23h",     "6d 23h"]],
+        [delta(d=9),              [ "9d",   "9 d",    "9 d",   "9d 0h",      "9d 0h"]],
+        [delta(d=12, h=18),       ["12d",  "12 d",   "12 d",  "12 day",    "12 days"]],
+        [delta(d=16, h=2),        ["16d",  "16 d",   "16 d",  "16 day",    "16 days"]],
+        [delta(d=30),             ["1mo",  "1 mo",   "1 mo",   "1 mon",    "1 month"]],
+        [delta(d=55),             ["1mo",  "1 mo",   "1 mo",   "1 mon",    "1 month"]],
+        [delta(d=70),             ["2mo",  "2 mo",   "2 mo",   "2 mon",   "2 months"]],
+        [delta(d=80),             ["2mo",  "2 mo",   "2 mo",   "2 mon",   "2 months"]],
+        [delta(d=200),            ["6mo",  "6 mo",   "6 mo",   "6 mon",   "6 months"]],
+        [delta(d=350),            ["OVR",  "OVRF",  "OVERF",  "11 mon",  "11 months"]],
+        [delta(d=390),            ["OVR",  "OVRF",  "OVERF",    "1 yr",     "1 year"]],
+        [delta(d=810),            ["OVR",  "OVRF",  "OVERF",    "2 yr",    "2 years"]],
+        [delta(d=10000),          ["OVR",  "OVRF",  "OVERF",   "27 yr",   "27 years"]],
+        [delta(d=100000),         ["OVR",  "OVRF",  "OVERF",  "OVERFL",  "277 years"]],
+        [delta(d=400000),         ["OVR",  "OVRF",  "OVERF",  "OVERFL",   "OVERFLOW"]],
     ]
     # fmt: on
 
@@ -977,14 +942,20 @@ class TestDualFormatter:
                 delta(s=1.9),
             ],
             [
-                "\x1b[1;35m" + "15" + "\x1b[22;39m" + " "
-                "\x1b[2;35m" + "mins" + "\x1b[22;39m",
+                "\x1b[1;34m" + "15" + "\x1b[22;39m" + " "
+                "\x1b[2;34m" + "mins" + "\x1b[22;39m",
                 delta(m=15),
             ],
             [
                 "\x1b[1;36m" + "18" + "\x1b[22;39m"
-                "\x1b[2;36m" + "h" + "\x1b[22;39m" + " " + "45"
-                "\x1b[2m" + "min" + "\x1b[22m",
+                "\x1b[2;36m"
+                + "h"
+                + "\x1b[22;39m"
+                + " "
+                + "\x1b[1;34m"
+                + "45"
+                + "\x1b[22;39m"
+                "\x1b[2;34m" + "min" + "\x1b[22;39m",
                 delta(h=18, m=45),
             ],
             [
@@ -995,8 +966,8 @@ class TestDualFormatter:
                 delta(d=9, h=23),
             ],
             [
-                "\x1b[1;35m" + "3" + "\x1b[22;39m" + " "
-                "\x1b[2;35m" + "months" + "\x1b[22;39m",
+                "\x1b[1;93m" + "3" + "\x1b[22;39m" + " "
+                "\x1b[2;93m" + "months" + "\x1b[22;39m",
                 delta(d=100),
             ],
             ["\x1b[1;31m" "OVERFLOW" "\x1b[22;39m", delta(d=400000)],
