@@ -4114,7 +4114,9 @@ colors:
   - name: queen-pink
     original_name: Queen pink
     value: 0xe8ccd7
-  - name: quick-silver
+  - aliases:
+      - quicksilver
+    name: quick-silver
     original_name: Quick Silver
     value: 0xa6a6a6
   - name: quinacridone-magenta
@@ -4611,9 +4613,6 @@ colors:
   - name: silk-crepe-brown
     original_name: Silk crepe brown (Omeshicha)
     value: 0x354e4b
-  - name: silver
-    original_name: Silver (Metallic)
-    value: 0xaaa9ad
   - name: silver-chalice
     original_name: Silver chalice
     value: 0xacacac
@@ -4626,6 +4625,9 @@ colors:
   - name: silver-lake-blue
     original_name: Silver Lake blue
     value: 0x5d89ba
+  - name: silver-metallic
+    original_name: Silver metallic
+    value: 0xaaa9ad
   - name: silver-pink
     original_name: Silver pink
     value: 0xc4aead

@@ -9,7 +9,15 @@ from datetime import timedelta
 
 import pytest
 
-from pytermor import Fragment, OutputMode, Style, Text, render
+from pytermor import (
+    Fragment,
+    OutputMode,
+    Style,
+    Text,
+    formatter_bytes_human,
+    formatter_si_binary,
+    render,
+)
 from pytermor.numfmt import (
     DualBaseUnit,
     DualFormatter,
@@ -48,6 +56,7 @@ class TestHighlighter:
             ("-0", Text("-", None, "0", GRAY)),
             ("0.000", Text("0", GRAY, ".000", Style(GRAY, dim=True))),
             ("0.0001", Text("0.000", None, "1", DIM)),
+            ("123", Text("123")),
             ("11.22", Text("11.22")),
             ("890.789", Text("890.789")),
             ("8456.78901", Text("8", BLUE_BLD, "456.789", None, "01", DIM)),
@@ -290,11 +299,39 @@ class TestStaticFormatter:
         )
         assert formatter.format(value) == expected
 
+    @pytest.mark.xfail(raises=ValueError)
+    def test_lower_max_value_length_limit_applied(self):
+        StaticFormatter(max_value_len=2)
+
+    @pytest.mark.parametrize("colorize", [False, True])
+    @pytest.mark.parametrize("max_value_len", [*range(3, 10)])
+    @pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
+    def test_padding_works(self, max_value_len, colorize):
+        formatter = StaticFormatter(
+            max_value_len=max_value_len,
+            pad=True,
+            allow_fractional=False,
+            prefixes=[None],
+            allow_negative=False,
+            unit="",
+            unit_separator="",
+        )
+        result = formatter.format(123, auto_color=colorize)
+        assert render(result) == "123".rjust(max_value_len)
+
     @pytest.mark.parametrize(
         "expected,value", [("10.0", 10 - 1e-15)]  # near 64-bit float precision limit
     )
     def test_edge_cases(self, expected: str, value: float):
         assert format_si(value) == expected
+
+    @pytest.mark.xfail(raises=ValueError)
+    def test_invalid_prefixes_fail(self):
+        StaticFormatter(prefixes=["a", "b", "c"])
+
+    @pytest.mark.xfail(raises=ValueError)
+    def test_invalid_refpoint_shift_fails(self):
+        StaticFormatter(prefixes=[None], prefix_refpoint_shift=-3)
 
     @pytest.mark.parametrize(
         "expected,value",
@@ -555,6 +592,9 @@ class TestStaticFormatterSi:
         formatter = StaticFormatter(max_value_len=9, allow_fractional=False)
         assert len(formatter.format(value)) <= 10
 
+    def test_get_max_len(self):
+        assert formatter_si.get_max_len() == 6
+
 
 class TestStaticFormatterSiBinary:
     @pytest.mark.parametrize(
@@ -606,6 +646,9 @@ class TestStaticFormatterSiBinary:
     def test_format_si_binary(self, expected: str, value: float):
         assert format_si_binary(value) == expected
 
+    def test_get_max_len(self):
+        assert formatter_si_binary.get_max_len() == 8
+
 
 class TestStaticFormatterBytesHuman:
     @pytest.mark.parametrize(
@@ -643,6 +686,9 @@ class TestStaticFormatterBytesHuman:
     )
     def test_format_bytes_human(self, expected: str, value: int):
         assert format_bytes_human(value) == expected
+
+    def test_get_max_len(self):
+        assert formatter_bytes_human.get_max_len() == 5
 
 
 # -- dynamic ------------------------------------------------------

@@ -128,6 +128,7 @@ dynamic_context = "test_function"
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
+    "if __debug__",
     "if self.debug",
     "raise AssertionError",
     "raise NotImplementedError",

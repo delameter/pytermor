@@ -61,19 +61,18 @@ pt.echo(
 
 # 6) or replace regex groups..
 pt.echo(re.sub(
-    r'^(\w+)|([\d.]{5,})|(\(.+?\))|\[.+?\]',
-    pt.render(r'\1', 'hi-green') +
-    pt.render(r'\2', 'green') +
-    pt.render(r'\3', 'gray50'),
+    r'([\d.]{5,})|(\(.+?\))|\[.+?\]',
+    pt.render(r'\1', 'green') +
+    pt.render(r'\2', 'gray35'),
     'python   '+sys.version)
 )
 
 # 7) or utilize the templates
 te = pt.TemplateEngine()
 pt.echo(te.substitute(
-    f"@name:[icathian-yellow bold]" "@v:[superuser]" "@upd:[gray50]"
-    f""
-    f":[name]pytermor:[-] "
+    f"@v:[diamond]"
+    f"@upd:[gray35]"
+    f"pytermor "
     f":[v]{pt.__version__}:[-] "
     f":[upd]({pt.__updated__}):[-]"
 ))

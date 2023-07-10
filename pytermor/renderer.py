@@ -19,7 +19,7 @@ from functools import reduce
 from hashlib import md5
 
 from .ansi import ColorTarget, NOOP_SEQ, SeqIndex, SequenceSGR, get_closing_seq
-from .color import Color16, Color256, ColorRGB, IColor, NOOP_COLOR
+from .color import Color16, Color256, ColorRGB, DEFAULT_COLOR, IColor, NOOP_COLOR
 from .common import ExtendedEnum, FT, get_qname
 from .config import get_config
 from .log import _trace_render, get_logger
@@ -554,9 +554,10 @@ class HtmlRenderer(IRenderer):
         for attr in self._get_default_attrs():
             span_styles[attr] = set()
 
-        if style.fg != NOOP_COLOR:
+        empty_colors = [NOOP_COLOR, DEFAULT_COLOR]
+        if style.fg not in empty_colors:
             span_styles["color"].add(style.fg.format_value("#"))
-        if style.bg != NOOP_COLOR:
+        if style.bg not in empty_colors:
             span_styles["background-color"].add(style.bg.format_value("#"))
 
         if style.blink:  # modern browsers doesn't support it without shit piled up

@@ -14,7 +14,8 @@ import pytermor as pt
 import pytermor.common
 import pytermor.exception
 import pytermor.text
-from pytermor import FT, OutputMode, Text, FrozenText, Fragment, IRenderable, Style, RT
+from pytermor import FT, LogicError, OutputMode, Text, FrozenText, Fragment, IRenderable, \
+    Style, RT
 from pytermor.renderer import NoOpRenderer
 
 from tests import format_test_params
@@ -100,6 +101,13 @@ class TestText:
         ]
         text = Text(*fragments)
         assert text.as_fragments() == fragments
+
+    @pytest.mark.xfail(raises=LogicError)
+    def test_inconsistent_fragments_rendering_fails(self):
+        text = Text(
+            Fragment("1", "red", close_prev=True),
+        )
+        text.render()
 
 
 class TestFargsFlow:

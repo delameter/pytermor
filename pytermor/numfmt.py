@@ -11,7 +11,7 @@ from __future__ import annotations
 import math
 import re
 import typing as t
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
 from collections.abc import Iterable
 from dataclasses import dataclass
 from math import floor, isclose, log, log10, trunc
@@ -143,7 +143,7 @@ class Highlighter:
         :param unit:
         :return:
         """
-        extra1, extra2, intp = intp.rpartition('x')
+        extra1, extra2, intp = intp.rpartition("x")
         extra = extra1 + extra2
         digits = intp + frac[1:]
         unit_norm = re.sub(r"(.+?)s?", r"\1", unit.strip().lower())
@@ -179,7 +179,7 @@ class Highlighter:
             Fragment(sep),
             Fragment(pfx, pfx_st),
             Fragment(unit, unit_st),
-            ]
+        ]
 
     def _multiapply(self, num: str, *, reverse: bool = False) -> Iterable[Fragment]:
         def _get_style(oom: int, fade: int) -> Style:
@@ -221,7 +221,7 @@ class SupportsFallback:
                 setattr(self, attr_name, default)
 
 
-class NumFormatter(SupportsFallback):
+class NumFormatter(SupportsFallback, metaclass=ABCMeta):
     def __init__(self, auto_color: bool, highlighter: t.Type[Highlighter] | Highlighter):
         self._auto_color: bool = auto_color
 
@@ -231,7 +231,7 @@ class NumFormatter(SupportsFallback):
 
     @abstractmethod
     def format(self, val: float, auto_color: bool) -> RT:
-        raise NotImplementedError
+        ...
 
     def _colorize(self, auto_color: bool, val: str, sep: str, pfx: str, unit: str) -> RT:
         unit_full = (pfx + unit).strip()
@@ -513,11 +513,12 @@ class StaticFormatter(NumFormatter):
         else:
             val_str = f"{trunc(eff_val):d}"
 
-        if len(val_str) > self._max_value_len:
-            get_logger().warning(
+        if __debug__:
+            errmsg = (
                 "Inconsistent result -- max val length %d exceeded (%d): '%s' <- %f"
                 % (self._max_value_len, len(val_str), val_str, origin_val)
-            )
+                )
+            assert len(val_str) <= self._max_value_len, errmsg
 
         result = self._colorize(auto_color, val_str, sep, prefix, unit_eff)
         if self._pad:
@@ -534,7 +535,7 @@ class StaticFormatter(NumFormatter):
         return self._unit
 
     def _get_max_prefix_len(self) -> int:
-        return max([len(p) for p in self._prefixes if p is not None])
+        return max([0, *[len(p) for p in self._prefixes if p is not None]])
 
     def __repr__(self) -> str:
         return self.__class__.__qualname__
@@ -598,7 +599,7 @@ class DynamicFormatter(NumFormatter):
             return
         self._apply_defaults(fallback)
 
-        if len(self._units) < 2:
+        if len(self._units) < 2:  # pragma: no cover
             raise ValueError("At least two base units are required")
 
     def format(self, val: float, auto_color: bool = False, oom_shift: int = None) -> RT:
@@ -615,9 +616,7 @@ class DynamicFormatter(NumFormatter):
             return self._colorize(auto_color, *result)
         return "".join(result)
 
-    def _format_raw(
-        self, val: float, oom_shift: int = None
-    ) -> str | t.Tuple[str, ...]:
+    def _format_raw(self, val: float, oom_shift: int = None) -> str | t.Tuple[str, ...]:
         eff_oom_shift = self._oom_shift if oom_shift is None else oom_shift
         min_unit = self._units[-1]
         min_val = math.pow(self._base, min_unit.oom)
@@ -1276,7 +1275,7 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
     # |     format_auto_float(9.99, req_len=3)
     # | will cause the method to end up here, as integer_len=1 is not even remotely close
     # | to req_len=3, but after rounding the result will be "10.00" which overflows (4>3)
-    if '.' in result and len(result) > req_len_eff > result.index('.'):
+    if "." in result and len(result) > req_len_eff > result.index("."):
         result = result[:req_len_eff]
     return sign + result.removesuffix(".").rjust(req_len_eff)
     # +-----------------------------------------------------------------------------------

@@ -20,6 +20,9 @@ LOCALHOST_WRITE_PATH = localhost
 export
 VERSION := $(shell ./.version)
 
+$(shell touch .mkrunid)
+RUN_ID != bash -c 'tee <<< $$(( $$(head -1 .mkrunid)+1 )) .mkrunid'
+
 DOCKER_IMAGE = ghcr.io/delameter/pytermor
 DOCKER_TAG = ${DOCKER_IMAGE}:${VERSION}
 DOCKER_CONTAINER = pytermor-build-${VERSION}
@@ -37,20 +40,34 @@ RESET  := $(shell printf '\e[m')
                                 # nF code switching esq, which displaces the columns
 ## Common
 
-help:   ## [any] Show this help
+help:   ## Show this help
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s?(\s*#?[^#]+)#*\s*(.*)/\1${YELLOW}\2${RESET}#\3/; s/(.+):(#|\s)+(.+)/##   ${GREEN}\1${RESET}#\3/; s/\*(\w+)\*/${BOLD}\1${RESET}/g; 2~1s/<([ )*<@>.A-Za-z0-9_(-]+)>/${DIM}\1${RESET}/gi' -e 's/(\x1b\[)33m#/\136m/' | column -ts# | sed -Ee 's/ {3}>/ >/'
 	PYTERMOR_FORCE_OUTPUT_MODE=xterm_256 ${VENV_LOCAL_PATH}/bin/python .run-startup.py | tail -2 ; echo
 
-init-venv:  ## [host] Prepare manual environment  <venv>
+cli: ## Launch python interpreter  <hatch>
+	hatch run python -uq
+
+docker-cli: ## Launch shell in a container
+docker-cli: build-image
+	docker run -it ${DOCKER_TAG} /bin/bash
+
+all: ## Run tests, generate docs and reports, build module
+all: test-verbose cover update-coveralls docs-all build
+	# CI (on push into master): set-version set-tag auto-all test cover docs-all build upload upload-doc?
+
+.:
+## Initialization
+
+init-venv:  ## Prepare manual environment  <venv>
 	${HOST_DEFAULT_PYTHON} -m venv --clear ${VENV_LOCAL_PATH}
 	${VENV_LOCAL_PATH}/bin/python -m pip install -r requirements-build.txt
 	${VENV_LOCAL_PATH}/bin/python -m pip install -r requirements-test.txt
 	${VENV_LOCAL_PATH}/bin/python -m pytermor
 
-init-hatch:  ## [host] Install build backend <system>
+init-hatch:  ## Install build backend <system>
 	pipx install hatch
 
-init-system-pdf:  ## [host] Prepare environment for pdf rendering
+init-system-pdf:  ## Prepare environment for pdf rendering
 	sudo apt install texlive-latex-recommended \
 					 texlive-fonts-recommended \
 					 texlive-latex-extra \
@@ -58,21 +75,13 @@ init-system-pdf:  ## [host] Prepare environment for pdf rendering
 					 dvipng \
 					 dvisvgm
 
-cli: ## [host] Launch python interpreter  <hatch>
-	hatch run python -uq
+.:
+## Docker
 
-docker-cli: ## [host] Launch shell in a container
-docker-cli: build-image
-	docker run -it ${DOCKER_TAG} /bin/bash
-
-all: ## [host] Run tests, generate docs and reports, build module
-all: test-verbose cover update-coveralls docs-all build
-# CI (on push into master): set-version set-tag auto-all test cover docs-all build upload upload-doc?
-
-build-image-base: ## [host] Build base docker image
+build-image-base: ## Build base docker image
 	docker build . --target python-texlive --tag delameter/python-texlive:3.8-2020
 
-build-image: ## [host] Build docker image
+build-image: ## Build docker image
 	docker build . --tag ${DOCKER_TAG} \
     		--build-arg PYTERMOR_VERSION="${VERSION}" \
     		--build-arg IMAGE_BUILD_DATE="${NOW}"
@@ -83,24 +92,24 @@ _docker_cp_docs = (docker cp ${DOCKER_CONTAINER}:/opt/${DOCS_OUT_PATH} ${PWD})
 _docker_cp_dist = (docker cp ${DOCKER_CONTAINER}:/opt/dist ${PWD})
 _docker_rm = (docker rm ${DOCKER_CONTAINER})
 
-docker-all:  ## [host] Run tests, build module and update docs in docker container
-docker-all: demolish-docs build-image make-docs-out-dir
+docker-all:  ## Run tests, build module and update docs in docker container
+docker-all: demolish-docs | build-image make-docs-out-dir
 	$(call _docker_run,"make all")
 	$(call _docker_cp_docs)
 	$(call _docker_cp_dist)
 	$(call _docker_rm)
 
-docker-cover:  ## [host] Measure coverage in docker container
-docker-cover: build-image
+docker-cover:  ## Measure coverage in docker container
+docker-cover: | build-image
 	$(call _docker_run_rm,"make cover update-coveralls")
 
-docker-docs-html:  ## [host] Update PDF docs in docker container
-docker-docs-html: build-image make-docs-out-dir
+docker-docs-html:  ## Update PDF docs in docker container
+docker-docs-html: | build-image make-docs-out-dir
 	$(call _docker_run,"make docs-html")
 	$(call _docker_cp_docs)
 
-docker-docs-pdf:  ## [host] Update PDF docs in docker container
-docker-docs-pdf: build-image make-docs-out-dir
+docker-docs-pdf:  ## Update PDF docs in docker container
+docker-docs-pdf: | build-image make-docs-out-dir
 	$(call _docker_run,"make docs-pdf")
 	$(call _docker_cp_docs)
 
@@ -109,67 +118,40 @@ make-docs-out-dir:
 
 _ensure_x11 = ([ -n "${DISPLAY}" ] && return; echo 'ERROR: No $$DISPLAY'; return 1)
 
-
-##
+.:
 ## Automation
 
-pre-build:  ## Run full cycle of automatic operations (done on docker image building)
+pre-build:  ## Update CVAL  <runs on docker image building>
 	@export PT_ENV=build
 	./.invoke python -m pytermor  # for hatch to prepare environment
 	./.invoke python scripts/preprocess_rgb.py
 	./.invoke python scripts/build_cval.py
 
+lint:  ## Run flake8
+	@export PT_ENV=test
+	./.invoke flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+	./.invoke flake8 . --count --exit-zero --max-line-length=127 --statistics
 
-##
-## Versioning
-
-show-version: ## Show current package version
-	@hatch version | sed -Ee "s/.+/Current: ${CYAN}&${RESET}/"
-
-_set_next_version = (hatch version $1 | sed -Ee "s/^(Old:)(.+)/\1${GRAY}\2${RESET}/; s/^(New:)(.+)/\1${YELLOW}\2${RESET}/")
-_set_current_date = (sed ${VERSION_FILE_PATH} -i -Ee 's/^(__updated__).+/\1 = "${NOW}"/w/dev/stdout' | cut -f2 -d'"')
-
-set-next-version-dev: ## Increase version by <dev>
-	@$(call _set_current_date)
-	@$(call _set_next_version,dev)
-
-set-next-version-micro: ## Increase version by 0.0.1
-	@$(call _set_current_date)
-	@$(call _set_next_version,micro | head -1)
-	@$(call _set_next_version,dev | tail -1)
-
-set-next-version-minor: ## Increase version by 0.1
-	@$(call _set_current_date)
-	@$(call _set_next_version,minor | head -1)
-	@$(call _set_next_version,dev | tail -1)
-
-set-next-version-major: ## Increase version by 1
-	@$(call _set_current_date)
-	@$(call _set_next_version,major | head -1)
-	@$(call _set_next_version,dev | tail -1)
-
-set-current-date: ## Update timestamp in version file
-	@$(call _set_current_date)
-
-update-changelist:  ## Auto-update with new commits  <@CHANGES.rst>
-	@./update-changelist.sh
-
-
-##
+.:
 ## Testing
 
 test: ## Run pytest
-	@PT_ENV=test ./.invoke pytest --quiet --tb=line -rs
+	@PT_ENV=test ./.invoke pytest --quiet --tb=line -rfE
 
 test-verbose: ## Run pytest with detailed output
-	@PT_ENV=test ./.invoke pytest -v --failed-first --log-level=10
+	@PT_ENV=test ./.invoke pytest -v \
+		--maxfail 1 \
+		--log-level=10
 
 test-trace: ## Run pytest with detailed output  <@last_test_trace.log>
-	@PT_ENV=test ./.invoke pytest -v --failed-first --log-file-level=1 --log-file=last_test_trace.log
-	/usr/bin/ls --size --si last_test_trace.log
+	@PT_ENV=test ./.invoke pytest -v \
+		--maxfail 1 \
+		--log-file-level=1 \
+		--log-file=last_test_trace.log
 	# optional: PYTERMOR_TRACE_RENDERS=1
+	/usr/bin/ls --size --si last_test_trace.log
 
-##
+.:
 ## Profiling
 
 profile-import-tuna:  ## Profile imports
@@ -177,8 +159,7 @@ profile-import-tuna:  ## Profile imports
 		./.invoke python -X importtime -m pytermor 2> ./import.log && \
 		tuna ./import.log
 
-
-##
+.:
 ## Coverage / dependencies
 
 cover: ## Run coverage and make a report
@@ -188,9 +169,9 @@ cover: ## Run coverage and make a report
 	./.invoke coverage html
 	./.invoke coverage json
 	./.invoke coverage report
-
+	@$(call _notify,success,Coverage $$(jq -r < coverage.json .totals.percent_covered_display)%)
 	@if [ -d "${LOCALHOST_WRITE_PATH}" ] ; then \
-    	mkdir -p ${LOCALHOST_WRITE_PATH}/coverage-report && \
+	    mkdir -p ${LOCALHOST_WRITE_PATH}/coverage-report && \
 	    cp -au coverage-report/* ${LOCALHOST_WRITE_PATH}/coverage-report/
 	fi
 
@@ -202,7 +183,6 @@ update-coveralls:  ## Manually send last coverage statistics  <coveralls.io>
 	@if [ -n "${SKIP_COVERALLS_UPDATE}" ] ; then echo "DISABLED" && return 0 ; fi
 	@PT_ENV=test ./.invoke coveralls
 
-
 depends:  ## Build module dependency graphs
 	@rm -vrf ${DEPENDS_PATH}
 	@mkdir -p ${DEPENDS_PATH}
@@ -212,7 +192,7 @@ open-depends:  ## Open dependency graph output directory
 	@$(call _ensure_x11) || return
 	@xdg-open ./${DEPENDS_PATH}
 
-##
+.:
 ## Documentation
 
 reinit-docs: ## Purge and recreate docs with auto table of contents
@@ -229,7 +209,7 @@ docs: depends demolish-docs docs-html
 _build_html = (./.invoke sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b html -d ${DOCS_IN_PATH}/_cache -n)
 _build_pdf = (yes "" | ./.invoke sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -d ${DOCS_IN_PATH}/_cache $1)
 _build_man = (./.invoke sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b man -d ${DOCS_IN_PATH}/_cache -n )
-_notify = (command -v es7s >/dev/null && es7s exec notify -s $1 'pytermor ${VERSION}' '$2 ${NOW}')
+_notify = (command -v es7s >/dev/null && es7s exec notify -s $1 "${PROJECT_NAME} ${VERSION}" "[\#${RUN_ID}] ${2}")
 
 docs-html: ## Build HTML documentation  <caching allowed>
 	@export PT_ENV=build
@@ -275,9 +255,42 @@ open-docs-pdf:  ## Open PDF docs in reader
 	@$(call _ensure_x11) || return
 	@xdg-open ${DOCS_OUT_PATH}/${VERSION}.pdf
 
-##
-## Building / Packaging
-### *
+.:
+## Packaging
+
+show-version: ## Show current package version
+	@hatch version | sed -Ee "s/.+/Current: ${CYAN}&${RESET}/"
+
+_set_next_version = (hatch version $1 | sed -Ee "s/^(Old:)(.+)/\1${GRAY}\2${RESET}/; s/^(New:)(.+)/\1${YELLOW}\2${RESET}/")
+_set_current_date = (sed ${VERSION_FILE_PATH} -i -Ee 's/^(__updated__).+/\1 = "${NOW}"/w/dev/stdout' | cut -f2 -d'"')
+
+next-version-dev: ## Increase version by <dev>
+	@$(call _set_current_date)
+	@$(call _set_next_version,dev)
+
+next-version-micro: ## Increase version by 0.0.1
+	@$(call _set_current_date)
+	@$(call _set_next_version,micro | head -1)
+	@$(call _set_next_version,dev | tail -1)
+
+next-version-minor: ## Increase version by 0.1
+	@$(call _set_current_date)
+	@$(call _set_next_version,minor | head -1)
+	@$(call _set_next_version,dev | tail -1)
+
+next-version-major: ## Increase version by 1
+	@$(call _set_current_date)
+	@$(call _set_next_version,major | head -1)
+	@$(call _set_next_version,dev | tail -1)
+
+set-current-date:  # Update timestamp in version file (done automatically)
+	@$(call _set_current_date)
+
+update-changelist:  ## Auto-update with new commits  <@CHANGES.rst>
+	@./update-changelist.sh
+
+.:
+## Building / Publishing
 
 _freeze = (hatch -e $1 run pip freeze -q --exclude-editable | sed --unbuffered -Ee '/^Checking/d' | tee /dev/stderr > requirements-$1.txt)
 

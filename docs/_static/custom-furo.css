@@ -32,14 +32,14 @@ body {
 
 /** Font **/
 
-h1,
-abbr,
-.sidebar-brand-text,
-.brand,
-dl[class].field-list > dt {
-    font-family: 'Iose7ka Terminal', monospace;
-    text-transform: lowercase;
-}
+/*h1,*/
+/*abbr,*/
+/*.sidebar-brand-text,*/
+/*.brand,*/
+/*dl[class].field-list > dt {*/
+/*    font-family: 'Iose7ka Terminal', monospace;*/
+/*    text-transform: lowercase;*/
+/*}*/
 .hex {
     font-family: ASM, monospace;
     font-size: var(--font-size--small);
@@ -196,13 +196,16 @@ div.graphviz {
     background: var(--color-pt-doctest-background);
     border: 1px solid var(--color-pt-doctest-border)
 }
+.highlight-output > .highlight,
+body[data-theme="dark"]  .highlight-output > .highlight {
+    background: var(--color-pt-output-background);
+}
 .highlight-adjacent:not(:last-of-type) {
     margin-bottom: 0 !important;
 }
 .highlight-adjacent:not(:first-of-type) {
     margin-top: 0 !important;
 }
-
 button.copybtn {
    background: var(--color-pt-doctest-background);
 }
@@ -317,9 +320,9 @@ figcaption {
 
 /** API reference **/
 
-article[role=main] dl.py {
-    margin-top: 1.5rem;
-}
+/*article[role=main] dl.py {*/
+/*    margin-top: 1.5rem;*/
+/*}*/
 /*article[role=main] > section > dl.class {*/
 /*    margin-top: 2.0rem;*/
 /*}*/

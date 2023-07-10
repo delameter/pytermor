@@ -225,6 +225,8 @@ class Fragment(IRenderable):
 
 class FrozenText(IRenderable):
     """
+    Multi-fragment text with style nesting support.
+
     :param align: default is left
     """
 
@@ -339,6 +341,14 @@ class FrozenText(IRenderable):
         return "".join(f.raw() for f in self._fragments)
 
     def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
+        """
+        Core rendering method
+
+        :param renderer:
+        :type renderer:
+        :return:
+        :rtype:
+        """
         max_len = len(self) + self._pad
         if self._width is not None:
             max_len = max(0, self._width - self._pad)
@@ -353,8 +363,8 @@ class FrozenText(IRenderable):
         }
         renderer = self._resolve_renderer(renderer)
 
+        # cropping and overflow handling
         while cur_len < max_len and cur_frag_idx < len(self._fragments):
-            # cropping and overflow handling
             max_frag_len = max_len - cur_len
             frag = self._fragments[cur_frag_idx]
             frag_part = frag.raw()[:max_frag_len]
@@ -391,8 +401,8 @@ class FrozenText(IRenderable):
                             f'cannot proceed (attribute "{attr}" in {frag})'
                         )
 
+        # aligning and filling
         if (spare_len := (self._width or max_len) - cur_len) >= 0:
-            # aligning and filling
             spare_left = 0
             spare_right = 0
             if self._align == Align.LEFT:
@@ -421,7 +431,7 @@ class FrozenText(IRenderable):
         return "".join(renderer.render(fp, st) for fp, st in result_parts)
 
     @property
-    def allows_width_setup(self) -> bool:
+    def allows_width_setup(self) -> bool:  # pragma: no cover
         return True
 
     @property
@@ -434,7 +444,7 @@ class FrozenText(IRenderable):
     def prepend(self, *args: RT | FT) -> FrozenText:
         return FrozenText(*self._parse_fargs(args), *self._fragments)
 
-    def set_width(self, width: int):
+    def set_width(self, width: int):  # pragma: no cover
         raise LogicError("FrozenText is immutable")
 
 

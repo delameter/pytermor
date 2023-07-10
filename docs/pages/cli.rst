@@ -15,7 +15,7 @@ Commands like the ones below can be used for quick experimenting without loading
 
    .. raw:: html
 
-      <div class="highlight-adjacent">
+      <div class="highlight-adjacent highlight-output">
          <div class="highlight">
             <pre><span style="color: red">red text</span></pre>
          </div>
@@ -33,7 +33,7 @@ Commands like the ones below can be used for quick experimenting without loading
 
    .. raw:: html
 
-      <div class="highlight-adjacent">
+      <div class="highlight-adjacent highlight-output">
          <div class="highlight">
             <pre><span style="color: green;">green text</span></pre>
          </div>
@@ -56,7 +56,7 @@ Commands like the ones below can be used for quick experimenting without loading
 
    .. raw:: html
 
-      <div class="highlight-adjacent">
+      <div class="highlight-adjacent highlight-output">
          <div class="highlight">
             <pre><span style="color: orange;">This is warning, be warned</span></pre>
          </div>

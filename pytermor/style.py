@@ -48,7 +48,7 @@ class Style:
         - If constructor argument is *not* empty (*True*, *False*, ``IColor``
           etc.), keep it as attribute value.
         - If constructor argument is empty (*None*, ``NOOP_COLOR``), take the
-           value from ``fallback``'s corresponding attribute.
+          value from ``fallback``'s corresponding attribute.
 
     See `merge_fallback()` and `merge_overwrite()` methods and take the
     differences into account. The method used in the constructor is the first one.
@@ -137,13 +137,13 @@ class Style:
     dim: bool
     """ 
     Faint, decreased intensity. 
-    
+
     .. admonition:: Terminal-based rendering
-    
+
         Terminals apply this effect to foreground (=text) color, but when 
         it's used together with `inversed`, they usually make the background 
         darker instead.
-    
+
         Also note that usually it affects indexed colors only and has no effect
         on RGB-based ones (True Color mode).
     """
@@ -423,7 +423,7 @@ class Style:
         speaking, it makes sense only in `TemplateEngine` context, as style 
         management using the template tags is quite limited, while there are 
         far more elegant ways to do the same from the regular python code.
-        
+
         Modifies the instance in-place and returns it as well (for chained calls).
 
         .. code-block ::
@@ -436,7 +436,7 @@ class Style:
             ATTR-3   | None |   | False -->| False |  REPLACE val is in priority
             ATTR-4   | True ==Ø | None --->| None  |   ... even when it is unset
                      +------+   +-------+  +-------+
-        
+
         :param replacement:  Style to merge the attributes with.
         """ ""
         self._ensure_not_frozen()
@@ -508,7 +508,7 @@ class _NoOpStyle(Style):
 NOOP_STYLE = _NoOpStyle()
 """ 
 Special style passing the text through without any modifications. 
-    
+
 .. important ::
     Casting to *bool* results in **False** for all ``NOOP`` instances in the 
     library (`NOOP_SEQ`, `NOOP_COLOR` and `NOOP_STYLE`). This is intended. 
@@ -553,6 +553,9 @@ class Styles:
     CRITICAL_LABEL = Style(CRITICAL, frozen=True, bold=True)
     """ """
     CRITICAL_ACCENT = Style(CRITICAL_LABEL, frozen=True, blink=True)
+    """ """
+
+    INCONSISTENCY = Style(bg=cv.RED_3, fg=cv.HI_YELLOW, frozen=True)
     """ """
 
 

@@ -890,18 +890,41 @@ DEFAULT_COLOR = _DefaultColor()
 """
 Special ``IColor`` instance rendering to SGR sequence telling the terminal
 to reset fg or bg color; same for `TmuxRenderer`. Useful when you inherit
-some `Style` with fg or bg color which you don't need, but at the same time
-you don't actually want to set up any color whatsoever (as using `NOOP_COLOR`
-will result in an inheritance of parent style color instead of terminal default).
+some `Style` with fg or bg color that you don't need, but at the same time
+you don't actually want to set up any color whatsoever::
 
-	>>> DEFAULT_COLOR.to_sgr(bg=False)
-	<SGR[39]>
+    >>> from pytermor import *
+    >>> DEFAULT_COLOR.to_sgr(target=ColorTarget.BG)
+    <SGR[49m]>
 
-	>>> import pytermor as pt
-	>>> pt.Style(pt.Styles.CRITICAL, fg=NOOP_COLOR)
-	<Style[hi-white:X160[D70000]]>
-	
-	>>> pt.Style(pt.Styles.CRITICAL, fg=DEFAULT_COLOR)
-	<Style[DEF:X160[D70000]]>
-	
-"""
+
+`NOOP_COLOR` is treated like a placeholder for parent's attribute value and 
+doesn't change the result::
+
+    >>> sgr_renderer = SgrRenderer(OutputMode.XTERM_16)
+    >>> render("MISMATCH", Style(Styles.INCONSISTENCY, fg=NOOP_COLOR), sgr_renderer)
+    '\x1b[93;101mMISMATCH\x1b[39;49m'
+
+.. raw:: html
+
+  <div class="highlight-adjacent highlight-output">
+     <div class="highlight">
+        <pre><span style="color: #ffff00; background-color: #d70000">MISMATCH</span></pre>
+     </div>
+  </div>
+
+
+While `DEFAULT_COLOR` is actually resetting the color to default (terminal) value:: 
+
+    >>> render("MISMATCH", Style(Styles.INCONSISTENCY, fg=DEFAULT_COLOR), sgr_renderer)
+    '\x1b[39;101mMISMATCH\x1b[49m'
+
+.. raw:: html
+
+  <div class="highlight-adjacent highlight-output">
+     <div class="highlight">
+        <pre><span style="background-color: #d70000">MISMATCH</span></pre>
+     </div>
+  </div>
+
+"""  # noqa

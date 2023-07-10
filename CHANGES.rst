@@ -29,8 +29,9 @@ pending
 - |NEW| +16 named colors
 - |NEW| +1 more named color
 - |NEW| addr_offset param for `Tracers`
+- |FIX| `DualFormatter` tuning
 
-.. <@pending:751072d>
+.. <@pending:4e89322>
 .. ^ blank line before should be kept
 
 

@@ -2504,6 +2504,8 @@
   value: 0xe8ccd7
 - name: "Quick Silver"
   value: 0xa6a6a6
+  aliases:
+    - Quicksilver
 - name: "Quinacridone magenta"
   value: 0x8e3a59
 - name: "Quincy"
@@ -2808,7 +2810,7 @@
   value: 0xff6fff
 - name: "Silk crepe brown (Omeshicha)"
   value: 0x354e4b
-- name: "Silver (Metallic)"
+- name: "Silver metallic"
   value: 0xaaa9ad
 - name: "Silver chalice"
   value: 0xacacac
