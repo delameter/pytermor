@@ -77,7 +77,7 @@ class Config:
         get_logger().info(f"Config initialized with: {attr_dict!s}")
 
 
-_config = None
+_config: Config|None = None
 
 
 def get_config() -> Config:

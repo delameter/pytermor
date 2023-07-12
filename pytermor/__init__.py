@@ -52,6 +52,7 @@ from .common import FT as FT
 from .common import RT as RT
 from .common import Align as Align
 from .common import ExtendedEnum as ExtendedEnum
+from .common import char_range as char_range
 from .common import chunk as chunk
 from .common import flatten as flatten
 from .common import flatten1 as flatten1
@@ -177,6 +178,7 @@ from .style import merge_styles as merge_styles
 from .template import TemplateEngine as TemplateEngine
 from .template import substitute as substitute
 from .term import RCP_REGEX as RCP_REGEX
+from .term import compose_clear_line_fill_bg as compose_clear_line_fill_bg
 from .term import compose_hyperlink as compose_hyperlink
 from .term import confirm as confirm
 from .term import decompose_report_cursor_position as decompose_report_cursor_position

@@ -30,8 +30,10 @@ pending
 - |NEW| +1 more named color
 - |NEW| addr_offset param for `Tracers`
 - |FIX| `DualFormatter` tuning
+- |FIX| `DualFormatter` tuning
+- |TESTS|
 
-.. <@pending:4e89322>
+.. <@pending:e2168bd>
 .. ^ blank line before should be kept
 
 
