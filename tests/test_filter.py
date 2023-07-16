@@ -50,56 +50,59 @@ class TestStdlibExtensions:
 
 class TestCutAndFit:
     @mark.parametrize(
-        "input, max_len, align, overflow, expected_fit",
+        "input, max_len, align, overflow, fillchar, expected_fit",
         [
-            ("1234567890", 12, None, "…", "1234567890  "),
-            ("1234567890", 10, None, "…", "1234567890"),
-            ("1234567890", 9, None, "…", "12345678…"),
-            ("1234567890", 5, None, "…", "1234…"),
-            ("1234567890", 2, None, "…", "1…"),
-            ("1234567890", 1, None, "…", "…"),
-            ("1234567890", 0, None, "…", ""),
-            ("1234567890", 12, Align.CENTER, "…", " 1234567890 "),
-            ("1234567890", 10, Align.CENTER, "…", "1234567890"),
-            ("1234567890", 9, Align.CENTER, "…", "1234…7890"),
-            ("1234567890", 5, Align.CENTER, "…", "12…90"),
-            ("1234567890", 2, Align.CENTER, "…", "…0"),
-            ("1234567890", 1, Align.CENTER, "…", "…"),
-            ("1234567890", 0, Align.CENTER, "…", ""),
-            ("1234567890", 12, Align.RIGHT, "…", "  1234567890"),
-            ("1234567890", 10, Align.RIGHT, "…", "1234567890"),
-            ("1234567890", 9, Align.RIGHT, "…", "…34567890"),
-            ("1234567890", 5, Align.RIGHT, "…", "…7890"),
-            ("1234567890", 2, Align.RIGHT, "…", "…0"),
-            ("1234567890", 1, Align.RIGHT, "…", "…"),
-            ("1234567890", 0, Align.RIGHT, "…", ""),
-            ("1234567890", 0, Align.LEFT, "...", ""),
-            ("1234567890", 1, Align.LEFT, "..?", "."),
-            ("1234567890", 2, Align.LEFT, "..?", ".."),
-            ("1234567890", 3, Align.LEFT, "..?", "..?"),
-            ("1234567890", 4, Align.LEFT, "..?", "1..?"),
-            ("1234567890", 5, Align.LEFT, "..?", "12..?"),
-            ("1234567890", 9, Align.LEFT, "..?", "123456..?"),
-            ("1234567890", 10, Align.LEFT, "..?", "1234567890"),
-            ("1234567890", 12, Align.LEFT, "..?", "1234567890  "),
-            ("1234567890", 0, Align.CENTER, "...", ""),
-            ("1234567890", 1, Align.CENTER, "..?", "."),
-            ("1234567890", 2, Align.CENTER, "..?", ".."),
-            ("1234567890", 3, Align.CENTER, "..?", "..?"),
-            ("1234567890", 4, Align.CENTER, "..?", "..?0"),
-            ("1234567890", 5, Align.CENTER, "..?", "1..?0"),
-            ("1234567890", 9, Align.CENTER, "..?", "123..?890"),
-            ("1234567890", 10, Align.CENTER, "..?", "1234567890"),
-            ("1234567890", 12, Align.CENTER, "..?", " 1234567890 "),
-            ("1234567890", 0, Align.CENTER, "...", ""),
-            ("1234567890", 1, Align.RIGHT, "..?", "."),
-            ("1234567890", 2, Align.RIGHT, "..?", ".."),
-            ("1234567890", 3, Align.RIGHT, "..?", "..?"),
-            ("1234567890", 4, Align.RIGHT, "..?", "..?0"),
-            ("1234567890", 5, Align.RIGHT, "..?", "..?90"),
-            ("1234567890", 9, Align.RIGHT, "..?", "..?567890"),
-            ("1234567890", 10, Align.RIGHT, "..?", "1234567890"),
-            ("1234567890", 12, Align.RIGHT, "..?", "  1234567890"),
+            ("1234567890", 12, None, "…", " ", "1234567890  "),
+            ("1234567890", 10, None, "…", " ", "1234567890"),
+            ("1234567890", 9, None, "…", " ", "12345678…"),
+            ("1234567890", 5, None, "…", " ", "1234…"),
+            ("1234567890", 2, None, "…", " ", "1…"),
+            ("1234567890", 1, None, "…", " ", "…"),
+            ("1234567890", 0, None, "…", " ", ""),
+            ("1234567890", 12, Align.CENTER, "…", " ", " 1234567890 "),
+            ("1234567890", 10, Align.CENTER, "…", " ", "1234567890"),
+            ("1234567890", 9, Align.CENTER, "…", " ", "1234…7890"),
+            ("1234567890", 5, Align.CENTER, "…", " ", "12…90"),
+            ("1234567890", 2, Align.CENTER, "…", " ", "…0"),
+            ("1234567890", 1, Align.CENTER, "…", " ", "…"),
+            ("1234567890", 0, Align.CENTER, "…", " ", ""),
+            ("1234567890", 12, Align.RIGHT, "…", " ", "  1234567890"),
+            ("1234567890", 10, Align.RIGHT, "…", " ", "1234567890"),
+            ("1234567890", 9, Align.RIGHT, "…", " ", "…34567890"),
+            ("1234567890", 5, Align.RIGHT, "…", " ", "…7890"),
+            ("1234567890", 2, Align.RIGHT, "…", " ", "…0"),
+            ("1234567890", 1, Align.RIGHT, "…", " ", "…"),
+            ("1234567890", 0, Align.RIGHT, "…", " ", ""),
+            ("1234567890", 0, Align.LEFT, "...", " ", ""),
+            ("1234567890", 1, Align.LEFT, "..?", " ", "."),
+            ("1234567890", 2, Align.LEFT, "..?", " ", ".."),
+            ("1234567890", 3, Align.LEFT, "..?", " ", "..?"),
+            ("1234567890", 4, Align.LEFT, "..?", " ", "1..?"),
+            ("1234567890", 5, Align.LEFT, "..?", " ", "12..?"),
+            ("1234567890", 9, Align.LEFT, "..?", " ", "123456..?"),
+            ("1234567890", 10, Align.LEFT, "..?", " ", "1234567890"),
+            ("1234567890", 12, Align.LEFT, "..?", " ", "1234567890  "),
+            ("1234567890", 12, Align.LEFT, "..?", "*", "1234567890**"),
+            ("1234567890", 0, Align.CENTER, "...", " ", ""),
+            ("1234567890", 1, Align.CENTER, "..?", " ", "."),
+            ("1234567890", 2, Align.CENTER, "..?", " ", ".."),
+            ("1234567890", 3, Align.CENTER, "..?", " ", "..?"),
+            ("1234567890", 4, Align.CENTER, "..?", " ", "..?0"),
+            ("1234567890", 5, Align.CENTER, "..?", " ", "1..?0"),
+            ("1234567890", 9, Align.CENTER, "..?", " ", "123..?890"),
+            ("1234567890", 10, Align.CENTER, "..?", " ", "1234567890"),
+            ("1234567890", 12, Align.CENTER, "..?", " ", " 1234567890 "),
+            ("1234567890", 12, Align.CENTER, "..?", "<>", "<1234567890<"),  # fillchar should use 1st char only
+            ("1234567890", 0, Align.CENTER, "...", " ", ""),
+            ("1234567890", 1, Align.RIGHT, "..?", " ", "."),
+            ("1234567890", 2, Align.RIGHT, "..?", " ", ".."),
+            ("1234567890", 3, Align.RIGHT, "..?", " ", "..?"),
+            ("1234567890", 4, Align.RIGHT, "..?", " ", "..?0"),
+            ("1234567890", 5, Align.RIGHT, "..?", " ", "..?90"),
+            ("1234567890", 9, Align.RIGHT, "..?", " ", "..?567890"),
+            ("1234567890", 10, Align.RIGHT, "..?", " ", "1234567890"),
+            ("1234567890", 12, Align.RIGHT, "..?", " ", "  1234567890"),
+            ("1234567890", 12, Align.RIGHT, "..?", "й", "йй1234567890"),  # fillchar can contain unicode
         ],
         ids=format_test_params,
     )
@@ -109,9 +112,10 @@ class TestCutAndFit:
         max_len: int,
         align: Align | str,
         overflow: str,
+        fillchar: str,
         expected_fit: str,
     ):
-        actual_fit = fit(input, max_len, align, overflow)
+        actual_fit = fit(input, max_len, align, overflow, fillchar)
         assert len(actual_fit) <= max_len
         assert actual_fit == expected_fit
 
@@ -472,6 +476,10 @@ class TestTracers:
         actual = dump(input, cls, TracerExtra("label"))
         assert actual.rstrip("\n") == load_data_file(exp_data_filename).rstrip("\n")
 
+    @mark.parametrize("input", ["", b""])
+    def test_dump_without_tracer_cls(self, input: t.AnyStr):
+        assert len(dump(input).splitlines()) == 3
+
     @mark.parametrize("max_width", [None, 40, 60, 80, 100, 120, 160, 240])
     @mark.parametrize(
         "input",
@@ -492,8 +500,37 @@ class TestTracers:
         actual = max(map(len, output.splitlines()))
         assert actual <= max_width
 
-    def test_empty_input(self):
-        assert StringTracer().apply("").rstrip("\n") == ""
+    @mark.parametrize(
+        "input, cls, expected", [
+            (b"", BytesTracer, ('________\n'
+                                ' 0x00 | \n'
+                                '--(0x00)')),
+            ("", StringTracer, ('__________________________________________\n'
+                                ' 0 | |                                    \n'
+                                '---------------------------------------(0)')),
+            ("", StringUcpTracer, ('___________________________________________\n'
+                                   ' 0 |U+ |                                   \n'
+                                   '----------------------------------------(0)')),
+        ], ids=format_test_params
+    )
+    def test_empty_input(self, input: t.AnyStr, cls: t.Type[AbstractTracer], expected: str):
+        assert cls().apply(input).rstrip("\n") == expected
+
+    @mark.parametrize(
+        "input, cls, expected", [
+            (b"", BytesTracer, '1234567…\n'
+                               ' 0x00 | \n'
+                               '--(0x00)'),
+            ("", StringTracer, ('12345678901234567890123456789012345678901…\n'
+                                ' 0 | |                                    \n'
+                                '---------------------------------------(0)')),
+            ("", StringUcpTracer, ('123456789012345678901234567890123456789012…\n'
+                                   ' 0 |U+ |                                   \n'
+                                   '----------------------------------------(0)')),
+        ], ids=format_test_params
+    )
+    def test_long_label(self, input: t.AnyStr, cls: t.Type[AbstractTracer], expected: str):
+        assert cls().apply(input, extra=TracerExtra("1234567890"*20)).rstrip("\n") == expected
 
     def test_input_cast(self):
         assert dump([1, 2, 3], StringTracer, TracerExtra("input cast")) == (

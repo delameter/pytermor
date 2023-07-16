@@ -27,17 +27,18 @@ class Approximator:
         self.usage = [
             f"  venv/bin/python {sys.argv[0]} [-e] [COLOR]...",
             "",
-            "Option -e|--extended increases approximation results amount.",
+            "Option -e|--extended increases approximation results amount "
+            "(can be used multiple times).",
             "",
         ]
         self.input_values = []
-        self._extended_mode = False
+        self._extended_mode = 0
 
         for arg in argv:
             try:
                 if arg.startswith("-"):
-                    if arg == "-e" or arg == "--extended":
-                        self._extended_mode = True
+                    if m := re.fullmatch('-?-(e(?:xtended)?|e+)', arg):
+                        self._extended_mode = len(m.group(1))
                         continue
                     raise ValueError(f"Invalid option {arg}")
 
@@ -139,10 +140,12 @@ class Approximator:
 
             approx_results = []
             if (upper_bound := renderer._COLOR_UPPER_BOUNDS.get(om, None)):
-                approx_results = upper_bound.approximate(sample.hex_value, 4 if idx > 0 else 1)
-
-            if not self._extended_mode:
-                approx_results = approx_results[0:1]
+                max_results = 1
+                if idx > 0:
+                    max_results = (self._extended_mode+1)
+                    if om is pt.OutputMode.TRUE_COLOR:
+                        max_results = (2*self._extended_mode+1)
+                approx_results = upper_bound.approximate(sample.hex_value, max_results)
 
             for aix, approx_result in enumerate(approx_results):
                 sample_approx = approx_result.color

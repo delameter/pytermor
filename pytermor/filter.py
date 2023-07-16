@@ -61,7 +61,7 @@ def cut(s: str, max_len: int, align: Align | str = Align.LEFT, overflow="…") -
     return fit(s, max_len, align, overflow)
 
 
-def fit(s: str, max_len: int, align: Align | str = Align.LEFT, overflow="…") -> str:
+def fit(s: str, max_len: int, align: Align | str = Align.LEFT, overflow="…", fillchar=" ") -> str:
     """
     fit
     :param s:
@@ -75,7 +75,13 @@ def fit(s: str, max_len: int, align: Align | str = Align.LEFT, overflow="…") -
     if max_len <= (ov_len := len(overflow)):
         return overflow[:max_len]
     if len(s) <= max_len:
-        return f"{s:{align}{max_len}s}"
+        fill = (max_len - len(s)) * fillchar[0]
+        if align == Align.LEFT:
+            return s + fill
+        if align == Align.RIGHT:
+            return fill + s
+        fillmid = len(fill)//2
+        return fill[:fillmid] + s + fill[fillmid:]
 
     if align == Align.LEFT:
         return s[: max_len - ov_len] + overflow
@@ -546,7 +552,7 @@ class OmniMapper(IFilter[IT, IT]):
         }
 
     def _make_premap(
-        self, inp_type: t.Type[IT], override: MPT | None
+            self, inp_type: t.Type[IT], override: MPT | None
     ) -> t.Dict[int, IT]:
         default_map = dict()
         default_replacer = None
@@ -681,8 +687,8 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
         self._state: _TracerState = _TracerState()
 
     def _apply(self, inp: IT, extra: TracerExtra = None) -> str:
-        if not inp or len(inp) == 0:
-            return "\n"
+        if not inp:
+            inp = inp[:]  # empty string/bytes
 
         addr_shift = extra.addr_shift if extra else 0
         self._state.reset(inp, self.get_max_chars_per_line(inp, addr_shift), addr_shift)
@@ -694,7 +700,7 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
         self._state.inp_size_len = self._get_input_size_len(addr_shift)
         self._state.address_len = len(self._format_address(self._state.inp_size))
 
-        while len(inp) > 0:
+        while len(inp) > 0 or len(self._state.rows) == 0:
             inp, part = (
                 inp[self._state.char_per_line :],
                 inp[: self._state.char_per_line],
@@ -703,10 +709,10 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
             self._state.lineno += 1
             self._state.address += self._state.char_per_line
 
-        header = self._format_line_separator("_", extra.label if extra else "")
         footer = self._format_line_separator(
             "-", label_right="(" + self._format_address(self._state.inp_size) + ")"
         )
+        header = self._format_line_separator("_", cut(extra.label if extra else "", len(footer)))
 
         result = header + "\n"
         result += "\n".join(self._render_rows())
@@ -714,8 +720,8 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
         return result
 
     def _format_address(self, override: int = None) -> str:
-        address = override or self._state.address
-        result = str(address).rjust(self._state.inp_size_len)
+        address = override if override is not None else self._state.address
+        result = str(address).rjust(self._state.inp_size_len or 0)
         return result
 
     def _format_line_separator(
@@ -727,6 +733,26 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
             + label_right
         )
 
+    def _get_vert_sep_char(self):
+        return "|"
+
+    def _get_input_size_len(self, addr_shift: int) -> int:
+        return len(str(self._state.inp_size + addr_shift))
+
+    def _process(self, part: IT):
+        row = self._make_row(part)
+        if self._state.cols_max_len is None:
+            self._state.cols_max_len = [0] * len(row)
+        for col_idx, col_val in enumerate(row):
+            self._state.cols_max_len[col_idx] = max(0, self._state.cols_max_len[col_idx], len(col_val))
+        self._state.rows.append(row)
+
+    def _get_output_line_len(self) -> int:
+        # useless before processing
+        if self._state.cols_max_len is None:  # pragma: no cover
+            raise LogicError
+        return sum(ml for ml in self._state.cols_max_len)
+
     def _render_rows(self) -> t.Iterable[str]:
         if self._state.cols_max_len is None:  # pragma: no cover
             return
@@ -736,20 +762,8 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
                 row_str += col_val.rjust(self._state.cols_max_len[col_idx])
             yield row_str
 
-    def _get_vert_sep_char(self):
-        return "|"
-
-    def _get_input_size_len(self, addr_shift: int) -> int:
-        return len(str(self._state.inp_size + addr_shift))
-
-    def _get_output_line_len(self) -> int:
-        # useless before processing
-        if self._state.cols_max_len is None:  # pragma: no cover
-            raise LogicError
-        return sum(ml for ml in self._state.cols_max_len)
-
     @abstractmethod
-    def _process(self, part: IT) -> str:
+    def _make_row(self, part: IT) -> t.List[str]:
         raise NotImplementedError
 
     @abstractmethod
@@ -773,9 +787,6 @@ class BytesTracer(AbstractTracer[bytes]):
 
     GROUP_SIZE = 4
 
-    def _process(self, part: IT):
-        self._state.add_row(self._make_row(part))
-
     def _make_row(self, part: IT) -> t.List[str]:
         if not isinstance(part, bytes):  # pragma: no cover
             raise ArgTypeError(part, 'inp', bytes)
@@ -789,7 +800,8 @@ class BytesTracer(AbstractTracer[bytes]):
         ]
 
     def _format_address(self, override: int = None) -> str:
-        return f"0x{override or self._state.address:0{self._state.inp_size_len}X}"
+        address = override if override is not None else self._state.address
+        return f"0x{address:0{self._state.inp_size_len or 0}X}"
 
     def _format_main(self, part: bytes) -> t.Iterable[str]:
         for c in chunk(part, self.GROUP_SIZE):
@@ -891,8 +903,12 @@ class BytesTracer(AbstractTracer[bytes]):
 
 class AbstractStringTracer(AbstractTracer[str], metaclass=ABCMeta):
     def __init__(self, max_output_width: int = None):
-        self._output_filters: t.List[IFilter] = []
+        self._output_filters = [NonPrintsStringVisualizer(keep_newlines=False)]
         super().__init__(max_output_width)
+
+    @abstractmethod
+    def _format_main(self, part: str) -> t.Iterable[str]:
+        raise NotImplementedError
 
     def _format_output_text(self, text: str) -> str:
         return apply_filters(text, *self._output_filters).ljust(
@@ -916,13 +932,6 @@ class StringTracer(AbstractStringTracer):
          60 |     4a     75     6e 20 20 31 36     20     32     38 20 20 |Jun␣␣16␣28␣␣
          72 | e29695 e29c94 e2968f 46 55 4c 4c     20                     |▕✔▏FULL␣
     """
-
-    def __init__(self, max_output_width: int = None):
-        super().__init__(max_output_width)
-        self._output_filters = [NonPrintsStringVisualizer(keep_newlines=False)]
-
-    def _process(self, part: IT):
-        self._state.add_row(self._make_row(part))
 
     def _make_row(self, part: str) -> t.List[str]:
         return [
@@ -1051,21 +1060,13 @@ class StringUcpTracer(AbstractStringTracer):
          72 |U+ 2595 2714 258F 46 55 4C 4C 20                                     |▕✔▏FULL␣
     """
 
-    def __init__(self, max_output_width: int = None):
-        super().__init__(max_output_width)
-        self._output_filters = [NonPrintsStringVisualizer(keep_newlines=False)]
-
-    def _process(self, part: IT):
-        self._state.add_row(self._make_row(part))
-
     def _make_row(self, part: str) -> t.List[str]:
         return [
             " ",
             self._format_address(),
             " ",
             self._get_vert_sep_char(),
-            "U+",
-            " ",
+            "U+ ",
             *self._format_main(part),
             self._get_vert_sep_char(),
             self._format_output_text(part),
@@ -1133,13 +1134,6 @@ class _TracerState:
         self.rows = []
         self.cols_max_len = None
 
-    def add_row(self, row: t.List):
-        if self.cols_max_len is None:
-            self.cols_max_len = [0] * len(row)
-        for col_idx, col_val in enumerate(row):
-            self.cols_max_len[col_idx] = max(self.cols_max_len[col_idx], len(col_val))
-        self.rows.append(row)
-
 
 @lru_cache
 def _get_tracer(tracer_cls: t.Type[AbstractTracer], max_width: int) -> AbstractTracer:
@@ -1149,17 +1143,23 @@ def _get_tracer(tracer_cls: t.Type[AbstractTracer], max_width: int) -> AbstractT
 # @TODO  - special handling of one-line input
 #        - squash repeating lines
 def dump(
-    data: t.Any,
-    tracer_cls: t.Type[AbstractTracer] = StringUcpTracer,
-    extra: TracerExtra = None,
+        data: t.Any,
+        tracer_cls: t.Type[AbstractTracer] = None,
+        extra: TracerExtra = None,
 ) -> str:
     """
     .
     """
     if not isinstance(data, (str, bytes)):
         data = str(data)
+    if not tracer_cls:
+        if isinstance(data, str):
+            tracer_cls = StringUcpTracer
+        else:
+            tracer_cls = BytesTracer
 
-    tracer = _get_tracer(tracer_cls, get_terminal_width())
+    terminal_width = get_terminal_width()
+    tracer = _get_tracer(tracer_cls, terminal_width)
     return tracer.apply(data, extra)
 
 

@@ -1277,7 +1277,8 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
     # | to req_len=3, but after rounding the result will be "10.00" which overflows (4>3)
     if "." in result and len(result) > req_len_eff > result.index("."):
         result = result[:req_len_eff]
-    return sign + result.removesuffix(".").rjust(req_len_eff)
+    return sign + result.rstrip(".").rjust(req_len_eff)
+    #return sign + result.removesuffix(".").rjust(req_len_eff)
     # +-----------------------------------------------------------------------------------
     # return f"{sign}{abs_value:{req_len}{dot_str}f}"
 
