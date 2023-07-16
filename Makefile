@@ -27,6 +27,9 @@ DOCKER_IMAGE = ghcr.io/delameter/pytermor
 DOCKER_TAG = ${DOCKER_IMAGE}:${VERSION}
 DOCKER_CONTAINER = pytermor-build-${VERSION}
 
+DOCKER_BASE_IMAGE = delameter/python-texlive
+DOCKER_BASE_TAG = ${DOCKER_BASE_IMAGE}:3.10-2022
+
 NOW    := $(shell LC_TIME=en_US.UTF-8 date --rfc-3339=seconds)
 BOLD   := $(shell tput -Txterm bold)
 GREEN  := $(shell tput -Txterm setaf 2)
@@ -47,10 +50,6 @@ help:   ## Show this help
 cli: ## Launch python interpreter  <hatch>
 	hatch run python -uq
 
-docker-cli: ## Launch shell in a container
-docker-cli: build-image
-	docker run -it ${DOCKER_TAG} /bin/bash
-
 all: ## Run tests, generate docs and reports, build module
 all: test-verbose cover update-coveralls docs-all build
 	# CI (on push into master): set-version set-tag auto-all test cover docs-all build upload upload-doc?
@@ -60,8 +59,7 @@ all: test-verbose cover update-coveralls docs-all build
 
 init-venv:  ## Prepare manual environment  <venv>
 	${HOST_DEFAULT_PYTHON} -m venv --clear ${VENV_LOCAL_PATH}
-	${VENV_LOCAL_PATH}/bin/python -m pip install -r requirements-build.txt
-	${VENV_LOCAL_PATH}/bin/python -m pip install -r requirements-test.txt
+	${VENV_LOCAL_PATH}/bin/python -m pip install -r requirements-build.txt -r requirements-test.txt
 	${VENV_LOCAL_PATH}/bin/python -m pytermor
 
 init-hatch:  ## Install build backend <system>
@@ -78,38 +76,46 @@ init-system-pdf:  ## Prepare environment for pdf rendering
 .:
 ## Docker
 
-build-image-base: ## Build base docker image
-	docker build . --target python-texlive --tag delameter/python-texlive:3.8-2020
+docker-cli: ## [host] Launch shell in a container
+docker-cli: build-image
+	docker run -it ${DOCKER_TAG} /bin/bash
 
-build-image: ## Build docker image
-	docker build . --tag ${DOCKER_TAG} \
-    		--build-arg PYTERMOR_VERSION="${VERSION}" \
-    		--build-arg IMAGE_BUILD_DATE="${NOW}"
+build-image-base: ## [host] Build base docker image
+	docker build . \
+    	--target python-texlive \
+    	--tag ${DOCKER_BASE_TAG}
+
+build-image: ## [host] Build docker image
+	docker build . \
+    	--build-arg PYTERMOR_VERSION="${VERSION}" \
+    	--build-arg IMAGE_BUILD_DATE="${NOW}" \
+    	--tag ${DOCKER_TAG}
 
 _docker_run = (docker run -it --env-file .env --name ${DOCKER_CONTAINER} ${DOCKER_TAG} "$1")
 _docker_run_rm = (docker run --rm -it --env-file .env --name ${DOCKER_CONTAINER} ${DOCKER_TAG} "$1")
 _docker_cp_docs = (docker cp ${DOCKER_CONTAINER}:/opt/${DOCS_OUT_PATH} ${PWD})
 _docker_cp_dist = (docker cp ${DOCKER_CONTAINER}:/opt/dist ${PWD})
-_docker_rm = (docker rm ${DOCKER_CONTAINER})
+_docker_rm = (docker rm ${DOCKER_CONTAINER} 2>/dev/null >&2 ; return 0)
 
 docker-all:  ## Run tests, build module and update docs in docker container
-docker-all: demolish-docs | build-image make-docs-out-dir
+docker-all: demolish-docs build-image make-docs-out-dir
+	$(call _docker_rm)
 	$(call _docker_run,"make all")
 	$(call _docker_cp_docs)
 	$(call _docker_cp_dist)
 	$(call _docker_rm)
 
 docker-cover:  ## Measure coverage in docker container
-docker-cover: | build-image
+docker-cover: build-image
 	$(call _docker_run_rm,"make cover update-coveralls")
 
 docker-docs-html:  ## Update PDF docs in docker container
-docker-docs-html: | build-image make-docs-out-dir
+docker-docs-html: build-image make-docs-out-dir
 	$(call _docker_run,"make docs-html")
 	$(call _docker_cp_docs)
 
 docker-docs-pdf:  ## Update PDF docs in docker container
-docker-docs-pdf: | build-image make-docs-out-dir
+docker-docs-pdf: build-image make-docs-out-dir
 	$(call _docker_run,"make docs-pdf")
 	$(call _docker_cp_docs)
 

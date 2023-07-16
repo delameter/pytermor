@@ -1,4 +1,4 @@
-FROM python:3.8-slim AS python-texlive
+FROM python:3.10-slim AS python-texlive
 
 MAINTAINER delameter <0.delameter@gmail.com>
 
