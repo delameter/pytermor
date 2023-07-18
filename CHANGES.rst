@@ -33,8 +33,10 @@ pending
 - |FIX| `DualFormatter` tuning
 - |TESTS|
 - |FIX| imports
+- |NEW| `fit` support for `fillchar` customizing
+- |NEW| `Tracers` handling empty input
 
-.. <@pending:ac3b22f>
+.. <@pending:d2359f6>
 .. ^ blank line before should be kept
 
 
