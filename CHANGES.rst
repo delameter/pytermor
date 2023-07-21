@@ -35,8 +35,10 @@ pending
 - |FIX| imports
 - |NEW| `fit` support for `fillchar` customizing
 - |NEW| `Tracers` handling empty input
+- |MAINTAIN| docker image based on python 3.10 <- 3.8
+- |CI|/CD: artifact uploading
 
-.. <@pending:d2359f6>
+.. <@pending:4da9bd5>
 .. ^ blank line before should be kept
 
 

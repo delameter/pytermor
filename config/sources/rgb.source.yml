@@ -3407,14 +3407,16 @@
   value: 0xc5c8c6
 - name: "superuser"
   value: 0xf8b889
+- name: "incompatibility"
+  value: 0xffd19e
 - name: "icathian yellow"
   value: 0xe7c899
+- name: "macedonian orange"
+  value: 0xe97f28
 - name: "moonlightd"
   value: 0x7280e2
 - name: "skylight blue"
   value: 0x0395f3
-- name: "macedonian orange"
-  value: 0xe97f28
 - name: "cherry red"
   value: 0x9f3334
 

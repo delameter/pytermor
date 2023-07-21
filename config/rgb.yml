@@ -2431,6 +2431,9 @@ colors:
   - name: inchworm
     original_name: Inchworm
     value: 0xb2ec5d
+  - name: incompatibility
+    original_name: incompatibility
+    value: 0xffd19e
   - name: independence
     original_name: Independence
     value: 0x4c516d
