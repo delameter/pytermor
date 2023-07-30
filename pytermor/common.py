@@ -58,7 +58,7 @@ class ExtendedEnum(enum.Enum):
     """
 
     @classmethod
-    def list(cls):
+    def list(cls: t.Type[_T]) -> list[_T]:
         """
         Return all enum values as list.
 
@@ -67,7 +67,7 @@ class ExtendedEnum(enum.Enum):
         return list(map(lambda c: c.value, cls))
 
     @classmethod
-    def dict(cls):
+    def dict(cls: t.Type[_T]) -> dict[str, _T]:
         """
         Return mapping of all enum keys to corresponding enum values.
 
@@ -86,7 +86,7 @@ class Align(str, ExtendedEnum):
     CENTER = "^"
 
     @classmethod
-    def resolve(cls, input: str | Align | None, fallback: Align = LEFT):
+    def resolve(cls, input: str | Align | None, fallback: Align = LEFT) -> Align|str:
         if input is None:
             return fallback
         if isinstance(input, cls):

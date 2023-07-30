@@ -10,13 +10,12 @@ from datetime import timedelta
 import pytest
 
 from pytermor import (
-    Fragment,
     OutputMode,
     Style,
     Text,
     formatter_bytes_human,
     formatter_si_binary,
-    render,
+    render, BaseUnit,
 )
 from pytermor.numfmt import (
     DualBaseUnit,
@@ -854,6 +853,21 @@ class TestDynamicFormatter:
     def test_colorizing(self, expected: str, value: int):
         assert format_time(value, auto_color=True).render() == expected
 
+    @pytest.mark.parametrize(
+        "bu,expected",
+        [
+            (BaseUnit(oom=0.0), False),
+            (BaseUnit(oom=0.4), True),
+            (BaseUnit(oom=1.0), False),
+            (BaseUnit(oom=0), False),
+            (BaseUnit(oom=1), False),
+            (BaseUnit(oom=2), False),
+            (BaseUnit(oom=0, _integer=True), True),
+            (BaseUnit(oom=0, _integer=False), False),
+        ]
+    )
+    def test_base_unit_interger(self, bu: BaseUnit, expected: bool):
+        assert bu.integer == expected
 
 # -- dual -----------------------------------------------------
 
@@ -1043,6 +1057,17 @@ class TestDualFormatter:
         registry.register(formatter)
         assert formatter.max_len in registry._formatters
         assert registry.get_by_max_len(formatter.max_len)
+
+    def test_format_pad(self):
+        formatter = DualFormatter(dual_registry.find_matching(10), pad=True)
+        actual = formatter.format(60, auto_color=False)
+        assert actual == f"{'1 min':>10s}"
+
+    @pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
+    def test_format_pad_colored(self):
+        formatter = DualFormatter(dual_registry.find_matching(10), pad=True)
+        actual = formatter.format(60, auto_color=True)
+        assert actual.render() == f"     \x1b[1;34m" "1" "\x1b[22;39m" " " "\x1b[2;34m" "min" "\x1b[22;39m"
 
     def test_formatting_with_shortest(self):
         assert len(format_time_delta_shortest(234)) <= 3

@@ -454,7 +454,7 @@ class Style:
             return NOOP_COLOR
         if isinstance(arg, IColor):
             return arg
-        if isinstance(arg, (str, int)):
+        if isinstance(arg, (str, int)) and not isinstance(arg, bool):  # undesirable isinstance(True, int) --> #000001
             return resolve_color(arg)
         raise ArgTypeError(arg, "arg", CDT, IColor, None)
 

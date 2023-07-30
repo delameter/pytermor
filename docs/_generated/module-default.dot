@@ -35,6 +35,7 @@ digraph G {
     pytermor_ansi -> pytermor_cval [fillcolor="#5f819d"];
     pytermor_ansi -> pytermor_filter [fillcolor="#5f819d"];
     pytermor_ansi -> pytermor_renderer [fillcolor="#5f819d"];
+    pytermor_ansi -> pytermor_template [fillcolor="#5f819d"];
     pytermor_ansi -> pytermor_term [fillcolor="#5f819d"];
     pytermor_color -> pytermor_cval [fillcolor="#5f819d"];
     pytermor_color -> pytermor_renderer [fillcolor="#5f819d"];
@@ -43,6 +44,7 @@ digraph G {
     pytermor_conv -> pytermor_color [fillcolor="#5f819d"];
     pytermor_cval -> pytermor_numfmt [fillcolor="#769440"];
     pytermor_cval -> pytermor_style [fillcolor="#769440"];
+    pytermor_filter -> pytermor_template [fillcolor="#5f819d"];
     pytermor_renderer -> pytermor_text [fillcolor="#769440"];
     pytermor_style -> pytermor_numfmt [fillcolor="#769440"];
     pytermor_style -> pytermor_renderer [fillcolor="#769440"];

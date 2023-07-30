@@ -670,7 +670,7 @@ class BaseUnit:
     @property
     def integer(self) -> bool:
         if self._integer is None:
-            return not isinstance(self.oom, int)
+            return not isclose(int(self.oom), self.oom)
         return self._integer
 
 
@@ -809,7 +809,7 @@ class DualFormatter(NumFormatter):
             unit = self._units[unit_idx]
             if unit.overflow_after and num > unit.overflow_after:
                 if not self._max_len:  # max len is being computed now
-                    raise RecursionError()
+                    raise RecursionError()  # pragma: no cover
                 return None
 
             unit_name = unit.name
@@ -874,13 +874,13 @@ class DualFormatter(NumFormatter):
             test_val = unit.in_next
             if not test_val:
                 test_val = unit.overflow_after
-            if not test_val:
+            if not test_val:  # pragma: no cover
                 continue
             test_val_sec = coef * (test_val - 1) * (-1 if self._allow_negative else 1)
 
             try:
                 max_len_unit = self.format_base(test_val_sec, auto_color=False)
-            except RecursionError:
+            except RecursionError:  # pragma: no cover
                 continue
 
             max_len = max(max_len, len(max_len_unit))
@@ -934,7 +934,7 @@ class DualBaseUnit:
     custom_short: str = None
     collapsible_after: int = None
 
-    def __post_init__(self):
+    def __post_init__(self):  # pragma: no cover
         if not self.in_next and not self.overflow_after:
             raise ValueError("Either in_next or overflow_after is required.")
         if self.in_next and self.overflow_after:
@@ -956,7 +956,7 @@ class DualFormatterRegistry:
         """..."""
         for formatter in formatters:
             key = formatter.max_len
-            if key in self._formatters:
+            if key in self._formatters:  # pragma: no cover
                 raise ConflictError(f"Formatter with max len {key} already exists")
             self._formatters[key] = formatter
 

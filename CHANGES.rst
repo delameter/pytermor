@@ -37,8 +37,9 @@ pending
 - |NEW| `Tracers` handling empty input
 - |MAINTAIN| docker image based on python 3.10 <- 3.8
 - |CI|/CD: artifact uploading
+- |NEW| +1 named color
 
-.. <@pending:4da9bd5>
+.. <@pending:814f67e>
 .. ^ blank line before should be kept
 
 
