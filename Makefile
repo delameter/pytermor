@@ -273,21 +273,25 @@ _set_current_date = (sed ${VERSION_FILE_PATH} -i -Ee 's/^(__updated__).+/\1 = "$
 next-version-dev: ## Increase version by <dev>
 	@$(call _set_current_date)
 	@$(call _set_next_version,dev)
+	@echo
 
 next-version-micro: ## Increase version by 0.0.1
 	@$(call _set_current_date)
 	@$(call _set_next_version,micro | head -1)
 	@$(call _set_next_version,dev | tail -1)
+	@echo
 
 next-version-minor: ## Increase version by 0.1
 	@$(call _set_current_date)
 	@$(call _set_next_version,minor | head -1)
 	@$(call _set_next_version,dev | tail -1)
+	@echo
 
 next-version-major: ## Increase version by 1
 	@$(call _set_current_date)
 	@$(call _set_next_version,major | head -1)
 	@$(call _set_next_version,dev | tail -1)
+	@echo
 
 set-current-date:  # Update timestamp in version file (done automatically)
 	@$(call _set_current_date)
@@ -298,11 +302,19 @@ update-changelist:  ## Auto-update with new commits  <@CHANGES.rst>
 .:
 ## Building / Publishing
 
-_freeze = (hatch -e $1 run pip freeze -q --exclude-editable | sed --unbuffered -Ee '/^Checking/d' | tee /dev/stderr > requirements-$1.txt)
+_freeze = (	echo "${BSEP}\e[34mFreezing \e[1;94m$1\e[22;34m:\e[m\n${BSEP}"; \
+			hatch -e $1 run pip freeze -q --exclude-editable | \
+				sed --unbuffered -E -e '/^(Checking|Syncing|Creating|Installing)/d' | \
+				fgrep -e pytermor -v | \
+				tee requirements-$1.txt | \
+				sed --unbuffered -E -e 's/^([a-zA-Z0-9_-]+)/\x1b[32m\1\x1b[m/' \
+									-e 's/([0-9.]+|@[a-zA-Z0-9_-]+)$$/\x1b[33m\1\x1b[m/'; \
+			echo)
 
 freeze:  ## Update requirements-*.txt   <hatch>
-	$(call _freeze,test)
-	$(call _freeze,build)
+	@$(call _freeze,test)
+	@$(call _freeze,build)
+	@$(call _freeze,demo)
 
 demolish-build:  ## Delete build output folders  <hatch>
 	hatch clean

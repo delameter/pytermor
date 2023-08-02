@@ -236,18 +236,18 @@ class TemplateEngine:
     _TAG_REGEX = re.compile(
         r"""                  ##### TAG PREFIX #######
         ((?P<register>[?!@])  # save tag to local map as fallback/overwrite/explicitly
-         (?P<name>[\w-]+)     # … under specified name  
-        )?                    # … or make a one-use tag
-        :                     # … and assemble the SGR and insert the bytes
-        (?![^\\]\\)           # ignore escaped with single backslash, but not double
+         (?P<name>[\w-]+)     # /under specified name/  
+        )?                    # or make a one-use tag and insert encoded SGR  
+        :                     ########################
+        (?![^\\]\\)           # /ignore escaped with single backslash, but not double/
         \[(?:                 ####### TAG BODY #######
-            (?P<pos>\^)           # reset cursor
-            |                     # … OR clear current line / the whole screen
-            (?P<clear>(<<|<|<>|<<>>|>|>>))   #
-            |
-            (?P<split>[|,]?)      # … OR /with splitting/ 
-            (?P<action>[+$-]?)    # … open style/reset styles/close style  (empty=open)
-            (?P<attrs>[a-zA-Z][\w =-]*|)   # … add style attributes OR close last  
+            (?P<pos>\^)                     #   reset cursor
+            |                               # OR
+            (?P<clear>(<<|<|<>|<<>>|>|>>))  #   clear current line / the whole screen
+            |                               # OR
+            (?P<split>[|,]?)                #   /with splitting/ 
+            (?P<action>[+$-]?)              #   open style/reset styles/close style
+            (?P<attrs>[a-zA-Z][\w =-]*|)    #   /with style attributes/ or /close last/  
             
         )\]
         """,
@@ -263,11 +263,10 @@ class TemplateEngine:
         self._user_styles.clear()
 
     @measure(
-        template_enter_fn=lambda _, tpl: f"Substituting the template ({len(tpl)})",
+        template_enter_fn=lambda _, tpl: f"Substituting the template ({len(tpl)} chars)",
         template_exit="Substituted in %s",
     )
     def substitute(self, tpl: str) -> Text:
-        _logger.debug(f"Substituting the template (L={len(tpl)})")
         tpl_parts = self._split(tpl)
 
         _logger.debug(f"Split to {len(tpl_parts)} parts")
@@ -314,7 +313,7 @@ class TemplateEngine:
                     for segm in (splitter := spl_stack.pop()).apply(tpl_part):
                         result.append(segm)
                     # add open style for engine to properly handle the :[-closing] tag:
-                    result.append(Fragment("", splitter.tag_style, close_this=False))
+                    to_stack(splitter.tag_style)
                     continue
 
                 _tpleng_debug("TEXT MODE", "stack")

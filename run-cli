@@ -6,9 +6,9 @@
 #------------------------------------------------------------------------------
 
 main() {
-    if [[ ! -f venv/bin/python ]] ; then
+    if [[ ! -f venv-demo/bin/python ]] ; then
         echo "[ERROR] virtual environment is not present"
-        echo "initialize it in '$PWD/venv'?"
+        echo -n "Initialize it in '$PWD/venv-demo'? "
         read -r -n1 -p'(y/n): ' yn
         case "$yn" in
             [Yy]*) init-venv || exit 1 ;;
@@ -17,27 +17,29 @@ main() {
     fi
 
     if [[ -f .run-startup.py ]] ; then
-        PYTHONSTARTUP=.run-startup.py PYTHONPATH=. venv/bin/python -q "$@"
+        PYTHONSTARTUP=.run-startup.py PYTHONPATH=. venv-demo/bin/python -q "$@"
     else
         printf '%s\n' "import pytermor as pt" "print('imported pytermor %s as pt' % pt.__version__)" > /tmp/ptstartup
-        PYTHONSTARTUP=/tmp/ptstartup PYTHONPATH=. venv/bin/python -q "$@"
+        PYTHONSTARTUP=/tmp/ptstartup PYTHONPATH=. venv-demo/bin/python -q "$@"
         rm /tmp/ptstartup
     fi
 }
 
 init-venv() {
     echo
-    if ! python -m venv venv ; then
+    if ! python -m venv venv-demo ; then
         echo "[CRITICAL] python 3.8 or higher is required, as well as installed 'virtualenv' package"
         return 1
     fi
-    venv/bin/python -m pip install . && return 0
+    if ! venv-demo/bin/python -m pip install . ; then
+        echo "[ERROR] failed to install source-distributed 'pytermor' into created venv. ensure that the script working dir is same as the project root. trying to install from package registry..."
 
-    echo "[ERROR] failed to install source-distributed 'pytermor' into created venv. ensure that the script working dir is same as the project root. trying to install from package registry..."
-    if ! venv/bin/python -m pip install pytermor ; then
-        echo "[CRITICAL] failed to install 'pytermor' even from the registry // ToT"
-        return 1
+        if ! venv-demo/bin/python -m pip install pytermor ; then
+            echo "[CRITICAL] failed to install 'pytermor' even from the registry // ToT"
+            return 1
+        fi
     fi
+    venv-demo/bin/python -m pip install -r requirements-demo.txt || echo "[ERROR] Failed to install demo mode requirements"
 }
 
 main "$@"

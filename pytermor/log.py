@@ -65,7 +65,7 @@ def _trace_render(origin: _F) -> _F:
         maxl = max(len(li), len(lo))
         try:
             if no_changes:
-                _logger.log(level=TRACE, msg=f"│ I,O ({li:>{maxl}s}): {inp!r}")
+                _logger.log(level=TRACE, msg=f"│ I=O ({li:>{maxl}s}): {inp!r}")
             else:
                 _logger.log(level=TRACE, msg=f"│ IN  ({li:>{maxl}s}): {inp!r}")
                 _logger.log(level=TRACE, msg=f"│ OUT ({lo:>{maxl}s}): {result!r}")

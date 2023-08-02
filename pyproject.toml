@@ -84,7 +84,16 @@ extra-dependencies = [
     "twine~=4.0",
 ]
 
-[tool.hatch.envs.build.scripts]
+# [demo]
+
+[tool.hatch.envs.demo]
+detached = false
+extra-dependencies = [
+    "pygments~=2.15",
+    "rich~=12.6",
+]
+
+[tool.hatch.envs.demo.scripts]
 ex-approx = "python examples/approximate.py"
 ex-list-render = "python examples/list_renderers.py"
 ex-list-named = "python examples/list_named_rgb.py"
