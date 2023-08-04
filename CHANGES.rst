@@ -40,8 +40,9 @@ pending
 - |NEW| +1 named color
 - |REFACTOR| `TemplateEngine`
 - |TESTS| `template`
+- |FIX| `template` splitter mode
 
-.. <@pending:bff2eaa>
+.. <@pending:21e48f2>
 .. ^ blank line before should be kept
 
 

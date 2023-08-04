@@ -187,6 +187,7 @@ class Style:
         [
             "fg",
             "bg",
+            "underline_color",
             "bold",
             "dim",
             "italic",
@@ -258,7 +259,7 @@ class Style:
         if fallback is not None:
             if not isinstance(fallback, Style):
                 suggestion = None
-                if isinstance(fallback, (int, str, IColor)):
+                if isinstance(fallback, (int, str, IColor)):  # pragma: no cover
                     suggestion = "To set a fg without fallback use Style(fg=<color>)"
                 raise ArgTypeError(fallback, "fallback", Style, suggestion=suggestion)
             self.merge_fallback(fallback)
@@ -488,7 +489,11 @@ class Style:
         props = []
         for attr_name in self.renderable_attributes:
             attr = getattr(self, attr_name)
-            if isinstance(attr, bool):
+            if isinstance(attr, IColor) and attr and attr_name == "underline_color":
+                if len(colors):
+                    colors.append(" ")
+                colors.append("U:"+attr.repr_attrs(verbose))
+            elif isinstance(attr, bool):
                 prefix = "+" if attr else "-"
                 prop = attr_name.upper()
                 if not verbose:

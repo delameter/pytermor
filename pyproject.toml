@@ -133,7 +133,6 @@ omit = [
     "*/__init__.py",
     "pytermor/__main__.py",
     "pytermor/_version.py",
-    "pytermor/ansi.py:SeqIndex",
     "pytermor/cval.py",
 ]
 relative_files = true
@@ -151,6 +150,11 @@ exclude_lines = [
     "^\\s*\\.\\.\\.\\s*$",
     "if __name__ == .__main__.:",
     "[A-Z0-9_]+ *= *((Sequence|Color|Style)\\w*\\([]' ,.\\w=[]+\\)?|[A-Z0-9_]+)(\\s*#.+)?$",
+    "class SeqIndex.+",
+    "class SgrDebugger.+",
+    "class SimpleTable.+",
+    "def allows_width_setup\\(.+",
+    "def has_width\\(.+",
 ]
 ignore_errors = true
 

@@ -9,7 +9,7 @@ import enum
 import itertools
 import typing as t
 from collections.abc import Iterable
-
+from functools import lru_cache
 
 _T = t.TypeVar("_T")
 
@@ -58,7 +58,8 @@ class ExtendedEnum(enum.Enum):
     """
 
     @classmethod
-    def list(cls: t.Type[_T]) -> list[_T]:
+    @lru_cache
+    def list(cls: t.Type[_T]) -> t.List[_T]:
         """
         Return all enum values as list.
 
@@ -67,13 +68,28 @@ class ExtendedEnum(enum.Enum):
         return list(map(lambda c: c.value, cls))
 
     @classmethod
-    def dict(cls: t.Type[_T]) -> dict[str, _T]:
+    @lru_cache
+    def dict(cls: t.Type[_T]) -> t.Dict[str, _T]:
         """
         Return mapping of all enum keys to corresponding enum values.
 
         :example:   {<ExampleEnum.VAL1: 1>: 1, <ExampleEnum.VAL2: 10>: 10}
         """
         return dict(map(lambda c: (c, c.value), cls))
+
+    @classmethod
+    @lru_cache
+    def rdict(cls: t.Type[_T]) -> t.Dict[_T, str]:
+        return {v: k for k, v in cls.dict().items()}
+
+    @classmethod
+    @lru_cache
+    def resolve_by_value(cls: t.Type[_T], val: _T) -> ExtendedEnum:
+        if val in (rdict := cls.rdict()).keys():
+            return rdict[val]
+        msg = f"Invalid value {val!r}, should be one of: "
+        msg += ", ".join(map(str, rdict.keys()))
+        raise LookupError(msg)
 
 
 class Align(str, ExtendedEnum):
@@ -86,7 +102,7 @@ class Align(str, ExtendedEnum):
     CENTER = "^"
 
     @classmethod
-    def resolve(cls, input: str | Align | None, fallback: Align = LEFT) -> Align|str:
+    def resolve(cls, input: str | Align | None, fallback: Align = LEFT) -> Align | str:
         if input is None:
             return fallback
         if isinstance(input, cls):

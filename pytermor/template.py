@@ -13,6 +13,8 @@ from collections import deque
 from dataclasses import dataclass
 from typing import Union
 
+from .text import render as text_render
+from .renderer import IRenderer
 from .common import get_qname
 from .color import resolve_color, DEFAULT_COLOR
 from .exception import LogicError
@@ -256,11 +258,15 @@ class TemplateEngine:
     _COMMENT_REGEX = re.compile(r"#\[.*?\]")
     _ESCAPE_REGEX = re.compile(r"([^\\])\\\[")
 
-    def __init__(self, custom_styles: t.Dict[str, Style] = None):
+    def __init__(self, custom_styles: t.Dict[str, Style] = None, global_style: Style = NOOP_STYLE):
         self._user_styles: t.Dict[str, Style] = custom_styles or {}
+        self._global_style = global_style
 
     def reset(self):
         self._user_styles.clear()
+
+    def render(self, tpl: str, renderer: IRenderer) -> str:
+        return text_render(self.substitute(tpl), renderer=renderer)
 
     @measure(
         template_enter_fn=lambda _, tpl: f"Substituting the template ({len(tpl)} chars)",
@@ -372,8 +378,15 @@ class TemplateEngine:
                 raise LogicError(f"Invalid tag: {tag.raw}")
 
         _tpleng_debug_sep()
+
+        for idx, frag in enumerate(result):
+            if not frag.style:
+                result[idx] = Fragment(frag.raw(), self._global_style)
+            else:
+                frag.style.merge_overwrite(self._global_style)
         return Text(*result)
 
 
 _template_engine = TemplateEngine()
 substitute = _template_engine.substitute
+render = _template_engine.render

@@ -70,6 +70,19 @@ class TestExtendedEnum:
             cls.VALUE3: cls.VALUE3.value,
         }
 
+    def test_rdict(self, cls: IExampleEnum):
+        assert cls.rdict() == {
+            cls.VALUE1.value: cls.VALUE1,
+            cls.VALUE2.value: cls.VALUE2,
+            cls.VALUE3.value: cls.VALUE3,
+        }
+
+    def test_resolve_by_value(self, cls: IExampleEnum):
+        assert cls.resolve_by_value(cls.VALUE1.value) == cls.VALUE1
+
+    def test_resolve_by_invalid_value(self, cls: IExampleEnum):
+        pytest.raises(LookupError, cls.resolve_by_value, "12345")
+
 
 class TestAlign:
     @pytest.mark.parametrize("input", [

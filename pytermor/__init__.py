@@ -165,7 +165,6 @@ from .renderer import OutputMode as OutputMode
 from .renderer import RendererManager as RendererManager
 from .renderer import SgrDebugger as SgrDebugger
 from .renderer import SgrRenderer as SgrRenderer
-from .renderer import TemplateRenderer as TemplateRenderer
 from .renderer import TmuxRenderer as TmuxRenderer
 from .renderer import force_ansi_rendering as force_ansi_rendering
 from .renderer import force_no_ansi_rendering as force_no_ansi_rendering
@@ -177,6 +176,7 @@ from .style import make_style as make_style
 from .style import merge_styles as merge_styles
 from .template import TemplateEngine as TemplateEngine
 from .template import substitute as substitute
+from .template import render as render_template
 from .term import RCP_REGEX as RCP_REGEX
 from .term import compose_clear_line_fill_bg as compose_clear_line_fill_bg
 from .term import compose_hyperlink as compose_hyperlink

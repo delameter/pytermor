@@ -15,7 +15,7 @@ import pytermor.common
 import pytermor.exception
 import pytermor.text
 from pytermor import FT, LogicError, OutputMode, Text, FrozenText, Fragment, IRenderable, \
-    Style, RT
+    Style, RT, Composite, NOOP_STYLE
 from pytermor.renderer import NoOpRenderer
 
 from tests import format_test_params
@@ -110,6 +110,79 @@ class TestText:
         text.render()
 
 
+@pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
+class TestComposite:
+    def test_style_applying_works(self):
+        assert Composite(Fragment("12"), Fragment("3", Style(fg="red"))).render() == "12" "\x1b[31m" "3" "\x1b[39m"
+
+    def test_style_closing_works(self):
+        comp = Composite(Fragment("123", Style(fg="red")), Fragment("456"))
+        assert comp.render() == "\x1b[31m" "123" "\x1b[39m" "456"
+
+    def test_style_leaving_open_works_as_expected(self):
+        comp = Composite(Fragment("123", Style(fg="red"), close_this=False), Fragment("456"))
+        assert comp.render() == "\x1b[31m" "123" "\x1b[39m" "456"
+
+    def test_style_resetting_works(self):
+        style = Style(fg="red")
+        comp = Composite(
+            Fragment("123", style, close_this=False),
+            Fragment("", style, close_prev=True),
+            Fragment("456"),
+        )
+        assert comp.render() == "\x1b[31m" "123" "\x1b[39m" "456"
+
+    def test_style_nesting_works(self):
+        style1 = Style(fg="red", bg="black", bold=True)
+        style2 = Style(fg="yellow", bg="green", underlined=True)
+        comp = Composite(
+            Fragment("1", style1, close_this=False),
+            Fragment("2", style2, close_this=False),
+            Fragment("3"),
+            Fragment("4", style2, close_prev=True),
+            Fragment("5", style1, close_prev=True),
+            Fragment("6"),
+        )
+        expected = (
+            "\x1b[1;31;40m" + "1" + "\x1b[22;39;49m"
+            "\x1b[4;33;42m" + "2" + "\x1b[24;39;49m"
+            "3" 
+            "\x1b[4;33;42m" + "4" + "\x1b[24;39;49m"
+            "\x1b[1;31;40m" + "5" + "\x1b[22;39;49m" + "6"
+        )
+        assert comp.render() == expected
+
+    def test_raw_works(self):
+        style1 = Style(fg="red", bg="black", bold=True)
+        style2 = Style(fg="yellow", bg="green", underlined=True)
+        comp = Composite(
+            Fragment("1", style1, close_this=False),
+            Fragment("2", style2, close_this=False),
+            Fragment("3"),
+            Fragment("4", style2, close_prev=True),
+            Fragment("5", style1, close_prev=True),
+            Fragment("6"),
+        )
+        assert comp.raw() == "123456"
+
+    def test_as_fragments_works(self):
+        style1 = Style(fg="red", bg="black", bold=True)
+        style2 = Style(fg="yellow", bg="green", underlined=True)
+        fragments = [
+            Fragment("1", style1, close_this=False),
+            Fragment("2", style2, close_this=False),
+            Fragment("3"),
+            Fragment("4", style2, close_prev=True),
+            Fragment("5", style1, close_prev=True),
+            Fragment("6"),
+        ]
+        comp = Composite(*fragments)
+        assert comp.as_fragments() == fragments
+
+    def test_equal4(self):
+        assert Composite(Text(Fragment("1"), Fragment("2"))) == Composite(Text("1", NOOP_STYLE, "2"))
+
+
 class TestFargsFlow:
     Fg = Fragment
     lperr = pytest.mark.xfail(raises=LookupError)
@@ -162,6 +235,9 @@ class TestAdding:
                 FrozenText(Fragment("123"), frag2, Fragment("789")),
             ),
             (["123", Text(frag2), "789"], Text(Fragment("123"), frag2, Fragment("789"))),
+            (["123", Composite(frag2), "789"], Composite("123", frag2, "789")),
+            ([Composite(frag1), frag2, Composite("789")], Composite(frag1, frag2, Composite("789"))),
+            (["123", Composite(frag2)], Composite("123", frag2)),
         ],
         ids=format_test_rt_params,
     )
@@ -173,7 +249,7 @@ class TestAdding:
             result = result + element
         assert result == expected
 
-    @pytest.mark.parametrize("renderable", [frag1, Text("123", "red")])
+    @pytest.mark.parametrize("renderable", [frag1, Text("123", "red"), Composite(pt.Fragment("123", "red"))])
     def test_incremental_adding_works(self, renderable: IRenderable):
         renderable += "qwe"
         assert len(renderable) == 6
@@ -186,7 +262,7 @@ class TestAdding:
         assert ftext
 
     @pytest.mark.parametrize(
-        "renderable", [frag1, FrozenText("123", "red"), Text("123", "red")]
+        "renderable", [frag1, FrozenText("123", "red"), Text("123", "red"), Composite(pt.Fragment("123", "red"))]
     )
     def test_right_adding_works(self, renderable: IRenderable):
         result = "poi" + renderable

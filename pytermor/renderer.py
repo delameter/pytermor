@@ -58,13 +58,17 @@ class RendererManager:
             and set up renderer, which will be registered as global.
         """
         if isinstance(renderer, type):
-            renderer = renderer()
+            try:
+                renderer = renderer()
+            except TypeError:  # pragma: no cover
+                pass
+
         if renderer is not None:
             cls._default = renderer
             return
 
         renderer_classname: str = get_config().renderer_class
-        if not (renderer_class := getattr(__import__(__package__), renderer_classname)):
+        if not (renderer_class := getattr(__import__(__package__), renderer_classname)):  # pragma: no cover
             get_logger().warning(
                 f"Renderer class does not exist: '{renderer_classname}'"
             )
@@ -83,6 +87,11 @@ class RendererManager:
 class IRenderer(metaclass=ABCMeta):
     """Renderer interface."""
 
+    def __init__(self, *, allow_cache: bool = None, allow_format: bool = None) -> None:
+        super().__init__()
+        self._allow_cache: bool | None = allow_cache
+        self._allow_format: bool | None = allow_format
+
     def __hash__(self) -> int:
         """
         Method returning a unique number reflecting current renderer's state. Used for
@@ -93,22 +102,24 @@ class IRenderer(metaclass=ABCMeta):
         """
 
     @property
-    @abstractmethod
-    def is_caching_allowed(self) -> bool:
+    def is_caching_allowed(self) -> bool:  # pragma: no cover
         """
-        Class-level property.
-
         :return: *True* if caching of renderer's results makes any sense and *False*
                  otherwise.
         """
+        if self._allow_cache is None:
+            raise RuntimeError("Renderer is not initialized")
+        return self._allow_cache
 
     @property
-    @abstractmethod
-    def is_format_allowed(self) -> bool:
+    def is_format_allowed(self) -> bool:  # pragma: no cover
         """
-        :return: *True* if renderer is set up to use the formatting and will do
+        :return: *True* if renderer is set up to produce formatted output and will do
                  it on invocation, and *False* otherwise.
         """
+        if self._allow_format is None:
+            raise RuntimeError("Renderer is not initialized")
+        return self._allow_format
 
     @abstractmethod
     def render(self, string: str, fmt: FT = None) -> str:
@@ -124,7 +135,7 @@ class IRenderer(metaclass=ABCMeta):
                  renderer settings.
         """
 
-    def clone(self: _T, *args: t.Any, **kwargs: t.Any) -> _T:
+    def clone(self: _T, *args: t.Any, **kwargs: t.Any) -> _T:  # pragma: no cover
         """
         Make a copy of the renderer with the same setup.
         """
@@ -165,14 +176,6 @@ class OutputMode(ExtendedEnum):
     See `SgrRenderer` constructor documentation for the details. 
     """
 
-    @classmethod
-    def resolve_by_value(cls, val: str) -> OutputMode:
-        vk = {v: k for k, v in cls.dict().items()}
-        if val in vk.keys():
-            return vk[val]
-        vals_str = ", ".join(vk.keys())
-        raise LookupError(f"Invalid output mode: {val}, should be one of: {vals_str}")
-
 
 class SgrRenderer(IRenderer):
     """
@@ -201,8 +204,11 @@ class SgrRenderer(IRenderer):
     >>> SgrRenderer(OutputMode.NO_ANSI).render('text', Styles.WARNING_LABEL)
     'text'
 
-    Automatic output mode selection
+    :cache allowed:    *True*
+    :format allowed:   *False* if `output_mode` is `OutputMode.NO_ANSI`,
+                       *True* otherwise.
 
+    .. rubric :: Automatic output mode selection
 
     With `OutputMode.AUTO` the renderer will return `OutputMode.NO_ANSI`
     for any output device other than terminal emulator, or try to find
@@ -252,7 +258,7 @@ class SgrRenderer(IRenderer):
                `OutputMode.AUTO`; in the latter case the renderer will
                select the appropriate mode by itself (see `renderers`_).
     :param io: specified in order to check if output device is a tty
-               or not and can be ignored when output mode is set up
+               or not and can be omitted when output mode is set up
                explicitly.
     """
 
@@ -281,6 +287,10 @@ class SgrRenderer(IRenderer):
         self._color_upper_bound: t.Type[IColor] | None = self._COLOR_UPPER_BOUNDS.get(
             self._output_mode, None
         )
+        super().__init__(
+            allow_cache=True,
+            allow_format=(self._output_mode is not OutputMode.NO_ANSI),
+        )
         get_logger().debug(f"Instantiated {self!r} => {getattr(io, 'name', repr(io))}")
 
     def __hash__(self) -> int:
@@ -295,14 +305,6 @@ class SgrRenderer(IRenderer):
             get_qname(self._color_upper_bound),
         ]
         return f"{get_qname(self)}[{', '.join(attrs)}]"
-
-    @property
-    def is_caching_allowed(self) -> bool:
-        return True
-
-    @property
-    def is_format_allowed(self) -> bool:
-        return self._output_mode is not OutputMode.NO_ANSI
 
     @_trace_render
     def render(self, string: str, fmt: FT = None) -> str:
@@ -339,7 +341,9 @@ class SgrRenderer(IRenderer):
             logger.debug(f"Using forced value from env/config: {config_forced_value}")
             return config_forced_value
 
-        isatty = io.isatty() if not io.closed else None
+        isatty = None
+        if io and not io.closed:
+            isatty = io.isatty()
         term = os.environ.get("TERM", None)
         colorterm = os.environ.get("COLORTERM", None)
 
@@ -389,6 +393,10 @@ class TmuxRenderer(IRenderer):
     >>> TmuxRenderer().render('text',  Style(fg='blue', bold=True))
     '#[fg=blue bold]text#[fg=default nobold]'
 
+    :cache allowed:    *True*
+    :format allowed:   *True*, because tmux markup can be used without regard
+                       to the type of output device and its capabilities -- all the
+                       dirty work will be done by the multiplexer himself.
     """
 
     STYLE_ATTR_TO_TMUX_MAP = {
@@ -405,21 +413,11 @@ class TmuxRenderer(IRenderer):
         "underlined": "underscore",
     }
 
+    def __init__(self) -> None:
+        super().__init__(allow_cache=True, allow_format=True)
+
     def __hash__(self) -> int:  # stateless
         return _digest(self.__class__.__qualname__)
-
-    @property
-    def is_caching_allowed(self) -> bool:
-        return True
-
-    @property
-    def is_format_allowed(self) -> bool:
-        """
-        :returns: Always *True*, because tmux markup can be used without regard
-                  to the type of output device and its capabilities -- all the
-                  dirty work will be done by the multiplexer itself.
-        """
-        return True
 
     @_trace_render
     def render(self, string: str, fmt: FT = None) -> str:
@@ -444,13 +442,13 @@ class TmuxRenderer(IRenderer):
                 target = ColorTarget.BG if attr_name == "bg" else ColorTarget.FG
                 cmd_open.append((tmux_name + "=", attr_val.to_tmux(target)))
                 cmd_close.append((tmux_name + "=", "default"))
-            elif isinstance(attr_val, bool):
-                if not attr_val:
+            elif isinstance(attr_val, bool):  # @TODO unreachable ?
+                if not attr_val:  # pragma: no cover
                     continue
                 cmd_open.append((tmux_name, ""))
                 cmd_close.append(("no" + tmux_name, ""))
             else:
-                raise TypeError(
+                raise TypeError(  # pragma: no cover
                     f"Unexpected attribute type: {type(attr_val)} for '{attr_name}'"
                 )
         return self._encode_tmux_command(cmd_open), self._encode_tmux_command(cmd_close)
@@ -471,25 +469,18 @@ class NoOpRenderer(IRenderer):
     >>> NoOpRenderer().render('text', Style(fg='green', bold=True))
     'text'
 
+    :cache allowed:    *False*
+    :format allowed:   *False*, nothing to apply |rarr| nothing to allow.
     """
 
-    def __bool__(self) -> bool:
+    def __init__(self):
+        super().__init__(allow_cache=False, allow_format=False)
+
+    def __bool__(self) -> bool:  # pragma: no cover
         return False
 
-    def __hash__(self) -> int:  # stateless
-        return _digest(self.__class__.__qualname__)
-
-    @property
-    def is_caching_allowed(self) -> bool:
-        return False
-
-    @property
-    def is_format_allowed(self) -> bool:
-        """
-        :returns: Nothing to apply |rarr| nothing to allow, thus the returned value
-                  is always *False*.
-        """
-        return False
+    def __hash__(self) -> int:   # pragma: no cover
+        return _digest(self.__class__.__qualname__)  # stateless
 
     def render(self, string: str, fmt: FT = None) -> str:
         """
@@ -513,6 +504,9 @@ class HtmlRenderer(IRenderer):
     >>> HtmlRenderer().render('text', Style(fg='red', bold=True))
     '<span style="color: #800000; font-weight: 700">text</span>'
 
+    :cache allowed:    *True*
+    :format allowed:   *True*, because the capabilities of the terminal have
+                       nothing to do with HTML markup meant for web-browsers.
     """
 
     DEFAULT_ATTRS = [
@@ -525,20 +519,11 @@ class HtmlRenderer(IRenderer):
         "filter",
     ]
 
+    def __init__(self) -> None:
+        super().__init__(allow_cache=True, allow_format=True)
+
     def __hash__(self) -> int:  # stateless
         return _digest(self.__class__.__qualname__)
-
-    @property
-    def is_caching_allowed(self) -> bool:
-        return True
-
-    @property
-    def is_format_allowed(self) -> bool:
-        """
-        :returns: Always *True*, because the capabilities of the terminal have
-                  nothing to do with HTML markup meant for web-browsers.
-        """
-        return True
 
     @_trace_render
     def render(self, string: str, fmt: FT = None) -> str:
@@ -586,7 +571,7 @@ class HtmlRenderer(IRenderer):
             "" if style.class_name is None else f' class="{style.class_name}"'
         )
         span_style_str = "; ".join(
-            f"{k}: {' '.join(v)}" for k, v in span_styles.items() if len(v) > 0
+            f"{k}: {' '.join(sorted(v))}" for k, v in sorted(span_styles.items()) if len(v) > 0
         )
         return f'<span{span_class_str} style="{span_style_str}">', "</span>"
 
@@ -607,6 +592,8 @@ class SgrDebugger(SgrRenderer):
     >>> SgrDebugger(OutputMode.XTERM_16).render('text', Style(fg='red', bold=True))
     '(ǝ[1;31m)text(ǝ[22;39m)'
 
+    :cache allowed:    *True*
+    :format allowed:   adjustable
     """
 
     REPLACE_REGEX = re.compile(r"\x1b(\[[0-9;]*m)")
@@ -623,7 +610,7 @@ class SgrDebugger(SgrRenderer):
         # `SgrDebugger` without the override and with `NO_ANSI` output mode
         # has different hashes, but produce exactly the same outputs. however,
         # this can be disregarded, as it is not worth the efforts to implement an
-        # advanced logic and correct state computation when it comes to debug renderer.
+        # advanced logic and correct state computation when it comes to a debug renderer.
         return _digest(
             ".".join(
                 [
@@ -633,10 +620,6 @@ class SgrDebugger(SgrRenderer):
                 ]
             )
         )
-
-    @property
-    def is_caching_allowed(self) -> bool:
-        return True
 
     @property
     def is_format_allowed(self) -> bool:
@@ -672,24 +655,6 @@ class SgrDebugger(SgrRenderer):
         Force disabling of all output formatting.
         """
         self._format_override = False
-
-
-class TemplateRenderer(IRenderer):
-    @property
-    def is_caching_allowed(self) -> bool:
-        return True
-
-    @property
-    def is_format_allowed(self) -> bool:
-        """
-        :returns: Always *True*, because template renderer is not expected to
-                  put the results directly to a tty.
-        """
-        return True
-
-    @_trace_render
-    def render(self, string: str, fmt: FT = None) -> str:
-        pass
 
 
 # @todo

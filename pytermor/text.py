@@ -148,7 +148,7 @@ class Fragment(IRenderable):
         self._close_prev = close_prev
 
     def __eq__(self, o: t.Any) -> bool:
-        if not isinstance(o, type(self)):
+        if not isinstance(o, type(self)):  # pragma: no cover
             return False
         return (
             self._string == o._string
@@ -257,7 +257,7 @@ class FrozenText(IRenderable):
         return self._width or sum(len(frag) for frag in self._fragments)
 
     def __eq__(self, o: t.Any) -> bool:
-        if not isinstance(o, type(self)):
+        if not isinstance(o, type(self)):  # pragma: no cover
             return False
         return (
             self._fragments == o._fragments
@@ -431,7 +431,7 @@ class FrozenText(IRenderable):
         return "".join(renderer.render(fp, st) for fp, st in result_parts)
 
     @property
-    def allows_width_setup(self) -> bool:  # pragma: no cover
+    def allows_width_setup(self) -> bool:
         return True
 
     @property
@@ -486,29 +486,42 @@ class Composite(IRenderable):
                   `IRenderable` interface.
     """
 
-    def __init__(self, *parts: IRenderable):
+    def __init__(self, *parts: RT):
         super().__init__()
-        self._parts: deque[IRenderable] = deque(parts)
+        renderables = [self.as_renderable(p) for p in parts]
+        self._parts: deque[IRenderable] = deque(renderables)
 
     def __len__(self) -> int:
         return sum(len(part) for part in self._parts)
 
     def __eq__(self, o: t.Any) -> bool:
-        if not isinstance(o, type(self)):
+        if not isinstance(o, type(self)):  # pragma: no cover
             return False
         return self._parts == o._parts
 
-    def __add__(self, other: RT) -> IRenderable:
-        self._parts.append(other)
+    def __repr__(self) -> str:
+        frags = len(self._parts)
+        result = f"<{self.__class__.__qualname__}>[F={frags}%s]"
+        if frags == 0:
+            return result % ""
+        return result % (", " + ", ".join([repr(f) for f in self._parts]))
+
+    def __add__(self, other: RT) -> Composite:
+        self._parts.append(self.as_renderable(other))
         return self
 
-    def __iadd__(self, other: RT) -> IRenderable:
-        self._parts.append(other)
+    def __iadd__(self, other: RT) -> Composite:
+        self._parts.append(self.as_renderable(other))
         return self
 
-    def __radd__(self, other: RT) -> IRenderable:
-        self._parts.appendleft(other)
+    def __radd__(self, other: RT) -> Composite:
+        self._parts.appendleft(self.as_renderable(other))
         return self
+
+    def as_renderable(self, rt: RT) -> IRenderable:
+        if isinstance(rt, IRenderable):
+            return rt
+        return Fragment(rt)
 
     def as_fragments(self) -> t.List[Fragment]:
         return flatten1([p.as_fragments() for p in self._parts])
@@ -591,7 +604,7 @@ class SimpleTable(IRenderable):
         return sum(flatten1((len(frag) for frag in row) for row in self._rows))
 
     def __eq__(self, o: t.Any) -> bool:
-        if not isinstance(o, type(self)):
+        if not isinstance(o, type(self)):  # pragma: no cover
             return False
         return self._rows == o._rows
 

@@ -476,7 +476,7 @@ def decompose_report_cursor_position(string: str) -> t.Tuple[int, int] | None:
 # Utility ---------------------------------------------------------
 
 
-def get_terminal_width(fallback: int = 80, pad: int = 2) -> int:
+def get_terminal_width(fallback: int = 80, pad: int = 2) -> int:  # pragma: no cover
     """
     Return current terminal width with an optional "safety buffer", which
     ensures that no unwanted line wrapping will happen.
@@ -500,7 +500,7 @@ def get_terminal_width(fallback: int = 80, pad: int = 2) -> int:
     return fallback
 
 
-def get_preferable_wrap_width(force_width: int = None) -> int:
+def get_preferable_wrap_width(force_width: int = None) -> int:  # pragma: no cover
     """
     Return preferable terminal width for comfort reading of wrapped text (max=120).
 
@@ -512,7 +512,7 @@ def get_preferable_wrap_width(force_width: int = None) -> int:
     return min(120, get_terminal_width())
 
 
-def wait_key(block: bool = True) -> t.AnyStr | None:
+def wait_key(block: bool = True) -> t.AnyStr | None:  # pragma: no cover
     """
     Wait for a key press on the console and return it.
 
@@ -557,7 +557,7 @@ def confirm(
     prompt: str = None,
     quiet: bool = False,
     required: bool = False,
-) -> bool:
+) -> bool:  # pragma: no cover
     """
     Ensure the next action is manually confirmed by user. Print the terminal
     prompt with ``prompt`` text and wait for a keypress. Return *True*
@@ -635,7 +635,7 @@ def confirm(
     return check_required(default)
 
 
-def get_char_width(char: str, block: bool) -> int:
+def get_char_width(char: str, block: bool) -> int:  # pragma: no cover
     """
     General-purpose method for getting width of a character in terminal columns.
 
@@ -655,7 +655,7 @@ def get_char_width(char: str, block: bool) -> int:
     return guess_char_width(char)
 
 
-def measure_char_width(char: str, clear_after: bool = True) -> int:
+def measure_char_width(char: str, clear_after: bool = True) -> int:  # pragma: no cover
     """
     Low-level function that returns the exact character width in terminal columns.
 
@@ -712,7 +712,7 @@ def measure_char_width(char: str, clear_after: bool = True) -> int:
     return pos_x - 1  # 1st coordinate is the start of X-axis
 
 
-def guess_char_width(c: str) -> int:
+def guess_char_width(c: str) -> int:  # pragma: no cover
     """
     Determine how many columns are needed to display a character in a terminal.
 

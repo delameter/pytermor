@@ -13,6 +13,7 @@
 
    .. autosummary::
    
+      render
       substitute
    
    

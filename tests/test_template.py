@@ -10,7 +10,7 @@ import pytest
 from pytermor import (
     LogicError,
     OutputMode,
-    TemplateEngine,
+    TemplateEngine, RendererManager,
 )
 from tests import format_test_params
 
@@ -97,10 +97,14 @@ class TestTemplate:
             ),
             ("@s1:[] :[s1]0 :[]0 ", " 0 0 "),
             (" :[fg=red  ]0:[-] ", " " "\x1b[31m" "0" "\x1b[39m" " "),
+            (
+                ":[fg=red]R:[fg=blue]B:[$]0:[-]0",
+                "\x1b[31m" "R" "\x1b[39m" "\x1b[34m" "B" "\x1b[39m" "\x1b[0m" "00",
+            ),
         ],
         ids=format_test_params,
     )
     @pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
-    def test_substitute(self, tpl: str, exp: str):
+    def test_render(self, tpl: str, exp: str):
         self._tpleng.reset()
-        assert self._tpleng.substitute(tpl).render() == exp
+        assert self._tpleng.render(tpl, RendererManager.get_default()) == exp
