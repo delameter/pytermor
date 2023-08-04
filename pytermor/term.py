@@ -423,17 +423,15 @@ def make_restore_cursor_position() -> SequenceFp:
 # Sequence composites ---------------------------------------------------------
 
 
-def compose_clear_line_fill_bg(basis: SequenceSGR, line: int = None) -> str:
+def compose_clear_line_fill_bg(basis: SequenceSGR, line: int = None, column: int = None) -> str:
     """
 
     :param basis:
     :param line:
+    :param column:
     """
-    if line is not None:
-        result = make_set_cursor(line, 1)
-    else:
-        result = make_set_cursor_column(1)
-    return f"{result}{basis}{make_clear_line()}"
+    result = make_set_cursor((line or 1), (column or 1))
+    return f"{result}{basis}{make_clear_line_after_cursor()}"
 
 
 def compose_hyperlink(url: str, label: str = None) -> str:

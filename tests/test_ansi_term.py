@@ -35,15 +35,22 @@ class TestSequenceCSI:
         assert SequenceCSI(None, IntCode.WHITE) == SequenceCSI(None, 37)
 
     @mark.parametrize(
-        "line, exp_seq",
-        [(None, f"\x1b[1G"), (1, f"\x1b[1;1H"), (10, f"\x1b[10;1H")],
+        "line, column, exp_seq",
+        [
+            (None, None, f"\x1b[1;1H"),
+            (10, None, f"\x1b[10;1H"),
+            (None, 10, f"\x1b[1;10H"),
+            (20, 20, f"\x1b[20;20H"),
+        ],
         ids=format_test_params,
     )
-    def test_compose_clear_line_fill_bg(self, line: int | None, exp_seq: str):
-        s = compose_clear_line_fill_bg(SeqIndex.BG_BLACK, line)
+    def test_compose_clear_line_fill_bg(
+        self, line: int | None, column: int | None, exp_seq: str
+    ):
+        s = compose_clear_line_fill_bg(SeqIndex.BG_BLACK, line, column)
 
         assert exp_seq in s
-        assert f"\x1b[2K" in s
+        assert f"\x1b[0K" in s
         assert SeqIndex.BG_BLACK.assemble() in s
 
 
