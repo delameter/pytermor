@@ -41,8 +41,12 @@ pending
 - |REFACTOR| `TemplateEngine`
 - |TESTS| `template`
 - |FIX| `template` splitter mode
+- |NEW| `TempateEngine` `global_style` argument `TempalteEngine.render()` method
+- |REMOVE| `TemplateRenderer`
+- |TESTS|  99% coverage
+- |FIX| `compose_clear_line_fill_bg` now correctlyl handle requests to fill line from the middle
 
-.. <@pending:21e48f2>
+.. <@pending:7e6b385>
 .. ^ blank line before should be kept
 
 

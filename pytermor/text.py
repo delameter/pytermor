@@ -163,7 +163,7 @@ class Fragment(IRenderable):
     def __repr__(self):
         max_sl = 9
         sample = self._string[:max_sl] + ("‥" * (len(self._string) > max_sl))
-        props_set = [f'({len(self._string)}, "{sample}")', repr(self._style)]
+        props_set = [f'({len(self._string)}, {sample!r})', repr(self._style)]
         flags = []
         if self._close_this:
             flags.append("+CT")

@@ -8,11 +8,13 @@ from __future__ import annotations
 import logging
 import sys
 import time
+import typing as t
+from .common import OVERFLOW_CHAR
 from functools import update_wrapper
-from typing import Any, Callable, TypeVar, cast, overload
+from typing import cast, overload, Optional
 
-
-_F = TypeVar("_F", bound=Callable[..., Any])
+_F = t.TypeVar("_F", bound=t.Callable[..., t.Any])
+_MFT = t.TypeVar("_MFT", bound=t.Callable[[str, t.Any, ...], Optional[t.Iterable[str]]])
 
 TRACE = 5
 _logger = logging.getLogger(__package__)
@@ -48,30 +50,28 @@ def _now_s() -> float:
 
 def _trace_render(origin: _F) -> _F:
     """
-    Decorrator
+    Decorator
     """
 
-    @measure(
-        template_enter_fn=lambda renderer, inp, st: f"╭ {renderer!r} applying {st!r}",
-        template_exit="╰ %s",
-    )
-    def new_func(*args, **kwargs):
-        result = origin(*args, **kwargs)
+    def _format(delta_s: str, out: t.Any, *args, **_) -> t.Iterable[str]:
+        renderer, inp, st = args
+        no_changes = out == inp
+        inp_start = inp[:40] + OVERFLOW_CHAR
+        out_start = out[:40] + OVERFLOW_CHAR
+        if no_changes:
+            yield f"◦ {renderer!r} transit in {delta_s}: {inp_start!r}"
+        else:
+            li = str(len(inp or ""))
+            lo = str(len(out or ""))
+            maxl = max(len(li), len(lo))
+            yield f"╭ {renderer!r} applying {st!r}"
+            yield f"│ IN  ({li:>{maxl}s}): {inp_start!r}"
+            yield f"│ OUT ({lo:>{maxl}s}): {out_start!r}"
+            yield f"╰ {delta_s}"
 
-        inp = args[1]
-        no_changes = result == inp
-        li = str(len(inp or ""))
-        lo = str(len(result or ""))
-        maxl = max(len(li), len(lo))
-        try:
-            if no_changes:
-                _logger.log(level=TRACE, msg=f"│ I=O ({li:>{maxl}s}): {inp!r}")
-            else:
-                _logger.log(level=TRACE, msg=f"│ IN  ({li:>{maxl}s}): {inp!r}")
-                _logger.log(level=TRACE, msg=f"│ OUT ({lo:>{maxl}s}): {result!r}")
-        except Exception as e:  # pragma: no cover
-            _logger.exception(e)
-        return result
+    @measure(formatter=_format)
+    def new_func(*args, **kwargs):
+        return origin(*args, **kwargs)
 
     return update_wrapper(cast(_F, new_func), origin)
 
@@ -100,38 +100,38 @@ def measure(__origin: _F) -> _F:
 @overload
 def measure(
     *,
-    template_enter_fn: Callable[..., str] = None,
-    template_exit="Done in %s",
+    formatter: _MFT = None,
     level=TRACE,
-) -> Callable[[_F], _F]:
+) -> t.Callable[[_F], _F]:
     ...
 
 
 def measure(
-    __origin: Callable[..., Any] = None,
+    __origin: _F = None,
     *,
-    template_enter_fn: Callable[..., str] = None,
-    template_exit="Done in %s",
+    formatter: _MFT = None,
     level=TRACE,
-):
+) -> _F | t.Callable[[_F], _F]:
     """
     Decorrator
     """
 
-    def decorator(origin: Callable[..., Any]):
-        def wrapper(*args, **kwargs):
-            try:
-                if template_enter_fn:
-                    _logger.log(level=level, msg=template_enter_fn(*args, **kwargs))
-            except Exception as e:  # pragma: no cover
-                _logger.exception(e)
+    def _default_formatter(delta_s: str, *_, **__) -> t.Iterable[str]:
+        yield f"Done in {delta_s}"
 
+    def decorator(origin: t.Callable[..., t.Any]):
+        def wrapper(*args, **kwargs):
             before_s = _now_s()
             result = origin(*args, **kwargs)
             delta_s = _now_s() - before_s
 
             try:
-                _logger.log(level=level, msg=template_exit % _format_sec(delta_s))
+                fmt_fn: _MFT = formatter or _default_formatter
+                if msg := fmt_fn(_format_sec(delta_s), result, *args, **kwargs):
+                    if isinstance(msg, str):
+                        _logger.log(level=level, msg=msg)
+                    elif isinstance(msg, t.Iterable):
+                        [_logger.log(level=level, msg=m) for m in msg]
             except Exception as e:  # pragma: no cover
                 _logger.exception(e)
             return result

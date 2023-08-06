@@ -23,7 +23,7 @@ from math import ceil, floor
 from typing import Union
 
 from .ansi import ESCAPE_SEQ_REGEX
-from .common import Align, FT, chunk
+from .common import Align, FT, chunk, OVERFLOW_CHAR
 from .exception import ArgTypeError, LogicError
 from .log import get_logger
 from .term import get_terminal_width
@@ -47,7 +47,12 @@ def padv(n: int) -> str:
     return "\n" * n
 
 
-def cut(s: str, max_len: int, align: Align | str = Align.LEFT, overflow="…") -> str:
+def cut(
+    s: str,
+    max_len: int,
+    align: Align | str = Align.LEFT,
+    overflow=OVERFLOW_CHAR,
+) -> str:
     """
     cut
 
@@ -61,27 +66,42 @@ def cut(s: str, max_len: int, align: Align | str = Align.LEFT, overflow="…") -
     return fit(s, max_len, align, overflow)
 
 
-def fit(s: str, max_len: int, align: Align | str = Align.LEFT, overflow="…", fillchar=" ") -> str:
+def fit(
+    s: str,
+    max_len: int,
+    align: Align | str = Align.LEFT,
+    overflow: str = OVERFLOW_CHAR,
+    fill: str = " ",
+) -> str:
     """
     fit
     :param s:
     :param max_len:
     :param align:
     :param overflow:
+    :param fill:
     """
     align = Align.resolve(align)
+    if max_len == 0:
+        return ''
+    if len(fill) == 0:
+        raise ValueError("fillchar cannot be an empty string")
 
     max_len = max(0, max_len)
     if max_len <= (ov_len := len(overflow)):
-        return overflow[:max_len]
-    if len(s) <= max_len:
-        fill = (max_len - len(s)) * fillchar[0]
+       # return overflow[:max_len]
+        return fit("", max_len, align, overflow="", fill=overflow)
+
+    if (fill_len := max_len - len(s)) >= 0:
+        fill_pnum = ceil(fill_len / len(fill))
+        fill_full = fit(fill * fill_pnum, fill_len, align, overflow="")
+
         if align == Align.LEFT:
-            return s + fill
+            return s + fill_full
         if align == Align.RIGHT:
-            return fill + s
-        fillmid = len(fill)//2
-        return fill[:fillmid] + s + fill[fillmid:]
+            return fill_full + s
+        fillmid = len(fill_full) // 2
+        return fill_full[:fillmid] + s + fill_full[fillmid:]
 
     if align == Align.LEFT:
         return s[: max_len - ov_len] + overflow
@@ -552,7 +572,7 @@ class OmniMapper(IFilter[IT, IT]):
         }
 
     def _make_premap(
-            self, inp_type: t.Type[IT], override: MPT | None
+        self, inp_type: t.Type[IT], override: MPT | None
     ) -> t.Dict[int, IT]:
         default_map = dict()
         default_replacer = None
@@ -712,7 +732,9 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
         footer = self._format_line_separator(
             "-", label_right="(" + self._format_address(self._state.inp_size) + ")"
         )
-        header = self._format_line_separator("_", cut(extra.label if extra else "", len(footer)))
+        header = self._format_line_separator(
+            "_", cut(extra.label if extra else "", len(footer))
+        )
 
         result = header + "\n"
         result += "\n".join(self._render_rows())
@@ -744,7 +766,9 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
         if self._state.cols_max_len is None:
             self._state.cols_max_len = [0] * len(row)
         for col_idx, col_val in enumerate(row):
-            self._state.cols_max_len[col_idx] = max(0, self._state.cols_max_len[col_idx], len(col_val))
+            self._state.cols_max_len[col_idx] = max(
+                0, self._state.cols_max_len[col_idx], len(col_val)
+            )
         self._state.rows.append(row)
 
     def _get_output_line_len(self) -> int:
@@ -789,7 +813,7 @@ class BytesTracer(AbstractTracer[bytes]):
 
     def _make_row(self, part: IT) -> t.List[str]:
         if not isinstance(part, bytes):  # pragma: no cover
-            raise ArgTypeError(part, 'inp', bytes)
+            raise ArgTypeError(part, "inp", bytes)
         return [
             " ",
             self._format_address(),
@@ -1038,7 +1062,7 @@ class StringTracer(AbstractStringTracer):
 
         :param inp:
         """
-        l_off = len(str(len(inp)+addr_shift))
+        l_off = len(str(len(inp) + addr_shift))
         l_t = self._max_output_width
         c_umax = get_max_utf8_bytes_char_length(inp)
         result = floor((l_t - l_off - 5) / (2 * c_umax + 2))
@@ -1096,7 +1120,7 @@ class StringUcpTracer(AbstractStringTracer):
         :param inp:
         :type inp:
         """
-        l_off = len(str(len(inp)+addr_shift))
+        l_off = len(str(len(inp) + addr_shift))
         l_t = self._max_output_width
         c_ucmax = get_max_ucs_chars_cp_length(inp)
         result = floor((l_t - l_off - 7) / (c_ucmax + 2))
@@ -1105,7 +1129,7 @@ class StringUcpTracer(AbstractStringTracer):
 
 @dataclass(frozen=True)
 class TracerExtra:
-    label: str = ''
+    label: str = ""
     addr_shift: int = 0
 
 
@@ -1143,9 +1167,9 @@ def _get_tracer(tracer_cls: t.Type[AbstractTracer], max_width: int) -> AbstractT
 # @TODO  - special handling of one-line input
 #        - squash repeating lines
 def dump(
-        data: t.Any,
-        tracer_cls: t.Type[AbstractTracer] = None,
-        extra: TracerExtra = None,
+    data: t.Any,
+    tracer_cls: t.Type[AbstractTracer] = None,
+    extra: TracerExtra = None,
 ) -> str:
     """
     .

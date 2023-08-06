@@ -269,8 +269,7 @@ class TemplateEngine:
         return text_render(self.substitute(tpl), renderer=renderer)
 
     @measure(
-        template_enter_fn=lambda _, tpl: f"Substituting the template ({len(tpl)} chars)",
-        template_exit="Substituted in %s",
+        formatter=lambda s, r, _, tpl: f"Substituted in {s} ({len(tpl)} chars)",
     )
     def substitute(self, tpl: str) -> Text:
         tpl_parts = self._split(tpl)

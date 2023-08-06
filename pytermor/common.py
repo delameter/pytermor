@@ -50,6 +50,9 @@ implementations.
 """
 
 
+OVERFLOW_CHAR = "‥"
+
+
 class ExtendedEnum(enum.Enum):
     """
     Standard `Enum` with a few additional methods on top.
