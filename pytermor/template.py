@@ -13,14 +13,12 @@ from collections import deque
 from dataclasses import dataclass
 from typing import Union
 
-from .text import render as text_render
-from .renderer import IRenderer
-from .common import get_qname
-from .color import resolve_color, DEFAULT_COLOR
-from .exception import LogicError
-from .filter import fit
 from .ansi import SequenceCSI, SeqIndex
+from .color import resolve_color, DEFAULT_COLOR
+from .common import fit, get_qname
+from .exception import LogicError
 from .log import _logger, measure
+from .renderer import IRenderer
 from .style import MergeMode, NOOP_STYLE, Style, merge_styles
 from .term import (
     make_clear_display,
@@ -32,7 +30,7 @@ from .term import (
     make_reset_cursor,
 )
 from .text import Fragment, Text, apply_style_words_selective, apply_style_selective
-
+from .text import render as text_render
 
 _T = t.TypeVar("_T")
 

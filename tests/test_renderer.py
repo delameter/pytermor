@@ -245,6 +245,9 @@ class TestSgrRenderer:
     def test_mode_forced_value_utilized(self):
         assert SgrRenderer()._output_mode == OutputMode.XTERM_16
 
+    def test_mode_as_string_supported(self):
+        assert SgrRenderer("xterm_16")._output_mode == OutputMode.XTERM_16
+
     def test_different_setup_has_differing_hashes(self):
         renderer1 = pt.SgrRenderer(pt.OutputMode.NO_ANSI)
         renderer2 = pt.SgrRenderer(pt.OutputMode.TRUE_COLOR)

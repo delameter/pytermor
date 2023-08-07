@@ -16,12 +16,12 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from math import floor, isclose, log, log10, trunc
 
-from .common import Align, RT
+from .common import Align, RT, fit
 from .cval import cv
 from .exception import ConflictError
 from .log import get_logger, measure
 from .style import Style, Styles, merge_styles
-from .text import Fragment, IRenderable, Text
+from .text import Fragment, IRenderable, Text, FrozenText
 
 _OVERFLOW_CHAR = "!"
 
@@ -252,6 +252,18 @@ class NumFormatter(SupportsFallback, metaclass=ABCMeta):
             return auto_color
         return self._auto_color
 
+    def _pad_result(self, max_len: int, pad_attr: bool | Align, result: RT) -> RT:
+        if pad_attr in [None, False]:
+            return result
+
+        align = Align.RIGHT
+        if isinstance(pad_attr, Align):
+            align = pad_attr
+
+        if isinstance(result, str):
+            return fit(result, max_len, align=align)
+        return FrozenText(*result.as_fragments(), width=max_len, align=align)
+
 
 class StaticFormatter(NumFormatter):
     """
@@ -281,7 +293,7 @@ class StaticFormatter(NumFormatter):
         unit: str = None,
         unit_separator: str = None,
         mcoef: float = None,
-        pad: bool = None,
+        pad: bool | Align = None,
         legacy_rounding: bool = None,
         prefixes: t.List[str | None] = None,
         prefix_refpoint_shift: int = None,
@@ -366,11 +378,11 @@ class StaticFormatter(NumFormatter):
 
                 V_{out} = 17345989*1000^{(-6/3)} = 17345989*10^{-6} = 17.346 .
 
-        :param bool pad:
-            [default: *False*]
+        :param bool|Align pad:
+            [default: *False*] @TODO
 
         :param bool legacy_rounding:
-            [default: *False*]
+            [default: *False*] @TODO
 
         :param list[str|None] prefixes:
             [default: :any:`PREFIXES_SI_DEC`] Prefix list from min power to max.
@@ -405,7 +417,7 @@ class StaticFormatter(NumFormatter):
         self._unit: str = unit
         self._unit_separator: str = unit_separator
         self._mcoef: float = mcoef
-        self._pad: bool = pad
+        self._pad: bool | Align = pad
         self._legacy_rounding: bool = legacy_rounding
         self._prefixes: t.List[str | None] = prefixes
         self._prefix_refpoint_shift: int = prefix_refpoint_shift
@@ -517,17 +529,11 @@ class StaticFormatter(NumFormatter):
             errmsg = (
                 "Inconsistent result -- max val length %d exceeded (%d): '%s' <- %f"
                 % (self._max_value_len, len(val_str), val_str, origin_val)
-                )
+            )
             assert len(val_str) <= self._max_value_len, errmsg
 
         result = self._colorize(auto_color, val_str, sep, prefix, unit_eff)
-        if self._pad:
-            max_len = self.get_max_len(unit)
-            pad_len = max(0, max_len - len(result))
-            result = (" " * pad_len) + result
-            if isinstance(result, IRenderable):
-                result.set_width(max_len)
-        return result
+        return self._pad_result(self.get_max_len(unit), self._pad, result)
 
     def _get_unit_effective(self, unit: str) -> str:
         if unit is not None:
@@ -711,7 +717,7 @@ class DualFormatter(NumFormatter):
         allow_negative: bool = None,
         allow_fractional: bool = None,
         unit_separator: str = None,
-        pad: bool = None,
+        pad: bool | Align = None,
         plural_suffix: str = None,
         overflow_msg: str = None,
         highlighter: t.Type[Highlighter] = None,
@@ -767,13 +773,7 @@ class DualFormatter(NumFormatter):
             if self._get_color_effective(auto_color):
                 result = Text(result, Styles.ERROR_LABEL)
 
-        if self._pad:
-            pad_len = max(0, self._max_len - len(result))
-            result = (" " * pad_len) + result
-            if isinstance(result, IRenderable):
-                result.set_width(self._max_len)
-
-        return result
+        return self._pad_result(self.max_len, self._pad, result)
 
     # @TODO naming?
     def format_base(self, val_sec: float, auto_color: bool = None) -> RT | None:
@@ -1278,7 +1278,7 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
     if "." in result and len(result) > req_len_eff > result.index("."):
         result = result[:req_len_eff]
     return sign + result.rstrip(".").rjust(req_len_eff)
-    #return sign + result.removesuffix(".").rjust(req_len_eff)
+    # return sign + result.removesuffix(".").rjust(req_len_eff)
     # +-----------------------------------------------------------------------------------
     # return f"{sign}{abs_value:{req_len}{dot_str}f}"
 

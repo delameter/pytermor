@@ -22,7 +22,9 @@ from pytermor.renderer import NoOpRenderer
 
 
 def percentile(
-    N: t.Sequence[float], percent: float, key: t.Callable[[float], float] = lambda x: x
+    N: t.Sequence[float],
+    percent: float,
+    key: t.Callable[[float], float] = lambda x: x,
 ) -> float:
     """
     Find the percentile of a list of values.
@@ -56,15 +58,14 @@ def median(N: t.Sequence[float], key: t.Callable[[float], float] = lambda x: x) 
     return percentile(N, percent=0.5, key=key)
 
 
-
 class Main:
     def __init__(self):
         RenderBemchmarker().run()
 
 
 class RenderBemchmarker:
-    NUM = 1600
-    STEPS = 16
+    NUM = 1900
+    STEPS = 19*4
     STEPN = NUM // STEPS
     PREVIEW = 64
 
@@ -87,7 +88,7 @@ class RenderBemchmarker:
             st = pt.Style(self.st, fg=f"color{i}")
             src3 += Fragment(f"{i:03d}" * 10, st)
         self.sources = [
-            (src1, [pt.Text, pt.FrozenText, pt.Fragment, str]),
+            (src1, [pt.Text, pt.FrozenText, pt.Composite, pt.Fragment, str]),
             (src2, [pt.Text, str]),
             (src3, [pt.Text, str]),
         ]
@@ -102,7 +103,7 @@ class RenderBemchmarker:
 
     def echo_meters(self, avg: bool = True, add_st: pytermor.common.FT = NOOP_STYLE):
         self._echo_meters(
-            "Outer",
+            "Outer total ",
             RenderBemchmarker.outer_times_sum,
             RenderBemchmarker.outer_times,
             avg,
@@ -110,9 +111,9 @@ class RenderBemchmarker:
         )
         if not avg:
             return
-        pt.echoi("|  ")
+        pt.echoi("  |  ")
         self._echo_meters(
-            "Inner",
+            "Inner total ",
             RenderBemchmarker.inner_times_sum,
             RenderBemchmarker.inner_times,
             avg,
@@ -138,14 +139,14 @@ class RenderBemchmarker:
             exact_time_p50 = percentile(times, 0.50)
             exact_time_p99 = percentile(times, 0.99)
 
-        self._echo_meter("p501 ", add_st, exact_time_p50, 0)
-        self._echo_meter("p991 ", add_st, exact_time_p99, 0)
+        self._echo_meter("  p50 ", add_st, exact_time_p50, 0)
+        self._echo_meter("  p99 ", add_st, exact_time_p99, 0)
 
     def _echo_meter(self, label: str, add_st: pytermor.common.FT, val: float, pad: int):
         fmted = self.fmter.format(val, auto_color=not add_st)
         if not val:
-            fmted = "--".center(self.fmter.get_max_len())
-        pt.echoi(label + fmted + pt.pad(pad), fmt=add_st)
+            fmted = "--".center(7)
+        pt.echoi(label + pt.rjust_sgr(pt.render(fmted), 7) + pt.pad(pad), fmt=add_st)
 
     @staticmethod
     def _render_wrapper(origin: t.Callable):
@@ -165,7 +166,10 @@ class RenderBemchmarker:
         if isinstance(src, str):
             if dst is str:
                 return src
-            sample_ = dst(src, self.st)
+            if dst is pt.Composite:
+                sample_ = dst(pt.Fragment(src, self.st))
+            else:
+                sample_ = dst(src, self.st)
         else:
             if dst is str:
                 return pt.render(src, renderer=NoOpRenderer())
@@ -177,11 +181,11 @@ class RenderBemchmarker:
     def run(self):
         for idx, (sample_src, classes) in enumerate(reversed(self.sources)):
             pt.echo(
-                pt.Text(
-                    f"Sample #{idx+1}/{len(self.sources)}",
-                    width=pytermor.term.get_terminal_width(),
+                pt.fit(
+                    f"Sample-#{idx+1}/{len(self.sources)}",
+                    max_len=pytermor.term.get_terminal_width(),
                     align="center",
-                    fill='-'
+                    fill="-",
                 )
             )
 
@@ -220,19 +224,19 @@ class RenderBemchmarker:
                             or (end - self.prev_frame_ts) > 0.4 * 1e9
                         ):
                             add_st = NOOP_STYLE
-                            q = pt.Fragment(pytermor.log.get_qname(class_), pt.Style(ColorTarget.BG))
+                            q = pt.Fragment(pytermor.get_qname(class_), pt.Style(bold=True))
                             if class_ is str:
                                 add_st = "gray50"
-                                q = pt.Fragment("[CONTROL] ", add_st) + q
+                                q += pt.Fragment(" control", add_st)
                             pt.echoi(pytermor.term.make_set_cursor_column(1).assemble())
                             pt.echoi(pytermor.term.make_clear_line().assemble())
-                            q.set_width(14)
+                            q.set_width(15)
                             pt.echoi(q)
                             pt.echoi(pt.Text(f" ({om.value.upper()})", width=15))
                             pt.echoi("|  ")
                             self.echo_meters(avg=(n == self.NUM), add_st=add_st)
                             if n != self.NUM:
-                                pt.echoi(f'[{"*" * (n // self.STEPN):<{self.STEPS}s}]  ')
+                                pt.echoi(pt.pad(2)+'['+pt.fit("#" * (n // self.STEPN), self.STEPS, fill='_')+']')
                             self.prev_frame_ts = end
                     pt.echo()
                 print()
@@ -243,4 +247,4 @@ if __name__ == "__main__":
         Main()
     except Exception as e:
         pt.echo(f"[ERROR] {type(e).__qualname__}: {e}\n", fmt=pt.Styles.ERROR)
-        # raise e
+        raise e

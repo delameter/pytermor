@@ -25,6 +25,8 @@
       but
       char_range
       chunk
+      cut
+      fit
       flatten
       flatten1
       get_qname
@@ -33,6 +35,8 @@
       only
       others
       ours
+      pad
+      padv
    
    
 

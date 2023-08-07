@@ -128,6 +128,13 @@ class IRenderer(metaclass=ABCMeta):
         ``string`` and return the result. Output format depends on renderer's
         class, which defines the implementation.
 
+        .. important ::
+
+            Renderer's method `IRenderer.render()` can work only with primitive *str*
+            instances. `IRenderable` instances like `Fragment` or `Text` should be
+            rendered using module-level function `render()` or their own instance
+            method `IRenderable.render()`.
+
         :param string: String to format.
         :param fmt:    Style or color to apply. If ``fmt`` is a ``IColor`` instance,
                        it is assumed to be a foreground color. See `FT`.
@@ -282,7 +289,7 @@ class SgrRenderer(IRenderer):
         "framed": SeqIndex.FRAMED,
     }
 
-    def __init__(self, output_mode: OutputMode = OutputMode.AUTO, io: t.IO = sys.stdout):
+    def __init__(self, output_mode: str|OutputMode = OutputMode.AUTO, io: t.IO = sys.stdout):
         self._output_mode: OutputMode = self._determine_output_mode(output_mode, io)
         self._color_upper_bound: t.Type[IColor] | None = self._COLOR_UPPER_BOUNDS.get(
             self._output_mode, None
@@ -332,6 +339,10 @@ class SgrRenderer(IRenderer):
     def _determine_output_mode(self, arg_value: OutputMode, io: t.IO) -> OutputMode:
         logger = get_logger()
         ioname = "<" + getattr(io, "name", "?").strip("<>") + ">"
+
+        if not isinstance(arg_value, OutputMode):
+            arg_value = OutputMode.resolve_by_value(arg_value)
+
         if arg_value is not OutputMode.AUTO:
             logger.debug(f"Using explicit value from the constructor arg: {arg_value}")
             return arg_value

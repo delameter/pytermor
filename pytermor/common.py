@@ -10,6 +10,7 @@ import itertools
 import typing as t
 from collections.abc import Iterable
 from functools import lru_cache
+from math import ceil
 
 _T = t.TypeVar("_T")
 
@@ -48,9 +49,6 @@ RT = t.TypeVar("RT", str, "IRenderable")
 :abbr:`RT (Renderable type)` includes regular *str*\\ s as well as `IRenderable` 
 implementations.
 """
-
-
-OVERFLOW_CHAR = "‥"
 
 
 class ExtendedEnum(enum.Enum):
@@ -95,6 +93,12 @@ class ExtendedEnum(enum.Enum):
         raise LookupError(msg)
 
 
+# -----------------------------------------------------------------------------
+# strings
+
+OVERFLOW_CHAR = "‥"
+
+
 class Align(str, ExtendedEnum):
     """
     Align type.
@@ -118,6 +122,111 @@ class Align(str, ExtendedEnum):
         except KeyError as e:  # pragma: no cover
             raise KeyError(f"Invalid align name: {input}") from e
 
+
+def pad(n: int) -> str:
+    """
+    Convenient method to use instead of ``\"\".ljust(n)``.
+    """
+    return " " * n
+
+
+def padv(n: int) -> str:
+    """
+    Convenient method to use instead of ``"\\n\" * n``.
+    """
+    return "\n" * n
+
+
+def cut(
+        s: str,
+        max_len: int,
+        align: Align | str = Align.LEFT,
+        overflow=OVERFLOW_CHAR,
+) -> str:
+    """
+    cut
+
+    :param s:
+    :param max_len:
+    :param align:
+    :param overflow:
+    """
+    if len(s) <= max_len:
+        return s
+    return fit(s, max_len, align, overflow)
+
+
+def fit(
+        s: str,
+        max_len: int,
+        align: Align | str = Align.LEFT,
+        overflow: str = OVERFLOW_CHAR,
+        fill: str = " ",
+) -> str:
+    """
+    fit
+    :param s:
+    :param max_len:
+    :param align:
+    :param overflow:
+    :param fill:
+    """
+    align = Align.resolve(align)
+    if max_len == 0:
+        return ''
+    if len(fill) == 0:  # pragma: no cover
+        raise ValueError("Fill cannot be an empty string")
+
+    max_len = max(0, max_len)
+    if max_len <= (ov_len := len(overflow)):
+        return fit("", max_len, align, overflow="", fill=overflow)
+
+    if (fill_len := max_len - len(s)) >= 0:
+        fill_pnum = ceil(fill_len / len(fill))
+        fill_full = fit(fill * fill_pnum, fill_len, align, overflow="")
+
+        if align == Align.LEFT:
+            return s + fill_full
+        if align == Align.RIGHT:
+            return fill_full + s
+        fillmid = len(fill_full) // 2
+        return fill_full[:fillmid] + s + fill_full[fillmid:]
+
+    if align == Align.LEFT:
+        return s[: max_len - ov_len] + overflow
+    if align == Align.RIGHT:
+        return overflow + s[-max_len + ov_len :]
+    else:
+        s_chars = max_len - ov_len
+        left_part = s_chars // 2
+        right_part = s_chars - left_part
+        return s[:left_part] + overflow + s[-right_part:]
+
+
+# -----------------------------------------------------------------------------
+# types
+
+def get_qname(obj) -> str:
+    """
+    Convenient method for getting a class name for class instances
+    as well as for the classes themselves, in case where a variable can
+    be both.
+
+    >>> get_qname("aaa")
+    'str'
+    >>> get_qname(ExtendedEnum)
+    '<ExtendedEnum>'
+
+    """
+    if obj is None:
+        return "None"
+    if isinstance(obj, t.TypeVar) or hasattr(obj, "_typevar_types"):
+        return f"<{obj!s}>"
+    if isinstance(obj, type):
+        return f"<{obj.__name__}>"
+    if isinstance(obj, object):
+        return obj.__class__.__qualname__
+    return str(obj)  # pragma: no cover
 
 def only(cls: t.Type, inp: Iterable[_T]) -> t.List[_T]:
     return [*(a for a in inp if isinstance(a, cls))]
@@ -152,6 +261,24 @@ def chunk(items: Iterable[_T], size: int) -> t.Iterator[t.Tuple[_T, ...]]:
     arr_range = iter(items)
     return iter(lambda: tuple(itertools.islice(arr_range, size)), ())
 
+
+def get_subclasses(cls: _TT) -> Iterable[_TT]:
+    visited: t.Set[_TT] = set()
+
+    def fn(cls: _TT):
+        if cls in visited:  # pragma: no cover
+            return
+        visited.add(cls)
+
+        for subcls in cls.__subclasses__():
+            fn(subcls)
+
+    fn(cls)
+    return visited
+
+
+# -----------------------------------------------------------------------------
+# iterables
 
 def isiterable(arg) -> bool:  # pragma: no cover
     return isinstance(arg, Iterable) and not isinstance(arg, (str, bytes))
@@ -216,40 +343,3 @@ def char_range(c1, c2):
     else:
         irange = range(i1, i2)
     yield from map(chr, irange)
-
-
-def get_qname(obj) -> str:
-    """
-    Convenient method for getting a class name for class instances
-    as well as for the classes themselves.
-
-    >>> get_qname("aaa")
-    'str'
-    >>> get_qname(ExtendedEnum)
-    '<ExtendedEnum>'
-
-    """
-    if obj is None:
-        return "None"
-    if isinstance(obj, t.TypeVar) or hasattr(obj, "_typevar_types"):
-        return f"<{obj!s}>"
-    if isinstance(obj, type):
-        return f"<{obj.__name__}>"
-    if isinstance(obj, object):
-        return obj.__class__.__qualname__
-    return str(obj)  # pragma: no cover
-
-
-def get_subclasses(cls: _TT) -> Iterable[_TT]:
-    visited: t.Set[_TT] = set()
-
-    def fn(cls: _TT):
-        if cls in visited:  # pragma: no cover
-            return
-        visited.add(cls)
-
-        for subcls in cls.__subclasses__():
-            fn(subcls)
-
-    fn(cls)
-    return visited

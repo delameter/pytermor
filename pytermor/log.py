@@ -9,9 +9,10 @@ import logging
 import sys
 import time
 import typing as t
-from .common import OVERFLOW_CHAR
 from functools import update_wrapper
 from typing import cast, overload, Optional
+
+from .common import get_qname, cut
 
 _F = t.TypeVar("_F", bound=t.Callable[..., t.Any])
 _MFT = t.TypeVar("_MFT", bound=t.Callable[[str, t.Any, ...], Optional[t.Iterable[str]]])
@@ -30,50 +31,6 @@ _logger.addHandler(logging.NullHandler())  # discards logs by default
 #   logger.addHandler(handler)
 #   logger.setLevel(logging.DEBUG)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - >8-
-
-
-def _format_sec(val: float) -> str:  # pragma: no cover
-    if val >= 2:
-        return f"{val:.1f}s"
-    if val >= 2e-3:
-        return f"{val*1e3:.0f}ms"
-    if val >= 2e-6:
-        return f"{val*1e6:.0f}µs"
-    if val >= 1e-9:
-        return f"{val*1e9:.0f}ns"
-    return "<1ns"
-
-
-def _now_s() -> float:
-    return time.time_ns() / 1e9
-
-
-def _trace_render(origin: _F) -> _F:
-    """
-    Decorator
-    """
-
-    def _format(delta_s: str, out: t.Any, *args, **_) -> t.Iterable[str]:
-        renderer, inp, st = args
-        no_changes = out == inp
-        inp_start = inp[:40] + OVERFLOW_CHAR
-        out_start = out[:40] + OVERFLOW_CHAR
-        if no_changes:
-            yield f"◦ {renderer!r} transit in {delta_s}: {inp_start!r}"
-        else:
-            li = str(len(inp or ""))
-            lo = str(len(out or ""))
-            maxl = max(len(li), len(lo))
-            yield f"╭ {renderer!r} applying {st!r}"
-            yield f"│ IN  ({li:>{maxl}s}): {inp_start!r}"
-            yield f"│ OUT ({lo:>{maxl}s}): {out_start!r}"
-            yield f"╰ {delta_s}"
-
-    @measure(formatter=_format)
-    def new_func(*args, **kwargs):
-        return origin(*args, **kwargs)
-
-    return update_wrapper(cast(_F, new_func), origin)
 
 
 def get_logger() -> logging.Logger:
@@ -96,21 +53,19 @@ def init_logger():  # pragma: no cover
 def measure(__origin: _F) -> _F:
     ...
 
-
 @overload
 def measure(
-    *,
-    formatter: _MFT = None,
-    level=TRACE,
+        *,
+        formatter: _MFT = None,
+        level=TRACE,
 ) -> t.Callable[[_F], _F]:
     ...
 
-
 def measure(
-    __origin: _F = None,
-    *,
-    formatter: _MFT = None,
-    level=TRACE,
+        __origin: _F = None,
+        *,
+        formatter: _MFT = None,
+        level=TRACE,
 ) -> _F | t.Callable[[_F], _F]:
     """
     Decorrator
@@ -128,10 +83,7 @@ def measure(
             try:
                 fmt_fn: _MFT = formatter or _default_formatter
                 if msg := fmt_fn(_format_sec(delta_s), result, *args, **kwargs):
-                    if isinstance(msg, str):
-                        _logger.log(level=level, msg=msg)
-                    elif isinstance(msg, t.Iterable):
-                        [_logger.log(level=level, msg=m) for m in msg]
+                    [_logger.log(level=level, msg=m) for m in msg]
             except Exception as e:  # pragma: no cover
                 _logger.exception(e)
             return result
@@ -142,3 +94,42 @@ def measure(
         return decorator(__origin)
     else:
         return decorator
+
+
+def _now_s() -> float:
+    return time.time_ns() / 1e9
+
+
+def _trace_render(origin: _F) -> _F:
+    def measure_format_in_out(delta_s: str, out: t.Any, *args, **_) -> t.Iterable[str]:
+        actor, inp, extra = args
+        no_changes = out == inp
+        inp_start = cut(inp, 40)
+        out_start = cut(out, 40)
+        if no_changes:
+            yield f"○ {get_qname(actor)} noop in {delta_s} ({len(inp)}): {inp_start!r}"
+        else:
+            inplen, outlen = (str(len(s or "")) for s in [inp, out])
+            maxlen = max(len(inplen), len(outlen))
+            yield f"╭ {actor!r} applying {extra!r}"
+            yield f"│ IN  ({inplen:>{maxlen}s}): {inp_start!r}"
+            yield f"│ OUT ({outlen:>{maxlen}s}): {out_start!r}"
+            yield f"╰ {delta_s}"
+
+    @measure(formatter=measure_format_in_out)
+    def new_func(*args, **kwargs):
+        return origin(*args, **kwargs)
+
+    return update_wrapper(cast(_F, new_func), origin)
+
+
+def _format_sec(val: float) -> str:  # pragma: no cover
+    if val >= 2:
+        return f"{val:.1f}s"
+    if val >= 2e-3:
+        return f"{val*1e3:.0f}ms"
+    if val >= 2e-6:
+        return f"{val*1e6:.0f}µs"
+    if val >= 1e-9:
+        return f"{val*1e9:.0f}ns"
+    return "<1ns"

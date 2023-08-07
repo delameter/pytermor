@@ -48,167 +48,6 @@ class TestStdlibExtensions:
         assert actual == expected
 
 
-class TestCutAndFit:
-    @mark.parametrize(
-        "input, max_len, align, overflow, fillchar, expected_fit",
-        [
-            ("1234567890", 12, None, "‥", " ", "1234567890  "),
-            ("1234567890", 10, None, "‥", " ", "1234567890"),
-            ("1234567890", 9, None, "‥", " ", "12345678‥"),
-            ("1234567890", 5, None, "‥", " ", "1234‥"),
-            ("1234567890", 2, None, "‥", " ", "1‥"),
-            ("1234567890", 1, None, "‥", " ", "‥"),
-            ("1234567890", 0, None, "‥", " ", ""),
-            ("1234567890", 12, Align.CENTER, "‥", " ", " 1234567890 "),
-            ("1234567890", 10, Align.CENTER, "‥", " ", "1234567890"),
-            ("1234567890", 9, Align.CENTER, "‥", " ", "1234‥7890"),
-            ("1234567890", 5, Align.CENTER, "‥", " ", "12‥90"),
-            ("1234567890", 2, Align.CENTER, "‥", " ", "‥0"),
-            ("1234567890", 1, Align.CENTER, "‥", " ", "‥"),
-            ("1234567890", 0, Align.CENTER, "‥", " ", ""),
-            ("1234567890", 12, Align.RIGHT, "‥", " ", "  1234567890"),
-            ("1234567890", 10, Align.RIGHT, "‥", " ", "1234567890"),
-            ("1234567890", 9, Align.RIGHT, "‥", " ", "‥34567890"),
-            ("1234567890", 5, Align.RIGHT, "‥", " ", "‥7890"),
-            ("1234567890", 2, Align.RIGHT, "‥", " ", "‥0"),
-            ("1234567890", 1, Align.RIGHT, "‥", " ", "‥"),
-            ("1234567890", 0, Align.RIGHT, "‥", " ", ""),
-            ("1234567890", 0, Align.LEFT, "...", " ", ""),
-            ("1234567890", 1, Align.LEFT, "..?", " ", "."),
-            ("1234567890", 2, Align.LEFT, "..?", " ", ".."),
-            ("1234567890", 3, Align.LEFT, "..?", " ", "..?"),     # overflow can also be a multi-character string
-            ("1234567890", 4, Align.LEFT, "..?", " ", "1..?"),
-            ("1234567890", 5, Align.LEFT, "..?", " ", "12..?"),
-            ("1234567890", 9, Align.LEFT, "..?", " ", "123456..?"),
-            ("1234567890", 10, Align.LEFT, "..?", " ", "1234567890"),
-            ("1234567890", 12, Align.LEFT, "..?", " ", "1234567890  "),
-            ("1234567890", 12, Align.LEFT, "..?", "*", "1234567890**"),
-            ("1234567890", 12, Align.LEFT, "..?", "][", "1234567890]["),
-            ("1234567890", 12, Align.LEFT, "", "-", "1234567890--"),      # as well as an empty string
-            ("1234567890", 8, Align.LEFT, "", "-", "12345678"),           #
-            ("1234567890", 0, Align.CENTER, "...", " ", ""),
-            ("1234567890", 1, Align.CENTER, "..?", " ", "?"),
-            ("1234567890", 2, Align.CENTER, "..?", " ", ".?"),
-            ("1234567890", 3, Align.CENTER, "..?", " ", "..?"),
-            ("1234567890", 4, Align.CENTER, "..?", " ", "..?0"),
-            ("1234567890", 5, Align.CENTER, "..?", " ", "1..?0"),
-            ("1234567890", 9, Align.CENTER, "..?", " ", "123..?890"),
-            ("1234567890", 10, Align.CENTER, "", " ", "1234567890"),
-            ("1234567890", 16, Align.CENTER, "", "- ", "- -1234567890 - "),    # and multichar fill is supported; note
-            ("1234567890", 16, Align.CENTER, "", r"\/", r"\/\1234567890/\/"),  # that exact char sequence depends on
-            ("THATS NICE", 12, Align.CENTER, "", "[]", "[THATS NICE]"),        # length of fill part, and on which
-            ("‥SOMETIMES", 13, Align.CENTER, "", "[]", "[‥SOMETIMES[]"),       # side it is, i.e. fill is asymmetric
-            ("1234567890", 0, Align.CENTER, "...", " ", ""),
-            ("1234567890", 1, Align.RIGHT, "..?", " ", "?"),
-            ("1234567890", 2, Align.RIGHT, "..?", " ", ".?"),
-            ("1234567890", 3, Align.RIGHT, "..?", " ", "..?"),
-            ("1234567890", 4, Align.RIGHT, "..?", " ", "..?0"),
-            ("1234567890", 5, Align.RIGHT, "..?", " ", "..?90"),
-            ("1234567890", 9, Align.RIGHT, "..?", " ", "..?567890"),
-            ("1234567890", 10, Align.RIGHT, "..?", " ", "1234567890"),
-            ("1234567890", 12, Align.RIGHT, "..?", " ", "  1234567890"),
-            ("1234567890", 12, Align.RIGHT, "..?", "<>", "<>1234567890"),
-            ("1234567890", 12, Align.RIGHT, "..", "ы", "ыы1234567890"),
-            ("1234567890", 8, Align.RIGHT, "х?й", " ", "х?й67890"),      # both can contain unicode
-            ("@", 6, Align.LEFT,   "",  "|¯|_",  "@|¯|_|"),
-            ("@", 6, Align.RIGHT,  "",  "|¯|_",  "_|¯|_@"),
-            ("@", 6, Align.CENTER, "",  "|¯|_",  "|¯@¯|_"),   # more examples of asymmetric
-            ("@", 2, Align.LEFT,   "<|>", " ", "<|"),         # fills and overflows
-            ("@", 2, Align.RIGHT,  "<|>", " ", "|>"),
-            ("@", 2, Align.CENTER, "<|>", " ", "<>"),
-            ("@", 3, Align.CENTER, "<|>", " ", "<|>"),
-            ("|", 7, Align.CENTER, "",   "<>", "<><|><>"),
-        ],
-        ids=format_test_params,
-    )
-    def test_fit(
-        self,
-        input: str,
-        max_len: int,
-        align: Align | str,
-        overflow: str,
-        fillchar: str,
-        expected_fit: str,
-    ):
-        actual_fit = fit(input, max_len, align, overflow, fillchar)
-        assert len(actual_fit) <= max_len
-        assert actual_fit == expected_fit
-
-    @mark.parametrize(
-        "input, max_len, align, overflow, expected_cut",
-        [
-            ("1234567890", 12, None, "‥", "1234567890"),
-            ("1234567890", 10, None, "‥", "1234567890"),
-            ("1234567890", 9, None, "‥", "12345678‥"),
-            ("1234567890", 5, None, "‥", "1234‥"),
-            ("1234567890", 2, None, "‥", "1‥"),
-            ("1234567890", 1, None, "‥", "‥"),
-            ("1234567890", 0, None, "‥", ""),
-            ("1234567890", 12, Align.CENTER, "‥", "1234567890"),
-            ("1234567890", 10, Align.CENTER, "‥", "1234567890"),
-            ("1234567890", 9, Align.CENTER, "‥", "1234‥7890"),
-            ("1234567890", 5, Align.CENTER, "‥", "12‥90"),
-            ("1234567890", 2, Align.CENTER, "‥", "‥0"),
-            ("1234567890", 1, Align.CENTER, "‥", "‥"),
-            ("1234567890", 0, Align.CENTER, "‥", ""),
-            ("1234567890", 12, Align.RIGHT, "‥", "1234567890"),
-            ("1234567890", 10, Align.RIGHT, "‥", "1234567890"),
-            ("1234567890", 9, Align.RIGHT, "‥", "‥34567890"),
-            ("1234567890", 5, Align.RIGHT, "‥", "‥7890"),
-            ("1234567890", 2, Align.RIGHT, "‥", "‥0"),
-            ("1234567890", 1, Align.RIGHT, "‥", "‥"),
-            ("1234567890", 0, Align.RIGHT, "‥", ""),
-            ("1234567890", 0, Align.LEFT, "...", ""),
-            ("1234567890", 1, Align.LEFT, "..?", "."),
-            ("1234567890", 2, Align.LEFT, "..?", ".."),
-            ("1234567890", 3, Align.LEFT, "..?", "..?"),
-            ("1234567890", 4, Align.LEFT, "..?", "1..?"),
-            ("1234567890", 5, Align.LEFT, "..?", "12..?"),
-            ("1234567890", 9, Align.LEFT, "..?", "123456..?"),
-            ("1234567890", 10, Align.LEFT, "..?", "1234567890"),
-            ("1234567890", 12, Align.LEFT, "..?", "1234567890"),
-            ("1234567890", 0, Align.CENTER, "...", ""),
-            ("1234567890", 1, Align.CENTER, "..?", "?"),
-            ("1234567890", 2, Align.CENTER, "..?", ".?"),
-            ("1234567890", 3, Align.CENTER, "..?", "..?"),
-            ("1234567890", 4, Align.CENTER, "..?", "..?0"),
-            ("1234567890", 5, Align.CENTER, "..?", "1..?0"),
-            ("1234567890", 9, Align.CENTER, "..?", "123..?890"),
-            ("1234567890", 10, Align.CENTER, "..?", "1234567890"),
-            ("1234567890", 12, Align.CENTER, "..?", "1234567890"),
-            ("1234567890", 0, Align.CENTER, "...", ""),
-            ("1234567890", 1, Align.RIGHT, "..?", "?"),
-            ("1234567890", 2, Align.RIGHT, "..?", ".?"),
-            ("1234567890", 3, Align.RIGHT, "..?", "..?"),
-            ("1234567890", 4, Align.RIGHT, "..?", "..?0"),
-            ("1234567890", 5, Align.RIGHT, "..?", "..?90"),
-            ("1234567890", 9, Align.RIGHT, "..?", "..?567890"),
-            ("1234567890", 10, Align.RIGHT, "..?", "1234567890"),
-            ("1234567890", 12, Align.RIGHT, "..?", "1234567890"),
-        ],
-        ids=format_test_params,
-    )
-    def test_cut(
-        self,
-        input: str,
-        max_len: int,
-        align: Align | str,
-        overflow: str,
-        expected_cut: str,
-    ):
-        actual_cut = cut(input, max_len, align, overflow)
-        assert len(actual_cut) <= max_len
-        assert actual_cut == expected_cut
-
-
-class TestPadding:
-    def test_pad(self, n=10):
-        assert pad(n) == n * " "
-
-    def test_padv(self, n=10):
-        assert padv(n) == n * "\n"
-
-
 class TestGenericFilters:
     @mark.parametrize(
         "input",
@@ -457,7 +296,7 @@ class TestTracers:
         ( 80, "test_tracer_exp-sutracer80.txt",  StringUcpTracer, "test_tracer_inp-stracer.txt"),
         (140, "test_tracer_exp-sutracer140.txt", StringUcpTracer, "test_tracer_inp-stracer.txt"),
     ]
-    
+
     @mark.parametrize(
         "width, exp_data_filename, cls, inp_filename",
         _TRACER_PARAMS,
@@ -516,36 +355,67 @@ class TestTracers:
         assert actual <= max_width
 
     @mark.parametrize(
-        "input, cls, expected", [
-            (b"", BytesTracer, ('________\n'
-                                ' 0x00 | \n'
-                                '--(0x00)')),
-            ("", StringTracer, ('__________________________________________\n'
-                                ' 0 | |                                    \n'
-                                '---------------------------------------(0)')),
-            ("", StringUcpTracer, ('___________________________________________\n'
-                                   ' 0 |U+ |                                   \n'
-                                   '----------------------------------------(0)')),
-        ], ids=format_test_params
+        "input, cls, expected",
+        [
+            (b"", BytesTracer, ("________\n" " 0x00 | \n" "--(0x00)")),
+            (
+                "",
+                StringTracer,
+                (
+                    "__________________________________________\n"
+                    " 0 | |                                    \n"
+                    "---------------------------------------(0)"
+                ),
+            ),
+            (
+                "",
+                StringUcpTracer,
+                (
+                    "___________________________________________\n"
+                    " 0 |U+ |                                   \n"
+                    "----------------------------------------(0)"
+                ),
+            ),
+        ],
+        ids=format_test_params,
     )
-    def test_empty_input(self, input: t.AnyStr, cls: t.Type[AbstractTracer], expected: str):
+    def test_empty_input(
+        self, input: t.AnyStr, cls: t.Type[AbstractTracer], expected: str
+    ):
         assert cls().apply(input).rstrip("\n") == expected
 
     @mark.parametrize(
-        "input, cls, expected", [
-            (b"", BytesTracer, '1234567‥\n'
-                               ' 0x00 | \n'
-                               '--(0x00)'),
-            ("", StringTracer, ('12345678901234567890123456789012345678901‥\n'
-                                ' 0 | |                                    \n'
-                                '---------------------------------------(0)')),
-            ("", StringUcpTracer, ('123456789012345678901234567890123456789012‥\n'
-                                   ' 0 |U+ |                                   \n'
-                                   '----------------------------------------(0)')),
-        ], ids=format_test_params
+        "input, cls, expected",
+        [
+            (b"", BytesTracer, "1234567‥\n" " 0x00 | \n" "--(0x00)"),
+            (
+                "",
+                StringTracer,
+                (
+                    "12345678901234567890123456789012345678901‥\n"
+                    " 0 | |                                    \n"
+                    "---------------------------------------(0)"
+                ),
+            ),
+            (
+                "",
+                StringUcpTracer,
+                (
+                    "123456789012345678901234567890123456789012‥\n"
+                    " 0 |U+ |                                   \n"
+                    "----------------------------------------(0)"
+                ),
+            ),
+        ],
+        ids=format_test_params,
     )
-    def test_long_label(self, input: t.AnyStr, cls: t.Type[AbstractTracer], expected: str):
-        assert cls().apply(input, extra=TracerExtra("1234567890"*20)).rstrip("\n") == expected
+    def test_long_label(
+        self, input: t.AnyStr, cls: t.Type[AbstractTracer], expected: str
+    ):
+        assert (
+            cls().apply(input, extra=TracerExtra("1234567890" * 20)).rstrip("\n")
+            == expected
+        )
 
     def test_input_cast(self):
         assert dump([1, 2, 3], StringTracer, TracerExtra("input cast")) == (
@@ -591,8 +461,55 @@ ______________________________________________________________________________
             ],
         ],
     )
-    def test_addr_shift(self, cls: t.Type[AbstractTracer], inp: t.AnyStr, shift: int, expected: str):
+    def test_addr_shift(
+        self, cls: t.Type[AbstractTracer], inp: t.AnyStr, shift: int, expected: str
+    ):
         assert dump(inp, cls, TracerExtra(addr_shift=shift)) == expected
+
+    @mark.parametrize(
+        "cls, inp, expected",
+        [
+            [
+                StringTracer,
+                "123456789123456789",
+                """\
+___________________________________________________________________________
+  0 | 31 32 33 34 35 36 37 38 39 31 32 33 34 35 36 37 38 |12345678912345678
+ 17 | 39                                                 |9                
+[71c507f7c7a0de0c1954]-------------------------------------------------(18)
+""",
+            ],
+            [
+                BytesTracer,
+                b"123456789123456789",
+                """\
+_________________________________________________________________________
+ 0x00 | 31 32 33 34  35 36 37 38  39 31 32 33  34 35 36 37  38 39        
+[e7b97fcc56db63973fad]---------------------------------------------(0x12)
+""",
+            ],
+            [
+                StringUcpTracer,
+                "123456789123456789",
+                """\
+_____________________________________________________________________________
+  0 |U+ 31 32 33 34 35 36 37 38 39 31 32 33 34 35 36 37 38 |12345678912345678
+ 17 |U+ 39                                                 |9                
+[71c507f7c7a0de0c1954]---------------------------------------------------(18)
+""",
+            ],
+        ],
+    )
+    def test_hash(self, cls: t.Type[AbstractTracer], inp: t.AnyStr, expected: str):
+        assert dump(inp, cls, TracerExtra(hash=True)) == expected
+
+    @mark.parametrize("width", [*range(25, 100, 10), *range(100, 200, 20)])
+    @mark.parametrize(
+        "cls, inp",
+        [(StringTracer, "12345"), (BytesTracer, b"12345"), (StringUcpTracer, "12345")],
+    )
+    def test_force_width(self, cls: t.Type[AbstractTracer], inp: t.AnyStr, width: int):
+        assert max(map(len, dump(inp, cls, force_width=width).splitlines())) <= width
 
     @mark.xfail(raises=ValueError)
     def test_too_low_limit(self):

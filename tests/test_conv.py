@@ -54,23 +54,46 @@ class TestColorDTOs:
         col = cls(1, 1, 1)
         col_str = str(col)
         assert str(cls.__name__) in col_str
-        assert col_str.count('=') == 3
+        assert col_str.count("=") == 3
+
 
 class TestColorTransform:
     @pytest.mark.parametrize("value", VALUES, ids=lambda val: str(val))
     @pytest.mark.parametrize(
         "spaces",
-        itertools.permutations(SPACES, 2),
-        ids=lambda val: f"[{val[0]}->{val[1]}]",
+        itertools.product(SPACES, SPACES),
+        ids=lambda val: f"({val[0]}->{val[1]})",
     )
-    def test_transforms(self, value: Value, spaces: tuple[str, str]):
+    @pytest.mark.parametrize(
+        "fn_type, transform_fn",
+        [
+            (
+                "instance",
+                lambda s_from, s_to, src: getattr(src, "to_" + s_to)(),
+            ),
+            (
+                "module",
+                lambda s_from, s_to, src: getattr(pt.conv, s_from + "_to_" + s_to)(src),
+            ),
+        ],
+        ids=lambda t: f"{t}" if isinstance(t, str) else '',
+    )
+    def test_transforms(
+        self,
+        fn_type: str,
+        transform_fn: t.Callable[[str, str, IColorType], IColorType],
+        value: Value,
+        spaces: tuple[str, str],
+    ):
         s_from, s_to = spaces
-        fname = f"{s_from}_to_{s_to}"
-        if not hasattr(pt.conv, fname):
-            return
-        input = getattr(value, s_from)
+        src = getattr(value, s_from)
+
+        actual_output: IColorType | int | None = None
+        try:
+            actual_output = transform_fn(s_from, s_to, src)
+        except AttributeError:
+            pytest.skip("Not implemented")
         expected_output = getattr(value, s_to)
-        actual_output: IColorType|int = getattr(pt.conv, fname)(input)
         if isinstance(actual_output, IColorType):
             actual_output.apply_thresholds()
         assert_close(actual_output, expected_output)

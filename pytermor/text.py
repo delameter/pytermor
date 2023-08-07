@@ -21,7 +21,7 @@ from collections import deque
 from copy import copy
 from typing import overload
 
-from .common import Align, CT, FT, RT, flatten1
+from .common import Align, CT, FT, RT, flatten1, get_qname, fit, pad, isiterable
 from .exception import ArgTypeError, LogicError
 from .renderer import IRenderer, OutputMode, RendererManager, SgrRenderer
 from .style import NOOP_STYLE, Style, is_ft, make_style
@@ -163,7 +163,7 @@ class Fragment(IRenderable):
     def __repr__(self):
         max_sl = 9
         sample = self._string[:max_sl] + ("‥" * (len(self._string) > max_sl))
-        props_set = [f'({len(self._string)}, {sample!r})', repr(self._style)]
+        props_set = [f"({len(self._string)}, {sample!r})", repr(self._style)]
         flags = []
         if self._close_this:
             flags.append("+CT")
@@ -245,9 +245,9 @@ class FrozenText(IRenderable):
         self._width = width
         self._align = Align.resolve(align)
 
+        if len(fill) == 0:  # pragma: no cover
+            raise ValueError("Fill cannot be an empty string")
         self._fill = fill
-        if len(self._fill) != 1:
-            raise ValueError("Fill string should be 1-char long")
 
         self._overflow = overflow
         self._pad = pad
@@ -267,12 +267,16 @@ class FrozenText(IRenderable):
             and self._overflow == o._overflow
         )
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         raise LogicError("Casting to str is prohibited, use render() instead.")
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # @todo refactor
         frags = len(self._fragments)
-        result = f"<{self.__class__.__qualname__}>[F={frags}%s]"
+        result = f"<{self.__class__.__qualname__}>[%sF={frags}%s]"
+        if self._width is not None:
+            result %= f"W={self._width}, ", "%s"
+        else:
+            result %= "", "%s"
         if frags == 0:
             return result % ""
         return result % (", " + ", ".join([repr(f) for f in self._fragments]))
@@ -320,7 +324,7 @@ class FrozenText(IRenderable):
                 if str_stack:  # discharge stack
                     yield ss_frag()
                 if not (1 <= len(farg) <= 2):
-                    raise TypeError("Tuples should consist of 1 or 2 elements")
+                    raise ValueError("Tuples should consist of 1 or 2 elements")
                 yield Fragment(*farg)
             elif isinstance(farg, IRenderable):
                 if str_stack:  # discharge stack
@@ -335,6 +339,10 @@ class FrozenText(IRenderable):
                 raise TypeError(f"Expected RT|FT, got {type(farg)}: {farg}")
 
     def as_fragments(self) -> t.List[Fragment]:
+        if self.has_width:
+            raise NotImplementedError(
+                f"Cannot make Fragments from fixed-width {get_qname(self.__class__)}"
+            )  # @TODO
         return [*self._fragments]
 
     def raw(self) -> str:
@@ -402,31 +410,23 @@ class FrozenText(IRenderable):
                         )
 
         # aligning and filling
-        if (spare_len := (self._width or max_len) - cur_len) >= 0:
-            spare_left = 0
-            spare_right = 0
-            if self._align == Align.LEFT:
-                spare_right = spare_len
-            elif self._align == Align.RIGHT:
-                spare_left = spare_len
-            else:
-                if spare_len % 2 == 1:
-                    spare_right = math.ceil(spare_len / 2)
-                else:
-                    spare_right = math.floor(spare_len / 2)
-                spare_left = spare_len - spare_right
+        model_result = cur_len*'@'
+        model = fit(model_result, (self._width or max_len), self._align, "", " ")
 
-            if not self._pad_styled or len(result_parts) == 0:
-                result_parts = [
-                    (spare_left * self._fill, NOOP_STYLE),
-                    *result_parts,
-                    (spare_right * self._fill, NOOP_STYLE),
-                ]
-            else:
-                first_fp, first_st = result_parts.pop(0)
-                result_parts.insert(0, ((spare_left * self._fill) + first_fp, first_st))
-                last_fp, last_st = result_parts.pop()
-                result_parts.append((last_fp + (spare_right * self._fill), last_st))
+        spare_left, spare_right = pad(model.count(' ')), ""
+        if model_result:
+            spare_left, _, spare_right = model.partition(model_result)
+
+        fill_left = fit("", len(spare_left), "right", "", self._fill)
+        fill_right = fit("", len(spare_right), "left", "", self._fill)
+        if not self._pad_styled or len(result_parts) == 0:
+            result_parts.insert(0, (fill_left, NOOP_STYLE))
+            result_parts.append((fill_right, NOOP_STYLE))
+        else:
+            first_fp, first_st = result_parts.pop(0)
+            result_parts.insert(0, (fill_left + first_fp, first_st))
+            last_fp, last_st = result_parts.pop()
+            result_parts.append((last_fp + fill_right, last_st))
 
         return "".join(renderer.render(fp, st) for fp, st in result_parts)
 
@@ -439,10 +439,10 @@ class FrozenText(IRenderable):
         return self._width is not None
 
     def append(self, *args: RT | FT) -> FrozenText:
-        return FrozenText(*self._fragments, *self._parse_fargs(args))
+        return FrozenText(*self.as_fragments(), *self._parse_fargs(args))
 
     def prepend(self, *args: RT | FT) -> FrozenText:
-        return FrozenText(*self._parse_fargs(args), *self._fragments)
+        return FrozenText(*self._parse_fargs(args), *self.as_fragments())
 
     def set_width(self, width: int):  # pragma: no cover
         raise LogicError("FrozenText is immutable")
@@ -719,7 +719,7 @@ def render(
     if string == "" and not fmt:
         return ""
 
-    if isinstance(string, t.Sequence) and not isinstance(string, str):
+    if isiterable(string):
         return [render(s, fmt, renderer) for s in string]
 
     if isinstance(string, str):
@@ -744,7 +744,7 @@ def echo(
     wrap: bool | int = False,
     indent_first: int = 0,
     indent_subseq: int = 0,
-):
+) -> None:
     """
     .
 
@@ -759,12 +759,18 @@ def echo(
     :param indent_subseq:
     """
     end = "\n" if nl else ""
-    result = render(string, fmt, renderer)
+    will_wrap = (wrap or indent_first or indent_subseq)
 
-    if wrap or indent_first or indent_subseq:
+    fmtd = render(string, fmt, renderer)
+
+    if will_wrap:
         force_width = wrap if isinstance(wrap, int) else None
         width = get_preferable_wrap_width(force_width)
-        result = wrap_sgr(result, width, indent_first, indent_subseq).rstrip("\n")
+        result = wrap_sgr(fmtd, width, indent_first, indent_subseq).rstrip("\n")
+    elif isiterable(fmtd):
+        result = ''.join(fmtd)
+    else:
+        result = fmtd
 
     print(result, end=end, file=file, flush=flush)
 
@@ -776,7 +782,7 @@ def echoi(
     *,
     file: t.IO = sys.stdout,
     flush: bool = True,
-):
+) -> None:
     """
     echo inline
 
@@ -792,9 +798,11 @@ def echoi(
 
 # fmt: off
 @overload
-def distribute_padded(max_len: int, *values: str, pad_left: int = 0, pad_right: int = 0) -> str: ...
+def distribute_padded(max_len: int, *values: str, pad_left: int = 0, pad_right: int = 0) -> str:
+    ...
 @overload
-def distribute_padded(max_len: int, *values: RT, pad_left: int = 0, pad_right: int = 0) -> Text: ...
+def distribute_padded(max_len: int, *values: RT, pad_left: int = 0, pad_right: int = 0) -> Text:
+    ...
 # fmt: on
 def distribute_padded(max_len: int, *values, pad_left: int = 0, pad_right: int = 0):
     """
@@ -829,7 +837,7 @@ def distribute_padded(max_len: int, *values, pad_left: int = 0, pad_right: int =
 
 
 def wrap_sgr(
-    raw_input: str | list[str], width: int, indent_first: int = 0, indent_subseq: int = 0
+    rendered: str | list[str], width: int, indent_first: int = 0, indent_subseq: int = 0
 ) -> str:
     """
     A workaround to make standard library ``textwrap.wrap()`` more friendly
@@ -837,11 +845,13 @@ def wrap_sgr(
 
     The main idea is
 
-    :param raw_input:
+    :param rendered:
     :param width:
     :param indent_first:
     :param indent_subseq:
     """
+    # re.split(r"(\n\n+)|(?<!\n)\n(?!\n)", "\n\n".join(rendered))
+
     # initially was written as a part of es7s/core
     # package, and transferred here later
     sgrs: list[str] = []
@@ -850,10 +860,10 @@ def wrap_sgr(
         sgrs.append(m.group())
         return _PRIVATE_REPLACER
 
-    if isinstance(raw_input, str):  # input can be just one paragraph
-        raw_input = [raw_input]
+    if isinstance(rendered, str):  # input can be just one paragraph
+        rendered = [rendered]
 
-    inp = "\n\n".join(raw_input).split("\n\n")
+    inp = "\n\n".join(rendered).split("\n\n")
     result = ""
     for raw_line in inp:
         # had an inspiration and wrote it; no idea how does it work exactly, it just does

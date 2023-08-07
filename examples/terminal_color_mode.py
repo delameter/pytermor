@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 
 import pytermor as pt
+import pytermor.common
 
 
 class Main:
@@ -47,7 +48,7 @@ class Main:
         )
 
         pt.echo()
-        pt.echo(pt.pad(8), nl=False)
+        pt.echo(pytermor.common.pad(8), nl=False)
         wparts = ["insp", "irat", "ion★"]
         for style in reversed(self.STYLES_1.values()):
             wpart = (lambda s: s.center(len(s) + 2))(" ".join(wparts.pop(0).upper()))
@@ -83,7 +84,7 @@ class Main:
         )
 
         pt.echo()
-        pt.echo(pt.pad(8), nl=False)
+        pt.echo(pytermor.common.pad(8), nl=False)
         wparts = ["man", "ife", "sta", "tion"]
         for style in self.STYLES_2.values():
             wpart = (lambda s: s.center(len(s) + 2))(" ".join(wparts.pop(0).upper()))

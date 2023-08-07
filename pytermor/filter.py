@@ -19,146 +19,20 @@ from abc import ABCMeta, abstractmethod
 from collections import deque
 from dataclasses import dataclass, field
 from functools import lru_cache, reduce
+from hashlib import md5, shake_128
 from math import ceil, floor
 from typing import Union
 
 from .ansi import ESCAPE_SEQ_REGEX
-from .common import Align, FT, chunk, OVERFLOW_CHAR
+from .common import FT, chunk, pad, cut
 from .exception import ArgTypeError, LogicError
-from .log import get_logger
+from .log import measure
 from .term import get_terminal_width
 
 codecs.register_error(
     "replace_with_qmark", lambda e: ("?", e.start + 1)
 )  # pragma: no cover
 
-
-def pad(n: int) -> str:
-    """
-    Convenient method to use instead of ``\"\".ljust(n)``.
-    """
-    return " " * n
-
-
-def padv(n: int) -> str:
-    """
-    Convenient method to use instead of ``"\\n\" * n``.
-    """
-    return "\n" * n
-
-
-def cut(
-    s: str,
-    max_len: int,
-    align: Align | str = Align.LEFT,
-    overflow=OVERFLOW_CHAR,
-) -> str:
-    """
-    cut
-
-    :param s:
-    :param max_len:
-    :param align:
-    :param overflow:
-    """
-    if len(s) <= max_len:
-        return s
-    return fit(s, max_len, align, overflow)
-
-
-def fit(
-    s: str,
-    max_len: int,
-    align: Align | str = Align.LEFT,
-    overflow: str = OVERFLOW_CHAR,
-    fill: str = " ",
-) -> str:
-    """
-    fit
-    :param s:
-    :param max_len:
-    :param align:
-    :param overflow:
-    :param fill:
-    """
-    align = Align.resolve(align)
-    if max_len == 0:
-        return ''
-    if len(fill) == 0:
-        raise ValueError("fillchar cannot be an empty string")
-
-    max_len = max(0, max_len)
-    if max_len <= (ov_len := len(overflow)):
-       # return overflow[:max_len]
-        return fit("", max_len, align, overflow="", fill=overflow)
-
-    if (fill_len := max_len - len(s)) >= 0:
-        fill_pnum = ceil(fill_len / len(fill))
-        fill_full = fit(fill * fill_pnum, fill_len, align, overflow="")
-
-        if align == Align.LEFT:
-            return s + fill_full
-        if align == Align.RIGHT:
-            return fill_full + s
-        fillmid = len(fill_full) // 2
-        return fill_full[:fillmid] + s + fill_full[fillmid:]
-
-    if align == Align.LEFT:
-        return s[: max_len - ov_len] + overflow
-    if align == Align.RIGHT:
-        return overflow + s[-max_len + ov_len :]
-    else:
-        s_chars = max_len - ov_len
-        left_part = s_chars // 2
-        right_part = s_chars - left_part
-        return s[:left_part] + overflow + s[-right_part:]
-
-
-def ljust_sgr(string: str, width: int, fillchar: str = " ") -> str:
-    """
-    SGR-formatting-aware implementation of ``str.ljust``.
-
-    Return a left-justified string of length ``width``. Padding is done
-    using the specified fill character (default is a space).
-    """
-    actual_len = len(apply_filters(string, SgrStringReplacer))
-    return string + fillchar * max(0, width - actual_len)
-
-
-def center_sgr(string: str, width: int, fillchar: str = " ") -> str:
-    """
-    SGR-formatting-aware implementation of ``str.center``.
-
-    Return a centered string of length ``width``. Padding is done using the
-    specified fill character (default is a space).
-    """
-    actual_len = len(apply_filters(string, SgrStringReplacer))
-
-    fill_len = max(0, width - actual_len)
-    if fill_len == 0:
-        return string
-
-    if actual_len % 2 == 1:
-        right_fill_len = math.ceil(fill_len / 2)
-    else:
-        right_fill_len = math.floor(fill_len / 2)
-    left_fill_len = fill_len - right_fill_len
-    return (fillchar * left_fill_len) + string + (fillchar * right_fill_len)
-
-
-def rjust_sgr(string: str, width: int, fillchar: str = " ") -> str:
-    """
-    SGR-formatting-aware implementation of ``str.rjust``.
-
-    Return a right-justified string of length ``width``. Padding is done
-    using the specified fill character (default is a space).
-    """
-    actual_len = len(apply_filters(string, SgrStringReplacer))
-    return fillchar * max(0, width - actual_len) + string
-
-
-# =============================================================================
-# Filters
 
 SGR_SEQ_REGEX = re.compile(R"(?P<esc>\x1b)(?P<csi>\[)(?P<param>[0-9;:]*)(?P<final>m)")
 """
@@ -270,11 +144,29 @@ class IFilter(t.Generic[IT, OT], metaclass=ABCMeta):
         return self.apply(s)
 
     def __repr__(self) -> str:
-        prefix = " "
+        prefix = ""
         if self is getattr(self.__class__, "_default_inst", ""):
             prefix = "*"
         return prefix + self.__class__.__name__
 
+    @staticmethod
+    def _measure_format(delta_s: str, out: t.Any, *args, **__):
+        pfx = "[%2d]" % (len(IFilter._stack) + 1)
+        inst, inp, *a = args
+        no_changes = out == inp
+        inp_start = cut(inp, 40)
+        out_start = cut(out, 40)
+        if no_changes:
+            yield f"○ {pfx}{inst!r} noop in {delta_s} ({len(inp)}): {inp_start!r}"
+        else:
+            inplen, outlen = (str(len(s or "")) for s in [inp, out])
+            maxlen = max(len(inplen), len(outlen))
+            yield f"╭ {pfx}{inst!r}"
+            yield f"│ IN  ({inplen:>{maxlen}s}): {inp_start!r}"
+            yield f"│ OUT ({outlen:>{maxlen}s}): {out_start!r}"
+            yield f"╰ {delta_s}"
+
+    @measure(formatter=_measure_format)
     def apply(self, inp: IT, extra: t.Any = None) -> OT:
         """
         Apply the filter to input *str* or *bytes*.
@@ -285,11 +177,6 @@ class IFilter(t.Generic[IT, OT], metaclass=ABCMeta):
                  as well as be different -- that depends on filter type.
         """
         IFilter._stack.append(self.get_abbrev_name())
-        get_logger().debug(
-            f"Applying filter [{len(IFilter._stack)}] "
-            f"{fit(repr(self), 20)} "
-            f"({'.'.join(IFilter._stack)})"
-        )
         result = self._apply(inp, extra)
         IFilter._stack.pop()
         return result
@@ -709,8 +596,10 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
     def _apply(self, inp: IT, extra: TracerExtra = None) -> str:
         if not inp:
             inp = inp[:]  # empty string/bytes
+        if not extra:
+            extra = TracerExtra()
 
-        addr_shift = extra.addr_shift if extra else 0
+        addr_shift = extra.addr_shift
         self._state.reset(inp, self.get_max_chars_per_line(inp, addr_shift), addr_shift)
         if self._state.char_per_line < 1:
             raise ValueError(
@@ -725,30 +614,37 @@ class AbstractTracer(IFilter[IT, str], metaclass=ABCMeta):
                 inp[self._state.char_per_line :],
                 inp[: self._state.char_per_line],
             )
+            if extra.hash:
+                self._add_line_hash(part)
             self._process(part)
             self._state.lineno += 1
             self._state.address += self._state.char_per_line
 
-        footer = self._format_line_separator(
-            "-", label_right="(" + self._format_address(self._state.inp_size) + ")"
-        )
-        header = self._format_line_separator(
-            "_", cut(extra.label if extra else "", len(footer))
-        )
+        flabel_left = ""
+        flabel_right = f"({self._format_address(self._state.inp_size)})"
+        if extra.hash:
+            flabel_left = f"[{self._compute_total_hash()}]"
+        footer = self._format_line_separator("-", flabel_left, flabel_right)
 
-        result = header + "\n"
-        result += "\n".join(self._render_rows())
-        result += "\n" + footer + "\n"
-        return result
+        hlabel_left = cut(extra.label, len(footer))
+        header = self._format_line_separator("_", hlabel_left)
+
+        return "\n".join([header, *self._render_rows(), footer, ""])
+
+    def _add_line_hash(self, part: t.AnyStr):
+        if isinstance(part, str):
+            part = part.encode()
+        self._state.part_hashes += md5(part).hexdigest()
+
+    def _compute_total_hash(self) -> str:
+        return shake_128(self._state.part_hashes.encode()).hexdigest(10)
 
     def _format_address(self, override: int = None) -> str:
         address = override if override is not None else self._state.address
         result = str(address).rjust(self._state.inp_size_len or 0)
         return result
 
-    def _format_line_separator(
-        self, fill: str, label_left: str = "", label_right: str = ""
-    ) -> str:
+    def _format_line_separator(self, fill: str, label_left="", label_right="") -> str:
         return (
             label_left
             + fill * (self._get_output_line_len() - len(label_left) - len(label_right))
@@ -1131,6 +1027,7 @@ class StringUcpTracer(AbstractStringTracer):
 class TracerExtra:
     label: str = ""
     addr_shift: int = 0
+    hash: bool = False
 
 
 @dataclass
@@ -1145,6 +1042,7 @@ class _TracerState:
 
     rows: t.List[t.List[str]] = field(init=False, default=None)
     cols_max_len: t.List[int] | None = field(init=False, default=None)
+    part_hashes: str = field(init=False, default=None)
 
     def reset(self, inp: IT, char_per_line: int, addr_shift: int):
         self.inp_size = len(inp)
@@ -1157,6 +1055,7 @@ class _TracerState:
 
         self.rows = []
         self.cols_max_len = None
+        self.part_hashes = ""
 
 
 @lru_cache
@@ -1170,6 +1069,7 @@ def dump(
     data: t.Any,
     tracer_cls: t.Type[AbstractTracer] = None,
     extra: TracerExtra = None,
+    force_width: int = None,
 ) -> str:
     """
     .
@@ -1183,7 +1083,8 @@ def dump(
             tracer_cls = BytesTracer
 
     terminal_width = get_terminal_width()
-    tracer = _get_tracer(tracer_cls, terminal_width)
+    width = force_width or terminal_width
+    tracer = _get_tracer(tracer_cls, width)
     return tracer.apply(data, extra)
 
 
@@ -1204,6 +1105,49 @@ def get_max_utf8_bytes_char_length(string: str) -> int:
 
 
 # -----------------------------------------------------------------------------
+
+
+def ljust_sgr(string: str, width: int, fillchar: str = " ") -> str:
+    """
+    SGR-formatting-aware implementation of ``str.ljust``.
+
+    Return a left-justified string of length ``width``. Padding is done
+    using the specified fill character (default is a space).
+    """
+    actual_len = len(apply_filters(string, SgrStringReplacer))
+    return string + fillchar * max(0, width - actual_len)
+
+
+def center_sgr(string: str, width: int, fillchar: str = " ") -> str:
+    """
+    SGR-formatting-aware implementation of ``str.center``.
+
+    Return a centered string of length ``width``. Padding is done using the
+    specified fill character (default is a space).
+    """
+    actual_len = len(apply_filters(string, SgrStringReplacer))
+
+    fill_len = max(0, width - actual_len)
+    if fill_len == 0:
+        return string
+
+    if actual_len % 2 == 1:
+        right_fill_len = math.ceil(fill_len / 2)
+    else:
+        right_fill_len = math.floor(fill_len / 2)
+    left_fill_len = fill_len - right_fill_len
+    return (fillchar * left_fill_len) + string + (fillchar * right_fill_len)
+
+
+def rjust_sgr(string: str, width: int, fillchar: str = " ") -> str:
+    """
+    SGR-formatting-aware implementation of ``str.rjust``.
+
+    Return a right-justified string of length ``width``. Padding is done
+    using the specified fill character (default is a space).
+    """
+    actual_len = len(apply_filters(string, SgrStringReplacer))
+    return fillchar * max(0, width - actual_len) + string
 
 
 def apply_filters(inp: IT, *args: Union[IFilter, t.Type[IFilter]]) -> OT:

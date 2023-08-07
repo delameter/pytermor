@@ -28,6 +28,26 @@ class IColorType(metaclass=ABCMeta):
     def apply_thresholds(self) -> t.Self:
         ...
 
+    @abstractmethod
+    def to_hex(self) -> int:
+        ...
+
+    @abstractmethod
+    def to_rgb(self) -> RGB:
+        ...
+
+    @abstractmethod
+    def to_hsv(self) -> HSV:
+        ...
+
+    @abstractmethod
+    def to_xyz(self) -> XYZ:
+        ...
+
+    @abstractmethod
+    def to_lab(self) -> LAB:
+        ...
+
 
 @dataclass
 class RGB(IColorType):
@@ -61,6 +81,21 @@ class RGB(IColorType):
     def _format_channel(self, attr: str) -> str:
         return f"{attr[0].upper()}={getattr(self, attr):d}"
 
+    def to_hex(self) -> int:
+        return rgb_to_hex(self)
+
+    def to_rgb(self) -> RGB:
+        return self
+
+    def to_hsv(self) -> HSV:
+        return rgb_to_hsv(self)
+
+    def to_xyz(self) -> XYZ:
+        return rgb_to_xyz(self)
+
+    def to_lab(self) -> LAB:
+        return rgb_to_lab(self)
+
 
 @dataclass
 class HSV(IColorType):
@@ -87,6 +122,21 @@ class HSV(IColorType):
     def __iter__(self) -> t.Iterator[float]:
         return iter((self.hue, self.saturation, self.value))
 
+    def to_hex(self) -> int:
+        return hsv_to_hex(self)
+
+    def to_rgb(self) -> RGB:
+        return hsv_to_rgb(self)
+
+    def to_hsv(self) -> HSV:
+        return self
+
+    def to_xyz(self) -> XYZ:
+        return hsv_to_rgb(self).to_xyz()
+
+    def to_lab(self) -> LAB:
+        return hsv_to_rgb(self).to_lab()
+
 
 @dataclass
 class XYZ(IColorType):
@@ -111,6 +161,21 @@ class XYZ(IColorType):
     def __iter__(self) -> t.Iterator[float]:
         return iter((self.x, self.y, self.z))
 
+    def to_hex(self) -> int:
+        return xyz_to_rgb(self).to_hex()
+
+    def to_rgb(self) -> RGB:
+        return xyz_to_rgb(self)
+
+    def to_hsv(self) -> HSV:
+        return xyz_to_rgb(self).to_hsv()
+
+    def to_xyz(self) -> XYZ:
+        return self
+
+    def to_lab(self) -> LAB:
+        return xyz_to_lab(self)
+
 
 @dataclass
 class LAB(IColorType):
@@ -134,6 +199,21 @@ class LAB(IColorType):
 
     def __iter__(self) -> t.Iterator[float]:
         return iter((self.L, self.a, self.b))
+
+    def to_hex(self) -> int:
+        return lab_to_rgb(self).to_hex()
+
+    def to_rgb(self) -> RGB:
+        return lab_to_rgb(self)
+
+    def to_hsv(self) -> HSV:
+        return lab_to_rgb(self).to_hsv()
+
+    def to_xyz(self) -> XYZ:
+        return lab_to_xyz(self)
+
+    def to_lab(self) -> LAB:
+        return self
 
 
 @overload

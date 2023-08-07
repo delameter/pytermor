@@ -104,3 +104,8 @@ def load_data_file(data_filename: str) -> AnyStr:
     except UnicodeError:
         with open(data_filepath, "rb") as f:
             return f.read()
+
+
+from _pytest.mark import ParameterSet
+def raises(e, *params) -> 'ParameterSet':
+    return pytest.param(*params, marks=pytest.mark.xfail(raises=e))

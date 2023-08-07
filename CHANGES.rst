@@ -45,8 +45,9 @@ pending
 - |REMOVE| `TemplateRenderer`
 - |TESTS|  99% coverage
 - |FIX| `compose_clear_line_fill_bg` now correctlyl handle requests to fill line from the middle
+- |REFACTOR| `measure` `fit`
 
-.. <@pending:7e6b385>
+.. <@pending:5774c5a>
 .. ^ blank line before should be kept
 
 

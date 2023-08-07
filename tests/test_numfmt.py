@@ -15,7 +15,9 @@ from pytermor import (
     Text,
     formatter_bytes_human,
     formatter_si_binary,
-    render, BaseUnit,
+    render,
+    BaseUnit,
+    Composite, Align,
 )
 from pytermor.numfmt import (
     DualBaseUnit,
@@ -41,65 +43,43 @@ from tests import format_test_params
 @pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
 class TestHighlighter:
     DIM = Style(dim=True)
-    GRAY = Style(fg="gray")
-    BLUE_BLD = Style(fg="blue", bold=True)
-    CYAN_BLD = Style(fg="cyan", bold=True)
-    GREEN_BLD = Style(fg="green", bold=True)
-    YELLOW_BLD = Style(fg="yellow", bold=True)
-    RED_BLD = Style(fg="red", bold=True)
+    GRY = Style(fg="gray")
+    BLU = Style(fg="blue", bold=True)
+    CYN = Style(fg="cyan", bold=True)
+    GRN = Style(fg="green", bold=True)
+    YLW = Style(fg="yellow", bold=True)
+    RED = Style(fg="red", bold=True)
 
     @pytest.mark.parametrize(
         "input, expected",
         [
-            ("0", Text("0", GRAY)),
-            ("-0", Text("-", None, "0", GRAY)),
-            ("0.000", Text("0", GRAY, ".000", Style(GRAY, dim=True))),
+            ("0", Text("0", GRY)),
+            ("-0", Text("-", None, "0", GRY)),
+            ("0.000", Text("0", GRY, ".000", Style(GRY, dim=True))),
             ("0.0001", Text("0.000", None, "1", DIM)),
             ("123", Text("123")),
             ("11.22", Text("11.22")),
             ("890.789", Text("890.789")),
-            ("8456.78901", Text("8", BLUE_BLD, "456.789", None, "01", DIM)),
-            ("567890", Text("567", BLUE_BLD, "890")),
-            ("234567890", Text("234", CYAN_BLD, "567", DIM, "890")),
+            ("8456.78901", Text("8", BLU, "456.789", None, "01", DIM)),
+            ("567890", Text("567", BLU, "890")),
+            ("234567890", Text("234", CYN, "567", DIM, "890")),
             (
                 "890123456.78901234567890",
-                Text(
-                    "890",
-                    CYAN_BLD,
-                    "123",
-                    DIM,
-                    "456.789",
-                    None,
-                    "012",
-                    DIM,
-                    "345",
-                    None,
-                    "678",
-                    DIM,
-                    "90",
+                Composite(
+                    Text("890", CYN, "123", DIM, "456.789", None),
+                    Text("012", DIM, "345", None, "678", DIM, "90"),
                 ),
             ),
-            ("901234567890", Text("901", GREEN_BLD, "234", None, "567", DIM, "890")),
+            ("901234567890", Text("901", GRN, "234", None, "567", DIM, "890")),
             (
                 "678901234567890",
-                Text("678", YELLOW_BLD, "901", DIM, "234", None, "567", DIM, "890"),
+                Text("678", YLW, "901", DIM, "234", None, "567", DIM, "890"),
             ),
             (
                 "-345678901234567890",
-                Text(
-                    "-",
-                    None,
-                    "345",
-                    RED_BLD,
-                    "678",
-                    None,
-                    "901",
-                    DIM,
-                    "234",
-                    None,
-                    "567",
-                    DIM,
-                    "890",
+                Composite(
+                    Text("-", None, "345", RED, "678", None),
+                    Text("901", DIM, "234", None, "567", DIM, "890"),
                 ),
             ),
         ],
@@ -369,7 +349,10 @@ class TestStaticFormatter:
                 "\x1b[2;34m" + "m" + "\x1b[22;39m",
                 0.2,
             ],
-            ["\x1b[90m" "0" "\x1b[39m" " " "\x1b[2;90m" "m" "\x1b[22;39m", 0.0],
+            [
+                "\x1b[90m" "0" "\x1b[39m" " " "\x1b[2;90m" "m" "\x1b[22;39m",
+                0.0,
+            ],
             [
                 "\x1b[1;34m" + "20" + "\x1b[22;39m"
                 "\x1b[1;2;34m" + ".0" + "\x1b[22;22;39m" + " "
@@ -864,10 +847,11 @@ class TestDynamicFormatter:
             (BaseUnit(oom=2), False),
             (BaseUnit(oom=0, _integer=True), True),
             (BaseUnit(oom=0, _integer=False), False),
-        ]
+        ],
     )
     def test_base_unit_interger(self, bu: BaseUnit, expected: bool):
         assert bu.integer == expected
+
 
 # -- dual -----------------------------------------------------
 
@@ -1063,11 +1047,20 @@ class TestDualFormatter:
         actual = formatter.format(60, auto_color=False)
         assert actual == f"{'1 min':>10s}"
 
+    def test_format_pad_align(self):
+        formatter = DualFormatter(dual_registry.find_matching(10), pad=Align.CENTER)
+        actual = formatter.format(60, auto_color=False)
+        assert actual == f"{'1 min':^10s}"
+
     @pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
     def test_format_pad_colored(self):
         formatter = DualFormatter(dual_registry.find_matching(10), pad=True)
         actual = formatter.format(60, auto_color=True)
-        assert actual.render() == f"     \x1b[1;34m" "1" "\x1b[22;39m" " " "\x1b[2;34m" "min" "\x1b[22;39m"
+        assert (
+            actual.render() == "     "
+            "\x1b[1;34m" + "1" + "\x1b[22;39m" + " "
+            "\x1b[2;34m" + "min" + "\x1b[22;39m"
+        )
 
     def test_formatting_with_shortest(self):
         assert len(format_time_delta_shortest(234)) <= 3

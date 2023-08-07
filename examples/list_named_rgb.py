@@ -17,6 +17,7 @@ from os.path import abspath, join, dirname
 import yaml
 
 import pytermor as pt
+import pytermor.common
 import pytermor.filter
 import pytermor.conv
 import pytermor.term
@@ -190,8 +191,8 @@ class _RgbTablePrinter:
 
         self._cell_width = cell_size
         self._cell_height = cell_height or max(1, self._cell_width // 2)
-        self._cell_margin_x = pt.pad(min(2, max(0, self._cell_width // 3 - 3)))
-        self._cell_margin_y = pt.padv(len(self._cell_margin_x) // 2)
+        self._cell_margin_x = pytermor.common.pad(min(2, max(0, self._cell_width // 3 - 3)))
+        self._cell_margin_y = pytermor.common.padv(len(self._cell_margin_x) // 2)
 
     def print(self, colors: t.Sequence[_IColorRGB]):
         style_idx = pt.Style(bold=True)
@@ -250,7 +251,7 @@ class _RgbTablePrinter:
 
             for pid, part in enumerate(parts):
                 part = (
-                    pt.render(pytermor.center_sgr(part, self._cell_width), style)
+                    pt.render(pytermor.filter.center_sgr(part, self._cell_width), style)
                     + self._cell_margin_x
                 )
                 lines[pid] += part
