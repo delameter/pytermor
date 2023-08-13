@@ -46,8 +46,9 @@ pending
 - |TESTS|  99% coverage
 - |FIX| `compose_clear_line_fill_bg` now correctlyl handle requests to fill line from the middle
 - |REFACTOR| `measure` `fit`
+- |TESTS| 100% coverage
 
-.. <@pending:5774c5a>
+.. <@pending:8adb0f1>
 .. ^ blank line before should be kept
 
 

@@ -10,12 +10,12 @@ import sys
 import time
 import typing as t
 from functools import update_wrapper
-from typing import cast, overload, Optional
+from typing import cast, overload, Optional, Union
 
-from .common import get_qname, cut
+from .common import get_qname, cut, isiterable
 
 _F = t.TypeVar("_F", bound=t.Callable[..., t.Any])
-_MFT = t.TypeVar("_MFT", bound=t.Callable[[str, t.Any, ...], Optional[t.Iterable[str]]])
+_MFT = t.TypeVar("_MFT", bound=t.Callable[[str, t.Any, ...], Optional[Union[str, t.Iterable[str]]]])
 
 TRACE = 5
 _logger = logging.getLogger(__package__)
@@ -83,7 +83,8 @@ def measure(
             try:
                 fmt_fn: _MFT = formatter or _default_formatter
                 if msg := fmt_fn(_format_sec(delta_s), result, *args, **kwargs):
-                    [_logger.log(level=level, msg=m) for m in msg]
+                    for m in (msg if isiterable(msg) else [msg]):
+                        _logger.log(level=level, msg=m)
             except Exception as e:  # pragma: no cover
                 _logger.exception(e)
             return result
