@@ -119,6 +119,7 @@ addopts = [
     "--strict-config",
     "--strict-markers",
     "--maxfail", "5",
+    "--durations", "5",
 ]
 xfail_strict = true
 markers = [

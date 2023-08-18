@@ -142,7 +142,9 @@ lint:  ## Run flake8
 ## Testing
 
 test: ## Run pytest
-	@PT_ENV=test ./.invoke pytest --quiet --tb=line -rfE
+	@PT_ENV=test ./.invoke pytest \
+		--quiet \
+		--tb=line
 
 test-verbose: ## Run pytest with detailed output
 	@PT_ENV=test ./.invoke pytest -v \
@@ -155,7 +157,7 @@ test-trace: ## Run pytest with detailed output  <@last_test_trace.log>
 		--log-file-level=1 \
 		--log-file=last_test_trace.log
 	# optional: PYTERMOR_TRACE_RENDERS=1
-	/usr/bin/ls --size --si last_test_trace.log
+	@/usr/bin/ls --size --si last_test_trace.log
 
 .:
 ## Profiling
