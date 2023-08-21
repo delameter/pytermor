@@ -7,8 +7,8 @@
 .. note ::
     Almost all public classes are imported into the first package level
     on its initialization, which makes kind of a contract on library's API.
-    The exceptions include some abstract superclasses or metaclasses, which 
-    generally should not be used outside of the library, but still can be 
+    The exceptions include some abstract superclasses or metaclasses, which
+    generally should not be used outside of the library, but still can be
     imported directly using a full module path.
 
 """
@@ -59,6 +59,7 @@ from .common import ExtendedEnum as ExtendedEnum
 from .common import FT as FT
 from .common import OVERFLOW_CHAR as OVERFLOW_CHAR
 from .common import RT as RT
+from .common import but as but
 from .common import char_range as char_range
 from .common import chunk as chunk
 from .common import cut as cut
@@ -67,6 +68,10 @@ from .common import flatten as flatten
 from .common import flatten1 as flatten1
 from .common import get_qname as get_qname
 from .common import get_subclasses as get_subclasses
+from .common import isiterable as isiterable
+from .common import only as only
+from .common import others as others
+from .common import ours as ours
 from .common import pad as pad
 from .common import padv as padv
 from .config import Config as Config
@@ -94,11 +99,16 @@ from .conv import rgb_to_lab as rgb_to_lab
 from .conv import rgb_to_xyz as rgb_to_xyz
 from .conv import xyz_to_lab as xyz_to_lab
 from .conv import xyz_to_rgb as xyz_to_rgb
+from .cval import ColorValuesRGB as ColorValuesRGB
+from .cval import ColorValuesXterm as ColorValuesXterm
 from .cval import cv as cv
 from .cval import cvr as cvr
 from .exception import ArgTypeError as ArgTypeError
+from .exception import ColorCodeConflictError as ColorCodeConflictError
+from .exception import ColorNameConflictError as ColorNameConflictError
 from .exception import ConflictError as ConflictError
 from .exception import LogicError as LogicError
+from .exception import ParseError as ParseError
 from .exception import UserAbort as UserAbort
 from .exception import UserCancel as UserCancel
 from .filter import AbstractNamedGroupsRefilter as AbstractNamedGroupsRefilter
@@ -154,6 +164,7 @@ from .log import measure as measure
 from .numfmt import BaseUnit as BaseUnit
 from .numfmt import DualBaseUnit as DualBaseUnit
 from .numfmt import DualFormatter as DualFormatter
+from .numfmt import DualFormatterRegistry as DualFormatterRegistry
 from .numfmt import DynamicFormatter as DynamicFormatter
 from .numfmt import Highlighter as Highlighter
 from .numfmt import NumFormatter as NumFormatter
@@ -189,9 +200,11 @@ from .renderer import TmuxRenderer as TmuxRenderer
 from .renderer import force_ansi_rendering as force_ansi_rendering
 from .renderer import force_no_ansi_rendering as force_no_ansi_rendering
 from .renderer import init_renderer as init_renderer
+from .style import MergeMode as MergeMode
 from .style import NOOP_STYLE as NOOP_STYLE
 from .style import Style as Style
 from .style import Styles as Styles
+from .style import is_ft as is_ft
 from .style import make_style as make_style
 from .style import merge_styles as merge_styles
 from .template import TemplateEngine as TemplateEngine
@@ -211,7 +224,6 @@ from .term import make_clear_display_after_cursor as make_clear_display_after_cu
 from .term import make_clear_display_before_cursor as make_clear_display_before_cursor
 from .term import make_clear_history as make_clear_history
 from .term import make_clear_line as make_clear_line
-from .term import make_clear_line as make_clear_line
 from .term import make_clear_line_after_cursor as make_clear_line_after_cursor
 from .term import make_clear_line_before_cursor as make_clear_line_before_cursor
 from .term import make_color_256 as make_color_256
@@ -221,6 +233,7 @@ from .term import make_enable_alt_screen_buffer as make_enable_alt_screen_buffer
 from .term import make_erase_in_display as make_erase_in_display
 from .term import make_erase_in_line as make_erase_in_line
 from .term import make_hide_cursor as make_hide_cursor
+from .term import make_hyperlink as make_hyperlink
 from .term import make_move_cursor_down as make_move_cursor_down
 from .term import make_move_cursor_down_to_start as make_move_cursor_down_to_start
 from .term import make_move_cursor_left as make_move_cursor_left
@@ -252,6 +265,7 @@ from .text import distribute_padded as distribute_padded
 from .text import echo as echo
 from .text import echoi as echoi
 from .text import flatten1 as flatten1
+from .text import is_rt as is_rt
 from .text import render as render
 from .text import wrap_sgr as wrap_sgr
 
