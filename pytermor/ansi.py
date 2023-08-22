@@ -207,7 +207,7 @@ class SequenceNf(ISequence):
         Build up actual byte sequence and return as an ASCII-encoded string.
         """
         return (
-            self.ESC_CHARACTER + self._classifier + (self._interm or None) + self._final
+            self.ESC_CHARACTER + self._classifier + (self._interm or "") + self._final
         )
 
     @classmethod

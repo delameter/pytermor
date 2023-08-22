@@ -148,6 +148,7 @@ exclude_lines = [
     "if self.debug",
     "raise AssertionError",
     "raise NotImplementedError",
+    "raise LogicError",
     "if 0:",
     "^\\s*\\.\\.\\.\\s*$",
     "if __name__ == .__main__.:",

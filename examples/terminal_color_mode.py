@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import os
+from math import ceil
 
 import pytermor as pt
 import pytermor.common
@@ -38,7 +39,8 @@ class Main:
         )
         pt.echo(
             [
-                "1) should see that it's a purple rectangle with some purple letters inside;",
+                "",
+                "1) should see that it's a magenta rectangle with some purple letters inside;",
                 "2) should be able to read the full word (although it can be challenging);",
                 "3) can distinguish 3 sections of the rectangle with different brightness.",
             ],
@@ -48,16 +50,17 @@ class Main:
         )
 
         pt.echo()
-        pt.echo(pytermor.common.pad(8), nl=False)
-        wparts = ["insp", "irat", "ion★"]
+        pt.echo(pytermor.pad(10) + '┌──────────────────────────┐')
+        pt.echo(pytermor.pad(10) + '│ ', nl=False)
+        wparts = ["★ins", "pira", "tion"]
         for style in reversed(self.STYLES_1.values()):
-            wpart = (lambda s: s.center(len(s) + 2))(" ".join(wparts.pop(0).upper()))
+            wpart = (lambda s: s.ljust(8))(" ".join(wparts.pop(0).upper()))
             pt.echo(wpart, style, pt.SgrRenderer(), nl=False)
             if len(wparts) == 0:
                 break
 
-        pt.echo()
-        pt.echo()
+        pt.echo(' │')
+        pt.echo(pytermor.pad(10) + '└──────────────────────────┘')
         pt.echo(
             [
                 "",
@@ -72,7 +75,7 @@ class Main:
                 f"  TERM={os.environ.get('TERM', '')}",
                 f"  COLORTERM={os.environ.get('COLORTERM', '')}",
                 "",
-                "-----",
+                "-"*min(80, pt.get_terminal_width()),
                 "",
                 "Previous test cannot tell with enough confidence, which mode exactly "
                 "you are running -- the difference between advanced modes would be "
@@ -84,25 +87,26 @@ class Main:
         )
 
         pt.echo()
-        pt.echo(pytermor.common.pad(8), nl=False)
-        wparts = ["man", "ife", "sta", "tion"]
+        pt.echo(pytermor.pad(8) + '┌──────────────────────────────┐')
+        pt.echo(pytermor.pad(8) + '│ ', nl=False)
+        wparts = ["man", "ifes", "tat", "ion·"]
         for style in self.STYLES_2.values():
-            wpart = (lambda s: s.center(len(s) + 2))(" ".join(wparts.pop(0).upper()))
+            wpart = (lambda s: s.center(7))(" ".join(wparts.pop(0).upper()))
             style.inversed = not style.inversed
             pt.echo(wpart, style, pt.SgrRenderer(), nl=False)
             if len(wparts) == 0:
                 break
 
-        pt.echo()
-        pt.echo()
-        pt.echo()
+        pt.echo(' │')
+        pt.echo(pytermor.pad(8) + '└──────────────────────────────┘')
         pt.echo(
-            ["Same as before, there are three conditions. You:"],
+            ["", "Same as before, there are three conditions. You:"],
             wrap=True,
             indent_first=2,
         )
         pt.echo(
             [
+                "",
                 "1) should see that the left part is a green rectangle with some "
                 "green letters inside, and the right part is similar, except the "
                 "color is red;",
@@ -116,7 +120,8 @@ class Main:
         )
         pt.echo(
             [
-                "If all these are met -- your terminal is in True Color mode and "
+                "",
+                "If ALL these are met -- your terminal is in True Color mode and "
                 "can display full variety of RGB color space (16M colors). Otherwise "
                 "the mode is indexed xterm-256."
             ],
