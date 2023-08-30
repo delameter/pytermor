@@ -3,58 +3,70 @@
 
 pending
 ------------------
-- |NEW| `common` helpers: `only`, `but`, `ours`, `others`, `isiterable`, `flatten`, `char_range`
+- ...
+
+.. <@pending:40a45a4>
+.. ^ blank line before should be kept
+
+
+2.99-dev
+------------------
+:date:`Aug 23`
+
+- |CI/CD| artifact uploading
 - |DOCS|  `Renderers` and `ANSI sequences review` pages
-- |TESTS|  `common` module
-- |NEW| auto-normalization of RGB values
+- |DOCS| library structure diagram optimized for dark mode
+- |DRAFT| added `dev` module with experimental and WIP-features
 - |FIX| logging
+- |FIX| `format_auto_float` edge case
+- |FIX| `DualFormatter` tuning
+- |FIX| imports
+- |FIX| `template` splitter mode
+- |FIX| `compose_clear_line_fill_bg` now correctlyl handle requests to fill line from the middle
+- |FIX| `SequenceNf` assembling
+- |MAINTAIN| docker image based on python 3.10 <- 3.8
+- |MAINTAIN| test dependencies
+- |MAINTAIN| missing imports
+- |NEW| `common` helpers: `only`, `but`, `ours`, `others`, `isiterable`, `flatten`, `char_range`
+- |NEW| auto-normalization of RGB values
 - |NEW| substitute, is_rt, cut, fit
 - |NEW| AbstractNamedGroupsRefilter, AbstractRegexValRefilter, AbstractStringTracer, AbstractTracer, IRefilter, OmniPadder
 - |NEW| highlighter._multiapply
 - |NEW| `Text` constructor fragment in args autodetect
 - |NEW| TestSgrVisualizer
 - |NEW| automated customizing of library structure diagram generation
-- |REMOVE| `AbstractRegexValRefilter`, `StringAligner`
-- |REFACTOR| transferred `make_*` methods from `ansi` to `term`. and `parser` to `ansi`
-- |REFACTOR| moved `trace()` from `filter` to  `log`
-- |DOCS| library structure diagram optimized for dark mode
-- |REFACTOR| render tracing log level
 - |NEW| added tuple support into fargs-parsing
-- |REFACTOR| simplified `ArgTypeError`
-- |TESTS| covered `filter` module
 - |NEW| http colors
-- |REFACTOR| optimized imports
-- |FIX| `format_auto_float` edge case
 - |NEW| `template` option STYLE_WORDS_SELECTIVE_COMMA
 - |NEW| +16 named colors
 - |NEW| +1 more named color
 - |NEW| addr_offset param for `Tracers`
-- |FIX| `DualFormatter` tuning
-- |FIX| `DualFormatter` tuning
-- |TESTS|
-- |FIX| imports
 - |NEW| `fit` support for `fillchar` customizing
 - |NEW| `Tracers` handling empty input
-- |MAINTAIN| docker image based on python 3.10 <- 3.8
-- |CI|/CD: artifact uploading
 - |NEW| +1 named color
-- |REFACTOR| `TemplateEngine`
-- |TESTS| `template`
-- |FIX| `template` splitter mode
 - |NEW| `TempateEngine` `global_style` argument `TempalteEngine.render()` method
-- |REMOVE| `TemplateRenderer`
-- |TESTS|  99% coverage
-- |FIX| `compose_clear_line_fill_bg` now correctlyl handle requests to fill line from the middle
+- |NEW| color difference formula updated to CIE76 ΔE*
+- |NEW| `xkcd` named colors
+- |NEW| fargs now support arbitrary order of arguments independent of their types
+- |REFACTOR| transferred `make_*` methods from `ansi` to `term`. and `parser` to `ansi`
+- |REFACTOR| moved `trace()` from `filter` to  `log`
+- |REFACTOR| render tracing log level
+- |REFACTOR| simplified `ArgTypeError`
+- |REFACTOR| optimized imports
+- |REFACTOR| `TemplateEngine`
 - |REFACTOR| `measure` `fit`
+- |REFACTOR| merged `conv` and `color` modules into sole `color`, also merged two class hierarchies into one
+- |REFACTOR| color transformation methods
+- |REMOVE| `AbstractRegexValRefilter`, `StringAligner`
+- |REMOVE| `TemplateRenderer`
+- |TESTS|  `common` module
+- |TESTS| covered `filter` module
+- |TESTS|
+- |TESTS| `template`
+- |TESTS|  99% coverage
 - |TESTS| 100% coverage
-- |MAINTAIN| test dependencies
 - |TESTS| fix params
-- |MAINTAIN| missing imports
-- |MAINTAIN| missing imports
-- |FIX| `SequenceNf` assembling
-
-.. <@pending:c4e3a03>
-.. ^ blank line before should be kept
+- |TESTS| 100% coverage again
 
 
 v2.75-dev
