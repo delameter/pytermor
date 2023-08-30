@@ -8,9 +8,11 @@ from __future__ import annotations
 import enum
 import itertools
 import typing as t
+from collections import OrderedDict
 from collections.abc import Iterable
 from functools import lru_cache
 from math import ceil
+
 
 _T = t.TypeVar("_T")
 
@@ -31,14 +33,7 @@ is `resolve_color()`. Valid values include:
     - *int* in a [:hex:`0`; :hex:`0xffffff`] range.
 """
 
-CT = t.TypeVar("CT", bound="IColor")
-""" 
-Any non-abstract ``IColor`` type.
-
-:meta public:
- """
-
-FT = t.TypeVar("FT", int, str, "IColor", "Style", None)
+FT = t.TypeVar("FT", int, str, "Color", "Style", None)
 """
 :abbr:`FT (Format type)` is a style descriptor. Used as a shortcut precursor for actual 
 styles. Primary handler is `make_style()`.
@@ -138,10 +133,10 @@ def padv(n: int) -> str:
 
 
 def cut(
-        s: str,
-        max_len: int,
-        align: Align | str = Align.LEFT,
-        overflow=OVERFLOW_CHAR,
+    s: str,
+    max_len: int,
+    align: Align | str = Align.LEFT,
+    overflow=OVERFLOW_CHAR,
 ) -> str:
     """
     cut
@@ -157,11 +152,11 @@ def cut(
 
 
 def fit(
-        s: str,
-        max_len: int,
-        align: Align | str = Align.LEFT,
-        overflow: str = OVERFLOW_CHAR,
-        fill: str = " ",
+    s: str,
+    max_len: int,
+    align: Align | str = Align.LEFT,
+    overflow: str = OVERFLOW_CHAR,
+    fill: str = " ",
 ) -> str:
     """
     fit
@@ -173,7 +168,7 @@ def fit(
     """
     align = Align.resolve(align)
     if max_len == 0:
-        return ''
+        return ""
     if len(fill) == 0:  # pragma: no cover
         raise ValueError("Fill cannot be an empty string")
 
@@ -206,6 +201,7 @@ def fit(
 # -----------------------------------------------------------------------------
 # types
 
+
 def get_qname(obj) -> str:
     """
     Convenient method for getting a class name for class instances
@@ -228,19 +224,24 @@ def get_qname(obj) -> str:
         return obj.__class__.__qualname__
     return str(obj)  # pragma: no cover
 
+
 def only(cls: t.Type, inp: Iterable[_T]) -> t.List[_T]:
+    """Return all elements from `inp` that *are* instances of `cls`"""
     return [*(a for a in inp if isinstance(a, cls))]
 
 
 def but(cls: t.Type, inp: Iterable[_T]) -> t.List[_T]:
+    """Return all elements from `inp` *except* instances of `cls`."""
     return [*(a for a in inp if not isinstance(a, cls))]
 
 
 def ours(cls: t.Type, inp: Iterable[_T]) -> t.List[_T]:
+    """Return all elements from `inp` that *are* instances of `cls` or its children classes."""
     return [*(a for a in inp if issubclass(type(a), cls))]
 
 
 def others(cls: t.Type, inp: Iterable[_T]) -> t.List[_T]:
+    """Return all elements from `inp` *except* instances of `cls` and its children classes."""
     return [*(a for a in inp if not issubclass(type(a), cls))]
 
 
@@ -262,23 +263,45 @@ def chunk(items: Iterable[_T], size: int) -> t.Iterator[t.Tuple[_T, ...]]:
     return iter(lambda: tuple(itertools.islice(arr_range, size)), ())
 
 
-def get_subclasses(cls: _TT) -> Iterable[_TT]:
-    visited: t.Set[_TT] = set()
+def get_subclasses(target: _T) -> Iterable[t.Type[_T]]:
+    """
+    Traverse the inheritance tree and return a flat list of
+    all descendants of `cls` (full hierarchy).
 
-    def fn(cls: _TT):
-        if cls in visited:  # pragma: no cover
+    >>> from pytermor import SequenceCSI, Color16
+    >>> get_subclasses(SequenceCSI())
+    [<class 'pytermor.ansi.SequenceSGR'>, <class 'pytermor.ansi._NoOpSequenceSGR'>]
+
+    >>> get_subclasses(Color16)
+    []
+
+    """
+    if not isinstance(target, type):
+        target = type(target)
+
+    visited: t.OrderedDict[_TT] = OrderedDict[_TT]()
+    # using keys in ordered dict as ordered set
+
+    def fn(_cls: _TT):
+        if _cls in visited:  # pragma: no cover
             return
-        visited.add(cls)
+        visited.update({_cls: None})
 
-        for subcls in cls.__subclasses__():
-            fn(subcls)
+        if not hasattr(_cls, "__subclasses__"):  # pragma: no cover
+            return
+        for sub in type.__subclasses__(_cls):
+            fn(sub)
 
-    fn(cls)
-    return visited
+    fn(target)
+
+    result = [*visited.keys()]
+    result.remove(target)
+    return result
 
 
 # -----------------------------------------------------------------------------
 # iterables
+
 
 def isiterable(arg) -> bool:  # pragma: no cover
     return isinstance(arg, Iterable) and not isinstance(arg, (str, bytes))

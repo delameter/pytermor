@@ -11,7 +11,6 @@ Also provides rendering entrypoints `render()` and `echo()`.
 """
 from __future__ import annotations
 
-import math
 import re
 import sys
 import textwrap
@@ -21,7 +20,8 @@ from collections import deque
 from copy import copy
 from typing import overload
 
-from .common import Align, CT, FT, RT, flatten1, get_qname, fit, pad, isiterable
+from .common import Align, FT, RT, flatten1, get_qname, fit, pad, isiterable
+from .color import Color
 from .exception import ArgTypeError, LogicError
 from .renderer import IRenderer, OutputMode, RendererManager, SgrRenderer
 from .style import NOOP_STYLE, Style, is_ft, make_style
@@ -171,7 +171,7 @@ class Fragment(IRenderable):
             flags.append("+CP")
         props_set.append(" ".join(flags))
 
-        return f"<{self.__class__.__qualname__}>[" + ", ".join(props_set) + "]"
+        return f"<{self.__class__.__qualname__}[" + ", ".join(props_set) + "]>"
 
     def __add__(self, other: str | Fragment) -> Fragment | Text:
         if isinstance(other, str):
@@ -272,7 +272,7 @@ class FrozenText(IRenderable):
 
     def __repr__(self) -> str:  # @todo refactor
         frags = len(self._fragments)
-        result = f"<{self.__class__.__qualname__}>[%sF={frags}%s]"
+        result = f"<{self.__class__.__qualname__}[%sF={frags}%s]>"
         if self._width is not None:
             result %= f"W={self._width}, ", "%s"
         else:
@@ -314,6 +314,10 @@ class FrozenText(IRenderable):
         def ss_frag() -> Fragment:
             return Fragment(ss_unload())
 
+        def ss_apply(ft: FT) -> Fragment:
+            st = make_style(ft)
+            return Fragment(ss_unload(), st)
+
         while len(fargs) or str_stack:
             if not len(fargs):
                 yield ss_frag()
@@ -323,18 +327,23 @@ class FrozenText(IRenderable):
             if isinstance(farg, tuple):
                 if str_stack:  # discharge stack
                     yield ss_frag()
-                if not (1 <= len(farg) <= 2):
-                    raise ValueError("Tuples should consist of 1 or 2 elements")
-                yield Fragment(*farg)
+                if len(farg):
+                    yield from cls._parse_fargs(farg)
+
             elif isinstance(farg, IRenderable):
-                if str_stack:  # discharge stack
+                if str_stack:  # discharge
                     yield ss_frag()
                 yield from farg.as_fragments()
+
             elif is_ft(farg):
                 if isinstance(farg, str) and not str_stack:
                     str_stack.append(farg)
-                else:
-                    yield Fragment(ss_unload(), farg)
+                    continue
+                try:
+                    yield ss_apply(farg)
+                except LookupError:  # discharge
+                    yield ss_frag()
+                    str_stack.append(farg)
             else:
                 raise TypeError(f"Expected RT|FT, got {type(farg)}: {farg}")
 
@@ -366,7 +375,7 @@ class FrozenText(IRenderable):
         cur_frag_idx = 0
         overflow_buf = self._overflow[:max_len]
         overflow_start = max_len - len(overflow_buf)
-        attrs_stack: t.Dict[str, t.List[bool | CT | None]] = {
+        attrs_stack: t.Dict[str, t.List[bool | Color | None]] = {
             attr: [None] for attr in Style.renderable_attributes
         }
         renderer = self._resolve_renderer(renderer)
@@ -410,10 +419,10 @@ class FrozenText(IRenderable):
                         )
 
         # aligning and filling
-        model_result = cur_len*'@'
+        model_result = cur_len * "@"
         model = fit(model_result, (self._width or max_len), self._align, "", " ")
 
-        spare_left, spare_right = pad(model.count(' ')), ""
+        spare_left, spare_right = pad(model.count(" ")), ""
         if model_result:
             spare_left, _, spare_right = model.partition(model_result)
 
@@ -501,7 +510,7 @@ class Composite(IRenderable):
 
     def __repr__(self) -> str:
         frags = len(self._parts)
-        result = f"<{self.__class__.__qualname__}>[F={frags}%s]"
+        result = f"<{self.__class__.__qualname__}[F={frags}%s]>"
         if frags == 0:
             return result % ""
         return result % (", " + ", ".join([repr(f) for f in self._parts]))
@@ -610,7 +619,7 @@ class SimpleTable(IRenderable):
 
     def __repr__(self) -> str:
         frags = len(flatten1(self._rows))
-        result = f"<{self.__class__.__qualname__}>[R={len(self._rows)}, F={frags}]"
+        result = f"<{self.__class__.__qualname__}[R={len(self._rows)}, F={frags}]>"
         return result
 
     def as_fragments(self) -> t.List[Fragment]:
@@ -759,7 +768,7 @@ def echo(
     :param indent_subseq:
     """
     end = "\n" if nl else ""
-    will_wrap = (wrap or indent_first or indent_subseq)
+    will_wrap = wrap or indent_first or indent_subseq
 
     fmtd = render(string, fmt, renderer)
 
@@ -768,7 +777,7 @@ def echo(
         width = get_preferable_wrap_width(force_width)
         result = wrap_sgr(fmtd, width, indent_first, indent_subseq).rstrip("\n")
     elif isiterable(fmtd):
-        result = ''.join(fmtd)
+        result = "".join(fmtd)
     else:
         result = fmtd
 

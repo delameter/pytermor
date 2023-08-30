@@ -11,14 +11,21 @@ import typing as t
 import pytest
 
 import pytermor as pt
-from pytermor import ArgTypeError
+from pytermor import ArgTypeError, Color, CDT, FT, IT, Style, Color256
+from pytermor.exception import ArgCountError
 from tests import format_test_params
 
 
-def words_to_regex(words: t.Iterable[str]) -> t.Pattern:
+def word_normalize(word: str | type) -> str:
+    if isinstance(word, (type, t.TypeVar)):
+        return word.__name__
+    return word
+
+
+def words_to_regex(words: t.Iterable[str | type]) -> t.Pattern:
     if not words:
         return re.compile("^$")
-    return re.compile(".*".join(map(re.escape, words)))
+    return re.compile(".*".join(map(re.escape, map(word_normalize, words))))
 
 
 class TestArgTypeError:
@@ -28,29 +35,35 @@ class TestArgTypeError:
         [
             (["Argument", "string", "int"], lambda: pt.render(0)),
             (
-                ["Argument", "fmt", "FT", "<Style>"],
+                ["Argument", "fmt", FT, f"<{word_normalize(Style)}>"],
                 lambda: pt.make_style(pt.Style),
             ),
             (
-                ["Argument", "arg", "CDT", "IColor", "list"],
+                ["Argument", "arg", CDT, Color, "list"],
                 lambda: setattr(pt.Style(), "fg", [None]),
             ),
             (
-                ["Argument", "override", "Dict", "IT", "None", "float"],
+                ["Argument", "override", "Dict", IT, "None", "float"],
                 lambda: pt.OmniMapper(14.88),
             ),
             (
-                ["Argument", "fallback", "Style", "Color256"],
+                ["Argument", "fallback", Style, Color256],
                 lambda: pt.Style(pt.cv.RED_3),
             ),
             (
-                ["Argument", "fallback", "Style", "str"],
+                ["Argument", "fallback", Style, "str"],
                 lambda: pt.Style("red"),
             ),
         ],
         ids=format_test_params,
     )
-    def test_exception(self, exp_words: t.Iterable[str], fn: t.Callable):
+    def test_exception(self, exp_words: t.Iterable[str | type], fn: t.Callable):
         regex = words_to_regex(exp_words)
         with pytest.raises(ArgTypeError, match=regex):
             fn()
+
+
+class TestArgCountError:
+    def test(self):
+        err = str(ArgCountError(29, 35))
+        assert all(num in err for num in ('29', '35'))

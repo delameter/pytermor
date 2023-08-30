@@ -19,8 +19,11 @@ from pytermor import (
     NOOP_COLOR,
     Color256,
     ColorRGB,
-    IColor,
     make_style,
+    RGB,
+    HSV,
+    XYZ,
+    LAB,
 )
 from pytermor.exception import LogicError, ArgTypeError
 
@@ -38,10 +41,11 @@ class TestStyle:
             (Style(fg=0x0EB0B0), 0x0EB0B0),
             (Style(fg=0xAAAAAA), "#aaa"),
             (Style(fg=0xA0AACA), "#a0aaca"),
-            (
-                Style(bg="yellow", bold=True),
-                Style(bg="yellow", bold=True),
-            ),
+            (Style(bg="red", bold=True), Style(bg="red", bold=True)),
+            (Style(bold=True, frozen=True), 'bold'),
+            (Style(dim=True, frozen=True), 'dim'),
+            (Style(italic=True, frozen=True), 'italic'),
+            (Style(underlined=True, frozen=True), 'underlined'),
             pytest.param(None, [], marks=pytest.mark.xfail(raises=ArgTypeError)),
         ],
         ids=format_test_params,
@@ -67,6 +71,10 @@ class TestStyle:
             (0x000000, "black"),
             (0x00005F, "navy_blue"),
             (0x0052CC, "jira_blue"),
+            (0x111488, RGB(0x111488)),
+            (0x808000, HSV(60, 1.0, 0.5)),
+            (0xCCB7B4, XYZ(50, 50, 50)),
+            (0xCF4B22, LAB(50, 50, 50)),
             pytest.param(None, [], marks=pytest.mark.xfail(raises=ArgTypeError)),
             pytest.param(None, None, marks=pytest.mark.xfail(raises=LogicError)),
         ],
@@ -75,7 +83,7 @@ class TestStyle:
     def test_style_color_resolver(self, expected_result: int, color_arg: typing.Any):
         st = Style()
         st.fg = color_arg
-        assert st.fg.hex_value == expected_result
+        assert st.fg.int == expected_result
 
     @pytest.mark.parametrize(
         "st",
@@ -114,11 +122,11 @@ class TestStyle:
     )
     def test_autopick_fg(self, expected_fg_brightness: float, bg: int | None):
         st = Style(bg=bg).autopick_fg()
-        fg_brightness = st.fg.to_hsv().value
+        fg_brightness = st.fg.hsv.value
         assert isclose(fg_brightness, expected_fg_brightness, abs_tol=0.10)  # 10% margin
 
     def test_autopick_fg_doesnt_change_without_bg(self):
-        assert Style(fg=0x800080).autopick_fg().fg.hex_value == 0x800080
+        assert Style(fg=0x800080).autopick_fg().fg.int == 0x800080
 
     @pytest.mark.parametrize(
         "style1,style2",
@@ -343,7 +351,9 @@ class TestStyleMerging:
         ],
         ids=format_test_params,
     )
-    def test_style_merging_overwrite(self, expected: Style, base: Style, overwrite: Style):
+    def test_style_merging_overwrite(
+        self, expected: Style, base: Style, overwrite: Style
+    ):
         assert base.merge_overwrite(overwrite) == expected
 
     @pytest.mark.parametrize(

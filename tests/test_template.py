@@ -53,6 +53,10 @@ class TestTemplate:
                 "\x1b[4m12\x1b[24m \x1b[4m34\x1b[24m \x1b[4m56\x1b[24m",
             ),
             (
+                ":[underline_color=gray50]1234:[-]",
+                "\x1b[58;5;244m1234\x1b[59m",
+            ),
+            (
                 ":[,overlined]12,34, 56:[-]",
                 "\x1b[53m12\x1b[55m,\x1b[53m34\x1b[55m, \x1b[53m56\x1b[55m",
             ),
@@ -79,6 +83,10 @@ class TestTemplate:
             (
                 ":[air-superiority-blue]A:[-]0",
                 "\x1b[38;2;114;160;193m" "A" "\x1b[39m" "0",
+            ),
+            (
+                ":[bg=#003366]A:[-]0",
+                "\x1b[48;2;0;51;102m" "A" "\x1b[49m" "0",
             ),
             pytest.param(
                 ":[fg=non-existing]A:[-]0",

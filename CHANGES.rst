@@ -51,8 +51,9 @@ pending
 - |TESTS| fix params
 - |MAINTAIN| missing imports
 - |MAINTAIN| missing imports
+- |FIX| `SequenceNf` assembling
 
-.. <@pending:0b99b5e>
+.. <@pending:c4e3a03>
 .. ^ blank line before should be kept
 
 

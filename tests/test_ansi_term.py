@@ -16,6 +16,26 @@ from pytermor.term import *
 from tests import format_test_params
 
 
+class TestSequence:
+    @mark.parametrize(
+        "seq, expected",
+        [
+            (SequenceFp('0'), True),
+            (SequenceFp('4'), True),
+            (SequenceFe('Z'), True),
+            (SequenceFs('|'), True),
+            (SequenceNf('!', 's'), True),
+            (make_set_cursor(), True),
+            (make_move_cursor_down(), True),
+            (make_erase_in_display(), True),
+            (make_enable_alt_screen_buffer(), True),
+            (NOOP_SEQ, False),
+        ],
+        ids=format_test_params
+    )
+    def test_cast_to_bool(self, seq: ISequence, expected: bool):
+        assert bool(seq) == expected
+
 class TestSequenceNf:
     def test_assembling(self):
         assert SequenceNf("#", "3", "?").assemble() == "\x1b#?3"

@@ -22,8 +22,12 @@ digraph G {
 
     pytermor_ansi [shape="folder",group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="ansi"];
     pytermor_color [shape="folder",group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="color"];
-    pytermor_conv [shape="folder",group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="conv"];
     pytermor_cval [shape="tab",fillcolor="#769440",fontcolor="#ffffff",label="cval"];
+    pytermor_dev_decorators [fillcolor="#995252",fontcolor="#ffffff",label="dev.decorators"];
+    pytermor_dev_ioproxy [fillcolor="#c24747",fontcolor="#ffffff",label="dev.ioproxy"];
+    pytermor_dev_iterx [fillcolor="#b65353",fontcolor="#ffffff",label="dev.iterx"];
+    pytermor_dev_progressbar [fillcolor="#ac4949",fontcolor="#ffffff",label="dev\.\nprogressbar"];
+    pytermor_dev_tstatectl [fillcolor="#c04040",fontcolor="#ffffff",label="dev.tstatectl"];
     pytermor_filter [shape="folder",group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="filter"];
     pytermor_numfmt [shape="tab",fillcolor="#769440",fontcolor="#ffffff",label="numfmt"];
     pytermor_renderer [shape="tab",fillcolor="#769440",fontcolor="#ffffff",label="☢️ renderer"];
@@ -41,9 +45,15 @@ digraph G {
     pytermor_color -> pytermor_renderer [fillcolor="#5f819d"];
     pytermor_color -> pytermor_style [fillcolor="#5f819d"];
     pytermor_color -> pytermor_template [fillcolor="#5f819d"];
-    pytermor_conv -> pytermor_color [fillcolor="#5f819d"];
+    pytermor_color -> pytermor_text [fillcolor="#5f819d"];
     pytermor_cval -> pytermor_numfmt [fillcolor="#769440"];
     pytermor_cval -> pytermor_style [fillcolor="#769440"];
+    pytermor_dev_ioproxy -> pytermor_dev_progressbar [fillcolor="#c24747",weight="2"];
+    pytermor_dev_ioproxy -> pytermor_dev_tstatectl [fillcolor="#c24747",weight="2"];
+    pytermor_dev_iterx -> pytermor_dev_decorators [fillcolor="#b65353",weight="2"];
+    pytermor_dev_progressbar -> pytermor_dev_decorators [fillcolor="#ac4949",weight="2"];
+    pytermor_dev_tstatectl -> pytermor_dev_decorators [fillcolor="#c04040",weight="2"];
+    pytermor_dev_tstatectl -> pytermor_dev_progressbar [fillcolor="#c04040",weight="2"];
     pytermor_renderer -> pytermor_template [fillcolor="#769440"];
     pytermor_renderer -> pytermor_text [fillcolor="#769440"];
     pytermor_style -> pytermor_numfmt [fillcolor="#769440"];

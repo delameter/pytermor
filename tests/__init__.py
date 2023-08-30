@@ -12,7 +12,7 @@ from typing import AnyStr, TypeVar, overload
 
 from pytermor import (
     HSV,
-    IColorType,
+    IColorValue,
     ISequence,
     LAB,
     NonPrintsOmniVisualizer,
@@ -34,6 +34,8 @@ str_filters = [
 def format_test_params(val) -> str | None:
     if isinstance(val, str):
         return apply_filters(val, *str_filters)
+    if isinstance(val, bool):
+        return ('FALSE', 'TRUE')[bool(val)]
     if isinstance(val, int):
         return f"0x{val:06x}"
     if isinstance(val, (RGB, HSV, LAB, XYZ)):
@@ -62,7 +64,7 @@ def format_timedelta(val: timedelta) -> str:
     return "%s(%s)" % ("", " ".join(args))
 
 
-TT = TypeVar("TT", tuple, IColorType)
+TT = TypeVar("TT", tuple, IColorValue)
 
 
 @overload
@@ -86,7 +88,7 @@ def assert_close(a, b):
         assert isclose(a, b, abs_tol=0.01), f"{a:.3f} !≈ {b:.3f}"
     elif types == {int}:
         assert a == b, f"0x{a:06x} != 0x{b:06x}"
-    elif types == {tuple} or (len(types) == 1 and issubclass(types.pop(), IColorType)):
+    elif types == {tuple} or (len(types) == 1 and issubclass(types.pop(), IColorValue)):
         for (pa, pb) in zip(a, b):
             try:
                 assert_close(pa, pb)

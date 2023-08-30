@@ -159,7 +159,7 @@ class _TemplateTag:
                 base_style = custom_styles[style_attr]
                 continue
 
-            if style_attr.startswith("fg") or style_attr.startswith("bg"):
+            if re.match('fg|bg|underline_color', style_attr):
                 style_attrs.update(
                     {
                         k: (v or DEFAULT_COLOR)
@@ -247,7 +247,7 @@ class TemplateEngine:
             |                               # OR
             (?P<split>[|,]?)                #   /with splitting/ 
             (?P<action>[+$-]?)              #   open style/reset styles/close style
-            (?P<attrs>[a-zA-Z][\w =-]*|)    #   /with style attributes/ or /close last/  
+            (?P<attrs>[a-zA-Z][\w =#-]*|)   #   /with style attributes/ or /close last/  
             
         )\]
         """,

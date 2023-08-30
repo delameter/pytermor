@@ -16,7 +16,7 @@ import typing as t
 from dataclasses import dataclass, field
 from typing import Any
 
-from .color import IColor, NOOP_COLOR, resolve_color
+from .color import Color, NOOP_COLOR, resolve_color, IColorValue, ColorRGB
 from .common import CDT, FT
 from .cval import cv
 from .exception import ArgTypeError, LogicError
@@ -92,12 +92,12 @@ class Style:
     :param class_name:  Custom class name for the element.
     """
 
-    _fg: IColor = field(default=None, init=False)
-    _bg: IColor = field(default=None, init=False)
-    _underline_color: IColor = field(default=None, init=False)
+    _fg: Color = field(default=None, init=False)
+    _bg: Color = field(default=None, init=False)
+    _underline_color: Color = field(default=None, init=False)
 
     @property
-    def fg(self) -> IColor:
+    def fg(self) -> Color:
         """
         Foreground (i.e., text) color. Can be set as `CDT` or ``IColor``,
         stored always as ``IColor``.
@@ -105,7 +105,7 @@ class Style:
         return self._fg
 
     @property
-    def bg(self) -> IColor:
+    def bg(self) -> Color:
         """
         Background color. Can be set as `CDT` or ``IColor``, stored always
         as ``IColor``.
@@ -113,7 +113,7 @@ class Style:
         return self._bg
 
     @property
-    def underline_color(self) -> IColor:
+    def underline_color(self) -> Color:
         """
         Underline color. Can be set as `CDT` or ``IColor``, stored always
         as ``IColor``.
@@ -121,16 +121,16 @@ class Style:
         return self._underline_color
 
     @fg.setter
-    def fg(self, val: CDT | IColor | None):
-        self._fg: IColor = self._resolve_color(val)
+    def fg(self, val: CDT | Color | None):
+        self._fg: Color = self._resolve_color(val)
 
     @bg.setter
-    def bg(self, val: CDT | IColor | None):
-        self._bg: IColor = self._resolve_color(val)
+    def bg(self, val: CDT | Color | None):
+        self._bg: Color = self._resolve_color(val)
 
     @underline_color.setter
-    def underline_color(self, val: CDT | IColor | None):
-        self._underline_color: IColor = self._resolve_color(val)
+    def underline_color(self, val: CDT | Color | None):
+        self._underline_color: Color = self._resolve_color(val)
 
     bold: bool
     """ Bold or increased intensity (depending on terminal settings)."""
@@ -210,8 +210,8 @@ class Style:
     def __init__(
         self,
         fallback: Style = None,
-        fg: CDT | IColor = None,
-        bg: CDT | IColor = None,
+        fg: CDT | Color = None,
+        bg: CDT | Color = None,
         frozen: bool = False,
         *,
         bold: bool = None,
@@ -222,7 +222,7 @@ class Style:
         crosslined: bool = None,
         double_underlined: bool = None,
         curly_underlined: bool = None,
-        underline_color: CDT | IColor = None,
+        underline_color: CDT | Color = None,
         inversed: bool = None,
         blink: bool = None,
         framed: bool = None,
@@ -259,7 +259,7 @@ class Style:
         if fallback is not None:
             if not isinstance(fallback, Style):
                 suggestion = None
-                if isinstance(fallback, (int, str, IColor)):  # pragma: no cover
+                if isinstance(fallback, (int, str, Color)):  # pragma: no cover
                     suggestion = "To set a fg without fallback use Style(fg=<color>)"
                 raise ArgTypeError(fallback, "fallback", Style, suggestion=suggestion)
             self.merge_fallback(fallback)
@@ -299,7 +299,7 @@ class Style:
         if not self._bg:
             return self
 
-        h, s, v = self._bg.to_hsv()
+        h, s, v = self._bg.hsv
         if v >= 0.45:
             self._fg = cv.GRAY_3
         else:
@@ -450,14 +450,17 @@ class Style:
         if hasattr(self, "_frozen") and self._frozen:
             raise LogicError(f"{self.__class__.__qualname__} is immutable")
 
-    def _resolve_color(self, arg: CDT | IColor | None) -> IColor | None:
+    def _resolve_color(self, arg: CDT | IColorValue | None) -> Color | None:
         if arg is None:
             return NOOP_COLOR
-        if isinstance(arg, IColor):
+        if isinstance(arg, Color):
             return arg
-        if isinstance(arg, (str, int)) and not isinstance(arg, bool):  # undesirable isinstance(True, int) --> #000001
+        if isinstance(arg, IColorValue):
+            return ColorRGB(arg.int)
+        if isinstance(arg, (str, int)) and not isinstance(arg, bool):
+            # undesirable isinstance(True, int) --> #000001
             return resolve_color(arg)
-        raise ArgTypeError(arg, "arg", CDT, IColor, None)
+        raise ArgTypeError(arg, "arg", CDT, IColorValue, None)
 
     def __setattr__(self, name: str, value: Any) -> None:
         self._ensure_not_frozen()
@@ -480,7 +483,7 @@ class Style:
         else:
             colors = []
             for attr_name in ("fg", "bg"):
-                val: IColor = getattr(self, attr_name)
+                val: Color = getattr(self, attr_name)
                 prefix = "" if attr_name == "fg" else "|"
                 valstr = prefix + val.repr_attrs(verbose)
                 if not valstr.endswith("NOP"):
@@ -489,10 +492,10 @@ class Style:
         props = []
         for attr_name in self.renderable_attributes:
             attr = getattr(self, attr_name)
-            if isinstance(attr, IColor) and attr and attr_name == "underline_color":
+            if isinstance(attr, Color) and attr and attr_name == "underline_color":
                 if len(colors):
                     colors.append(" ")
-                colors.append("U:"+attr.repr_attrs(verbose))
+                colors.append("U:" + attr.repr_attrs(verbose))
             elif isinstance(attr, bool):
                 prefix = "+" if attr else "-"
                 prop = attr_name.upper()
@@ -539,6 +542,11 @@ class Styles:
     are immutable.
     """
 
+    BOLD = Style(bold=True, frozen=True)
+    DIM = Style(dim=True, frozen=True)
+    ITALIC = Style(italic=True, frozen=True)
+    UNDERLINED = Style(underlined=True, frozen=True)
+
     WARNING = Style(fg=cv.YELLOW, frozen=True)
     """ """
     WARNING_LABEL = Style(WARNING, frozen=True, bold=True)
@@ -565,7 +573,7 @@ class Styles:
 
 
 def is_ft(arg) -> bool:
-    return isinstance(arg, (type(None), int, str, IColor, Style))
+    return isinstance(arg, (type(None), int, str, IColorValue, Style))
 
 
 def make_style(fmt: FT = None) -> Style:
@@ -589,7 +597,10 @@ def make_style(fmt: FT = None) -> Style:
         return NOOP_STYLE
     if isinstance(fmt, Style):
         return fmt
-    if isinstance(fmt, (str, int, IColor)):
+    if isinstance(fmt, str):
+        if hasattr(Styles, stn := fmt.upper()):
+            return getattr(Styles, stn)
+    if isinstance(fmt, (str, int, IColorValue)):
         return Style(fg=fmt)
     raise ArgTypeError(fmt, "fmt", FT, None)
 

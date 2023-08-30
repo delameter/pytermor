@@ -39,5 +39,5 @@ Color class hierarchy
 
       .. inheritance-diagram:: pytermor.color
          :parts: 1
-         :top-classes:         pytermor.color.IColor
-         :caption:             ``IColor`` inheritance diagram
+         :top-classes:         pytermor.color.IColorValue
+         :caption:             ``Color`` inheritance diagram

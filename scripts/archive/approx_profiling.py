@@ -6,39 +6,31 @@ import time
 import timeit
 import typing as t
 from math import trunc
+from _totalsize import total_size
 
 import pytermor as pt
-from pytermor.utilnum import PrefixedUnitFormatter
 
-puf = PrefixedUnitFormatter(
-    4,
-    True,
-    prefixes=pt.utilnum.PREFIXES_SI,
-    prefix_zero_idx=pt.utilnum.PREFIX_ZERO_SI,
+puf = pt.StaticFormatter(
+    max_value_len=4,
+    prefixes=pt.PREFIXES_SI_DEC,
 )
 
 
 def mem():
     for c in [pt.ColorRGB]:  # pt.Color.__subclasses__()
-        out(c, len(c._map), system.total_size(c._index, verbose=False))
-        out(c, len(c._map), system.total_size(c._approx_cache, verbose=False))
-    out(
-        pt.Color,
-        len(pt.Color._index._map),
-        system.total_size(
-            pt.Color._index, verbose=False
-        ),
-    )
+        out(c, 'registry', len(c._registry), total_size(c._registry._map, verbose=False))
+        out(c, 'index', len(c._index), total_size(c._index._map, verbose=False))
+        out(c, 'approx_cache', len(c._approx_cache), total_size(c._approx_cache, verbose=False))
     print("-" * 50)
 
 
-def out(subj: t.Any, len: int, mem: int):
+def out(subj: t.Any, desc:str, len: int, mem: int):
     print(
         "  ".join(
             (
                 puf.format(len, "").rjust(5),
-                pt.util.format_si_binary(mem).rjust(8),
-                repr(subj).ljust(40),
+                pt.format_si_binary(mem).rjust(8),
+                (repr(subj)+desc).ljust(40),
             )
         )
     )
@@ -68,8 +60,8 @@ pt.ColorRGB._index.add = hook(pt.ColorRGB._index.add)
 
 idx = 0
 
-MAX = 256 * 256 * 16  # 1m
-# MAX = 25600
+#MAX = 256 * 256 * 16  # 1m
+MAX = 25600
 
 
 def register_virtual():
@@ -89,7 +81,7 @@ def instantiate_and_map():
 
 def resolve():
     idx = time.time_ns() % MAX + 1
-    pt.ColorRGB.index.resolve(str(idx) + ":" + str(idx))
+    pt.ColorRGB._registry.resolve(str(idx) + ":" + str(idx))
 
 
 def approximate():
@@ -97,20 +89,26 @@ def approximate():
     pt.ColorRGB.approximate(val, max_results=1)
 
 
-def approximate_cached():
+def approximate_cache_misses():
     val = time.time_ns() % 0xFFFFFF
     pt.ColorRGB.find_closest(val)
+
+def approximate_cache_hits():
+    pt.ColorRGB.find_closest(0x808080)
 
 
 # p = timeit.timeit(instantiate, number=MAX, globals={'idx': 0})
 p = timeit.timeit(instantiate_and_map, number=MAX, globals={"idx": 0})
-print(f"#       {p:6.2f} s  init time                             #")
+print(f"#       {p:6.2f} s  making {MAX} instances              #")
 
-# ss = timeit.repeat(resolve, number=1000000, repeat=5)
-# print(f'#       {min(ss):6.2f} s  1M operations (bestof5) #')
-ss = timeit.repeat(approximate_cached, number=1000, repeat=2)
-print(f"#       {min(ss):6.2f} s  1K operations (bestof5) #")
-print(ss)
+ss = timeit.repeat(approximate_cache_misses, number=5000, repeat=5)
+print(f"#       {pt.format_time(sum(ss)/(5000*5))}  approximation (cache miss, 25Kavg) #")
+
+ss = timeit.repeat(approximate_cache_hits, number=20000, repeat=50)
+print(f"#       {pt.format_time(sum(ss)/(20000*50))}  approximation (cache hit, 1Mavg) #")
+
+ss = timeit.repeat(resolve, number=1000000, repeat=5)
+print(f'#       {min(ss):6.2f} s  1M operations (bestof5) #')
 
 mem()
 

@@ -16,12 +16,12 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from math import floor, isclose, log, log10, trunc
 
-from .common import Align, RT, fit
+from .common import Align, RT, fit, get_qname
 from .cval import cv
 from .exception import ConflictError
-from .log import get_logger, measure
+from .log import measure
 from .style import Style, Styles, merge_styles
-from .text import Fragment, IRenderable, Text, FrozenText
+from .text import Fragment, Text, FrozenText
 
 _OVERFLOW_CHAR = "!"
 
@@ -544,7 +544,7 @@ class StaticFormatter(NumFormatter):
         return max([0, *[len(p) for p in self._prefixes if p is not None]])
 
     def __repr__(self) -> str:
-        return self.__class__.__qualname__
+        return f'<{get_qname(self)}>'
 
 
 # noinspection PyProtectedMember

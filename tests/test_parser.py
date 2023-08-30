@@ -111,15 +111,15 @@ class TestParser:
                 ],
             ),
             (
-                "z\x1b Fabc\x1b#3def\x1b%@ghi",
+                "z\x1b %abc\x1b#3def\x1b&%ghi",
                 [
                     "z",
-                    SequenceNf("F", " "),
-                    "abc",
+                    SequenceNf("%", " ", "a"),
+                    "bc",
                     SequenceNf("#", "3"),
                     "def",
-                    SequenceNf("@", "%"),
-                    "ghi",
+                    SequenceNf("&", "g", "%"),
+                    "hi",
                 ],
             ),
             (

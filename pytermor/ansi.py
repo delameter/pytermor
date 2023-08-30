@@ -93,10 +93,7 @@ class _SequenceMeta(ABCMeta):
         **kwargs: Any,
     ) -> _SequenceMeta:
         new = super().__new__(__mcls, __name, __bases, __namespace, **kwargs)
-        if classifier := getattr(new, "_CLASSIFIER", None):
-            _CLASSMAP.add(new, __bases, [classifier])
-        elif classifier_range := getattr(new, "_CLASSIFIER_RANGE", None):
-            _CLASSMAP.add(new, __bases, [*classifier_range])
+        new._register(__bases)
         return new
 
 
@@ -105,22 +102,52 @@ class ISequence(t.Sized, metaclass=_SequenceMeta):
     Abstract ancestor of all escape sequences.
     """
 
+    _CLASSIFIER = None
+    _CLASSIFIER_RANGE = None
+    _VIRTUAL = False
+    _ABBR_DEFAULT = "ESC*"
+
     ESC_CHARACTER = "\x1b"
     PARAM_SEPARATOR = ";"
 
     def __init__(
         self,
-        classifier: str = None,
+        classifier: str,
         interm: str = None,
         final: str = None,
-        abbr: str = "ESC*",
+        abbr: str = _ABBR_DEFAULT,
     ):
-        self._classifier: str | None = classifier
+        self._classifier: str = classifier
         self._interm: str | None = interm
         self._final: str | None = final
 
         self._params: list[int] | list[str] | None = None
         self._abbr: str = abbr
+
+        self._validate()
+
+    @classmethod
+    def _register(cls, __bases):
+        if cls._VIRTUAL:
+            return
+        if cls._CLASSIFIER:
+            _CLASSMAP.add(cls, __bases, [cls._CLASSIFIER])
+        elif cls._CLASSIFIER_RANGE:
+            _CLASSMAP.add(cls, __bases, [*cls._CLASSIFIER_RANGE])
+
+    def _validate(self):
+        clfer = self._classifier
+        if len(clfer) != 1:  # pragma: no cover
+            raise ValueError(f"Classifier should consist of one char: {clfer!r}")
+        if self._CLASSIFIER and clfer != self._CLASSIFIER:
+            raise LogicError(f"Classifier mismatch: {self._CLASSIFIER} != {clfer!r}")
+        if self._CLASSIFIER_RANGE and ord(clfer) not in self._CLASSIFIER_RANGE:
+            raise LogicError(
+                f"Classifier {clfer!r} not in allowed {self._CLASSIFIER_RANGE!r}"
+            )
+
+        if self._final is not None and len(self._final) != 1:  # pragma: no cover
+            raise ValueError(f"Final byte should consist of one char: {self._final!r}")
 
     def _assign_params(self, *params: int | str):
         self._params = []
@@ -173,6 +200,9 @@ class ISequence(t.Sized, metaclass=_SequenceMeta):
     def __len__(self) -> int:
         return 0
 
+    def __bool__(self) -> bool:
+        return True
+
     def __eq__(self, other: ISequence):
         if type(self) != type(other):  # pragma: no cover
             return False
@@ -180,7 +210,8 @@ class ISequence(t.Sized, metaclass=_SequenceMeta):
 
     def __repr__(self) -> str:
         params = self.PARAM_SEPARATOR.join(map(str, self._params or []))
-        return f"<{self._abbr}[{params}{self._interm or ''}{self._final or ''}]>"
+        clfer = ("", self._classifier)[self._abbr == self._ABBR_DEFAULT]
+        return f"<{self._abbr}[{clfer}{params}{self._interm or ''}{self._final or ''}]>"
 
 
 class SequenceNf(ISequence):
@@ -193,9 +224,10 @@ class SequenceNf(ISequence):
     """
 
     _CLASSIFIER_RANGE = range(0x20, 0x30)
+    _ABBR_DEFAULT = "nF"
 
     def __init__(
-        self, classifier: str, final: str, interm: str = None, abbr: str = "nF"
+        self, classifier: str, final: str, interm: str = None, abbr=_ABBR_DEFAULT
     ):
         """
         :param interm: intermediate bytes :hex:`0x20-0x2F`
@@ -206,9 +238,7 @@ class SequenceNf(ISequence):
         """
         Build up actual byte sequence and return as an ASCII-encoded string.
         """
-        return (
-            self.ESC_CHARACTER + self._classifier + (self._interm or "") + self._final
-        )
+        return self.ESC_CHARACTER + self._classifier + (self._interm or "") + self._final
 
     @classmethod
     def from_dict(cls, data: dict) -> SequenceNf:
@@ -229,8 +259,9 @@ class SequenceFp(ISequence):
     """
 
     _CLASSIFIER_RANGE = range(0x30, 0x40)
+    _ABBR_DEFAULT = "Fp"
 
-    def __init__(self, classifier: str, abbr="Fp"):
+    def __init__(self, classifier: str, abbr=_ABBR_DEFAULT):
         """
         .
         """
@@ -250,8 +281,9 @@ class SequenceFs(ISequence):
     """
 
     _CLASSIFIER_RANGE = range(0x60, 0x7F)
+    _ABBR_DEFAULT = "Fs"
 
-    def __init__(self, classifier: str, abbr="Fs"):
+    def __init__(self, classifier: str, abbr=_ABBR_DEFAULT):
         """
         .
         """
@@ -273,6 +305,7 @@ class SequenceFe(ISequence):
     """
 
     _CLASSIFIER_RANGE = range(0x40, 0x60)
+    _ABBR_DEFAULT = "Fe"
 
     def __init__(
         self,
@@ -280,7 +313,7 @@ class SequenceFe(ISequence):
         *params: int | str,
         interm: str = None,
         final: str = None,
-        abbr="Fe",
+        abbr=_ABBR_DEFAULT,
     ):
         """
         .
@@ -540,6 +573,8 @@ class SequenceSGR(SequenceCSI):
 
 
 class _NoOpSequenceSGR(SequenceSGR):
+    _VIRTUAL = True
+
     def __init__(self):
         super().__init__()
 
@@ -569,7 +604,7 @@ class _NoOpSequenceSGR(SequenceSGR):
 
     @classmethod
     def from_dict(cls, data: dict) -> SequenceFe:
-        return super().from_dict(data)  # no equivalent
+        raise LogicError  # no equivalent
 
 
 @total_ordering

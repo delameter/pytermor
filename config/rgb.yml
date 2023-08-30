@@ -7,8 +7,11 @@ colors:
     original_name: Acajou
     value: 0x4c2f27
   - name: acid-green
-    original_name: Acid green
-    value: 0xb0bf1a
+    original_name: acid green
+    value: 0x8ffe09
+  - name: adobe
+    original_name: adobe
+    value: 0xbd6c48
   - name: aero
     original_name: Aero
     value: 0x7cb9e8
@@ -37,6 +40,12 @@ colors:
   - name: alexandria
     original_name: Alexandria (Atlassian)
     value: 0xff8f73
+  - name: algae
+    original_name: algae
+    value: 0x54ac68
+  - name: algae-green
+    original_name: algae green
+    value: 0x21c36f
   - name: alice-blue
     original_name: Alice blue
     value: 0xf0f8ff
@@ -49,6 +58,9 @@ colors:
   - name: almond
     original_name: Almond
     value: 0xefdecd
+  - name: almost-black
+    original_name: almost black
+    value: 0x070d0d
   - name: aloeswood-brown
     original_name: Aloeswood brown (Tonocha)
     value: 0x5a6457
@@ -80,8 +92,8 @@ colors:
     original_name: Amazon
     value: 0x3b7a57
   - name: amber
-    original_name: Amber
-    value: 0xffbf00
+    original_name: amber
+    value: 0xfeb308
     variations:
       - name: kohaku-iro
         original_name: Amber (Kohaku-iro)
@@ -129,8 +141,8 @@ colors:
     original_name: American yellow
     value: 0xf2b400
   - name: amethyst
-    original_name: Amethyst
-    value: 0x9966cc
+    original_name: amethyst
+    value: 0x9b5fc0
   - name: amur-cork-tree
     original_name: Amur cork tree (Phellodendron amurense) (Kihada)
     value: 0xf3c13a
@@ -153,23 +165,33 @@ colors:
     original_name: Antique white
     value: 0xfaebd7
   - name: apple
-    original_name: Apple
-    value: 0x66b447
+    original_name: apple
+    value: 0x6ecb3c
   - name: apple-green
-    original_name: Apple green
-    value: 0x8db600
+    original_name: apple green
+    value: 0x76cd26
   - name: apricot
-    original_name: Apricot
-    value: 0xfbceb1
+    original_name: apricot
+    value: 0xffb16d
   - name: aqua
-    original_name: Aqua
-    value: 0x00ffff
+    original_name: aqua
+    value: 0x13eac9
   - name: aqua-blue
-    original_name: Aqua Blue color (Mizu-iro)
-    value: 0x86aba5
+    original_name: aqua blue
+    value: 0x02d8e9
+    variations:
+      - name: mizu-iro
+        original_name: Aqua Blue color (Mizu-iro)
+        value: 0x86aba5
+  - name: aqua-green
+    original_name: aqua green
+    value: 0x12e193
+  - name: aqua-marine
+    original_name: aqua marine
+    value: 0x2ee8bb
   - name: aquamarine
-    original_name: Aquamarine
-    value: 0x7fffd4
+    original_name: aquamarine
+    value: 0x04d8b2
   - name: arctic-chill
     original_name: Arctic chill (Atlassian)
     value: 0xb3f5ff
@@ -180,8 +202,8 @@ colors:
     original_name: Argent
     value: 0xc0c0c0
   - name: army-green
-    original_name: Army green
-    value: 0x4b5320
+    original_name: army green
+    value: 0x4b5d16
   - name: artichoke
     original_name: Artichoke
     value: 0x8f9779
@@ -218,8 +240,8 @@ colors:
     original_name: Ash gray
     value: 0xb2beb5
   - name: asparagus
-    original_name: Asparagus
-    value: 0x87a96b
+    original_name: asparagus
+    value: 0x77ab56
   - name: aspen-green
     original_name: Aspen Green
     value: 0x687652
@@ -229,9 +251,12 @@ colors:
   - name: atomic-tangerine
     original_name: Atomic tangerine
     value: 0xff9966
+  - name: aubergine
+    original_name: aubergine
+    value: 0x3d0734
   - name: auburn
-    original_name: Auburn
-    value: 0xa52a2a
+    original_name: auburn
+    value: 0x9a3001
   - name: aureolin
     original_name: Aureolin
     value: 0xfdee00
@@ -239,17 +264,23 @@ colors:
     original_name: AuroMetalSaurus
     value: 0x6e7f80
   - name: avocado
-    original_name: Avocado
-    value: 0x568203
+    original_name: avocado
+    value: 0x90b134
+  - name: avocado-green
+    original_name: avocado green
+    value: 0x87a922
   - name: awesome
     original_name: Awesome
     value: 0xff2052
   - name: axolotl
     original_name: Axolotl
     value: 0x63775b
+  - name: azul
+    original_name: azul
+    value: 0x1d5dec
   - name: azure
-    original_name: Azure
-    value: 0x007fff
+    original_name: azure
+    value: 0x069af3
   - name: azure-mist
     original_name: Azure mist
     value: 0xf0ffff
@@ -257,17 +288,41 @@ colors:
     original_name: Azureish white
     value: 0xdbe9f4
   - name: baby-blue
-    original_name: Baby blue
-    value: 0x89cff0
+    original_name: baby blue
+    value: 0xa2cffe
   - name: baby-blue-eyes
     original_name: Baby blue eyes
     value: 0xa1caf1
+  - name: baby-green
+    original_name: baby green
+    value: 0x8cff9e
   - name: baby-pink
-    original_name: Baby pink
-    value: 0xf4c2c2
+    original_name: baby pink
+    value: 0xffb7ce
+  - name: baby-poo
+    original_name: baby poo
+    value: 0xab9004
+  - name: baby-poop
+    original_name: baby poop
+    value: 0x937c00
+  - name: baby-poop-green
+    original_name: baby poop green
+    value: 0x8f9805
   - name: baby-powder
     original_name: Baby powder
     value: 0xfefefa
+  - name: baby-puke-green
+    original_name: baby puke green
+    value: 0xb6c406
+  - name: baby-purple
+    original_name: baby purple
+    value: 0xca9bf7
+  - name: baby-shit-brown
+    original_name: baby shit brown
+    value: 0xad900d
+  - name: baby-shit-green
+    original_name: baby shit green
+    value: 0x889717
   - name: baiko-brown
     original_name: Baiko brown (Baikōcha)
     value: 0x857c55
@@ -280,12 +335,15 @@ colors:
   - name: bamboo-cream
     original_name: Bamboo Cream
     value: 0xf2e096
+  - name: banana
+    original_name: banana
+    value: 0xffff7e
   - name: banana-mania
     original_name: Banana Mania
     value: 0xfae7b5
   - name: banana-yellow
-    original_name: Banana yellow
-    value: 0xffe135
+    original_name: banana yellow
+    value: 0xfafe4b
   - name: banff-blue
     original_name: Banff Blue
     value: 0x83a9c1
@@ -293,8 +351,8 @@ colors:
     original_name: Bangladesh green
     value: 0x006a4e
   - name: barbie-pink
-    original_name: Barbie Pink
-    value: 0xe94196
+    original_name: barbie pink
+    value: 0xfe46a5
     variations:
       - name: 1959-1975
         original_name: Barbie Pink (1959-1975)
@@ -317,15 +375,27 @@ colors:
       - name: pantone
         original_name: Barbie Pink (Pantone)
         value: 0xe0218a
+  - name: barf-green
+    original_name: barf green
+    value: 0x94ac02
   - name: barn-red
     original_name: Barn red
     value: 0x7c0a02
+  - name: barney
+    original_name: barney
+    value: 0xac1db8
+  - name: barney-purple
+    original_name: barney purple
+    value: 0xa00498
   - name: battery-charged-blue
     original_name: Battery charged blue
     value: 0x1dacd6
   - name: battleship-gray
     original_name: Battleship gray
     value: 0x848482
+  - name: battleship-grey
+    original_name: battleship grey
+    value: 0x6b7c85
   - name: bayside
     original_name: Bayside
     value: 0x5fc9bf
@@ -348,11 +418,14 @@ colors:
     original_name: Begonia
     value: 0xfa6e79
   - name: beige
-    original_name: Beige
-    value: 0xf5f5dc
+    original_name: beige
+    value: 0xe6daa6
   - name: bellflower
     original_name: Bellflower color (Kikyō-iro)
     value: 0x5d3f6a
+  - name: berry
+    original_name: berry
+    value: 0x990f4b
   - name: betel-nut-dye
     original_name: Betel nut dye (Binrōjizome)
     value: 0x352925
@@ -362,6 +435,9 @@ colors:
   - name: big-foot-feet
     original_name: Big Foot Feet
     value: 0xe88e5a
+  - name: bile
+    original_name: bile
+    value: 0xb5c306
   - name: birch-brown
     original_name: Birch brown (Kabacha)
     value: 0xb14a30
@@ -387,8 +463,12 @@ colors:
     original_name: Bittersweet shimmer
     value: 0xbf4f51
   - name: black
-    original_name: Black (Kokushoku)
-    value: 0x171412
+    original_name: black
+    value: 0x000000
+    variations:
+      - name: kokushoku
+        original_name: Black (Kokushoku)
+        value: 0x171412
   - name: black-bean
     original_name: Black bean
     value: 0x3d0c02
@@ -428,6 +508,9 @@ colors:
   - name: blanched-almond
     original_name: Blanched almond
     value: 0xffebcd
+  - name: bland
+    original_name: bland
+    value: 0xafa88b
   - name: blast-off-bronze
     original_name: Blast-off bronze
     value: 0xa57164
@@ -444,8 +527,8 @@ colors:
     original_name: Blond
     value: 0xfaf0be
   - name: blood
-    original_name: Blood
-    value: 0x8a0303
+    original_name: blood
+    value: 0x770001
     variations:
       - name: animal
         original_name: Blood (Animal)
@@ -454,19 +537,22 @@ colors:
         original_name: Blood (organ)
         value: 0x630f0f
   - name: blood-orange
-    original_name: Blood orange
-    value: 0xd1001c
+    original_name: blood orange
+    value: 0xfe4b03
   - name: blood-red
-    original_name: Blood red
-    value: 0x660000
+    original_name: blood red
+    value: 0x980002
     variations:
       - name: benihi
         original_name: Blood red (Benihi)
         value: 0xf35336
   - name: blue
-    original_name: Blue (Crayola)
-    value: 0x1f75fe
+    original_name: blue
+    value: 0x0343df
     variations:
+      - name: crayola
+        original_name: Blue (Crayola)
+        value: 0x1f75fe
       - name: munsell
         original_name: Blue (Munsell)
         value: 0x0093af
@@ -488,6 +574,9 @@ colors:
   - name: blue-black-crayfish
     original_name: Blue Black Crayfish (Aoni)
     value: 0x52593b
+  - name: blue-blue
+    original_name: blue blue
+    value: 0x2242c7
   - name: blue-bolt
     original_name: Blue bolt
     value: 0x00b9fb
@@ -498,8 +587,8 @@ colors:
     original_name: Blue-gray
     value: 0x6699cc
   - name: blue-green
-    original_name: Blue-green
-    value: 0x0d98ba
+    original_name: blue green
+    value: 0x137e6d
     variations:
       - name: color-wheel
         original_name: Blue-green (color wheel)
@@ -507,6 +596,9 @@ colors:
       - name: seiheki
         original_name: Blue-green (Seiheki)
         value: 0x3a6960
+  - name: blue-grey
+    original_name: blue grey
+    value: 0x607c8e
   - name: blue-jeans
     original_name: Blue jeans
     value: 0x5dadec
@@ -522,6 +614,9 @@ colors:
   - name: blue-panik
     original_name: Blue panik
     value: 0x5786fe
+  - name: blue-purple
+    original_name: blue purple
+    value: 0x5729ce
   - name: blue-raspberry
     original_name: Blue raspberry
     value: 0x0cbfe9
@@ -529,8 +624,8 @@ colors:
     original_name: Blue sapphire
     value: 0x126180
   - name: blue-violet
-    original_name: Blue-violet
-    value: 0x8a2be2
+    original_name: blue violet
+    value: 0x5d06e9
     variations:
       - name: color-wheel
         original_name: Blue-violet (color wheel)
@@ -541,18 +636,54 @@ colors:
       - name: shikon
         original_name: Blue-violet (Shikon)
         value: 0x2b2028
+  - name: blue-with-a-hint-of-purple
+    original_name: blue with a hint of purple
+    value: 0x533cc6
   - name: blue-yonder
     original_name: Blue yonder
     value: 0x5072a7
   - name: blueberry
-    original_name: Blueberry
-    value: 0x4f86f7
+    original_name: blueberry
+    value: 0x464196
   - name: bluebonnet
     original_name: Bluebonnet
     value: 0x1c1cf0
+  - name: bluegreen
+    original_name: bluegreen
+    value: 0x017a79
+  - name: bluegrey
+    original_name: bluegrey
+    value: 0x85a3b2
+  - name: bluey-green
+    original_name: bluey green
+    value: 0x2bb179
+  - name: bluey-grey
+    original_name: bluey grey
+    value: 0x89a0b0
+  - name: bluey-purple
+    original_name: bluey purple
+    value: 0x6241c7
+  - name: bluish
+    original_name: bluish
+    value: 0x2976bb
+  - name: bluish-green
+    original_name: bluish green
+    value: 0x10a674
+  - name: bluish-grey
+    original_name: bluish grey
+    value: 0x748b97
+  - name: bluish-purple
+    original_name: bluish purple
+    value: 0x703be7
+  - name: blurple
+    original_name: blurple
+    value: 0x5539cc
   - name: blush
-    original_name: Blush
-    value: 0xde5d83
+    original_name: blush
+    value: 0xf29e8e
+  - name: blush-pink
+    original_name: blush pink
+    value: 0xfe828c
   - name: boiled-red-bean-brown
     original_name: Boiled red bean brown (Momoshiocha)
     value: 0x542d24
@@ -568,9 +699,24 @@ colors:
   - name: bone
     original_name: Bone
     value: 0xe3dac9
+  - name: booger
+    original_name: booger
+    value: 0x9bb53c
+  - name: booger-green
+    original_name: booger green
+    value: 0x96b403
+  - name: bordeaux
+    original_name: bordeaux
+    value: 0x7b002c
   - name: bored-accent-green
     original_name: Bored accent green
     value: 0xdde26a
+  - name: boring-green
+    original_name: boring green
+    value: 0x63b365
+  - name: bottle-green
+    original_name: bottle green
+    value: 0x044a05
   - name: boy-red
     original_name: Boy red
     value: 0x0e9ca5
@@ -592,39 +738,100 @@ colors:
   - name: brewed-mustard-brown
     original_name: Brewed mustard-brown (Tokigaracha)
     value: 0xe68364
+  - name: brick
+    original_name: brick
+    value: 0xa03623
+  - name: brick-orange
+    original_name: brick orange
+    value: 0xc14a09
   - name: brick-red
-    original_name: Brick red
-    value: 0xcb4154
+    original_name: brick red
+    value: 0x8f1402
+  - name: bright-aqua
+    original_name: bright aqua
+    value: 0x0bf9ea
+  - name: bright-blue
+    original_name: bright blue
+    value: 0x0165fc
+  - name: bright-cyan
+    original_name: bright cyan
+    value: 0x41fdfe
   - name: bright-gray
     original_name: Bright gray
     value: 0xebecf0
   - name: bright-green
-    original_name: Bright green
-    value: 0x66ff00
+    original_name: bright green
+    value: 0x01ff07
   - name: bright-lavender
-    original_name: Bright lavender
-    value: 0xbf94e4
+    original_name: bright lavender
+    value: 0xc760ff
+  - name: bright-light-blue
+    original_name: bright light blue
+    value: 0x26f7fd
+  - name: bright-light-green
+    original_name: bright light green
+    value: 0x2dfe54
   - name: bright-lilac
-    original_name: Bright lilac
-    value: 0xd891ef
+    original_name: bright lilac
+    value: 0xc95efb
+  - name: bright-lime
+    original_name: bright lime
+    value: 0x87fd05
+  - name: bright-lime-green
+    original_name: bright lime green
+    value: 0x65fe08
+  - name: bright-magenta
+    original_name: bright magenta
+    value: 0xff08e8
   - name: bright-maroon
     original_name: Bright maroon
     value: 0xc32148
   - name: bright-navy-blue
     original_name: Bright navy blue
     value: 0x1974d2
+  - name: bright-olive
+    original_name: bright olive
+    value: 0x9cbb04
+  - name: bright-orange
+    original_name: bright orange
+    value: 0xff5b00
   - name: bright-pink
-    original_name: Bright pink
-    value: 0xff007f
+    original_name: bright pink
+    value: 0xfe01b1
+  - name: bright-purple
+    original_name: bright purple
+    value: 0xbe03fd
+  - name: bright-red
+    original_name: bright red
+    value: 0xff000d
+  - name: bright-sea-green
+    original_name: bright sea green
+    value: 0x05ffa6
+  - name: bright-sky-blue
+    original_name: bright sky blue
+    value: 0x02ccfe
+  - name: bright-teal
+    original_name: bright teal
+    value: 0x01f9c6
   - name: bright-turquoise
-    original_name: Bright turquoise
-    value: 0x08e8de
+    original_name: bright turquoise
+    value: 0x0ffef9
   - name: bright-ube
     original_name: Bright ube
     value: 0xd19fe8
+  - name: bright-violet
+    original_name: bright violet
+    value: 0xad0afd
   - name: bright-yellow
-    original_name: Bright yellow (Crayola)
-    value: 0xffaa1d
+    original_name: bright yellow
+    value: 0xfffd01
+    variations:
+      - name: crayola
+        original_name: Bright yellow (Crayola)
+        value: 0xffaa1d
+  - name: bright-yellow-green
+    original_name: bright yellow green
+    value: 0x9dff00
   - name: brilliant-azure
     original_name: Brilliant azure
     value: 0x3399ff
@@ -638,11 +845,11 @@ colors:
     original_name: Brink pink
     value: 0xfb607f
   - name: british-racing-green
-    original_name: British racing green
-    value: 0x004225
+    original_name: british racing green
+    value: 0x05480d
   - name: bronze
-    original_name: Bronze
-    value: 0xcd7f32
+    original_name: bronze
+    value: 0xa87900
     variations:
       - name: '2'
         original_name: Bronze (2)
@@ -657,8 +864,8 @@ colors:
     original_name: Brookmere Green
     value: 0x3d504b
   - name: brown
-    original_name: Brown
-    value: 0x993300
+    original_name: brown
+    value: 0x653700
     variations:
       - name: crayola
         original_name: Brown (Crayola)
@@ -672,18 +879,63 @@ colors:
   - name: brown-coffee
     original_name: Brown Coffee
     value: 0x4a2c2a
+  - name: brown-green
+    original_name: brown green
+    value: 0x706c11
+  - name: brown-grey
+    original_name: brown grey
+    value: 0x8d8468
   - name: brown-nose
     original_name: Brown-nose
     value: 0x6b4423
+  - name: brown-orange
+    original_name: brown orange
+    value: 0xb96902
   - name: brown-rat-gray
     original_name: Brown rat gray (Dobunezumi)
     value: 0x4b3c39
+  - name: brown-red
+    original_name: brown red
+    value: 0x922b05
   - name: brown-sugar
     original_name: Brown sugar
     value: 0xaf6e4d
   - name: brown-yellow
-    original_name: Brown Yellow
-    value: 0xcc9966
+    original_name: brown yellow
+    value: 0xb29705
+  - name: brownish
+    original_name: brownish
+    value: 0x9c6d57
+  - name: brownish-green
+    original_name: brownish green
+    value: 0x6a6e09
+  - name: brownish-grey
+    original_name: brownish grey
+    value: 0x86775f
+  - name: brownish-orange
+    original_name: brownish orange
+    value: 0xcb7723
+  - name: brownish-pink
+    original_name: brownish pink
+    value: 0xc27e79
+  - name: brownish-purple
+    original_name: brownish purple
+    value: 0x76424e
+  - name: brownish-red
+    original_name: brownish red
+    value: 0x9e3623
+  - name: brownish-yellow
+    original_name: brownish yellow
+    value: 0xc9b003
+  - name: browny-green
+    original_name: browny green
+    value: 0x6f6c0a
+  - name: browny-orange
+    original_name: browny orange
+    value: 0xca6b02
+  - name: bruise
+    original_name: bruise
+    value: 0x7e4071
   - name: brunswick-green
     original_name: Brunswick green
     value: 0x1b4d3e
@@ -693,6 +945,15 @@ colors:
   - name: bubble-gum
     original_name: Bubble gum
     value: 0xffc1cc
+  - name: bubble-gum-pink
+    original_name: bubble gum pink
+    value: 0xff69af
+  - name: bubblegum
+    original_name: bubblegum
+    value: 0xff6cb5
+  - name: bubblegum-pink
+    original_name: bubblegum pink
+    value: 0xfe83cc
   - name: bubbles
     original_name: Bubbles
     value: 0xe7feff
@@ -700,14 +961,14 @@ colors:
     original_name: Bud green
     value: 0x7bb661
   - name: buff
-    original_name: Buff
-    value: 0xf0dc82
+    original_name: buff
+    value: 0xfef69e
   - name: bulgarian-rose
     original_name: Bulgarian rose
     value: 0x480607
   - name: burgundy
-    original_name: Burgundy
-    value: 0x800020
+    original_name: burgundy
+    value: 0x610023
   - name: burlywood
     original_name: Burlywood
     value: 0xdeb887
@@ -715,14 +976,35 @@ colors:
     original_name: Burnished brown
     value: 0xa17a74
   - name: burnt-orange
-    original_name: Burnt orange
-    value: 0xcc5500
+    original_name: burnt orange
+    value: 0xc04e01
+  - name: burnt-red
+    original_name: burnt red
+    value: 0x9f2305
+  - name: burnt-siena
+    original_name: burnt siena
+    value: 0xb75203
   - name: burnt-sienna
-    original_name: Burnt sienna
-    value: 0xe97451
+    original_name: burnt sienna
+    value: 0xb04e0f
   - name: burnt-umber
-    original_name: Burnt umber
-    value: 0x8a3324
+    original_name: burnt umber
+    value: 0xa0450e
+  - name: burnt-yellow
+    original_name: burnt yellow
+    value: 0xd5ab09
+  - name: burple
+    original_name: burple
+    value: 0x6832e3
+  - name: butter
+    original_name: butter
+    value: 0xffff81
+  - name: butter-yellow
+    original_name: butter yellow
+    value: 0xfffd74
+  - name: butterscotch
+    original_name: butterscotch
+    value: 0xfdb147
   - name: button-blue
     original_name: Button blue
     value: 0x24a0ed
@@ -736,8 +1018,8 @@ colors:
     original_name: Cadet
     value: 0x536872
   - name: cadet-blue
-    original_name: Cadet blue
-    value: 0x5f9ea0
+    original_name: cadet blue
+    value: 0x4e7496
     variations:
       - name: crayola
         original_name: Cadet blue (Crayola)
@@ -782,26 +1064,32 @@ colors:
     original_name: Cambridge blue
     value: 0xa3c1ad
   - name: camel
-    original_name: Camel
-    value: 0xc19a6b
+    original_name: camel
+    value: 0xc69f59
   - name: cameo-pink
     original_name: Cameo pink
     value: 0xefbbcc
+  - name: camo
+    original_name: camo
+    value: 0x7f8f4e
+  - name: camo-green
+    original_name: camo green
+    value: 0x526525
   - name: camouflage-green
-    original_name: Camouflage green
-    value: 0x78866b
+    original_name: camouflage green
+    value: 0x4b6113
   - name: canary
-    original_name: Canary
-    value: 0xffff99
+    original_name: canary
+    value: 0xfdff63
   - name: canary-yellow
-    original_name: Canary yellow
-    value: 0xffef00
+    original_name: canary yellow
+    value: 0xfffe40
   - name: candy-apple-red
     original_name: Candy apple red
     value: 0xff0800
   - name: candy-pink
-    original_name: Candy pink
-    value: 0xe4717a
+    original_name: candy pink
+    value: 0xff63e9
   - name: cape-jasmine-or-gardenia
     original_name: Cape jasmine or gardenia (Kuchinashi)
     value: 0xffb95a
@@ -812,8 +1100,8 @@ colors:
     original_name: Caput mortuum
     value: 0x592720
   - name: caramel
-    original_name: Caramel
-    value: 0xffd59a
+    original_name: caramel
+    value: 0xaf6f09
   - name: cardinal
     original_name: Cardinal
     value: 0xc41e3a
@@ -824,8 +1112,8 @@ colors:
     original_name: Caribbean green
     value: 0x00cc99
   - name: carmine
-    original_name: Carmine
-    value: 0x960018
+    original_name: carmine
+    value: 0x9d0216
     variations:
       - name: m-p
         original_name: Carmine (M&P)
@@ -836,15 +1124,18 @@ colors:
   - name: carmine-red
     original_name: Carmine red
     value: 0xff0038
+  - name: carnation
+    original_name: carnation
+    value: 0xfd798f
   - name: carnation-pink
-    original_name: Carnation pink
-    value: 0xffa6c9
+    original_name: carnation pink
+    value: 0xff7fa7
   - name: carnelian
     original_name: Carnelian
     value: 0xb31b1b
   - name: carolina-blue
-    original_name: Carolina blue
-    value: 0x56a0d3
+    original_name: carolina blue
+    value: 0x8ab8fe
   - name: carrot-orange
     original_name: Carrot orange
     value: 0xed9121
@@ -867,8 +1158,8 @@ colors:
     original_name: Ceil
     value: 0x92a1cf
   - name: celadon
-    original_name: Celadon
-    value: 0xace1af
+    original_name: celadon
+    value: 0xbefdb7
     variations:
       - name: seiji-iro
         original_name: Celadon color (Seiji-iro)
@@ -879,6 +1170,9 @@ colors:
   - name: celadon-green
     original_name: Celadon green
     value: 0x2f847c
+  - name: celery
+    original_name: celery
+    value: 0xc1fd95
   - name: celeste
     original_name: Celeste
     value: 0xb2ffff
@@ -888,15 +1182,21 @@ colors:
   - name: celtic-blue
     original_name: Celtic blue
     value: 0x246bce
+  - name: cement
+    original_name: cement
+    value: 0xa5a391
   - name: cerise
-    original_name: Cerise
-    value: 0xde3163
+    original_name: cerise
+    value: 0xde0c62
   - name: cerise-pink
     original_name: Cerise pink
     value: 0xec3b83
+  - name: cerulean
+    original_name: cerulean
+    value: 0x0485d1
   - name: cerulean-blue
-    original_name: Cerulean blue
-    value: 0x2a52be
+    original_name: cerulean blue
+    value: 0x056eee
   - name: cerulean-frost
     original_name: Cerulean frost
     value: 0x6d9bc3
@@ -919,8 +1219,11 @@ colors:
     original_name: Champagne pink
     value: 0xf1ddcf
   - name: charcoal
-    original_name: Charcoal
-    value: 0x36454f
+    original_name: charcoal
+    value: 0x343837
+  - name: charcoal-grey
+    original_name: charcoal grey
+    value: 0x3c4142
   - name: charleston-green
     original_name: Charleston green
     value: 0x232b2b
@@ -931,14 +1234,21 @@ colors:
     original_name: Charm pink
     value: 0xe68fac
   - name: chartreuse
-    original_name: Chartreuse (traditional)
-    value: 0xdfff00
+    original_name: chartreuse
+    value: 0xc1f80a
+    variations:
+      - name: traditional
+        original_name: Chartreuse (traditional)
+        value: 0xdfff00
   - name: cheese
     original_name: Cheese
     value: 0xffa600
   - name: cheezy-blasters
     original_name: Cheezy blasters (Atlassian)
     value: 0xff991f
+  - name: cherry
+    original_name: cherry
+    value: 0xcf0234
   - name: cherry-blossom
     original_name: Cherry blossom color (Sakura-iro)
     value: 0xfcc9b9
@@ -950,10 +1260,10 @@ colors:
     value: 0xffb7c5
   - name: cherry-red
     original_name: cherry red
-    value: 0x9f3334
+    value: 0xf7022a
   - name: chestnut
-    original_name: Chestnut
-    value: 0x954535
+    original_name: chestnut
+    value: 0x742802
   - name: chestnut-leather-brown
     original_name: Chestnut-leather brown (Kurikawacha)
     value: 0x60281e
@@ -1019,11 +1329,15 @@ colors:
     original_name: Chlorophyll green
     value: 0x4aff00
   - name: chocolate
-    original_name: Chocolate (traditional)
-    value: 0x7b3f00
+    original_name: chocolate
+    value: 0x3d1c02
+    variations:
+      - name: traditional
+        original_name: Chocolate (traditional)
+        value: 0x7b3f00
   - name: chocolate-brown
-    original_name: Chocolate brown
-    value: 0x3f000f
+    original_name: chocolate brown
+    value: 0x411900
   - name: chocolate-cosmos
     original_name: Chocolate cosmos
     value: 0x58111a
@@ -1046,8 +1360,8 @@ colors:
     original_name: Cinnabar
     value: 0xe34234
   - name: cinnamon
-    original_name: Cinnamon
-    value: 0xd2691e
+    original_name: cinnamon
+    value: 0xac4f06
   - name: cinnamon-satin
     original_name: Cinnamon Satin
     value: 0xcd607e
@@ -1061,14 +1375,26 @@ colors:
     original_name: Citron
     value: 0x9fa91f
   - name: claret
-    original_name: Claret
-    value: 0x7f1734
+    original_name: claret
+    value: 0x680018
   - name: classic-rose
     original_name: Classic rose
     value: 0xfbcce7
+  - name: clay
+    original_name: clay
+    value: 0xb66a50
+  - name: clay-brown
+    original_name: clay brown
+    value: 0xb2713d
+  - name: clear-blue
+    original_name: clear blue
+    value: 0x247afd
   - name: clooney
     original_name: Clooney (Atlassian)
     value: 0x5e6c84
+  - name: cloudy-blue
+    original_name: cloudy blue
+    value: 0xacc2d9
   - name: clove-brown
     original_name: Clove-brown (Chōjicha)
     value: 0x8f583c
@@ -1081,9 +1407,15 @@ colors:
   - name: coarse-wool
     original_name: Coarse wool color (Kachi-iro)
     value: 0x181b26
+  - name: cobalt
+    original_name: cobalt
+    value: 0x1e488f
   - name: cobalt-blue
-    original_name: Cobalt blue
-    value: 0x0047ab
+    original_name: cobalt blue
+    value: 0x030aa7
+  - name: cocoa
+    original_name: cocoa
+    value: 0x875f42
   - name: coconut
     original_name: Coconut
     value: 0x965a3e
@@ -1094,8 +1426,8 @@ colors:
     original_name: Codium fragile seaweed color (Miru-iro)
     value: 0x524b2a
   - name: coffee
-    original_name: Coffee
-    value: 0x6f4e37
+    original_name: coffee
+    value: 0xa6814c
   - name: cola
     original_name: Cola
     value: 0x3c3024
@@ -1123,12 +1455,21 @@ colors:
   - name: cool-black
     original_name: Cool black
     value: 0x002e63
+  - name: cool-blue
+    original_name: cool blue
+    value: 0x4984b8
   - name: cool-gray
     original_name: Cool gray
     value: 0x8c92ac
+  - name: cool-green
+    original_name: cool green
+    value: 0x33b864
+  - name: cool-grey
+    original_name: cool grey
+    value: 0x95a3a6
   - name: copper
-    original_name: Copper
-    value: 0xb87333
+    original_name: copper
+    value: 0xb66325
     variations:
       - name: crayola
         original_name: Copper (Crayola)
@@ -1146,12 +1487,15 @@ colors:
     original_name: Coquelicot
     value: 0xff3800
   - name: coral
-    original_name: Coral
-    value: 0xff7f50
+    original_name: coral
+    value: 0xfc5a50
     variations:
       - name: sango-iro
         original_name: Coral color (Sango-iro)
         value: 0xf8674f
+  - name: coral-pink
+    original_name: coral pink
+    value: 0xff6163
   - name: coral-red
     original_name: Coral red
     value: 0xff4040
@@ -1173,11 +1517,11 @@ colors:
         original_name: Corn-colored (Tōmorokoshi-iro)
         value: 0xfaa945
   - name: cornflower
-    original_name: Cornflower
-    value: 0x93ccea
+    original_name: cornflower
+    value: 0x6a79f7
   - name: cornflower-blue
-    original_name: Cornflower blue
-    value: 0x6495ed
+    original_name: cornflower blue
+    value: 0x5170d7
   - name: cornsilk
     original_name: Cornsilk
     value: 0xfff8dc
@@ -1196,12 +1540,18 @@ colors:
   - name: coyote-brown
     original_name: Coyote brown
     value: 0x81613c
+  - name: cranberry
+    original_name: cranberry
+    value: 0x9e003a
   - name: cream
-    original_name: Cream
-    value: 0xfffdd0
+    original_name: cream
+    value: 0xffffc2
+  - name: creme
+    original_name: creme
+    value: 0xffffb6
   - name: crimson
-    original_name: Crimson
-    value: 0xdc143c
+    original_name: crimson
+    value: 0x8c000f
   - name: crimson-glory
     original_name: Crimson glory
     value: 0xbe0032
@@ -1217,9 +1567,16 @@ colors:
   - name: cultured
     original_name: Cultured
     value: 0xf5f5f5
+  - name: custard
+    original_name: custard
+    value: 0xfffd78
   - name: cyan
-    original_name: Cyan (process)
-    value: 0x00b7eb
+    original_name: cyan
+    value: 0x00ffff
+    variations:
+      - name: process
+        original_name: Cyan (process)
+        value: 0x00b7eb
   - name: cyan-azure
     original_name: Cyan azure
     value: 0x4e82b4
@@ -1262,8 +1619,8 @@ colors:
     original_name: Daffodil
     value: 0xffff31
   - name: dandelion
-    original_name: Dandelion
-    value: 0xf0e130
+    original_name: dandelion
+    value: 0xfedf08
     variations:
       - name: crayola
         original_name: Dandelion (Crayola)
@@ -1271,9 +1628,21 @@ colors:
   - name: dandelion-whisper
     original_name: Dandelion whisper (Atlassian)
     value: 0xfff0b3
+  - name: dark
+    original_name: dark
+    value: 0x1b2431
+  - name: dark-aqua
+    original_name: dark aqua
+    value: 0x05696b
+  - name: dark-aquamarine
+    original_name: dark aquamarine
+    value: 0x017371
+  - name: dark-beige
+    original_name: dark beige
+    value: 0xac9362
   - name: dark-blue
-    original_name: Dark blue
-    value: 0x00008b
+    original_name: dark blue
+    value: 0x00035b
     variations:
       - name: kon
         original_name: Dark blue (Kon)
@@ -1281,6 +1650,12 @@ colors:
   - name: dark-blue-gray
     original_name: Dark blue-gray
     value: 0x666699
+  - name: dark-blue-green
+    original_name: dark blue green
+    value: 0x005249
+  - name: dark-blue-grey
+    original_name: dark blue grey
+    value: 0x1f3b4d
   - name: dark-blue-lapis-lazuli
     original_name: Dark blue lapis lazuli (Rurikon)
     value: 0x1b294b
@@ -1292,8 +1667,8 @@ colors:
         original_name: Dark bronze (Coin)
         value: 0x514100
   - name: dark-brown
-    original_name: Dark brown
-    value: 0x654321
+    original_name: dark brown
+    value: 0x341c02
   - name: dark-brown-tangelo
     original_name: Dark brown-tangelo
     value: 0x88654e
@@ -1320,36 +1695,60 @@ colors:
         original_name: Dark chocolate (Hershey's)
         value: 0x3c1321
   - name: dark-coral
-    original_name: Dark coral
-    value: 0xcd5b45
+    original_name: dark coral
+    value: 0xcf524e
   - name: dark-cornflower-blue
     original_name: Dark cornflower blue
     value: 0x26428b
+  - name: dark-cream
+    original_name: dark cream
+    value: 0xfff39a
   - name: dark-cyan
-    original_name: Dark cyan
-    value: 0x008b8b
+    original_name: dark cyan
+    value: 0x0a888a
   - name: dark-electric-blue
     original_name: Dark electric blue
     value: 0x536878
+  - name: dark-forest-green
+    original_name: dark forest green
+    value: 0x002d04
+  - name: dark-fuchsia
+    original_name: dark fuchsia
+    value: 0x9d0759
   - name: dark-gold
-    original_name: Dark gold
-    value: 0xaa6c39
+    original_name: dark gold
+    value: 0xb59410
   - name: dark-goldenrod
     original_name: Dark goldenrod
     value: 0xb8860b
+  - name: dark-grass-green
+    original_name: dark grass green
+    value: 0x388004
   - name: dark-gray
     original_name: Dark gray (X11)
     value: 0xa9a9a9
   - name: dark-green
-    original_name: Dark green
-    value: 0x013220
+    original_name: dark green
+    value: 0x033500
     variations:
       - name: x11
         original_name: Dark green (X11)
         value: 0x006400
+  - name: dark-green-blue
+    original_name: dark green blue
+    value: 0x1f6357
+  - name: dark-grey
+    original_name: dark grey
+    value: 0x363737
+  - name: dark-grey-blue
+    original_name: dark grey blue
+    value: 0x29465b
   - name: dark-gunmetal
     original_name: Dark gunmetal
     value: 0x1f262a
+  - name: dark-hot-pink
+    original_name: dark hot pink
+    value: 0xd90166
   - name: dark-imperial-blue
     original_name: Dark imperial blue
     value: 0x00147e
@@ -1358,23 +1757,36 @@ colors:
         original_name: Dark imperial blue (2)
         value: 0x00416a
   - name: dark-indigo
-    original_name: Dark indigo (Futaai)
-    value: 0x614e6e
+    original_name: dark indigo
+    value: 0x1f0954
+    variations:
+      - name: futaai
+        original_name: Dark indigo (Futaai)
+        value: 0x614e6e
   - name: dark-jungle-green
     original_name: Dark jungle green
     value: 0x1a2421
   - name: dark-khaki
-    original_name: Dark khaki
-    value: 0xbdb76b
+    original_name: dark khaki
+    value: 0x9b8f55
   - name: dark-lava
     original_name: Dark lava
     value: 0x483c32
   - name: dark-lavender
-    original_name: Dark lavender
-    value: 0x734f96
+    original_name: dark lavender
+    value: 0x856798
   - name: dark-lemon-lime
     original_name: Dark lemon lime
     value: 0x8bbe1b
+  - name: dark-lilac
+    original_name: dark lilac
+    value: 0x9c6da5
+  - name: dark-lime
+    original_name: dark lime
+    value: 0x84b701
+  - name: dark-lime-green
+    original_name: dark lime green
+    value: 0x7ebd01
   - name: dark-liver
     original_name: Dark liver
     value: 0x534b4f
@@ -1383,23 +1795,44 @@ colors:
         original_name: Dark liver (horses)
         value: 0x543d37
   - name: dark-magenta
-    original_name: Dark magenta
-    value: 0x8b008b
+    original_name: dark magenta
+    value: 0x960056
+  - name: dark-maroon
+    original_name: dark maroon
+    value: 0x3c0008
+  - name: dark-mauve
+    original_name: dark mauve
+    value: 0x874c62
   - name: dark-midnight-blue
     original_name: Dark midnight blue
     value: 0x003366
+  - name: dark-mint
+    original_name: dark mint
+    value: 0x48c072
+  - name: dark-mint-green
+    original_name: dark mint green
+    value: 0x20c073
   - name: dark-moss-green
     original_name: Dark moss green
     value: 0x4a5d23
+  - name: dark-mustard
+    original_name: dark mustard
+    value: 0xa88905
   - name: dark-navy
-    original_name: Dark Navy
-    value: 0x02075d
+    original_name: dark navy
+    value: 0x000435
+  - name: dark-navy-blue
+    original_name: dark navy blue
+    value: 0x00022e
+  - name: dark-olive
+    original_name: dark olive
+    value: 0x373e02
   - name: dark-olive-green
-    original_name: Dark olive green
-    value: 0x556b2f
+    original_name: dark olive green
+    value: 0x3c4d03
   - name: dark-orange
-    original_name: Dark orange
-    value: 0xff8c00
+    original_name: dark orange
+    value: 0xc65102
   - name: dark-orchid
     original_name: Dark orchid
     value: 0x9932cc
@@ -1407,17 +1840,26 @@ colors:
     original_name: Dark pastel blue
     value: 0x779ecb
   - name: dark-pastel-green
-    original_name: Dark pastel green
-    value: 0x03c03c
+    original_name: dark pastel green
+    value: 0x56ae57
   - name: dark-pastel-purple
     original_name: Dark pastel purple
     value: 0x966fd6
   - name: dark-pastel-red
     original_name: Dark pastel red
     value: 0xc23b22
+  - name: dark-peach
+    original_name: dark peach
+    value: 0xde7e5d
+  - name: dark-periwinkle
+    original_name: dark periwinkle
+    value: 0x665fd1
   - name: dark-pink
-    original_name: Dark pink
-    value: 0xe75480
+    original_name: dark pink
+    value: 0xcb416b
+  - name: dark-plum
+    original_name: dark plum
+    value: 0x3f012c
   - name: dark-powder-blue
     original_name: Dark powder blue
     value: 0x003399
@@ -1425,27 +1867,45 @@ colors:
     original_name: Dark puce
     value: 0x4f3a3c
   - name: dark-purple
-    original_name: Dark purple
-    value: 0x301934
+    original_name: dark purple
+    value: 0x35063e
   - name: dark-raspberry
     original_name: Dark raspberry
     value: 0x872657
   - name: dark-red
-    original_name: Dark red
-    value: 0x8b0000
+    original_name: dark red
+    value: 0x840000
     variations:
       - name: kurobeni
         original_name: Dark red (Kurobeni)
         value: 0x23191e
+  - name: dark-rose
+    original_name: dark rose
+    value: 0xb5485d
+  - name: dark-royal-blue
+    original_name: dark royal blue
+    value: 0x02066f
+  - name: dark-sage
+    original_name: dark sage
+    value: 0x598556
   - name: dark-salmon
-    original_name: Dark salmon
-    value: 0xe9967a
+    original_name: dark salmon
+    value: 0xc85a53
+  - name: dark-sand
+    original_name: dark sand
+    value: 0xa88f59
   - name: dark-scarlet
     original_name: Dark scarlet
     value: 0x560319
   - name: dark-sea-green
-    original_name: Dark sea green
-    value: 0x8fbc8f
+    original_name: dark sea green
+    value: 0x11875d
+  - name: dark-seafoam
+    original_name: dark seafoam
+    value: 0x1fb57a
+  - name: dark-seafoam-green
+    original_name: dark seafoam green
+    value: 0x3eaf76
   - name: dark-sienna
     original_name: Dark sienna
     value: 0x3c1414
@@ -1453,11 +1913,11 @@ colors:
     original_name: Dark silver
     value: 0x71706e
   - name: dark-sky-blue
-    original_name: Dark sky blue
-    value: 0x8cbed6
+    original_name: dark sky blue
+    value: 0x448ee4
   - name: dark-slate-blue
-    original_name: Dark slate blue
-    value: 0x483d8b
+    original_name: dark slate blue
+    value: 0x214761
   - name: dark-slate-gray
     original_name: Dark slate gray
     value: 0x2f4f4f
@@ -1465,26 +1925,56 @@ colors:
     original_name: Dark spring green
     value: 0x177245
   - name: dark-tan
-    original_name: Dark tan
-    value: 0x918151
+    original_name: dark tan
+    value: 0xaf884a
   - name: dark-tangerine
     original_name: Dark tangerine
     value: 0xffa812
+  - name: dark-taupe
+    original_name: dark taupe
+    value: 0x7f684e
+  - name: dark-teal
+    original_name: dark teal
+    value: 0x014d4e
   - name: dark-terra-cotta
     original_name: Dark terra cotta
     value: 0xcc4e5c
   - name: dark-turquoise
-    original_name: Dark turquoise
-    value: 0x00ced1
+    original_name: dark turquoise
+    value: 0x045c5a
   - name: dark-vanilla
     original_name: Dark vanilla
     value: 0xd1bea8
   - name: dark-violet
-    original_name: Dark violet
-    value: 0x9400d3
+    original_name: dark violet
+    value: 0x34013f
   - name: dark-yellow
-    original_name: Dark yellow
-    value: 0x9b870c
+    original_name: dark yellow
+    value: 0xd5b60a
+  - name: dark-yellow-green
+    original_name: dark yellow green
+    value: 0x728f02
+  - name: darkblue
+    original_name: darkblue
+    value: 0x030764
+  - name: darkgreen
+    original_name: darkgreen
+    value: 0x054907
+  - name: darkish-blue
+    original_name: darkish blue
+    value: 0x014182
+  - name: darkish-green
+    original_name: darkish green
+    value: 0x287c37
+  - name: darkish-pink
+    original_name: darkish pink
+    value: 0xda467d
+  - name: darkish-purple
+    original_name: darkish purple
+    value: 0x751973
+  - name: darkish-red
+    original_name: darkish red
+    value: 0xa90308
   - name: dartmouth-green
     original_name: Dartmouth green
     value: 0x00703c
@@ -1512,9 +2002,18 @@ colors:
   - name: deep-amethyst
     original_name: Deep amethyst
     value: 0x9c8aa4
+  - name: deep-aqua
+    original_name: deep aqua
+    value: 0x08787f
   - name: deep-aquamarine
     original_name: Deep aquamarine
     value: 0x40826d
+  - name: deep-blue
+    original_name: deep blue
+    value: 0x040273
+  - name: deep-brown
+    original_name: deep brown
+    value: 0x410200
   - name: deep-carmine
     original_name: Deep carmine
     value: 0xa9203e
@@ -1543,8 +2042,8 @@ colors:
     original_name: Deep fuchsia
     value: 0xc154c1
   - name: deep-green
-    original_name: Deep green
-    value: 0x056608
+    original_name: deep green
+    value: 0x02590f
   - name: deep-green-cyan-turquoise
     original_name: Deep green-cyan turquoise
     value: 0x0e7c61
@@ -1554,15 +2053,18 @@ colors:
   - name: deep-koamaru
     original_name: Deep koamaru
     value: 0x333366
+  - name: deep-lavender
+    original_name: deep lavender
+    value: 0x8d5eb7
   - name: deep-lemon
     original_name: Deep lemon
     value: 0xf5c71a
   - name: deep-lilac
-    original_name: Deep lilac
-    value: 0x9955bb
+    original_name: deep lilac
+    value: 0x966ebd
   - name: deep-magenta
-    original_name: Deep magenta
-    value: 0xcc00cc
+    original_name: deep magenta
+    value: 0xa0025c
   - name: deep-maroon
     original_name: Deep maroon
     value: 0x820000
@@ -1572,21 +2074,31 @@ colors:
   - name: deep-moss-green
     original_name: Deep moss green
     value: 0x355e3b
+  - name: deep-orange
+    original_name: deep orange
+    value: 0xdc4d01
   - name: deep-peach
     original_name: Deep peach
     value: 0xffcba4
   - name: deep-pink
-    original_name: Deep pink
-    value: 0xff1493
+    original_name: deep pink
+    value: 0xcb0162
   - name: deep-puce
     original_name: Deep puce
     value: 0xa95c68
   - name: deep-purple
-    original_name: Deep purple (Kokimurasaki)
-    value: 0x3a243b
+    original_name: deep purple
+    value: 0x36013f
+    variations:
+      - name: kokimurasaki
+        original_name: Deep purple (Kokimurasaki)
+        value: 0x3a243b
   - name: deep-red
-    original_name: Deep red
-    value: 0x850101
+    original_name: deep red
+    value: 0x9a0200
+  - name: deep-rose
+    original_name: deep rose
+    value: 0xc74767
   - name: deep-ruby
     original_name: Deep ruby
     value: 0x843f5b
@@ -1596,18 +2108,30 @@ colors:
   - name: deep-scarlet
     original_name: Deep scarlet (Kokiake)
     value: 0x7b3b3a
+  - name: deep-sea-blue
+    original_name: deep sea blue
+    value: 0x015482
+  - name: deep-sky-blue
+    original_name: deep sky blue
+    value: 0x0d75f8
   - name: deep-space-sparkle
     original_name: Deep Space Sparkle
     value: 0x4a646c
   - name: deep-taupe
     original_name: Deep taupe
     value: 0x7e5e60
+  - name: deep-teal
+    original_name: deep teal
+    value: 0x00555a
+  - name: deep-turquoise
+    original_name: deep turquoise
+    value: 0x017374
   - name: deep-tuscan-red
     original_name: Deep Tuscan red
     value: 0x66424d
   - name: deep-violet
-    original_name: Deep violet
-    value: 0x330066
+    original_name: deep violet
+    value: 0x490648
   - name: deer
     original_name: Deer
     value: 0xba8759
@@ -1615,14 +2139,17 @@ colors:
     original_name: Delicate girl blue
     value: 0x6ab2ca
   - name: denim
-    original_name: Denim
-    value: 0x1560bd
+    original_name: denim
+    value: 0x3b638c
   - name: denim-blue
-    original_name: Denim blue
-    value: 0x2243b6
+    original_name: denim blue
+    value: 0x3b5b92
   - name: desaturated-cyan
     original_name: Desaturated cyan
     value: 0x669999
+  - name: desert
+    original_name: desert
+    value: 0xccad60
   - name: desert-sand
     original_name: Desert sand
     value: 0xedc9af
@@ -1632,6 +2159,9 @@ colors:
   - name: diamond
     original_name: Diamond
     value: 0xb9f2ff
+  - name: diarrhea
+    original_name: diarrhea
+    value: 0x9f8303
   - name: dim-gray
     original_name: Dim gray
     value: 0x696969
@@ -1639,20 +2169,41 @@ colors:
     original_name: Dingy Dungeon
     value: 0xc53151
   - name: dirt
-    original_name: Dirt
-    value: 0x9b7653
+    original_name: dirt
+    value: 0x8a6e45
+  - name: dirt-brown
+    original_name: dirt brown
+    value: 0x836539
+  - name: dirty-blue
+    original_name: dirty blue
+    value: 0x3f829d
   - name: dirty-brown
     original_name: Dirty brown
     value: 0xb5651e
+  - name: dirty-green
+    original_name: dirty green
+    value: 0x667e2c
+  - name: dirty-orange
+    original_name: dirty orange
+    value: 0xc87606
+  - name: dirty-pink
+    original_name: dirty pink
+    value: 0xca7b80
+  - name: dirty-purple
+    original_name: dirty purple
+    value: 0x734a65
   - name: dirty-white
     original_name: Dirty white
     value: 0xe8e4c9
+  - name: dirty-yellow
+    original_name: dirty yellow
+    value: 0xcdc50a
   - name: disappearing-purple
     original_name: Disappearing purple (Metsushi)
     value: 0x3f313a
   - name: dodger-blue
-    original_name: Dodger blue
-    value: 0x1e90ff
+    original_name: dodger blue
+    value: 0x3e82fc
   - name: dodie-yellow
     original_name: Dodie yellow
     value: 0xfef65b
@@ -1677,15 +2228,55 @@ colors:
   - name: dove-feather-gray
     original_name: Dove feather gray (Hatobanezumi)
     value: 0x755d5b
+  - name: drab
+    original_name: drab
+    value: 0x828344
+  - name: drab-green
+    original_name: drab green
+    value: 0x749551
   - name: dragons-blood
     original_name: Dragon's blood (Atlassian)
     value: 0xbf2600
+  - name: dried-blood
+    original_name: dried blood
+    value: 0x4b0101
+  - name: duck-egg-blue
+    original_name: duck egg blue
+    value: 0xc3fbf4
   - name: duke-blue
     original_name: Duke blue
     value: 0x00009c
   - name: dull-blue
-    original_name: Dull blue (Aonibi)
-    value: 0x4f4944
+    original_name: dull blue
+    value: 0x49759c
+    variations:
+      - name: aonibi
+        original_name: Dull blue (Aonibi)
+        value: 0x4f4944
+  - name: dull-brown
+    original_name: dull brown
+    value: 0x876e4b
+  - name: dull-green
+    original_name: dull green
+    value: 0x74a662
+  - name: dull-orange
+    original_name: dull orange
+    value: 0xd8863b
+  - name: dull-pink
+    original_name: dull pink
+    value: 0xd5869d
+  - name: dull-purple
+    original_name: dull purple
+    value: 0x84597e
+  - name: dull-red
+    original_name: dull red
+    value: 0xbb3f3f
+  - name: dull-teal
+    original_name: dull teal
+    value: 0x5f9e8f
+  - name: dull-yellow
+    original_name: dull yellow
+    value: 0xeedc5b
   - name: durian
     original_name: Durian
     value: 0xb07939
@@ -1695,9 +2286,57 @@ colors:
   - name: durian-yellow
     original_name: Durian Yellow
     value: 0xe1bd27
+  - name: dusk
+    original_name: dusk
+    value: 0x4e5481
+  - name: dusk-blue
+    original_name: dusk blue
+    value: 0x26538d
+  - name: dusky-blue
+    original_name: dusky blue
+    value: 0x475f94
+  - name: dusky-pink
+    original_name: dusky pink
+    value: 0xcc7a8b
+  - name: dusky-purple
+    original_name: dusky purple
+    value: 0x895b7b
+  - name: dusky-rose
+    original_name: dusky rose
+    value: 0xba6873
+  - name: dust
+    original_name: dust
+    value: 0xb2996e
   - name: dust-storm
     original_name: Dust storm
     value: 0xe5ccc9
+  - name: dusty-blue
+    original_name: dusty blue
+    value: 0x5a86ad
+  - name: dusty-green
+    original_name: dusty green
+    value: 0x76a973
+  - name: dusty-lavender
+    original_name: dusty lavender
+    value: 0xac86a8
+  - name: dusty-orange
+    original_name: dusty orange
+    value: 0xf0833a
+  - name: dusty-pink
+    original_name: dusty pink
+    value: 0xd58a94
+  - name: dusty-purple
+    original_name: dusty purple
+    value: 0x825f87
+  - name: dusty-red
+    original_name: dusty red
+    value: 0xb9484e
+  - name: dusty-rose
+    original_name: dusty rose
+    value: 0xc0737a
+  - name: dusty-teal
+    original_name: dusty teal
+    value: 0x4c9085
   - name: dutch-white
     original_name: Dutch white
     value: 0xefdfbb
@@ -1705,30 +2344,48 @@ colors:
     original_name: Dyestalk red (lit. the color from dying with the stalk of the beni
       plant) (Bengara-iro)
     value: 0x913225
+  - name: earth
+    original_name: earth
+    value: 0xa2653e
   - name: earth-yellow
     original_name: Earth yellow
     value: 0xe1a95f
   - name: earthtone
     original_name: Earthtone
     value: 0x5d3a1a
+  - name: easter-green
+    original_name: easter green
+    value: 0x8cfd7e
+  - name: easter-purple
+    original_name: easter purple
+    value: 0xc071fe
   - name: ebony
     original_name: Ebony
     value: 0x555d50
   - name: ecru
-    original_name: Ecru
-    value: 0xc2b280
+    original_name: ecru
+    value: 0xfeffca
   - name: eerie-black
     original_name: Eerie black
     value: 0x1b1b1b
   - name: egg
     original_name: Egg-colored (Tamago-iro)
     value: 0xffa631
+  - name: egg-shell
+    original_name: egg shell
+    value: 0xfffcc4
   - name: eggplant
-    original_name: Eggplant
-    value: 0x614051
+    original_name: eggplant
+    value: 0x380835
+  - name: eggplant-purple
+    original_name: eggplant purple
+    value: 0x430541
   - name: eggshell
-    original_name: Eggshell
-    value: 0xf0ead6
+    original_name: eggshell
+    value: 0xffffd4
+  - name: eggshell-blue
+    original_name: eggshell blue
+    value: 0xc4fff7
   - name: eggshell-paper
     original_name: Eggshell paper-colored (Torinoko-iro)
     value: 0xe2be9f
@@ -1739,29 +2396,32 @@ colors:
     original_name: Elderberry
     value: 0x17182b
   - name: electric-blue
-    original_name: Electric blue
-    value: 0x7df9ff
+    original_name: electric blue
+    value: 0x0652ff
   - name: electric-brown
     original_name: Electric brown
     value: 0xb56257
   - name: electric-crimson
     original_name: Electric crimson
     value: 0xff003f
+  - name: electric-green
+    original_name: electric green
+    value: 0x21fc0d
   - name: electric-indigo
     original_name: Electric indigo
     value: 0x6f00ff
   - name: electric-lime
-    original_name: Electric lime
-    value: 0xccff00
+    original_name: electric lime
+    value: 0xa8ff04
   - name: electric-orange
     original_name: Electric orange
     value: 0xff3503
   - name: electric-pink
-    original_name: Electric pink
-    value: 0xf62681
+    original_name: electric pink
+    value: 0xff0490
   - name: electric-purple
-    original_name: Electric purple
-    value: 0xbf00ff
+    original_name: electric purple
+    value: 0xaa23ff
   - name: electric-red
     original_name: Electric red
     value: 0xe60000
@@ -1775,11 +2435,11 @@ colors:
     original_name: Electric yellow
     value: 0xffff33
   - name: emerald
-    original_name: Emerald
-    value: 0x50c878
+    original_name: emerald
+    value: 0x01a049
   - name: emerald-green
-    original_name: Emerald green
-    value: 0x046307
+    original_name: emerald green
+    value: 0x028f1e
   - name: eminence
     original_name: Eminence
     value: 0x6c3082
@@ -1801,15 +2461,39 @@ colors:
   - name: eucalyptus
     original_name: Eucalyptus
     value: 0x44d7a8
+  - name: evergreen
+    original_name: evergreen
+    value: 0x05472a
   - name: facebook-blue
     original_name: Facebook Blue
     value: 0x39569c
+  - name: faded-blue
+    original_name: faded blue
+    value: 0x658cbb
+  - name: faded-green
+    original_name: faded green
+    value: 0x7bb274
+  - name: faded-orange
+    original_name: faded orange
+    value: 0xf0944d
+  - name: faded-pink
+    original_name: faded pink
+    value: 0xde9dac
+  - name: faded-purple
+    original_name: faded purple
+    value: 0x916e99
+  - name: faded-red
+    original_name: faded red
+    value: 0xd3494e
   - name: faded-sen-no-rikyus-tea
     original_name: Faded Sen no Rikyu's tea (Rikyūshiracha)
     value: 0xb0927a
   - name: faded-spicy-red-brown
     original_name: Faded spicy red-brown (Sōdenkaracha)
     value: 0x9b533f
+  - name: faded-yellow
+    original_name: faded yellow
+    value: 0xfeff7f
   - name: fake-purple
     original_name: Fake purple (Nisemurasaki)
     value: 0x43242a
@@ -1826,17 +2510,20 @@ colors:
     original_name: Fashion fuchsia
     value: 0xf400a1
   - name: fawn
-    original_name: Fawn
-    value: 0xe5aa70
+    original_name: fawn
+    value: 0xcfaf7b
   - name: feldgrau
     original_name: Feldgrau
     value: 0x4d5d53
   - name: feldspar
     original_name: Feldspar
     value: 0xfdd5b1
+  - name: fern
+    original_name: fern
+    value: 0x63a950
   - name: fern-green
-    original_name: Fern green
-    value: 0x4f7942
+    original_name: fern green
+    value: 0x548d44
   - name: ferrari-red
     original_name: Ferrari red
     value: 0xff2800
@@ -1855,8 +2542,8 @@ colors:
     original_name: Fine pine (Atlassian)
     value: 0x36b37e
   - name: fire-engine-red
-    original_name: Fire engine red
-    value: 0xce2029
+    original_name: fire engine red
+    value: 0xfe0002
   - name: fire-opal
     original_name: Fire opal
     value: 0xe95c4b
@@ -1869,6 +2556,12 @@ colors:
   - name: flamingo-pink
     original_name: Flamingo pink
     value: 0xfc8eac
+  - name: flat-blue
+    original_name: flat blue
+    value: 0x3c73a8
+  - name: flat-green
+    original_name: flat green
+    value: 0x699d4c
   - name: flavescent
     original_name: Flavescent
     value: 0xf7e98e
@@ -1902,15 +2595,27 @@ colors:
   - name: fluorescent-blue
     original_name: Fluorescent blue
     value: 0x15f4ee
+  - name: fluorescent-green
+    original_name: fluorescent green
+    value: 0x08ff08
+  - name: fluro-green
+    original_name: fluro green
+    value: 0x0aff02
+  - name: foam-green
+    original_name: foam green
+    value: 0x90fda9
   - name: folly
     original_name: Folly
     value: 0xff004f
   - name: foreign-crimson
     original_name: Foreign crimson (Karakurenai)
     value: 0xc91f37
+  - name: forest
+    original_name: forest
+    value: 0x0b5509
   - name: forest-green
-    original_name: Forest Green
-    value: 0x228b22
+    original_name: forest green
+    value: 0x06470c
     variations:
       - name: crayola
         original_name: Forest green (Crayola)
@@ -1918,6 +2623,9 @@ colors:
       - name: traditional
         original_name: Forest green (traditional)
         value: 0x014421
+  - name: forrest-green
+    original_name: forrest green
+    value: 0x154406
   - name: fox
     original_name: Fox-color (Kitsune-iro)
     value: 0x985629
@@ -1925,8 +2633,8 @@ colors:
     original_name: French bistre
     value: 0x856d4d
   - name: french-blue
-    original_name: French blue
-    value: 0x0072bb
+    original_name: french blue
+    value: 0x436bad
   - name: french-fuchsia
     original_name: French fuchsia
     value: 0xfd3f92
@@ -1963,15 +2671,21 @@ colors:
   - name: fresh-air
     original_name: Fresh Air
     value: 0xa6e7ff
+  - name: fresh-green
+    original_name: fresh green
+    value: 0x69d84f
   - name: fresh-onion
     original_name: Fresh onion (Moegi)
     value: 0x5b8930
+  - name: frog-green
+    original_name: frog green
+    value: 0x58bc08
   - name: frostbite
     original_name: Frostbite
     value: 0xe936a7
   - name: fuchsia
-    original_name: Fuchsia
-    value: 0xff00ff
+    original_name: fuchsia
+    value: 0xed0dd9
   - name: fuchsia-pink
     original_name: Fuchsia pink
     value: 0xff77ff
@@ -2065,8 +2779,8 @@ colors:
     original_name: GO green
     value: 0x00ab66
   - name: gold
-    original_name: Gold
-    value: 0xa57c00
+    original_name: gold
+    value: 0xdbb40c
     variations:
       - name: crayola
         original_name: Gold (Crayola)
@@ -2084,11 +2798,11 @@ colors:
     original_name: Gold Fusion
     value: 0x85754e
   - name: golden
-    original_name: Golden
-    value: 0xffd700
+    original_name: golden
+    value: 0xf5bf03
   - name: golden-brown
-    original_name: Golden brown
-    value: 0x996515
+    original_name: golden brown
+    value: 0xb27a01
     variations:
       - name: kincha
         original_name: Golden brown (Kincha)
@@ -2105,21 +2819,24 @@ colors:
   - name: golden-poppy
     original_name: Golden poppy
     value: 0xfcc200
+  - name: golden-rod
+    original_name: golden rod
+    value: 0xf9bc08
   - aliases:
       - jira-yellow
     name: golden-state
     original_name: Golden state (Atlassian)
     value: 0xffab00
   - name: golden-yellow
-    original_name: Golden yellow
-    value: 0xffdf00
+    original_name: golden yellow
+    value: 0xfec615
     variations:
       - name: and-a-particular-rose-varietal
         original_name: Golden yellow (and a particular rose varietal) (Yamabuki-iro)
         value: 0xffa400
   - name: goldenrod
-    original_name: Goldenrod
-    value: 0xdaa520
+    original_name: goldenrod
+    value: 0xfac205
   - name: google-chrome-blue
     original_name: Google Chrome blue
     value: 0x4c8bf5
@@ -2148,11 +2865,26 @@ colors:
     original_name: Granny Smith apple
     value: 0xa8e4a0
   - name: grape
-    original_name: Grape
-    value: 0x6f2da8
+    original_name: grape
+    value: 0x6c3461
   - name: grape-mouse
     original_name: Grape mouse (Budōnezumi)
     value: 0x63424b
+  - name: grape-purple
+    original_name: grape purple
+    value: 0x5d1451
+  - name: grapefruit
+    original_name: grapefruit
+    value: 0xfd5956
+  - name: grass
+    original_name: grass
+    value: 0x5cac2d
+  - name: grass-green
+    original_name: grass green
+    value: 0x3f9b0b
+  - name: grassy-green
+    original_name: grassy green
+    value: 0x419c03
   - name: gray
     original_name: Gray (X11 gray)
     value: 0xbebebe
@@ -2175,9 +2907,12 @@ colors:
     original_name: Grecian Bronze
     value: 0x923916
   - name: green
-    original_name: Green (Crayola)
-    value: 0x1cac78
+    original_name: green
+    value: 0x15b01a
     variations:
+      - name: crayola
+        original_name: Green (Crayola)
+        value: 0x1cac78
       - name: midori
         original_name: Green (Midori)
         value: 0x2a603b
@@ -2196,22 +2931,31 @@ colors:
       - name: ryb
         original_name: Green (RYB)
         value: 0x66b032
+  - name: green-apple
+    original_name: green apple
+    value: 0x5edc1f
   - name: green-bamboo
     original_name: Green bamboo color (Aotake-iro)
     value: 0x006442
   - name: green-blue
-    original_name: Green-blue
-    value: 0x1164b4
+    original_name: green blue
+    value: 0x06b48b
     variations:
       - name: crayola
         original_name: Green-blue (Crayola)
         value: 0x2887c8
+  - name: green-brown
+    original_name: green brown
+    value: 0x544e03
   - name: green-cola
     original_name: Green Cola
     value: 0x4c721d
   - name: green-cyan
     original_name: Green-cyan
     value: 0x009966
+  - name: green-grey
+    original_name: green grey
+    value: 0x77926f
   - name: green-kalm
     original_name: Green kalm
     value: 0x769440
@@ -2234,22 +2978,118 @@ colors:
       - name: atlassian
         original_name: Green tea (Atlassian)
         value: 0x57d9a3
+  - name: green-teal
+    original_name: green teal
+    value: 0x0cb577
   - name: green-yellow
-    original_name: Green-yellow
-    value: 0xadff2f
+    original_name: green yellow
+    value: 0xc9ff27
     variations:
       - name: crayola
         original_name: Green-yellow (Crayola)
         value: 0xf0e891
+  - name: greenblue
+    original_name: greenblue
+    value: 0x23c48b
   - name: greenfinch
     original_name: Greenfinch color (Hiwa-iro)
     value: 0xbda928
+  - name: greenish
+    original_name: greenish
+    value: 0x40a368
+  - name: greenish-beige
+    original_name: greenish beige
+    value: 0xc9d179
+  - name: greenish-blue
+    original_name: greenish blue
+    value: 0x0b8b87
+  - name: greenish-brown
+    original_name: greenish brown
+    value: 0x696112
+  - name: greenish-cyan
+    original_name: greenish cyan
+    value: 0x2afeb7
+  - name: greenish-grey
+    original_name: greenish grey
+    value: 0x96ae8d
+  - name: greenish-tan
+    original_name: greenish tan
+    value: 0xbccb7a
+  - name: greenish-teal
+    original_name: greenish teal
+    value: 0x32bf84
+  - name: greenish-turquoise
+    original_name: greenish turquoise
+    value: 0x00fbb0
+  - name: greenish-yellow
+    original_name: greenish yellow
+    value: 0xcdfd02
+  - name: greeny-blue
+    original_name: greeny blue
+    value: 0x42b395
+  - name: greeny-brown
+    original_name: greeny brown
+    value: 0x696006
+  - name: greeny-grey
+    original_name: greeny grey
+    value: 0x7ea07a
+  - name: greeny-yellow
+    original_name: greeny yellow
+    value: 0xc6f808
+  - name: grey
+    original_name: grey
+    value: 0x929591
+  - name: grey-blue
+    original_name: grey blue
+    value: 0x6b8ba4
+  - name: grey-brown
+    original_name: grey brown
+    value: 0x7f7053
+  - name: grey-green
+    original_name: grey green
+    value: 0x789b73
+  - name: grey-pink
+    original_name: grey pink
+    value: 0xc3909b
+  - name: grey-purple
+    original_name: grey purple
+    value: 0x826d8c
+  - name: grey-teal
+    original_name: grey teal
+    value: 0x5e9b8a
+  - name: greyblue
+    original_name: greyblue
+    value: 0x77a1b5
+  - name: greyish
+    original_name: greyish
+    value: 0xa8a495
+  - name: greyish-blue
+    original_name: greyish blue
+    value: 0x5e819d
+  - name: greyish-brown
+    original_name: greyish brown
+    value: 0x7a6a4f
+  - name: greyish-green
+    original_name: greyish green
+    value: 0x82a67d
+  - name: greyish-pink
+    original_name: greyish pink
+    value: 0xc88d94
+  - name: greyish-purple
+    original_name: greyish purple
+    value: 0x887191
+  - name: greyish-teal
+    original_name: greyish teal
+    value: 0x719f91
+  - name: gross-green
+    original_name: gross green
+    value: 0xa0bf16
   - name: grullo
     original_name: Grullo
     value: 0xa99a86
   - name: gunmetal
-    original_name: Gunmetal
-    value: 0x2a3439
+    original_name: gunmetal
+    value: 0x536267
   - name: guppie-green
     original_name: Guppie green
     value: 0x00ff7f
@@ -2292,15 +3132,21 @@ colors:
   - name: hawaii-blue
     original_name: Hawaii blue
     value: 0x00c3e3
+  - name: hazel
+    original_name: hazel
+    value: 0x8e7618
   - name: heart-gold
     original_name: Heart gold
     value: 0x808000
   - name: heat-wave
     original_name: Heat Wave
     value: 0xff7a00
+  - name: heather
+    original_name: heather
+    value: 0xa484ac
   - name: heliotrope
-    original_name: Heliotrope
-    value: 0xdf73ff
+    original_name: heliotrope
+    value: 0xd94ff5
   - name: heliotrope-gray
     original_name: Heliotrope gray
     value: 0xaa98a9
@@ -2352,6 +3198,9 @@ colors:
   - name: hi-yellow-panik
     original_name: Hi-Yellow panik
     value: 0xfffed4
+  - name: highlighter-green
+    original_name: highlighter green
+    value: 0x1bfc06
   - name: honeydew
     original_name: Honeydew
     value: 0xf0fff0
@@ -2364,12 +3213,21 @@ colors:
   - name: horsetail
     original_name: Horsetail color (Tokusa-iro)
     value: 0x3d5d42
+  - name: hospital-green
+    original_name: hospital green
+    value: 0x9be5aa
+  - name: hot-green
+    original_name: hot green
+    value: 0x25ff29
   - name: hot-magenta
-    original_name: Hot magenta
-    value: 0xff1dce
+    original_name: hot magenta
+    value: 0xf504c9
   - name: hot-pink
-    original_name: Hot pink
-    value: 0xff69b4
+    original_name: hot pink
+    value: 0xff028d
+  - name: hot-purple
+    original_name: hot purple
+    value: 0xcb00f5
   - name: http-delete
     original_name: http delete
     value: 0xc75450
@@ -2395,18 +3253,30 @@ colors:
   - name: humboldt-fog
     original_name: Humboldt fog (Atlassian)
     value: 0x7a869a
+  - name: hunter-green
+    original_name: hunter green
+    value: 0x0b4008
   - name: ibis-wing
     original_name: Ibis wing color (Tokiha-iro)
     value: 0xf58f84
   - name: icathian-yellow
     original_name: icathian yellow
     value: 0xe7c899
+  - name: ice
+    original_name: ice
+    value: 0xd6fffa
+  - name: ice-blue
+    original_name: ice blue
+    value: 0xd7fffe
   - name: iceberg
     original_name: Iceberg
     value: 0x71a6d2
   - name: iced-tea
     original_name: Iced tea
     value: 0x923c01
+  - name: icky-green
+    original_name: icky green
+    value: 0x8fae22
   - name: icterine
     original_name: Icterine
     value: 0xfcf75e
@@ -2441,18 +3311,21 @@ colors:
     original_name: India green
     value: 0x138808
   - name: indian-red
-    original_name: Indian red
-    value: 0xcd5c5c
+    original_name: indian red
+    value: 0x850e04
   - name: indian-yellow
     original_name: Indian yellow
     value: 0xe3a857
   - name: indigo
-    original_name: Indigo
-    value: 0x4b0082
+    original_name: indigo
+    value: 0x380282
     variations:
       - name: rainbow
         original_name: Indigo (rainbow)
         value: 0x233067
+  - name: indigo-blue
+    original_name: indigo blue
+    value: 0x3a18b1
   - name: indigo-codium-fragile-seaweed-brown
     original_name: Indigo Codium fragile seaweed brown (Aimirucha)
     value: 0x2e372e
@@ -2491,12 +3364,15 @@ colors:
         original_name: International orange (Golden Gate Bridge)
         value: 0xc0362c
   - name: iris
-    original_name: Iris
-    value: 0x5a4fcf
+    original_name: iris
+    value: 0x6258c4
     variations:
       - name: ayame-iro
         original_name: Iris color (Ayame-iro)
         value: 0x763568
+  - name: irish-green
+    original_name: irish green
+    value: 0x019529
   - name: iron
     original_name: Iron
     value: 0xa19d94
@@ -2532,8 +3408,8 @@ colors:
     original_name: Italian roast
     value: 0x906652
   - name: ivory
-    original_name: Ivory
-    value: 0xfffff0
+    original_name: ivory
+    value: 0xffffcb
   - name: iwai-brown
     original_name: Iwai brown (Iwaicha)
     value: 0x5e5545
@@ -2544,8 +3420,11 @@ colors:
     original_name: Jacko bean
     value: 0x413628
   - name: jade
-    original_name: Jade
-    value: 0x00a86b
+    original_name: jade
+    value: 0x1fa774
+  - name: jade-green
+    original_name: jade green
+    value: 0x2baf6a
   - name: james-blonde
     original_name: James blonde (Atlassian)
     value: 0xfffae6
@@ -2604,31 +3483,46 @@ colors:
     original_name: June bud
     value: 0xbdda57
   - name: jungle-green
-    original_name: Jungle green
-    value: 0x29ab87
+    original_name: jungle green
+    value: 0x048243
   - name: karl
     original_name: Karl (Atlassian)
     value: 0xc1c7d0
   - name: keen-green
     original_name: Keen green (Atlassian)
     value: 0x006644
+  - name: kelley-green
+    original_name: kelley green
+    value: 0x009337
   - name: kelly-green
-    original_name: Kelly green
-    value: 0x4cbb17
+    original_name: kelly green
+    value: 0x02ab2e
   - name: kenyan-copper
     original_name: Kenyan copper
     value: 0x7c1c05
   - name: keppel
     original_name: Keppel
     value: 0x3ab09e
+  - name: kermit-green
+    original_name: kermit green
+    value: 0x5cb200
   - name: key-lime
-    original_name: Key lime
-    value: 0xe8f48c
+    original_name: key lime
+    value: 0xaeff6e
+  - name: khaki
+    original_name: khaki
+    value: 0xaaa662
+  - name: khaki-green
+    original_name: khaki green
+    value: 0x728639
   - name: kimono-storage
     original_name: Kimono storage (Omeshionando)
     value: 0x3d4c51
   - name: kiwi
-    original_name: Kiwi
+    original_name: kiwi
+    value: 0x9cef43
+  - name: kiwi-green
+    original_name: kiwi green
     value: 0x8ee53f
   - name: kobe
     original_name: Kobe
@@ -2671,11 +3565,15 @@ colors:
     original_name: Lava
     value: 0xcf1020
   - name: lavender
-    original_name: Lavender (floral)
-    value: 0xb57edc
+    original_name: lavender
+    value: 0xc79fef
+    variations:
+      - name: floral
+        original_name: Lavender (floral)
+        value: 0xb57edc
   - name: lavender-blue
-    original_name: Lavender blue
-    value: 0xccccff
+    original_name: lavender blue
+    value: 0x8b88f8
   - name: lavender-blush
     original_name: Lavender blush
     value: 0xfff0f5
@@ -2692,8 +3590,8 @@ colors:
     original_name: Lavender mist
     value: 0xe6e6fa
   - name: lavender-pink
-    original_name: Lavender pink
-    value: 0xfbaed2
+    original_name: lavender pink
+    value: 0xdd85d7
   - name: lavender-purple
     original_name: Lavender purple
     value: 0x967bb6
@@ -2704,14 +3602,26 @@ colors:
     original_name: Lavender secret (Atlassian)
     value: 0xeae6ff
   - name: lawn-green
-    original_name: Lawn green
-    value: 0x7cfc00
+    original_name: lawn green
+    value: 0x4da409
+  - name: leaf
+    original_name: leaf
+    value: 0x71aa34
+  - name: leaf-green
+    original_name: leaf green
+    value: 0x5ca904
+  - name: leafy-green
+    original_name: leafy green
+    value: 0x51b73b
+  - name: leather
+    original_name: leather
+    value: 0xac7434
   - name: legal-dye
     original_name: Legal dye (from when color use was regulated by class) (Kenpōzome)
     value: 0x2e211b
   - name: lemon
-    original_name: Lemon
-    value: 0xfff700
+    original_name: lemon
+    value: 0xfdff52
   - name: lemon-chiffon
     original_name: Lemon chiffon
     value: 0xfffacd
@@ -2721,12 +3631,15 @@ colors:
   - name: lemon-glacier
     original_name: Lemon glacier
     value: 0xfdff00
+  - name: lemon-green
+    original_name: lemon green
+    value: 0xadf802
   - name: lemon-iced-tea
     original_name: Lemon iced tea
     value: 0xbd3000
   - name: lemon-lime
-    original_name: Lemon lime
-    value: 0xe3ff00
+    original_name: lemon lime
+    value: 0xbffe28
     variations:
       - name: '2'
         original_name: Lemon lime (2)
@@ -2735,8 +3648,8 @@ colors:
     original_name: Lemon meringue
     value: 0xf6eabe
   - name: lemon-yellow
-    original_name: Lemon yellow
-    value: 0xfff44f
+    original_name: lemon yellow
+    value: 0xfdff38
     variations:
       - name: crayola
         original_name: Lemon yellow (Crayola)
@@ -2747,12 +3660,24 @@ colors:
   - name: liberty
     original_name: Liberty
     value: 0x545aa7
+  - name: lichen
+    original_name: lichen
+    value: 0x8fb67b
   - name: licorice
     original_name: Licorice
     value: 0x1a1110
+  - name: light-aqua
+    original_name: light aqua
+    value: 0x8cffdb
+  - name: light-aquamarine
+    original_name: light aquamarine
+    value: 0x7bfdc7
+  - name: light-beige
+    original_name: light beige
+    value: 0xfffeb6
   - name: light-blue
-    original_name: Light blue
-    value: 0xadd8e6
+    original_name: light blue
+    value: 0x95d0fc
     variations:
       - name: asagi-iro
         original_name: Light blue color (Asagi-iro)
@@ -2760,12 +3685,27 @@ colors:
   - name: light-blue-flower
     original_name: Light blue flower (Hanaasagi)
     value: 0x1d697c
+  - name: light-blue-green
+    original_name: light blue green
+    value: 0x7efbb3
+  - name: light-blue-grey
+    original_name: light blue grey
+    value: 0xb7c9e2
   - name: light-blue-silk
     original_name: Light blue silk (Hanada)
     value: 0x044f67
+  - name: light-bluish-green
+    original_name: light bluish green
+    value: 0x76fda8
+  - name: light-bright-green
+    original_name: light bright green
+    value: 0x53fe5c
   - name: light-brown
-    original_name: Light brown
-    value: 0xb5651d
+    original_name: light brown
+    value: 0xad8150
+  - name: light-burgundy
+    original_name: light burgundy
+    value: 0xa8415b
   - name: light-carmine-pink
     original_name: Light carmine pink
     value: 0xe66771
@@ -2782,11 +3722,17 @@ colors:
     original_name: Light crimson
     value: 0xf56991
   - name: light-cyan
-    original_name: Light cyan
-    value: 0xe0ffff
+    original_name: light cyan
+    value: 0xacfffc
   - name: light-deep-pink
     original_name: Light deep pink
     value: 0xff5ccd
+  - name: light-eggplant
+    original_name: light eggplant
+    value: 0x894585
+  - name: light-forest-green
+    original_name: light forest green
+    value: 0x4f9153
   - name: light-french-beige
     original_name: Light French beige
     value: 0xc8ad7f
@@ -2794,11 +3740,14 @@ colors:
     original_name: Light fuchsia pink
     value: 0xf984ef
   - name: light-gold
-    original_name: Light gold
-    value: 0xb29700
+    original_name: light gold
+    value: 0xfddc5c
   - name: light-goldenrod-yellow
     original_name: Light goldenrod yellow
     value: 0xfafad2
+  - name: light-grass-green
+    original_name: light grass green
+    value: 0x9af764
   - name: light-gray
     original_name: Light gray
     value: 0xd3d3d3
@@ -2806,84 +3755,237 @@ colors:
     original_name: Light grayish magenta
     value: 0xcc99cc
   - name: light-green
-    original_name: Light green
-    value: 0x90ee90
+    original_name: light green
+    value: 0x96f97b
+  - name: light-green-blue
+    original_name: light green blue
+    value: 0x56fca2
+  - name: light-greenish-blue
+    original_name: light greenish blue
+    value: 0x63f7b4
+  - name: light-grey
+    original_name: light grey
+    value: 0xd8dcd6
+  - name: light-grey-blue
+    original_name: light grey blue
+    value: 0x9dbcd4
+  - name: light-grey-green
+    original_name: light grey green
+    value: 0xb7e1a1
   - name: light-hot-pink
     original_name: Light hot pink
     value: 0xffb3de
+  - name: light-indigo
+    original_name: light indigo
+    value: 0x6d5acf
   - name: light-khaki
-    original_name: Light khaki
-    value: 0xf0e68c
+    original_name: light khaki
+    value: 0xe6f2a2
+  - name: light-lavendar
+    original_name: light lavendar
+    value: 0xefc0fe
+  - name: light-lavender
+    original_name: light lavender
+    value: 0xdfc5fe
+  - name: light-light-blue
+    original_name: light light blue
+    value: 0xcafffb
+  - name: light-light-green
+    original_name: light light green
+    value: 0xc8ffb0
+  - name: light-lilac
+    original_name: light lilac
+    value: 0xedc8ff
+  - name: light-lime
+    original_name: light lime
+    value: 0xaefd6c
+  - name: light-lime-green
+    original_name: light lime green
+    value: 0xb9ff66
   - name: light-magenta
-    original_name: Light magenta
-    value: 0xff80ff
+    original_name: light magenta
+    value: 0xfa5ff7
+  - name: light-maroon
+    original_name: light maroon
+    value: 0xa24857
+  - name: light-mauve
+    original_name: light mauve
+    value: 0xc292a1
   - name: light-medium-orchid
     original_name: Light medium orchid
     value: 0xd39bcb
+  - name: light-mint
+    original_name: light mint
+    value: 0xb6ffbb
+  - name: light-mint-green
+    original_name: light mint green
+    value: 0xa6fbb2
   - name: light-moss-green
-    original_name: Light moss green
-    value: 0xaddfad
+    original_name: light moss green
+    value: 0xa6c875
+  - name: light-mustard
+    original_name: light mustard
+    value: 0xf7d560
+  - name: light-navy
+    original_name: light navy
+    value: 0x155084
+  - name: light-navy-blue
+    original_name: light navy blue
+    value: 0x2e5a88
+  - name: light-neon-green
+    original_name: light neon green
+    value: 0x4efd54
+  - name: light-olive
+    original_name: light olive
+    value: 0xacbf69
+  - name: light-olive-green
+    original_name: light olive green
+    value: 0xa4be5c
   - name: light-orange
-    original_name: Light orange
-    value: 0xfed8b1
+    original_name: light orange
+    value: 0xfdaa48
   - name: light-orchid
     original_name: Light orchid
     value: 0xe6a8d7
+  - name: light-pastel-green
+    original_name: light pastel green
+    value: 0xb2fba5
   - name: light-pastel-purple
     original_name: Light pastel purple
     value: 0xb19cd9
+  - name: light-pea-green
+    original_name: light pea green
+    value: 0xc4fe82
+  - name: light-peach
+    original_name: light peach
+    value: 0xffd8b1
   - name: light-periwinkle
-    original_name: Light periwinkle
-    value: 0xc5cbe1
+    original_name: light periwinkle
+    value: 0xc1c6fc
   - name: light-pink
-    original_name: Light pink
-    value: 0xffb6c1
+    original_name: light pink
+    value: 0xffd1df
+  - name: light-plum
+    original_name: light plum
+    value: 0x9d5783
+  - name: light-purple
+    original_name: light purple
+    value: 0xbf77f6
   - name: light-red
-    original_name: Light red
-    value: 0xffcccb
+    original_name: light red
+    value: 0xff474c
+  - name: light-rose
+    original_name: light rose
+    value: 0xffc5cb
+  - name: light-royal-blue
+    original_name: light royal blue
+    value: 0x3a2efe
+  - name: light-sage
+    original_name: light sage
+    value: 0xbcecac
   - name: light-salmon
-    original_name: Light salmon
-    value: 0xffa07a
+    original_name: light salmon
+    value: 0xfea993
   - name: light-salmon-pink
     original_name: Light salmon pink
     value: 0xff9999
   - name: light-sea-green
-    original_name: Light sea green
-    value: 0x20b2aa
+    original_name: light sea green
+    value: 0x98f6b0
+  - name: light-seafoam
+    original_name: light seafoam
+    value: 0xa0febf
+  - name: light-seafoam-green
+    original_name: light seafoam green
+    value: 0xa7ffb5
   - name: light-silver
     original_name: Light silver
     value: 0xd8d8d8
   - name: light-sky-blue
-    original_name: Light sky blue
-    value: 0x87cefa
+    original_name: light sky blue
+    value: 0xc6fcff
   - name: light-slate-gray
     original_name: Light slate gray
     value: 0x778899
   - name: light-steel-blue
     original_name: Light steel blue
     value: 0xb0c4de
+  - name: light-tan
+    original_name: light tan
+    value: 0xfbeeac
   - name: light-taupe
     original_name: Light taupe
     value: 0xb38b6d
+  - name: light-teal
+    original_name: light teal
+    value: 0x90e4c1
+  - name: light-turquoise
+    original_name: light turquoise
+    value: 0x7ef4cc
+  - name: light-urple
+    original_name: light urple
+    value: 0xb36ff6
+  - name: light-violet
+    original_name: light violet
+    value: 0xd6b4fc
   - name: light-yellow
-    original_name: Light yellow
-    value: 0xffffe0
+    original_name: light yellow
+    value: 0xfffe7a
     variations:
       - name: asagi
         original_name: Light yellow (Asagi)
         value: 0xf7bb7d
+  - name: light-yellow-green
+    original_name: light yellow green
+    value: 0xccfd7f
+  - name: light-yellowish-green
+    original_name: light yellowish green
+    value: 0xc2ff89
+  - name: lightblue
+    original_name: lightblue
+    value: 0x7bc8f6
+  - name: lighter-green
+    original_name: lighter green
+    value: 0x75fd63
+  - name: lighter-purple
+    original_name: lighter purple
+    value: 0xa55af4
+  - name: lightgreen
+    original_name: lightgreen
+    value: 0x76ff7b
+  - name: lightish-blue
+    original_name: lightish blue
+    value: 0x3d7afd
+  - name: lightish-green
+    original_name: lightish green
+    value: 0x61e160
+  - name: lightish-purple
+    original_name: lightish purple
+    value: 0xa552e6
+  - name: lightish-red
+    original_name: lightish red
+    value: 0xfe2f4a
   - name: lilac
-    original_name: Lilac
-    value: 0xc8a2c8
+    original_name: lilac
+    value: 0xcea2fd
   - name: lilac-luster
     original_name: Lilac Luster
     value: 0xae98aa
+  - name: liliac
+    original_name: liliac
+    value: 0xc48efd
+  - name: lime
+    original_name: lime
+    value: 0xaaff32
   - name: lime-green
-    original_name: Lime green
-    value: 0x32cd32
+    original_name: lime green
+    value: 0x89fe05
   - name: lime-pulp
     original_name: Lime pulp
     value: 0xd1e189
+  - name: lime-yellow
+    original_name: lime yellow
+    value: 0xd0fe1d
   - name: limerick
     original_name: Limerick
     value: 0x9dc209
@@ -2896,6 +3998,12 @@ colors:
   - name: linkedin-blue
     original_name: Linkedin Blue
     value: 0x0072b1
+  - name: lipstick
+    original_name: lipstick
+    value: 0xd5174e
+  - name: lipstick-red
+    original_name: lipstick red
+    value: 0xc0022f
   - name: little-boy-blue
     original_name: Little boy blue
     value: 0x6ca0dc
@@ -2943,8 +4051,8 @@ colors:
     original_name: Lye-colored (Aku-iro)
     value: 0x7f6b5d
   - name: macaroni-and-cheese
-    original_name: Macaroni and Cheese
-    value: 0xffbd88
+    original_name: macaroni and cheese
+    value: 0xefb435
   - name: macedonian-orange
     original_name: macedonian orange
     value: 0xe97f28
@@ -2952,9 +4060,12 @@ colors:
     original_name: Madder Lake
     value: 0xcc3336
   - name: magenta
-    original_name: Magenta (dye)
-    value: 0xca1f7b
+    original_name: magenta
+    value: 0xc20078
     variations:
+      - name: dye
+        original_name: Magenta (dye)
+        value: 0xca1f7b
       - name: pantone
         original_name: Magenta (Pantone)
         value: 0xd0417e
@@ -2983,11 +4094,15 @@ colors:
     original_name: Magnolia
     value: 0xf8f4ff
   - name: mahogany
-    original_name: Mahogany
-    value: 0xc04000
+    original_name: mahogany
+    value: 0x4a0100
   - name: maize
-    original_name: Maize (Crayola)
-    value: 0xf2c649
+    original_name: maize
+    value: 0xf4d054
+    variations:
+      - name: crayola
+        original_name: Maize (Crayola)
+        value: 0xf2c649
   - name: majorelle-blue
     original_name: Majorelle blue
     value: 0x6050dc
@@ -3001,8 +4116,8 @@ colors:
     original_name: Mandarin
     value: 0xf37a48
   - name: mango
-    original_name: Mango
-    value: 0xfdbe02
+    original_name: mango
+    value: 0xffa62b
   - name: mango-green
     original_name: Mango green
     value: 0x96ff00
@@ -3012,6 +4127,9 @@ colors:
   - name: manila
     original_name: Manila
     value: 0xe7c9a9
+  - name: manilla
+    original_name: manilla
+    value: 0xfffa86
   - name: mantis
     original_name: Mantis
     value: 0x74c365
@@ -3028,18 +4146,27 @@ colors:
     original_name: Margarita
     value: 0xb0c24a
   - name: marigold
-    original_name: Marigold
-    value: 0xeaa221
+    original_name: marigold
+    value: 0xfcc006
+  - name: marine
+    original_name: marine
+    value: 0x042e60
+  - name: marine-blue
+    original_name: marine blue
+    value: 0x01386a
   - name: maroon
-    original_name: Maroon (Shrimp brown) (Ebicha)
-    value: 0x5e2824
+    original_name: maroon
+    value: 0x650021
     variations:
+      - name: shrimp-brown
+        original_name: Maroon (Shrimp brown) (Ebicha)
+        value: 0x5e2824
       - name: x11
         original_name: Maroon (X11)
         value: 0xb03060
   - name: mauve
-    original_name: Mauve
-    value: 0xe0b0ff
+    original_name: mauve
+    value: 0xae7181
   - name: mauve-taupe
     original_name: Mauve taupe
     value: 0x915f6d
@@ -3098,8 +4225,11 @@ colors:
     original_name: Medium aquamarine
     value: 0x66ddaa
   - name: medium-blue
-    original_name: Medium blue
-    value: 0x0000cd
+    original_name: medium blue
+    value: 0x2c6fbb
+  - name: medium-brown
+    original_name: medium brown
+    value: 0x7f5112
   - name: medium-candy-apple-red
     original_name: Medium candy apple red
     value: 0xe2062c
@@ -3115,6 +4245,12 @@ colors:
   - name: medium-electric-blue
     original_name: Medium electric blue
     value: 0x035096
+  - name: medium-green
+    original_name: medium green
+    value: 0x39ad48
+  - name: medium-grey
+    original_name: medium grey
+    value: 0x7d7f7c
   - name: medium-jungle-green
     original_name: Medium jungle green
     value: 0x1c352d
@@ -3127,9 +4263,12 @@ colors:
   - name: medium-persian-blue
     original_name: Medium Persian blue
     value: 0x0067a5
+  - name: medium-pink
+    original_name: medium pink
+    value: 0xf36196
   - name: medium-purple
-    original_name: Medium purple
-    value: 0x9370db
+    original_name: medium purple
+    value: 0x9e43a2
   - name: medium-red-violet
     original_name: Medium red-violet
     value: 0xbb3385
@@ -3167,20 +4306,23 @@ colors:
     original_name: Mellow apricot
     value: 0xf8b878
   - name: melon
-    original_name: Melon
-    value: 0xfebaad
+    original_name: melon
+    value: 0xff7855
   - name: menthol
     original_name: Menthol
     value: 0xc1f9a2
   - name: meredith
     original_name: Meredith (Atlassian)
     value: 0x8993a4
+  - name: merlot
+    original_name: merlot
+    value: 0x730039
   - name: mermaid-net
     original_name: Mermaid net (Atlassian)
     value: 0x00c7e6
   - name: metallic-blue
-    original_name: Metallic blue
-    value: 0x32527b
+    original_name: metallic blue
+    value: 0x4f738e
   - name: metallic-bronze
     original_name: Metallic bronze
     value: 0xa97142
@@ -3229,6 +4371,12 @@ colors:
   - name: microsoft-yellow
     original_name: Microsoft yellow
     value: 0xfdb900
+  - name: mid-blue
+    original_name: mid blue
+    value: 0x276ab3
+  - name: mid-green
+    original_name: mid green
+    value: 0x50a747
   - name: middle-blue
     original_name: Middle blue
     value: 0x7ed4e6
@@ -3263,11 +4411,11 @@ colors:
     original_name: Middle yellow red
     value: 0xecb176
   - name: midnight
-    original_name: Midnight
-    value: 0x702670
+    original_name: midnight
+    value: 0x03012d
   - name: midnight-blue
-    original_name: Midnight blue
-    value: 0x191970
+    original_name: midnight blue
+    value: 0x020035
     variations:
       - name: '2'
         original_name: Midnight blue (2)
@@ -3275,15 +4423,21 @@ colors:
   - name: midnight-green
     original_name: Midnight green (eagle green)
     value: 0x004953
+  - name: midnight-purple
+    original_name: midnight purple
+    value: 0x280137
   - name: mikado-yellow
     original_name: Mikado yellow
     value: 0xffc40c
+  - name: military-green
+    original_name: military green
+    value: 0x667c3e
   - name: milk
     original_name: Milk
     value: 0xfdfff5
   - name: milk-chocolate
-    original_name: Milk chocolate
-    value: 0x84563c
+    original_name: milk chocolate
+    value: 0x7f4e1e
   - name: mimi-pink
     original_name: Mimi pink
     value: 0xffdae9
@@ -3297,17 +4451,20 @@ colors:
     original_name: Minion yellow
     value: 0xf5e050
   - name: mint
-    original_name: Mint
-    value: 0x3eb489
+    original_name: mint
+    value: 0x9ffeb0
   - name: mint-cream
     original_name: Mint cream
     value: 0xf5fffa
   - name: mint-green
-    original_name: Mint green
-    value: 0x98ff98
+    original_name: mint green
+    value: 0x8fff9f
   - name: mintie
     original_name: Mintie (Atlassian)
     value: 0xabf5d1
+  - name: minty-green
+    original_name: minty green
+    value: 0x0bf77d
   - name: misty-moss
     original_name: Misty moss
     value: 0xbbb477
@@ -3315,8 +4472,8 @@ colors:
     original_name: Misty rose
     value: 0xffe4e1
   - name: mocha
-    original_name: Mocha
-    value: 0xbea493
+    original_name: mocha
+    value: 0x9d7651
   - name: moonlightd
     original_name: moonlightd
     value: 0x7280e2
@@ -3333,11 +4490,18 @@ colors:
     original_name: Morning blue
     value: 0x8da399
   - name: moss
-    original_name: Moss color (Koke-iro)
-    value: 0x8b7d3a
+    original_name: moss
+    value: 0x769958
+    variations:
+      - name: koke-iro
+        original_name: Moss color (Koke-iro)
+        value: 0x8b7d3a
   - name: moss-green
-    original_name: Moss green
-    value: 0x8a9a5b
+    original_name: moss green
+    value: 0x658b38
+  - name: mossy-green
+    original_name: mossy green
+    value: 0x638b27
   - name: mountain-meadow
     original_name: Mountain Meadow
     value: 0x30ba8f
@@ -3354,17 +4518,33 @@ colors:
     original_name: MSU green
     value: 0x18453b
   - name: mud
-    original_name: Mud
-    value: 0x70543e
+    original_name: mud
+    value: 0x735c12
+  - name: mud-brown
+    original_name: mud brown
+    value: 0x60460f
+  - name: mud-green
+    original_name: mud green
+    value: 0x606602
   - name: muddy-brown
-    original_name: Muddy brown (lit. the brown of a distant river) (Enshūcha)
-    value: 0xcb6649
+    original_name: muddy brown
+    value: 0x886806
+    variations:
+      - name: lit-the-brown-of-a-distant-river
+        original_name: Muddy brown (lit. the brown of a distant river) (Enshūcha)
+        value: 0xcb6649
+  - name: muddy-green
+    original_name: muddy green
+    value: 0x657432
+  - name: muddy-yellow
+    original_name: muddy yellow
+    value: 0xbfac05
   - name: mughal-green
     original_name: Mughal green
     value: 0x306030
   - name: mulberry
-    original_name: Mulberry
-    value: 0xc54b8c
+    original_name: mulberry
+    value: 0x920a4e
     variations:
       - name: crayola
         original_name: Mulberry (Crayola)
@@ -3375,18 +4555,36 @@ colors:
   - name: mulberry-dyed
     original_name: Mulberry-dyed (Kuwazome)
     value: 0xc57f2e
+  - name: murky-green
+    original_name: murky green
+    value: 0x6c7a0e
+  - name: mushroom
+    original_name: mushroom
+    value: 0xba9e88
   - name: mustard
-    original_name: Mustard
-    value: 0xffdb58
+    original_name: mustard
+    value: 0xceb301
   - name: mustard-brown
-    original_name: Mustard brown
-    value: 0xcd7a00
+    original_name: mustard brown
+    value: 0xac7e04
   - name: mustard-green
-    original_name: Mustard green
-    value: 0x6e6e30
+    original_name: mustard green
+    value: 0xa8b504
   - name: mustard-yellow
-    original_name: Mustard yellow
-    value: 0xe1ad01
+    original_name: mustard yellow
+    value: 0xd2bd0a
+  - name: muted-blue
+    original_name: muted blue
+    value: 0x3b719f
+  - name: muted-green
+    original_name: muted green
+    value: 0x5fa052
+  - name: muted-pink
+    original_name: muted pink
+    value: 0xd1768f
+  - name: muted-purple
+    original_name: muted purple
+    value: 0x805b87
   - name: myrtle-green
     original_name: Myrtle green
     value: 0x317873
@@ -3408,18 +4606,27 @@ colors:
   - name: naples-yellow
     original_name: Naples yellow
     value: 0xfada5e
+  - name: nasty-green
+    original_name: nasty green
+    value: 0x70b23f
   - name: navajo-white
     original_name: Navajo white
     value: 0xffdead
+  - name: navy
+    original_name: navy
+    value: 0x01153e
   - name: navy-blue
-    original_name: Navy blue
-    value: 0x000080
+    original_name: navy blue
+    value: 0x001146
   - name: navy-blue-bellflower
     original_name: Navy blue bellflower (Konkikyō)
     value: 0x191f45
+  - name: navy-green
+    original_name: navy green
+    value: 0x35530a
   - name: neon-blue
-    original_name: Neon blue
-    value: 0x1b03a3
+    original_name: neon blue
+    value: 0x04d9ff
   - name: neon-carrot
     original_name: Neon Carrot
     value: 0xffa343
@@ -3427,8 +4634,20 @@ colors:
     original_name: Neon Fuchsia
     value: 0xfe4164
   - name: neon-green
-    original_name: Neon green
-    value: 0x39ff14
+    original_name: neon green
+    value: 0x0cff0c
+  - name: neon-pink
+    original_name: neon pink
+    value: 0xfe019a
+  - name: neon-purple
+    original_name: neon purple
+    value: 0xbc13fe
+  - name: neon-red
+    original_name: neon red
+    value: 0xff073a
+  - name: neon-yellow
+    original_name: neon yellow
+    value: 0xcfff04
   - name: new-bridge
     original_name: New Bridge color (Shinbashi-iro)
     value: 0x006c7f
@@ -3438,9 +4657,15 @@ colors:
   - name: new-york-pink
     original_name: New York pink
     value: 0xd7837f
+  - name: nice-blue
+    original_name: nice blue
+    value: 0x107ab0
   - name: nickel
     original_name: Nickel
     value: 0x727472
+  - name: night-blue
+    original_name: night blue
+    value: 0x040348
   - name: nightingale-brown
     original_name: Nightingale-brown (greenish brown) (Uguisucha)
     value: 0x5c4827
@@ -3459,18 +4684,24 @@ colors:
   - name: nyanza
     original_name: Nyanza
     value: 0xe9ffdb
+  - name: ocean
+    original_name: ocean
+    value: 0x017b92
   - name: ocean-blue
-    original_name: Ocean Blue
-    value: 0x4f42b5
+    original_name: ocean blue
+    value: 0x03719c
   - name: ocean-boat-blue
     original_name: Ocean boat blue
     value: 0x0077be
   - name: ocean-green
-    original_name: Ocean green
-    value: 0x48bf91
+    original_name: ocean green
+    value: 0x3d9973
+  - name: ocher
+    original_name: ocher
+    value: 0xbf9b0c
   - name: ochre
-    original_name: Ochre
-    value: 0xcc7722
+    original_name: ochre
+    value: 0xbf9005
     variations:
       - name: earthen-yellow-red-brown
         original_name: Ochre (earthen yellow-red-brown) (Ōtan)
@@ -3478,6 +4709,21 @@ colors:
       - name: lit-earthen-yellow
         original_name: Ochre (lit. earthen yellow) (Ōdo-iro)
         value: 0xbe7f51
+  - name: ocre
+    original_name: ocre
+    value: 0xc69c04
+  - name: off-blue
+    original_name: off blue
+    value: 0x5684ae
+  - name: off-green
+    original_name: off green
+    value: 0x6ba353
+  - name: off-white
+    original_name: off white
+    value: 0xffffe4
+  - name: off-yellow
+    original_name: off yellow
+    value: 0xf1f33f
   - name: ogre-odor
     original_name: Ogre Odor
     value: 0xfd5240
@@ -3502,19 +4748,34 @@ colors:
   - name: old-moss-green
     original_name: Old moss green
     value: 0x867e36
+  - name: old-pink
+    original_name: old pink
+    value: 0xc77986
   - name: old-rose
-    original_name: Old rose
-    value: 0xc08081
+    original_name: old rose
+    value: 0xc87f89
+  - name: olive
+    original_name: olive
+    value: 0x6e750e
+  - name: olive-brown
+    original_name: olive brown
+    value: 0x645403
   - name: olive-drab
-    original_name: Olive Drab (3)
-    value: 0x6b8e23
+    original_name: olive drab
+    value: 0x6f7632
     variations:
+      - name: '3'
+        original_name: Olive Drab (3)
+        value: 0x6b8e23
       - name: '7'
         original_name: Olive Drab (7)
         value: 0x3c341f
   - name: olive-green
-    original_name: Olive green
-    value: 0xb5b35c
+    original_name: olive green
+    value: 0x677a04
+  - name: olive-yellow
+    original_name: olive yellow
+    value: 0xc2b709
   - name: olivine
     original_name: Olivine
     value: 0x9ab973
@@ -3543,8 +4804,8 @@ colors:
     original_name: Opposite flower color (Masuhana-iro)
     value: 0x4d646c
   - name: orange
-    original_name: Orange
-    value: 0xff6600
+    original_name: orange
+    value: 0xf97306
     variations:
       - name: color-wheel
         original_name: Orange (color wheel)
@@ -3558,12 +4819,18 @@ colors:
       - name: ryb
         original_name: Orange (RYB)
         value: 0xfb9902
+  - name: orange-brown
+    original_name: orange brown
+    value: 0xbe6400
   - name: orange-peel
     original_name: Orange peel
     value: 0xff9f00
+  - name: orange-pink
+    original_name: orange pink
+    value: 0xff6f52
   - name: orange-red
-    original_name: Orange-red
-    value: 0xff681f
+    original_name: orange red
+    value: 0xfd411e
     variations:
       - name: crayola
         original_name: Orange-red (Crayola)
@@ -3576,15 +4843,39 @@ colors:
         original_name: Orange soda (2)
         value: 0xeb593d
   - name: orange-yellow
-    original_name: Orange-yellow
-    value: 0xf5bd1f
+    original_name: orange yellow
+    value: 0xffad01
     variations:
       - name: crayola
         original_name: Orange-yellow (Crayola)
         value: 0xf8d568
+  - name: orangeish
+    original_name: orangeish
+    value: 0xfd8d49
+  - name: orangered
+    original_name: orangered
+    value: 0xfe420f
+  - name: orangey-brown
+    original_name: orangey brown
+    value: 0xb16002
+  - name: orangey-red
+    original_name: orangey red
+    value: 0xfa4224
+  - name: orangey-yellow
+    original_name: orangey yellow
+    value: 0xfdb915
+  - name: orangish
+    original_name: orangish
+    value: 0xfc824a
+  - name: orangish-brown
+    original_name: orangish brown
+    value: 0xb25f03
+  - name: orangish-red
+    original_name: orangish red
+    value: 0xf43605
   - name: orchid
-    original_name: Orchid
-    value: 0xda70d6
+    original_name: orchid
+    value: 0xc875c4
     variations:
       - name: crayola
         original_name: Orchid (Crayola)
@@ -3637,15 +4928,25 @@ colors:
   - name: palatinate-purple
     original_name: Palatinate purple
     value: 0x682860
+  - name: pale
+    original_name: pale
+    value: 0xfff9d0
+  - name: pale-aqua
+    original_name: pale aqua
+    value: 0xb8ffeb
   - name: pale-blue
-    original_name: Pale blue (Usuao)
-    value: 0x8c9c76
+    original_name: pale blue
+    value: 0xd0fefe
+    variations:
+      - name: usuao
+        original_name: Pale blue (Usuao)
+        value: 0x8c9c76
   - name: pale-blue-pale-turquoise
     original_name: Pale Blue / Pale Turquoise
     value: 0xafeeee
   - name: pale-brown
-    original_name: Pale Brown
-    value: 0x987654
+    original_name: pale brown
+    value: 0xb1916e
   - name: pale-cerulean
     original_name: Pale cerulean
     value: 0x9bc4e2
@@ -3656,62 +4957,120 @@ colors:
     original_name: Pale Cornflower Blue
     value: 0xabcdef
   - name: pale-cyan
-    original_name: Pale Cyan
-    value: 0x87d3f8
+    original_name: pale cyan
+    value: 0xb7fffa
   - name: pale-fallen-leaves
     original_name: Pale fallen leaves (Aokuchiba)
     value: 0xaa8736
+  - name: pale-gold
+    original_name: pale gold
+    value: 0xfdde6c
   - name: pale-goldenrod
     original_name: Pale goldenrod
     value: 0xeee8aa
   - name: pale-green
-    original_name: Pale Green
-    value: 0x98fb98
+    original_name: pale green
+    value: 0xc7fdb5
   - name: pale-green-onion
     original_name: Pale green onion (Mizuasagi)
     value: 0x749f8d
+  - name: pale-grey
+    original_name: pale grey
+    value: 0xfdfdfe
   - name: pale-incense
     original_name: Pale incense (Usukō)
     value: 0xffa565
   - name: pale-lavender
-    original_name: Pale lavender
-    value: 0xdcd0ff
+    original_name: pale lavender
+    value: 0xeecffe
+  - name: pale-light-green
+    original_name: pale light green
+    value: 0xb1fc99
+  - name: pale-lilac
+    original_name: pale lilac
+    value: 0xe4cbff
+  - name: pale-lime
+    original_name: pale lime
+    value: 0xbefd73
+  - name: pale-lime-green
+    original_name: pale lime green
+    value: 0xb1ff65
   - name: pale-magenta
-    original_name: Pale Magenta
-    value: 0xf984e5
+    original_name: pale magenta
+    value: 0xd767ad
   - name: pale-magenta-pink
     original_name: Pale Magenta-Pink
     value: 0xff99cc
+  - name: pale-mauve
+    original_name: pale mauve
+    value: 0xfed0fc
   - name: pale-oak
     original_name: Pale oak (Aoshirotsurubami)
     value: 0xbba46d
+  - name: pale-olive
+    original_name: pale olive
+    value: 0xb9cc81
+  - name: pale-olive-green
+    original_name: pale olive green
+    value: 0xb1d27b
+  - name: pale-orange
+    original_name: pale orange
+    value: 0xffa756
+  - name: pale-peach
+    original_name: pale peach
+    value: 0xffe5ad
   - name: pale-persimmon
     original_name: Pale persimmon (Usugaki)
     value: 0xfca474
   - name: pale-pink
-    original_name: Pale pink
-    value: 0xfadadd
+    original_name: pale pink
+    value: 0xffcfdc
   - name: pale-purple
-    original_name: Pale purple (Pantone)
-    value: 0xfae6fa
+    original_name: pale purple
+    value: 0xb790d4
+    variations:
+      - name: pantone
+        original_name: Pale purple (Pantone)
+        value: 0xfae6fa
+  - name: pale-red
+    original_name: pale red
+    value: 0xd9544d
   - name: pale-red-violet
     original_name: Pale red-violet
     value: 0xdb7093
   - name: pale-robin-egg-blue
     original_name: Pale robin egg blue
     value: 0x96ded1
+  - name: pale-rose
+    original_name: pale rose
+    value: 0xfdc1c5
+  - name: pale-salmon
+    original_name: pale salmon
+    value: 0xffb19a
   - name: pale-silver
     original_name: Pale silver
     value: 0xc9c0bb
+  - name: pale-sky-blue
+    original_name: pale sky blue
+    value: 0xbdf6fe
   - name: pale-spring-bud
     original_name: Pale spring bud
     value: 0xecebbd
   - name: pale-taupe
     original_name: Pale taupe
     value: 0xbc987e
+  - name: pale-teal
+    original_name: pale teal
+    value: 0x82cbb2
+  - name: pale-turquoise
+    original_name: pale turquoise
+    value: 0xa5fbd5
   - name: pale-violet
-    original_name: Pale Violet
-    value: 0xcc99ff
+    original_name: pale violet
+    value: 0xceaefa
+  - name: pale-yellow
+    original_name: pale yellow
+    value: 0xffff84
   - name: pale-young-green-onion
     original_name: Pale young green onion (Usumoegi)
     value: 0x8db255
@@ -3736,12 +5095,15 @@ colors:
   - name: parakeet-blue
     original_name: Parakeet Blue
     value: 0x7eb6ff
+  - name: parchment
+    original_name: parchment
+    value: 0xfefcaf
   - name: parrot-pink
     original_name: Parrot Pink
     value: 0xd998a0
   - name: pastel-blue
-    original_name: Pastel blue
-    value: 0xaec6cf
+    original_name: pastel blue
+    value: 0xa2bffe
   - name: pastel-brown
     original_name: Pastel brown
     value: 0x836953
@@ -3749,29 +5111,29 @@ colors:
     original_name: Pastel gray
     value: 0xcfcfc4
   - name: pastel-green
-    original_name: Pastel green
-    value: 0x77dd77
+    original_name: pastel green
+    value: 0xb0ff9d
   - name: pastel-magenta
     original_name: Pastel magenta
     value: 0xf49ac2
   - name: pastel-orange
-    original_name: Pastel orange
-    value: 0xffb347
+    original_name: pastel orange
+    value: 0xff964f
   - name: pastel-pink
-    original_name: Pastel pink
-    value: 0xdea5a4
+    original_name: pastel pink
+    value: 0xffbacd
   - name: pastel-purple
-    original_name: Pastel purple
-    value: 0xb39eb5
+    original_name: pastel purple
+    value: 0xcaa0ff
   - name: pastel-red
-    original_name: Pastel red
-    value: 0xff6961
+    original_name: pastel red
+    value: 0xdb5856
   - name: pastel-violet
     original_name: Pastel violet
     value: 0xcb99c9
   - name: pastel-yellow
-    original_name: Pastel yellow
-    value: 0xfdfd96
+    original_name: pastel yellow
+    value: 0xfffe71
   - name: pastelli
     original_name: Pastelli (Atlassian)
     value: 0x8777d9
@@ -3784,9 +5146,21 @@ colors:
   - name: patrinia-flowers
     original_name: Patrinia flowers (Patrinia scabiosaefolia) (Ominaeshi)
     value: 0xd9b611
+  - name: pea
+    original_name: pea
+    value: 0xa4bf20
+  - name: pea-green
+    original_name: pea green
+    value: 0x8eab12
+  - name: pea-soup
+    original_name: pea soup
+    value: 0x929901
+  - name: pea-soup-green
+    original_name: pea soup green
+    value: 0x94a617
   - name: peach
-    original_name: Peach
-    value: 0xffe5b4
+    original_name: peach
+    value: 0xffb07c
     variations:
       - name: momo-iro
         original_name: Peach-colored (Momo-iro)
@@ -3803,9 +5177,15 @@ colors:
   - name: peach-yellow
     original_name: Peach-yellow
     value: 0xfadfad
+  - name: peachy-pink
+    original_name: peachy pink
+    value: 0xff9a8a
+  - name: peacock-blue
+    original_name: peacock blue
+    value: 0x016795
   - name: pear
-    original_name: Pear
-    value: 0xd1e231
+    original_name: pear
+    value: 0xcbf85f
   - name: pearl
     original_name: Pearl
     value: 0xeae0c8
@@ -3822,11 +5202,21 @@ colors:
     original_name: Peridot
     value: 0xe6e200
   - name: periwinkle
-    original_name: Periwinkle (Crayola)
-    value: 0xc3cde6
+    original_name: periwinkle
+    value: 0x8e82fe
+    variations:
+      - name: crayola
+        original_name: Periwinkle (Crayola)
+        value: 0xc3cde6
+  - name: periwinkle-blue
+    original_name: periwinkle blue
+    value: 0x8f99fb
   - name: permanent-geranium-lake
     original_name: Permanent Geranium Lake
     value: 0xe12c2c
+  - name: perrywinkle
+    original_name: perrywinkle
+    value: 0x8f8ce7
   - name: persian-blue
     original_name: Persian blue
     value: 0x1c39bb
@@ -3863,6 +5253,9 @@ colors:
   - name: pet-rock
     original_name: Pet rock (Atlassian)
     value: 0x344563
+  - name: petrol
+    original_name: petrol
+    value: 0x005f6a
   - name: pewter-blue
     original_name: Pewter Blue
     value: 0x8ba8b7
@@ -3920,12 +5313,18 @@ colors:
   - name: pictorial-carmine
     original_name: Pictorial carmine
     value: 0xc30b4e
+  - name: pig-pink
+    original_name: pig pink
+    value: 0xe78ea5
   - name: piggy-pink
     original_name: Piggy pink
     value: 0xfddde6
+  - name: pine
+    original_name: pine
+    value: 0x2b5d34
   - name: pine-green
-    original_name: Pine green
-    value: 0x01796f
+    original_name: pine green
+    value: 0x0a481e
   - name: pine-needle
     original_name: Pine needle color (Matsuba-iro)
     value: 0x454d32
@@ -3936,8 +5335,8 @@ colors:
     original_name: Pineapple
     value: 0x563c0d
   - name: pink
-    original_name: Pink
-    value: 0xffc0cb
+    original_name: pink
+    value: 0xff81c0
     variations:
       - name: pantone
         original_name: Pink (Pantone)
@@ -3954,15 +5353,54 @@ colors:
   - name: pink-pearl
     original_name: Pink pearl
     value: 0xe7accf
+  - name: pink-purple
+    original_name: pink purple
+    value: 0xdb4bda
   - name: pink-raspberry
     original_name: Pink raspberry
     value: 0x980036
+  - name: pink-red
+    original_name: pink red
+    value: 0xf5054f
   - name: pink-sherbet
     original_name: Pink Sherbet
     value: 0xf78fa7
+  - name: pinkish
+    original_name: pinkish
+    value: 0xd46a7e
+  - name: pinkish-brown
+    original_name: pinkish brown
+    value: 0xb17261
+  - name: pinkish-grey
+    original_name: pinkish grey
+    value: 0xc8aca9
+  - name: pinkish-orange
+    original_name: pinkish orange
+    value: 0xff724c
+  - name: pinkish-purple
+    original_name: pinkish purple
+    value: 0xd648d7
+  - name: pinkish-red
+    original_name: pinkish red
+    value: 0xf10c45
+  - name: pinkish-tan
+    original_name: pinkish tan
+    value: 0xd99b82
+  - name: pinky
+    original_name: pinky
+    value: 0xfc86aa
+  - name: pinky-purple
+    original_name: pinky purple
+    value: 0xc94cbe
+  - name: pinky-red
+    original_name: pinky red
+    value: 0xfc2647
+  - name: piss-yellow
+    original_name: piss yellow
+    value: 0xddd618
   - name: pistachio
-    original_name: Pistachio
-    value: 0x93c572
+    original_name: pistachio
+    value: 0xc0fa8b
   - name: pixie-dust
     original_name: Pixie dust (Atlassian)
     value: 0xdeebff
@@ -3976,8 +5414,8 @@ colors:
     original_name: Platinum
     value: 0xe5e4e2
   - name: plum
-    original_name: Plum
-    value: 0x8e4585
+    original_name: plum
+    value: 0x580f41
   - name: plum-blossom-mouse
     original_name: Plum-blossom mouse (Umenezumi)
     value: 0x97645a
@@ -3985,11 +5423,18 @@ colors:
     original_name: Plum-dyed (Umezome)
     value: 0xfa9258
   - name: plum-purple
-    original_name: Plum purple (Umemurasaki)
-    value: 0x8f4155
+    original_name: plum purple
+    value: 0x4e0550
+    variations:
+      - name: umemurasaki
+        original_name: Plum purple (Umemurasaki)
+        value: 0x8f4155
   - name: plump-purple
     original_name: Plump Purple
     value: 0x5946b2
+  - name: poison-green
+    original_name: poison green
+    value: 0x40fd14
   - name: poker-green
     original_name: Poker Green
     value: 0x35654d
@@ -4011,6 +5456,21 @@ colors:
   - name: pomelo-white
     original_name: Pomelo White
     value: 0xf9ffe3
+  - name: poo
+    original_name: poo
+    value: 0x8f7303
+  - name: poo-brown
+    original_name: poo brown
+    value: 0x885f01
+  - name: poop
+    original_name: poop
+    value: 0x7f5e00
+  - name: poop-brown
+    original_name: poop brown
+    value: 0x7a5901
+  - name: poop-green
+    original_name: poop green
+    value: 0x6f7c00
   - name: poppy-petal
     original_name: Poppy Petal
     value: 0xf6a08c
@@ -4029,8 +5489,14 @@ colors:
     original_name: Portland Orange
     value: 0xff5a36
   - name: powder-blue
-    original_name: Powder blue
-    value: 0xb0e0e6
+    original_name: powder blue
+    value: 0xb1d1fc
+  - name: powder-pink
+    original_name: powder pink
+    value: 0xffb2d0
+  - name: primary-blue
+    original_name: primary blue
+    value: 0x0804f9
   - name: prince
     original_name: Prince (Atlassian)
     value: 0x403294
@@ -4044,8 +5510,8 @@ colors:
     original_name: Prom dress (Atlassian)
     value: 0x00a3bf
   - name: prussian-blue
-    original_name: Prussian blue
-    value: 0x003153
+    original_name: prussian blue
+    value: 0x004577
     variations:
       - name: konjo-iro
         original_name: Prussian blue color (Konjō-iro)
@@ -4054,11 +5520,23 @@ colors:
     original_name: Pub mix (Atlassian)
     value: 0xffc400
   - name: puce
-    original_name: Puce
-    value: 0xcc8899
+    original_name: puce
+    value: 0xa57e52
   - name: puce-red
     original_name: Puce red
     value: 0x722f37
+  - name: puke
+    original_name: puke
+    value: 0xa5a502
+  - name: puke-brown
+    original_name: puke brown
+    value: 0x947706
+  - name: puke-green
+    original_name: puke green
+    value: 0x9aae07
+  - name: puke-yellow
+    original_name: puke yellow
+    value: 0xc2be0e
   - name: pullman-brown
     original_name: Pullman Brown (UPS Brown)
     value: 0x644117
@@ -4066,14 +5544,20 @@ colors:
     original_name: Pullman Green
     value: 0x3b331c
   - name: pumpkin
-    original_name: Pumpkin
-    value: 0xff7518
+    original_name: pumpkin
+    value: 0xe17701
+  - name: pumpkin-orange
+    original_name: pumpkin orange
+    value: 0xfb7d07
+  - name: pure-blue
+    original_name: pure blue
+    value: 0x0203e2
   - name: pure-crimson
     original_name: Pure crimson (dye) (Akabeni)
     value: 0xc3272b
   - name: purple
-    original_name: Purple
-    value: 0x6a0dad
+    original_name: purple
+    value: 0x7e1e9c
     variations:
       - name: munsell
         original_name: Purple (Munsell)
@@ -4084,6 +5568,15 @@ colors:
       - name: x11
         original_name: Purple (X11)
         value: 0xa020f0
+  - name: purple-blue
+    original_name: purple blue
+    value: 0x632de9
+  - name: purple-brown
+    original_name: purple brown
+    value: 0x673a3f
+  - name: purple-grey
+    original_name: purple grey
+    value: 0x866f85
   - name: purple-heart
     original_name: Purple Heart
     value: 0x69359c
@@ -4096,18 +5589,75 @@ colors:
   - name: purple-navy
     original_name: Purple navy
     value: 0x4e5180
+  - name: purple-pink
+    original_name: purple pink
+    value: 0xe03fd8
   - name: purple-pizzazz
     original_name: Purple pizzazz
     value: 0xfe4eda
   - name: purple-plum
     original_name: Purple Plum
     value: 0x9c51b6
+  - name: purple-red
+    original_name: purple red
+    value: 0x990147
   - name: purple-taupe
     original_name: Purple taupe
     value: 0x50404d
+  - name: purpleish
+    original_name: purpleish
+    value: 0x98568d
+  - name: purpleish-blue
+    original_name: purpleish blue
+    value: 0x6140ef
+  - name: purpleish-pink
+    original_name: purpleish pink
+    value: 0xdf4ec8
+  - name: purpley
+    original_name: purpley
+    value: 0x8756e4
+  - name: purpley-blue
+    original_name: purpley blue
+    value: 0x5f34e7
+  - name: purpley-grey
+    original_name: purpley grey
+    value: 0x947e94
+  - name: purpley-pink
+    original_name: purpley pink
+    value: 0xc83cb9
+  - name: purplish
+    original_name: purplish
+    value: 0x94568c
+  - name: purplish-blue
+    original_name: purplish blue
+    value: 0x601ef9
+  - name: purplish-brown
+    original_name: purplish brown
+    value: 0x6b4247
+  - name: purplish-grey
+    original_name: purplish grey
+    value: 0x7a687f
+  - name: purplish-pink
+    original_name: purplish pink
+    value: 0xce5dae
+  - name: purplish-red
+    original_name: purplish red
+    value: 0xb0054b
+  - name: purply
+    original_name: purply
+    value: 0x983fb2
+  - name: purply-blue
+    original_name: purply blue
+    value: 0x661aee
+  - name: purply-pink
+    original_name: purply pink
+    value: 0xf075e6
   - name: purpureus
     original_name: Purpureus
     value: 0x9a4eae
+  - name: putty
+    original_name: putty
+    value: 0xbeae8a
   - name: quartz
     original_name: Quartz
     value: 0x51484f
@@ -4131,9 +5681,15 @@ colors:
   - name: rabbit-ear-iris
     original_name: Rabbit-ear iris (Kakitsubata)
     value: 0x491e3c
+  - name: racing-green
+    original_name: racing green
+    value: 0x014600
   - name: radical-red
     original_name: Radical Red
     value: 0xff355e
+  - name: radioactive-green
+    original_name: radioactive green
+    value: 0x2cfa1f
   - name: raisin-black
     original_name: Raisin black
     value: 0x242124
@@ -4153,17 +5709,17 @@ colors:
     original_name: Rapeseed oil-colored (Nataneyu-iro)
     value: 0xa17917
   - name: raspberry
-    original_name: Raspberry
-    value: 0xe30b5d
+    original_name: raspberry
+    value: 0xb00149
   - name: raspberry-pink
     original_name: Raspberry pink
     value: 0xe25098
   - name: raw-sienna
-    original_name: Raw Sienna
-    value: 0xd68a59
+    original_name: raw sienna
+    value: 0x9a6200
   - name: raw-umber
-    original_name: Raw umber
-    value: 0x826644
+    original_name: raw umber
+    value: 0xa75e09
   - name: razzle-dazzle-rose
     original_name: Razzle dazzle rose
     value: 0xff33cc
@@ -4173,13 +5729,19 @@ colors:
   - name: razzmic-berry
     original_name: Razzmic Berry
     value: 0x8d4e85
+  - name: really-light-blue
+    original_name: really light blue
+    value: 0xd4ffff
   - name: rebecca-purple
     original_name: Rebecca Purple
     value: 0x663399
   - name: red
-    original_name: Red (Crayola)
-    value: 0xee204d
+    original_name: red
+    value: 0xe50000
     variations:
+      - name: crayola
+        original_name: Red (Crayola)
+        value: 0xee204d
       - name: munsell
         original_name: Red (Munsell)
         value: 0xf2003c
@@ -4199,9 +5761,12 @@ colors:
     original_name: Red-bronze (lit. red dye and turmeric) (Beniukon)
     value: 0xfb8136
   - name: red-brown
-    original_name: Red-brown (Edo brown) (Edocha)
-    value: 0xa13d2d
+    original_name: red brown
+    value: 0x8b2e16
     variations:
+      - name: edo-brown
+        original_name: Red-brown (Edo brown) (Edocha)
+        value: 0xa13d2d
       - name: lit-chestnut-plum
         original_name: Red-brown (lit. chestnut-plum) (Kiriume)
         value: 0x8b352d
@@ -4227,34 +5792,67 @@ colors:
     original_name: Red ochre color (Taisha-iro)
     value: 0x9f5233
   - name: red-orange
-    original_name: Red-orange (Color wheel)
-    value: 0xff4500
+    original_name: red orange
+    value: 0xfd3c06
     variations:
+      - name: color-wheel
+        original_name: Red-orange (Color wheel)
+        value: 0xff4500
       - name: lit-orangutan
         original_name: Red-orange (lit. orangutan-colored) (Shōjōhi)
         value: 0xdc3023
   - name: red-panik
     original_name: Red panik
     value: 0xff5b56
+  - name: red-pink
+    original_name: red pink
+    value: 0xfa2a55
   - name: red-plum
     original_name: Red plum colored (Kōbai-iro)
     value: 0xdb5a6b
   - name: red-purple
-    original_name: Red-purple
-    value: 0xe40078
+    original_name: red purple
+    value: 0x820747
   - name: red-salsa
     original_name: Red Salsa
     value: 0xfd3a4a
   - name: red-violet
-    original_name: Red-violet (Color wheel)
-    value: 0x922b3e
+    original_name: red violet
+    value: 0x9e0168
     variations:
+      - name: color-wheel
+        original_name: Red-violet (Color wheel)
+        value: 0x922b3e
       - name: crayola
         original_name: Red-violet (Crayola)
         value: 0xc0448f
+  - name: red-wine
+    original_name: red wine
+    value: 0x8c0034
   - name: red-wisteria
     original_name: Red wisteria (Benifuji)
     value: 0xbb7796
+  - name: reddish
+    original_name: reddish
+    value: 0xc44240
+  - name: reddish-brown
+    original_name: reddish brown
+    value: 0x7f2b0a
+  - name: reddish-grey
+    original_name: reddish grey
+    value: 0x997570
+  - name: reddish-orange
+    original_name: reddish orange
+    value: 0xf8481c
+  - name: reddish-pink
+    original_name: reddish pink
+    value: 0xfe2c54
+  - name: reddish-purple
+    original_name: reddish purple
+    value: 0x910951
+  - name: reddy-brown
+    original_name: reddy brown
+    value: 0x6e1005
   - name: redwood
     original_name: Redwood
     value: 0xa45a52
@@ -4277,6 +5875,9 @@ colors:
       - name: fogra39
         original_name: Rich black (FOGRA39)
         value: 0x010203
+  - name: rich-blue
+    original_name: rich blue
+    value: 0x021bf9
   - name: rich-brilliant-lavender
     original_name: Rich brilliant lavender
     value: 0xf1a7fe
@@ -4292,6 +5893,9 @@ colors:
   - name: rich-lilac
     original_name: Rich lilac
     value: 0xb666d2
+  - name: rich-purple
+    original_name: rich purple
+    value: 0x720058
   - name: rifle-green
     original_name: Rifle green
     value: 0x444c38
@@ -4305,8 +5909,14 @@ colors:
     original_name: Ripe mango
     value: 0xffc324
   - name: robin-egg-blue
-    original_name: Robin egg blue
-    value: 0x00cccc
+    original_name: robin egg blue
+    value: 0x8af1fe
+  - name: robins-egg
+    original_name: robin's egg
+    value: 0x6dedfd
+  - name: robins-egg-blue
+    original_name: robin's egg blue
+    value: 0x98eff9
   - name: rocket-metallic
     original_name: Rocket metallic
     value: 0x8a7f80
@@ -4316,6 +5926,12 @@ colors:
   - name: root-beer
     original_name: Root beer
     value: 0x290e05
+  - name: rosa
+    original_name: rosa
+    value: 0xfe86a4
+  - name: rose
+    original_name: rose
+    value: 0xcf6275
   - name: rose-bonbon
     original_name: Rose bonbon
     value: 0xf9429e
@@ -4332,14 +5948,14 @@ colors:
     original_name: Rose gold
     value: 0xb76e79
   - name: rose-pink
-    original_name: Rose pink
-    value: 0xff66cc
+    original_name: rose pink
+    value: 0xf7879a
   - name: rose-quartz-pink
     original_name: Rose quartz pink
     value: 0xbd559c
   - name: rose-red
-    original_name: Rose red
-    value: 0xc21e56
+    original_name: rose red
+    value: 0xbe013c
   - name: rose-taupe
     original_name: Rose taupe
     value: 0x905d5d
@@ -4358,13 +5974,25 @@ colors:
   - name: rosy-brown
     original_name: Rosy brown
     value: 0xbc8f8f
+  - name: rosy-pink
+    original_name: rosy pink
+    value: 0xf6688e
+  - name: rouge
+    original_name: rouge
+    value: 0xab1239
+  - name: royal
+    original_name: royal
+    value: 0x0c1793
   - name: royal-azure
     original_name: Royal azure
     value: 0x0038a8
   - name: royal-blue
-    original_name: Royal blue (dark)
-    value: 0x002366
+    original_name: royal blue
+    value: 0x0504aa
     variations:
+      - name: dark
+        original_name: Royal blue (dark)
+        value: 0x002366
       - name: light
         original_name: Royal blue (light)
         value: 0x4169e1
@@ -4384,8 +6012,8 @@ colors:
     original_name: Royal pink
     value: 0xe73895
   - name: royal-purple
-    original_name: Royal purple
-    value: 0x7851a9
+    original_name: royal purple
+    value: 0x4b006e
   - name: royal-red
     original_name: Royal red
     value: 0xd00060
@@ -4400,8 +6028,8 @@ colors:
     original_name: Rubine red
     value: 0xd10056
   - name: ruby
-    original_name: Ruby
-    value: 0xe0115f
+    original_name: ruby
+    value: 0xca0147
   - name: ruby-red
     original_name: Ruby red
     value: 0x9b111e
@@ -4421,8 +6049,8 @@ colors:
     original_name: Rum
     value: 0x716675
   - name: russet
-    original_name: Russet
-    value: 0x80461b
+    original_name: russet
+    value: 0xa13905
   - name: russian-green
     original_name: Russian green
     value: 0x679267
@@ -4430,17 +6058,29 @@ colors:
     original_name: Russian violet
     value: 0x32174d
   - name: rust
-    original_name: Rust
-    value: 0xb7410e
+    original_name: rust
+    value: 0xa83c09
+  - name: rust-brown
+    original_name: rust brown
+    value: 0x8b3103
+  - name: rust-orange
+    original_name: rust orange
+    value: 0xc45508
+  - name: rust-red
+    original_name: rust red
+    value: 0xaa2704
   - name: rusted-light-blue
     original_name: Rusted light-blue (Sabiasagi)
     value: 0x6a7f7a
   - name: rusty-celadon
     original_name: Rusty celadon (Sabiseiji)
     value: 0x898a74
+  - name: rusty-orange
+    original_name: rusty orange
+    value: 0xcd5909
   - name: rusty-red
-    original_name: Rusty red
-    value: 0xda2c43
+    original_name: rusty red
+    value: 0xaf2f0d
   - name: rusty-storage
     original_name: Rusty storage (Sabionando)
     value: 0x455859
@@ -4467,17 +6107,20 @@ colors:
     original_name: Safflower color (Benikakehana-iro)
     value: 0x5a4f74
   - name: saffron
-    original_name: Saffron
-    value: 0xf4c430
+    original_name: saffron
+    value: 0xfeb209
   - name: sage
-    original_name: Sage
-    value: 0xbcb88a
+    original_name: sage
+    value: 0x87ae73
+  - name: sage-green
+    original_name: sage green
+    value: 0x88b378
   - name: salmon
-    original_name: Salmon
-    value: 0xfa8072
+    original_name: salmon
+    value: 0xff796c
   - name: salmon-pink
-    original_name: Salmon pink
-    value: 0xff91a4
+    original_name: salmon pink
+    value: 0xfe7b7c
   - name: salmon-rose
     original_name: Salmon Rose
     value: 0xe7968b
@@ -4487,21 +6130,39 @@ colors:
   - name: samsung-blue
     original_name: Samsung blue
     value: 0x12279e
+  - name: sand
+    original_name: sand
+    value: 0xe2ca76
+  - name: sand-brown
+    original_name: sand brown
+    value: 0xcba560
+  - name: sand-yellow
+    original_name: sand yellow
+    value: 0xfce166
+  - name: sandstone
+    original_name: sandstone
+    value: 0xc9ae74
   - name: sandstorm
     original_name: Sandstorm
     value: 0xecd540
+  - name: sandy
+    original_name: sandy
+    value: 0xf1da7a
   - name: sandy-brown
-    original_name: Sandy brown
-    value: 0xf4a460
+    original_name: sandy brown
+    value: 0xc4a661
   - name: sandy-tan
     original_name: Sandy Tan
     value: 0xfdd9b5
+  - name: sandy-yellow
+    original_name: sandy yellow
+    value: 0xfdee73
   - name: sangria
     original_name: Sangria
     value: 0x92000a
   - name: sap-green
-    original_name: Sap green
-    value: 0x507d2a
+    original_name: sap green
+    value: 0x5c8b15
   - name: sappanwood
     original_name: Sappanwood (Suō)
     value: 0x7e2639
@@ -4509,8 +6170,8 @@ colors:
     original_name: Sappanwood incense (Suōkō)
     value: 0xa24f46
   - name: sapphire
-    original_name: Sapphire
-    value: 0x0f52ba
+    original_name: sapphire
+    value: 0x2138ab
   - name: sasquatch-socks
     original_name: Sasquatch Socks
     value: 0xff4681
@@ -4521,8 +6182,8 @@ colors:
     original_name: Sawtooth oak (Akashirotsurubami)
     value: 0xec956c
   - name: scarlet
-    original_name: Scarlet
-    value: 0xff2400
+    original_name: scarlet
+    value: 0xbe0119
     variations:
       - name: blood
         original_name: Scarlet (blood) (Ake)
@@ -4539,15 +6200,18 @@ colors:
   - name: screamin-green
     original_name: Screamin' Green
     value: 0x66ff66
+  - name: sea
+    original_name: sea
+    value: 0x3c9992
   - name: sea-blue
-    original_name: Sea blue
-    value: 0x006994
+    original_name: sea blue
+    value: 0x047495
   - name: sea-foam-green
     original_name: Sea Foam Green
     value: 0x9fe2bf
   - name: sea-green
-    original_name: Sea green
-    value: 0x2e8b57
+    original_name: sea green
+    value: 0x53fca1
     variations:
       - name: crayola
         original_name: Sea green (Crayola)
@@ -4555,12 +6219,27 @@ colors:
   - name: sea-serpent
     original_name: Sea Serpent
     value: 0x4bc7cf
+  - name: seafoam
+    original_name: seafoam
+    value: 0x80f9ad
+  - name: seafoam-blue
+    original_name: seafoam blue
+    value: 0x78d1b6
+  - name: seafoam-green
+    original_name: seafoam green
+    value: 0x7af9ab
   - name: seal-brown
     original_name: Seal brown
     value: 0x59260b
   - name: seashell
     original_name: Seashell
     value: 0xfff5ee
+  - name: seaweed
+    original_name: seaweed
+    value: 0x18d17b
+  - name: seaweed-green
+    original_name: seaweed green
+    value: 0x35ad6b
   - name: selective-yellow
     original_name: Selective yellow
     value: 0xffba00
@@ -4571,8 +6250,8 @@ colors:
     original_name: Sentinel (Atlassian)
     value: 0xb3bac5
   - name: sepia
-    original_name: Sepia
-    value: 0x704214
+    original_name: sepia
+    value: 0x985e2b
   - name: sequoia-beige
     original_name: Sequoia Beige
     value: 0xb1b7af
@@ -4591,9 +6270,12 @@ colors:
   - name: shampoo
     original_name: Shampoo
     value: 0xffcff1
+  - name: shamrock
+    original_name: shamrock
+    value: 0x01b44c
   - name: shamrock-green
-    original_name: Shamrock green
-    value: 0x009e60
+    original_name: shamrock green
+    value: 0x02c14d
   - name: shandy
     original_name: Shandy
     value: 0xffe670
@@ -4606,16 +6288,40 @@ colors:
   - name: shiny-shamrock
     original_name: Shiny Shamrock
     value: 0x5fa778
+  - name: shit
+    original_name: shit
+    value: 0x7f5f00
+  - name: shit-brown
+    original_name: shit brown
+    value: 0x7b5804
+  - name: shit-green
+    original_name: shit green
+    value: 0x758000
   - name: shocking-pink
-    original_name: Shocking pink
-    value: 0xfc0fc0
+    original_name: shocking pink
+    value: 0xfe02a2
     variations:
       - name: crayola
         original_name: Shocking pink (Crayola)
         value: 0xff6fff
+  - name: sick-green
+    original_name: sick green
+    value: 0x9db92c
+  - name: sickly-green
+    original_name: sickly green
+    value: 0x94b21c
+  - name: sickly-yellow
+    original_name: sickly yellow
+    value: 0xd0e429
+  - name: sienna
+    original_name: sienna
+    value: 0xa9561e
   - name: silk-crepe-brown
     original_name: Silk crepe brown (Omeshicha)
     value: 0x354e4b
+  - name: silver
+    original_name: silver
+    value: 0xc5c9c7
   - name: silver-chalice
     original_name: Silver chalice
     value: 0xacacac
@@ -4655,9 +6361,12 @@ colors:
   - name: skobeloff
     original_name: Skobeloff
     value: 0x007474
+  - name: sky
+    original_name: sky
+    value: 0x82cafc
   - name: sky-blue
-    original_name: Sky blue
-    value: 0x87ceeb
+    original_name: sky blue
+    value: 0x75bbfd
     variations:
       - name: crayola
         original_name: Sky blue (Crayola)
@@ -4672,17 +6381,30 @@ colors:
     original_name: skylight blue
     value: 0x0395f3
   - name: slate
-    original_name: Slate (Atlassian)
-    value: 0x091e42
+    original_name: slate
+    value: 0x516572
+    variations:
+      - name: atlassian
+        original_name: Slate (Atlassian)
+        value: 0x091e42
   - name: slate-blue
-    original_name: Slate blue
-    value: 0x6a5acd
+    original_name: slate blue
+    value: 0x5b7c99
   - name: slate-gray
     original_name: Slate gray
     value: 0x708090
+  - name: slate-green
+    original_name: slate green
+    value: 0x658d6d
+  - name: slate-grey
+    original_name: slate grey
+    value: 0x59656d
   - name: slime
     original_name: Slime (Atlassian)
     value: 0x00875a
+  - name: slime-green
+    original_name: slime green
+    value: 0x99cc04
   - name: slimy-green
     original_name: Slimy green
     value: 0x299617
@@ -4707,6 +6429,12 @@ colors:
   - name: snorlax
     original_name: Snorlax (Atlassian)
     value: 0x253858
+  - name: snot
+    original_name: snot
+    value: 0xacbb0d
+  - name: snot-green
+    original_name: snot green
+    value: 0x9dc100
   - name: snow
     original_name: Snow
     value: 0xfffafa
@@ -4719,6 +6447,18 @@ colors:
   - name: sodium-explosion
     original_name: Sodium explosion (Atlassian)
     value: 0x0065ff
+  - name: soft-blue
+    original_name: soft blue
+    value: 0x6488ea
+  - name: soft-green
+    original_name: soft green
+    value: 0x6fc276
+  - name: soft-pink
+    original_name: soft pink
+    value: 0xfdb0c0
+  - name: soft-purple
+    original_name: soft purple
+    value: 0xa66fb5
   - name: soldier-green
     original_name: Soldier Green
     value: 0x545a2c
@@ -4779,6 +6519,9 @@ colors:
   - name: spartan-crimson
     original_name: Spartan Crimson
     value: 0x9e1316
+  - name: spearmint
+    original_name: spearmint
+    value: 0x1ef876
   - name: spicy-mix
     original_name: Spicy mix
     value: 0x8b5f4d
@@ -4800,12 +6543,21 @@ colors:
   - name: spring-frost
     original_name: Spring Frost
     value: 0x87ff2a
+  - name: spring-green
+    original_name: spring green
+    value: 0xa9f971
   - name: sprint-red
     original_name: Sprint Red
     value: 0xec2131
   - name: sprint-yellow
     original_name: Sprint Yellow
     value: 0xffdd05
+  - name: spruce
+    original_name: spruce
+    value: 0x0a5f38
+  - name: squash
+    original_name: squash
+    value: 0xf2ab15
   - aliases:
       - jira-black
     name: squid-ink
@@ -4823,15 +6575,24 @@ colors:
   - name: steamed-chestnut
     original_name: Steamed chestnut color (Mushikuri-iro)
     value: 0xd3b17d
+  - name: steel
+    original_name: steel
+    value: 0x738595
   - name: steel-blue
-    original_name: Steel blue
-    value: 0x4682b4
+    original_name: steel blue
+    value: 0x5a7d9a
+  - name: steel-grey
+    original_name: steel grey
+    value: 0x6f828a
   - name: steel-pink
     original_name: Steel pink
     value: 0xcc33cc
   - name: steel-teal
     original_name: Steel Teal
     value: 0x5f8a8b
+  - name: stone
+    original_name: stone
+    value: 0xada587
   - name: stone-terrace
     original_name: Stone Terrace
     value: 0xa09484
@@ -4844,12 +6605,15 @@ colors:
   - name: stormcloud
     original_name: Stormcloud
     value: 0x4f666a
+  - name: stormy-blue
+    original_name: stormy blue
+    value: 0x507b9c
   - name: straw
-    original_name: Straw
-    value: 0xe4d96f
+    original_name: straw
+    value: 0xfcf679
   - name: strawberry
-    original_name: Strawberry
-    value: 0xfc5a8d
+    original_name: strawberry
+    value: 0xfb2943
   - name: strawberry-daiquiri
     original_name: Strawberry Daiquiri
     value: 0xd9463e
@@ -4859,9 +6623,15 @@ colors:
   - name: strawberry-red
     original_name: Strawberry red
     value: 0xc83f49
+  - name: strong-blue
+    original_name: strong blue
+    value: 0x0c06f7
   - name: strong-boy-pink
     original_name: Strong boy pink
     value: 0xe9399e
+  - name: strong-pink
+    original_name: strong pink
+    value: 0xff0789
   - name: stylish-persimmon
     original_name: Stylish persimmon (Sharegaki)
     value: 0xffa26b
@@ -4875,15 +6645,27 @@ colors:
       - name: korozen
         original_name: Sumac-dyed (Kōrozen)
         value: 0x592b1f
+  - name: sun-yellow
+    original_name: sun yellow
+    value: 0xffdf22
   - name: sunburnt-cyclops
     original_name: Sunburnt Cyclops
     value: 0xff404c
+  - name: sunflower
+    original_name: sunflower
+    value: 0xffc512
+  - name: sunflower-yellow
+    original_name: sunflower yellow
+    value: 0xffda03
   - name: sunglow
     original_name: Sunglow
     value: 0xffcc33
   - name: sunny
     original_name: Sunny
     value: 0xf2f27a
+  - name: sunny-yellow
+    original_name: sunny yellow
+    value: 0xfff917
   - name: sunray
     original_name: Sunray
     value: 0xe3ab57
@@ -4896,12 +6678,21 @@ colors:
   - name: sunset-yellow
     original_name: Sunset Yellow
     value: 0xffc922
+  - name: sunshine-yellow
+    original_name: sunshine yellow
+    value: 0xfffd37
   - name: super-pink
     original_name: Super pink
     value: 0xcf6ba9
   - name: superuser
     original_name: superuser
     value: 0xf8b889
+  - name: swamp
+    original_name: swamp
+    value: 0x698339
+  - name: swamp-green
+    original_name: swamp green
+    value: 0x748500
   - name: sweet-brown
     original_name: Sweet Brown
     value: 0xa83731
@@ -4914,18 +6705,24 @@ colors:
     original_name: Tamarama (Atlassian)
     value: 0x00b8d9
   - name: tan
-    original_name: Tan
-    value: 0xd2b48c
+    original_name: tan
+    value: 0xd1b26f
     variations:
       - name: crayola
         original_name: Tan (Crayola)
         value: 0xd99a6c
+  - name: tan-brown
+    original_name: tan brown
+    value: 0xab7e4c
+  - name: tan-green
+    original_name: tan green
+    value: 0xa9be70
   - name: tangelo
     original_name: Tangelo
     value: 0xf94d00
   - name: tangerine
-    original_name: Tangerine
-    value: 0xf28500
+    original_name: tangerine
+    value: 0xff9408
   - name: tangerine-yellow
     original_name: Tangerine yellow
     value: 0xffcc00
@@ -4941,24 +6738,36 @@ colors:
   - name: tatarian-aster
     original_name: Tatarian aster color (Shion-iro)
     value: 0x976e9a
+  - name: taupe
+    original_name: taupe
+    value: 0xb9a281
   - name: taupe-gray
     original_name: Taupe gray
     value: 0x8b8589
+  - name: tea
+    original_name: tea
+    value: 0x65ab7c
   - name: tea-green
-    original_name: Tea green
-    value: 0xd0f0c0
+    original_name: tea green
+    value: 0xbdf8a3
   - name: teal
-    original_name: Teal
-    value: 0x008080
+    original_name: teal
+    value: 0x029386
   - name: teal-blue
-    original_name: Teal blue
-    value: 0x367588
+    original_name: teal blue
+    value: 0x01889f
   - name: teal-deer
     original_name: Teal deer
     value: 0x99e6b3
   - name: teal-green
-    original_name: Teal green
-    value: 0x00827f
+    original_name: teal green
+    value: 0x25a36f
+  - name: tealish
+    original_name: tealish
+    value: 0x24bca8
+  - name: tealish-green
+    original_name: tealish green
+    value: 0x0cdc73
   - name: telemagenta
     original_name: Telemagenta
     value: 0xcf3476
@@ -4969,8 +6778,14 @@ colors:
     original_name: Tenné (tawny)
     value: 0xcd5700
   - name: terra-cotta
-    original_name: Terra cotta
-    value: 0xe2725b
+    original_name: terra cotta
+    value: 0xc9643b
+  - name: terracota
+    original_name: terracota
+    value: 0xcb6843
+  - name: terracotta
+    original_name: terracotta
+    value: 0xca6641
   - name: the-color-of-an-undried-wall
     original_name: The color of an undried wall (Namakabe-iro)
     value: 0x785e49
@@ -5003,8 +6818,8 @@ colors:
     original_name: Tickle Me Pink
     value: 0xfc89ac
   - name: tiffany-blue
-    original_name: Tiffany Blue
-    value: 0x0abab5
+    original_name: tiffany blue
+    value: 0x7bf2da
   - name: tigers-eye
     original_name: Tiger's Eye
     value: 0xe08d3c
@@ -5018,8 +6833,11 @@ colors:
     original_name: Titanium yellow
     value: 0xeee600
   - name: tomato
-    original_name: Tomato
-    value: 0xff6347
+    original_name: tomato
+    value: 0xef4026
+  - name: tomato-red
+    original_name: tomato red
+    value: 0xec2d01
   - name: tomato-sauce
     original_name: Tomato sauce
     value: 0xb21807
@@ -5027,11 +6845,20 @@ colors:
     original_name: Toolbox
     value: 0x746cc0
   - name: topaz
-    original_name: Topaz
-    value: 0xffc87c
+    original_name: topaz
+    value: 0x13bbaf
+  - name: toupe
+    original_name: toupe
+    value: 0xc7ac7d
+  - name: toxic-green
+    original_name: toxic green
+    value: 0x61de2a
   - name: tractor-red
     original_name: Tractor red
     value: 0xfd0e35
+  - name: tree-green
+    original_name: tree green
+    value: 0x2a7e19
   - name: tree-peony
     original_name: Tree peony (Bōtan)
     value: 0xa4345d
@@ -5045,12 +6872,15 @@ colors:
     original_name: Tropical violet
     value: 0xcda4de
   - name: true-blue
-    original_name: True Blue
-    value: 0x0073cf
+    original_name: true blue
+    value: 0x010fcc
     variations:
       - name: '2'
         original_name: True Blue (2)
         value: 0x2d68c4
+  - name: true-green
+    original_name: true green
+    value: 0x089404
   - name: true-red
     original_name: True red (Shinshu)
     value: 0x8f1d21
@@ -5070,23 +6900,32 @@ colors:
     original_name: Turmeric-colored (Ukon-iro)
     value: 0xe69b3a
   - name: turquoise
-    original_name: Turquoise
-    value: 0x40e0d0
+    original_name: turquoise
+    value: 0x06c2ac
   - name: turquoise-blue
-    original_name: Turquoise blue
-    value: 0x00ffef
+    original_name: turquoise blue
+    value: 0x06b1c4
   - name: turquoise-green
-    original_name: Turquoise green
-    value: 0xa0d6b4
+    original_name: turquoise green
+    value: 0x04f489
   - name: turquoise-surf
     original_name: Turquoise Surf
     value: 0x00c5cd
+  - name: turtle-green
+    original_name: turtle green
+    value: 0x75b84f
   - name: tuscan-red
     original_name: Tuscan red
     value: 0x7c4848
   - name: tuscany
     original_name: Tuscany
     value: 0xc09999
+  - name: twilight
+    original_name: twilight
+    value: 0x4e518b
+  - name: twilight-blue
+    original_name: twilight blue
+    value: 0x0a437a
   - name: twilight-lavender
     original_name: Twilight lavender
     value: 0x8a496b
@@ -5114,18 +6953,40 @@ colors:
   - name: ufo-green
     original_name: UFO Green
     value: 0x3cd070
+  - name: ugly-blue
+    original_name: ugly blue
+    value: 0x31668a
+  - name: ugly-brown
+    original_name: ugly brown
+    value: 0x7d7103
+  - name: ugly-green
+    original_name: ugly green
+    value: 0x7a9703
+  - name: ugly-pink
+    original_name: ugly pink
+    value: 0xcd7584
+  - name: ugly-purple
+    original_name: ugly purple
+    value: 0xa442a0
+  - name: ugly-yellow
+    original_name: ugly yellow
+    value: 0xd0c101
   - name: ultra-red
     original_name: Ultra red
     value: 0xfc6c85
   - name: ultramarine
-    original_name: Ultramarine color (Gunjō-iro)
-    value: 0x5d8cae
+    original_name: ultramarine
+    value: 0x2000b1
+    variations:
+      - name: gunjo-iro
+        original_name: Ultramarine color (Gunjō-iro)
+        value: 0x5d8cae
   - name: ultramarine-blue
-    original_name: Ultramarine blue
-    value: 0x4166f5
+    original_name: ultramarine blue
+    value: 0x1805db
   - name: umber
-    original_name: Umber
-    value: 0x635147
+    original_name: umber
+    value: 0xb26400
   - name: unbleached-silk
     original_name: Unbleached silk
     value: 0xffddca
@@ -5169,8 +7030,12 @@ colors:
     original_name: Vegas gold
     value: 0xc5b358
   - name: velvet
-    original_name: Velvet (Birōdo)
-    value: 0x224634
+    original_name: velvet
+    value: 0x750851
+    variations:
+      - name: birodo
+        original_name: Velvet (Birōdo)
+        value: 0x224634
   - name: venetian-red
     original_name: Venetian red
     value: 0xc80815
@@ -5187,27 +7052,69 @@ colors:
   - name: vermilion
     original_name: Vermilion
     value: 0xd9381e
+  - name: vermillion
+    original_name: vermillion
+    value: 0xf4320c
   - name: verse-green
     original_name: Verse green
     value: 0x18880d
+  - name: very-dark-blue
+    original_name: very dark blue
+    value: 0x000133
+  - name: very-dark-brown
+    original_name: very dark brown
+    value: 0x1d0200
+  - name: very-dark-green
+    original_name: very dark green
+    value: 0x062e03
+  - name: very-dark-purple
+    original_name: very dark purple
+    value: 0x2a0134
   - name: very-light-azure
     original_name: Very light azure
     value: 0x74bbfb
   - name: very-light-blue
-    original_name: Very light blue
-    value: 0x6666ff
+    original_name: very light blue
+    value: 0xd5ffff
+  - name: very-light-brown
+    original_name: very light brown
+    value: 0xd3b683
+  - name: very-light-green
+    original_name: very light green
+    value: 0xd1ffbd
   - name: very-light-malachite-green
     original_name: Very light malachite green
     value: 0x64e986
+  - name: very-light-pink
+    original_name: very light pink
+    value: 0xfff4f2
+  - name: very-light-purple
+    original_name: very light purple
+    value: 0xf6cefc
   - name: very-light-tangelo
     original_name: Very light tangelo
     value: 0xffb077
+  - name: very-pale-blue
+    original_name: very pale blue
+    value: 0xd6fffe
+  - name: very-pale-green
+    original_name: very pale green
+    value: 0xcffdbc
   - name: very-pale-orange
     original_name: Very pale orange
     value: 0xffdfbf
   - name: very-pale-yellow
     original_name: Very pale yellow
     value: 0xffffbf
+  - name: vibrant-blue
+    original_name: vibrant blue
+    value: 0x0339f8
+  - name: vibrant-green
+    original_name: vibrant green
+    value: 0x0add08
+  - name: vibrant-purple
+    original_name: vibrant purple
+    value: 0xad03de
   - name: victorian-white
     original_name: Victorian White
     value: 0xf4e9ce
@@ -5218,9 +7125,12 @@ colors:
     original_name: Vine Green
     value: 0x38a32a
   - name: violet
-    original_name: Violet (color wheel)
-    value: 0x7f00ff
+    original_name: violet
+    value: 0x9a0eea
     variations:
+      - name: color-wheel
+        original_name: Violet (color wheel)
+        value: 0x7f00ff
       - name: crayola
         original_name: Violet (crayola)
         value: 0x963d7f
@@ -5228,15 +7138,18 @@ colors:
         original_name: Violet (RYB)
         value: 0x8601af
   - name: violet-blue
-    original_name: Violet-blue
-    value: 0x324ab2
+    original_name: violet blue
+    value: 0x510ac9
     variations:
       - name: crayola
         original_name: Violet-blue (Crayola)
         value: 0x766ec8
+  - name: violet-pink
+    original_name: violet pink
+    value: 0xfb5ffc
   - name: violet-red
-    original_name: Violet-red
-    value: 0xf75394
+    original_name: violet red
+    value: 0xa50055
     variations:
       - name: '2'
         original_name: Violet-red (2)
@@ -5247,6 +7160,9 @@ colors:
   - name: violin-brown
     original_name: Violin Brown
     value: 0x674403
+  - name: viridian
+    original_name: viridian
+    value: 0x1e9167
   - name: viridian-green
     original_name: Viridian green
     value: 0x009698
@@ -5259,6 +7175,9 @@ colors:
   - name: vivid-auburn
     original_name: Vivid auburn
     value: 0x922724
+  - name: vivid-blue
+    original_name: vivid blue
+    value: 0x152eff
   - name: vivid-burgundy
     original_name: Vivid burgundy
     value: 0x9f1d35
@@ -5274,6 +7193,9 @@ colors:
   - name: vivid-gamboge
     original_name: Vivid gamboge
     value: 0xff9900
+  - name: vivid-green
+    original_name: vivid green
+    value: 0x2fef10
   - name: vivid-lime-green
     original_name: Vivid lime green
     value: 0xa6d608
@@ -5292,6 +7214,9 @@ colors:
   - name: vivid-orchid
     original_name: Vivid orchid
     value: 0xcc00ff
+  - name: vivid-purple
+    original_name: vivid purple
+    value: 0x9900fa
   - name: vivid-raspberry
     original_name: Vivid raspberry
     value: 0xff006c
@@ -5325,6 +7250,15 @@ colors:
   - name: volt
     original_name: Volt
     value: 0xceff00
+  - name: vomit
+    original_name: vomit
+    value: 0xa2a415
+  - name: vomit-green
+    original_name: vomit green
+    value: 0x89a203
+  - name: vomit-yellow
+    original_name: vomit yellow
+    value: 0xc7c10c
   - name: wageningen-green
     original_name: Wageningen Green
     value: 0x34b233
@@ -5334,21 +7268,45 @@ colors:
   - name: warm-black
     original_name: Warm black
     value: 0x004242
+  - name: warm-blue
+    original_name: warm blue
+    value: 0x4b57db
+  - name: warm-brown
+    original_name: warm brown
+    value: 0x964e02
+  - name: warm-grey
+    original_name: warm grey
+    value: 0x978a84
+  - name: warm-pink
+    original_name: warm pink
+    value: 0xfb5581
+  - name: warm-purple
+    original_name: warm purple
+    value: 0x952e8f
   - name: wash-me
     original_name: Wash me (Atlassian)
     value: 0xfafbfc
   - name: washed-out-crimson
     original_name: Washed-out crimson (dye) (Arazome)
     value: 0xffb3a7
+  - name: washed-out-green
+    original_name: washed out green
+    value: 0xbcf5a6
   - name: washed-out-persimmon
     original_name: Washed-out persimmon (Araigaki)
     value: 0xec8254
   - name: water
     original_name: Water
     value: 0xd4f1f9
+  - name: water-blue
+    original_name: water blue
+    value: 0x0e87cc
   - name: water-persimmon
     original_name: Water persimmon (Mizugaki)
     value: 0xb56c60
+  - name: watermelon
+    original_name: watermelon
+    value: 0xfd4659
   - name: watermelon-yellow
     original_name: Watermelon Yellow
     value: 0xeeff1b
@@ -5364,6 +7322,9 @@ colors:
   - name: weebly-orange
     original_name: Weebly Orange
     value: 0xff9a00
+  - name: weird-green
+    original_name: weird green
+    value: 0x3ae57f
   - name: weldon-blue
     original_name: Weldon Blue
     value: 0x7c98ab
@@ -5371,11 +7332,11 @@ colors:
     original_name: Wenge
     value: 0x645452
   - name: wheat
-    original_name: Wheat
-    value: 0xf5deb3
+    original_name: wheat
+    value: 0xfbdd7e
   - name: white
     original_name: white
-    value: 0xc5c8c6
+    value: 0xffffff
   - name: white-chocolate
     original_name: White chocolate
     value: 0xede6d6
@@ -5424,24 +7385,33 @@ colors:
   - name: wilted-brown
     original_name: Wilted brown (lit. wilted lawn-clippings) (Shikancha)
     value: 0xab4c3d
+  - name: windows-blue
+    original_name: windows blue
+    value: 0x3778bf
   - name: windsor-tan
     original_name: Windsor tan
     value: 0xa75502
+  - name: wine
+    original_name: wine
+    value: 0x80013f
   - name: wine-red
-    original_name: Wine red
-    value: 0xb11226
+    original_name: wine red
+    value: 0x7b0323
   - name: winter-sky
     original_name: Winter Sky
     value: 0xff007c
   - name: winter-wizard
     original_name: Winter Wizard
     value: 0xa0e6ff
+  - name: wintergreen
+    original_name: wintergreen
+    value: 0x20f986
   - name: wintergreen-dream
     original_name: Wintergreen Dream
     value: 0x56887d
   - name: wisteria
-    original_name: Wisteria
-    value: 0xc9a0dc
+    original_name: wisteria
+    value: 0xa87dc2
     variations:
       - name: fuji-iro
         original_name: Wisteria color (Fuji-iro)
@@ -5468,9 +7438,12 @@ colors:
     original_name: Yankees blue
     value: 0x1c2841
   - name: yellow
-    original_name: Yellow (Crayola)
-    value: 0xfce883
+    original_name: yellow
+    value: 0xffff14
     variations:
+      - name: crayola
+        original_name: Yellow (Crayola)
+        value: 0xfce883
       - name: munsell
         original_name: Yellow (Munsell)
         value: 0xefcc00
@@ -5480,9 +7453,12 @@ colors:
       - name: ryb
         original_name: Yellow (RYB)
         value: 0xfefe33
+  - name: yellow-brown
+    original_name: yellow brown
+    value: 0xb79400
   - name: yellow-green
-    original_name: Yellow-green
-    value: 0x9acd32
+    original_name: yellow green
+    value: 0xc0fb2d
     variations:
       - name: color-wheel
         original_name: Yellow-green (Color Wheel)
@@ -5493,9 +7469,12 @@ colors:
   - name: yellow-kalm
     original_name: Yellow kalm
     value: 0xde935f
+  - name: yellow-ochre
+    original_name: yellow ochre
+    value: 0xcb9d06
   - name: yellow-orange
-    original_name: Yellow Orange
-    value: 0xffae42
+    original_name: yellow orange
+    value: 0xfcb001
     variations:
       - name: color-wheel
         original_name: Yellow Orange (Color Wheel)
@@ -5509,6 +7488,33 @@ colors:
   - name: yellow-sea-pine-brown
     original_name: Yellow Sea pine-brown (Kimirucha)
     value: 0x896c39
+  - name: yellow-tan
+    original_name: yellow tan
+    value: 0xffe36e
+  - name: yellowgreen
+    original_name: yellowgreen
+    value: 0xbbf90f
+  - name: yellowish
+    original_name: yellowish
+    value: 0xfaee66
+  - name: yellowish-brown
+    original_name: yellowish brown
+    value: 0x9b7a01
+  - name: yellowish-green
+    original_name: yellowish green
+    value: 0xb0dd16
+  - name: yellowish-orange
+    original_name: yellowish orange
+    value: 0xffab0f
+  - name: yellowish-tan
+    original_name: yellowish tan
+    value: 0xfcfc81
+  - name: yellowy-brown
+    original_name: yellowy brown
+    value: 0xae8b0c
+  - name: yellowy-green
+    original_name: yellowy green
+    value: 0xbff128
   - name: yin-mn-blue
     original_name: YInMn Blue
     value: 0x2e5090

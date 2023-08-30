@@ -21,6 +21,7 @@
 
    .. autosummary::
    
+      ArgCountError
       ArgTypeError
       ColorCodeConflictError
       ColorNameConflictError

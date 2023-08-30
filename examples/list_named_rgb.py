@@ -30,7 +30,7 @@ def _sorter_by_name(cdef: _IColorRGB) -> str:
 
 def _sorter_by_hue(cdef: _IColorRGB) -> t.Tuple[float, ...]:
     # partitioning by hue, sat and val, grayscale group first:
-    h, s, v = pytermor.conv.hex_to_hsv(cdef.hex_value)
+    h, s, v = pytermor.conv.hex_to_hsv(cdef.value)
     result = (h // 18 if s > 0 else -v), h // 18, s * 5 // 1, v * 20 // 1
     return result
 
@@ -38,7 +38,7 @@ def _sorter_by_hue(cdef: _IColorRGB) -> t.Tuple[float, ...]:
 class _IColorRGB(metaclass=abc.ABCMeta):
     @property
     @abstractmethod
-    def hex_value(self) -> int:
+    def value(self) -> int:
         raise NotImplementedError
 
     @property
@@ -62,7 +62,7 @@ class _ColorRGBConfigAdapter(_IColorRGB):
         self._data = data
 
     @property
-    def hex_value(self) -> int:
+    def value(self) -> int:
         return self._data.get("value")
 
     @property
@@ -86,8 +86,8 @@ class _ColorRGBOriginAdapter(_IColorRGB):
         self._name = self.SEP.join(tokens)
 
     @property
-    def hex_value(self) -> int:
-        return self._origin.hex_value
+    def value(self) -> int:
+        return self._origin.int
 
     @property
     def name(self) -> str:
@@ -146,7 +146,7 @@ class _RgbListPrinter:
             vari_style = pt.Style(fg=pt.cv.GRAY_42)
             orig_style = pt.Style(fg=pt.cv.GRAY_30)
 
-            style = pt.Style(bg=pt.ColorRGB(c.hex_value)).autopick_fg()
+            style = pt.Style(bg=pt.ColorRGB(c.value)).autopick_fg()
             style2 = pt.Style(fg=style.bg)
 
             name = [
@@ -160,7 +160,7 @@ class _RgbListPrinter:
                 pad
                 + pt.render(f"{pad}{idx + 1:>4d}{pad}", style)
                 + pad
-                + pt.render(f"0x{c.hex_value:06x}", style2)
+                + pt.render(f"0x{c.value:06x}", style2)
                 + pad
                 + pad
                 + pt.render(Text(*name, width=self.MAX_NAME_L))
@@ -202,7 +202,7 @@ class _RgbTablePrinter:
         max_idx = len(colors)
 
         for idx, c in enumerate(sorted(colors, key=_sorter_by_hue)):
-            style = pt.Style(bg=pt.ColorRGB(c.hex_value)).autopick_fg()
+            style = pt.Style(bg=pt.ColorRGB(c.value)).autopick_fg()
 
             sparse_x = max(0, self._cell_width - self._cell_padding_x)
             sparse_y = max(0, self._cell_height - self._cell_padding_y)
@@ -217,7 +217,7 @@ class _RgbTablePrinter:
                     dyn_tx += idxstr + " "
 
             if sparse_y - len(parts) > 0:
-                valstr = f"{c.hex_value:06x}"
+                valstr = f"{c.value:06x}"
                 if sparse_x >= 6:
                     parts.append(valstr)
                 else:

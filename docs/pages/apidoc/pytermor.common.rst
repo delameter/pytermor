@@ -10,7 +10,6 @@
    .. autosummary::
    
       CDT
-      CT
       FT
       RT
    

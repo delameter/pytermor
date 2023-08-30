@@ -212,7 +212,10 @@ class TestFargsFlow:
                 ["1", "red", "2", "blue"],
                 [Fg("1", pt.cv.RED), Fg("2", pt.cv.BLUE)],
             ),
-            raises(LookupError, ["1", "red", "2", "3", "blue"], None),
+            (
+                ["1", "red", "2", "3", "blue"],
+                [Fg("1", pt.cv.RED), Fg("2"), Fg("3", pt.cv.BLUE)],
+            ),
             (
                 ["1", pt.cv.DARK_RED_2],
                 [Fg("1", pt.cv.DARK_RED_2)],
@@ -245,8 +248,18 @@ class TestFargsFlow:
                 ["a", Fg("b", "green"), "c"],
                 [Fg("a"), Fg("b", pt.cv.GREEN), Fg("c")],
             ),
-            raises(LookupError, ["a", "b", "blue"], None),
-            raises(ValueError, [("a", "red", "b", "blue")], None),
+            (
+                ["a", "b", "blue"],
+                [Fg("a"), Fg("b", pt.cv.BLUE)],
+            ),
+            (
+                ["a", "b", tuple(), "blue"],
+                [Fg("a"), Fg("b"), Fg("blue")],
+            ),
+            (
+                [("a", "red", "b", "blue")],
+                [Fg("a", pt.cv.RED), Fg("b", pt.cv.BLUE)],
+            ),
         ],
         ids=format_test_rt_params,
     )
@@ -620,7 +633,9 @@ class TestEchoRender:
         ids=format_test_params,
     )
     @pytest.mark.parametrize("fn", [pt.echo, pt.echoi])
-    def test_echo(self, fn: t.Callable, expected: str | t.List[str], input: RT | t.List[RT], st: FT):
+    def test_echo(
+        self, fn: t.Callable, expected: str | t.List[str], input: RT | t.List[RT], st: FT
+    ):
         fn(input, st, file=(file := io.StringIO()))
         file.seek(0)
         data = file.read().rstrip("\n")

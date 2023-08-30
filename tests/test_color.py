@@ -5,14 +5,17 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
+import itertools
 import typing as t
-from typing import overload
+from collections.abc import Iterable
 from copy import copy
+from dataclasses import dataclass
+from typing import overload
 
 import pytest
 from _pytest.mark import ParameterSet
 
-from pytermor.cval import cv
+from pytermor import HSV, LAB, RGB, XYZ, IColorValue
 from pytermor import (
     NOOP_SEQ,
     SequenceSGR,
@@ -24,23 +27,202 @@ from pytermor import (
     Color16,
     Color256,
     ColorRGB,
-    IColor,
+    Color,
     approximate,
     ColorTarget,
 )
-from pytermor.exception import LogicError, ColorNameConflictError, ColorCodeConflictError
 from pytermor.color import (
     _ColorRegistry,
     _ColorIndex,
+    _ConstrainedValue,
 )
+from pytermor.cval import cv
+from pytermor.exception import LogicError, ColorNameConflictError, ColorCodeConflictError
 from tests import assert_close, format_test_params
+
 
 NON_EXISTING_COLORS = [0xFEDCBA, 0xFA0CCC, *range(1, 7)]
 
 
+def format_test_params_ext(value) -> str | None:
+    if isinstance(value, (ValueSet, DiffSet)):
+        return str(value)
+    return format_test_params(value)
+
+
+@dataclass(frozen=True)
+class ValueSet:
+    int: RGB
+    rgb: RGB
+    hsv: HSV
+    xyz: XYZ
+    lab: LAB
+    expect_match: bool = True
+
+    def __str__(self):
+        return f"{self.rgb!r}-{self.expect_match}"
+
+
+@dataclass(frozen=True)
+class DiffSet:
+    col_a: IColorValue
+    col_b: IColorValue
+    rgb: float
+    hsv: float
+    lab: float
+    xyz: None = None
+
+    def __str__(self):
+        return "-".join(
+            [repr(self.col_a), repr(self.col_b)]
+            + [f"D{k}={getattr(self, k)}" for k in SPACES]
+        )
+
+
+# fmt: off
+VALUES = [     # ___hex___                    _r_  _g_  _b_        __h__ __s__ __v__        __x__   __y__   __z__        __l__    __a__    __b__     # noqa
+    ValueSet(RGB(0x000000), RGB.from_channels(  0,   0,   0), HSV(  0.00, 0.00, 0.00), XYZ(  0.00,   0.00,   0.00), LAB(  0.00,    0.00,    0.00)),  # noqa
+    ValueSet(RGB(0xFFFFFF), RGB.from_channels(255, 255, 255), HSV(  0.00, 0.00, 1.00), XYZ( 95.05,  100.0, 108.88), LAB( 100.0, 0.00526, 0.00184)),  # noqa
+    ValueSet(RGB(0xFF0000), RGB.from_channels(255,   0,   0), HSV(  0.00, 1.00, 1.00), XYZ( 41.24,  21.26,  1.930), LAB(53.232,  80.109,   67.22)),  # noqa
+    ValueSet(RGB(0x00FF00), RGB.from_channels(  0, 255,   0), HSV( 120.0, 1.00, 1.00), XYZ( 35.76,  71.52,  11.92), LAB(87.737, -86.184,  83.181)),  # noqa
+    ValueSet(RGB(0x0000FF), RGB.from_channels(  0,   0, 255), HSV( 240.0, 1.00, 1.00), XYZ( 18.05,   7.22,  95.03), LAB(32.302,  79.197, -107.85)),  # noqa
+    ValueSet(RGB(0x100000), RGB.from_channels( 16,   0,   0), HSV(  0.00, 1.00, 1/16), XYZ(0.2137,   0.11,   0.01), LAB( 0.995,   4.464,  1.5726)),  # noqa
+    ValueSet(RGB(0xc02040), RGB.from_channels(192,  32,  64), HSV( 348.0,  5/6,  3/4), XYZ(23.180,  12.61,  6.062), LAB(42.169,   61.66,  23.924)),  # noqa
+    ValueSet(RGB(0x00ff80), RGB.from_channels(  0, 255, 128), HSV(150.11, 1.00, 1.00), XYZ(39.656,  73.08,  32.43), LAB(88.485, -76.749,  46.577)),  # noqa
+    ValueSet(RGB(0x000080), RGB.from_channels(  0,   0, 128), HSV( 240.0, 1.00,  1/2), XYZ( 3.896,  1.558,  20.51), LAB(12.975,  47.508, -64.704)),  # noqa
+    ValueSet(RGB(0xffccab), RGB.from_channels(255, 204, 171), HSV( 23.57,  1/3, 1.00), XYZ(70.183,  67.39,  47.83), LAB(85.698,  13.572,  23.309)),  # noqa
+    ValueSet(RGB(0x406080), RGB.from_channels( 64,  96, 128), HSV( 210.0,  1/2,  1/2), XYZ(10.194, 11.014,  22.01), LAB(39.601, -2.1089, -21.501)),  # noqa
+    ValueSet(RGB(0x20181c), RGB.from_channels( 32,  24,  28), HSV( 330.0,  1/4,  1/8), XYZ(1.1319, 1.0442, 1.2403), LAB(9.3542,  4.8953,  -1.286)),  # noqa
+    ValueSet(RGB(0x2d0a50), RGB.from_channels( 45,  10,  80), HSV( 270.0,  7/8, 5/16), XYZ(2.6387, 1.3542, 7.7101), LAB(11.649, 32.2209, -35.072)),  # noqa
+    ValueSet(RGB(0x102030), RGB.from_channels( 50,  60,  70), HSV(  80.0, 9/10, 1.00), XYZ(  50.0,   50.0,   50.0), LAB(  50.0,   -50.0,   -50.0), False)  # noqa
+]
+
+SPACES = ["rgb", "hsv", "xyz", "lab"]
+
+DIFFS = [
+    DiffSet(RGB(   0x000001),  RGB(  0x000002),   1.00, 0.004,   0.40),   # noqa
+    DiffSet(RGB(   0x000001),  RGB(  0xFFFFFF), 441.09, 1.561,  99.98),   # noqa
+    DiffSet(RGB(   0xFF0000),  RGB(  0xFFFFFF), 360.63, 1.000, 114.55),   # noqa
+    DiffSet(RGB(   0xFF00FF),  RGB(  0x00FF00), 441.68, 1.000, 235.60),   # noqa
+    DiffSet(RGB(   0x808080),  RGB(  0x828282),   3.46, 0.008,   0.78),   # noqa
+    DiffSet(RGB(   0x808080),  RGB(  0x888080),   8.00, 0.067,   3.28),   # noqa
+    DiffSet(RGB(   0x808080),  RGB(  0x887070),  24.00, 0.179,  10.87),   # noqa
+    DiffSet(RGB(   0xf0c0da),  RGB(  0xe0d089),  84.10, 0.494,  50.70),   # noqa
+    DiffSet(HSV(240, 1,  1 ),  HSV( 60, 1, 1 ), 441.67, 1.000, 235.15),   # noqa
+    DiffSet(HSV(  0, .5, 1 ),  HSV(  0, 1, 1 ), 181.02, 0.500,  56.79),   # noqa
+    DiffSet(HSV( 90, 1,  1 ),  HSV( 90, 1, .5), 142.21, 0.500,  61.19),   # noqa
+    DiffSet(HSV(270, 1,  1 ),  HSV(270, 1, .5), 142.21, 0.500,  55.12),   # noqa
+    DiffSet(HSV(270, .5, 1 ),  HSV(270, .5,.5), 171.59, 0.500,  44.21),   # noqa
+    DiffSet(HSV(  0, 0,  0 ),  HSV(  0, 1, 1 ), 255.00, 1.414, 117.34),   # noqa
+    DiffSet(HSV(  0, 0,  0 ),  HSV(180, 1, 1 ), 360.62, 1.732, 103.99),   # noqa
+    DiffSet(HSV(180, 0,  0 ),  HSV(180, 1, 1 ), 360.62, 1.414, 103.99),   # noqa
+    DiffSet(HSV(  0, 1,  0 ),  HSV(180, 1, 1 ), 360.62, 1.414, 103.99),   # noqa
+    DiffSet(HSV(  0, 0,  1 ),  HSV(180, 1, 1 ), 255.00, 1.414,  50.90),   # noqa
+    DiffSet(HSV(  0, 1,  1 ),  HSV(180, 1, 1 ), 441.68, 1.000, 156.47),   # noqa
+    DiffSet(HSV( 60, 0,  0 ),  HSV(240, 1, 1 ), 255.00, 1.732, 137.65),   # noqa
+    DiffSet(HSV(120, 0,  0 ),  HSV(300, 1, 1 ), 360.62, 1.732, 130.35),   # noqa
+    DiffSet(HSV(180, 0,  0 ),  HSV(360, 1, 1 ), 255.00, 1.732, 117.34),   # noqa
+    DiffSet(HSV( 60, 0,  .5),  HSV(240, 1, .5), 181.02, 1.410,  89.95),   # noqa
+    DiffSet(HSV(120, 0,  .5),  HSV(300, 1, .5), 128.00, 1.410,  73.30),   # noqa
+    DiffSet(HSV(180, 0,  .5),  HSV(360, 1, .5), 181.02, 1.410,  67.41),   # noqa
+    DiffSet(HSV( 60, 1,  .5),  HSV(240, 1, .5), 221.70, 1.000, 141.05),   # noqa
+    DiffSet(HSV(120, 1,  .5),  HSV(300, 1, .5), 221.70, 1.000, 141.33),   # noqa
+    DiffSet(HSV(180, 1,  .5),  HSV(360, 1, .5), 221.70, 1.000,  92.70),   # noqa
+    DiffSet(LAB( 50, 50, 50),  LAB(50,-50,-50), 222.78, 1.168, 141.42),   # noqa
+]
+# fmt: on
+
+
+class TestColorValue:
+    @pytest.mark.parametrize(
+        "col",
+        [
+            RGB(0x440044),
+            HSV(100, 0.5, 1.0),
+            LAB(0.9, 4.4, 83.2),
+            XYZ(0.2, 7.2, 32.4),
+        ],
+        ids=format_test_params,
+    )
+    def test_to_str(self, col: t.Type[IColorValue]):
+        col_str = str(col)
+        assert str(col.__class__.__name__) in col_str
+        assert col_str.count("=") == 3
+
+    @pytest.mark.parametrize(
+        "cls, values",
+        [
+            (RGB, (-10,)),
+            (RGB, (2220,)),
+            (RGB.from_channels, (-10, 400, 1e-9)),
+            (HSV, (-10, 400, 1e9)),
+            (XYZ, (-10, 400, 1e9)),
+            (LAB, (-10, 400, 1e9)),
+        ],
+        ids=format_test_params,
+    )
+    def test_applying_thresholds(self, cls, values: Iterable[int | float]):
+        col = cls(*values)
+        assert 0 <= col.int <= 0xFFFFFF
+
+    @pytest.mark.xfail(raises=ValueError)
+    def test_invalid_constraint(self):
+        _ConstrainedValue[int](50, 100, 0)
+
+    @pytest.mark.parametrize("diffset", DIFFS, ids=format_test_params_ext)
+    @pytest.mark.parametrize("space", SPACES, ids=format_test_params)
+    def test_diff(self, space: str, diffset: DiffSet):
+        cls = getattr(diffset.col_a, space).__class__
+        if (expected := getattr(diffset, space)) is None:
+            pytest.skip("Not implemented")
+        actual = cls.diff(diffset.col_a, diffset.col_b)
+        assert_close(actual, expected)
+
+    @pytest.mark.parametrize("val", [0x0, 0x808080, 0xFFFFFF], ids=format_test_params)
+    @pytest.mark.parametrize(
+        "fn",
+        [
+            lambda v: RGB(v),
+            lambda v: HSV(*RGB(v).hsv),
+            lambda v: XYZ(*RGB(v).xyz),
+            lambda v: LAB(*RGB(v).lab),
+        ],
+        ids=format_test_params,
+    )
+    def test_equality(self, fn: t.Callable[[int], IColorValue], val: int):
+        assert fn(val) == fn(val)
+
+
+class TestColorTransform:
+    @pytest.mark.parametrize("value", VALUES, ids=format_test_params_ext)
+    @pytest.mark.parametrize(
+        "s_from, s_to", itertools.product(SPACES, SPACES), ids=format_test_params
+    )
+    def test_transforms(self, value: ValueSet, s_from: str, s_to: str):
+        if not value.expect_match and s_from == s_to:
+            pytest.skip("Control self-transform makes no sense")
+
+        src = getattr(value, s_from)
+        dest = getattr(value, s_to)
+        assert type(src).__name__.lower() == s_from
+        assert type(dest).__name__.lower() == s_to
+
+        result = getattr(src, s_to)
+        assert type(result).__name__.lower() == s_to
+
+        if value.expect_match:
+            assert_close(dest, result)
+        else:
+            assert dest != result
+
+    def test_rgb_from_ratios(self):
+        assert_close(RGB.from_ratios(0, 0.5, 1.0), RGB.from_channels(0, 128, 255))
+
+# -----------------------------------------------------------------------------
+
 @pytest.mark.parametrize("value", NON_EXISTING_COLORS, ids=format_test_params)
 def test_non_existing_colors_do_not_exist(value: int):
-    assert approximate(value)[0].color.hex_value != value
+    assert approximate(value)[0].color.int != value
 
 
 class TestResolving:
@@ -48,7 +230,7 @@ class TestResolving:
         Color256._approx_cache.clear()
 
     def test_module_method_resolve_works(self):
-        assert ColorRGB(0xFFFFF0) == resolve_color("ivory")
+        assert ColorRGB(0xFFFFCB) == resolve_color("ivory")
 
     def test_module_method_resolve_alias_works(self):
         assert ColorRGB(0x0052CC) == resolve_color("jira-blue")
@@ -65,19 +247,19 @@ class TestResolving:
     def test_module_method_resolve_rgb_form_works_with_instantiating(self):
         NON_EXISTING_COLOR = 0xFEDCBA
         assert NON_EXISTING_COLOR not in [
-            c.hex_value for c in ColorRGB._registry._map.values()
+            c.int for c in ColorRGB._registry._map.values()
         ]
         col1 = resolve_color(NON_EXISTING_COLOR)
         col2 = resolve_color(f"#{NON_EXISTING_COLOR:06x}")
         assert col1 == col2
         assert col1 is not col2
-        assert ColorRGB.find_closest(NON_EXISTING_COLOR).hex_value != NON_EXISTING_COLOR
+        assert ColorRGB.find_closest(NON_EXISTING_COLOR).int != NON_EXISTING_COLOR
 
     def test_module_method_resolve_rgb_form_works_upon_color_rgb(self):
         assert ColorRGB.resolve("wash-me") == resolve_color("#fafafe", ColorRGB)
 
     def test_module_method_resolve_rgb_form_works_upon_color_256(self):
-        assert cv.GREEN_5 == resolve_color("#148811", Color256)
+        assert cv.GREEN_5 == resolve_color("#118800", Color256)
 
     def test_module_method_resolve_rgb_form_works_upon_color_16(self):
         assert cv.BLUE == resolve_color("#111488", Color16)
@@ -88,22 +270,22 @@ class TestResolving:
 
     def test_module_method_resolve_ambiguous_color_works_upon_abstract_color(self):
         col = resolve_color("green")
-        assert col.hex_value == 0x008000
+        assert col.int == 0x008000
         assert isinstance(col, Color16)
 
     def test_module_method_resolve_ambiguous_color_works_upon_color_16(self):
         col = resolve_color("green", Color16)
-        assert col.hex_value == 0x008000
+        assert col.int == 0x008000
         assert isinstance(col, Color16)
 
     def test_module_method_resolve_ambiguous_color_works_upon_color_256(self):
         col = resolve_color("green", Color256)
-        assert col.hex_value == 0x008000
+        assert col.int == 0x008000
         assert isinstance(col, Color256)
 
     def test_module_method_resolve_ambiguous_color_works_upon_color_rgb(self):
         col = resolve_color("green", ColorRGB)
-        assert col.hex_value == 0x1CAC78
+        assert col.int == 0x15b01a
         assert isinstance(col, ColorRGB)
 
     def test_param_enables_cache(self):
@@ -128,7 +310,7 @@ class TestResolving:
         ],
         ids=format_test_params,
     )
-    def test_exception_message(self, ctype: t.Type[IColor], expected_text: str):
+    def test_exception_message(self, ctype: t.Type[Color], expected_text: str):
         try:
             non_existing_value = -1
             if not ctype:
@@ -250,9 +432,10 @@ class TestColorIndex:
         Color16(0x1, 131, 141, "test 1", index=True)
         Color16(0x2, 131, 141, "test 1", index=True)
 
+    @pytest.mark.parametrize("cls", [Color16, Color256])
     @pytest.mark.xfail(raises=KeyError)
-    def test_getting_of_non_existing_color_fails(self):
-        Color256.get_by_code(256)
+    def test_getting_of_non_existing_color_fails(self, cls: t.Type[Color16 | Color256]):
+        cls.get_by_code(256)
 
     def test_index_casts_to_true_if_has_elements(self):
         assert bool(ColorRGB._index)
@@ -266,10 +449,10 @@ class TestApproximation:
         assert color.find_closest(0x87FFD7) == cv.AQUAMARINE_1
 
     def test_module_method_find_closest_works_for_16(self):
-        assert color.find_closest(0x87FFD7, Color16) == cv.WHITE
+        assert color.find_closest(0x87FFD7, Color16) == cv.HI_CYAN
 
     def test_module_method_find_closest_works_for_rgb(self):
-        assert resolve_color("aquamarine", ColorRGB) == color.find_closest(
+        assert resolve_color("light-aqua", ColorRGB) == color.find_closest(
             0x87FFD7, ColorRGB
         )
 
@@ -277,65 +460,68 @@ class TestApproximation:
         assert color.approximate(0x87FFD7)[0].color == cv.AQUAMARINE_1
 
     def test_module_method_approximate_works_for_16(self):
-        assert color.approximate(0x87FFD7, Color16)[0].color == cv.WHITE
+        assert color.approximate(0x87FFD7, Color16)[0].color == cv.HI_CYAN
 
     def test_module_method_approximate_works_for_rgb(self):
         assert (
-            resolve_color("aquamarine", ColorRGB)
+            resolve_color("light-aqua", ColorRGB)
             == color.approximate(0x87FFD7, ColorRGB)[0].color
         )
 
     def test_class_method_find_closest_works_for_16(self):
-        assert Color16.find_closest(0x87FFD7) == cv.WHITE
+        assert Color16.find_closest(0x87FFD7) == cv.HI_CYAN
 
     def test_class_method_find_closest_works_for_256(self):
         assert Color256.find_closest(0x87FFD7) == cv.AQUAMARINE_1
 
     def test_class_method_find_closest_works_for_rgb(self):
-        assert 0x7FFFD4 == ColorRGB.find_closest(0x87FFD7).hex_value
+        assert 0x8CFFDB == ColorRGB.find_closest(0x87FFD7).int
 
     def test_class_method_approximate_works_for_16(self):
-        assert Color16.approximate(0x87FFD7)[0].color == cv.WHITE
+        assert Color16.approximate(0x87FFD7)[0].color == cv.HI_CYAN
 
     def test_class_method_approximate_works_for_256(self):
         assert Color256.approximate(0x87FFD7)[0].color == cv.AQUAMARINE_1
 
     def test_class_method_approximate_works_for_rgb(self):
-        assert ColorRGB.approximate(0x87FFD7)[0].color.hex_value == 0x7FFFD4
+        assert ColorRGB.approximate(ColorRGB(0x87FFD7))[0].color.int == 0x8CFFDB
 
     def test_distance_is_correct(self):
         expected = [
-            color.ApxResult(cv.NAVAJO_WHITE_1, 147),
-            color.ApxResult(cv.MISTY_ROSE_1, 867),
-            color.ApxResult(cv.WHEAT_1, 1347),
-            color.ApxResult(cv.LIGHT_YELLOW_3, 1667),
-            color.ApxResult(cv.CORNSILK_1, 2067),
+            color.ApxResult(cv.NAVAJO_WHITE_1, 4.394),
+            color.ApxResult(cv.MISTY_ROSE_1, 14.25),
+            color.ApxResult(cv.WHEAT_1, 16.344),
+            color.ApxResult(cv.LIGHT_YELLOW_3, 16.58),
+            color.ApxResult(cv.CORNSILK_1, 17.39),
         ]
         result = color.approximate(0xFEDCBA, Color256, len(expected))
         assert len(result) == len(expected)
         while result:
-            assert result.pop(0) == expected.pop(0)
+            assert_close(result.pop(0).distance, expected.pop(0).distance)
 
     def test_distance_real(self):
-        assert_close(color.approximate(0xFEDCBA, Color256)[0].distance_real, 12.124)
+        assert_close(color.approximate(0xFEDCBA, Color256)[0].distance_real, 2.096)
 
 
 @pytest.mark.parametrize("ctype", [Color16, Color256, ColorRGB], ids=format_test_params)
 class TestColor:
-    def test_iterating(self, ctype: t.Type[IColor]):
+    def test_iterating(self, ctype: t.Type[Color]):
         assert all(isinstance(c, ctype) for c in [*iter(ctype)])
 
-    def test_names(self, ctype: t.Type[IColor]):
+    def test_names(self, ctype: t.Type[Color]):
         assert len([*ctype.names()]) == len([*ctype._registry.names()])
-
 
 
 @overload
 def get_underline_not_impl_param() -> ParameterSet:
     ...
+
+
 @overload
-def get_underline_not_impl_param(ub: t.Type[IColor] | None) -> ParameterSet:
+def get_underline_not_impl_param(ub: t.Type[Color] | None) -> ParameterSet:
     ...
+
+
 def get_underline_not_impl_param(*args: t.Any) -> ParameterSet:
     params = (*args, ColorTarget.UNDERLINE, None)
     return pytest.param(*params, marks=pytest.mark.xfail(raises=NotImplementedError))
@@ -366,7 +552,7 @@ class TestColor16:
     )
     def test_to_sgr(
         self,
-        upper_bound: type[IColor] | None,
+        upper_bound: type[Color] | None,
         target: ColorTarget,
         expected_result: str | None,
     ):
@@ -408,21 +594,21 @@ class TestColor16:
 
     def test_to_hsv(self):
         col = Color16(0x800000, IntCode.RED, IntCode.BG_RED)
-        h, s, v = col.to_hsv()
+        h, s, v = col.hsv
         assert_close(0, h)
         assert_close(1, s)
         assert_close(0.50, v)
 
     def test_to_rgb(self):
         col = Color16(0x800000, IntCode.RED, IntCode.BG_RED)
-        r, g, b = col.to_rgb()
+        r, g, b = col.rgb
         assert r == 128
         assert g == 0
         assert b == 0
 
-    @pytest.mark.xfail(raises=ValueError)
-    def test_invalid_hex_value_fails_init(self):
-        Color16(-1, 300, 301)
+    def test_applying_thresholds(self):
+        col = Color16(-0x10, -1, -1)
+        assert 0 <= col.int <= 0xFFFFFF
 
 
 class TestColor256:
@@ -449,7 +635,7 @@ class TestColor256:
     )
     def test_to_sgr(
         self,
-        upper_bound: type[IColor] | None,
+        upper_bound: type[Color] | None,
         target: ColorTarget,
         expected_result: str | None,
     ):
@@ -465,15 +651,21 @@ class TestColor256:
         ],
     )
     @pytest.mark.setup(prefer_rgb=True)
-    def test_to_sgr_with_rgb_upper_bound_results_in_sgr_rgb_if_preferred(self, target: ColorTarget, expected_result: str | None):
+    def test_to_sgr_with_rgb_upper_bound_results_in_sgr_rgb_if_preferred(
+        self, target: ColorTarget, expected_result: str | None
+    ):
         col = Color256(0xFFCC01, 1)
         assert col.to_sgr(target, upper_bound=ColorRGB) == expected_result
 
     def test_to_sgr_with_16_upper_bound_results_in_sgr_16_equiv(self):
         col16 = Color16(0xFFCC00, 132, 142, index=True)
         col = Color256(0xFFCC01, 1, color16_equiv=col16)
-        assert col.to_sgr(ColorTarget.FG, upper_bound=Color16) == col16.to_sgr(ColorTarget.FG)
-        assert col.to_sgr(ColorTarget.BG, upper_bound=Color16) == col16.to_sgr(ColorTarget.BG)
+        assert col.to_sgr(ColorTarget.FG, upper_bound=Color16) == col16.to_sgr(
+            ColorTarget.FG
+        )
+        assert col.to_sgr(ColorTarget.BG, upper_bound=Color16) == col16.to_sgr(
+            ColorTarget.BG
+        )
         assert col.to_sgr(ColorTarget.UNDERLINE, upper_bound=Color16) == NOOP_SEQ
 
     @pytest.mark.parametrize(
@@ -507,21 +699,21 @@ class TestColor256:
 
     def test_to_hsv(self):
         col = Color256(0x808000, code=256)
-        h, s, v = col.to_hsv()
+        h, s, v = col.hsv
         assert_close(h, 60)
         assert_close(s, 1)
         assert_close(v, 0.5)
 
     def test_to_rgb(self):
         col = Color256(0x808000, code=256)
-        r, g, b = col.to_rgb()
+        r, g, b = col.rgb
         assert r == 128
         assert g == 128
         assert b == 0
 
-    @pytest.mark.xfail(raises=ValueError)
-    def test_invalid_hex_value_fails_init(self):
-        Color256(-1, 302)
+    def test_applying_thresholds(self):
+        col = Color256(-0x10, -1)
+        assert 0 <= col.int <= 0xFFFFFF
 
 
 class TestColorRGB:
@@ -534,9 +726,9 @@ class TestColorRGB:
             (ColorRGB, ColorTarget.FG, SequenceSGR(38, 2, 255, 51, 255)),
             (ColorRGB, ColorTarget.BG, SequenceSGR(48, 2, 255, 51, 255)),
             (ColorRGB, ColorTarget.UNDERLINE, SequenceSGR(58, 2, 255, 51, 255)),
-            (Color256, ColorTarget.FG, SequenceSGR(38, 5, 207)),
-            (Color256, ColorTarget.BG, SequenceSGR(48, 5, 207)),
-            (Color256, ColorTarget.UNDERLINE, SequenceSGR(58, 5, 207)),
+            (Color256, ColorTarget.FG, SequenceSGR(38, 5, 13)),
+            (Color256, ColorTarget.BG, SequenceSGR(48, 5, 13)),
+            (Color256, ColorTarget.UNDERLINE, SequenceSGR(58, 5, 13)),
             (Color16, ColorTarget.FG, SequenceSGR(95)),
             (Color16, ColorTarget.BG, SequenceSGR(105)),
             (Color16, ColorTarget.UNDERLINE, NOOP_SEQ),
@@ -544,7 +736,7 @@ class TestColorRGB:
     )
     def test_to_sgr(
         self,
-        upper_bound: type[IColor] | None,
+        upper_bound: type[Color] | None,
         target: ColorTarget,
         expected_result: str | None,
     ):
@@ -584,21 +776,21 @@ class TestColorRGB:
 
     def test_to_hsv(self):
         col = ColorRGB(0x008000)
-        h, s, v = col.to_hsv()
+        h, s, v = col.hsv
         assert_close(h, 120)
         assert_close(s, 1)
         assert_close(v, 0.50)
 
     def test_to_rgb(self):
         col = ColorRGB(0x008000)
-        r, g, b = col.to_rgb()
+        r, g, b = col.rgb
         assert r == 0
         assert g == 128
         assert b == 0
 
-    @pytest.mark.xfail(raises=ValueError)
-    def test_invalid_hex_value_fails_init(self):
-        ColorRGB(-1)
+    def test_applying_thresholds(self):
+        col = ColorRGB(-0x10)
+        assert 0 <= col.int <= 0xFFFFFF
 
 
 class TestNoopColor:
@@ -628,8 +820,8 @@ class TestNoopColor:
         assert NOOP_COLOR.to_tmux(target) == expected_result
 
     @pytest.mark.xfail(raises=LogicError)
-    def test_getting_hex_value_fails(self):
-        (lambda: NOOP_COLOR.hex_value)()
+    def test_getting_value_fails(self):
+        (lambda: NOOP_COLOR.int)()
 
 
 class TestDefaultColor:

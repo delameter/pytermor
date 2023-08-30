@@ -19,7 +19,7 @@ from functools import reduce
 from hashlib import md5
 
 from .ansi import ColorTarget, NOOP_SEQ, SeqIndex, SequenceSGR, get_closing_seq
-from .color import Color16, Color256, ColorRGB, DEFAULT_COLOR, IColor, NOOP_COLOR
+from .color import Color16, Color256, ColorRGB, DEFAULT_COLOR, Color, NOOP_COLOR
 from .common import ExtendedEnum, FT, get_qname
 from .config import get_config
 from .log import _trace_render, get_logger
@@ -148,8 +148,8 @@ class IRenderer(metaclass=ABCMeta):
         """
         return self.__class__()
 
-    def __repr__(self):
-        return get_qname(self) + "[]"
+    def __repr__(self) -> str:
+        return f'<{get_qname(self)}[]>'
 
 
 class OutputMode(ExtendedEnum):
@@ -269,7 +269,7 @@ class SgrRenderer(IRenderer):
                explicitly.
     """
 
-    _COLOR_UPPER_BOUNDS: t.Dict[OutputMode, t.Type[IColor]] = {
+    _COLOR_UPPER_BOUNDS: t.Dict[OutputMode, t.Type[Color]] = {
         OutputMode.XTERM_16: Color16,
         OutputMode.XTERM_256: Color256,
         OutputMode.TRUE_COLOR: ColorRGB,
@@ -291,7 +291,7 @@ class SgrRenderer(IRenderer):
 
     def __init__(self, output_mode: str|OutputMode = OutputMode.AUTO, io: t.IO = sys.stdout):
         self._output_mode: OutputMode = self._determine_output_mode(output_mode, io)
-        self._color_upper_bound: t.Type[IColor] | None = self._COLOR_UPPER_BOUNDS.get(
+        self._color_upper_bound: t.Type[Color] | None = self._COLOR_UPPER_BOUNDS.get(
             self._output_mode, None
         )
         super().__init__(
@@ -311,7 +311,7 @@ class SgrRenderer(IRenderer):
             self._output_mode.name,
             get_qname(self._color_upper_bound),
         ]
-        return f"{get_qname(self)}[{', '.join(attrs)}]"
+        return f"<{get_qname(self)}[{', '.join(attrs)}]>"
 
     @_trace_render
     def render(self, string: str, fmt: FT = None) -> str:
@@ -388,7 +388,7 @@ class SgrRenderer(IRenderer):
 
         return reduce(lambda p, c: p + c, result, NOOP_SEQ)
 
-    def _render_color(self, color: IColor, target: ColorTarget) -> SequenceSGR:
+    def _render_color(self, color: Color, target: ColorTarget) -> SequenceSGR:
         if not self.is_format_allowed or color == NOOP_COLOR:
             return NOOP_SEQ
         return color.to_sgr(target, self._color_upper_bound)
@@ -447,7 +447,7 @@ class TmuxRenderer(IRenderer):
             attr_val = getattr(style, attr_name)
             if attr_val is None:
                 continue
-            if isinstance(attr_val, IColor):
+            if isinstance(attr_val, Color):
                 if attr_val == NOOP_COLOR or attr_name not in ("fg", "bg"):
                     continue  # skipping underline_color
                 target = ColorTarget.BG if attr_name == "bg" else ColorTarget.FG

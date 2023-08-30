@@ -18,18 +18,16 @@ from os.path import join
 import yaml
 
 import pytermor as pt
-from common import CONFIG_PATH, error, TaskRunner
+from common import CONFIG_PATH, error
+from pytermor import ConflictError
+from pytermor.dev.decorators import _with_progress_bar, _with_terminal_state
+from pytermor.dev.ioproxy import init_io, get_stdout
+from pytermor.dev.progressbar import ProgressBar
+from pytermor.dev.tstatectl import TerminalStateController, TerminalInputMode
+from scripts.common import warning
 
 
-# logger = logging.getLogger('pytermor')
-# handler = logging.StreamHandler(sys.stderr)
-# formatter = logging.Formatter('[%(levelname)5.5s][%(name)s][%(module)s] %(message)s')
-# handler.setFormatter(formatter)
-# logger.addHandler(handler)
-# logger.setLevel('DEBUG')
-
-
-class RgbPreprocessor(TaskRunner):
+class RgbPreprocessor():
     NAME_ALLOWED_CHARS = "[a-z0-9 -]+"
     NAME_ALLOWED_REGEX = re.compile(NAME_ALLOWED_CHARS, flags=re.ASCII)
 
@@ -40,22 +38,48 @@ class RgbPreprocessor(TaskRunner):
         config_path = join(CONFIG_PATH, self.INPUT_CONFIG_FILENAME)
         with open(config_path, "rt") as f:
             self._color_defs = yaml.safe_load(f)
-            self._print_fin_result(f, config_path)
+            print(config_path)
 
         # tuple(name, variation_part_1, variation_part_2...)
         self._ids: t.Set[t.Tuple[str, ...]] = set()
         self._colors: t.Dict[str, t.Dict] = {}
         self._variations: t.Dict[str, t.Dict[str, t.Dict]] = {}
 
-    def _run(self) -> t.List[t.Dict]:
+    @_with_terminal_state
+    @_with_progress_bar(task_label="Processing")
+    def run(self, *, pbar: ProgressBar, tstatectl: TerminalStateController) -> t.List[t.Dict]:
+        conflicts = 0
+        self._pbar = pbar
+
+        self._pbar.init_steps(len(self._color_defs))
         for color_def in self._color_defs:
-            self._process_color_def(color_def)
+            self._pbar.next_step(color_def.get('name'))
+            self._pbar.render()
+
+            try:
+                self._process_color_def(color_def)
+            except ConflictError as e:
+                color_name = e.args[1]["name"]
+                existing_col = e.args[1]["existing"]
+                msg = pt.Text(
+                    f"Name conflict: #{existing_col:06x} ",
+                    ("▇▇", existing_col),
+                    " ← ",
+                    ("▇▇", color_def.get("value")),
+                    f" #{color_def.get('value'):06x} for ",
+                    (color_name, "bold"),
+                )
+                get_stdout().echo_rendered(msg)
+                conflicts += 1
+                continue
         config = self._assemble_config()
         self._dump_config(config)
-        return config.get("colors")
 
-    def _run_callback(self, result: t.List[t.Dict]):
-        print(f"Definitions processed: {len(result)}", file=sys.stderr)
+        self._pbar.close()
+
+        if conflicts > 0:
+            warning(f"Color conflicts: " + str(conflicts))
+        return config.get("colors")
 
     def _process_color_def(self, color_def: t.Dict):
         color_def_name = color_def.get("name")
@@ -75,10 +99,10 @@ class RgbPreprocessor(TaskRunner):
     def _split_name(self, color_def_name: str) -> t.List[str]:
         color_def_name = color_def_name.replace("'", "").strip()
         for raw_part in re.split(r"\s*[()#]\s*", color_def_name):
-            part = re.sub(r"([a-z])([A-Z0-9])|[^\w]+", r"\1-\2", raw_part.strip("-"))
+            part = re.sub(r"([a-z])([A-Z0-9])|\W+", r"\1-\2", raw_part.strip("-"))
             part = re.sub("-color(ed)?$", "", part.lower().strip("-"))
             part = "".join(
-                filter(  # é->e, ō->o, ū->u etc
+                filter(  # é->e, ō->o, ū->u etc  # noqa
                     lambda c: unicodedata.category(c) != "Mn",
                     unicodedata.normalize("NFD", part),
                 )
@@ -90,7 +114,8 @@ class RgbPreprocessor(TaskRunner):
                         pt.render(c, pt.Styles.ERROR_ACCENT) for c in prohibited_chars
                     )
                     parts_str = pt.render(part, pt.Styles.WARNING)
-                    error(f"Prohibited characters: [{prohibited_chars}] in " + parts_str)
+                    msg = f"Prohibited characters: [{prohibited_chars}] in " + parts_str
+                    raise ValueError(msg)
                 yield part
 
     def _pick_unique_id(self, parts: t.List[str]) -> t.Tuple[str, str]:
@@ -99,8 +124,11 @@ class RgbPreprocessor(TaskRunner):
             if possible_id in self._ids:
                 if part_idx < len(parts) - 1:
                     continue
-                parts_str = pt.render(" ".join(parts), pt.Styles.WARNING)
-                error("Unresolvable conflict: " + parts_str + " already exists")
+                existing_col = self._colors.get(" ".join(parts)).get("value")
+                raise ConflictError(
+                    f"Unresolvable conflict: {parts!r}",
+                    {"name": " ".join(parts), "existing": existing_col},
+                )
             else:
                 self._ids.add(possible_id)
                 return parts[0], "-".join(parts[1 : part_idx + 1])
@@ -155,8 +183,13 @@ class RgbPreprocessor(TaskRunner):
                 encoding="utf8",
                 Dumper=IndentedDumper,
             )
-            self._print_fout_result(fout, output_path)
+            get_stdout().echo(output_path)
 
 
 if __name__ == "__main__":
-    RgbPreprocessor().run()
+    try:
+        init_io()
+        processor = RgbPreprocessor()
+        processor.run()
+    except Exception as e:
+        error(str(e))

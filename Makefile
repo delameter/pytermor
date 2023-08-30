@@ -129,9 +129,8 @@ _ensure_x11 = ([ -n "${DISPLAY}" ] && return; echo 'ERROR: No $$DISPLAY'; return
 
 pre-build:  ## Update CVAL  <runs on docker image building>
 	@export PT_ENV=build
-	./.invoke python -m pytermor  # for hatch to prepare environment
-	./.invoke python scripts/preprocess_rgb.py
-	./.invoke python scripts/build_cval.py
+	./.invoke python scripts/preprocess_rgb.py && \
+      ./.invoke python scripts/build_cval.py
 
 lint:  ## Run flake8
 	@export PT_ENV=test

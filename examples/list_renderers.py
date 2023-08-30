@@ -35,7 +35,7 @@ class ListRenderer:
         for om_idx, om in enumerate(reversed(pt.OutputMode)):
             if om == pt.OutputMode.AUTO:
                 continue
-            pt.echo(f' ┌{("─"+om.value+"─").replace("_", "─").upper()!s:─<{width+1}s}┐')
+            pt.echo(f' ┌{("─" + om.int + "─").replace("_", "─").upper()!s:─<{width + 1}s}┐')
             self._render_results(None, pt.NOOP_STYLE, pt.OutputMode.NO_ANSI, " ")
             self._render_results(
                 "─", pt.NOOP_STYLE, pt.OutputMode.NO_ANSI, "─", header=True

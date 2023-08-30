@@ -8,13 +8,12 @@
 from __future__ import annotations
 
 import random
-import re
 import sys
-import typing as t
+from functools import partial
 
 import pytermor as pt
-import pytermor.conv
-from pytermor import StaticFormatter, HSV
+from pytermor import StaticFormatter
+from pytermor.color import *
 
 
 class Main:
@@ -22,29 +21,68 @@ class Main:
         Approximator(argv or []).run()
 
 
+def _calc_srgb_euclidean_distance(
+    cls: t.Type[Color], value: IColorValue
+) -> Iterable[ApxResult[Color]]:
+    r, g, b = value.rgb
+    for e in cls._index:
+        er, eg, eb = e.color.rgb
+        distance_sq: int = (er - r) ** 2 + (eg - g) ** 2 + (eb - b) ** 2
+        yield ApxResult(e.color, distance_sq)
+
+
+def _calc_hsv_euclidean_distance(
+    cls: t.Type[Color], value: IColorValue
+) -> Iterable[ApxResult[Color]]:
+    h, s, v = value.hsv
+    for e in cls._index:
+        eh, es, ev = e.color.hsv
+        dh = min(abs(eh - h), 360 - abs(eh - h)) / 180.0
+        ds = abs(es - s)
+        dv = abs(ev - v)
+        distance_sq: int = dh**2 + ds**2 + dv**2
+        yield ApxResult(e.color, distance_sq)
+
+
 class Approximator:
     def __init__(self, argv: t.List):
         self.usage = [
-            f"  venv/bin/python {sys.argv[0]} [-e] [COLOR]...",
+            f"  venv/bin/python {sys.argv[0]} [-e[e…]] [-R|-H] [COLOR]...",
             "",
-            "Option -e|--extended increases approximation results amount "
-            "(can be used multiple times).",
+            "Option -e|--extended increases approximation results amount (can be "
+            "used multiple times).",
+            "",
+            "Options -R and -H select different color difference computation algorithm "
+            "(which are less accurate and are kept for demonstration only).",
             "",
         ]
         self.input_values = []
         self._extended_mode = 0
+        self._delta_name = "ΔE*"  # noqa
+        self._cdiff_method = f'CIE76 color distance'
+        self._color_diff_fn_override = None
 
         for arg in argv:
             try:
                 if arg.startswith("-"):
-                    if m := re.fullmatch('-?-(e(?:xtended)?|e+)', arg):
+                    if arg == "-H":
+                        self._color_diff_fn_override = _calc_hsv_euclidean_distance
+                        self._delta_name = "Δₕ "
+                        self._cdiff_method = 'HSV euclidean distance'
+                        continue
+                    if arg == "-R":
+                        self._color_diff_fn_override = _calc_srgb_euclidean_distance
+                        self._delta_name = "Δᵣ "
+                        self._cdiff_method = 'RGB euclidean distance'
+                        continue
+                    if m := re.fullmatch("-?-(e(?:xtended)?|e+)", arg):
                         self._extended_mode = len(m.group(1))
                         continue
                     raise ValueError(f"Invalid option {arg}")
 
-                for argcolor in [arg, "#"+arg]:
+                for argcolor in [arg, "#" + arg]:
                     try:
-                        if input_color := pt.resolve_color(argcolor):
+                        if input_color := resolve_color(argcolor):
                             break
                     except LookupError:
                         pass
@@ -76,7 +114,7 @@ class Approximator:
             for sample_value in self.input_values:
                 self._run(sample_value, "Input")
 
-        if len(self.input_values) > 0 or self._extended_mode:
+        if len(self.input_values) > 0 or self._extended_mode or self._color_diff_fn_override:
             return
 
         def fmt_arg_examples(*s: str) -> pt.Text:
@@ -88,11 +126,14 @@ class Approximator:
 
         pt.echo(
             [
-                pt.render("Note: In this example the library assumes that your terminal supports "
-                "all color modes including 256-color and True Color, and forces "
-                "the renderer to act accordingly. If that's not the case, weird "
-                "results may (and will) happen. Run 'examples/terminal_color_mode.py' "
-                "for the details.", pt.cv.GRAY_30),
+                pt.render(
+                    "Note: In this example the library assumes that your terminal supports "
+                    "all color modes including 256-color and True Color, and forces "
+                    "the renderer to act accordingly. If that's not the case, weird "
+                    "results may (and will) happen. Run 'examples/terminal_color_mode.py' "
+                    "for the details.",
+                    pt.cv.GRAY_30,
+                ),
                 "",
                 "Basic usage:",
                 *self.usage,
@@ -101,20 +142,28 @@ class Approximator:
                 "a string 1-6 characters long representing an integer(s) in a hexadecimal "
                 "form: 'FFFFFF' (case insensitive), or a name of the color in any format:",
                 "",
-                f"  venv/bin/python {sys.argv[0]} " + fmt_arg_examples("3AEBA1 0bceeb 666"),
-                f"  venv/bin/python {sys.argv[0]} " + fmt_arg_examples("red DARK_RED icathian-yellow"),
+                f"  venv/bin/python {sys.argv[0]} "
+                + fmt_arg_examples("3AEBA1 0bceeb 666"),
+                f"  venv/bin/python {sys.argv[0]} "
+                + fmt_arg_examples("red DARK_RED icathian-yellow"),
             ],
             wrap=True,
             indent_first=2,
         )
 
-    def _run(self, sample: pt.ColorRGB | None, color_type: str):
+    def _run(self, sample: pt.Color | None, color_type: str):
         if sample is None:
-            random_rgb = (random.randint(40, 255) for _ in range(3))
-            sample = pt.resolve_color(pytermor.conv.rgb_to_hex(*random_rgb))
+            random_rgb = RGB.from_channels(*(random.randint(40, 255) for _ in range(3)))
+            sample = ColorRGB(random_rgb)
 
         direct_renderer = pt.SgrRenderer(pt.OutputMode.TRUE_COLOR)
-        formatter = StaticFormatter(max_value_len=3, allow_negative=False)
+        # formatter = StaticFormatter(max_value_len=3, allow_negative=False)
+        formatter = StaticFormatter()
+        setattr(
+            formatter,
+            "format",
+            lambda v: pt.format_auto_float(v, 4, allow_exp_form=False),
+        )
 
         pt.echo()
         pt.echo(f'  {color_type+" color:":<15s}', nl=False)
@@ -123,7 +172,9 @@ class Approximator:
         pt.echo(f" {sample.format_value(prefix='')} ", pt.Style(bg=0x0), nl=False)
         pt.echo("\n\n ", nl=False)
 
-        results = []
+        results: list[
+            tuple[str | None, str, pt.Style | None, pt.IRenderer | None, str | None]
+        ] = []
         descriptions = [
             "No approximation (as input)",
             "%s color in named colors list (pytermor)",
@@ -136,36 +187,52 @@ class Approximator:
                 continue
             renderer = pt.SgrRenderer(om)
             if self._extended_mode or idx == 0:
-                results.append((None, '│', None, None, None))
+                results.append((None, "│", None, None, None))
 
             approx_results = []
-            if (upper_bound := renderer._COLOR_UPPER_BOUNDS.get(om, None)):
+            if upper_bound := renderer._COLOR_UPPER_BOUNDS.get(om, None):
                 max_results = 1
                 if idx > 0:
-                    max_results = (self._extended_mode+1)
+                    max_results = self._extended_mode + 1
                     if om is pt.OutputMode.TRUE_COLOR:
-                        max_results = (2*self._extended_mode+1)
-                approx_results = upper_bound.approximate(sample.hex_value, max_results)
+                        max_results = 2 * self._extended_mode + 1
+                if self._color_diff_fn_override:
+                    upper_bound._color_diff_fn = partial(self._color_diff_fn_override, upper_bound)
+                approx_results = upper_bound.approximate(sample, max_results)
 
             for aix, approx_result in enumerate(approx_results):
                 sample_approx = approx_result.color
-                dist = approx_result.distance_real
+                #dist = approx_result.distance_real
+                dist = sample_approx - sample.lab
+
                 if idx == 0:
                     sample_approx = sample
                     dist = 0.0
                 style = pt.Style(bg=sample_approx).autopick_fg()
 
-                dist_str = "0.0" if not dist else formatter.format(dist)
-                code, value, name = re.search(r'(?i)(\w\d{1,3}|)?[ (]*(#[\da-h]{1,6}\??)[ (]*([^)]*)\)?', sample_approx.repr_attrs(True)).groups()
-                sample_approx_str = '%4s %-8s %s' % (code or '--', value, name or '--')
+                dist_str = " -- " if not dist else formatter.format(dist)
+                code, value, name = re.search(
+                    r"(?i)(\w\d{1,3}|)?[ (]*(#[\da-h]{1,6}\??)[ (]*([^)]*)\)?",
+                    sample_approx.repr_attrs(True),
+                ).groups()
+                # input_on_result = '%4s %-8s %s' % (code or '--', value, name or '--')
+                sample_approx_str = "%4s %-8s %s" % (
+                    code or "--",
+                    value,
+                    (lambda b: b.name + " (" + name + ")" if b else (name or "--"))(
+                        sample_approx._base
+                    ),
+                )
+
                 def print_hsv(hsv: HSV) -> str:
                     attrs = [
                         f"{hsv.hue:>3.0f}°",
                         f"{100*hsv.saturation:>3.0f}%",
                         f"{100*hsv.value:>3.0f}%",
                     ]
-                    return ' '.join(attrs)
-                string1 = f"{dist_str:>4s} │ {print_hsv(sample_approx.to_hsv()):>11s} "
+                    return " ".join(attrs)
+
+                string1 = f"{dist_str:>4s} │ {print_hsv(sample_approx.hsv):>11s} "
                 string2 = f" {sample_approx_str}  "
                 desc = descriptions[0]
                 if not self._extended_mode:
@@ -179,13 +246,23 @@ class Approximator:
 
         prim_len1 = max(len(s[0]) for s in results if s[0])
         prim_len2 = max(len(s[1]) for s in results if s[1])
-        header = " Δ".center(4)+ " │  " + " H    S    V  ".center(11) + "│ " + "Code  Value   Name"
-        pt.echo(header.ljust(prim_len1+prim_len2 + 2))
+        header = (
+            self._delta_name.rjust(4)
+            + " │  "
+            + " H    S    V  ".center(11)
+            + "│ "
+            + "Code  Value   Name"
+        )
+        pt.echo(header.ljust(prim_len1 + prim_len2 + 2), nl=False)
+        pt.echo(f"  {self._delta_name.strip()} is {self._cdiff_method}", pt.Style(fg='gray', dim=True))
 
         for string1, string2, style, renderer, desc in results:
             if not string1:
-                pt.echo(' ', nl=False)
-                pt.echo(f"     {string2}                {string2}" + ''.ljust(prim_len2+1), pt.Style(crosslined=True))
+                pt.echo(" ", nl=False)
+                pt.echo(
+                    f"     {string2}                {string2}" + "".ljust(prim_len2 + 1),
+                    pt.Style(crosslined=True),
+                )
                 continue
             pt.echo(" ", nl=False)
             pt.echo(f"{string1:<{prim_len1}s}│", nl=False)

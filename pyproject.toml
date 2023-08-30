@@ -41,6 +41,7 @@ dependencies = []
 [tool.hatch.build.targets.sdist]
 include = [
     "/pytermor",
+    "/pytermor/dev",
     "/tests",
 ]
 
@@ -71,7 +72,7 @@ test = "pytest"
 # [build]
 
 [tool.hatch.envs.build]
-detached = true
+detached = false
 extra-dependencies = [
     "build~=0.8",
     "furo~=2022.6",
@@ -136,6 +137,7 @@ omit = [
     "pytermor/__main__.py",
     "pytermor/_version.py",
     "pytermor/cval.py",
+    "pytermor/dev/*",
 ]
 relative_files = true
 dynamic_context = "test_function"

@@ -47,6 +47,13 @@ class ArgTypeError(Exception):
         super().__init__(msg)
 
 
+class ArgCountError(Exception):
+    def __init__(self, actual: int, *expected: int) -> None:
+        expected_str = ", ".join(str(e) for e in expected)
+        msg = f"Invalid arguments amount, expected one of: ({expected_str}), got: {actual}"
+        super().__init__(msg)
+
+
 class UserCancel(Exception):
     pass
 
