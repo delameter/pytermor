@@ -38,6 +38,14 @@ dependencies = []
 
 # ---------------------------------------------------------
 
+[tool.hatch.publish.index]
+disable = true
+
+[tool.hatch.publish.index.repos.dev]
+url = "https://gitlab.com/api/v4/projects/46749041/packages/pypi"
+
+# ---------------------------------------------------------
+
 [tool.hatch.build.targets.sdist]
 include = [
     "/pytermor",

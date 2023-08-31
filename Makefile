@@ -268,6 +268,9 @@ open-docs-pdf:  ## Open PDF docs in reader
 show-version: ## Show current package version
 	@hatch version | sed -Ee "s/.+/Current: ${CYAN}&${RESET}/"
 
+tag-version: ## Tag current git branch HEAD with the current version
+	@git tag $(shell hatch version | cut -f1,2  -d\.) && git log -1
+
 _set_next_version = (hatch version $1 | sed -Ee "s/^(Old:)(.+)/\1${GRAY}\2${RESET}/; s/^(New:)(.+)/\1${YELLOW}\2${RESET}/")
 _set_current_date = (sed ${VERSION_FILE_PATH} -i -Ee 's/^(__updated__).+/\1 = "${NOW}"/w/dev/stdout' | cut -f2 -d'"')
 
@@ -324,12 +327,20 @@ build: ## Build a package   <hatch>
 build: demolish-build
 	hatch -e build build
 
+### dev
+
+publish-dev: ## Upload latest build to dev registry   <hatch>
+	hatch -e build publish -r dev -u "${PYPI_USERNAME_DEV}" -a "${PYPI_PASSWORD_DEV}"
+
+install-dev: ## Install latest build from dev registry  <system>
+	python -m pip install -i https://gitlab.com/api/v4/projects/46749041/packages/pypi ${PROJECT_NAME}==${VERSION}
+
 ### test
 
-publish-test: ## Upload latest build to test repo   <hatch>
+publish-test: ## Upload latest build to test registry   <hatch>
 	hatch -e build publish -r test -u "${PYPI_USERNAME}" -a "${PYPI_PASSWORD_TEST}"
 
-install-test: ## Install latest build from test repo  <system>
+install-test: ## Install latest build from test registry  <system>
 	python -m pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME}==${VERSION}
 
 
@@ -339,7 +350,7 @@ publish: ## Upload last build (=> PRIMARY registry)   <hatch>
 	@[ -n "${SKIP_MODULE_UPLOAD}" ] && return 0
 	hatch -e build publish -u "${PYPI_USERNAME}" -a "${PYPI_PASSWORD}"
 
-install: ## Install latest build from PRIMARY repo  <system>
+install: ## Install latest build from PRIMARY registry  <system>
 	python -m pip install ${PROJECT_NAME}==${VERSION}
 
 ##

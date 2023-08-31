@@ -81,7 +81,7 @@ class IColorValue(metaclass=ABCMeta):
     def __eq__(self, other) -> bool:
         try:
             return self.int == int(other)
-        except ValueError:  # pragma: no cover
+        except (ValueError, LogicError):  # pragma: no cover
             return False
 
     @property
