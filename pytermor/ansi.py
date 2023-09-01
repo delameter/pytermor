@@ -46,10 +46,10 @@ ALL_COLORS = COLORS + BG_COLORS + HI_COLORS + BG_HI_COLORS
 
 class _ClassMap(t.Dict[str, t.Type["ISequence"]]):
     def add(
-        self,
-        cls: t.Type[ISequence],
-        parents: t.Tuple[type],
-        introducer: t.Iterable[str | int],
+            self,
+            cls: t.Type[ISequence],
+            parents: t.Tuple[type],
+            introducer: t.Iterable[str | int],
     ):
         for i in introducer:
             c = i if isinstance(i, str) else chr(i)
@@ -64,13 +64,13 @@ class _ClassMap(t.Dict[str, t.Type["ISequence"]]):
 
     def from_dict(self, groupdict: dict) -> ISequence:
         classifier = (
-            groupdict.get("nf_classifier")
-            or groupdict.get("st_classifier")
-            or groupdict.get("osc_classifier")
-            or groupdict.get("csi_classifier")
-            or groupdict.get("fe_classifier")
-            or groupdict.get("fp_classifier")
-            or groupdict.get("fs_classifier")
+                groupdict.get("nf_classifier")
+                or groupdict.get("st_classifier")
+                or groupdict.get("osc_classifier")
+                or groupdict.get("csi_classifier")
+                or groupdict.get("fe_classifier")
+                or groupdict.get("fp_classifier")
+                or groupdict.get("fs_classifier")
         )
         if cls := self.get(classifier):
             return cls.from_dict(groupdict)
@@ -86,11 +86,11 @@ def seq_from_dict(groupdict: dict) -> "ISequence":
 
 class _SequenceMeta(ABCMeta):
     def __new__(
-        __mcls: t.Type[t.Type[ISequence]],
-        __name: str,
-        __bases: t.Tuple[type, ...],
-        __namespace: t.Dict[str, Any],
-        **kwargs: Any,
+            __mcls: t.Type[t.Type[ISequence]],
+            __name: str,
+            __bases: t.Tuple[type, ...],
+            __namespace: t.Dict[str, Any],
+            **kwargs: Any,
     ) -> _SequenceMeta:
         new = super().__new__(__mcls, __name, __bases, __namespace, **kwargs)
         new._register(__bases)
@@ -111,11 +111,11 @@ class ISequence(t.Sized, metaclass=_SequenceMeta):
     PARAM_SEPARATOR = ";"
 
     def __init__(
-        self,
-        classifier: str,
-        interm: str = None,
-        final: str = None,
-        abbr: str = _ABBR_DEFAULT,
+            self,
+            classifier: str,
+            interm: str = None,
+            final: str = None,
+            abbr: str = _ABBR_DEFAULT,
     ):
         self._classifier: str = classifier
         self._interm: str | None = interm
@@ -136,6 +136,8 @@ class ISequence(t.Sized, metaclass=_SequenceMeta):
             _CLASSMAP.add(cls, __bases, [*cls._CLASSIFIER_RANGE])
 
     def _validate(self):
+        if self._VIRTUAL:
+            return
         clfer = self._classifier
         if len(clfer) != 1:  # pragma: no cover
             raise ValueError(f"Classifier should consist of one char: {clfer!r}")
@@ -164,7 +166,7 @@ class ISequence(t.Sized, metaclass=_SequenceMeta):
 
     @classmethod
     def cast_params(
-        cls, data: dict, key: str, require_int: bool
+            cls, data: dict, key: str, require_int: bool
     ) -> t.Iterable[str | int, ...]:
         if not (params_raw := data.get(key)):
             return
@@ -178,11 +180,11 @@ class ISequence(t.Sized, metaclass=_SequenceMeta):
 
     def assemble(self) -> str:
         return (
-            self.ESC_CHARACTER
-            + (self._classifier or "")
-            + self._assemble_params()
-            + (self._interm or "")
-            + (self._final or "")
+                self.ESC_CHARACTER
+                + (self._classifier or "")
+                + self._assemble_params()
+                + (self._interm or "")
+                + (self._final or "")
         )
 
     def _assemble_params(self) -> str:
@@ -227,7 +229,7 @@ class SequenceNf(ISequence):
     _ABBR_DEFAULT = "nF"
 
     def __init__(
-        self, classifier: str, final: str, interm: str = None, abbr=_ABBR_DEFAULT
+            self, classifier: str, final: str, interm: str = None, abbr=_ABBR_DEFAULT
     ):
         """
         :param interm: intermediate bytes :hex:`0x20-0x2F`
@@ -246,7 +248,7 @@ class SequenceNf(ISequence):
             data.get("nf_classifier"),
             data.get("nf_final"),
             data.get("nf_interm") or None,
-        )
+            )
 
 
 class SequenceFp(ISequence):
@@ -308,12 +310,12 @@ class SequenceFe(ISequence):
     _ABBR_DEFAULT = "Fe"
 
     def __init__(
-        self,
-        classifier: str,
-        *params: int | str,
-        interm: str = None,
-        final: str = None,
-        abbr=_ABBR_DEFAULT,
+            self,
+            classifier: str,
+            *params: int | str,
+            interm: str = None,
+            final: str = None,
+            abbr=_ABBR_DEFAULT,
     ):
         """
         .
@@ -386,7 +388,7 @@ class SequenceCSI(SequenceFe):
     _CLASSIFIER = "["
 
     def __init__(
-        self, final: str = None, *params: int, interm: str = None, abbr: str = "CSI"
+            self, final: str = None, *params: int, interm: str = None, abbr: str = "CSI"
     ):
         """
         .
@@ -397,11 +399,11 @@ class SequenceCSI(SequenceFe):
 
     def assemble(self) -> str:
         return (
-            self.ESC_CHARACTER
-            + (self._classifier or "")
-            + (self._interm or "")
-            + self._assemble_params()
-            + (self._final or "")
+                self.ESC_CHARACTER
+                + (self._classifier or "")
+                + (self._interm or "")
+                + self._assemble_params()
+                + (self._final or "")
         )
 
     @classmethod
@@ -410,7 +412,7 @@ class SequenceCSI(SequenceFe):
             data.get("csi_final") or None,
             *cls.cast_params(data, "csi_param", True),
             interm=data.get("csi_interm") or None,
-        )
+            )
 
     @staticmethod
     def validate_column_abs_value(column: int):
@@ -987,7 +989,7 @@ class _SgrPairityRegistry:
         self._resetter_codes.add(resetter_code)
 
     def _bind_complex(
-        self, starter_codes: t.Tuple[int, ...], param_len: int, resetter_code: int
+            self, starter_codes: t.Tuple[int, ...], param_len: int, resetter_code: int
     ):
         self._bind_regular(starter_codes, resetter_code)
 
@@ -1013,14 +1015,14 @@ class _SgrPairityRegistry:
             ] | None = None
 
             for complex_len in range(
-                1, min(len(opening_params), self._complex_code_max_len + 1)
+                    1, min(len(opening_params), self._complex_code_max_len + 1)
             ):
                 opening_complex_suggestion = tuple(opening_params[:complex_len])
 
                 if opening_complex_suggestion in self._complex_code_def:
                     key_params = opening_complex_suggestion
                     complex_total_len = (
-                        complex_len + self._complex_code_def[opening_complex_suggestion]
+                            complex_len + self._complex_code_def[opening_complex_suggestion]
                     )
                     opening_params = opening_params[complex_total_len:]
                     break
@@ -1040,7 +1042,7 @@ class _SgrPairityRegistry:
         return SequenceSGR(*closing_seq_params)
 
     def expand_subtypes(
-        self, key_params: int | SubtypedParam | t.Tuple[int | SubtypedParam, ...] | None
+            self, key_params: int | SubtypedParam | t.Tuple[int | SubtypedParam, ...] | None
     ) -> t.Iterable[int]:
         if not isinstance(key_params, t.Iterable):
             key_params = (key_params,)

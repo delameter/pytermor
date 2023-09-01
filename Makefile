@@ -271,30 +271,34 @@ show-version: ## Show current package version
 tag-version: ## Tag current git branch HEAD with the current version
 	@git tag $(shell hatch version | cut -f1,2  -d\.) && git log -1
 
-_set_next_version = (hatch version $1 | sed -Ee "s/^(Old:)(.+)/\1${GRAY}\2${RESET}/; s/^(New:)(.+)/\1${YELLOW}\2${RESET}/")
+_set_next_version = (hatch version $1 | \
+						tr -d '\n' | \
+						sed -zEe "s/(Old:\s*)(\S+)(New:\s*)(\S+)/Version updated:\n\
+										${CYAN} \2${RESET} -> ${YELLOW}\4${RESET}/" \
+)
 _set_current_date = (sed ${VERSION_FILE_PATH} -i -Ee 's/^(__updated__).+/\1 = "${NOW}"/w/dev/stdout' | cut -f2 -d'"')
 
-next-version-dev: ## Increase version by <dev>
-	@$(call _set_current_date)
-	@$(call _set_next_version,dev)
-	@echo
+#next-version-dev: ## Increase version by <dev>
+#	@$(call _set_current_date)
+#	@$(call _set_next_version,dev)
+#	@echo
 
 next-version-micro: ## Increase version by 0.0.1
 	@$(call _set_current_date)
-	@$(call _set_next_version,micro | head -1)
-	@$(call _set_next_version,dev | tail -1)
+	@$(call _set_next_version,micro | head -2)
+#	@$(call _set_next_version,dev | tail -1)
 	@echo
 
 next-version-minor: ## Increase version by 0.1
 	@$(call _set_current_date)
 	@$(call _set_next_version,minor | head -1)
-	@$(call _set_next_version,dev | tail -1)
+#	@$(call _set_next_version,dev | tail -1)
 	@echo
 
 next-version-major: ## Increase version by 1
 	@$(call _set_current_date)
 	@$(call _set_next_version,major | head -1)
-	@$(call _set_next_version,dev | tail -1)
+#	@$(call _set_next_version,dev | tail -1)
 	@echo
 
 set-current-date:  # Update timestamp in version file (done automatically)
@@ -330,10 +334,10 @@ build: demolish-build
 ### dev
 
 publish-dev: ## Upload latest build to dev registry   <hatch>
-	hatch -e build publish -r dev -u "${PYPI_USERNAME_DEV}" -a "${PYPI_PASSWORD_DEV}"
+	hatch -e build publish -r "${PYPI_REPO_URL_DEV}" -u "${PYPI_USERNAME_DEV}" -a "${PYPI_PASSWORD_DEV}"
 
 install-dev: ## Install latest build from dev registry  <system>
-	python -m pip install -i https://gitlab.com/api/v4/projects/46749041/packages/pypi ${PROJECT_NAME}==${VERSION}
+	python -m pip install -i "${PYPI_REPO_URL_DEV}/simple" ${PROJECT_NAME}==${VERSION}
 
 ### test
 
