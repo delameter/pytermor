@@ -32,7 +32,7 @@ in general. According to `ECMA-48`_ specification the classes are: **nF**,
   sequence types.
 
 - **Fe**-class sequences are the most common ones and 99% of the sequences
-  you will ever encounter will be of **Fe** class. `ECMA-48`_ names them
+  you will ever encounter will be of **Fe** class. ECMA-48 names them
   "C1 set sequences", and their *introducer* byte (the one right after
   escape byte) is from :hex:`0x40` to :hex:`0x5F` range (|u45x|).
 
@@ -60,7 +60,7 @@ Let's identify these abbreviations as :def:`sequence types`.
 
 At the time of writing (v2.75) `ansi` module contains the implementations of
 about 25 control sequence types (that should be read as "has seperated classes
-and/or factory methods and is also documented). However, `ECMA-48`_ standard
+and/or factory methods and is also documented). However, ECMA-48 standard
 mentions about 160 sequence types.
 
 The main principle of `pytermor` development was the rule *"if I don't see it,

@@ -235,7 +235,7 @@ class TestNamedGroupsRefilter:
             ),
         ],
     )
-    @mark.setup(force_output_mode="xterm_256")
+    @mark.config(force_output_mode="xterm_256")
     def test_ngrefilter(
         self,
         input: str,
@@ -561,7 +561,7 @@ class TestReplacerChain:
             ["test_rplcha_inp.txt", "test_rplcha_exp.ansi"],
         ],
     )
-    @mark.setup(force_output_mode="xterm_16")
+    @mark.config(force_output_mode="xterm_16")
     def test_replacer_chain(self, input_fname: str, expected_fname: str):
         class RenderingReplacer(StringReplacer):
             def __init__(self, pattern: PTT[str], st: Style):

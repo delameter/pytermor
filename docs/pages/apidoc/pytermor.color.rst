@@ -33,14 +33,17 @@
    .. autosummary::
    
       ApxResult
-      Color
       Color16
       Color256
       ColorRGB
+      DynamicColor
       HSV
       IColorValue
       LAB
       RGB
+      RealColor
+      RenderColor
+      ResolvableColor
       XYZ
    
    

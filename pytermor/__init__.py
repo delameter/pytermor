@@ -48,9 +48,12 @@ from .color import Color as Color
 from .color import Color16 as Color16
 from .color import Color256 as Color256
 from .color import ColorRGB as ColorRGB
+from .color import DynamicColor as DynamicColor
 from .color import DEFAULT_COLOR as DEFAULT_COLOR
 from .color import HSV as HSV
 from .color import IColorValue as IColorValue
+from .color import RenderColor as RenderColor
+from .color import RealColor as RealColor
 from .color import LAB as LAB
 from .color import NOOP_COLOR as NOOP_COLOR
 from .color import RGB as RGB
@@ -68,6 +71,10 @@ from .common import but as but
 from .common import char_range as char_range
 from .common import chunk as chunk
 from .common import cut as cut
+from .common import filterf as filterf
+from .common import filterfv as filterfv
+from .common import filtern as filtern
+from .common import filternv as filternv
 from .common import fit as fit
 from .common import flatten as flatten
 from .common import flatten1 as flatten1
@@ -184,6 +191,7 @@ from .renderer import TmuxRenderer as TmuxRenderer
 from .renderer import force_ansi_rendering as force_ansi_rendering
 from .renderer import force_no_ansi_rendering as force_no_ansi_rendering
 from .renderer import init_renderer as init_renderer
+from .style import FrozenStyle as FrozenStyle
 from .style import MergeMode as MergeMode
 from .style import NOOP_STYLE as NOOP_STYLE
 from .style import Style as Style

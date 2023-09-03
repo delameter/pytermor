@@ -202,7 +202,6 @@ class Approximator:
 
             for aix, approx_result in enumerate(approx_results):
                 sample_approx = approx_result.color
-                #dist = approx_result.distance_real
                 dist = sample_approx - sample.lab
 
                 if idx == 0:

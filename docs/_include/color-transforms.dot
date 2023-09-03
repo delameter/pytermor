@@ -1,0 +1,38 @@
+digraph color_transforms {
+    ratio = .66;
+    edge [
+        fontname="ASM-Regular"
+        penwidth=1
+        arrowhead=normal
+        fontsize=8
+    ]
+	node [
+	    fontname="ASM-Regular"
+	    style=rounded
+	    shape=circle
+    ]
+
+    {
+        node [
+            penwidth=1
+            shape=doublecircle
+            color="#000000"
+            fillcolor="#fafafa"
+            style=filled
+        ]
+        rank=same; RGB
+    }
+
+	RGB -> HSV ;
+	RGB -> XYZ [
+	    taillabel="(INT)"
+	    labeldistance=2
+	    labelangle=180
+    ];
+	XYZ -> LAB ;
+	HSV -> RGB ;
+	XYZ -> RGB ;
+	LAB -> XYZ ;
+
+
+}

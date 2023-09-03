@@ -20,6 +20,7 @@ import yaml
 
 from common import PROJECT_ROOT, CONFIG_PATH, TaskRunner
 from pytermor import pad
+from pytermor.common import filtern
 
 
 class IndexBuilder(TaskRunner):
@@ -106,6 +107,8 @@ class IndexBuilder(TaskRunner):
             col_name = f'"{color.get("name")}", '
             col_name = col_name.ljust(longest_name_len + 4)
 
+            col_index = (None, f"index=True, ")[mode.startswith('xterm')]
+
             cols_code = []
             col_color16_eq = None
             if mode == "xterm_16":
@@ -134,12 +137,12 @@ class IndexBuilder(TaskRunner):
                 *cols_code,
                 col_name,
                 "register=True, ",
-                "index=True, ",
+                col_index,
                 col_aliases,
                 col_color16_eq,
                 col_variations,
             ]
-            yield self.INDENT + "".join(filter(None, columns)).rstrip(", ") + ")"
+            yield self.INDENT + "".join(filtern(columns)).rstrip(", ") + ")"
 
         self._colors_mode_unique = len(color_values)
 

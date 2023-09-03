@@ -24,6 +24,10 @@ General
 
    ```SgrRenderer.render()``` |rarr| `SgrRenderer.render()`
 
+  If class name is ambiguous (e.g., there is a glossary term with the same name), the solution is to specify the type explicitly:
+
+    ``:class:`.Style``` |rarr| :class:`.Style`
+
 - Argument names and string literals that include escape sequences or their fragments should be wrapped in double backticks:
 
    ````arg1```` |rarr| ``arg1``
@@ -37,6 +41,7 @@ General
 
    .. math::
       d_{min} = 350*10^{-3}
+
 
 =================
 Hexadecimals
@@ -74,33 +79,45 @@ escaped strings
 References
 ==================
 
-+------------------+-------------------------------------------+-------------------------------------+
-| Type             | Code                                      |  Example                            |
-+==================+===========================================+=====================================+
-|                  | .. code-block:: rst                       |                                     |
-| Internal pydoc   |                                           | use `SgrRenderer.render()`          |
-|                  |    use `SgrRenderer.render()`             |                                     |
-+------------------+-------------------------------------------+-------------------------------------+
-|                  | .. code-block:: rst                       |                                     |
-| Internal page    |                                           | called `renderers<guide.renderers>` |
-|                  |    called `renderers<guide.renderers>`    |                                     |
-+------------------+-------------------------------------------+-------------------------------------+
-|                  | .. code-block:: rst                       |                                     |
-| Internal anchor  |                                           | `References`_                       |
-|                  |    `References`_                          |                                     |
-+------------------+-------------------------------------------+-------------------------------------+
-|                  | .. code-block:: rst                       |                                     |
-| Internal term    |                                           | :term:`rendering`                   |
-|                  |    :term:`rendering`                      |                                     |
-+------------------+-------------------------------------------+-------------------------------------+
-|                  | .. code-block:: rst                       |                                     |
-| External pydoc   |                                           | see :class:`logging.NullHandler`    |
-|                  |    see `:class:`logging.NullHandler``     |                                     |
-+------------------+-------------------------------------------+-------------------------------------+
-|                  | .. code-block:: rst                       |                                     |
-| External page    |                                           | https://github.com                  |
-|                  |    `https://github.com`                   |                                     |
-+------------------+-------------------------------------------+-------------------------------------+
++------------------+---------------------------------------+---------------------------------------+
+|                  | `github`_ and                         | .. code-block:: rst                   |
+| External         | `gitlab <//gitlab.com>`_              |                                       |
+| pages            |                                       |    `github`_ and                      |
+|                  | .. _github: //github.com              |    `gitlab <//gitlab.com>`_           |
+|                  |                                       |                                       |
+|                  |                                       |    .. _github: //github.com           |
++------------------+---------------------------------------+---------------------------------------+
+|                  |                                       | .. code-block:: rst                   |
+| External pydoc   | :class:`re.Match`                     |                                       |
+|                  |                                       |    :class:`re.Match`                  |
++------------------+---------------------------------------+---------------------------------------+
+|                  |                                       | .. code-block:: rst                   |
+| Internal page    | `guide-lo` or                         |                                       |
+|                  | `high-level <guide-hi>`               |    `guide-lo` or                      |
+|                  |                                       |    `high-level <guide-hi>`            |
++------------------+---------------------------------------+---------------------------------------+
+|                  |                                       | .. code-block:: rst                   |
+| Internal pydoc   | `wait_key()`,                         |                                       |
+|                  | :class:`.Style`                       |    `wait_key()`,                      |
+|                  |                                       |    :class:`.Style`                    |
++------------------+---------------------------------------+---------------------------------------+
+|                  |                                       | .. code-block:: rst                   |
+| Internal anchor  | `References`_                         |                                       |
+|                  |                                       |    `References`_                      |
++------------------+---------------------------------------+---------------------------------------+
+|                  |                                       | .. code-block:: rst                   |
+| Term in glossary | :term:`rendering`                     |                                       |
+|                  |                                       |    :term:`rendering`                  |
++------------------+---------------------------------------+---------------------------------------+
+|                  |                                       | .. code-block:: rst                   |
+| Inlined          | | :def:`introducer` for 1st time ...  |                                       |
+| definition       | |  ... or *introducer* later          |    :def:`introducer` for 1st time ... |
+|                  |                                       |     ... or *introducer* later         |
++------------------+---------------------------------------+---------------------------------------+
+|                  |                                       | .. code-block:: rst                   |
+| Abbreviation     | :abbr:`EL (Erase in Line)`            |                                       |
+|                  |                                       |    :abbr:`EL (Erase in Line)`         |
++------------------+---------------------------------------+---------------------------------------+
 
 
 =================

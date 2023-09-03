@@ -4,7 +4,7 @@
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
 """
-Library fine tuning.
+Library fine tuning module.
 """
 
 from __future__ import annotations
@@ -34,21 +34,22 @@ class Config:
     """
     Configuration variables container. Values can be modified in two ways:
 
-        1) create new :class:`Config` instance from scratch and activate with `replace_config()`;
+        1) create new :class:`Config` instance from scratch and activate with
+           `replace_config()`;
         2) or preliminarily set the corresponding environment variables to intended values,
            and the default config instance will catch them up on initialization.
 
-       .. seealso:: Environment variable list is located in `config` guide section.
+    .. seealso:: Environment variable list is located in `config` guide section.
 
     :param renderer_class:      Explicitly set renderer class (e.g. `TmuxRenderer`).
-                                See :term:`Config.renderer_class`.
+                                See `config.renderer_class`.
     :param force_output_mode:   Explicitly set output mode (e.g. ``xterm_16``; any *value*
                                 from `OutputMode` enum is valid).
-                                See :term:`Config.force_output_mode`.
+                                See `config.force_output_mode`.
     :param default_output_mode: Output mode to use as a fallback value when renderer is
                                 unsure about user's terminal capabilities (e.g. ``xterm_16``;
                                 any *value* from `OutputMode` enum is valid). Initial value
-                                is ``xterm_256``. See :term:`Config.default_output_mode`.
+                                is ``xterm_256``. See `Config.default_output_mode`.
     :param prefer_rgb:          By default SGR renderer uses 8-bit color mode sequences
                                 for `Color256` instances (as it should), even when the
                                 output device supports more advanced 24-bit/True Color
@@ -57,11 +58,12 @@ class Config:
                                 terminal emulator supports them. Most of the time the
                                 results from different color modes are indistinguishable from
                                 each other, however, there *are* rare cases, when it does
-                                matter. See :term:`Config.prefer_rgb`.
+                                matter. See `Config.prefer_rgb`.
     :param trace_renders:       Set to *True* to log hex dumps of rendered strings.
                                 Note that default handler is :class:`logging.NullHandler`
                                 with ``WARNING`` level, so in order to see the traces
-                                attached handler is required. See :term:`Config.trace_renders`.
+                                attached handler is required. See
+                                `Config.trace_renders`.
     """
 
     renderer_class: str = field(default_factory=_renderer_class_factory)

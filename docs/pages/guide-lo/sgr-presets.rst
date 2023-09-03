@@ -1,4 +1,4 @@
-.. _guide.sgr-presets:
+.. _guide.presets:
 
 ######################################
 Sequence presets

@@ -10,7 +10,7 @@ $(document).ready(function () {
     formatEscCharLabels();
     squashNeighbourCodeSetions();
     removeBadgeBrackets();
-    setExternalHrefOpenMethodToBlank();
+    setExternalHrefTargetAndIcon();
     setXtermPaletteClickHandler();
 });
 
@@ -78,11 +78,14 @@ function removeSpacesBetweenTags(el) {
     el.innerHTML = el.innerHTML.replace(/>\s+</g, "><");
 }
 
-function setExternalHrefOpenMethodToBlank() {
+function setExternalHrefTargetAndIcon() {
     for (let el of $('a.external, a.internal.image-reference, .icons a')) {
         if (!el) continue;
         if (el.attributes.href.value.charAt(0) === '#') continue;
-        el.setAttribute('target', '_blank');
+
+        let icon = document.createElement('i');
+        icon.classList.add('fa', 'fa-external-link');
+        el.appendChild(icon);
     }
 }
 
@@ -94,13 +97,15 @@ let badgeContentMap = {
     "[DOCS]": "#",
     "[TESTS]": "»",
     "[REFACTOR]": "±",
+    "[CI/CD]": "@",
+    "[REMOVE]": "×",
     "[REWORK]": "!",
 }
 
 function removeBadgeBrackets() {
     for (let el of $('span.badge')) {
         let t = el.textContent;
-        const regex = /^$|^\[([A-Z]*)]$/;
+        const regex = /^$|^\[([A-Z/]*)]$/;
         if (regex.test(t)) {
             el.textContent = badgeContentMap[t];
             el.classList.remove("hidden");

@@ -40,7 +40,7 @@ from pytermor.numfmt import (
 from tests import format_test_params
 
 
-@pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
+@pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
 class TestHighlighter:
     DIM = Style(dim=True)
     GRY = Style(fg="gray")
@@ -284,7 +284,7 @@ class TestStaticFormatter:
 
     @pytest.mark.parametrize("colorize", [False, True])
     @pytest.mark.parametrize("max_value_len", [*range(3, 10)])
-    @pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
+    @pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
     def test_padding_works(self, max_value_len, colorize):
         formatter = StaticFormatter(
             max_value_len=max_value_len,
@@ -395,7 +395,7 @@ class TestStaticFormatter:
         ],
         ids=format_test_params,
     )
-    @pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
+    @pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
     def test_colorizing(self, expected: str, value: float):
         assert format_si(value, unit="m", auto_color=True).render() == expected
 
@@ -832,7 +832,7 @@ class TestDynamicFormatter:
         ],
         ids=format_test_params,
     )
-    @pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
+    @pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
     def test_colorizing(self, expected: str, value: int):
         assert format_time(value, auto_color=True).render() == expected
 
@@ -1018,7 +1018,7 @@ class TestDualFormatter:
         ],
         ids=format_test_params,
     )
-    @pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
+    @pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
     def test_colorizing(self, expected: str, delta: timedelta):
         formatter = dual_registry.find_matching(10)
         actual = formatter.format(delta.total_seconds(), auto_color=True)
@@ -1052,7 +1052,7 @@ class TestDualFormatter:
         actual = formatter.format(60, auto_color=False)
         assert actual == f"{'1 min':^10s}"
 
-    @pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
+    @pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
     def test_format_pad_colored(self):
         formatter = DualFormatter(dual_registry.find_matching(10), pad=True)
         actual = formatter.format(60, auto_color=True)

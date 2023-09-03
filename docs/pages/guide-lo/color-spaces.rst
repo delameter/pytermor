@@ -5,7 +5,6 @@ Color spaces and transformations
 ##################################
 
 
-.. figure:: /_static/color-spaces.png
-   :align: center
 
-   Supported color spaces and transformations
+.. graphviz:: /_include/color-transforms.dot
+    :caption: Supported color spaces and transformations

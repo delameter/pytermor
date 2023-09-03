@@ -301,10 +301,6 @@ class StaticFormatter(NumFormatter):
         highlighter: t.Type[Highlighter] | Highlighter = None,
     ):
         """
-        .. note ::
-
-            All arguments except ``fallback`` are *kwonly*-type arguments.
-
         .. default-role:: math
 
         :param fallback:
@@ -589,8 +585,7 @@ class DynamicFormatter(NumFormatter):
         """
         .. note ::
 
-            All arguments except ``fallback`` and ``units`` are
-            *kwonly*-type arguments.
+            Mp mp not note
 
         """
         super().__init__(auto_color, highlighter)

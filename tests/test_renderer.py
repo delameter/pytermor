@@ -46,7 +46,7 @@ class TestRendererConfiguration:
             assert result == "12345"
 
 
-@pytest.mark.setup(renderer_class=TmuxRenderer.__name__)
+@pytest.mark.config(renderer_class=TmuxRenderer.__name__)
 class TestTmuxRenderer:
     def test_basic_render_works(self):
         result = pt.render("12345", Style(fg="red", bg="black", bold=True))
@@ -119,7 +119,7 @@ class TestTmuxRenderer:
         assert hash(renderer1) == hash(renderer2)
 
 
-@pytest.mark.setup(renderer_class=HtmlRenderer.__name__)
+@pytest.mark.config(renderer_class=HtmlRenderer.__name__)
 class TestHtmlRenderer:
     def test_noop_render_works(self):
         result = HtmlRenderer().render("12345", NOOP_STYLE)
@@ -235,13 +235,13 @@ class TestSgrRenderer:
             self._make_fake_tty_renderer(close=True)._output_mode == OutputMode.NO_ANSI
         )
 
-    @pytest.mark.setup(default_output_mode="xterm_16")
+    @pytest.mark.config(default_output_mode="xterm_16")
     def test_mode_default_value_utilized(self):
         self._del_environ("TERM")
         self._del_environ("COLORTERM")
         assert self._make_fake_tty_renderer()._output_mode == OutputMode.XTERM_16
 
-    @pytest.mark.setup(force_output_mode="xterm_16")
+    @pytest.mark.config(force_output_mode="xterm_16")
     def test_mode_forced_value_utilized(self):
         assert SgrRenderer()._output_mode == OutputMode.XTERM_16
 
@@ -294,7 +294,7 @@ class TestRendererManager:
         RendererManager.set_default(None)  # noqa
         assert isinstance(RendererManager.get_default(), IRenderer)
 
-    @pytest.mark.setup(renderer_class=TmuxRenderer.__name__)
+    @pytest.mark.config(renderer_class=TmuxRenderer.__name__)
     def test_set_default_config_value_works(self):
         RendererManager.set_default()
         assert isinstance(RendererManager.get_default(), TmuxRenderer)

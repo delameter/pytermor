@@ -8,6 +8,16 @@ SGR sequences
 Format soft reset
 ====================
 
+.. todo ::
+
+   This is how you **should** format examples:
+
+.. figure:: /_static/ex_ex.png
+
+   https://chrisyeh96.github.io/2020/03/28/terminal-colors.html#color-schemes
+
+
+
 There are two ways to manage color and attribute termination:
 
 - hard reset (SGR-0 or ``ESC [0m``)
@@ -43,7 +53,7 @@ But it still can be helpful for a majority of cases (especially when text is gen
 program and in one go).
 
 =============================
-Working with :term:`Spans`
+Working with Spans
 =============================
 
 Use `Span` constructor to create new instance with specified control sequence(s) as a opening/starter sequence

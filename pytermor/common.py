@@ -10,7 +10,7 @@ import itertools
 import typing as t
 from collections import OrderedDict
 from collections.abc import Iterable
-from functools import lru_cache
+from functools import lru_cache, partial
 from math import ceil
 
 
@@ -33,7 +33,7 @@ is `resolve_color()`. Valid values include:
     - *int* in a [:hex:`0`; :hex:`0xffffff`] range.
 """
 
-FT = t.TypeVar("FT", int, str, "Color", "Style", None)
+FT = t.TypeVar("FT", int, str, "IColorValue", "Style", None)
 """
 :abbr:`FT (Format type)` is a style descriptor. Used as a shortcut precursor for actual 
 styles. Primary handler is `make_style()`.
@@ -49,8 +49,6 @@ implementations.
 class ExtendedEnum(enum.Enum):
     """
     Standard `Enum` with a few additional methods on top.
-
-
     """
 
     @classmethod
@@ -204,9 +202,8 @@ def fit(
 
 def get_qname(obj) -> str:
     """
-    Convenient method for getting a class name for class instances
-    as well as for the classes themselves, in case where a variable can
-    be both.
+    Convenient method for getting a class name for the instances as well as
+    for the classes themselves, in case where a variable in question can be both.
 
     >>> get_qname("aaa")
     'str'
@@ -250,11 +247,11 @@ def chunk(items: Iterable[_T], size: int) -> t.Iterator[t.Tuple[_T, ...]]:
     Split item list into chunks of size ``size`` and return these
     chunks as *tuples*.
 
-    >>> for c in chunk(range(5), 2):
-    ...     print(c)
-    (0, 1)
-    (2, 3)
-    (4,)
+    >>> print(*chunk(range(10), 3), sep='''\n''')
+    (0, 1, 2)
+    (3, 4, 5)
+    (6, 7, 8)
+    (9,)
 
     :param items:  Input elements.
     :param size:   Chunk size.
@@ -280,7 +277,7 @@ def get_subclasses(target: _T) -> Iterable[t.Type[_T]]:
         target = type(target)
 
     visited: t.OrderedDict[_TT] = OrderedDict[_TT]()
-    # using keys in ordered dict as ordered set
+    # using ordered dict keys as an *ordered set*
 
     def fn(_cls: _TT):
         if _cls in visited:  # pragma: no cover
@@ -320,20 +317,36 @@ def flatten1(items: Iterable[Iterable[_T]]) -> t.List[_T]:
 
 def flatten(items: Iterable[_T | Iterable[_T]], level_limit: int = None) -> t.List[_T]:
     """
-    Unpack a list with any amount of nested lists to 1d-array, or flat list,
+    Unpack a list consisting of any amount of nested lists to 1d-array, or flat list,
     eliminating all the nesting. Note that nesting can be irregular, i.e. one part
     of initial list can have deepest elemenets on 3rd level, while the other --
     on 5th level.
 
+    .. attention ::
+
+        Tracking of visited objects is not performed, i.e., circular references
+        and self-references will be unpacked again and again endlessly, until
+        max recursion depth limit exceeds with a `RecursionError` or until the
+        program eats up all the available RAM (in theory, that is; in practice
+        I personally didn't enconuter that outcome even once). That was the
+        reason of adding `level_limit` parameter (see below).
+
     >>> flatten([1, 2, [3, [4, [[5]], [6, 7, [8]]]]])
     [1, 2, 3, 4, 5, 6, 7, 8]
 
-    :param items:       An iterable to unpack.
+    :param items:       N-dimensional iterable to unpack.
     :param level_limit: Adjust how many levels deep can unpacking proceed, e.g.
                         if set to 1, only 2nd-level elements will be raised up
                         to level 1, but not the deeper ones. If set to 2, the
                         first two levels will be unpacked, while keeping the 3rd
-                        and others. 0 or *None* disables the limit.
+                        and others. 0 disables the limit. *None* is treated like
+                        a default value, which is set to 50 empirically.
+
+                        Note that altering/disabling this limit doesn't affect
+                        max recursion depth limiting mechanism, which will (sooner
+                        or later) interrupt the attempt to descent on hierarchy
+                        with a self-referencing object or several objects forming
+                        a circular reference.
     """
 
     def _flatten(parent, lvl=0) -> Iterable[_T | Iterable[_T]]:
@@ -352,17 +365,50 @@ def flatten(items: Iterable[_T | Iterable[_T]], level_limit: int = None) -> t.Li
     return [*_flatten(items)]
 
 
-def char_range(c1, c2):
+def char_range(start: str, stop: str):
     """
-    Generates the characters from `c1` to `c2`, inclusive.
+    Yields all the characters from range of [`c1`; `c2`], inclusive
+    (end character `c2` is also present, in contrast with classic `range()`).
+
+    >>> ''.join(char_range('₁', '₉'))
+    '₁₂₃₄₅₆₇₈₉'
+
+    .. note ::
+
+        In some cases the result will seem to be incorrent, i.e. this:
+        `pt.char_range('¹', '⁴')` yields 8124 characters total. The reason
+        is that the algoritm works with input characters as Unicode codepoints,
+        and '¹', '⁴' are relatively distant from each other: "¹" :hex:`U+B9`,
+        "⁴" :hex:`Ux2074`, which leads to an unexpected results. Character
+        ranges in regular expessetions, e.g. `[A-Z0-9]` work the same way.
+
+    :param start; Character to start from (inclusive)
+    :param stop;  Character to stop at (**inclusive**)
     """
-    i1 = ord(c1)
-    i2 = ord(c2) + 1
+    start_code = ord(start)
+    stop_code = ord(stop) + 1
 
     # manually excluding UTF-16 surrogates from the range if there is
     # an intersection, as otherwise python will die with unicode error
-    if i1 < 0xD800 and i2 > 0xDFFF:
-        irange = (*range(i1, 0xD800), *range(0xE000, i2))
+    if start_code < 0xD800 and stop_code > 0xDFFF:
+        codes = (*range(start_code, 0xD800), *range(0xE000, stop_code))
     else:
-        irange = range(i1, i2)
-    yield from map(chr, irange)
+        codes = range(start_code, stop_code)
+    yield from map(chr, codes)
+
+
+filterf = partial(filter, None)
+""" Shortcut for filtering out falsy values from sequences """
+
+filtern = partial(filter, lambda v: v is not None)
+""" Shortcut for filtering out Nones from sequences """
+
+
+def filterfv(mapping: dict) -> dict:
+    """ Shortcut for filtering out falsy values from mappings """
+    return dict(filter(None, mapping.items()))
+
+
+def filternv(mapping: dict) -> dict:
+    """ Shortcut for filtering out None values from mappings """
+    return dict(filter(lambda kv: kv[1] is not None, mapping.items()))

@@ -70,5 +70,8 @@ class ColorNameConflictError(Exception):
 
 class ColorCodeConflictError(Exception):
     def __init__(self, code: int, existing_color, new_color):
-        msg = f"Color #{code} already exists"
-        super().__init__(msg, existing_color, new_color)
+        self._msg = f"Color #{code} already exists: {existing_color} <- {new_color}"
+        super().__init__(self._msg, existing_color, new_color)
+
+    def __str__(self) -> str:
+        return self._msg

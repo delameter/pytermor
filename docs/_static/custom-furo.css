@@ -63,12 +63,15 @@ a.reference.internal code,
 .xterm-palette,
 .field-list dd.field-odd strong,
 .field-list dd.field-odd em,
-#configuration dl.glossary dt {
+#configuration dl dt {
     font-family: "Iose7ka Terminal", monospace;
 }
-dl.glossary dt {
+
+#configuration dl dt {
     font-weight: bold;
+    margin-right: 1em;
 }
+
 pre, .pre, kbd,
 .xterm-palette,
 article,
@@ -100,9 +103,6 @@ td > * > .aux {
     display: block;
 }
 
-.std-term {
-    font-style: italic;
-}
 .env {
     font-size: 0.9em;
 }
@@ -223,18 +223,25 @@ a.reference:not(.internal):hover {
     /*text-decoration-thickness: from-font;*/
     /*text-underline-position: under;*/
 }
-.content a.reference.internal code {
+.std-term {
+    font-style: italic;
+    font-family: "TeX Gyre Schola";
+}
+.content a.reference.internal code :not(.std-term) {
     text-decoration-style: solid;
     font-weight: bold;
 }
 .content a.reference.external {
-    font-style: italic;
-    color: var(--color-link-external);
+    /*font-style: italic;*/
+    /*color: var(--color-link-external);*/
 }
-.content a.reference.external::after {
-    content: "↗";  /**   U+A0 | ↗️ U+2197 U+FE0F | ↗ U+2197 **/
-    padding-left: .25em;
+.content a.reference.external .fa {
+    padding-left: 0.2em;
 }
+/*.content a.reference.external::after {*/
+/*    content: "↗";  !**   U+A0 | ↗️ U+2197 U+FE0F | ↗ U+2197 **!*/
+/*    padding-left: .25em;*/
+/*}*/
 
 .toctree-wrapper code, .toc-tree code {
     /*font-weight: 300 !important;*/
@@ -389,8 +396,8 @@ dl.method > dt:hover {
     background: var(--color-pt-method-background);
     border-left: var(--api-header-border) var(--color-pt-method-border);
 }
-#configuration dl.glossary > dt,
-#configuration dl.glossary > dt:hover {
+#configuration dl > dt,
+#configuration dl > dt:hover {
     width: fit-content;
     background: var(--color-pt-config-background);
     border-left: var(--api-header-border) var(--color-pt-config-border);
@@ -404,7 +411,7 @@ dl.data > dt.sig:target,
 dl.attribute > dt.sig:target,
 dl.property > dt.sig:target,
 dl.method > dt.sig:target,
-#configuration dl.glossary > dt.sig:target {
+#configuration dl > dt.sig:target {
     border-color: var(--color-pt-highlight-target-border) !important;
 }
 
@@ -618,6 +625,13 @@ span.badge-refactor {
 span.badge-rework {
     /*background: var(--color-pt-badge-background, #ffd15e40);*/
     color: var(--color-pt-badge-foreground, #ffdf5f);
+}
+span.badge-ci-cd {
+    /*background: var(--color-pt-badge-background, #ffd15e40);*/
+    color: var(--color-pt-badge-foreground, #dfdfdf);
+}
+span.badge-remove {
+    /*background: var(--color-pt-badge-background, #FF7F7F40);*/
 }
 
 

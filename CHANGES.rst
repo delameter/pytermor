@@ -4,8 +4,11 @@
 pending
 ------------------
 - ...
+- |MAINTAIN| changelog update
+- |FIX| noop color .id read
+- |FIX| legacy virtual SequenceSGR descendants
 
-.. <@pending:40a45a4>
+.. <@pending:ddfbcce>
 .. ^ blank line before should be kept
 
 
@@ -16,7 +19,6 @@ pending
 - |CI/CD| artifact uploading
 - |DOCS|  `Renderers` and `ANSI sequences review` pages
 - |DOCS| library structure diagram optimized for dark mode
-- |DRAFT| added `dev` module with experimental and WIP-features
 - |FIX| logging
 - |FIX| `format_auto_float` edge case
 - |FIX| `DualFormatter` tuning
@@ -92,7 +94,7 @@ v2.75-dev
 - |MAINTAIN| upload to coveralls debug mode !@#$
 - |NEW|  `IRenderable.raw()` method
 - |NEW|  `Text.split_by_spaces()`, `Composite`
-- |NEW| "frozen" `Style` attribute
+- |NEW| "frozen" :class:`.Style` attribute
 - |NEW| 'skylight-blue' named color
 - |NEW| +3 base sequence classes, +26 preset sequences
 - |NEW| `__str__` methods override for named tuples `RGB`, `HSV`
@@ -102,7 +104,7 @@ v2.75-dev
 - |NEW| `force_ansi_rendering`, `force_no_ansi_rendering`
 - |NEW| `LAB`, `XYZ` named tuples + conversions
 - |NEW| `StringReplacerChain` filter
-- |NEW| `Style`, ``SgrRenderer` and `TmuxRenderer` support of all the above
+- |NEW| :class:`.Style`, `SgrRenderer` and `TmuxRenderer` support of all the above
 - |NEW| `TemplateEngine` comment support
 - |NEW| `Tracers` auto-width mode
 - |NEW| `utilmisc` color transform methods overloaded
@@ -121,7 +123,7 @@ v2.75-dev
 - |REWORK| `util*` -> `numfmt`, `filter`, `conv`
 - |REWORK| doc pages tree
 - |TESTS| 83% coverage
-- |TESTS| `Style`/`IColor` reprs
+- |TESTS| :class:`.Style`/`IColor` reprs
 - |TESTS| coverage 87%
 - |TESTS| moar
 - |UPDATE| Update coverage.yml
@@ -287,7 +289,7 @@ v2.0-dev
 
 - |REWORK| Complete library rewrite.
 - |DOCS| ``sphinx`` and ``readthedocs`` integraton.
-- |NEW| High-level abstractions `Color`, `Renderer <SgrRenderer>` and `Style`.
+- |NEW| High-level abstractions `Color`, `Renderer <SgrRenderer>` and :class:`.Style`.
 - |TESTS| ``pytest`` and ``coverage`` integration.
 - |TESTS| Unit tests for formatters and new modules.
 

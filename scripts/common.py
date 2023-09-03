@@ -5,6 +5,7 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
+import sys
 import time
 from abc import abstractmethod, ABCMeta
 from os.path import join, abspath, dirname
@@ -12,17 +13,16 @@ from typing import TextIO
 
 import pytermor as pt
 from pytermor import Fragment, SimpleTable, Text
-from pytermor.dev.ioproxy import get_stdout
 
 PROJECT_ROOT = abspath(join(dirname(__file__), ".."))
 CONFIG_PATH = join(PROJECT_ROOT, "config")
 
 
 def warning(string: str | pt.IRenderable):
-    get_stdout().echo_rendered(pt.Fragment("[WARN] ", pt.Styles.WARNING_LABEL) + pt.Text(string, pt.Styles.WARNING))
+    get_stdout().write(pt.render(pt.Fragment("[WARN] ", pt.Styles.WARNING_LABEL) + pt.Text(string, pt.Styles.WARNING)))
 
 def error(string: str | pt.IRenderable):
-    get_stdout().echo_rendered(pt.Fragment("[ERROR] ", pt.Styles.ERROR) + string)
+    get_stdout().write(pt.render(pt.Fragment("[ERROR] ", pt.Styles.ERROR) + string))
     exit(1)
 
 
@@ -32,9 +32,9 @@ class TaskRunner(metaclass=ABCMeta):
         self._run_callback(self._run(*args, **kwargs))
         elapsed_sec = (time.time_ns() - ts_before) / 1e9
         if elapsed_sec > 1:
-            get_stdout().echo(f"Execution time: {pt.format_time_delta(elapsed_sec)}")
+            get_stdout().write(f"Execution time: {pt.format_time_delta(elapsed_sec)}")
         else:
-            get_stdout().echo(f"Execution time: {pt.format_si(elapsed_sec, 's')}")
+            get_stdout().write(f"Execution time: {pt.format_si(elapsed_sec, 's')}")
 
     @abstractmethod
     def _run(self, *args, **kwargs):
@@ -52,4 +52,8 @@ class TaskRunner(metaclass=ABCMeta):
     def __print_file_result(self, f: TextIO, filepath: str, act: str, arr: str, sizecolor: str):
         size = pt.format_si(f.tell(), unit="b", auto_color=False)
         size = Text(size, sizecolor, width=8)
-        get_stdout().echo_rendered(SimpleTable(width=100).pass_row(f"{act:<5s}", size, arr, Fragment(filepath, "blue")))
+        get_stdout().write(pt.render(SimpleTable(width=100).pass_row(f"{act:<5s}", size, arr, Fragment(filepath, "blue"))))
+
+
+def get_stdout():
+    return sys.stdout

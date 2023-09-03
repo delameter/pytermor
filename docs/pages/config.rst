@@ -21,42 +21,54 @@ The library initializes it's own config class just after being imported
 Variables
 =================
 
-.. glossary::
 
-   Config.renderer_class
-     Explicitly set default renderer class (e.g. ``TmuxRenderer``). Default renderer
-     class is used for rendering if there is no explicitly specified one.
-     Corresponding environment variable is :env:`PYTERMOR_RENDERER_CLASS`.
-     See also: `guide.renderer_priority`.
+.. _config.renderer_class:
 
-   Config.force_output_mode                                                    
-      is a standard for in-band signaling to control cursor location, color,
-      font styling, and other options on video text terminals and terminal
-      emulators. Certain sequences of bytes, most starting with an ASCII escape
-      character and a bracket character, are embedded into text. The terminal
-      interprets these sequences as commands, rather than text to display
-      verbatim. Corresponding environment variable is :env:`PYTERMOR_FORCE_OUTPUT_MODE`.
+Config.renderer_class
+ Explicitly set default renderer class (e.g. ``TmuxRenderer``). Default renderer
+ class is used for rendering if there is no explicitly specified one.
+ Corresponding environment variable is :env:`PYTERMOR_RENDERER_CLASS`.
+ See also: `guide.renderer_priority`.
 
-   Config.default_output_mode                                                  
-      is a standard for in-band signaling to control cursor location, color,
-      font styling, and other options on video text terminals and terminal
-      emulators. Certain sequences of bytes, most starting with an ASCII escape
-      character and a bracket character, are embedded into text. The terminal
-      interprets these sequences as commands, rather than text to display
-      verbatim. Corresponding environment variable is :env:`PYTERMOR_DEFAULT_OUTPUT_MODE`.
+.. _config.force_output_mode:
 
-   Config.prefer_rgb                                                           
-      is a standard for in-band signaling to control cursor location, color,
-      font styling, and other options on video text terminals and terminal
-      emulators. Certain sequences of bytes, most starting with an ASCII escape
-      character and a bracket character, are embedded into text. The terminal
-      interprets these sequences as commands, rather than text to display
-      verbatim. Corresponding environment variable is :env:`PYTERMOR_PREFER_RGB`.
+Config.force_output_mode
+  is a standard for in-band signaling to control cursor location, color,
+  font styling, and other options on video text terminals and terminal
+  emulators. Certain sequences of bytes, most starting with an ASCII escape
+  character and a bracket character, are embedded into text. The terminal
+  interprets these sequences as commands, rather than text to display
+  verbatim. Corresponding environment variable is
+  :env:`PYTERMOR_FORCE_OUTPUT_MODE`.
 
-   Config.trace_renders                                                        
-      is a standard for in-band signaling to control cursor location, color,
-      font styling, and other options on video text terminals and terminal
-      emulators. Certain sequences of bytes, most starting with an ASCII escape
-      character and a bracket character, are embedded into text. The terminal
-      interprets these sequences as commands, rather than text to display
-      verbatim. yare-yare-daze Corresponding environment variable is :env:`PYTERMOR_TRACE_RENDERS`.
+.. _config.default_output_mode:
+
+Config.default_output_mode
+  is a standard for in-band signaling to control cursor location, color,
+  font styling, and other options on video text terminals and terminal
+  emulators. Certain sequences of bytes, most starting with an ASCII escape
+  character and a bracket character, are embedded into text. The terminal
+  interprets these sequences as commands, rather than text to display
+  verbatim. Corresponding environment variable is
+  :env:`PYTERMOR_DEFAULT_OUTPUT_MODE`.
+
+.. _config.prefer_rgb:
+
+Config.prefer_rgb
+  is a standard for in-band signaling to control cursor location, color,
+  font styling, and other options on video text terminals and terminal
+  emulators. Certain sequences of bytes, most starting with an ASCII escape
+  character and a bracket character, are embedded into text. The terminal
+  interprets these sequences as commands, rather than text to display
+  verbatim. Corresponding environment variable is :env:`PYTERMOR_PREFER_RGB`.
+
+.. _config.trace_renders:
+
+Config.trace_renders
+  is a standard for in-band signaling to control cursor location, color,
+  font styling, and other options on video text terminals and terminal
+  emulators. Certain sequences of bytes, most starting with an ASCII escape
+  character and a bracket character, are embedded into text. The terminal
+  interprets these sequences as commands, rather than text to display
+  verbatim. yare-yare-daze Corresponding environment variable is
+  :env:`PYTERMOR_TRACE_RENDERS`.

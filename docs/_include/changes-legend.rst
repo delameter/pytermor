@@ -13,4 +13,6 @@ Legend
 - |REFACTOR| refactoring
 - |REWORK| new major version
 - |TESTS| improvements to tests
+- |CI/CD| automated build improvements
+- |REMOVE| deleting the excessive
 - |[]|  unclassified

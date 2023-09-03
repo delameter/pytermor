@@ -31,6 +31,7 @@
 
    .. autosummary::
    
+      FrozenStyle
       MergeMode
       Style
       Styles

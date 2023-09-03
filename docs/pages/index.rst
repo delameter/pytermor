@@ -1,3 +1,4 @@
+
 .. _index:
 
 .. title:: pytermor
@@ -6,11 +7,21 @@
 pytermor
 #####################
 
-:comment:`(yet another)` Python library initially designed for formatting terminal output using ANSI escape codes.
+:comment:`(yet another)` Python library initially designed for formatting
+terminal output using ANSI escape codes.
 
-Provides `high-level <guide.high-level>` methods for working with text sections, colors, formats, alignment and wrapping, as well as `low-level <guide.low-level>` `ansi` module which allows operating with :term:`SGR (Select Graphic Rendition)` `SGR` and also implements automatic "soft" format termination. Depending on the context and technical requirements either approach can be used. Also includes a set of additional number/string/date formatters for pretty output.
+Provides `high-level <guide-hi>` methods for working with text sections, colors,
+formats, alignment and wrapping, as well as `low-level <guide-lo>` modules which
+allow to operate with :term:`ANSI` sequences directly and also implement
+automatic format termination. Depending on the context and technical
+requirements either approach can be used. Also includes a set of additional
+number/string/time formatters for pretty output, filters, templating engine,
+escape sequence parser and provides support for several color spaces, which is
+also used for fluent color approximation if terminal capabilities do not
+allow to work in True Color mode. See `features` page for the details.
 
-Key feature of this library is extendability and a variety of formatters (called `renderers<guide.renderers>`), which determine the output syntax:
+Key feature of the library is extendability and a variety of formatters (called
+`renderers<guide.renderers>`), which determine the output syntax:
 
 - `SgrRenderer` (global default)
 - `TmuxRenderer`
@@ -18,7 +29,8 @@ Key feature of this library is extendability and a variety of formatters (called
 - `SgrDebugger` (mostly for development)
 - etc.
 
-No dependencies required, only Python Standard Library :comment:`(there are some for testing and docs building, though).`
+No dependencies required, only Python Standard Library :comment:`(although there
+are some for testing and docs building).`
 
 
 .. only:: html
@@ -29,7 +41,7 @@ No dependencies required, only Python Standard Library :comment:`(there are some
 
       .. grid-item-card::
 
-         :ref:`guide.install`
+         :ref:`install`
 
          *installation, in-depth review*
 
@@ -64,28 +76,19 @@ No dependencies required, only Python Standard Library :comment:`(there are some
          *all functions, classes, terms*
 
 
-.. todo ::
-
-   This is how you **should** format examples:
-
-.. figure:: /_static/ex_ex.png
-
-   https://chrisyeh96.github.io/2020/03/28/terminal-colors.html#color-schemes
-
-
-
 .. toctree::
+   :caption: Introduction
 
    install
    features
    structure
-   guide1
-   guide2
 
 .. toctree::
    :caption: Documentation
    :maxdepth: 2
 
+   guide-hi
+   guide-lo
    apidoc
    config
    cli

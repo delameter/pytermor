@@ -10,7 +10,6 @@
 from __future__ import annotations
 
 import re
-import sys
 import typing as t
 import unicodedata
 from os.path import join
@@ -20,10 +19,6 @@ import yaml
 import pytermor as pt
 from common import CONFIG_PATH, error
 from pytermor import ConflictError
-from pytermor.dev.decorators import _with_progress_bar, _with_terminal_state
-from pytermor.dev.ioproxy import init_io, get_stdout
-from pytermor.dev.progressbar import ProgressBar
-from pytermor.dev.tstatectl import TerminalStateController, TerminalInputMode
 from scripts.common import warning
 
 
@@ -45,16 +40,17 @@ class RgbPreprocessor():
         self._colors: t.Dict[str, t.Dict] = {}
         self._variations: t.Dict[str, t.Dict[str, t.Dict]] = {}
 
-    @_with_terminal_state
-    @_with_progress_bar(task_label="Processing")
-    def run(self, *, pbar: ProgressBar, tstatectl: TerminalStateController) -> t.List[t.Dict]:
+    # @_with_terminal_state
+    # @_with_progress_bar(task_label="Processing")
+    # def run(self, *, pbar: ProgressBar, tstatectl: TerminalStateController) -> t.List[t.Dict]:
+    def run(self) -> t.List[t.Dict]:
         conflicts = 0
-        self._pbar = pbar
+        # self._pbar = pbar
 
-        self._pbar.init_steps(len(self._color_defs))
+        # self._pbar.init_steps(len(self._color_defs))
         for color_def in self._color_defs:
-            self._pbar.next_step(color_def.get('name'))
-            self._pbar.render()
+            # self._pbar.next_step(color_def.get('name'))
+            # self._pbar.render()
 
             try:
                 self._process_color_def(color_def)
@@ -69,13 +65,13 @@ class RgbPreprocessor():
                     f" #{color_def.get('value'):06x} for ",
                     (color_name, "bold"),
                 )
-                get_stdout().echo_rendered(msg)
+                # get_stdout().echo_rendered(msg)
                 conflicts += 1
                 continue
         config = self._assemble_config()
         self._dump_config(config)
 
-        self._pbar.close()
+        # self._pbar.close()
 
         if conflicts > 0:
             warning(f"Color conflicts: " + str(conflicts))
@@ -183,12 +179,12 @@ class RgbPreprocessor():
                 encoding="utf8",
                 Dumper=IndentedDumper,
             )
-            get_stdout().echo(output_path)
+            # get_stdout().echo(output_path)
 
 
 if __name__ == "__main__":
     try:
-        init_io()
+        # init_io()
         processor = RgbPreprocessor()
         processor.run()
     except Exception as e:

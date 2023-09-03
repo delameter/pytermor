@@ -59,6 +59,12 @@
 .. role:: badge-rework
     :class: hidden badge badge-rework
 
+.. role:: badge-ci-cd
+    :class: hidden badge badge-ci-cd
+
+.. role:: badge-remove
+    :class: hidden badge badge-remove
+
 .. |[]| replace:: :badge:`\ `
 .. |NEW| replace:: :badge-new:`[NEW]`
 .. |UPDATE| replace:: :badge-new:`[UPDATE]`
@@ -67,6 +73,8 @@
 .. |TESTS| replace:: :badge-test:`[TESTS]`
 .. |REFACTOR| replace:: :badge-refactor:`[REFACTOR]`
 .. |REWORK| replace:: :badge-rework:`[REWORK]`
+.. |REMOVE| replace:: :badge-remove:`[REMOVE]`
+.. |CI/CD| replace:: :badge-ci-cd:`[CI/CD]`
 .. |MAINTAIN| replace:: :badge:`\ `
 
 .. .. end

@@ -12,6 +12,8 @@
       CDT
       FT
       RT
+      filterf
+      filtern
    
    
 
@@ -25,6 +27,8 @@
       char_range
       chunk
       cut
+      filterfv
+      filternv
       fit
       flatten
       flatten1

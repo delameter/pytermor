@@ -41,7 +41,7 @@ def format_test_rt_params(val) -> str | None:
     return None
 
 
-@pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
+@pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
 class TestText:
     def test_style_applying_works(self):
         assert Tx("123", St(fg="red")).render() == "\x1b[31m" "123" "\x1b[39m"
@@ -117,7 +117,7 @@ class TestText:
         text.render()
 
 
-@pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
+@pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
 class TestComposite:
     def test_style_applying_works(self):
         assert (
@@ -390,7 +390,7 @@ class TestAdding:
         assert item1 + item2
 
 
-@pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
+@pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
 class TestFragmentFormatting:
     def setup_method(self) -> None:
         self.fragment = Fg("123456789")
@@ -445,7 +445,7 @@ class TestFragmentFormatting:
         assert frag.raw() == expected
 
 
-@pytest.mark.setup(force_output_mode=OutputMode.XTERM_16)
+@pytest.mark.config(force_output_mode=OutputMode.XTERM_16)
 class TestTextFormatting:
     @classmethod
     def setup_class(cls) -> None:
@@ -556,7 +556,7 @@ class TestTextFormatting:
         assert pt.render(text, renderer=self.renderer_no_sgr) == expected_no_sgr
 
 
-@pytest.mark.setup(force_output_mode=OutputMode.TRUE_COLOR)
+@pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
 class TestSimpleTable:
     def setup_method(self) -> None:
         self.style = St(fg="yellow")
@@ -603,7 +603,7 @@ class TestEchoRender:
         ("\x1b[33m12345\x1b[39m", pt.Text("12345", pt.Styles.WARNING), NOOP_STYLE),
     ]
 
-    @pytest.mark.setup(force_output_mode="xterm_16")
+    @pytest.mark.config(force_output_mode="xterm_16")
     @pytest.mark.parametrize(
         "expected, input, st",
         [
@@ -619,7 +619,7 @@ class TestEchoRender:
     def test_render(self, expected: str | t.List[str], input: RT | t.List[RT], st: FT):
         assert pt.render(input, st) == expected
 
-    @pytest.mark.setup(force_output_mode="xterm_16")
+    @pytest.mark.config(force_output_mode="xterm_16")
     @pytest.mark.parametrize(
         "expected, input, st",
         [
@@ -643,7 +643,7 @@ class TestEchoRender:
 
 
 class TestWrap:
-    @pytest.mark.setup(force_output_mode="xterm_16")
+    @pytest.mark.config(force_output_mode="xterm_16")
     @pytest.mark.parametrize(
         "expected, input",
         [
@@ -809,7 +809,7 @@ class TestMisc:
             raises(ValueError, "1 2 3", 5, ("1", "2", "3"), {"pad_left": True}),
         ],
     )
-    @pytest.mark.setup(renderer_class=NoOpRenderer.__name__)
+    @pytest.mark.config(renderer_class=NoOpRenderer.__name__)
     def test_distribute_padded(self, expected: str, max_len: int, args, kwargs):
         result = pt.distribute_padded(max_len, *args, **kwargs)
         result_rendered = pt.render(result)

@@ -76,7 +76,7 @@ class TestStyle:
             (0xCCB7B4, XYZ(50, 50, 50)),
             (0xCF4B22, LAB(50, 50, 50)),
             pytest.param(None, [], marks=pytest.mark.xfail(raises=ArgTypeError)),
-            pytest.param(None, None, marks=pytest.mark.xfail(raises=LogicError)),
+            pytest.param(None, None, marks=pytest.mark.xfail(raises=AttributeError)),
         ],
         ids=format_test_params,
     )

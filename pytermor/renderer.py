@@ -4,7 +4,7 @@
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
 """
-Renderers transform `Style` instances into lower-level abstractions like
+Renderers transform :class:`.Style` instances into lower-level abstractions like
 :term:`SGR sequences <SGR>`, tmux-compatible directives, HTML markup etc.,
 depending on renderer type. Default global renderer type is `SgrRenderer`.
 """
@@ -19,7 +19,7 @@ from functools import reduce
 from hashlib import md5
 
 from .ansi import ColorTarget, NOOP_SEQ, SeqIndex, SequenceSGR, get_closing_seq
-from .color import Color16, Color256, ColorRGB, DEFAULT_COLOR, Color, NOOP_COLOR
+from .color import Color16, Color256, ColorRGB, DEFAULT_COLOR, Color, NOOP_COLOR, RenderColor
 from .common import ExtendedEnum, FT, get_qname
 from .config import get_config
 from .log import _trace_render, get_logger
@@ -186,14 +186,14 @@ class OutputMode(ExtendedEnum):
 
 class SgrRenderer(IRenderer):
     """
-    Default renderer invoked by `Text.render()`. Transforms ``IColor`` instances
-    defined in ``style`` into ANSI control sequence bytes and merges them with
-    input string. Type of resulting `SequenceSGR` depends on type of ``IColor``
-    instances in ``style`` argument and current output mode of the renderer.
+    Default renderer invoked by `Text.render()`. Transforms `Color` instances
+    defined in ``fmt`` into ANSI control sequence bytes and merges them with
+    input string. Type of resulting `SequenceSGR` depends on type of `Color`
+    instances in ``fmt`` argument and current output mode of the renderer.
 
     1. `ColorRGB` can be rendered as True Color sequence, 256-color sequence
        or 16-color sequence depending on specified `OutputMode` and
-       :term:`Config.prefer_rgb`.
+       `Config.prefer_rgb`.
     2. `Color256` can be rendered as 256-color sequence or 16-color
        sequence.
     3. `Color16` will be rendered as 16-color sequence.
@@ -223,8 +223,8 @@ class SgrRenderer(IRenderer):
 
     .. |ANY| replace:: :aux:`<any>`
 
-    .. |CV_FORCE| replace:: :term:`Config.force_output_mode`
-    .. |CV_DEFAULT| replace:: :term:`Config.default_output_mode`
+    .. |CV_FORCE| replace:: :ref:`Config.force_output_mode`
+    .. |CV_DEFAULT| replace:: :ref:`Config.default_output_mode`
 
     .. table:: Automatic output mode selection
 
@@ -263,7 +263,7 @@ class SgrRenderer(IRenderer):
     :param output_mode:
                can be set up explicitly, or kept at the default value
                `OutputMode.AUTO`; in the latter case the renderer will
-               select the appropriate mode by itself (see `renderers`_).
+               select the appropriate mode by itself (see `guide.output_mode_select`).
     :param io: specified in order to check if output device is a tty
                or not and can be omitted when output mode is set up
                explicitly.
@@ -398,8 +398,7 @@ class TmuxRenderer(IRenderer):
     """
     Translates `Styles <Style>` attributes into
     `tmux-compatible <https://man7.org/linux/man-pages/man1/tmux.1.html#STYLES>`_
-    markup. `tmux <https://github.com/tmux/tmux>`_ is a commonly used terminal
-    multiplexer.
+    markup. [#]_
 
     >>> TmuxRenderer().render('text',  Style(fg='blue', bold=True))
     '#[fg=blue bold]text#[fg=default nobold]'
@@ -408,6 +407,9 @@ class TmuxRenderer(IRenderer):
     :format allowed:   *True*, because tmux markup can be used without regard
                        to the type of output device and its capabilities -- all the
                        dirty work will be done by the multiplexer himself.
+
+    .. [#] `tmux <https://github.com/tmux/tmux>`_ is a commonly used terminal
+            multiplexer.
     """
 
     STYLE_ATTR_TO_TMUX_MAP = {
@@ -447,7 +449,7 @@ class TmuxRenderer(IRenderer):
             attr_val = getattr(style, attr_name)
             if attr_val is None:
                 continue
-            if isinstance(attr_val, Color):
+            if isinstance(attr_val, RenderColor):
                 if attr_val == NOOP_COLOR or attr_name not in ("fg", "bg"):
                     continue  # skipping underline_color
                 target = ColorTarget.BG if attr_name == "bg" else ColorTarget.FG
@@ -656,8 +658,8 @@ class SgrDebugger(SgrRenderer):
 
     def set_format_auto(self):
         """
-        Reset the force formatting flag and let the renderer decide by itself (see
-        `SgrRenderer` docs for the details).
+        Reset the force formatting flag and let the renderer decide by itself
+        (see `SgrRenderer` docs for the details).
         """
         self._format_override = None
 

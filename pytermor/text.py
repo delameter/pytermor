@@ -593,9 +593,6 @@ class SimpleTable(IRenderable):
         """
         Create
 
-        .. note ::
-            All arguments except ``*rows`` are *kwonly*-type args.
-
         :param rows:
         :param width: Table width, in characters. When omitted, equals to terminal size
                       if applicable, and to fallback value (80) otherwise.

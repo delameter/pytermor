@@ -127,7 +127,9 @@ addopts = [
 ]
 xfail_strict = true
 markers = [
-    "setup(**kwargs): override module config variables",
+    "config(**kwargs): override module config variables",
+    "dynamic_color(deferred: bool): set up example dynamic color",
+    "dynamic_style(**kwargs): update state of example dynamic color",
 ]
 
 # ---------------------------------------------------------

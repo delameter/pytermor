@@ -16,7 +16,7 @@ import typing as t
 from dataclasses import dataclass, field
 from typing import Any
 
-from .color import Color, NOOP_COLOR, resolve_color, IColorValue, ColorRGB
+from .color import Color, NOOP_COLOR, resolve_color, IColorValue, ColorRGB, RenderColor
 from .common import CDT, FT
 from .cval import cv
 from .exception import ArgTypeError, LogicError
@@ -33,7 +33,7 @@ class Style:
     """
     Create new text render descriptior.
 
-    Both ``fg`` and ``bg`` can be specified as existing ``IColor`` instance as well
+    Both ``fg`` and ``bg`` can be specified as existing ``Color`` instance as well
     as plain *str* or *int* (for the details see `resolve_color()`).
 
         >>> Style(fg='green', bold=True)
@@ -45,7 +45,7 @@ class Style:
 
     Attribute merging from ``fallback`` works this way:
 
-        - If constructor argument is *not* empty (*True*, *False*, ``IColor``
+        - If constructor argument is *not* empty (*True*, *False*, ``Color``
           etc.), keep it as attribute value.
         - If constructor argument is empty (*None*, ``NOOP_COLOR``), take the
           value from ``fallback``'s corresponding attribute.
@@ -54,7 +54,7 @@ class Style:
     differences into account. The method used in the constructor is the first one.
 
     .. important ::
-        Both empty (i.e., *None*) attributes of type ``IColor`` after initialization
+        Both empty (i.e., *None*) attributes of type ``Color`` after initialization
         will be replaced with special constant `NOOP_COLOR`, which behaves like
         there was no color defined, and at the same time makes it safer to work
         with nullable color-type variables. Merge methods are aware of this and
@@ -64,10 +64,6 @@ class Style:
         *None* and `NOOP_COLOR` are always treated as placeholders for fallback
         values, i.e., they can't be used as *resetters* -- that's what `DEFAULT_COLOR`
         is for.
-
-    .. note ::
-        All arguments except ``fallback``, ``fg``, ``bg`` and ``frozen`` are
-        *kwonly*-type args.
 
     :param fallback:    Copy empty attributes from speicifed fallback style.
                         See `merge_fallback()`.
@@ -99,38 +95,38 @@ class Style:
     @property
     def fg(self) -> Color:
         """
-        Foreground (i.e., text) color. Can be set as `CDT` or ``IColor``,
-        stored always as ``IColor``.
+        Foreground (i.e., text) color. Can be set as `CDT` or ``Color``,
+        stored always as ``Color``.
         """
         return self._fg
 
     @property
     def bg(self) -> Color:
         """
-        Background color. Can be set as `CDT` or ``IColor``, stored always
-        as ``IColor``.
+        Background color. Can be set as `CDT` or ``Color``, stored always
+        as ``Color``.
         """
         return self._bg
 
     @property
     def underline_color(self) -> Color:
         """
-        Underline color. Can be set as `CDT` or ``IColor``, stored always
-        as ``IColor``.
+        Underline color. Can be set as `CDT` or ``Color``, stored always
+        as ``Color``.
         """
         return self._underline_color
 
     @fg.setter
-    def fg(self, val: CDT | Color | None):
-        self._fg: Color = self._resolve_color(val)
+    def fg(self, val: CDT | RenderColor | None):
+        self._fg: RenderColor = self._resolve_color(val)
 
     @bg.setter
-    def bg(self, val: CDT | Color | None):
-        self._bg: Color = self._resolve_color(val)
+    def bg(self, val: CDT | RenderColor | None):
+        self._bg: RenderColor = self._resolve_color(val)
 
     @underline_color.setter
-    def underline_color(self, val: CDT | Color | None):
-        self._underline_color: Color = self._resolve_color(val)
+    def underline_color(self, val: CDT | RenderColor | None):
+        self._underline_color: RenderColor = self._resolve_color(val)
 
     bold: bool
     """ Bold or increased intensity (depending on terminal settings)."""
@@ -259,7 +255,7 @@ class Style:
         if fallback is not None:
             if not isinstance(fallback, Style):
                 suggestion = None
-                if isinstance(fallback, (int, str, Color)):  # pragma: no cover
+                if isinstance(fallback, (int, str, RenderColor)):  # pragma: no cover
                     suggestion = "To set a fg without fallback use Style(fg=<color>)"
                 raise ArgTypeError(fallback, "fallback", Style, suggestion=suggestion)
             self.merge_fallback(fallback)
@@ -450,10 +446,10 @@ class Style:
         if hasattr(self, "_frozen") and self._frozen:
             raise LogicError(f"{self.__class__.__qualname__} is immutable")
 
-    def _resolve_color(self, arg: CDT | IColorValue | None) -> Color | None:
+    def _resolve_color(self, arg: CDT | IColorValue | None) -> RenderColor | None:
         if arg is None:
             return NOOP_COLOR
-        if isinstance(arg, Color):
+        if isinstance(arg, RenderColor):
             return arg
         if isinstance(arg, IColorValue):
             return ColorRGB(arg.int)
@@ -492,7 +488,7 @@ class Style:
         props = []
         for attr_name in self.renderable_attributes:
             attr = getattr(self, attr_name)
-            if isinstance(attr, Color) and attr and attr_name == "underline_color":
+            if isinstance(attr, RenderColor) and attr and attr_name == "underline_color":
                 if len(colors):
                     colors.append(" ")
                 colors.append("U:" + attr.repr_attrs(verbose))
@@ -503,6 +499,12 @@ class Style:
                     prop = prop[:4]
                 props.append(prefix + prop)
         return " ".join(["".join(colors), *sorted(props)]).strip()
+
+
+class FrozenStyle(Style):
+    def __init__(self, *args, **kwargs):
+        kwargs.update(dict(frozen=True))
+        super().__init__(*args, **kwargs)
 
 
 class _NoOpStyle(Style):
@@ -578,14 +580,14 @@ def is_ft(arg) -> bool:
 
 def make_style(fmt: FT = None) -> Style:
     """
-    General `Style` constructor. Accepts a variety of argument types:
+    General :class:`.Style` constructor. Accepts a variety of argument types:
 
         - `CDT` (*str* or *int*)
-            This argument type implies the creation of basic `Style` with
-            the only attribute set being `fg` (i.e., text color). For the
+            This argument type implies the creation of basic :class:`.Style`
+            with the only attribute set being `fg` (i.e., text color). For the
             details on color resolving see `resolve_color()`.
 
-        - `Style`
+        - :class:`.Style`
             Existing style instance. Return it as is.
 
         - *None*
@@ -612,7 +614,7 @@ def merge_styles(
     overwrites: t.Iterable[Style] = (),
 ) -> Style:
     """
-    Bulk style merging method. First merge `fallbacks` `styles <Style>` with the
+    Bulk style merging method. First merge `fallbacks` `styles <.Style>` with the
     ``origin`` in the same order they are iterated, using `merge_fallback()` algorithm;
     then do the same for `overwrites` styles, but using `merge_overwrite()` merge
     method.

@@ -7,9 +7,13 @@
 Abstractions for color definitions in three primary modes: 4-bit, 8-bit and
 24-bit (``xterm-16``, ``xterm-256`` and ``True Color/RGB``, respectively).
 Provides a global registry for color searching by names and codes, as well as
-approximation algorithms, which are used for output devices with limited advanced
-color modes support. Renderers do that automatically and transparently for the
-developer, but the manual control over this process is also an option.
+approximation algorithms, which are used for output devices with limited
+advanced color modes support. Renderers do that automatically and transparently
+for the developer, but the manual control over this process is also an option.
+
+Supports 4 different color spaces: `RGB`, `HSV`, `XYZ` and `LAB`, and also
+provides methods to covert colors from any space to any other.
+
 """
 from __future__ import annotations
 
@@ -30,16 +34,14 @@ from .config import get_config
 from .exception import ColorCodeConflictError, ColorNameConflictError, LogicError
 from .term import make_color_256, make_color_rgb
 
-_CIE_E: float = 216.0 / 24389.0  # 0.008856451679035631  # see http://brucelindbloom.com/
+_T = t.TypeVar("_T", bound=object)
+ExtractorT = t.Union[str, t.Callable[[_T], "Color"], None]
 
-_REF_X: float = 95.047  # Observer= 2°, Illuminant= D65
-_REF_Y: float = 100.000
-_REF_Z: float = 108.883
-
-
-_CT = t.TypeVar("_CT", bound="Color")
+_RCT = t.TypeVar("_RCT", bound="ResolvableColor")
 _CVT = t.TypeVar("_CVT", bound="IColorValue")
 _VT = TypeVar("_VT", int, float)
+
+Color = TypeVar("Color", "Color16", "Color256", "ColorRGB")
 
 
 class _ConstrainedValue(t.Generic[_VT]):
@@ -76,7 +78,7 @@ class IColorValue(metaclass=ABCMeta):
         ...
 
     def __int__(self) -> int:
-        return self.int 
+        return self.int
 
     def __eq__(self, other) -> bool:
         try:
@@ -88,54 +90,50 @@ class IColorValue(metaclass=ABCMeta):
     @abstractmethod
     def int(self) -> int:
         """
-        Get color value in RGB space as 24-bit integer within [0; :hex:`0xFFFFFF] range.
-
-        .. note ::
-
-            First access of this property require additional computation for all color
-            values except RGB (which will be done automatically in the background).
-
-        >>> RGB.from_channels(0, 128, 0).int
-        32768
-        >>> hex(HSV(270, 2/3, 0.75).int)
-        '0x8040c0'
-
+        Color value in RGB space (24-bit integer within
+        [0; :hex:`0xFFFFFF`] range)
         """
+        # >>> RGB.from_channels(0, 128, 0).int
+        # 32768
+        # >>> hex(HSV(270, 2/3, 0.75).int)
+        # '0x8040c0'
 
     @property
     @abstractmethod
     def rgb(self) -> RGB:
-        """
-        Return value which can be iterated like a tuple of three integers
-        corresponding to **red**, **blue** and **green** channel value
-        respectively. Values are within [0; 255] range.
-
-        >>> RGB(0x80ff80).red
-        128
-        >>> [*RGB(0x80ff00)]
-        [128, 255, 0]
-
-        """
+        """Color value in RGB space (3 × 8-bit ints)"""
+        # >>> RGB(0x80ff80).red
+        # 128
+        # >>> [*RGB(0x80ff00)]
+        # [128, 255, 0]
 
     @property
     @abstractmethod
     def hsv(self) -> HSV:
-        ...
+        """Color value in HSV space (three floats)"""
 
     @property
     @abstractmethod
     def xyz(self) -> XYZ:
-        ...
+        """Color value in XYZ space (three floats)"""
 
     @property
     @abstractmethod
     def lab(self) -> LAB:
-        ...
+        """Color value in LAB space (three floats)"""
+
+
+_CIE_E: float = 216.0 / 24389.0  # 0.008856451679035631  # see http://brucelindbloom.com/
+
+_REF_X: float = 95.047  # Observer= 2°, Illuminant= D65
+_REF_Y: float = 100.000
+_REF_Z: float = 108.883
 
 
 class RGB(IColorValue):
     """
-    RGB
+    Color value stored internally as an 24-bit integer.
+    Base for more complex color classes.
     """
 
     @classmethod
@@ -149,13 +147,24 @@ class RGB(IColorValue):
             c2 = getattr(c2, "rgb")
         r1, g1, b1 = c1
         r2, g2, b2 = c2
-        dr = (r2 - r1) 
-        dg = (g2 - g1) 
-        db = (b2 - b1) 
+        dr = r2 - r1
+        dg = g2 - g1
+        db = b2 - b1
         return sqrt(dr**2 + dg**2 + db**2)
 
     @classmethod
     def from_channels(cls, red: int, green: int, blue: int) -> RGB:
+        """
+
+        :param red:
+        :type red:
+        :param green:
+        :type green:
+        :param blue:
+        :type blue:
+        :return:
+        :rtype:
+        """
         chans = (red, green, blue)
         return RGB(sum(int(ch) << 8 * (2 - idx) for (idx, ch) in enumerate(chans)))
 
@@ -190,17 +199,17 @@ class RGB(IColorValue):
 
     @cached_property
     def red(self) -> int:
-        """Red channel value (0—255)"""
+        """Red channel value [0;255]"""
         return (self._int.value & 0xFF0000) >> 16
 
     @cached_property
     def green(self) -> int:
-        """Blue channel value (0—255)"""
+        """Green channel value [0;255]"""
         return (self._int.value & 0xFF00) >> 8
 
     @cached_property
     def blue(self) -> int:
-        """Green channel value (0—255)"""
+        """Blue channel value [0;255]"""
         return self._int.value & 0xFF
 
     @cached_property
@@ -213,16 +222,6 @@ class RGB(IColorValue):
 
     @cached_property
     def hsv(self) -> HSV:
-        """
-        Transforms RGB value in a three-integers form ([0; 255], [0; 255], [0; 255]) to an
-        HSV in three-floats form such as (0 <= h < 360, 0 <= s <= 1, and 0 <= v <= 1).
-
-        .. todo :: fix
-
-            >>> RGB.from_channels(0, 0, 255).hsv
-            <HSV[H=240° S=100% V=100%]>
-
-        """
         # https://en.wikipedia.org/wiki/HSL_and_HSV#From_RGB
         r, g, b = self
 
@@ -274,6 +273,14 @@ class RGB(IColorValue):
 
 
 class HSV(IColorValue):
+    """
+    Initially HSV is a transformation of RGB color space; color is stored as 3
+    floats representing Hue channel, Saturation channel and Value channel
+    correspondingly. Supports direct (fast) transformation to RGB and indirect
+    (=slow) to all other spaces through using more than one conversion with
+    HSV → RGB being the first one.
+    """
+
     @classmethod
     def diff(cls, c1: HSV, c2: HSV) -> float:
         """
@@ -287,10 +294,10 @@ class HSV(IColorValue):
         h1, s1, v1 = c1
         h2, s2, v2 = c2
         dh = min(abs(h2 - h1), 360 - abs(h2 - h1)) / 180.0
-        ds = (s2 - s1)
-        dv = (v2 - v1)
+        ds = s2 - s1
+        dv = v2 - v1
 
-        return float(sqrt(dh**2 + ds**2 + dv**2 ))
+        return float(sqrt(dh**2 + ds**2 + dv**2))
 
     def __init__(self, hue: float, saturation: float, value: float):
         self._hue = _ConstrainedValue[float](hue, max_val=360.0)
@@ -312,43 +319,29 @@ class HSV(IColorValue):
 
     @property
     def hue(self) -> float:
-        """Hue channel value (0—360)"""
+        """Hue channel value [0;360]"""
         return self._hue.value
 
     @property
     def saturation(self) -> float:
-        """Saturation channel value (0.0—1.0)"""
+        """Saturation channel value [0;1]"""
         return self._saturation.value
 
     @property
     def value(self) -> float:
-        """Value channel value (0.0—1.0)"""
+        """Value channel value [0;1]"""
         return self._value.value
 
     @cached_property
     def int(self) -> int:
-        """
-        Color value in RGB space as 24-bit integer.
-
-            >>> hex(HSV(270, 2/3, 0.75).int)
-            '0x8040c0'
-
-        :return:
-        :rtype:
-        """
         return self.rgb.int
 
     @cached_property
     def rgb(self) -> RGB:
-        """
-        Color value in RGB space as iterable ([0; 255], [0; 255], [0; 255]).
-
-            >>> HSV(270, 2/3, 0.75).rgb
-            RGB[#8040C0][R=128 G=64 B=192]
-            >>> HSV(hue=120, saturation=0.5, value=0.77).rgb
-            RGB[#63C563][R=99 G=197 B=99]
-
-        """
+        # >>> HSV(270, 2/3, 0.75).rgb
+        # RGB[#8040C0][R=128 G=64 B=192]
+        # >>> HSV(hue=120, saturation=0.5, value=0.77).rgb
+        # RGB[#63C563][R=99 G=197 B=99]
         h, s, v = self
 
         h = 0.0 if h == 360.0 else h / 60.0
@@ -389,6 +382,21 @@ class HSV(IColorValue):
 
 
 class XYZ(IColorValue):
+    """
+    Color in XYZ space is represented by three floats: Y is the luminance, Z is
+    quasi-equal to blue (of CIE RGB), and X is a mix of the three CIE RGB curves
+    chosen to be nonnegative. CIE 1931 XYZ color space was one of the first
+    attempts to produce a color space based on measurements of human color
+    perception. Setting Y as luminance has the useful result that for any given
+    Y value, the XZ plane will contain all possible chromaticities at that
+    luminance.
+
+    .. note ::
+
+        `x` and `z` values can be above 100.
+
+    """
+
     @classmethod
     def diff(cls, c1: LAB, c2: LAB) -> float:
         raise NotImplementedError
@@ -413,17 +421,17 @@ class XYZ(IColorValue):
 
     @property
     def x(self) -> float:
-        """X channel value (0—100+)"""
+        """X channel value [0;100)"""
         return self._x.value
 
     @property
     def y(self) -> float:
-        """Luminance (0—100)"""
+        """Luminance [0;100]"""
         return self._y.value
 
     @property
     def z(self) -> float:
-        """Quasi-equal to blue (0—100+)"""
+        """Quasi-equal to blue [0;100)"""
         return self._z.value
 
     @cached_property
@@ -478,6 +486,15 @@ class XYZ(IColorValue):
 
 
 class LAB(IColorValue):
+    """
+    Color value in a *uniform* color space, CIELAB, which expresses color as
+    three values: L* for perceptual lightness and a* and b* for the four unique
+    colors of human vision: red, green, blue and yellow. CIELAB was intended as
+    a perceptually uniform space, where a given numerical change corresponds to
+    a similar perceived change in color. Like the CIEXYZ space it derives from,
+    CIELAB color space is a device-independent, "standard observer" model.
+    """
+
     @classmethod
     def diff(cls, c1: LAB, c2: LAB) -> float:
         """
@@ -516,17 +533,17 @@ class LAB(IColorValue):
 
     @property
     def lum(self) -> float:
-        """Luminance (0—100)"""
+        """Luminance [0;100]"""
         return self._lum.value
 
     @property
     def a(self) -> float:
-        """Green–magenta axis (-100—100 in general, but can be less/more)"""
+        """Green–magenta axis, [-100;100] in general, but can be less/more"""
         return self._a.value
 
     @property
     def b(self) -> float:
-        """Blue–yellow axis (-100—100 in general, but can be less/more)"""
+        """Blue–yellow axis, [-100;100] in general, but can be less/more"""
         return self._b.value
 
     @cached_property
@@ -571,17 +588,112 @@ class LAB(IColorValue):
 # ---------------------------------------------------------------------------------------
 
 
-class _ColorRegistry(t.Generic[_CT], t.Sized, t.Iterable):
+class RenderColor:
+    """
+    Abstract superclass for other ``Colors``. Provides interfaces for
+    transforming RGB values to SGRs for different terminal modes.
+    """
+
+    @abstractmethod
+    def to_sgr(
+        self, target: ColorTarget = ColorTarget.FG, upper_bound: t.Type[Color] = None
+    ) -> SequenceSGR:
+        """
+        Make an `SGR sequence<SequenceSGR>` out of ``Color``. Used by `SgrRenderer`.
+
+        :param target:      Sequence context (FG, BG, UNDERLINE).
+        :param upper_bound: Required result ``Color`` type upper boundary, i.e., the
+                            maximum acceptable color class, which will be the basis for
+                            SGR being made. See `Color256.to_sgr()` for the details.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
+        """
+        Make a tmux markup directive, which will change the output color to
+        this color's value (after tmux processes and prints it). Used by `TmuxRenderer`.
+
+        :param target:      Sequence context (FG, BG, UNDERLINE).
+        """
+        raise NotImplementedError
+
+    def __repr__(self) -> str:
+        return f"<{get_qname(self)}[{self.repr_attrs()}]>"
+
+    @abstractmethod
+    def repr_attrs(self, verbose: bool = True) -> str:
+        raise NotImplementedError
+
+
+class RealColor(IColorValue):
+    def __init__(self, value: IColorValue | int | None):
+        if isinstance(value, IColorValue):
+            self.__value: RGB = value.rgb
+        elif isinstance(value, int):
+            self.__value: RGB = RGB(value)
+        else:
+            pass  # dynamic via _value() property override
+
+    def __hash__(self) -> int:
+        return hash(self.int)
+
+    @property
+    def _value(self) -> RGB:
+        return self.__value
+
+    def format_value(self, prefix: str = "0x") -> str:
+        """Format color value as ":hex:`0xRRGGBB`"."""
+        return f"{prefix:s}{self.int:06x}"
+
+    @property
+    def int(self) -> int:
+        return self._value.int
+
+    @property
+    def rgb(self) -> RGB:
+        return self._value.rgb
+
+    @property
+    def hsv(self) -> HSV:
+        return self._value.hsv
+
+    @property
+    def xyz(self) -> XYZ:
+        return self._value.xyz
+
+    @property
+    def lab(self) -> LAB:
+        return self._value.lab
+
+
+# ---------------------------------------------------------------------------------------
+
+
+class _ResolvableColorMeta(ABCMeta):
+    def __new__(mcls, name, bases, namespace, **kwargs):
+        cls = super().__new__(mcls, name, bases, namespace, **kwargs)
+
+        cls._registry = _ColorRegistry[cls]()
+        cls._index = _ColorIndex[cls]()
+        cls._approx_cache = dict()
+        return cls
+
+    def __iter__(self) -> t.Iterator[_RCT]:
+        return iter(self._registry)
+
+
+class _ColorRegistry(t.Generic[_RCT], t.Sized, t.Iterable):
     # Colors hashed by name parts
 
     _TOKEN_SEPARATOR = "-"
     _QUERY_SPLIT_REGEX = re.compile(r"[\W_]+|(?<=[a-z])(?=[A-Z0-9])")
 
     def __init__(self):
-        self._map: t.Dict[t.Tuple[str], _CT] = {}
-        self._set: t.Set[_CT] = set()
+        self._map: t.Dict[t.Tuple[str], _RCT] = {}
+        self._set: t.Set[_RCT] = set()
 
-    def register(self, color: _CT, name: str):
+    def register(self, color: _RCT, name: str):
         primary_tokens = tuple(filter(None, self._QUERY_SPLIT_REGEX.split(name)))
         self._register_pair(color, primary_tokens)
 
@@ -594,7 +706,7 @@ class _ColorRegistry(t.Generic[_CT], t.Sized, t.Iterable):
             )
             self._register_pair(variation, variation_tokens)
 
-    def _register_pair(self, color: _CT, tokens: t.Tuple[str, ...]):
+    def _register_pair(self, color: _RCT, tokens: t.Tuple[str, ...]):
         self._set.add(color)
 
         if tokens not in self._map.keys():
@@ -606,7 +718,7 @@ class _ColorRegistry(t.Generic[_CT], t.Sized, t.Iterable):
             return  # skipping the duplicate with the same name and value
         raise ColorNameConflictError(tokens, existing_color, color)
 
-    def resolve(self, name: str) -> _CT:
+    def find_by_name(self, name: str) -> _RCT:
         query_tokens = (*(qt.lower() for qt in self._QUERY_SPLIT_REGEX.split(name)),)
         if color := self._map.get(query_tokens, None):
             return color
@@ -618,22 +730,22 @@ class _ColorRegistry(t.Generic[_CT], t.Sized, t.Iterable):
     def __bool__(self) -> bool:
         return len(self) > 0
 
-    def __iter__(self) -> t.Iterator[_CT]:
+    def __iter__(self) -> t.Iterator[_RCT]:
         return iter(self._set)
 
     def names(self) -> t.Iterable[t.Tuple[str]]:
         return self._map.keys()
 
 
-class _ColorIndex(t.Generic[_CT], t.Sized):
+class _ColorIndex(t.Generic[_RCT], t.Sized):
     # Colors indexed by CODE (not RGB value)
 
     def __init__(self):
-        self._map: t.Dict[int, _CT] = {}
+        self._map: t.Dict[int, _RCT] = {}
 
-    def add(self, color: _CT, code: int = None):
+    def add(self, color: _RCT, code: int|None):
         if code is None:
-            code = len(self._map)  # actually useless
+            code = len(self._map)
         if code not in self._map.keys():
             self._map[code] = color
             return
@@ -643,10 +755,10 @@ class _ColorIndex(t.Generic[_CT], t.Sized):
             return  # skipping the duplicate with the same code and value
         raise ColorCodeConflictError(code, existing_color, color)
 
-    def get(self, code: int) -> _CT:
+    def get(self, code: int) -> _RCT:
         if color := self._map.get(code, None):  # pragma: no cover
             return color
-        raise KeyError(f"Color #{code} does not exist")
+        raise LookupError(f"Color #{code} does not exist")
 
     def __len__(self) -> int:
         return len(self._map)
@@ -654,174 +766,47 @@ class _ColorIndex(t.Generic[_CT], t.Sized):
     def __bool__(self) -> bool:
         return len(self) > 0
 
-    def __iter__(self) -> t.Iterator[_CT]:
+    def __iter__(self) -> t.Iterator[_RCT]:
         return iter(self._map.values())
 
 
-@dataclasses.dataclass(frozen=True)
-class ApxResult(t.Generic[_CT]):
+class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
     """
-    Approximation result.
-    """
-
-    color: _CT
-    """ Found ``Color`` instance. """
-    distance: float
-    """ Color difference between this instance and the approximation target. """
-
-    @property
-    def distance_real(self) -> float:
-        """
-        Actual distance from instance to target:
-
-            :math:`distance_{real} = \\sqrt{distance}`
-        """
-        return math.sqrt(self.distance)
-
-    def __eq__(self, other: ApxResult) -> bool:  # pragma: no cover
-        if not isinstance(other, ApxResult):
-            return False
-        if not isinstance(other.color, type(self)):
-            return False
-        return self.color == other.color and self.distance == other.distance
-
-
-_ColorDiffFn = t.Callable[[IColorValue], Iterable[ApxResult["Color"]]]
-
-
-class _ColorMeta(ABCMeta):
-    def __new__(mcls, name, bases, namespace, **kwargs):
-        cls = super().__new__(mcls, name, bases, namespace, **kwargs)
-
-        cls._registry = _ColorRegistry[cls]()
-        cls._index = _ColorIndex[cls]()
-        cls._approx_cache = dict()
-        return cls
-
-    def __iter__(self) -> t.Iterator[_CT]:
-        return iter(self._registry)
-
-
-class Color(RGB, t.Generic[_CT], metaclass=_ColorMeta):
-    """
-    Abstract superclass for other ``Colors``. Provides methods for transforming
-    raw integer values to SGRs for different terminal modes as well as for
-    searching color by name and approximating arbitrary color to indexed palette.
+    Mixin for other ``Colors``. Implements color search by name.
     """
 
-    _registry: _ColorRegistry[_CT]
-    _index: _ColorIndex[_CT]
-    _approx_cache: t.Dict[int, _CT]
+    _registry: _ColorRegistry[_RCT]
+    _index: _ColorIndex[_RCT]
+    _approx_cache: t.Dict[int, _RCT]
     _color_diff_fn: t.ClassVar[_ColorDiffFn]
-
-    def __new__(cls: t.Type[Color], *args, **kwargs) -> Color:
-        cls._color_diff_fn = cls._calc_lab_cie76_delta_e
-        return super().__new__(cls)
-
-    def __init__(self, value: IColorValue | int, name: str = None):
-        super().__init__(int(value))
-        self._name: str | None = name
-        self._base: _CT | None = None
-
-    def _register(
-        self: _CT, code: int | None, register: bool, index: bool, aliases: t.List[str]
-    ):
-        if register:
-            self._register_names(aliases)
-        if index:
-            self._index.add(self, code)
-
-    def _register_names(self: _CT, aliases: t.List[str] = None):
-        if not self.name:
-            return
-        self._registry.register(self, self.name)
-
-        if not aliases:
-            return
-        for alias in aliases:
-            self._registry.register(self, alias)
-
-    def _make_variations(self: _CT, variation_map: t.Dict[int, str] = None):
-        if not variation_map:
-            return
-        for vari_value, vari_name in variation_map.items():
-            variation = type(self)(
-                value=vari_value, name=vari_name, register=False, index=True
-            )
-            variation._base = self
-            self._variations[vari_name] = variation
-
-    def __hash__(self) -> int:
-        return self.int + hash(self._name)
-
-    def format_value(self, prefix: str = "0x") -> str:
-        """
-        Format color value as ":hex:`0xRRGGBB`".
-
-        :param prefix: Can be customized.
-        """
-        return f"{prefix:s}{self.int:06x}"
-
-    @property
-    def name(self) -> str | None:
-        """Color name, e.g. "navy-blue"."""
-        return self._name
-
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}[{self.repr_attrs()}]>"
-
-    @abstractmethod
-    def repr_attrs(self, verbose: bool = True) -> str:
-        raise NotImplementedError
-
-    @abstractmethod
-    def to_sgr(
-        self, target: ColorTarget = ColorTarget.FG, upper_bound: t.Type[Color] = None
-    ) -> SequenceSGR:
-        """
-        Make an `SGR sequence<SequenceSGR>` out of ``IColor``. Used by `SgrRenderer`.
-
-        :param target:
-        :param upper_bound: Required result ``IColor`` type upper boundary, i.e., the
-                            maximum acceptable color class, which will be the basis for
-                            SGR being made. See `Color256.to_sgr()` for the details.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
-        """
-        Make a tmux markup directive, which will change the output color to
-        this color's value (after tmux processes and prints it). Used by `TmuxRenderer`.
-
-        :param target:
-        """
-        raise NotImplementedError
 
     @classmethod
     def names(cls) -> t.Iterable[t.Tuple[str]]:
+        """All registried colors' names of this type."""
         return cls._registry.names()
 
     @classmethod
-    def resolve(cls: t.Type[_CT], name: str) -> _CT:
+    def find_by_name(cls: t.Type[_RCT], name: str) -> _RCT:
         """
         Case-insensitive search through registry contents.
 
-        :see: `resolve_color()` for the details
-        :param name:  ``IColor`` name to search for.
+        .. seealso:: `resolve_color()` for the details
+
+        :param name:  Name to search for.
         """
         if not hasattr(cls, "_registry"):  # pragma: no cover
             raise LogicError(
                 "Registry is empty. Did you call an abstract class' method?"
             )
-        return cls._registry.resolve(name)
+        return cls._registry.find_by_name(name)
 
     @classmethod
-    def find_closest(cls: t.Type[_CT], value: IColorValue | int) -> _CT:
+    def find_closest(cls: type[_RCT], value: IColorValue | int) -> _RCT:
         """
-        Search and return nearest to ``value`` color instance.
+        Search and return color instance nearest to ``value``.
 
-        :see: `color.find_closest()` for the details
+        .. seealso:: `color.find_closest()` for the details
+
         :param value: Target color/color value.
         """
         if not hasattr(cls, "_index"):  # pragma: no cover
@@ -839,12 +824,15 @@ class Color(RGB, t.Generic[_CT], metaclass=_ColorMeta):
 
     @classmethod
     def approximate(
-        cls: t.Type[_CT], value: IColorValue | int, max_results: int = 1
-    ) -> t.List[ApxResult[_CT]]:
+        cls: type[_RCT],
+        value: IColorValue | int,
+        max_results: int = 1,
+    ) -> t.List[ApxResult[_RCT]]:
         """
         Search for the colors nearest to ``value`` and return the first ``max_results``.
 
-        :see: `color.approximate()` for the details
+        .. seealso:: `color.approximate()` for the details
+
         :param value:       Target color/color value.
         :param max_results: Result limit.
         """
@@ -857,7 +845,7 @@ class Color(RGB, t.Generic[_CT], metaclass=_ColorMeta):
         return cls._find_neighbours(value)[:max_results]
 
     @classmethod
-    def _find_neighbours(cls: t.Type[_CT], value: IColorValue) -> t.List[ApxResult[_CT]]:
+    def _find_neighbours(cls: type[_RCT], value: IColorValue) -> t.List[ApxResult[_RCT]]:
         """
         Iterate the registered colors table and compute CIE76 \u0394E\\* (color difference)
         between argument and each color of the palette. Sort the results and return them.
@@ -871,34 +859,105 @@ class Color(RGB, t.Generic[_CT], metaclass=_ColorMeta):
 
     @classmethod
     def _calc_lab_cie76_delta_e(
-        cls: t.Type[_CT], value: _CVT
-    ) -> Iterable[ApxResult[_CT]]:
+        cls: type[_RCT], value: _CVT
+    ) -> Iterable[ApxResult[_RCT]]:
         for el in cls._index:
             yield ApxResult(el, LAB.diff(value, el))
 
+    def __new__(cls: t.Type[_RCT], *args, **kwargs) -> _RCT:
+        cls._color_diff_fn = cls._calc_lab_cie76_delta_e
+        return super().__new__(cls)
 
-class Color16(Color):
+    def __init__(
+        self,
+        name: str,
+        register: bool,
+        code: int | None,
+        aliases: t.List[str],
+        variation_map: t.Dict[int, str] = None,
+    ):
+        self._name: str | None = name
+        self._base: _RCT | None = None
+        self._variations: t.Dict[str, _RCT] = {}
+
+        if code is not None:
+            self._index.add(self, code)
+        if variation_map:
+            self._make_variations(variation_map)
+        if register:
+            self._register(aliases)
+
+    def __hash__(self) -> int:
+        return hash(self._name)
+
+    def _register(self: _RCT, aliases: t.List[str] = None):
+        if not self.name:
+            return
+        self._registry.register(self, self.name)
+
+        if not aliases:
+            return
+        for alias in aliases:
+            self._registry.register(self, alias)
+
+    def _make_variations(self: _RCT, variation_map: t.Dict[int, str] = None):
+        if not variation_map:
+            return
+        for vari_value, vari_name in variation_map.items():
+            args = dict(value=vari_value, name=vari_name, register=False)
+            variation = type(self)(**args)
+            variation._base = self
+            self._index.add(variation, None)
+            self._variations[vari_name] = variation
+
+    @property
+    def name(self) -> str | None:
+        """Color name, e.g. "navy-blue"."""
+        return self._name
+
+
+@dataclasses.dataclass(frozen=True)
+class ApxResult(t.Generic[_RCT]):
+    """
+    Approximation result.
+    """
+
+    color: _RCT
+    """ Found ``Color`` instance. """
+
+    distance: float
+    """ Color difference between this instance and the approximation target. """
+
+    def __eq__(self, other: ApxResult) -> bool:  # pragma: no cover
+        if not isinstance(other, ApxResult):
+            return False
+        if not isinstance(other.color, type(self)):
+            return False
+        return self.color == other.color and self.distance == other.distance
+
+
+_ColorDiffFn = t.Callable[[IColorValue], Iterable[ApxResult[_RCT]]]
+
+# ---------------------------------------------------------------------------------------
+
+
+class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
     """
     Variant of a ``Color`` operating within the most basic color set
     -- **xterm-16**. Represents basic color-setting SGRs with primary codes
     30-37, 40-47, 90-97 and 100-107 (see `guide.ansi-presets.color16`).
 
-    .. note ::
-
-        Arguments ``register``, ``index`` and ``aliases``
-        are *kwonly*-type args.
-
-    :param int value:  Color RGB value, e.g. :hex:`0x800000`.
+    :param int|IColorValue value:
+                           Color value as 24-bit integer in RGB space, or any
+                           instance implementing color value interface (e.g. `HSV`).
     :param int code_fg:    Int code for a foreground color setup, e.g. 30.
     :param int code_bg:    Int code for a background color setup. e.g. 40.
     :param str name:       Name of the color, e.g. "red".
-    :param bool register:  If *True*, add color to registry for resolving by name.
-    :param bool index:     If *True*, add color to approximation index.
+    :param bool register:  If *True*, add color to registry for resolving by name
+                           and approximation.
     :param list[str] aliases:
-                            Alternative color names (used in `resolve_color()`).
+                           Alternative color names (used in `resolve_color()`).
     """
-
-    __hash__ = Color.__hash__
 
     def __init__(
         self,
@@ -908,13 +967,15 @@ class Color16(Color):
         name: str = None,
         *,
         register: bool = False,
-        index: bool = False,
         aliases: t.List[str] = None,
     ):
-        super().__init__(value, name)
+        super(Color16, self).__init__(value)
+        super(RenderColor, self).__init__(name, register, code_fg, aliases)
         self._code_fg: int = code_fg
         self._code_bg: int = code_bg
-        self._register(self._code_fg, register, index, aliases)
+
+    def __hash__(self) -> int:
+        return hash(super(Color16, self)) + hash(super(RenderColor, self))
 
     @property
     def code_fg(self) -> int:
@@ -929,13 +990,14 @@ class Color16(Color):
     @classmethod
     def get_by_code(cls, code: int) -> Color16:
         """
-        Get a `Color16` instance with specified code. Only *foreground* (=text) colors
-        are indexed, therefore it is impossible to look up for a `Color16` with
-        given background color.
+        Get a `Color16` instance with specified code. Only *foreground* (=text)
+        colors are indexed, therefore it is not possible to look up for a
+        `Color16` with given background color (on second thought, it *is*
+        actually possible using `find_closest()`).
 
-        :param code:      Foreground integer code to look up for (see
-                          `guide.ansi-presets.color16`).
-        :raises KeyError: If no color with specified code is found.
+        :param code:          Foreground integer code to look up for (see
+                              `guide.ansi-presets.color16`).
+        :raises LookupError:  If no color with specified code is found.
         """
         return cls._index.get(code)
 
@@ -959,7 +1021,7 @@ class Color16(Color):
         if not verbose:
             return self._name
 
-        code = f"c{self._code_fg}"
+        code = f"c{getattr(self, '_code_fg', None)}"
         value = f"{self.format_value('#')}?"
         params = " ".join(map(str, filter(None, [value, self._name])))
         return f"{code}({params})"
@@ -988,28 +1050,22 @@ class Color16(Color):
         return None  # no equivalent for underline color
 
 
-class Color256(Color):
+class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
     """
     Variant of a ``Color`` operating within relatively modern **xterm-256**
     indexed color table. Represents SGR complex codes ``38;5;*`` and ``48;5;*``
     (see `guide.ansi-presets.color256`).
 
-    .. note ::
-
-        Arguments ``register``, ``index``, ``aliases`` and ``color16_equiv``
-        are *kwonly*-type args.
-
-    :param value: Color RGB value, e.g. :hex:`0x5f0000`.
+    :param int|IColorValue value:
+                           Color value as 24-bit integer in RGB space, or any
+                           instance implementing color value interface (e.g. `HSV`).
     :param code:      Int code for a color setup, e.g. 52.
     :param name:      Name of the color, e.g. "dark-red".
     :param register:  If *True*, add color to registry for resolving by name.
-    :param index:     If *True*, add color to approximation index.
     :param aliases:   Alternative color names (used in `resolve_color()`).
     :param color16_equiv:
                       `Color16` counterpart (applies only to codes 0-15).
     """
-
-    __hash__ = Color.__hash__
 
     def __init__(
         self,
@@ -1018,22 +1074,24 @@ class Color256(Color):
         name: str = None,
         *,
         register: bool = False,
-        index: bool = False,
         aliases: t.List[str] = None,
         color16_equiv: Color16 = None,
     ):
-        super().__init__(value, name)
+        super(Color256, self).__init__(value)
+        super(RenderColor, self).__init__(name, register, code, aliases)
         self._code: int | None = code
         self._color16_equiv: Color16 | None = color16_equiv
-        self._register(self._code, register, index, aliases)
+
+    def __hash__(self) -> int:
+        return hash(super(Color256, self)) + hash(super(RenderColor, self))
 
     def to_sgr(
         self, target: ColorTarget = ColorTarget.FG, upper_bound: t.Type[Color] = None
     ) -> SequenceSGR:
         """
-        Make an `SGR sequence<SequenceSGR>` out of ``IColor``. Used by `SgrRenderer`.
+        Make an `SGR sequence<SequenceSGR>` out of ``Color``. Used by `SgrRenderer`.
 
-        Each ``IColor`` type represents one SGR type in the context of colors. For
+        Each ``Color`` type represents one SGR type in the context of colors. For
         example, if ``upper_bound`` is set to `Color16`, the resulting SGR will always
         be one of 16-color index table, even if the original color was of different
         type -- it will be approximated just before the SGR assembling.
@@ -1049,7 +1107,7 @@ class Color256(Color):
         `OutputMode` docs.
 
         :param target:
-        :param upper_bound: Required result ``IColor`` type upper boundary, i.e., the
+        :param upper_bound: Required result ``Color`` type upper boundary, i.e., the
                             maximum acceptable color class, which will be the basis for
                             SGR being made.
         """
@@ -1092,7 +1150,8 @@ class Color256(Color):
         Get a `Color256` instance with specified code (=position in the index).
 
         :param code:      Color code to look up for (see `guide.ansi-presets.color256`).
-        :raises KeyError: If no color with specified code is found.
+        :raises LookupError:
+                         If no color with specified code is found.
         """
         return cls._index.get(code)
 
@@ -1102,40 +1161,35 @@ class Color256(Color):
         return self.int == other.int and self._code == other._code
 
     def repr_attrs(self, verbose: bool = True) -> str:
-        code = f"x{self._code}"
+        code = f"x{getattr(self, '_code', None)}"
         if not verbose:
             return code
 
         value = self.format_value("#")
-        if self._color16_equiv:  # pragma: no cover
+        if getattr(self, '_color16_equiv', None):  # pragma: no cover
             value += "?"  # depends on end-user terminal setup
         params = " ".join(map(str, filter(None, [value, self._name])))
         return f"{code}({params})"
 
 
-class ColorRGB(Color):
+class ColorRGB(RealColor, RenderColor, ResolvableColor["ColorRGB"]):
     """
     Variant of a ``Color`` operating within RGB color space. Presets include
     `es7s named colors <guide.es7s-colors>`, a unique collection of colors
     compiled from several known sources after careful selection. However,
     it's not limited to aforementioned color list and can be easily extended.
 
-    .. note ::
-
-        Arguments ``register``, ``index``, ``aliases`` and ``variation_map``
-        are *kwonly*-type args.
-
-
-    :param value: Color RGB value, e.g. :hex:`0x73a9c2`.
+    :param int|IColorValue value:
+                      Color value as 24-bit integer in RGB space (e.g.
+                      :hex:`0x73a9c2`), or any instance implementing color value
+                      interface (e.g. `HSV`).
     :param name:      Name of the color, e.g. "moonstone-blue".
     :param register:  If *True*, add color to registry for resolving by name.
-    :param index:     If *True*, add color to approximation index.
     :param aliases:   Alternative color names (used in `resolve_color()`).
-    :param variation_map: Mapping {*int*: *str*}, where keys are hex values,
-                          and values are variation names.
+    :param variation_map:
+                      Mapping {*int*: *str*}, where keys are hex values,
+                      and values are variation names.
     """
-
-    __hash__ = Color.__hash__
 
     def __init__(
         self,
@@ -1143,15 +1197,14 @@ class ColorRGB(Color):
         name: str = None,
         *,
         register: bool = False,
-        index: bool = False,
         aliases: t.List[str] = None,
         variation_map: t.Dict[int, str] = None,
     ):
-        super().__init__(value, name)
-        self._base: _CT | None = None
-        self._variations: t.Dict[str, _CT] = {}
-        self._make_variations(variation_map)
-        self._register(None, register, index, aliases)
+        super(ColorRGB, self).__init__(value)
+        super(RenderColor, self).__init__(name, register, None, aliases, variation_map)
+
+    def __hash__(self) -> int:
+        return hash(super(ColorRGB, self)) + hash(super(RenderColor, self))
 
     def to_sgr(
         self, target: ColorTarget = ColorTarget.FG, upper_bound: t.Type[Color] = None
@@ -1177,30 +1230,34 @@ class ColorRGB(Color):
         return f"{value}({self._name})"
 
     @property
-    def base(self) -> _CT | None:
+    def base(self) -> _RCT | None:
         """Parent color for color variations. Empty for regular colors."""
         return self._base
 
     @property
-    def variations(self) -> t.Dict[str, _CT]:
+    def variations(self) -> t.Dict[str, _RCT]:
         """
         List of color variations. *Variation* of a color is a similar color with
-        almost the same name, but with differing suffix. The main idea of variations
-        is to provide a basis for fuzzy searching, which will return several results
-        for one query; i.e., when the query matches a color with variations, the whole
-        color family can be considered a match, which should increase searching speed.
+        almost the same name, but with differing suffix. The main idea of
+        variations is to provide a basis for fuzzy searching, which will return
+        several results for one query; i.e., when the query matches a color with
+        variations, the whole color family can be considered a match, which
+        should increase searching speed.
         """
         return self._variations
 
 
-class _NoopColor(Color):
+# ---------------------------------------------------------------------------------------
+
+
+class _NoopColor(RenderColor):
     def __init__(self):
-        super().__init__(0)
+        super().__init__()
 
     def __bool__(self) -> bool:
         return False
 
-    def __eq__(self, other: _CT) -> bool:
+    def __eq__(self, other: Color) -> bool:
         return isinstance(other, _NoopColor)
 
     def to_sgr(
@@ -1213,10 +1270,7 @@ class _NoopColor(Color):
             return ""
         raise NotImplementedError(f"No tmux equivalent for {target}")
 
-    @property
-    def int(self) -> int:
-        raise LogicError("No color for NO-OP instance")
-
+    # noinspection PyMethodMayBeStatic
     def format_value(self, prefix: str = "") -> str:
         return prefix + "NOP"
 
@@ -1224,11 +1278,11 @@ class _NoopColor(Color):
         return self.format_value()
 
 
-class _DefaultColor(Color):
+class _DefaultColor(RenderColor):
     def __init__(self):
-        super().__init__(0)
+        super().__init__()
 
-    def __eq__(self, other: _CT) -> bool:
+    def __eq__(self, other: Color) -> bool:
         return isinstance(other, _DefaultColor)
 
     def to_sgr(
@@ -1243,10 +1297,7 @@ class _DefaultColor(Color):
             return "default"
         raise NotImplementedError(f"No tmux equivalent for {target}")
 
-    @property
-    def int(self) -> int:  # pragma: no cover
-        raise LogicError("Default colors entirely depend on user terminal settings")
-
+    # noinspection PyMethodMayBeStatic
     def format_value(self, prefix: str = "") -> str:
         return prefix + "DEF"
 
@@ -1254,9 +1305,100 @@ class _DefaultColor(Color):
         return self.format_value()
 
 
+class DynamicColor(RealColor, RenderColor, t.Generic[_T], metaclass=ABCMeta):
+    """
+    Color that returns different values depending on internal class-level
+    state that can be altered globally for all instances of a concrete
+    implementation. Supposed usage is to make a subclass of `DynamicColor`
+    and define state type, which will be shared between all instances of a
+    new class. Also concrete implementation of `update()` method is required,
+    which should contain logic for transforming some external parameters into
+    the state. State can be of any type, from plain `RGB` value to complex
+    dictionaries or custom classes.
+
+    There is also an `extractor` parameter, which is not shared between
+    instances of same subclass, rather being an instance attribute. This
+    parameter represents the logic of transforming one shared state into
+    several different colors, which therefore can be used as is, or be
+    included as a `fg`/`bg` attributes of :class:`.Style` instances.
+
+    Full usage example can be found in the documentation: @TODO
+    """
+
+    _DEFERRED = False
+    _state: _T
+
+    @classmethod
+    def __new__(cls, *args, **kwargs):
+        inst = super().__new__(cls)
+        if not (hasattr(cls, "_state") or cls._DEFERRED):
+            cls.update()
+        return inst
+
+    @classmethod
+    def update(cls, **kwargs) -> None:
+        """Set new internal state for all instances of this class."""
+        cls._state = cls._update_impl(**kwargs)
+
+    @classmethod
+    @abstractmethod
+    def _update_impl(cls, **kwargs) -> _T:
+        raise NotImplementedError
+
+    def __init__(self, extractor: ExtractorT[_T]):
+        """
+        :param extractor: Concrete implementation of "state" -> "color"
+                          transformation logic. Can be a callable, which will be
+                          invoked with a state variable as a first argument, or
+                          can be a string, in which case it will be used to
+                          extract the color value from the instance itself, with
+                          this string as an attribute name, or it can be *None*,
+                          in which case it implies that state variable is
+                          instance of `Color` or it descendant and it can be
+                          returned on extraction without transformation, as is.
+        """
+        self._extractor: ExtractorT[_T] = extractor
+        super().__init__(None)
+
+    @property
+    def _value(self) -> Color:
+        if not hasattr(self, "_state"):
+            if self._DEFERRED:
+                raise LogicError(f"{get_qname(self)} is uninitialized")
+            self.__class__.update()
+
+        state = self.__class__._state
+        if self._extractor is None:
+            return t.cast(state, Color)
+
+        if isinstance(self._extractor, t.Callable):
+            return self._extractor(state)
+
+        return getattr(state, self._extractor, NOOP_COLOR)
+
+    def __eq__(self, other: Color) -> bool:
+        return self._value == other
+
+    def to_sgr(
+        self, target: ColorTarget = ColorTarget.FG, upper_bound: t.Type[Color] = None
+    ) -> SequenceSGR:
+        return self._value.to_sgr(target, upper_bound)
+
+    def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
+        return self._value.to_tmux(target)
+
+    def repr_attrs(self, verbose: bool = True) -> str:
+        return f"DYNAMIC|{self._value.repr_attrs(verbose)}"
+
+
+# ---------------------------------------------------------------------------------------
+
+
 def resolve_color(
-    subject: CDT, color_type: t.Type[_CT] = None, approx_cache=True
-) -> _CT:
+    subject: CDT,
+    color_type: t.Type[_RCT | _RCT] = None,
+    approx_cache=True,
+) -> _RCT | _RCT:
     """
     Suggested usage is to transform the user input in a free form in an attempt
     to find any matching color. The method operates in three different modes depending
@@ -1312,14 +1454,14 @@ def resolve_color(
         >>> resolve_color(0xfafef0)
         <ColorRGB[#fafef0]>
 
-    :param str|int subject: ``IColor`` name or hex value to search for. See `CDT`.
+    :param str|int subject: ``Color`` name or hex value to search for. See `CDT`.
     :param color_type:      Target color type (`Color16`, `Color256` or `ColorRGB`).
     :param approx_cache:    Use the approximation cache for **resolving by value**
                             mode or ignore it. For the details see `find_closest` and
                             `approximate` which are actually invoked by this method
                             under the hood.
     :raises LookupError:    If nothing was found in either of registries.
-    :return:               ``IColor`` instance with specified name or value.
+    :return:               ``Color`` instance with specified name or value.
     """
 
     def as_hex(s: CDT):
@@ -1337,6 +1479,8 @@ def resolve_color(
     if (value := as_hex(subject)) is not None:
         if color_type is None:
             return ColorRGB(value)
+        if not issubclass(color_type, ResolvableColor):
+            return ColorRGB(value)
         if approx_cache:
             return find_closest(value, color_type)
         return approximate(value, color_type)[0].color
@@ -1346,8 +1490,10 @@ def resolve_color(
         color_types = [color_type]
 
     for ct in color_types:
+        if not issubclass(ct, ResolvableColor):
+            continue
         try:
-            return ct.resolve(str(subject))
+            return ct.find_by_name(str(subject))
         except LookupError:
             continue
 
@@ -1355,7 +1501,7 @@ def resolve_color(
     raise LookupError(f"Color '{subject}' was not found in {registry}")
 
 
-def find_closest(value: IColorValue | int, color_type: t.Type[_CT] = None) -> _CT:
+def find_closest(value: IColorValue | int, color_type: t.Type[_RCT] = None) -> _RCT:
     """
     Search and return nearest to ``value`` instance of specified ``color_type``.
     If `color_type` is omitted, search for the closest `Color256` element.
@@ -1388,8 +1534,10 @@ def find_closest(value: IColorValue | int, color_type: t.Type[_CT] = None) -> _C
 
 
 def approximate(
-    value: IColorValue | int, color_type: t.Type[_CT] = None, max_results: int = 1
-) -> t.List[ApxResult[_CT]]:
+    value: IColorValue | int,
+    color_type: t.Type[_RCT] = None,
+    max_results: int = 1,
+) -> t.List[ApxResult[_RCT]]:
     """
     Search for nearest to ``value`` colors of specified ``color_type`` and
     return the first ``max_results`` of them. If `color_type` is omitted, search
@@ -1397,7 +1545,7 @@ def approximate(
     `find_closest()`, although they differ in some aspects:
 
         - `approximate()` can return more than one result;
-        - `approximate()` returns not just a ``IColor`` instance(s), but also a
+        - `approximate()` returns not just a ``Color`` instance(s), but also a
           number equal to squared distance to the target color for each of them;
         - `find_closest()` caches the results, while `approximate()` ignores
           the cache completely.
@@ -1405,7 +1553,7 @@ def approximate(
     :param value:        Target color/color value.
     :param color_type:   Target color type (`Color16`, `Color256` or `ColorRGB`).
     :param max_results:  Return no more than ``max_results`` items.
-    :return: Pairs of closest ``IColor`` instance(s) found with their distances
+    :return: Pairs of closest ``Color`` instance(s) found with their distances
              to the target color, sorted by distance descending, i.e., element
              at index 0 is the closest color found, paired with its distance
              to the target; element with index 1 is second-closest color
@@ -1416,7 +1564,7 @@ def approximate(
 
 NOOP_COLOR = _NoopColor()
 """
-Special ``IColor`` instance always rendering into empty string.
+Special ``Color`` instance always rendering into empty string.
 
 .. important ::
     Casting to *bool* results in **False** for all ``NOOP`` instances in the 
@@ -1426,10 +1574,10 @@ Special ``IColor`` instance always rendering into empty string.
 
 DEFAULT_COLOR = _DefaultColor()
 """
-Special ``IColor`` instance rendering to SGR sequence telling the terminal
+Special ``Color`` instance rendering to SGR sequence telling the terminal
 to reset fg or bg color; same for `TmuxRenderer`. Useful when you inherit
-some `Style` with fg or bg color that you don't need, but at the same time
-you don't actually want to set up any color whatsoever::
+some :class:`.Style` with fg or bg color that you don't need, but at the same
+time you don't actually want to set up any color whatsoever::
 
     >>> from pytermor import *
     >>> DEFAULT_COLOR.to_sgr(target=ColorTarget.BG)
