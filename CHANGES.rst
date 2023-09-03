@@ -7,8 +7,10 @@ pending
 - |MAINTAIN| changelog update
 - |FIX| noop color .id read
 - |FIX| legacy virtual SequenceSGR descendants
+- |NEW| `DynamicColor`
+- |REFACTOR| split color hierarchy into `ResolvableColor`, `RenderColor` and `RealColor`
 
-.. <@pending:ddfbcce>
+.. <@pending:4ac45de>
 .. ^ blank line before should be kept
 
 

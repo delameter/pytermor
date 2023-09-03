@@ -388,8 +388,8 @@ class SgrRenderer(IRenderer):
 
         return reduce(lambda p, c: p + c, result, NOOP_SEQ)
 
-    def _render_color(self, color: Color, target: ColorTarget) -> SequenceSGR:
-        if not self.is_format_allowed or color == NOOP_COLOR:
+    def _render_color(self, color: RenderColor, target: ColorTarget) -> SequenceSGR:
+        if not self.is_format_allowed:
             return NOOP_SEQ
         return color.to_sgr(target, self._color_upper_bound)
 

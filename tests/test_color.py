@@ -15,7 +15,8 @@ from typing import overload
 import pytest
 from _pytest.mark import ParameterSet
 
-from pytermor import HSV, LAB, RGB, XYZ, IColorValue, DynamicColor, Style, FrozenStyle, make_color_256
+from pytermor import HSV, LAB, RGB, XYZ, IColorValue, DynamicColor, Style, FrozenStyle, make_color_256, NoopColor, Text, \
+    OutputMode, RendererManager, render
 from pytermor import (
     NOOP_SEQ,
     SequenceSGR,
@@ -804,7 +805,7 @@ class TestNoopColor:
         assert NOOP_COLOR.format_value() == "NOP"
 
     def test_repr(self):
-        assert repr(NOOP_COLOR) == "<_NoopColor[NOP]>"
+        assert repr(NOOP_COLOR) == "<NoopColor[NOP]>"
 
     @pytest.mark.parametrize(
         "target, expected_result",
@@ -833,7 +834,7 @@ class TestDefaultColor:
         assert DEFAULT_COLOR.format_value() == "DEF"
 
     def test_repr(self):
-        assert repr(DEFAULT_COLOR) == "<_DefaultColor[DEF]>"
+        assert repr(DEFAULT_COLOR) == "<DefaultColor[DEF]>"
 
     def test_default_resets_text_color(self):
         assert str(IntCode.COLOR_OFF.value) in DEFAULT_COLOR.to_sgr().assemble()
@@ -872,10 +873,6 @@ class TestDynamicColorDeferred:
         assert dynamic_style.fg == cv.HI_GREEN
 
     @pytest.mark.dynamic_style(current_mode="help")
-    def test_as_int(self, dynamic_style: Style):
-        assert dynamic_style.bg.int == 0x005f00
-
-    @pytest.mark.dynamic_style(current_mode="help")
     def test_to_sgr(self, dynamic_style: Style):
         assert dynamic_style.bg.to_sgr() == make_color_256(22)
 
@@ -886,6 +883,18 @@ class TestDynamicColorDeferred:
 
 @pytest.mark.dynamic_color(deferred=True)
 class TestDynamicColorUninitialized:
-    @pytest.mark.xfail(raises=LogicError)
     def test_uninitialized_initial_state(self, dynamic_style: Style):
-        dynamic_style.fg.to_sgr()
+        assert dynamic_style.fg.to_sgr() == NOOP_COLOR.to_sgr()
+
+    def test_deferred_update_color_changes(self, dynamic_color: type[DynamicColor], dynamic_style: Style):
+        fg = dynamic_style.fg
+        assert fg == NOOP_COLOR
+        dynamic_color.update(current_mode="help")
+        assert fg == cv.HI_GREEN
+
+    @pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
+    def test_deferred_update_text_changes(self, dynamic_color: type[DynamicColor], dynamic_style: Style):
+        text = Text('123', dynamic_style)
+        assert render(text) == '123'
+        dynamic_color.update(current_mode="help")
+        assert render(text) == '\x1b[92;48;5;22m' '123' '\x1b[39;49m'

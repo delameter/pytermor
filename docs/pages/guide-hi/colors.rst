@@ -44,5 +44,4 @@ Color class hierarchy
                                pytermor.color.IndexedColor,
                                pytermor.color.RenderColor,
                                pytermor.color.ResolvableColor
-         :private-bases:
          :caption:             ``Color`` inheritance diagram

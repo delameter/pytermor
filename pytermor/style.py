@@ -16,6 +16,7 @@ import typing as t
 from dataclasses import dataclass, field
 from typing import Any
 
+from . import RealColor
 from .color import Color, NOOP_COLOR, resolve_color, IColorValue, ColorRGB, RenderColor
 from .common import CDT, FT
 from .cval import cv
@@ -88,12 +89,12 @@ class Style:
     :param class_name:  Custom class name for the element.
     """
 
-    _fg: Color = field(default=None, init=False)
-    _bg: Color = field(default=None, init=False)
-    _underline_color: Color = field(default=None, init=False)
+    _fg: RenderColor = field(default=None, init=False)
+    _bg: RenderColor = field(default=None, init=False)
+    _underline_color: RenderColor = field(default=None, init=False)
 
     @property
-    def fg(self) -> Color:
+    def fg(self) -> RenderColor:
         """
         Foreground (i.e., text) color. Can be set as `CDT` or ``Color``,
         stored always as ``Color``.
@@ -101,7 +102,7 @@ class Style:
         return self._fg
 
     @property
-    def bg(self) -> Color:
+    def bg(self) -> RenderColor:
         """
         Background color. Can be set as `CDT` or ``Color``, stored always
         as ``Color``.
@@ -109,7 +110,7 @@ class Style:
         return self._bg
 
     @property
-    def underline_color(self) -> Color:
+    def underline_color(self) -> RenderColor:
         """
         Underline color. Can be set as `CDT` or ``Color``, stored always
         as ``Color``.
@@ -206,8 +207,8 @@ class Style:
     def __init__(
         self,
         fallback: Style = None,
-        fg: CDT | Color = None,
-        bg: CDT | Color = None,
+        fg: CDT | RenderColor = None,
+        bg: CDT | RenderColor = None,
         frozen: bool = False,
         *,
         bold: bool = None,
@@ -218,7 +219,7 @@ class Style:
         crosslined: bool = None,
         double_underlined: bool = None,
         curly_underlined: bool = None,
-        underline_color: CDT | Color = None,
+        underline_color: CDT | RenderColor = None,
         inversed: bool = None,
         blink: bool = None,
         framed: bool = None,
@@ -292,11 +293,11 @@ class Style:
         Modifies the instance in-place and returns it as well (for chained calls).
         """
         self._ensure_not_frozen()
-        if not self._bg:
+        if not isinstance(self._bg, RealColor):
             return self
 
         h, s, v = self._bg.hsv
-        if v >= 0.45:
+        if v >= 0.45:  # @FIXME
             self._fg = cv.GRAY_3
         else:
             self._fg = cv.GRAY_82
@@ -446,7 +447,7 @@ class Style:
         if hasattr(self, "_frozen") and self._frozen:
             raise LogicError(f"{self.__class__.__qualname__} is immutable")
 
-    def _resolve_color(self, arg: CDT | IColorValue | None) -> RenderColor | None:
+    def _resolve_color(self, arg: CDT | IColorValue | RenderColor | None) -> RenderColor | None:
         if arg is None:
             return NOOP_COLOR
         if isinstance(arg, RenderColor):

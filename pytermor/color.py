@@ -1250,7 +1250,16 @@ class ColorRGB(RealColor, RenderColor, ResolvableColor["ColorRGB"]):
 # ---------------------------------------------------------------------------------------
 
 
-class _NoopColor(RenderColor):
+class NoopColor(RenderColor):
+    """
+    Special ``Color`` class always rendering into empty string.
+
+    .. important ::
+        Casting to *bool* results in **False** for all ``NOOP`` instances in the
+        library (`NOOP_SEQ`, `NOOP_COLOR` and `NOOP_STYLE`). This is intended.
+
+    """
+
     def __init__(self):
         super().__init__()
 
@@ -1258,7 +1267,7 @@ class _NoopColor(RenderColor):
         return False
 
     def __eq__(self, other: Color) -> bool:
-        return isinstance(other, _NoopColor)
+        return isinstance(other, NoopColor)
 
     def to_sgr(
         self, target: ColorTarget = ColorTarget.FG, upper_bound: t.Type[Color] = None
@@ -1278,12 +1287,55 @@ class _NoopColor(RenderColor):
         return self.format_value()
 
 
-class _DefaultColor(RenderColor):
+class DefaultColor(RenderColor):
+    """
+    Special ``Color`` instance rendering to SGR sequence telling the terminal
+    to reset fg or bg color; same for `TmuxRenderer`. Useful when you inherit
+    some :class:`.Style` with fg or bg color that you don't need, but at the same
+    time you don't actually want to set up any color whatsoever::
+    
+        >>> from pytermor import *
+        >>> DEFAULT_COLOR.to_sgr(target=ColorTarget.BG)
+        <SGR[49m]>
+    
+    
+    `NOOP_COLOR` is treated like a placeholder for parent's attribute value and 
+    doesn't change the result::
+    
+        >>> from pytermor import SgrRenderer, render
+        >>> sgr_renderer = SgrRenderer(OutputMode.XTERM_16)
+        >>> render("MISMATCH", Style(Styles.INCONSISTENCY, fg=NOOP_COLOR), sgr_renderer)
+        '\x1b[93;101mMISMATCH\x1b[39;49m'
+    
+    .. raw:: html
+    
+      <div class="highlight-adjacent highlight-output">
+         <div class="highlight">
+            <pre><span style="color: #ffff00; background-color: #d70000">MISMATCH</span></pre>
+         </div>
+      </div>
+    
+    
+    While `DEFAULT_COLOR` is actually resetting the color to default (terminal) value:: 
+    
+        >>> render("MISMATCH", Style(Styles.INCONSISTENCY, fg=DEFAULT_COLOR), sgr_renderer)
+        '\x1b[39;101mMISMATCH\x1b[49m'
+    
+    .. raw:: html
+    
+      <div class="highlight-adjacent highlight-output">
+         <div class="highlight">
+            <pre><span style="background-color: #d70000">MISMATCH</span></pre>
+         </div>
+      </div>
+    
+    """  # noqa
+
     def __init__(self):
         super().__init__()
 
     def __eq__(self, other: Color) -> bool:
-        return isinstance(other, _DefaultColor)
+        return isinstance(other, DefaultColor)
 
     def to_sgr(
         self,
@@ -1305,7 +1357,7 @@ class _DefaultColor(RenderColor):
         return self.format_value()
 
 
-class DynamicColor(RealColor, RenderColor, t.Generic[_T], metaclass=ABCMeta):
+class DynamicColor(RenderColor, t.Generic[_T], metaclass=ABCMeta):
     """
     Color that returns different values depending on internal class-level
     state that can be altered globally for all instances of a concrete
@@ -1358,18 +1410,18 @@ class DynamicColor(RealColor, RenderColor, t.Generic[_T], metaclass=ABCMeta):
                           returned on extraction without transformation, as is.
         """
         self._extractor: ExtractorT[_T] = extractor
-        super().__init__(None)
+        super().__init__()
 
     @property
-    def _value(self) -> Color:
+    def _value(self) -> RenderColor:
         if not hasattr(self, "_state"):
             if self._DEFERRED:
-                raise LogicError(f"{get_qname(self)} is uninitialized")
+                return NOOP_COLOR
             self.__class__.update()
 
         state = self.__class__._state
         if self._extractor is None:
-            return t.cast(state, Color)
+            return t.cast(state, RenderColor)
 
         if isinstance(self._extractor, t.Callable):
             return self._extractor(state)
@@ -1562,56 +1614,6 @@ def approximate(
     return (color_type or Color256).approximate(value, max_results)
 
 
-NOOP_COLOR = _NoopColor()
-"""
-Special ``Color`` instance always rendering into empty string.
+NOOP_COLOR = NoopColor()
 
-.. important ::
-    Casting to *bool* results in **False** for all ``NOOP`` instances in the 
-    library (`NOOP_SEQ`, `NOOP_COLOR` and `NOOP_STYLE`). This is intended. 
-
-"""
-
-DEFAULT_COLOR = _DefaultColor()
-"""
-Special ``Color`` instance rendering to SGR sequence telling the terminal
-to reset fg or bg color; same for `TmuxRenderer`. Useful when you inherit
-some :class:`.Style` with fg or bg color that you don't need, but at the same
-time you don't actually want to set up any color whatsoever::
-
-    >>> from pytermor import *
-    >>> DEFAULT_COLOR.to_sgr(target=ColorTarget.BG)
-    <SGR[49m]>
-
-
-`NOOP_COLOR` is treated like a placeholder for parent's attribute value and 
-doesn't change the result::
-
-    >>> from pytermor import SgrRenderer, render
-    >>> sgr_renderer = SgrRenderer(OutputMode.XTERM_16)
-    >>> render("MISMATCH", Style(Styles.INCONSISTENCY, fg=NOOP_COLOR), sgr_renderer)
-    '\x1b[93;101mMISMATCH\x1b[39;49m'
-
-.. raw:: html
-
-  <div class="highlight-adjacent highlight-output">
-     <div class="highlight">
-        <pre><span style="color: #ffff00; background-color: #d70000">MISMATCH</span></pre>
-     </div>
-  </div>
-
-
-While `DEFAULT_COLOR` is actually resetting the color to default (terminal) value:: 
-
-    >>> render("MISMATCH", Style(Styles.INCONSISTENCY, fg=DEFAULT_COLOR), sgr_renderer)
-    '\x1b[39;101mMISMATCH\x1b[49m'
-
-.. raw:: html
-
-  <div class="highlight-adjacent highlight-output">
-     <div class="highlight">
-        <pre><span style="background-color: #d70000">MISMATCH</span></pre>
-     </div>
-  </div>
-
-"""  # noqa
+DEFAULT_COLOR = DefaultColor()

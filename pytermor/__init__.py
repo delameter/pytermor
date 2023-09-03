@@ -16,7 +16,6 @@ from __future__ import annotations
 
 from ._version import __updated__ as __updated__
 from ._version import __version__ as __version__
-
 from .ansi import ALL_COLORS as ALL_COLORS
 from .ansi import BG_COLORS as BG_COLORS
 from .ansi import BG_HI_COLORS as BG_HI_COLORS
@@ -48,15 +47,17 @@ from .color import Color as Color
 from .color import Color16 as Color16
 from .color import Color256 as Color256
 from .color import ColorRGB as ColorRGB
-from .color import DynamicColor as DynamicColor
 from .color import DEFAULT_COLOR as DEFAULT_COLOR
+from .color import DefaultColor as DefaultColor
+from .color import DynamicColor as DynamicColor
 from .color import HSV as HSV
 from .color import IColorValue as IColorValue
-from .color import RenderColor as RenderColor
-from .color import RealColor as RealColor
 from .color import LAB as LAB
 from .color import NOOP_COLOR as NOOP_COLOR
+from .color import NoopColor as NoopColor
 from .color import RGB as RGB
+from .color import RealColor as RealColor
+from .color import RenderColor as RenderColor
 from .color import XYZ as XYZ
 from .color import approximate as approximate
 from .color import find_closest as find_closest

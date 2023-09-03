@@ -13,7 +13,7 @@ import pytest
 from pytermor import (
     DEFAULT_COLOR,
     NOOP_COLOR,
-    Color, Style,
+    Color, Style, RenderColor,
 )
 from pytermor import DynamicColor, FrozenStyle
 from pytermor import ExtendedEnum, RendererManager
@@ -90,11 +90,11 @@ def dynamic_color(request) -> type[DynamicColor]:
             return None
 
         @property
-        def fg(self) -> Color:
+        def fg(self) -> RenderColor:
             return self._STYLE_MAP.get(self._style_key).fg
 
         @property
-        def bg(self) -> Color:
+        def bg(self) -> RenderColor:
             return self._STYLE_MAP.get(self._style_key).bg
 
     class _ExampleColor(DynamicColor[_ExampleState]):
