@@ -25,6 +25,10 @@ class ConflictError(Exception):
     pass
 
 
+class NotInitializedError(Exception):
+    pass
+
+
 class ArgTypeError(Exception):
     """."""
 

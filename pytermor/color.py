@@ -31,7 +31,7 @@ from .ansi import BG_HI_COLORS, ColorTarget, HI_COLORS, NOOP_SEQ, SequenceSGR
 from .common import CDT
 from .common import get_qname
 from .config import get_config
-from .exception import ColorCodeConflictError, ColorNameConflictError, LogicError
+from .exception import ColorCodeConflictError, ColorNameConflictError, LogicError, NotInitializedError
 from .term import make_color_256, make_color_rgb
 
 _T = t.TypeVar("_T", bound=object)
@@ -1383,14 +1383,17 @@ class DynamicColor(RenderColor, t.Generic[_T], metaclass=ABCMeta):
     @classmethod
     def __new__(cls, *args, **kwargs):
         inst = super().__new__(cls)
-        if not (hasattr(cls, "_state") or cls._DEFERRED):
+        if not (hasattr(cls, "_state")):
             cls.update()
         return inst
 
     @classmethod
     def update(cls, **kwargs) -> None:
         """Set new internal state for all instances of this class."""
-        cls._state = cls._update_impl(**kwargs)
+        try:
+            cls._state = cls._update_impl(**kwargs)
+        except NotInitializedError:
+            pass
 
     @classmethod
     @abstractmethod
@@ -1412,12 +1415,19 @@ class DynamicColor(RenderColor, t.Generic[_T], metaclass=ABCMeta):
         self._extractor: ExtractorT[_T] = extractor
         super().__init__()
 
+    @classmethod
+    @property
+    def _initialized(cls) -> bool:
+        return hasattr(cls, "_state")
+
     @property
     def _value(self) -> RenderColor:
-        if not hasattr(self, "_state"):
-            if self._DEFERRED:
-                return NOOP_COLOR
+        if not self._initialized:
+            if not self._DEFERRED:
+                raise LogicError(f"{get_qname(self)} is uninitialized")
             self.__class__.update()
+            if not self._initialized:
+                return NOOP_COLOR
 
         state = self.__class__._state
         if self._extractor is None:

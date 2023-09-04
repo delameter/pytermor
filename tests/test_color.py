@@ -16,7 +16,7 @@ import pytest
 from _pytest.mark import ParameterSet
 
 from pytermor import HSV, LAB, RGB, XYZ, IColorValue, DynamicColor, Style, FrozenStyle, make_color_256, NoopColor, Text, \
-    OutputMode, RendererManager, render
+    OutputMode, RendererManager, render, RenderColor
 from pytermor import (
     NOOP_SEQ,
     SequenceSGR,
@@ -38,7 +38,7 @@ from pytermor.color import (
     _ConstrainedValue, _T,
 )
 from pytermor.cval import cv
-from pytermor.exception import LogicError, ColorNameConflictError, ColorCodeConflictError
+from pytermor.exception import LogicError, ColorNameConflictError, ColorCodeConflictError, NotInitializedError
 from tests import assert_close, format_test_params
 
 
@@ -865,11 +865,8 @@ class TestDynamicColor:
     def test_initial_state(self, dynamic_style: Style):
         assert dynamic_style.fg == DEFAULT_COLOR
 
-
-@pytest.mark.dynamic_color(deferred=True)
-class TestDynamicColorDeferred:
     @pytest.mark.dynamic_style(current_mode="help")
-    def test_update(self, dynamic_color: type[DynamicColor], dynamic_style: Style):
+    def test_update(self, dynamic_style: Style):
         assert dynamic_style.fg == cv.HI_GREEN
 
     @pytest.mark.dynamic_style(current_mode="help")
@@ -881,20 +878,33 @@ class TestDynamicColorDeferred:
         assert dynamic_style.fg.to_tmux() == 'brightred'
 
 
-@pytest.mark.dynamic_color(deferred=True)
-class TestDynamicColorUninitialized:
-    def test_uninitialized_initial_state(self, dynamic_style: Style):
-        assert dynamic_style.fg.to_sgr() == NOOP_COLOR.to_sgr()
+class TestDeferredColor:
+    def test_initial_state(self, deferred: tuple[Style, any]):
+        deferred_style, _ = deferred
+        assert deferred_style.fg == NOOP_COLOR
 
-    def test_deferred_update_color_changes(self, dynamic_color: type[DynamicColor], dynamic_style: Style):
-        fg = dynamic_style.fg
-        assert fg == NOOP_COLOR
-        dynamic_color.update(current_mode="help")
-        assert fg == cv.HI_GREEN
+    def test_update(self, deferred: tuple[Style, any]):
+        deferred_style, resolver = deferred
+        assert deferred_style.fg == NOOP_COLOR
+        resolver.initialize("help")
+        assert deferred_style.fg == cv.HI_GREEN
+
+    def test_to_sgr(self, deferred: tuple[Style, any]):
+        deferred_style, resolver = deferred
+        assert deferred_style.fg.to_sgr() == NOOP_COLOR.to_sgr()
+        resolver.initialize("help")
+        assert deferred_style.fg.to_sgr() == cv.HI_GREEN.to_sgr()
+
+    def test_to_tmux(self, deferred: tuple[Style, any]):
+        deferred_style, resolver = deferred
+        assert deferred_style.fg.to_tmux() == ''
+        resolver.initialize("help")
+        assert deferred_style.fg.to_tmux() == 'brightgreen'
 
     @pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
-    def test_deferred_update_text_changes(self, dynamic_color: type[DynamicColor], dynamic_style: Style):
-        text = Text('123', dynamic_style)
+    def test_text_changes(self, deferred: tuple[Style, any]):
+        deferred_style, resolver = deferred
+        text = Text('123', deferred_style)
         assert render(text) == '123'
-        dynamic_color.update(current_mode="help")
+        resolver.initialize("help")
         assert render(text) == '\x1b[92;48;5;22m' '123' '\x1b[39;49m'

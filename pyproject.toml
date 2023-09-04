@@ -128,8 +128,8 @@ addopts = [
 xfail_strict = true
 markers = [
     "config(**kwargs): override module config variables",
-    "dynamic_color(deferred: bool): set up example dynamic color",
-    "dynamic_style(**kwargs): update state of example dynamic color",
+    "dynamic_style(**kwargs): make dynamic color and set up dynamic style",
+    "deferred(): make deferred dynamic color, set up dynamic style and resolver",
 ]
 
 # ---------------------------------------------------------
