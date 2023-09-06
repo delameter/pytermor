@@ -8,7 +8,7 @@
   <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
   <br>
   <a href="https://pypi.org/project/pytermor/"><img alt="PyPI" src="https://img.shields.io/pypi/v/pytermor"></a>
-  <a href="https://pepy.tech/project/pytermor/"><img alt="Downloads" src="https://pepy.tech/badge/pytermor"></a>
+  <a href="https://pepy.tech/project/pytermor/"><img alt="Downloads" src="https://static.pepy.tech/badge/pytermor"></a>
   <a href='https://coveralls.io/github/delameter/pytermor?branch=dev'><img src='https://coveralls.io/repos/github/delameter/pytermor/badge.svg?branch=dev' alt='Coverage Status' /></a>
 </p>
 <p>
