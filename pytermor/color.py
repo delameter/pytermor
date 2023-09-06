@@ -1374,10 +1374,21 @@ class DynamicColor(RenderColor, t.Generic[_T], metaclass=ABCMeta):
     several different colors, which therefore can be used as is, or be
     included as a `fg`/`bg` attributes of :class:`.Style` instances.
 
-    Full usage example can be found in the documentation: @TODO
+    Full usage example can be found at `guide.dynamic-deferred-colors` docs page.
     """
 
-    _DEFERRED = False
+    _DEFERRED: t.ClassVar[bool] = False
+    """
+    Class variable responsible for enabling :def:`deferred` mode. In this
+    mode there is a possibility to delay an initialization of the state of
+    a concrete class and to create all dependant entities regardless. When
+    state is still uninitialized, the return color will be `NOOP_COLOR`, which
+    automatically updates to an actual color after state creation. See
+    `guide.dynamic-deferred-colors` for the details.
+    
+    :meta public:
+    """
+
     _state: _T
 
     @classmethod

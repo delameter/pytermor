@@ -8,7 +8,7 @@ ANSI sequences review
 Sequence classes
 =====================
 
-Sequences can be divided to 4 different classes depending on their :def:`introducer`
+Sequences can be divided to 4 different classes depending on their :def:`classifier`
 byte(s); a class indicates the application domain the purpose of the sequence
 in general. According to `ECMA-48`_ specification the classes are: **nF**,
 **Fp**, **Fe**, **Fs**.
@@ -33,7 +33,7 @@ in general. According to `ECMA-48`_ specification the classes are: **nF**,
 
 - **Fe**-class sequences are the most common ones and 99% of the sequences
   you will ever encounter will be of **Fe** class. ECMA-48 names them
-  "C1 set sequences", and their *introducer* byte (the one right after
+  "C1 set sequences", and their *classifier* byte (the one right after
   escape byte) is from :hex:`0x40` to :hex:`0x5F` range (|u45x|).
 
   These sequences are implemented in `SequenceFe` parent class, which is then

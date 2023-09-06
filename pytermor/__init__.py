@@ -50,6 +50,7 @@ from .color import ColorRGB as ColorRGB
 from .color import DEFAULT_COLOR as DEFAULT_COLOR
 from .color import DefaultColor as DefaultColor
 from .color import DynamicColor as DynamicColor
+from .color import ExtractorT as ExtractorT
 from .color import HSV as HSV
 from .color import IColorValue as IColorValue
 from .color import LAB as LAB
@@ -58,6 +59,7 @@ from .color import NoopColor as NoopColor
 from .color import RGB as RGB
 from .color import RealColor as RealColor
 from .color import RenderColor as RenderColor
+from .color import ResolvableColor as ResolvableColor
 from .color import XYZ as XYZ
 from .color import approximate as approximate
 from .color import find_closest as find_closest
@@ -95,11 +97,13 @@ from .cval import ColorValuesRGB as ColorValuesRGB
 from .cval import ColorValuesXterm as ColorValuesXterm
 from .cval import cv as cv
 from .cval import cvr as cvr
+from .exception import ArgCountError as ArgCountError
 from .exception import ArgTypeError as ArgTypeError
 from .exception import ColorCodeConflictError as ColorCodeConflictError
 from .exception import ColorNameConflictError as ColorNameConflictError
 from .exception import ConflictError as ConflictError
 from .exception import LogicError as LogicError
+from .exception import NotInitializedError as NotInitializedError
 from .exception import ParseError as ParseError
 from .exception import UserAbort as UserAbort
 from .exception import UserCancel as UserCancel

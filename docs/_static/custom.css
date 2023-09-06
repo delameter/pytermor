@@ -24,6 +24,12 @@
 }
 
 @font-face {
+      font-family: "TeX Gyre Schola";
+      src: url("fonts/texgyreschola-italic.woff") format("woff");
+      font-style: italic;
+}
+
+@font-face {
     font-family: ForkAwesome;
     src: url('fonts/forkawesome-webfont.eot');
     src: url('fonts/forkawesome-webfont.eot') format('embedded-opentype'),

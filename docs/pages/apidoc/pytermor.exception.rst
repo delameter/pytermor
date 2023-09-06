@@ -27,6 +27,7 @@
       ColorNameConflictError
       ConflictError
       LogicError
+      NotInitializedError
       ParseError
       UserAbort
       UserCancel

@@ -5,13 +5,6 @@
 
    
    
-   .. rubric:: Module Attributes
-
-   .. autosummary::
-   
-      NOOP_COLOR
-      DEFAULT_COLOR
-   
    
 
    
@@ -36,10 +29,12 @@
       Color16
       Color256
       ColorRGB
+      DefaultColor
       DynamicColor
       HSV
       IColorValue
       LAB
+      NoopColor
       RGB
       RealColor
       RenderColor

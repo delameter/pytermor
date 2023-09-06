@@ -109,7 +109,7 @@ To get the resulting sequence chars use `assemble() <SequenceSGR.assemble()>` me
 1. ``ESC`` is escape *control character*, which opens a control sequence (can also be
    written as ``\x1b``, ``\033`` or ``\e``).
 
-2. ``[`` is sequence *introducer*; it determines the type of control sequence (in this case
+2. ``[`` is sequence *classifier*; it determines the type of control sequence (in this case
    it's :abbr:`CSI (Control Sequence Introducer)`).
 
 3. ``4`` and ``7`` are *parameters* of the escape sequence; they mean "underlined" and "inversed"

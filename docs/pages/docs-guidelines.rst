@@ -110,9 +110,9 @@ References
 |                  |                                       |    :term:`rendering`                  |
 +------------------+---------------------------------------+---------------------------------------+
 |                  |                                       | .. code-block:: rst                   |
-| Inlined          | | :def:`introducer` for 1st time ...  |                                       |
-| definition       | |  ... or *introducer* later          |    :def:`introducer` for 1st time ... |
-|                  |                                       |     ... or *introducer* later         |
+| Inlined          | | :def:`classifier` for 1st time ...  |                                       |
+| definition       | |  ... or *classifier* later          |    :def:`classifier` for 1st time ... |
+|                  |                                       |     ... or *classifier* later         |
 +------------------+---------------------------------------+---------------------------------------+
 |                  |                                       | .. code-block:: rst                   |
 | Abbreviation     | :abbr:`EL (Erase in Line)`            |                                       |

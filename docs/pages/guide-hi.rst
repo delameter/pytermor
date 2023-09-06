@@ -2,11 +2,6 @@
 Guide · High-level
 ###################
 
-.. only:: html
-
-   .. graphviz:: /_generated/module-dark.dot
-      :class: graphviz-dark
-
 .. toctree::
 
    guide-hi/index
@@ -17,3 +12,4 @@ Guide · High-level
    guide-hi/filters
    guide-hi/num-formatters
    guide-hi/named-colors
+   guide-hi/dynamic-deferred-colors

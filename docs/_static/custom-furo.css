@@ -330,9 +330,9 @@ figcaption {
 /*article[role=main] dl.py {*/
 /*    margin-top: 1.5rem;*/
 /*}*/
-/*article[role=main] > section > dl.class {*/
-/*    margin-top: 2.0rem;*/
-/*}*/
+article[role=main] > section > dl {
+    margin-bottom: 2.0rem;
+}
 article[role=main] dt.sig {
     border-radius: 0;
     margin-bottom: 0.5rem;
