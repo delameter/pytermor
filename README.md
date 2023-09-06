@@ -12,7 +12,7 @@
   <a href='https://coveralls.io/github/delameter/pytermor?branch=dev'><img src='https://coveralls.io/repos/github/delameter/pytermor/badge.svg?branch=dev' alt='Coverage Status' /></a>
 </p>
 <p>
-  <a href="https://pytermor.dlup.link">[Documentation]</a>|
+  <a href="https://pytermor.dlup.link">[Documentation]</a> |
   <a href="CHANGES.rst">[Changelog]</a>
 </p>
 <h1></h1>
