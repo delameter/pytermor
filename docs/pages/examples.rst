@@ -267,18 +267,10 @@ and note that we did not fill the line with spaces or something like that --
 this method is (in theory) faster, because the tty needs to process only ~10-20
 characters of input instead of 120+ (average terminal width).
 
-.. literalinclude:: /demo/examples.preset-compositons.py
+.. literalinclude:: /demo/examples/preset-compositons.py
    :linenos:
 
-.. only:: html
-
-   .. raw:: html
-       :file: ../demo/examples.preset-compositons.html
-
-.. only:: latex
-
-   .. figure:: /demo/examples.preset-compositons.svg
-      :align: center
+.. include:: /demo/examples/preset-compositons.rst
 
 .. note ::
 

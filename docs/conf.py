@@ -8,6 +8,7 @@ import os
 import sys
 
 import yaml
+from docs.conf_extras import read_x, latex_elements
 
 # -- Path setup ---------------------------------------------------------------
 
@@ -60,8 +61,7 @@ extensions = [
 # sphinx-design breaks building docs in man format, so `make` comments that
 # line before building it and uncomments it afterwards (yeah I know it's ugly)
 
-with open("_include/_prolog.rsti", "rt") as f:
-    rst_prolog = f.read()
+rst_prolog = read_x('_prolog.rsti')
 
 templates_path = ["_templates"]
 exclude_patterns = [
@@ -97,8 +97,7 @@ html_js_files = ["custom.js"]
 html_favicon = "_static/logo-96.svg"
 html_logo = "_static/logo-96.svg"
 
-with open('conf_extras/html_theme_options.yml') as f:
-    html_theme_options = yaml.safe_load(f)
+html_theme_options = yaml.safe_load(read_x('html_theme_options.yml'))
 
 pygments_style = "tango"
 pygments_dark_style = "github-dark"
@@ -120,51 +119,7 @@ latex_logo = "_static/logo-96.png"
 #latex_show_urls = "footnote"
 
 # noinspection SpellCheckingInspection
-latex_elements = {
-    # 'fontenc': r'\usepackage[X2,T1]{fontenc}',  # with language = "ru"
-    "preamble":
-        r'\setlength{\emergencystretch}{5em}'  # decrease "can't fit" warnings
-        r'\DeclareUnicodeCharacter{2588}{~}'  # █
-        # r'\usepackage{tcolorbox}'
-        # r'\usepackage{pgffor}'
-        # r'\tcbox[top=0pt,left=0pt,right=0pt,bottom=0pt]{EQUAL}'
-        r'\newcommand{\DUroleblack}[1]{{\color[HTML]{000000} #1}}'
-        r'\newcommand{\DUrolegray}[1]{{\color[HTML]{808080} #1}}'
-        r'\newcommand{\DUrolesilver}[1]{{\color[HTML]{C0C0C0} #1}}'
-        r'\newcommand{\DUrolewhite}[1]{{\color[HTML]{FFFFFF} #1}}'
-        r'\newcommand{\DUrolemaroon}[1]{{\color[HTML]{800000} #1}}'
-        r'\newcommand{\DUrolered}[1]{{\color[HTML]{FF0000} #1}}'
-        r'\newcommand{\DUrolemagenta}[1]{{\color[HTML]{FF00FF} #1}}'
-        r'\newcommand{\DUrolefuchsia}[1]{{\color[HTML]{FF00FF} #1}}'
-        r'\newcommand{\DUrolepink}[1]{{\color[HTML]{FFC0CB} #1}}'
-        r'\newcommand{\DUroleorange}[1]{{\color[HTML]{FFA500} #1}}'
-        r'\newcommand{\DUroleyellow}[1]{{\color[HTML]{FFFF00} #1}}'
-        r'\newcommand{\DUrolelime}[1]{{\color[HTML]{00FF00} #1}}'
-        r'\newcommand{\DUrolegreen}[1]{{\color[HTML]{008000} #1}}'
-        r'\newcommand{\DUroleolive}[1]{{\color[HTML]{808000} #1}}'
-        r'\newcommand{\DUroleteal}[1]{{\color[HTML]{008080} #1}}'
-        r'\newcommand{\DUrolecyan}[1]{{\color[HTML]{00FFFF} #1}}'
-        r'\newcommand{\DUroleaqua}[1]{{\color[HTML]{00FFFF} #1}}'
-        r'\newcommand{\DUroleblue}[1]{{\color[HTML]{0000FF} #1}}'
-        r'\newcommand{\DUrolenavy}[1]{{\color[HTML]{000080} #1}}'
-        r'\newcommand{\DUrolepurple}[1]{{\color[HTML]{800080} #1}}',
-    # 'passoptionstopackages': r'\PassOptionsToPackage{svgnames}{xcolor}',
-    "papersize": "a4paper",  # letter,a4paper
-    "pointsize": "10pt",  # 10,11,12
-    "inputenc": "",
-    "utf8extra": "",  # both necessary for unicode charactacters in pdf output
-    "classoptions": ",openany,oneside",  # remove blank pages
-    "babel": "\\usepackage[english]{babel}",  # quote symbols and more
-    "pxunit": "0.5bp",  # (dpi = 72*bp)  doesnt work btw
-    "figure_align": "H",  # text wrapping
-    "fncychap":  # chapter start pages
-        r'\usepackage{fix-cm}' 
-        r'\usepackage{color}' 
-        r'\usepackage[Conny]{fncychap}'  # pre-set chapter style
-        r'\ChNumVar{\fontsize{48}{56}\selectfont}'  # with bigger font for numbers
-        r'\renewcommand\FmN[1]{}',
-    "printindex": r"\footnotesize\raggedright\printindex",  # decrease font for index
-}
+latex_elements = latex_elements.get()
 
 image_converter_args=["-density", "80"]
 
@@ -229,7 +184,7 @@ keep_warnings = True
 nitpicky = True
 nitpick_ignore = []
 
-for line in open('conf_extras/nitpick-exceptions'):
+for line in read_x('nitpick-exceptions').splitlines():
     if (line := line.strip()) == "" or line.startswith("#"):
         continue
     dtype, target = line.split(None, 1)

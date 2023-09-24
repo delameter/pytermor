@@ -34,6 +34,9 @@
 .. include:: <isonum.txt>
 .. include:: <s5defs.txt>
 
+.. role:: bgteal
+   :class: bgteal
+
 .. |nbspt| unicode:: 0xA0
    :trim:
 

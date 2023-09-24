@@ -9,8 +9,19 @@ pending
 - |FIX| legacy virtual SequenceSGR descendants
 - |NEW| `DynamicColor`
 - |REFACTOR| split color hierarchy into `ResolvableColor`, `RenderColor` and `RealColor`
+- |FIX| restricted `DynamicColor` to `RenderColor` functionally
+- |REFACTOR| `DynamicColor` deferred mechanism
+- |FIX| missing imports
+- |DOCS| update
+- |U|pdate README.md
+- |U|pdate README.md
+- |NEW| deferred `cval` instantiating
+- |DOCS|  colored LaTeX output
+- |DOCS|  examples
+- |DOCS|  features WIP
+- |DOCS|  index rewrite
 
-.. <@pending:4ac45de>
+.. <@pending:1f2fea8>
 .. ^ blank line before should be kept
 
 

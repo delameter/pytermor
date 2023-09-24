@@ -88,3 +88,10 @@
 .purple {
     color: purple;
 }
+
+
+
+.bgteal {
+    background-color: teal;
+    display: block;
+}
