@@ -1,0 +1,13 @@
+   0 |U+   3D FFFD   39   05 FFFD   54 FFFD FFFD FFFD FFFD FFFD |=�9·�T�����
+  11 |U+   4C FFFD FFFD   75  77C   02   0D   0A   7A FFFD FFFD |L��uݼ·⇤↵z��
+  22 |U+   40   76   4B   36   1C   00 FFFD   02 FFFD   61   45 |@vK6··�·�aE
+  33 |U+ FFFD FFFD  376   71   02   4F   52 FFFD   39   64   22 |��Ͷq·OR�9d"
+  44 |U+   68   6A   2E   4E FFFD   1E   67   07   31   0D FFFD |hj.N�·g·1⇤�
+  55 |U+   55   4D FFFD FFFD FFFD FFFD   41   72   54   6D   2B |UM����ArTm+
+  66 |U+   03 FFFD FFFD FFFD FFFD   28 FFFD   3E FFFD FFFD   4E |·����(�>��N
+  77 |U+   30   5C   6B   5C   D9 FFFD FFFD FFFD   24 FFFD   43 |0\k\Ù���$�C
+  88 |U+ FFFD   30 FFFD   6A FFFD   74 FFFD FFFD   4A   30   4F |�0�j�t��J0O
+  99 |U+ FFFD   38   71  7F2   39   19   30   56   7C   73 FFFD |�8q߲9·0V|s�
+ 110 |U+   56   6E FFFD   38   48 FFFD FFFD   5B   08 FFFD FFFD |Vn�8H��[·��
+ 121 |U+ FFFD   4F   6E                                         |�On
+-----------------------------------------------------------------------(124)

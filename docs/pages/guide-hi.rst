@@ -8,8 +8,9 @@ Guide · High-level
    guide-hi/text-fragments
    guide-hi/styles
    guide-hi/colors
+   guide-hi/fargs
    guide-hi/renderers
-   guide-hi/filters
+   guide-hi/templates
    guide-hi/num-formatters
    guide-hi/named-colors
    guide-hi/dynamic-deferred-colors

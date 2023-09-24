@@ -28,7 +28,6 @@ Library structure
    color
    common
    config
-   conv
    cval
    exception
    filter

@@ -3,10 +3,10 @@
 # (C) 2022 A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
 import io
+from collections import deque
 from contextlib import redirect_stdout
 
-from pytermor import Span, ansi
-from pytermor.util import ReplaceSGR
+from pytermor import Style, ansi, render, SgrStringReplacer
 
 
 class Cycle:
@@ -30,7 +30,7 @@ corners = Cycle(
     Cycle('┌', '┐'),
 )
 lineseps = Cycle('│', '│')
-span_sep = Span(Seqs.GRAY + Seqs.DIM)
+st = Style(fg='gray', dim=True)
 
 for line in s.splitlines(keepends=True):
     line = line.strip()
@@ -42,10 +42,10 @@ for line in s.splitlines(keepends=True):
         fill = '─'
         sep = corners.next()
 
-    linelen = len(ReplaceSGR('').apply(line))
+    linelen = len(SgrStringReplacer('').apply(line))
     pad = max(0, MAX_LEN - linelen)
 
     print(
         f'>{line}{"":{pad}}{fill}{"<":6}' +
-        span_sep(sep.next()) + line + span_sep((fill * pad) + sep.next())
+        render(sep.next(), st) + line + render((fill * pad) + sep.next(), st)
     )

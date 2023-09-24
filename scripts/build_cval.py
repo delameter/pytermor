@@ -75,6 +75,7 @@ class IndexBuilder(TaskRunner):
             config = yaml.safe_load(f)
             self._print_fin_result(f, config_path)
         self._colors_mode_class = config.get("class")
+        self._deferred = config.get("_deferred")
 
         colors = sorted(config.get("colors"), key=sorter)
         for color in colors:
@@ -97,17 +98,15 @@ class IndexBuilder(TaskRunner):
                 color16_equiv = color.get("color16_equiv")
 
             if color16_equiv:
-                col_var_name = f"__256A_16_{color16_equiv}".ljust(longest_name_len) + "= "
+                col_var_name = f"__256A_16_{color16_equiv}".ljust(longest_name_len)
             else:
-                col_var_name = f"{var_name}".ljust(longest_name_len) + "= "
+                col_var_name = f"{var_name}".ljust(longest_name_len)
 
             col_value = "0x{:06x}, ".format(color.get("value"))
             color_values.add(color.get("value"))
 
             col_name = f'"{color.get("name")}", '
             col_name = col_name.ljust(longest_name_len + 4)
-
-            col_index = (None, f"index=True, ")[mode.startswith('xterm')]
 
             cols_code = []
             col_color16_eq = None
@@ -130,14 +129,17 @@ class IndexBuilder(TaskRunner):
                 variation_map = self._map_variations(variations)
                 col_variations = f"variation_map={{\n{variation_map} }}, "
 
+            constructor_call = ': %s = %s('
+            if self._deferred:
+                constructor_call = ': %s = lambda *_: %s('
+
             columns = [
                 col_var_name,
-                f"{self._colors_mode_class}(",
+                constructor_call % (*[self._colors_mode_class]*2,),
                 col_value,
                 *cols_code,
                 col_name,
                 "register=True, ",
-                col_index,
                 col_aliases,
                 col_color16_eq,
                 col_variations,

@@ -26,9 +26,19 @@ def _calc_srgb_euclidean_distance(
 ) -> Iterable[ApxResult[Color]]:
     r, g, b = value.rgb
     for e in cls._index:
-        er, eg, eb = e.color.rgb
+        er, eg, eb = e.rgb
         distance_sq: int = (er - r) ** 2 + (eg - g) ** 2 + (eb - b) ** 2
-        yield ApxResult(e.color, distance_sq)
+        yield ApxResult(e, distance_sq)
+
+
+def _calc_cie_distance(
+    cls: t.Type[Color], value: IColorValue
+) -> Iterable[ApxResult[Color]]:
+    l, a, b = value.lab
+    for e in cls._index:
+        el, ea, eb = e.lab
+        distance_sq: int = (el - l) ** 2 + (ea - a) ** 2 + (eb - b) ** 2
+        yield ApxResult(e, distance_sq)
 
 
 def _calc_hsv_euclidean_distance(
@@ -36,12 +46,12 @@ def _calc_hsv_euclidean_distance(
 ) -> Iterable[ApxResult[Color]]:
     h, s, v = value.hsv
     for e in cls._index:
-        eh, es, ev = e.color.hsv
+        eh, es, ev = e.hsv
         dh = min(abs(eh - h), 360 - abs(eh - h)) / 180.0
         ds = abs(es - s)
         dv = abs(ev - v)
         distance_sq: int = dh**2 + ds**2 + dv**2
-        yield ApxResult(e.color, distance_sq)
+        yield ApxResult(e, distance_sq)
 
 
 class Approximator:
@@ -162,7 +172,7 @@ class Approximator:
         setattr(
             formatter,
             "format",
-            lambda v: pt.format_auto_float(v, 4, allow_exp_form=False),
+            lambda v: pt.format_auto_float(v, 4, allow_exp_form=True),
         )
 
         pt.echo()
@@ -198,11 +208,13 @@ class Approximator:
                         max_results = 2 * self._extended_mode + 1
                 if self._color_diff_fn_override:
                     upper_bound._color_diff_fn = partial(self._color_diff_fn_override, upper_bound)
+                else:
+                    upper_bound._color_diff_fn = partial(_calc_cie_distance, upper_bound)
                 approx_results = upper_bound.approximate(sample, max_results)
 
             for aix, approx_result in enumerate(approx_results):
                 sample_approx = approx_result.color
-                dist = sample_approx - sample.lab
+                dist = approx_result.distance
 
                 if idx == 0:
                     sample_approx = sample

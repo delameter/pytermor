@@ -888,7 +888,7 @@ def wrap_sgr(
 
 
 def apply_style_words_selective(string: str, st: Style) -> t.Sequence[Fragment]:
-    """ """
+    """ ... """
     return apply_style_selective(SELECT_WORDS_REGEX, string, st)
 
 
@@ -917,15 +917,9 @@ def apply_style_selective(
         ... ], renderer=SgrRenderer(OutputMode.XTERM_16))
         ['\x1b[31mA\x1b[39m', ' few ', '\x1b[31mCAPITAL\x1b[39m', 's']
 
-        .. only:: html
+        .. container:: highlight highlight-manual highlight-adjacent highlight-output
 
-            .. raw:: html
-                :file: ../docs/demo/text.apply_style_selective.html
-
-        .. only:: latex
-
-            .. figure:: /demo/text.apply_style_selective.svg
-               :align: center
+            :red:`A` few :red:`CAPITAL`\ s
 
     :param regex:
     :param string:

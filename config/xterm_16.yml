@@ -1,3 +1,4 @@
+_deferred: false
 class: Color16
 colors:
   - code: BLACK

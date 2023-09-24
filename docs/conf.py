@@ -74,6 +74,8 @@ exclude_patterns = [
     "_include",
 ]
 
+# smartquotes = False  # breaks at custom directive "textcolor"
+
 # -- HTML ---------------------------------------------------------------------
 
 # html_theme = 'alabaster'  # alibabaster f[f[f[
@@ -85,6 +87,7 @@ html_last_updated_fmt = '%d %b %Y'
 
 html_static_path = ["_static"]
 html_css_files = [
+    "color.css",
     "custom.css",
     "custom-furo.css",
     "hint.css",
@@ -121,7 +124,31 @@ latex_elements = {
     # 'fontenc': r'\usepackage[X2,T1]{fontenc}',  # with language = "ru"
     "preamble":
         r'\setlength{\emergencystretch}{5em}'  # decrease "can't fit" warnings
-        r'\DeclareUnicodeCharacter{2588}{~}',  # █
+        r'\DeclareUnicodeCharacter{2588}{~}'  # █
+        # r'\usepackage{tcolorbox}'
+        # r'\usepackage{pgffor}'
+        # r'\tcbox[top=0pt,left=0pt,right=0pt,bottom=0pt]{EQUAL}'
+        r'\newcommand{\DUroleblack}[1]{{\color[HTML]{000000} #1}}'
+        r'\newcommand{\DUrolegray}[1]{{\color[HTML]{808080} #1}}'
+        r'\newcommand{\DUrolesilver}[1]{{\color[HTML]{C0C0C0} #1}}'
+        r'\newcommand{\DUrolewhite}[1]{{\color[HTML]{FFFFFF} #1}}'
+        r'\newcommand{\DUrolemaroon}[1]{{\color[HTML]{800000} #1}}'
+        r'\newcommand{\DUrolered}[1]{{\color[HTML]{FF0000} #1}}'
+        r'\newcommand{\DUrolemagenta}[1]{{\color[HTML]{FF00FF} #1}}'
+        r'\newcommand{\DUrolefuchsia}[1]{{\color[HTML]{FF00FF} #1}}'
+        r'\newcommand{\DUrolepink}[1]{{\color[HTML]{FFC0CB} #1}}'
+        r'\newcommand{\DUroleorange}[1]{{\color[HTML]{FFA500} #1}}'
+        r'\newcommand{\DUroleyellow}[1]{{\color[HTML]{FFFF00} #1}}'
+        r'\newcommand{\DUrolelime}[1]{{\color[HTML]{00FF00} #1}}'
+        r'\newcommand{\DUrolegreen}[1]{{\color[HTML]{008000} #1}}'
+        r'\newcommand{\DUroleolive}[1]{{\color[HTML]{808000} #1}}'
+        r'\newcommand{\DUroleteal}[1]{{\color[HTML]{008080} #1}}'
+        r'\newcommand{\DUrolecyan}[1]{{\color[HTML]{00FFFF} #1}}'
+        r'\newcommand{\DUroleaqua}[1]{{\color[HTML]{00FFFF} #1}}'
+        r'\newcommand{\DUroleblue}[1]{{\color[HTML]{0000FF} #1}}'
+        r'\newcommand{\DUrolenavy}[1]{{\color[HTML]{000080} #1}}'
+        r'\newcommand{\DUrolepurple}[1]{{\color[HTML]{800080} #1}}',
+    # 'passoptionstopackages': r'\PassOptionsToPackage{svgnames}{xcolor}',
     "papersize": "a4paper",  # letter,a4paper
     "pointsize": "10pt",  # 10,11,12
     "inputenc": "",
@@ -132,6 +159,7 @@ latex_elements = {
     "figure_align": "H",  # text wrapping
     "fncychap":  # chapter start pages
         r'\usepackage{fix-cm}' 
+        r'\usepackage{color}' 
         r'\usepackage[Conny]{fncychap}'  # pre-set chapter style
         r'\ChNumVar{\fontsize{48}{56}\selectfont}'  # with bigger font for numbers
         r'\renewcommand\FmN[1]{}',

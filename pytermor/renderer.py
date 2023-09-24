@@ -179,8 +179,8 @@ class OutputMode(ExtendedEnum):
     """
     AUTO = "auto"
     """
-    Lets the renderer select the most suitable mode by itself.
-    See `SgrRenderer` constructor documentation for the details. 
+    Lets the renderer select the most suitable mode by itself. See
+    `guide.output_mode_select` for the details.
     """
 
 
@@ -211,54 +211,11 @@ class SgrRenderer(IRenderer):
     >>> SgrRenderer(OutputMode.NO_ANSI).render('text', Styles.WARNING_LABEL)
     'text'
 
+    Detailed `OutputMode.AUTO` algorithm is described in `guide.output_mode_select`.
+
     :cache allowed:    *True*
     :format allowed:   *False* if `output_mode` is `OutputMode.NO_ANSI`,
                        *True* otherwise.
-
-    .. rubric :: Automatic output mode selection
-
-    With `OutputMode.AUTO` the renderer will return `OutputMode.NO_ANSI`
-    for any output device other than terminal emulator, or try to find
-    a matching rule from this list:
-
-    .. |ANY| replace:: :aux:`<any>`
-
-    .. |CV_FORCE| replace:: :ref:`Config.force_output_mode`
-    .. |CV_DEFAULT| replace:: :ref:`Config.default_output_mode`
-
-    .. table:: Automatic output mode selection
-
-       +--------+---------------------------+---------------+--------------------+
-       | Is a   | ``TERM``                  | ``COLORTERM`` | Result             |
-       | tty?   | env. var                  | env. var [#]_ | output mode        |
-       +========+===========================+===============+====================+
-       |                      |ANY|                         | |CV_FORCE| [#]_    |
-       +--------+---------------------------+---------------+--------------------+
-       | No     |                   |ANY|                   | `NO_ANSI`          |
-       +--------+---------------------------+---------------+--------------------+
-       |        | ``xterm-256color``        | ``24bit``,    | `TRUE_COLOR`       |
-       | Yes    |                           | ``truecolor`` |                    |
-       |        +---------------------------+---------------+--------------------+
-       |        | ``*-256color`` [#]_       |     |ANY|     | `XTERM_256`        |
-       |        +---------------------------+---------------+--------------------+
-       |        | ``xterm-color``           |     |ANY|     | `XTERM_16`         |
-       |        +---------------------------+---------------+--------------------+
-       |        | ``xterm``                 |     |ANY|     | `NO_ANSI`          |
-       |        +---------------------------+---------------+--------------------+
-       |        | :aux:`<any other>`        |     |ANY|     | |CV_DEFAULT| [#]_  |
-       +--------+---------------------------+---------------+--------------------+
-
-    ..
-
-       .. [#] should both requirements be present, they must be both true
-              as well (i.e. logical AND is applied).
-
-       .. [#] empty by default and thus ignored
-
-       .. [#] ``*`` represents any string; that's how e.g. *bash 5*
-              determines the color support.
-
-       .. [#] `XTERM_256` by default, but can be customized.
 
     :param output_mode:
                can be set up explicitly, or kept at the default value

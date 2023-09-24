@@ -30,7 +30,7 @@ postprocess_module() {
              -e '/(_ansi|_conv|_config|_color|_filter|_term).+(label|->)/ s/(fillcolor="#)[0-9a-f]+(")/shape="folder",group="low",\1'$LOW_LEVEL_GROUP_COLOR'\2/;'\
              -e '/(_renderer|_text|_style|_cval|_numfmt|_template).+(label|->)/ s/(fillcolor="#)[0-9a-f]+(")/shape="tab",\1'$HIGH_LEVEL_GROUP_COLOR'\2/;'\
              -e '/->/ s/(shape|group)="[a-z]*",//g; ' \
-             -e 's/(label=")(renderer|text|style)(")/\1☢️ \2\3/g; '
+             -e 's/(label=")(renderer|text|style|color)(")/\1☢️ \2\3/g; '
         tail -n +$((placheolder_lineno+1)) "$tpl_path"
     } | tee "${DOCS_IN_PATH}/_generated/module-generic.dot"
 }
@@ -51,14 +51,14 @@ run --rmprefix "${PROJECT_NAME}". \
 export EDGE_COLOR="#101010"
 export LABEL_COLOR="#000000"
 export SIZE="3"
-export LEGEND_SIZE="1.5,0.5"
+export LEGEND_SIZE="2.0,0.5"
 envsubst < "${DOCS_IN_PATH}/_generated/module-generic.dot" > "${DOCS_IN_PATH}/_generated/module-pdf.dot"
 envsubst < "${DOCS_IN_PATH}/_generated/module_legend.template" > "${DOCS_IN_PATH}/_generated/module_legend-pdf.dot"
 
 export EDGE_COLOR="#101010"
 export LABEL_COLOR="#000000"
 export SIZE="4"
-export LEGEND_SIZE="2,1"
+export LEGEND_SIZE="2.66,1"
 envsubst < "${DOCS_IN_PATH}/_generated/module-generic.dot" > "${DOCS_IN_PATH}/_generated/module-default.dot"
 envsubst < "${DOCS_IN_PATH}/_generated/module_legend.template" > "${DOCS_IN_PATH}/_generated/module_legend-default.dot"
 

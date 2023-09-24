@@ -445,3 +445,37 @@ class TestGetQName:
     )
     def test_get_qname(self, input: t.Any, expected: str):
         assert get_qname(input) == expected
+
+
+class TestFiltersFV:
+    def test_filterf(self):
+        assert [*filterf([
+            True, False, 0, 1, '', "0", "False", None, [], {}, [0], {0},
+        ])] == [
+            True, 1, '0', "False", [0], {0},
+        ]
+
+    def test_filtern(self):
+        assert [*filtern([
+            True, False, 0, 1, '', "0", "False", None, [], {}, [0], {0},
+        ])] == [
+            True, False, 0, 1, '', "0", "False", [], {}, [0], {0},
+        ]
+
+    def test_filterfv(self):
+        assert {**filterfv({
+            'a': 0, 'b': 1, 'c': True, 'd': False, 'e': '', 'f': 'False',
+            'h': [], 'i': {}, 'j': [0], 'k': {0},
+        })} == {
+            'a': 0, 'b': 1, 'c': True, 'd': False, 'e': '', 'f': 'False',
+            'h': [], 'i': {}, 'j': [0], 'k': {0},
+        }
+
+    def test_filternv(self):
+        assert {**filternv({
+            'a': 0, 'b': 1, 'c': True, 'd': False, 'e': '', 'f': 'False',
+            'g': None, 'h': [], 'i': {}, 'j': [0], 'k': {0},
+        })} == {
+            'a': 0, 'b': 1, 'c': True, 'd': False, 'e': '', 'f': 'False',
+            'h': [], 'i': {}, 'j': [0], 'k': {0},
+        }

@@ -13,79 +13,79 @@ import sys
 from PIL import Image
 from PIL.ImageFont import ImageFont
 
-
-# from https://stackoverflow.com/a/53705610/5834973
-def get_obj_size(obj):
-    marked = {id(obj)}
-    obj_q = [obj]
-    sz = 0
-
-    while obj_q:
-        sz += sum(map(sys.getsizeof, obj_q))
-
-        # Lookup all the object referred to by the object in obj_q.
-        # See: https://docs.python.org/3.7/library/gc.html#gc.get_referents
-        all_refr = ((id(o), o) for o in gc.get_referents(*obj_q))
-
-        # Filter object that are already marked.
-        # Using dict notation will prevent repeated objects.
-        new_refr = {o_id: o for o_id, o in all_refr if
-                    o_id not in marked and not isinstance(o, type)}
-
-        # The new obj_q will be the ones that were not marked,
-        # and we will update marked with their ids so we will
-        # not traverse them again.
-        obj_q = new_refr.values()
-        marked.update(new_refr.keys())
-
-    return sz
-
-
-def lab2rgb(l_s: float, a_s: float, b_s: float) -> Tuple[float, float, float]:
-    var_Y: float = (l_s + 16.) / 116.
-    var_X: float = a_s / 500. + var_Y
-    var_Z: float = var_Y - b_s / 200.
-
-    if pow(var_Y, 3) > 0.008856:
-        var_Y = pow(var_Y, 3)
-    else:
-        var_Y = (var_Y - 16. / 116.) / 7.787
-    if pow(var_X, 3) > 0.008856:
-        var_X = pow(var_X, 3)
-    else:
-        var_X = (var_X - 16. / 116.) / 7.787
-    if pow(var_Z, 3) > 0.008856:
-        var_Z = pow(var_Z, 3)
-    else:
-        var_Z = (var_Z - 16. / 116.) / 7.787
-
-    X: float = 95.047 * var_X  # ref_X =  95.047     Observer= 2°, Illuminant= D65
-    Y: float = 100.000 * var_Y  # ref_Y = 100.000
-    Z: float = 108.883 * var_Z  # ref_Z = 108.883
-
-    var_X = X / 100.  # X from 0 to  95.047      (Observer = 2°, Illuminant = D65)
-    var_Y = Y / 100.  # Y from 0 to 100.000
-    var_Z = Z / 100.  # Z from 0 to 108.883
-
-    var_R: float = var_X * 3.2406 + var_Y * -1.5372 + var_Z * -0.4986
-    var_G: float = var_X * -0.9689 + var_Y * 1.8758 + var_Z * 0.0415
-    var_B: float = var_X * 0.0557 + var_Y * -0.2040 + var_Z * 1.0570
-
-    if var_R > 0.0031308:
-        var_R = 1.055 * pow(var_R, (1 / 2.4)) - 0.055
-    else:
-        var_R = 12.92 * var_R
-    if var_G > 0.0031308:
-        var_G = 1.055 * pow(var_G, (1 / 2.4)) - 0.055
-    else:
-        var_G = 12.92 * var_G
-    if var_B > 0.0031308:
-        var_B = 1.055 * pow(var_B, (1 / 2.4)) - 0.055
-    else:
-        var_B = 12.92 * var_B
-
-    return (var_R * 255.), (var_G * 255.), (var_B * 255.)
-
+#
+# # from https://stackoverflow.com/a/53705610/5834973
+# def get_obj_size(obj):
+#     marked = {id(obj)}
+#     obj_q = [obj]
+#     sz = 0
+#
+#     while obj_q:
+#         sz += sum(map(sys.getsizeof, obj_q))
+#
+#         # Lookup all the object referred to by the object in obj_q.
+#         # See: https://docs.python.org/3.7/library/gc.html#gc.get_referents
+#         all_refr = ((id(o), o) for o in gc.get_referents(*obj_q))
+#
+#         # Filter object that are already marked.
+#         # Using dict notation will prevent repeated objects.
+#         new_refr = {o_id: o for o_id, o in all_refr if
+#                     o_id not in marked and not isinstance(o, type)}
+#
+#         # The new obj_q will be the ones that were not marked,
+#         # and we will update marked with their ids so we will
+#         # not traverse them again.
+#         obj_q = new_refr.values()
+#         marked.update(new_refr.keys())
+#
+#     return sz
+#
+#
+# def lab2rgb(l_s: float, a_s: float, b_s: float) -> Tuple[float, float, float]:
+#     var_Y: float = (l_s + 16.) / 116.
+#     var_X: float = a_s / 500. + var_Y
+#     var_Z: float = var_Y - b_s / 200.
+#
+#     if pow(var_Y, 3) > 0.008856:
+#         var_Y = pow(var_Y, 3)
+#     else:
+#         var_Y = (var_Y - 16. / 116.) / 7.787
+#     if pow(var_X, 3) > 0.008856:
+#         var_X = pow(var_X, 3)
+#     else:
+#         var_X = (var_X - 16. / 116.) / 7.787
+#     if pow(var_Z, 3) > 0.008856:
+#         var_Z = pow(var_Z, 3)
+#     else:
+#         var_Z = (var_Z - 16. / 116.) / 7.787
+#
+#     X: float = 95.047 * var_X  # ref_X =  95.047     Observer= 2°, Illuminant= D65
+#     Y: float = 100.000 * var_Y  # ref_Y = 100.000
+#     Z: float = 108.883 * var_Z  # ref_Z = 108.883
+#
+#     var_X = X / 100.  # X from 0 to  95.047      (Observer = 2°, Illuminant = D65)
+#     var_Y = Y / 100.  # Y from 0 to 100.000
+#     var_Z = Z / 100.  # Z from 0 to 108.883
+#
+#     var_R: float = var_X * 3.2406 + var_Y * -1.5372 + var_Z * -0.4986
+#     var_G: float = var_X * -0.9689 + var_Y * 1.8758 + var_Z * 0.0415
+#     var_B: float = var_X * 0.0557 + var_Y * -0.2040 + var_Z * 1.0570
+#
+#     if var_R > 0.0031308:
+#         var_R = 1.055 * pow(var_R, (1 / 2.4)) - 0.055
+#     else:
+#         var_R = 12.92 * var_R
+#     if var_G > 0.0031308:
+#         var_G = 1.055 * pow(var_G, (1 / 2.4)) - 0.055
+#     else:
+#         var_G = 12.92 * var_G
+#     if var_B > 0.0031308:
+#         var_B = 1.055 * pow(var_B, (1 / 2.4)) - 0.055
+#     else:
+#         var_B = 12.92 * var_B
+#
+#     return (var_R * 255.), (var_G * 255.), (var_B * 255.)
+#
 
 def hsv_to_rgb(h, s, v):
     if s == 0.0: v *= 255; return (v, v, v)

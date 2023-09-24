@@ -155,7 +155,11 @@ class RgbPreprocessor():
                 )
                 color.update({"variations": list(sorted_variations)})
             color_defs.append(color)
-        return {"class": pt.ColorRGB.__qualname__, "colors": color_defs}
+        return {
+            "class": pt.ColorRGB.__qualname__,
+            "_deferred": True,
+            "colors": color_defs,
+        }
 
     def _dump_config(self, config: t.Dict):
         class IndentedDumper(yaml.Dumper):

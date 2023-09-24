@@ -8,8 +8,8 @@ from os import listdir
 from os.path import join, splitext, abspath
 import sys
 
-sys.path.append(abspath(join('../..', 'docs')))
-for file in sorted(listdir(abspath(join('../..', 'docs', 'examples'))),
+sys.path.append(abspath(join('../..', 'examples')))
+for file in sorted(listdir(abspath(join('../..', 'examples'))),
                    key=lambda f: int(re.search(r'.*?(\d+)|.+?', f).group(1) or 0)):
     importlib.import_module('examples.' + splitext(file)[0], package=__name__)
     print(end='\n'*2)

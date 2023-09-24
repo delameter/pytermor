@@ -163,7 +163,7 @@ test-trace: ## Run pytest with detailed output  <@last_test_trace.log>
 
 profile-import-tuna:  ## Profile imports
 	@PT_ENV=test \
-		./.invoke python -X importtime -m pytermor 2> ./import.log && \
+		./.invoke python -X importtime ./.run-import.py 2> ./import.log && \
 		tuna ./import.log
 
 .:
@@ -256,7 +256,7 @@ docs-all: depends demolish-docs docs docs-pdf docs-man
 
 open-docs-html:  ## Open HTML docs in browser
 	@$(call _ensure_x11) || return
-	@[ -d localhost ] && xdg-open ${LOCALHOST_URL}/docs || xdg-open ${DOCS_IN_PATH}/_build/index.html
+	@[ -d localhost ] && xdg-open ${LOCALHOST_URL}/docs/pages || xdg-open ${DOCS_IN_PATH}/_build/index.html
 
 open-docs-pdf:  ## Open PDF docs in reader
 	@$(call _ensure_x11) || return

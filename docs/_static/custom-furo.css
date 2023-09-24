@@ -45,7 +45,7 @@ body {
     font-size: var(--font-size--small);
 }
 h2 { font-size: 1.8rem; }
-h3 { font-size: 1.6rem; }
+h3 { font-size: 1.6rem; margin-top: 1em; }
 h4 { font-size: 1.4rem; }
 h5 { font-size: 1.2rem; }
 h6 { font-size: 1rem; }
@@ -205,6 +205,23 @@ body[data-theme="dark"]  .highlight-output > .highlight {
 }
 .highlight-adjacent:not(:first-of-type) {
     margin-top: 0 !important;
+}
+.highlight-manual {
+    display: block !important;
+}
+.highlight-manual p,
+.highlight-manual div.line-block {
+    padding: .625rem .875rem;
+    margin: 0;
+    font-family: "Iose7ka Terminal";
+    font-size: var(--code-font-size);
+}
+.code-block-caption p,
+.code-block-caption div.line-block {
+    display: block;
+    padding-block: 0;
+    padding-inline: 0.875em;
+    margin: 0
 }
 button.copybtn {
    background: var(--color-pt-doctest-background);

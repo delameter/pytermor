@@ -1,3 +1,4 @@
+_deferred: true
 class: Color256
 colors:
   - code: 0

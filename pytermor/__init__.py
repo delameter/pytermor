@@ -93,8 +93,6 @@ from .config import Config as Config
 from .config import get_config as get_config
 from .config import init_config as init_config
 from .config import replace_config as replace_config
-from .cval import ColorValuesRGB as ColorValuesRGB
-from .cval import ColorValuesXterm as ColorValuesXterm
 from .cval import cv as cv
 from .cval import cvr as cvr
 from .exception import ArgCountError as ArgCountError

@@ -1,5 +1,5 @@
 # placeholders:
-#   2,1
+#   2.66,1
 #   #dadada
 
 digraph G {
@@ -8,7 +8,7 @@ digraph G {
     ranksep=0.1;
     #TBbalance = min;
     ratio=compress;
-    size="2,1";
+    size="2.66,1";
 
     node [
         style="filled",
@@ -30,17 +30,21 @@ digraph G {
         legend_low [shape=plain,fillcolor="none",label="Low"];
         icon_high [shape=tab,label="",fillcolor="#769440",width=.35,height=.2];
         legend_high [shape=plain,fillcolor="none",label="High"];
-        icon_core [shape=tab,label="☢️"fontname="Ubuntu",fillcolor="#769440",width=.35,height=.2,fixedsize=1,fontsize=8];
-        legend_core [label="High\n(core)",shape=plain,fillcolor=none];
+        icon_low_core [shape=tab,label="☢️"fontname="Ubuntu",fillcolor="#5f819d",width=.35,height=.2,fixedsize=1,fontsize=8];
+        legend_low_core [label="Low\n(core)",shape=plain,fillcolor=none];
+        icon_high_core [shape=tab,label="☢️"fontname="Ubuntu",fillcolor="#769440",width=.35,height=.2,fixedsize=1,fontsize=8];
+        legend_high_core [label="High\n(core)",shape=plain,fillcolor=none];
         
         edge [constraint=0,minlen=0];
         icon_low -> legend_low  [];
         icon_high -> legend_high [];
-        icon_core -> legend_core [];
-        
+        icon_low_core -> legend_low_core [];
+        icon_high_core -> legend_high_core [];
+
         edge [constraint=1,minlen=2];
-        legend_low -> icon_high[];
-        legend_high -> icon_core [];
+        legend_low -> icon_low_core[];
+        legend_low_core -> icon_high[];
+        legend_high -> icon_high_core[];
 
     }
     

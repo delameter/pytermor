@@ -1,3 +1,4 @@
+_deferred: true
 class: ColorRGB
 colors:
   - name: absolute-zero

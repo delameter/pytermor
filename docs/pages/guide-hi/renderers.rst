@@ -68,8 +68,52 @@ renderer from the list below, skipping the undefined elements:
 Output mode auto-selection
 ===========================
 
+`SgrRenderer` can be set up with automatic output mode `OutputMode.AUTO`.
+In that case the renderer will return `OutputMode.NO_ANSI` for any output device
+other than terminal emulator, or try to find a matching rule from this list:
+
+.. |ANY| replace:: :aux:`<any>`
+
+.. |CV_FORCE| replace:: :ref:`Config.force_output_mode`
+.. |CV_DEFAULT| replace:: :ref:`Config.default_output_mode`
+
+.. table:: Auto output mode parameters and results
+
+   +--------+---------------------------+---------------+--------------------+
+   | Is a   | ``TERM``                  | ``COLORTERM`` | Result             |
+   | tty?   | env. var                  | env. var [#]_ | output mode        |
+   +========+===========================+===============+====================+
+   |                      |ANY|                         | |CV_FORCE| [#]_    |
+   +--------+---------------------------+---------------+--------------------+
+   | No     |                   |ANY|                   | `NO_ANSI`          |
+   +--------+---------------------------+---------------+--------------------+
+   |        | ``xterm-256color``        | ``24bit``,    | `TRUE_COLOR`       |
+   | Yes    |                           | ``truecolor`` |                    |
+   |        +---------------------------+---------------+--------------------+
+   |        | ``*-256color`` [#]_       |     |ANY|     | `XTERM_256`        |
+   |        +---------------------------+---------------+--------------------+
+   |        | ``xterm-color``           |     |ANY|     | `XTERM_16`         |
+   |        +---------------------------+---------------+--------------------+
+   |        | ``xterm``                 |     |ANY|     | `NO_ANSI`          |
+   |        +---------------------------+---------------+--------------------+
+   |        | :aux:`<any other>`        |     |ANY|     | |CV_DEFAULT| [#]_  |
+   +--------+---------------------------+---------------+--------------------+
+
+..
+
+   .. [#] should both env. var requirements be present, they both must be true
+          as well (i.e. logical AND is applied).
+
+   .. [#] empty by default and thus ignored
+
+   .. [#] ``*`` represents any string; that's how e.g. *bash 5*
+          determines the color support.
+
+   .. [#] `XTERM_256` by default, but can be customized.
+
 .. graphviz:: /_include/sgr-output-mode.dot
-    :caption: `SgrRenderer` output mode selection algorithm
+    :caption: Auto output mode algorithm
+
 
 ===========================
 Renderer class hierarchy

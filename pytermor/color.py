@@ -25,13 +25,18 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Iterable
 from functools import cached_property
 from math import sqrt
-from typing import TypeVar
+from typing import TypeVar, OrderedDict
 
 from .ansi import BG_HI_COLORS, ColorTarget, HI_COLORS, NOOP_SEQ, SequenceSGR
 from .common import CDT
 from .common import get_qname
 from .config import get_config
-from .exception import ColorCodeConflictError, ColorNameConflictError, LogicError, NotInitializedError
+from .exception import (
+    ColorCodeConflictError,
+    ColorNameConflictError,
+    LogicError,
+    NotInitializedError,
+)
 from .term import make_color_256, make_color_rgb
 
 _T = t.TypeVar("_T", bound=object)
@@ -313,7 +318,7 @@ class HSV(IColorValue):
             f"S={100*self.saturation:.0f}%",
             f"V={100*self.value:.0f}%",
         ]
-        return f"<{self.__class__.__name__}[{' '.join(attrs)}]>"
+        return f"{self.__class__.__name__}[{' '.join(attrs)}]"
 
     __repr__ = __str__
 
@@ -398,8 +403,26 @@ class XYZ(IColorValue):
     """
 
     @classmethod
-    def diff(cls, c1: LAB, c2: LAB) -> float:
-        raise NotImplementedError
+    def diff(cls, c1: XYZ, c2: XYZ) -> float:  # pragma: no cover
+        """
+        .. note ::
+
+            This one is written on the analogy of other diffs, therefore
+            it can be actually a little bit incorrect or outright wrong.
+
+        """
+        if not isinstance(c1, XYZ):
+            c1 = getattr(c1, "xyz")
+        if not isinstance(c2, XYZ):
+            c2 = getattr(c2, "xyz")
+
+        x1, y1, z1 = c1
+        x2, y2, z2 = c2
+        dx = x2 - x1
+        dy = y2 - y1
+        dz = z2 - z1
+
+        return sqrt(dx**2 + dy**2 + dz**2)
 
     def __init__(self, x: float, y: float, z: float):
         self._x = _ConstrainedValue[float](x)
@@ -415,7 +438,7 @@ class XYZ(IColorValue):
             f"Y={self.y:.2f}%",
             f"Z={self.z:.2f}",
         ]
-        return f"{self.__class__.__name__}({' '.join(attrs)})"
+        return f"{self.__class__.__name__}[{' '.join(attrs)}]"
 
     __repr__ = __str__
 
@@ -527,7 +550,7 @@ class LAB(IColorValue):
             f"a={self.a:.3f}",
             f"b={self.b:.3f}",
         ]
-        return f"{self.__class__.__name__}({' '.join(attrs)})"
+        return f"{self.__class__.__name__}[{' '.join(attrs)}]"
 
     __repr__ = __str__
 
@@ -632,10 +655,10 @@ class RealColor(IColorValue):
             self.__value: RGB = value.rgb
         elif isinstance(value, int):
             self.__value: RGB = RGB(value)
-        else:
+        else:  # pragma: no cover
             pass  # dynamic via _value() property override
 
-    def __hash__(self) -> int:
+    def __hash__(self) -> int:  # pragma: no cover
         return hash(self.int)
 
     @property
@@ -741,9 +764,9 @@ class _ColorIndex(t.Generic[_RCT], t.Sized):
     # Colors indexed by CODE (not RGB value)
 
     def __init__(self):
-        self._map: t.Dict[int, _RCT] = {}
+        self._map: t.OrderedDict[int, _RCT] = OrderedDict[int, _RCT]()
 
-    def add(self, color: _RCT, code: int|None):
+    def add(self, color: _RCT, code: int | None):
         if code is None:
             code = len(self._map)
         if code not in self._map.keys():
@@ -783,6 +806,7 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
     @classmethod
     def names(cls) -> t.Iterable[t.Tuple[str]]:
         """All registried colors' names of this type."""
+        cls._ensure_loaded()
         return cls._registry.names()
 
     @classmethod
@@ -796,8 +820,9 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         """
         if not hasattr(cls, "_registry"):  # pragma: no cover
             raise LogicError(
-                "Registry is empty. Did you call an abstract class' method?"
+                "Registry not found. Did you call an abstract class' method?"
             )
+        cls._ensure_loaded()
         return cls._registry.find_by_name(name)
 
     @classmethod
@@ -810,7 +835,7 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         :param value: Target color/color value.
         """
         if not hasattr(cls, "_index"):  # pragma: no cover
-            raise LogicError("Index is empty. Did you call an abstract class' method?")
+            raise LogicError("Index not found. Did you call an abstract class' method?")
 
         if not isinstance(value, IColorValue):
             value = RGB(value)
@@ -855,7 +880,17 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
 
         :param value: Target color/color value.
         """
+        cls._ensure_loaded()
         return sorted(cls._color_diff_fn(value), key=lambda r: r.distance)
+
+    @classmethod
+    def _ensure_loaded(cls):
+        if not cls._registry or not cls._index:
+            cls._load()
+
+    @classmethod
+    def _load(cls):
+        ...
 
     @classmethod
     def _calc_lab_cie76_delta_e(
@@ -887,7 +922,7 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         if register:
             self._register(aliases)
 
-    def __hash__(self) -> int:
+    def __hash__(self) -> int:  # pragma: no cover
         return hash(self._name)
 
     def _register(self: _RCT, aliases: t.List[str] = None):
@@ -901,8 +936,6 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
             self._registry.register(self, alias)
 
     def _make_variations(self: _RCT, variation_map: t.Dict[int, str] = None):
-        if not variation_map:
-            return
         for vari_value, vari_name in variation_map.items():
             args = dict(value=vari_value, name=vari_name, register=False)
             variation = type(self)(**args)
@@ -969,12 +1002,14 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
         register: bool = False,
         aliases: t.List[str] = None,
     ):
-        super(Color16, self).__init__(value)
-        super(RenderColor, self).__init__(name, register, code_fg, aliases)
         self._code_fg: int = code_fg
         self._code_bg: int = code_bg
+        self._color256_equiv: list[Color256] = []
 
-    def __hash__(self) -> int:
+        super(Color16, self).__init__(value)
+        super(RenderColor, self).__init__(name, register, code_fg, aliases)
+
+    def __hash__(self) -> int:  # pragma: no cover
         return hash(super(Color16, self)) + hash(super(RenderColor, self))
 
     @property
@@ -986,6 +1021,13 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
     def code_bg(self) -> int:
         """Int code for a background color setup. e.g. 40."""
         return self._code_bg
+
+    @property
+    def color256_equiv(self) -> Color256 | None:
+        """..."""
+        if not self._color256_equiv:  # pragma: no cover
+            return None
+        return self._color256_equiv[0]
 
     @classmethod
     def get_by_code(cls, code: int) -> Color16:
@@ -999,7 +1041,14 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
                               `guide.ansi-presets.color16`).
         :raises LookupError:  If no color with specified code is found.
         """
+        cls._load()
         return cls._index.get(code)
+
+    @classmethod
+    def _load(cls):
+        from .cval import cv
+
+        cv.load()
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, self.__class__):
@@ -1009,6 +1058,9 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
             and self._code_bg == other._code_bg
             and self._code_fg == other._code_fg
         )
+
+    def assign_color256_equiv(self, color256_equiv: Color256):
+        self._color256_equiv.append(color256_equiv)
 
     def repr_attrs(self, verbose: bool = True) -> str:
         # question mark after color value indicates that we cannot be 100% sure
@@ -1077,12 +1129,15 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
         aliases: t.List[str] = None,
         color16_equiv: Color16 = None,
     ):
-        super(Color256, self).__init__(value)
-        super(RenderColor, self).__init__(name, register, code, aliases)
         self._code: int | None = code
         self._color16_equiv: Color16 | None = color16_equiv
+        if self._color16_equiv:
+            self._color16_equiv.assign_color256_equiv(self)
 
-    def __hash__(self) -> int:
+        super(Color256, self).__init__(value)
+        super(RenderColor, self).__init__(name, register, code, aliases)
+
+    def __hash__(self) -> int:  # pragma: no cover
         return hash(super(Color256, self)) + hash(super(RenderColor, self))
 
     def to_sgr(
@@ -1153,12 +1208,31 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
         :raises LookupError:
                          If no color with specified code is found.
         """
+        cls._load()
         return cls._index.get(code)
+
+    @classmethod
+    def _load(cls):
+        from .cval import cv
+
+        cv.load()
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, self.__class__):
             return False
-        return self.int == other.int and self._code == other._code
+
+        values_match = self.int == other.int
+        codes_match = self.code == other.code
+        if not codes_match and self._color16_equiv and other._color16_equiv:
+            # for cases when colors being compared have same value, same color16
+            # equivalents, but different own codes, get primary reverse equivalents
+            # (256 -> 16 -> 256) and compare the codes. this ensures that e.g.,
+            # Color256._256A_16_WHITE == Color256.GRAY_100 is True.
+
+            primary_reverse_equiv_self = self._color16_equiv.color256_equiv
+            primary_reverse_equiv_other = other._color16_equiv.color256_equiv
+            codes_match = (primary_reverse_equiv_self.code == primary_reverse_equiv_other.code)
+        return values_match and codes_match
 
     def repr_attrs(self, verbose: bool = True) -> str:
         code = f"x{getattr(self, '_code', None)}"
@@ -1166,7 +1240,7 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
             return code
 
         value = self.format_value("#")
-        if getattr(self, '_color16_equiv', None):  # pragma: no cover
+        if getattr(self, "_color16_equiv", None):  # pragma: no cover
             value += "?"  # depends on end-user terminal setup
         params = " ".join(map(str, filter(None, [value, self._name])))
         return f"{code}({params})"
@@ -1203,7 +1277,7 @@ class ColorRGB(RealColor, RenderColor, ResolvableColor["ColorRGB"]):
         super(ColorRGB, self).__init__(value)
         super(RenderColor, self).__init__(name, register, None, aliases, variation_map)
 
-    def __hash__(self) -> int:
+    def __hash__(self) -> int:  # pragma: no cover
         return hash(super(ColorRGB, self)) + hash(super(RenderColor, self))
 
     def to_sgr(
@@ -1217,6 +1291,12 @@ class ColorRGB(RealColor, RenderColor, ResolvableColor["ColorRGB"]):
         if target in [ColorTarget.FG, ColorTarget.BG]:
             return self.format_value("#").lower()
         raise NotImplementedError(f"No tmux equivalent for {target}")
+
+    @classmethod
+    def _load(cls):
+        from .cval import cvr
+
+        cvr.load()
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, self.__class__):
@@ -1293,42 +1373,42 @@ class DefaultColor(RenderColor):
     to reset fg or bg color; same for `TmuxRenderer`. Useful when you inherit
     some :class:`.Style` with fg or bg color that you don't need, but at the same
     time you don't actually want to set up any color whatsoever::
-    
+
         >>> from pytermor import *
         >>> DEFAULT_COLOR.to_sgr(target=ColorTarget.BG)
         <SGR[49m]>
-    
-    
-    `NOOP_COLOR` is treated like a placeholder for parent's attribute value and 
+
+
+    `NOOP_COLOR` is treated like a placeholder for parent's attribute value and
     doesn't change the result::
-    
+
         >>> from pytermor import SgrRenderer, render
         >>> sgr_renderer = SgrRenderer(OutputMode.XTERM_16)
         >>> render("MISMATCH", Style(Styles.INCONSISTENCY, fg=NOOP_COLOR), sgr_renderer)
         '\x1b[93;101mMISMATCH\x1b[39;49m'
-    
+
     .. raw:: html
-    
+
       <div class="highlight-adjacent highlight-output">
          <div class="highlight">
             <pre><span style="color: #ffff00; background-color: #d70000">MISMATCH</span></pre>
          </div>
       </div>
-    
-    
-    While `DEFAULT_COLOR` is actually resetting the color to default (terminal) value:: 
-    
+
+
+    While `DEFAULT_COLOR` is actually resetting the color to default (terminal) value::
+
         >>> render("MISMATCH", Style(Styles.INCONSISTENCY, fg=DEFAULT_COLOR), sgr_renderer)
         '\x1b[39;101mMISMATCH\x1b[49m'
-    
+
     .. raw:: html
-    
+
       <div class="highlight-adjacent highlight-output">
          <div class="highlight">
             <pre><span style="background-color: #d70000">MISMATCH</span></pre>
          </div>
       </div>
-    
+
     """  # noqa
 
     def __init__(self):
@@ -1437,12 +1517,12 @@ class DynamicColor(RenderColor, t.Generic[_T], metaclass=ABCMeta):
             if not self._DEFERRED:
                 raise LogicError(f"{get_qname(self)} is uninitialized")
             self.__class__.update()
-            if not self._initialized:
+            if not self._initialized:  # pragma: no cover
                 return NOOP_COLOR
 
         state = self.__class__._state
         if self._extractor is None:
-            return t.cast(state, RenderColor)
+            return t.cast(RenderColor, state)
 
         if isinstance(self._extractor, t.Callable):
             return self._extractor(state)
@@ -1564,7 +1644,7 @@ def resolve_color(
 
     for ct in color_types:
         if not issubclass(ct, ResolvableColor):
-            continue
+            continue  # pragma: no cover
         try:
             return ct.find_by_name(str(subject))
         except LookupError:
@@ -1636,5 +1716,4 @@ def approximate(
 
 
 NOOP_COLOR = NoopColor()
-
 DEFAULT_COLOR = DefaultColor()

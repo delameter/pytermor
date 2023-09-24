@@ -17,7 +17,6 @@ from dataclasses import dataclass
 from math import floor, isclose, log, log10, trunc
 
 from .common import Align, RT, fit, get_qname
-from .cval import cv
 from .exception import ConflictError
 from .log import measure
 from .style import Style, Styles, merge_styles
@@ -78,14 +77,14 @@ class Highlighter:
     )                                           # | OOM | (+) GENERICS (-) |(+) TIME (-)|
                                                 # |-----|------------------|------------|
     STYLE_DEFAULT = Style(bold=False)           # |     | misc.            | sec.       |
-    STYLE_NUL = Style(fg=cv.GRAY, bold=False)   # |   0 | zero             |            |
-    STYLE_PRC = Style(fg=cv.MAGENTA)            # |   2 |            perc. |            |
-    STYLE_KIL = Style(fg=cv.BLUE)               # |   3 | Kilo-     milli- | min.    ms |
-    STYLE_MEG = Style(fg=cv.CYAN)               # |   6 | Mega-     micro- | hour    μs |
-    STYLE_GIG = Style(fg=cv.GREEN)              # |   9 | Giga-      nano- | day     ns |
-    STYLE_TER = Style(fg=cv.YELLOW)             # |  12 | Tera-      pico- | week    ps |
-    STYLE_MON = Style(fg=cv.HI_YELLOW)          # |     |                  | month      |
-    STYLE_PET = Style(fg=cv.RED)                # |  15 | Peta-            | year       |
+    STYLE_NUL = Style(fg='gray', bold=False)    # |   0 | zero             |            |
+    STYLE_PRC = Style(fg='magenta')             # |   2 |            perc. |            |
+    STYLE_KIL = Style(fg='blue')                # |   3 | Kilo-     milli- | min.    ms |
+    STYLE_MEG = Style(fg='cyan')                # |   6 | Mega-     micro- | hour    μs |
+    STYLE_GIG = Style(fg='green')               # |   9 | Giga-      nano- | day     ns |
+    STYLE_TER = Style(fg='yellow')              # |  12 | Tera-      pico- | week    ps |
+    STYLE_MON = Style(fg='hi-yellow')           # |     |                  | month      |
+    STYLE_PET = Style(fg='red')                 # |  15 | Peta-            | year       |
 
     _PREFIX_MAP = {
         '%': STYLE_PRC,

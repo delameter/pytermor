@@ -15,8 +15,21 @@ from typing import overload
 import pytest
 from _pytest.mark import ParameterSet
 
-from pytermor import HSV, LAB, RGB, XYZ, IColorValue, DynamicColor, Style, FrozenStyle, make_color_256, NoopColor, Text, \
-    OutputMode, RendererManager, render, RenderColor
+from pytermor import (
+    HSV,
+    LAB,
+    RGB,
+    XYZ,
+    IColorValue,
+    Style,
+    make_color_256,
+    Text,
+    OutputMode,
+    render,
+    RealColor,
+    DynamicColor,
+    FrozenStyle,
+)
 from pytermor import (
     NOOP_SEQ,
     SequenceSGR,
@@ -35,12 +48,11 @@ from pytermor import (
 from pytermor.color import (
     _ColorRegistry,
     _ColorIndex,
-    _ConstrainedValue, _T,
+    _ConstrainedValue,
 )
-from pytermor.cval import cv
-from pytermor.exception import LogicError, ColorNameConflictError, ColorCodeConflictError, NotInitializedError
+from pytermor.exception import LogicError, ColorNameConflictError, ColorCodeConflictError
 from tests import assert_close, format_test_params
-
+from pytermor.cval import cv
 
 NON_EXISTING_COLORS = [0xFEDCBA, 0xFA0CCC, *range(1, 7)]
 
@@ -219,7 +231,9 @@ class TestColorTransform:
     def test_rgb_from_ratios(self):
         assert_close(RGB.from_ratios(0, 0.5, 1.0), RGB.from_channels(0, 128, 255))
 
+
 # -----------------------------------------------------------------------------
+
 
 @pytest.mark.parametrize("value", NON_EXISTING_COLORS, ids=format_test_params)
 def test_non_existing_colors_do_not_exist(value: int):
@@ -288,7 +302,12 @@ class TestResolving:
 
     def test_module_method_resolve_ambiguous_color_works_upon_color_rgb(self):
         col = resolve_color("green", ColorRGB)
-        assert col.int == 0x15b01a
+        assert col.int == 0x15B01A
+        assert isinstance(col, ColorRGB)
+
+    def test_module_method_resolve_invalid_type_works_as_rgb(self):
+        col = resolve_color(0x11111, str)  # noqa
+        assert col.int == 0x11111
         assert isinstance(col, ColorRGB)
 
     def test_param_enables_cache(self):
@@ -452,9 +471,8 @@ class TestApproximation:
     def test_module_method_find_closest_works_for_16(self):
         assert color.find_closest(0x87FFD7, Color16) == cv.HI_CYAN
 
-    @pytest.mark.skip("RGB is not indexed anymore")
     def test_module_method_find_closest_works_for_rgb(self):
-        assert resolve_color("light-aqua", ColorRGB) == color.find_closest(
+        assert resolve_color("green-tea atlassian", ColorRGB) == color.find_closest(
             0x87FFD7, ColorRGB
         )
 
@@ -464,10 +482,9 @@ class TestApproximation:
     def test_module_method_approximate_works_for_16(self):
         assert color.approximate(0x87FFD7, Color16)[0].color == cv.HI_CYAN
 
-    @pytest.mark.skip("RGB is not indexed anymore")
     def test_module_method_approximate_works_for_rgb(self):
         assert (
-            resolve_color("light-aqua", ColorRGB)
+            resolve_color("green-tea atlassian", ColorRGB)
             == color.approximate(0x87FFD7, ColorRGB)[0].color
         )
 
@@ -477,9 +494,8 @@ class TestApproximation:
     def test_class_method_find_closest_works_for_256(self):
         assert Color256.find_closest(0x87FFD7) == cv.AQUAMARINE_1
 
-    @pytest.mark.skip("RGB is not indexed anymore")
     def test_class_method_find_closest_works_for_rgb(self):
-        assert 0x8CFFDB == ColorRGB.find_closest(0x87FFD7).int
+        assert 0x57D9A3 == ColorRGB.find_closest(0x87FFD7).int
 
     def test_class_method_approximate_works_for_16(self):
         assert Color16.approximate(0x87FFD7)[0].color == cv.HI_CYAN
@@ -487,9 +503,8 @@ class TestApproximation:
     def test_class_method_approximate_works_for_256(self):
         assert Color256.approximate(0x87FFD7)[0].color == cv.AQUAMARINE_1
 
-    @pytest.mark.skip("RGB is not indexed anymore")
     def test_class_method_approximate_works_for_rgb(self):
-        assert ColorRGB.approximate(ColorRGB(0x87FFD7))[0].color.int == 0x8CFFDB
+        assert ColorRGB.approximate(ColorRGB(0x87FFD7))[0].color.int == 0x57D9A3
 
     def test_distance_is_correct(self):
         expected = [
@@ -531,9 +546,9 @@ def get_underline_not_impl_param(*args: t.Any) -> ParameterSet:
 
 class TestColor16:
     def test_get_code(self):
-        col = Color16(0xF00000, 200+IntCode.RED, 200+IntCode.BG_RED)
-        assert col.code_fg == 200+IntCode.RED
-        assert col.code_bg == 200+IntCode.BG_RED
+        col = Color16(0xF00000, 200 + IntCode.RED, 200 + IntCode.BG_RED)
+        assert col.code_fg == 200 + IntCode.RED
+        assert col.code_bg == 200 + IntCode.BG_RED
 
     @pytest.mark.parametrize(
         "upper_bound, target, expected_result",
@@ -570,7 +585,7 @@ class TestColor16:
         ],
     )
     def test_to_tmux(self, target: ColorTarget, expected_result: str | None):
-        color = Color16(0xF00000, 300+IntCode.RED, 300+IntCode.BG_RED, "ultrared")
+        color = Color16(0xF00000, 300 + IntCode.RED, 300 + IntCode.BG_RED, "ultrared")
         assert color.to_tmux(target) == expected_result
 
     @pytest.mark.xfail(raises=LogicError)
@@ -613,8 +628,22 @@ class TestColor16:
         assert 0 <= col.int <= 0xFFFFFF
 
 
-@pytest.mark.skip('temp')
 class TestColor256:
+    _keeper_index: _ColorIndex[Color256] | None = None
+
+    @classmethod
+    def setup_class(cls):
+        cls._keeper_index = copy(Color256._index)
+        cls._keeper_index._map = copy(Color256._index._map)
+
+    @classmethod
+    def teardown_class(cls):
+        Color256._index = cls._keeper_index
+        cls._keeper_index = None
+
+    def setup_method(self):
+        Color256._index._map = copy(self._keeper_index._map)
+
     def test_get_code(self):
         col = Color256(0xF00000, 457)
         assert 457 == col.code
@@ -631,8 +660,8 @@ class TestColor256:
             (Color256, ColorTarget.FG, SequenceSGR(38, 5, 1)),
             (Color256, ColorTarget.BG, SequenceSGR(48, 5, 1)),
             (Color256, ColorTarget.UNDERLINE, SequenceSGR(58, 5, 1)),
-            (Color16, ColorTarget.FG, SequenceSGR(93)),
-            (Color16, ColorTarget.BG, SequenceSGR(103)),
+            (Color16, ColorTarget.FG, SequenceSGR(31)),
+            (Color16, ColorTarget.BG, SequenceSGR(41)),
             (Color16, ColorTarget.UNDERLINE, NOOP_SEQ),
         ],
     )
@@ -642,7 +671,7 @@ class TestColor256:
         target: ColorTarget,
         expected_result: str | None,
     ):
-        c = Color256(0xFFCC01, 1)
+        c = Color256.get_by_code(1)
         assert c.to_sgr(target, upper_bound) == expected_result
 
     @pytest.mark.parametrize(
@@ -657,12 +686,12 @@ class TestColor256:
     def test_to_sgr_with_rgb_upper_bound_results_in_sgr_rgb_if_preferred(
         self, target: ColorTarget, expected_result: str | None
     ):
-        col = Color256(0xFFCC01, 1)
+        col = Color256(0xFFCC01, len(Color256._index))
         assert col.to_sgr(target, upper_bound=ColorRGB) == expected_result
 
     def test_to_sgr_with_16_upper_bound_results_in_sgr_16_equiv(self):
         col16 = Color16(0xFFCC00, 132, 142)
-        col = Color256(0xFFCC01, 1, color16_equiv=col16)
+        col = Color256(0xFFCC01, 258, color16_equiv=col16)
         assert col.to_sgr(ColorTarget.FG, upper_bound=Color16) == col16.to_sgr(
             ColorTarget.FG
         )
@@ -691,24 +720,37 @@ class TestColor256:
         assert repr(cv.DARK_GREEN) == "<Color256[x22(#005f00 dark-green)]>"
 
     def test_equality(self):
-        assert Color256(0x010203, 11) == Color256(0x010203, 11)
+        idx = len(Color256._index) + 1
+        assert Color256(0x010203, idx) == Color256.get_by_code(idx)
+
+    def test_equality_of_different_codes_and_same_equivs(self):
+        assert cv._256A_16_BLACK == cv.GRAY_0
 
     def test_not_equality(self):
-        assert Color256(0x010203, 11) != Color256(0x010203, 12)
-        assert Color256(0x010203, 11) != Color256(0x030201, 11)
-        assert Color256(0x010203, 11) != Color256(0xFFEE14, 88)
-        assert Color256(0x010203, 11) != Color16(0x010203, 11, 11)
-        assert Color256(0x010203, 11) != ColorRGB(0x010203)
+        idx = len(Color256._index) + 10
+        assert Color256(0x010203, (idx := idx + 1)) != Color256(
+            0x010203, (idx := idx + 1)
+        )
+        assert Color256(0x010203, (idx := idx + 1)) != Color256(
+            0x030201, (idx := idx + 1)
+        )
+        assert Color256(0x010203, (idx := idx + 1)) != Color256(
+            0xFFEE14, (idx := idx + 1)
+        )
+        assert Color256(0x010203, (idx := idx + 1)) != Color16(
+            0x010203, (idx := idx + 1), (idx := idx + 1)
+        )
+        assert Color256(0x010203, (idx := idx + 1)) != ColorRGB(0x010203)
 
     def test_to_hsv(self):
-        col = Color256(0x808000, code=256)
+        col = Color256(0x808000, code=len(Color256._index) + 1)
         h, s, v = col.hsv
         assert_close(h, 60)
         assert_close(s, 1)
         assert_close(v, 0.5)
 
     def test_to_rgb(self):
-        col = Color256(0x808000, code=256)
+        col = Color256(0x808000, code=len(Color256._index) + 1)
         r, g, b = col.rgb
         assert r == 128
         assert g == 128
@@ -718,7 +760,7 @@ class TestColor256:
         col = Color256(-0x10, -1)
         assert 0 <= col.int <= 0xFFFFFF
 
-@pytest.mark.skip('temp')
+
 class TestColorRGB:
     @pytest.mark.parametrize(
         "upper_bound, target, expected_result",
@@ -774,8 +816,10 @@ class TestColorRGB:
 
     def test_not_equality(self):
         assert ColorRGB(0x010203) != ColorRGB(0x030201)
-        assert ColorRGB(0x010203) != Color256(0x010203, 1)
-        assert ColorRGB(0x010203) != Color16(0x556677, IntCode.WHITE, IntCode.BG_WHITE)
+        assert ColorRGB(0x010203) != Color256(0x010203, len(Color256._index) + 1)
+        assert ColorRGB(0x010203) != Color16(
+            0x556677, len(Color256._index) + 1, len(Color256._index) + 1
+        )
 
     def test_to_hsv(self):
         col = ColorRGB(0x008000)
@@ -794,6 +838,18 @@ class TestColorRGB:
     def test_applying_thresholds(self):
         col = ColorRGB(-0x10)
         assert 0 <= col.int <= 0xFFFFFF
+
+
+class TestRealColor:
+    def test_construct_from_cv(self):
+        cv = HSV(180, 0.5, 0.5)
+        assert RealColor(cv).rgb == cv.rgb
+
+    def test_construct_from_int(self):
+        assert RealColor(0xFF0099).rgb == RGB(0xFF0099)
+
+    def test_to_xyz(self):
+        assert RealColor(0xFF0099).xyz == XYZ(x=46.99, y=23.56, z=32.20)
 
 
 class TestNoopColor:
@@ -875,7 +931,33 @@ class TestDynamicColor:
 
     @pytest.mark.dynamic_style(current_mode="auto")
     def test_to_tmux(self, dynamic_style: Style):
-        assert dynamic_style.fg.to_tmux() == 'brightred'
+        assert dynamic_style.fg.to_tmux() == "brightred"
+
+    class _TestDynamicColor(DynamicColor[Color256]):
+        @classmethod
+        @overload
+        def update(cls, *, current_mode: str) -> None:
+            ...
+
+        @classmethod
+        def update(cls, **kwargs) -> None:
+            super().update(**kwargs)
+
+        @classmethod
+        def _update_impl(cls, *, current_mode: str = "main") -> Color256:
+            return cv.DARK_RED_2 if current_mode == "main" else cv.DARK_GREEN
+
+    def test_without_extractor(self):
+        col = self._TestDynamicColor(extractor=None)
+        col.update(current_mode="help")
+        assert col.to_sgr() == cv.DARK_GREEN.to_sgr()
+
+    def test_with_callable_extractor(self):
+        col = self._TestDynamicColor(
+            extractor=lambda c: Color256(c._value.int * 2, code=267)
+        )
+        col.update(current_mode="help")
+        assert col._value._value.int == cv.DARK_GREEN._value.int * 2  # noqa
 
 
 class TestDeferredColor:
@@ -897,14 +979,22 @@ class TestDeferredColor:
 
     def test_to_tmux(self, deferred: tuple[Style, any]):
         deferred_style, resolver = deferred
-        assert deferred_style.fg.to_tmux() == ''
+        assert deferred_style.fg.to_tmux() == ""
         resolver.initialize("help")
-        assert deferred_style.fg.to_tmux() == 'brightgreen'
+        assert deferred_style.fg.to_tmux() == "brightgreen"
 
     @pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
     def test_text_changes(self, deferred: tuple[Style, any]):
         deferred_style, resolver = deferred
-        text = Text('123', deferred_style)
-        assert render(text) == '123'
+        text = Text("123", deferred_style)
+        assert render(text) == "123"
         resolver.initialize("help")
-        assert render(text) == '\x1b[92;48;5;22m' '123' '\x1b[39;49m'
+        assert render(text) == "\x1b[92;48;5;22m" "123" "\x1b[39;49m"
+
+    def test_deferred_auto_init_works(self, deferred: tuple[Style, any]):
+        deferred_style, resolver = deferred
+        resolver.initialize("help")
+        col = deferred_style.fg.__class__("fg")
+        deferred_style = FrozenStyle(fg=col)
+        text = Text("123", deferred_style)
+        assert render(text) == "123"

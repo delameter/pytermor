@@ -1,4 +1,4 @@
-.. _guide:
+.. _guide.core-api-1:
 
 ##########################
 Core API

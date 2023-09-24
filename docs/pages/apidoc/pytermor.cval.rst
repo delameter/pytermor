@@ -13,15 +13,6 @@
 
    
    
-   .. rubric:: Classes
-
-   .. autosummary::
-   
-      ColorValuesRGB
-      ColorValuesXterm
-      cv
-      cvr
-   
    
 
    

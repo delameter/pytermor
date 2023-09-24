@@ -19,7 +19,6 @@ import yaml
 import pytermor as pt
 import pytermor.common
 import pytermor.filter
-import pytermor.conv
 import pytermor.term
 from pytermor import Text
 
@@ -30,7 +29,7 @@ def _sorter_by_name(cdef: _IColorRGB) -> str:
 
 def _sorter_by_hue(cdef: _IColorRGB) -> t.Tuple[float, ...]:
     # partitioning by hue, sat and val, grayscale group first:
-    h, s, v = pytermor.conv.hex_to_hsv(cdef.value)
+    h, s, v = pt.RGB(cdef.value).hsv
     result = (h // 18 if s > 0 else -v), h // 18, s * 5 // 1, v * 20 // 1
     return result
 
@@ -268,7 +267,7 @@ class _RgbTablePrinter:
 class Main():
     def __init__(self):
         pt.force_ansi_rendering()
-        #pt.RendererManager.set_default(HtmlRenderer)
+        #pt.RendererManager.set_default(pt.HtmlRenderer)
 
         config_list = [*_ConfigLoader().load()]
         origin_list = [*_OriginLoader().load()]

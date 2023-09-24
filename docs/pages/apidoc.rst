@@ -15,7 +15,6 @@ API reference
    color
    common
    config
-   conv
    cval
    exception
    filter

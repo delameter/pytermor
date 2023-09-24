@@ -30,10 +30,16 @@
 .. role:: seealso
 
 .. default-role:: any
+
 .. include:: <isonum.txt>
+.. include:: <s5defs.txt>
 
 .. |nbspt| unicode:: 0xA0
    :trim:
+
+.. |nbspt5| replace:: |nbspt| |nbspt| |nbspt| |nbspt| |nbspt|
+
+.. |nbspt10| replace:: |nbspt5| |nbspt5|
 
 .. role:: badge
     :class: badge

@@ -14,7 +14,6 @@ from sybil.parsers.doctest import DocTestParser
 import pytermor as pt
 import typing as t
 
-
 class TestSgrVisualizer(pt.SgrStringReplacer):
     """
     May incorrectly handle complex SGRs like 38;5;22 --

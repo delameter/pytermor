@@ -10,6 +10,7 @@ import typing as t
 from os.path import dirname
 from subprocess import CalledProcessError, DEVNULL, PIPE, run
 
+import pytermor
 from pytermor._version import __updated__, __version__
 
 

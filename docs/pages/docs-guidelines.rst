@@ -96,6 +96,11 @@ References
 |                  | `high-level <guide-hi>`               |    `guide-lo` or                      |
 |                  |                                       |    `high-level <guide-hi>`            |
 +------------------+---------------------------------------+---------------------------------------+
+|                  | .. code-block:: rst                                                           |
+| Internal page    |    :linenos:                                                                  |
+| setup            |                                                                               |
+|                  |    .. _guide.core-api-1:                                                      |
++------------------+---------------------------------------+---------------------------------------+
 |                  |                                       | .. code-block:: rst                   |
 | Internal pydoc   | `wait_key()`,                         |                                       |
 |                  | :class:`.Style`                       |    `wait_key()`,                      |
