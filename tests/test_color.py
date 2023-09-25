@@ -5,6 +5,7 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
+import importlib
 import itertools
 import typing as t
 from collections.abc import Iterable
@@ -15,6 +16,7 @@ from typing import overload
 import pytest
 from _pytest.mark import ParameterSet
 
+import pytermor
 from pytermor import (
     HSV,
     LAB,
@@ -29,6 +31,9 @@ from pytermor import (
     RealColor,
     DynamicColor,
     FrozenStyle,
+    SeqIndex,
+    cval,
+    ColorRGB,
 )
 from pytermor import (
     NOOP_SEQ,
@@ -52,7 +57,7 @@ from pytermor.color import (
 )
 from pytermor.exception import LogicError, ColorNameConflictError, ColorCodeConflictError
 from tests import assert_close, format_test_params
-from pytermor.cval import cv
+from pytermor.cval import cv, _ColorValuesRGB, _ColorValuesLoader
 
 NON_EXISTING_COLORS = [0xFEDCBA, 0xFA0CCC, *range(1, 7)]
 
@@ -144,6 +149,17 @@ DIFFS = [
     DiffSet(LAB( 50, 50, 50),  LAB(50,-50,-50), 222.78, 1.168, 141.42),   # noqa
 ]
 # fmt: on
+
+@pytest.mark.skip('it\'s just too complicated to mock all this. @TODO refactor')
+class TestDeferredLoading:
+    def test_presets_are_not_loaded_initially(self):
+        assert len(ColorRGB._registry) == 0
+
+    def test_presets_are_loaded_at_access(self):
+        assert len(ColorRGB._registry) == 0
+        assert ColorRGB.find_by_name("red-bronze").int == 0xFB8136
+        assert len(ColorRGB._registry) > 0
+
 
 
 class TestColorValue:
@@ -407,6 +423,7 @@ class TestColorRegistry:
         assert len(ColorRGB._registry) == len(ColorRGB._registry._map)
 
     def test_registry_casts_to_true_if_has_elements(self):
+        ColorRGB.approximate(0)
         assert bool(ColorRGB._registry)
 
     def test_registry_casts_to_false_if_empty(self):
@@ -417,6 +434,7 @@ class TestColorRegistry:
 
     def test_names(self):
         assert len([*ColorRGB._registry.names()]) == len(ColorRGB._registry._map)
+
 
 
 class TestColorIndex:
@@ -472,7 +490,7 @@ class TestApproximation:
         assert color.find_closest(0x87FFD7, Color16) == cv.HI_CYAN
 
     def test_module_method_find_closest_works_for_rgb(self):
-        assert resolve_color("green-tea atlassian", ColorRGB) == color.find_closest(
+        assert resolve_color("light-aqua", ColorRGB) == color.find_closest(
             0x87FFD7, ColorRGB
         )
 
@@ -484,7 +502,7 @@ class TestApproximation:
 
     def test_module_method_approximate_works_for_rgb(self):
         assert (
-            resolve_color("green-tea atlassian", ColorRGB)
+            resolve_color("light-aqua", ColorRGB)
             == color.approximate(0x87FFD7, ColorRGB)[0].color
         )
 
@@ -495,7 +513,7 @@ class TestApproximation:
         assert Color256.find_closest(0x87FFD7) == cv.AQUAMARINE_1
 
     def test_class_method_find_closest_works_for_rgb(self):
-        assert 0x57D9A3 == ColorRGB.find_closest(0x87FFD7).int
+        assert 0x8CFFDB == ColorRGB.find_closest(0x87FFD7).int
 
     def test_class_method_approximate_works_for_16(self):
         assert Color16.approximate(0x87FFD7)[0].color == cv.HI_CYAN
@@ -504,7 +522,7 @@ class TestApproximation:
         assert Color256.approximate(0x87FFD7)[0].color == cv.AQUAMARINE_1
 
     def test_class_method_approximate_works_for_rgb(self):
-        assert ColorRGB.approximate(ColorRGB(0x87FFD7))[0].color.int == 0x57D9A3
+        assert ColorRGB.approximate(ColorRGB(0x87FFD7))[0].color.int == 0x87FFD7
 
     def test_distance_is_correct(self):
         expected = [
@@ -518,6 +536,10 @@ class TestApproximation:
         assert len(result) == len(expected)
         while result:
             assert_close(result.pop(0).distance, expected.pop(0).distance)
+
+    def test_approximation_ignores_colors256_with_16_equivs(self):
+        assert Color256.get_by_code(1).int == 0x800000  # not accessible by cv constant
+        assert Color256.find_closest(0x800000).int != 0x800000
 
 
 @pytest.mark.parametrize("ctype", [Color16, Color256], ids=format_test_params)
@@ -723,14 +745,34 @@ class TestColor256:
         idx = len(Color256._index) + 1
         assert Color256(0x010203, idx) == Color256.get_by_code(idx)
 
-    def test_equality_of_different_codes_and_same_equivs(self):
-        assert cv._256A_16_BLACK == cv.GRAY_0
+    color16black = Color16.get_by_code(IntCode.BLACK)
+    color256blackbound = Color256.get_by_code(0)
+    color256blackunbound = Color256.get_by_code(16)
+    color16blackfd = cv.BLACK
+    color256blackfd = cv.GRAY_0
+
+    @pytest.mark.parametrize(
+        "col1,col2,expected_equality",
+        [
+            (color16black, color256blackbound, True),
+            (color256blackunbound, color256blackbound, False),
+            (color256blackunbound, color16black, False),
+            (color16black, color16blackfd, True),
+            (color256blackbound, color256blackfd, False),
+            (color256blackunbound, color256blackfd, True),
+        ],
+        ids=format_test_params,
+    )
+    def test_equality_of_different_codes_and_same_equivs(
+        self,
+        col1: Color16 | Color256,
+        col2: Color16 | Color256,
+        expected_equality: bool,
+    ):
+        assert (col1 == col2) == expected_equality
 
     def test_not_equality(self):
         idx = len(Color256._index) + 10
-        assert Color256(0x010203, (idx := idx + 1)) != Color256(
-            0x010203, (idx := idx + 1)
-        )
         assert Color256(0x010203, (idx := idx + 1)) != Color256(
             0x030201, (idx := idx + 1)
         )
@@ -771,9 +813,9 @@ class TestColorRGB:
             (ColorRGB, ColorTarget.FG, SequenceSGR(38, 2, 255, 51, 255)),
             (ColorRGB, ColorTarget.BG, SequenceSGR(48, 2, 255, 51, 255)),
             (ColorRGB, ColorTarget.UNDERLINE, SequenceSGR(58, 2, 255, 51, 255)),
-            (Color256, ColorTarget.FG, SequenceSGR(38, 5, 13)),
-            (Color256, ColorTarget.BG, SequenceSGR(48, 5, 13)),
-            (Color256, ColorTarget.UNDERLINE, SequenceSGR(58, 5, 13)),
+            (Color256, ColorTarget.FG, SequenceSGR(38, 5, 201)),
+            (Color256, ColorTarget.BG, SequenceSGR(48, 5, 201)),
+            (Color256, ColorTarget.UNDERLINE, SequenceSGR(58, 5, 201)),
             (Color16, ColorTarget.FG, SequenceSGR(95)),
             (Color16, ColorTarget.BG, SequenceSGR(105)),
             (Color16, ColorTarget.UNDERLINE, NOOP_SEQ),

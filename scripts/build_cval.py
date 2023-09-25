@@ -130,7 +130,7 @@ class IndexBuilder(TaskRunner):
                 col_variations = f"variation_map={{\n{variation_map} }}, "
 
             constructor_call = ': %s = %s('
-            if self._deferred:
+            if self._deferred and not color16_equiv:
                 constructor_call = ': %s = lambda *_: %s('
 
             columns = [

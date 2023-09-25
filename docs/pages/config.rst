@@ -16,6 +16,9 @@ The library initializes it's own config class just after being imported
        Environment variable names are rendered in the documentation like this:
        :env:`PYTERMOR_VARIABLE_NAME`.
 
+.. todo ::
+
+    check up sphinx's directive "envvar" and same text role (or whats its name...)
 
 =================
 Variables

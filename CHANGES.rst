@@ -20,8 +20,10 @@ pending
 - |DOCS|  examples
 - |DOCS|  features WIP
 - |DOCS|  index rewrite
+- |REFACTOR| latex configuration files
+- |DOCS| bgcolor latex custom class
 
-.. <@pending:1f2fea8>
+.. <@pending:e45b99c>
 .. ^ blank line before should be kept
 
 

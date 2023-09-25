@@ -14,32 +14,27 @@ from .ansi import IntCode
 from .color import Color16, Color256, ColorRGB
 import typing as t
 
-
 class _ColorValues:
     """
     Filling of indexes and registries with all the preset colors takes quite
     a bit of time (~5 ms for `Color256` registry, ~25 ms for `ColorRGB`
     registry), which can be essential for applications that require fast import
-    of the dependencies. Deferred instantiating can save that time -- colors
+    of the dependencies. Deferred instantiating can save that time, i.e. colors
     and supplementary structures do not actually exist until any of them is
-    accessed for the first time; however, this applies only to `cvr` registry,
-    because `cv` registry is automatically loaded by the library itself, when it
-    makes and fills some default styles.
+    accessed for the first time. At the moment, this mechanism is enabled only
+    for `cvr` registry, but not for `cv` (i.e. `Color256`), as the latter
+    is always loaded automatically by the library itself anyway. Also it is
+    harder to implement correctly considering these colors have relation with
+    `Color16` instances.
     """
     def _instantiate(self):
-        for name in sorted(dir(self), key=self._sorter):
+        for name in sorted(dir(self)):
             if name.isupper():
                    if isinstance(attr := getattr(self, name), t.Callable):
                         setattr(self, name, attr())
-    @staticmethod
-    def _sorter(name: str) -> str:
-        # this alchemy places _256A_16_* instances before public Color256
-        # instances with Color16 equivavlents (e.g., _256A_16_BLACK must be
-        # registred before GRAY_0), which makes the first ones primary
-        # reverse equivavlents. all this is required to provide consistent
-        # deterministic equality comp. operations, see Color256.__eq__()
-        return ['__'+name, name][name.startswith('_')]
 
+    def load(self):
+        self._instantiate()
 
 class _ColorValuesXterm(_ColorValues):
     """
@@ -77,7 +72,7 @@ class _ColorValuesLoader:
     def load(self):
         if not self._actual:
             self._actual = self._target_cls()
-            self._actual._instantiate()
+            self._actual.load()
 
     def __getattr__(self, item):
         # when preset color is accessed
@@ -85,5 +80,5 @@ class _ColorValuesLoader:
         return getattr(self._actual, item)
 
 
-cv: _ColorValuesXterm|_ColorValuesLoader = _ColorValuesLoader(_ColorValuesXterm)
+cv: _ColorValuesXterm = _ColorValuesXterm()
 cvr: _ColorValuesRGB|_ColorValuesLoader = _ColorValuesLoader(_ColorValuesRGB)

@@ -13,15 +13,9 @@ Commands like the ones below can be used for quick experimenting without loading
 
       $ python -c "import pytermor as pt; pt.echo('RED', 'red')"
 
-   .. raw:: html
+   .. container:: highlight highlight-manual highlight-adjacent
 
-      <div class="highlight-adjacent highlight-output">
-         <div class="highlight">
-            <pre><span style="color: red">red text</span></pre>
-         </div>
-      </div>
-
-   .. todo :: Find a solution for embedding colored text into PDF (as SVG -> PNG maybe?)
+      :red:`red text`
 
  - One-liner for virtual environment (`venv`) with `pytermor` pre-installed (see `install`_)
    :comment:`(note that the library source code root folder should be used as current working directory)`:
@@ -31,13 +25,9 @@ Commands like the ones below can be used for quick experimenting without loading
 
       $ PYTHONPATH=. venv/bin/python -c "import pytermor as pt; pt.echo('GREEN', 'green')"
 
-   .. raw:: html
+   .. container:: highlight highlight-manual highlight-adjacent
 
-      <div class="highlight-adjacent highlight-output">
-         <div class="highlight">
-            <pre><span style="color: green;">green text</span></pre>
-         </div>
-      </div>
+      :green:`green text`
 
  - Interactive mode for virtual environment with `pytermor` pre-installed
    :comment:`(again, current working directory should be sources root dir)`:
@@ -54,10 +44,6 @@ Commands like the ones below can be used for quick experimenting without loading
       pytermor 2.41.1-dev1
       >>> pt.echo("This is warning, be warned", pt.Styles.WARNING)
 
-   .. raw:: html
+   .. container:: highlight highlight-manual highlight-adjacent
 
-      <div class="highlight-adjacent highlight-output">
-         <div class="highlight">
-            <pre><span style="color: orange;">This is warning, be warned</span></pre>
-         </div>
-      </div>
+      :orange:`This is warning, be warned`

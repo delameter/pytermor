@@ -897,7 +897,8 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         cls: type[_RCT], value: _CVT
     ) -> Iterable[ApxResult[_RCT]]:
         for el in cls._index:
-            yield ApxResult(el, LAB.diff(value, el))
+            if el.available_for_approximation:
+                yield ApxResult(el, LAB.diff(value, el))
 
     def __new__(cls: t.Type[_RCT], *args, **kwargs) -> _RCT:
         cls._color_diff_fn = cls._calc_lab_cie76_delta_e
@@ -915,8 +916,7 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         self._base: _RCT | None = None
         self._variations: t.Dict[str, _RCT] = {}
 
-        if code is not None:
-            self._index.add(self, code)
+        self._index.add(self, code)
         if variation_map:
             self._make_variations(variation_map)
         if register:
@@ -947,6 +947,16 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
     def name(self) -> str | None:
         """Color name, e.g. "navy-blue"."""
         return self._name
+
+    @property
+    def available_for_approximation(self) -> bool:
+        """
+        All colors should be available for approximations, but there is one
+        exception -- `Color256` instances who have a `Color16` counterpart
+        with the same value. Details described in `guide.color16-256-equiv`.
+        """
+        return True
+
 
 
 @dataclasses.dataclass(frozen=True)
@@ -1004,7 +1014,6 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
     ):
         self._code_fg: int = code_fg
         self._code_bg: int = code_bg
-        self._color256_equiv: list[Color256] = []
 
         super(Color16, self).__init__(value)
         super(RenderColor, self).__init__(name, register, code_fg, aliases)
@@ -1021,13 +1030,6 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
     def code_bg(self) -> int:
         """Int code for a background color setup. e.g. 40."""
         return self._code_bg
-
-    @property
-    def color256_equiv(self) -> Color256 | None:
-        """..."""
-        if not self._color256_equiv:  # pragma: no cover
-            return None
-        return self._color256_equiv[0]
 
     @classmethod
     def get_by_code(cls, code: int) -> Color16:
@@ -1051,6 +1053,8 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
         cv.load()
 
     def __eq__(self, other) -> bool:
+        if isinstance(other, Color256):
+            return other == self
         if not isinstance(other, self.__class__):
             return False
         return (
@@ -1058,9 +1062,6 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
             and self._code_bg == other._code_bg
             and self._code_fg == other._code_fg
         )
-
-    def assign_color256_equiv(self, color256_equiv: Color256):
-        self._color256_equiv.append(color256_equiv)
 
     def repr_attrs(self, verbose: bool = True) -> str:
         # question mark after color value indicates that we cannot be 100% sure
@@ -1117,6 +1118,7 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
     :param aliases:   Alternative color names (used in `resolve_color()`).
     :param color16_equiv:
                       `Color16` counterpart (applies only to codes 0-15).
+                      For the details see `guide.color16-256-equiv`.
     """
 
     def __init__(
@@ -1131,8 +1133,6 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
     ):
         self._code: int | None = code
         self._color16_equiv: Color16 | None = color16_equiv
-        if self._color16_equiv:
-            self._color16_equiv.assign_color256_equiv(self)
 
         super(Color256, self).__init__(value)
         super(RenderColor, self).__init__(name, register, code, aliases)
@@ -1218,21 +1218,18 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
         cv.load()
 
     def __eq__(self, other) -> bool:
+        if self._color16_equiv is other:
+            return True
         if not isinstance(other, self.__class__):
             return False
+        if self._color16_equiv is not None or other._color16_equiv is not None:
+            return self._color16_equiv == other._color16_equiv
 
-        values_match = self.int == other.int
-        codes_match = self.code == other.code
-        if not codes_match and self._color16_equiv and other._color16_equiv:
-            # for cases when colors being compared have same value, same color16
-            # equivalents, but different own codes, get primary reverse equivalents
-            # (256 -> 16 -> 256) and compare the codes. this ensures that e.g.,
-            # Color256._256A_16_WHITE == Color256.GRAY_100 is True.
+        return self.int == other.int
 
-            primary_reverse_equiv_self = self._color16_equiv.color256_equiv
-            primary_reverse_equiv_other = other._color16_equiv.color256_equiv
-            codes_match = (primary_reverse_equiv_self.code == primary_reverse_equiv_other.code)
-        return values_match and codes_match
+    @property
+    def available_for_approximation(self) -> bool:
+        return self._color16_equiv is None
 
     def repr_attrs(self, verbose: bool = True) -> str:
         code = f"x{getattr(self, '_code', None)}"

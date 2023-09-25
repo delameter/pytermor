@@ -50,6 +50,8 @@ def format_test_params(val) -> str | None:
         return "%s(%s)" % (get_qname(val), val.repr_attrs(False))
     if isinstance(val, ISequence):
         return repr(val)
+    if isinstance(val, IColorValue):
+        return repr(val)
     return None
 
 
