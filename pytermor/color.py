@@ -728,7 +728,7 @@ class _ColorRegistry(t.Generic[_RCT], t.Sized, t.Iterable):
             tokens = self._name_to_tokens(name,)
             if not primary_tokens:
                 primary_tokens = tokens
-            self._register_unique_key(color, tokens)
+            self._register_unique_key(color, tokens, ignore_dup=True)
 
         for variation in color.variations.values():
             variation_tokens: t.Tuple[str, ...] = (
@@ -738,12 +738,14 @@ class _ColorRegistry(t.Generic[_RCT], t.Sized, t.Iterable):
             self._set.add(variation)
             self._register_unique_key(variation, variation_tokens)
 
-    def _register_unique_key(self, color: _RCT, key: str | t.Tuple[str, ...]):
+    def _register_unique_key(self, color: _RCT, key: str | t.Tuple[str, ...], ignore_dup=False):
         if key not in self._map.keys():
             self._map[key] = color
             return
 
         existing_color = self._map.get(key)
+        if ignore_dup:
+            return
         if color.int == existing_color.int:
             return  # skipping the duplicate with the same name and value
         raise ColorNameConflictError(key, existing_color, color)

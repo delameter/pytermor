@@ -405,10 +405,12 @@ class TestColorRegistry:
         ColorRGB(0x4, "test 4", register=True)
         ColorRGB(0x3, "test 4", register=True)
 
-    @pytest.mark.xfail(raises=ColorNameConflictError)
-    def test_registering_of_indirect_name_duplicate_fails(self):
-        ColorRGB(0x4, "test+4b", register=True)
-        ColorRGB(0x3, "test 4b", register=True)
+    def test_registering_of_indirect_name_duplicate_works(self):
+        col1 = ColorRGB(0x4, "test+4b", register=True)
+        col2 = ColorRGB(0x3, "test 4b", register=True)
+        assert col1 is resolve_color("test+4b", ColorRGB)
+        assert col2 is resolve_color("test 4b", ColorRGB)
+        assert col1 is resolve_color("test-4b", ColorRGB)
 
     def test_registering_of_variation_works(self):
         col = ColorRGB(0x5, "test 5", variation_map={0x2: "2"}, register=True)

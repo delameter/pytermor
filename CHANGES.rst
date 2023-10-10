@@ -24,8 +24,10 @@ pending
 - |DOCS| bgcolor latex custom class
 - |FIX| color16_equiv approximation issue
 - |REFACTOR| made `Color256` non-deferred
+- |DOCS| tracers math
+- |REMOVE|  `log` module
 
-.. <@pending:f235530>
+.. <@pending:30c0259>
 .. ^ blank line before should be kept
 
 

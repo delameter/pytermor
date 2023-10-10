@@ -200,7 +200,7 @@ class _LoggingStack(deque[_T], metaclass=ABCMeta):
 
 
 class _FragmentStack(_LoggingStack[Fragment]):
-    def _repr_item(self, o: Fragment) -> str:
+    def _repr_item(self, o: Fragment) -> str:  # pragma: no cover
         return str(o)
 
 
