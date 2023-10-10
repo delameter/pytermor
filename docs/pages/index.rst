@@ -102,15 +102,16 @@ are some for testing and docs building).`
    install
    features
    structure
-   examples
+   examples/index
 
 .. toctree::
    :caption: Documentation
    :maxdepth: 2
 
-   guide-hi
-   guide-lo
+   guide-hi/index
+   guide-lo/index
    apidoc
+   appendix/index
    config
    cli
 

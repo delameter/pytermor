@@ -9,14 +9,6 @@
 
    
    
-   .. rubric:: Functions
-
-   .. autosummary::
-   
-      get_config
-      init_config
-      replace_config
-   
    
 
    
@@ -26,6 +18,7 @@
    .. autosummary::
    
       Config
+      ConfigManager
    
    
 

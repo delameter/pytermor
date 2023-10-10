@@ -18,7 +18,6 @@ API reference
    cval
    exception
    filter
-   log
    numfmt
    renderer
    style

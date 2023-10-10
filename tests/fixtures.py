@@ -20,7 +20,7 @@ from pytermor import (
 )
 from pytermor import DynamicColor, FrozenStyle
 from pytermor import ExtendedEnum, RendererManager
-from pytermor.config import Config, init_config, replace_config
+from pytermor.config import Config, ConfigManager
 from pytermor.cval import cv
 from pytermor.exception import NotInitializedError
 
@@ -49,10 +49,10 @@ def config(request):
             kwargs[k] = v
         current_config = Config(**kwargs)
 
-    replace_config(current_config)
+    ConfigManager.set_default(current_config)
     RendererManager.set_default()
     yield current_config
-    init_config()
+    ConfigManager.set_default()
     RendererManager.set_default()
 
 

@@ -9,6 +9,7 @@ Library fine tuning module.
 
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass, field
 
@@ -74,31 +75,16 @@ class Config:
 
     def __post_init__(self):
         attr_dict = {k: v for (k, v) in self.__dict__.items()}
-        from .log import get_logger
-
-        get_logger().info(f"Config initialized with: {attr_dict!s}")
+        logging.getLogger(__package__).debug(f"Config initialized with: {attr_dict!s}")
 
 
-_config: Config|None = None
+class ConfigManager:
+    _default: Config = None
 
+    @classmethod
+    def set_default(cls, config: Config = None):
+        cls._default = config or Config()
 
-def get_config() -> Config:
-    """
-    Return the current config instance.
-    """
-    return _config
-
-
-def init_config():
-    """
-    Reset all config vars to default values.
-    """
-    replace_config(Config())
-
-
-def replace_config(cfg: Config):
-    """
-    Replace the global config instance with provided one.
-    """
-    global _config
-    _config = cfg
+    @classmethod
+    def get_default(cls) -> Config:
+        return cls._default

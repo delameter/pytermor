@@ -165,6 +165,7 @@ exclude_lines = [
     "class SimpleTable.+",
     "def allows_width_setup\\(.+",
     "def has_width\\(.+",
+    "def repr_attrs\\(.+",
 ]
 ignore_errors = true
 

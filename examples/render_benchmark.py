@@ -14,7 +14,6 @@ import pytermor
 import pytermor as pt
 import pytermor.color
 import pytermor.common
-import pytermor.log
 import pytermor.style
 import pytermor.term
 from pytermor import NOOP_STYLE, Fragment, ColorTarget

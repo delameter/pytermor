@@ -368,7 +368,8 @@ def flatten(items: Iterable[_T | Iterable[_T]], level_limit: int = None) -> t.Li
 def char_range(start: str, stop: str):
     """
     Yields all the characters from range of [`c1`; `c2`], inclusive
-    (end character `c2` is also present, in contrast with classic `range()`).
+    (end character `c2` is **also present**, in contrast with classic
+    `range()`, which excludes ``stop`` value from the results).
 
     >>> ''.join(char_range('₁', '₉'))
     '₁₂₃₄₅₆₇₈₉'

@@ -22,8 +22,10 @@ pending
 - |DOCS|  index rewrite
 - |REFACTOR| latex configuration files
 - |DOCS| bgcolor latex custom class
+- |FIX| color16_equiv approximation issue
+- |REFACTOR| made `Color256` non-deferred
 
-.. <@pending:e45b99c>
+.. <@pending:f235530>
 .. ^ blank line before should be kept
 
 

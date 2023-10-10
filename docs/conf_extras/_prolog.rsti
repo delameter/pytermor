@@ -29,8 +29,6 @@
 
 .. role:: seealso
 
-.. default-role:: any
-
 .. include:: <isonum.txt>
 .. include:: <s5defs.txt>
 
@@ -86,4 +84,6 @@
 .. |CI/CD| replace:: :badge-ci-cd:`[CI/CD]`
 .. |MAINTAIN| replace:: :badge:`\ `
 
-.. .. end
+.. default-role:: any
+
+.. .. ↑ this one should be LAST

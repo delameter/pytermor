@@ -390,7 +390,7 @@ class TestColorRegistry:
         map_length_start = len(ColorRGB._registry)
         col = ColorRGB(0x2, "test 2", register=True)
 
-        assert map_length_start + 1 == len(ColorRGB._registry)
+        assert map_length_start + 2 == len(ColorRGB._registry)  # one for original name, one for tokens
         assert col is resolve_color("test 2", ColorRGB)
 
     def test_registering_of_duplicate_doesnt_change_map_length(self):
@@ -404,6 +404,11 @@ class TestColorRegistry:
     def test_registering_of_name_duplicate_fails(self):
         ColorRGB(0x4, "test 4", register=True)
         ColorRGB(0x3, "test 4", register=True)
+
+    @pytest.mark.xfail(raises=ColorNameConflictError)
+    def test_registering_of_indirect_name_duplicate_fails(self):
+        ColorRGB(0x4, "test+4b", register=True)
+        ColorRGB(0x3, "test 4b", register=True)
 
     def test_registering_of_variation_works(self):
         col = ColorRGB(0x5, "test 5", variation_map={0x2: "2"}, register=True)
@@ -434,6 +439,21 @@ class TestColorRegistry:
 
     def test_names(self):
         assert len([*ColorRGB._registry.names()]) == len(ColorRGB._registry._map)
+
+    def test_name_with_prohibited_chars_can_be_resolved_directly(self):
+        col = ColorRGB(0x9, "test#A", register=True)
+        assert ("test#A",) in ColorRGB._registry.names()
+        assert col is resolve_color("test#a", ColorRGB)
+
+    def test_name_with_prohibited_chars_can_be_resolved_by_tokens(self):
+        col = ColorRGB(0x10, "test#B", register=True)
+        assert ("test", "b",) in ColorRGB._registry.names()
+        assert col is resolve_color("test-b", ColorRGB)
+
+    @pytest.mark.xfail(raises=LookupError)
+    def test_unnamed_color_cant_be_resolved(self):
+        ColorRGB(0x11, None, register=True)
+        resolve_color("", ColorRGB)
 
 
 

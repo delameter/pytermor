@@ -31,7 +31,6 @@ Library structure
    cval
    exception
    filter
-   log
    numfmt
    renderer
    style

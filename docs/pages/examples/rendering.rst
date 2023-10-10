@@ -1,7 +1,5 @@
-.. _examples:
-
 #################
-    Examples
+   Rendering
 #################
 
 The library can be split into two domains, the first one being "**high**\ -level"
@@ -17,7 +15,7 @@ chain-like application.
 .. _rendering-high-level:
 
 -----------------------------------
-Rendering · High-level
+High-level
 -----------------------------------
 
 Imagine we want to colorize ``git --help`` output *manually*, i.e., we will not
@@ -34,7 +32,7 @@ to add a formatting using all primary approaches.
 The examples in this part are sorted from simple ones at the beginning to
 complicated ones at the end.
 
-Separated pre-rendering
+Isolated pre-rendering
 ================================
 Use `render()` method to apply a :term:`style` to a string part individually for
 each of them.
@@ -48,7 +46,7 @@ each of them.
 depending on output device characteristics and environment setup.
 
 Note that ``render()`` accepts `FT` as format argument, which can be `Style` or
-`Color` or *str* or *int* (there is a few methods to define a color).
+`Color` or *str* or *int* (there are a few methods to define a color).
 
 Fragments
 ====================
@@ -108,7 +106,7 @@ explicit definition of a tuple is not neccessary, but there are cases, when it i
    .. figure:: /demo/examples.texts.svg
       :align: center
 
-`FrozenText` is immutable version of `Text` (to be precise, its quite the
+`FrozenText` is an immutable version of `Text` (to be precise, its quite the
 opposite: ``Text`` is a child of ``FrozenText``).
 
 We will utilize aligning capabilities of ``FrozenText`` class in a following
@@ -116,6 +114,7 @@ code fragment:
 
 .. literalinclude:: /demo/examples.frozentexts.py
    :linenos:
+   :emphasize-lines: 11
 
 .. only:: html
 
@@ -127,17 +126,17 @@ code fragment:
    .. figure:: /demo/examples.frozentexts.svg
       :align: center
 
-At line #13 we compose a `FrozenText` instance with command name and set up
-desired width (18=16+2 for left padding), and explicitly set up right padding
-with ``pad`` argument. Padding chars will be applied to the left, right or both
-sides depending on ``align`` argument.
+At highlighted line we compose a `FrozenText` instance with command
+name and set up desired width (18=16+2 for right margin), and explicitly set up
+left padding with ``pad`` argument. Padding chars and regular spaces originating
+from the alignment process are always applied to the opposite sides of text.
 
-Note that although `echo()` accepts a single `RT` as a first argument,
+Note that although `text.echo()` accepts a single `RT` as a first argument,
 it also accepts a sequence of them, which allows us to call ``echo`` just
-once. `RT` is a type var including *str* type and all `IRenderable`
+once. `common.RT` is a type var including *str* type and all `IRenderable`
 implementations.
 
-Templates
+Template tags
 ========================
 There is a support of library's internal tag format, which allows to inline
 formatting into the original string, and get the final result by calling just
@@ -237,7 +236,7 @@ value is a `FT`), then (#19) the refilter is applied and result is printed.
 .. _rendering-low-level:
 
 -----------------------------------
-Rendering · Low-level
+Low-level
 -----------------------------------
 
 The examples in this part are sorted from simple (for the developer) ones at the beginning to

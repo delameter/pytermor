@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import logging
 import re
 import typing as t
 from abc import abstractmethod, ABCMeta
@@ -15,9 +16,8 @@ from typing import Union
 
 from .ansi import SequenceCSI, SeqIndex
 from .color import resolve_color, DEFAULT_COLOR
-from .common import fit, get_qname
+from .common import get_qname
 from .exception import LogicError
-from .log import _logger, measure
 from .renderer import IRenderer
 from .style import MergeMode, NOOP_STYLE, Style, merge_styles
 from .term import (
@@ -33,14 +33,6 @@ from .text import Fragment, Text, apply_style_words_selective, apply_style_selec
 from .text import render as text_render
 
 _T = t.TypeVar("_T")
-
-
-def _tpleng_debug_sep(f=40, n=40):
-    _logger.debug(fit("-" * f, n, align="<"))
-
-
-def _tpleng_debug(l, s):
-    _logger.debug(f"{l:>9s}  {s}")
 
 
 class _StyleSplitter(metaclass=ABCMeta):
@@ -159,7 +151,7 @@ class _TemplateTag:
                 base_style = custom_styles[style_attr]
                 continue
 
-            if re.match('fg|bg|underline_color', style_attr):
+            if re.match("fg|bg|underline_color", style_attr):
                 style_attrs.update(
                     {
                         k: (v or DEFAULT_COLOR)
@@ -190,16 +182,13 @@ class _LoggingStack(deque[_T], metaclass=ABCMeta):
         self._name = name
 
     def append(self, st: _T) -> None:
-        _tpleng_debug(f"{self._name} <=", self._repr_item(st))
         super().append(st)
 
     def pop(self) -> _T:
         st = super().pop()
-        _tpleng_debug(f"{self._name} =>", self._repr_item(st))
         return st
 
     def clear(self) -> None:
-        _tpleng_debug(f"{self._name} <=", "[]")
         super().clear()
 
     def __repr__(self) -> str:
@@ -256,7 +245,9 @@ class TemplateEngine:
     _COMMENT_REGEX = re.compile(r"#\[.*?\]")
     _ESCAPE_REGEX = re.compile(r"([^\\])\\\[")
 
-    def __init__(self, custom_styles: t.Dict[str, Style] = None, global_style: Style = NOOP_STYLE):
+    def __init__(
+        self, custom_styles: t.Dict[str, Style] = None, global_style: Style = NOOP_STYLE
+    ):
         self._user_styles: t.Dict[str, Style] = custom_styles or {}
         self._global_style = global_style
 
@@ -266,13 +257,10 @@ class TemplateEngine:
     def render(self, tpl: str, renderer: IRenderer) -> str:
         return text_render(self.substitute(tpl), renderer=renderer)
 
-    @measure(
-        formatter=lambda s, r, _, tpl: f"Substituted in {s} ({len(tpl)} chars)",
-    )
     def substitute(self, tpl: str) -> Text:
         tpl_parts = self._split(tpl)
 
-        _logger.debug(f"Split to {len(tpl_parts)} parts")
+        logging.getLogger(__package__).debug(f"Split to {len(tpl_parts)} parts")
         return self._assemble(tpl_parts)
 
     def _split(self, tpl: str) -> deque[Union[str, _TemplateTag]]:
@@ -305,76 +293,56 @@ class TemplateEngine:
 
         for idx, tpl_part in enumerate(tpl_parts):
             _stacks_str = f"[" + "] [".join(repr(s) for s in [spl_stack, st_stack]) + "]"
-            _tpleng_debug_sep()
-            _tpleng_debug("STACKS", _stacks_str)
 
             if isinstance(tpl_part, str):
-                _tpleng_debug(f"PART {idx}", f"{tpl_part!r}")
 
                 if spl_stack:
-                    _tpleng_debug("TEXT MODE", "split_stack")
                     for segm in (splitter := spl_stack.pop()).apply(tpl_part):
                         result.append(segm)
                     # add open style for engine to properly handle the :[-closing] tag:
                     to_stack(splitter.tag_style)
                     continue
 
-                _tpleng_debug("TEXT MODE", "stack")
                 result.append(Fragment(tpl_part, st_stack.current))
                 continue
 
             tag = t.cast(_TemplateTag, tpl_part)
             tag_style = tag.style(self._user_styles)
-            _tpleng_debug(f"PART {idx}", f"{tag.raw}")
 
             if splitter := tag.splitter:
-                _tpleng_debug("TAG TYPE", "split")
                 spl_stack.append(splitter(tag_style))
 
             elif tag.reg_merge_mode:
-                _tpleng_debug("TAG TYPE", "register")
                 existing_st = self._user_styles.get(tag.groups.name, NOOP_STYLE.clone())
                 updated_st = existing_st.merge(tag.reg_merge_mode, tag_style)
-                _tpleng_debug("userst <=", updated_st)
                 self._user_styles[tag.groups.name] = updated_st
 
             elif tag.groups.pos:
-                _tpleng_debug("TAG TYPE", "reset_cursor")
                 result.append(Fragment(make_reset_cursor().assemble()))
 
             elif tag.groups.clear:
-                _tpleng_debug("TAG TYPE", "clear_seq")
                 result.append(Fragment(tag.clear_seq.assemble()))
 
             elif tag.is_resetter:
-                _tpleng_debug("TAG TYPE", "reset")
                 st_stack.clear()
                 result.append(Fragment(SeqIndex.RESET.assemble()))
 
             elif tag.is_terminator:
                 if not st_stack:
-                    _tpleng_debug(
-                        "TAG TYPE", "terminator | IGNORED because style stack is empty"
-                    )
                     continue
                 if not tag.groups.attrs:
-                    _tpleng_debug("TAG TYPE", "terminator_prev")
                     from_stack()
                 else:
-                    _tpleng_debug("TAG TYPE", "terminator_exact")
                     if (st_prev := from_stack()) != tag_style:
                         raise LogicError(
                             f"Terminator '{tag.raw}' doesn't match corresponding opener: {st_prev}"
                         )
 
             elif tag.is_opener:
-                _tpleng_debug("TAG TYPE", "opener")
                 to_stack(tag_style)
 
             else:  # pragma: no cover
                 raise LogicError(f"Invalid tag: {tag.raw}")
-
-        _tpleng_debug_sep()
 
         for idx, frag in enumerate(result):
             if not frag.style:

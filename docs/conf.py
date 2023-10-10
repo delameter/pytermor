@@ -62,6 +62,7 @@ extensions = [
 # line before building it and uncomments it afterwards (yeah I know it's ugly)
 
 rst_prolog = read_x('_prolog.rsti')
+default_role = 'any'
 
 templates_path = ["_templates"]
 exclude_patterns = [

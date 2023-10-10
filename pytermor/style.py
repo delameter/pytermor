@@ -16,8 +16,7 @@ import typing as t
 from dataclasses import dataclass, field
 from typing import Any
 
-from . import RealColor
-from .color import Color, NOOP_COLOR, resolve_color, IColorValue, ColorRGB, RenderColor
+from .color import Color, NOOP_COLOR, resolve_color, IColorValue, ColorRGB, RenderColor, RealColor
 from .common import CDT, FT
 from .cval import cv
 from .exception import ArgTypeError, LogicError
@@ -29,6 +28,7 @@ class MergeMode(str, enum.Enum):
     REPLACE = "@"
 
 
+# noinspection NonAsciiCharacters
 @dataclass()
 class Style:
     """
@@ -517,6 +517,7 @@ class _NoOpStyle(Style):
 
 
 NOOP_STYLE = _NoOpStyle()
+# noinspection NonAsciiCharacters
 """ 
 Special style passing the text through without any modifications. 
 
@@ -608,6 +609,7 @@ def make_style(fmt: FT = None) -> Style:
     raise ArgTypeError(fmt, "fmt", FT, None)
 
 
+# noinspection NonAsciiCharacters
 def merge_styles(
     origin: Style = NOOP_STYLE,
     *,

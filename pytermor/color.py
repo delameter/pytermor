@@ -25,12 +25,13 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Iterable
 from functools import cached_property
 from math import sqrt
-from typing import TypeVar, OrderedDict
+from typing import TypeVar, OrderedDict, final
 
 from .ansi import BG_HI_COLORS, ColorTarget, HI_COLORS, NOOP_SEQ, SequenceSGR
 from .common import CDT
+from .common import filtern
 from .common import get_qname
-from .config import get_config
+from .config import ConfigManager
 from .exception import (
     ColorCodeConflictError,
     ColorNameConflictError,
@@ -644,9 +645,8 @@ class RenderColor:
     def __repr__(self) -> str:
         return f"<{get_qname(self)}[{self.repr_attrs()}]>"
 
-    @abstractmethod
     def repr_attrs(self, verbose: bool = True) -> str:
-        raise NotImplementedError
+        return "--"
 
 
 class RealColor(IColorValue):
@@ -710,40 +710,54 @@ class _ColorRegistry(t.Generic[_RCT], t.Sized, t.Iterable):
     # Colors hashed by name parts
 
     _TOKEN_SEPARATOR = "-"
-    _QUERY_SPLIT_REGEX = re.compile(r"[\W_]+|(?<=[a-z])(?=[A-Z0-9])")
+    _QUERY_SPLIT_REGEX = re.compile(R"[\W_]+|(?<=[a-z])(?=[A-Z0-9])")
+    _QUERY_NORMALIZATION_REGEX = re.compile(R'[^a-zA-Z0-9 _-]+')  # replace non-matching
 
     def __init__(self):
         self._map: t.Dict[t.Tuple[str], _RCT] = {}
         self._set: t.Set[_RCT] = set()
 
-    def register(self, color: _RCT, name: str):
-        primary_tokens = tuple(filter(None, self._QUERY_SPLIT_REGEX.split(name)))
-        self._register_pair(color, primary_tokens)
-
-        if not isinstance(color, ColorRGB):
+    def register(self, color: _RCT, aliases: Iterable[str] = None):
+        self._set.add(color)
+        if not color.name:
             return
+
+        primary_tokens = None
+        for name in [color.name] + (aliases or []):
+            self._register_unique_key(color, (name,))
+            tokens = self._name_to_tokens(name,)
+            if not primary_tokens:
+                primary_tokens = tokens
+            self._register_unique_key(color, tokens)
+
         for variation in color.variations.values():
             variation_tokens: t.Tuple[str, ...] = (
                 *primary_tokens,
                 *(self._QUERY_SPLIT_REGEX.split(variation.name)),
             )
-            self._register_pair(variation, variation_tokens)
+            self._set.add(variation)
+            self._register_unique_key(variation, variation_tokens)
 
-    def _register_pair(self, color: _RCT, tokens: t.Tuple[str, ...]):
-        self._set.add(color)
-
-        if tokens not in self._map.keys():
-            self._map[tokens] = color
+    def _register_unique_key(self, color: _RCT, key: str | t.Tuple[str, ...]):
+        if key not in self._map.keys():
+            self._map[key] = color
             return
 
-        existing_color = self._map.get(tokens)
+        existing_color = self._map.get(key)
         if color.int == existing_color.int:
             return  # skipping the duplicate with the same name and value
-        raise ColorNameConflictError(tokens, existing_color, color)
+        raise ColorNameConflictError(key, existing_color, color)
+
+    def _name_to_tokens(self, name: str) -> t.Tuple[str, ...]:
+        def _iter():
+            for token in (*filtern(self._QUERY_SPLIT_REGEX.split(name)),):
+                yield self._QUERY_NORMALIZATION_REGEX.sub('', token).lower()
+        return (*_iter(),)
 
     def find_by_name(self, name: str) -> _RCT:
-        query_tokens = (*(qt.lower() for qt in self._QUERY_SPLIT_REGEX.split(name)),)
-        if color := self._map.get(query_tokens, None):
+        if color := self._map.get((name,), None):  # start with checking if exact name is known
+            return color
+        if color := self._map.get(self._name_to_tokens(name), None):
             return color
         raise LookupError(f"Color '{name}' does not exist")
 
@@ -920,20 +934,10 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         if variation_map:
             self._make_variations(variation_map)
         if register:
-            self._register(aliases)
+            self._registry.register(self, aliases)
 
     def __hash__(self) -> int:  # pragma: no cover
         return hash(self._name)
-
-    def _register(self: _RCT, aliases: t.List[str] = None):
-        if not self.name:
-            return
-        self._registry.register(self, self.name)
-
-        if not aliases:
-            return
-        for alias in aliases:
-            self._registry.register(self, alias)
 
     def _make_variations(self: _RCT, variation_map: t.Dict[int, str] = None):
         for vari_value, vari_name in variation_map.items():
@@ -957,6 +961,9 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         """
         return True
 
+    @property
+    def variations(self) -> t.Dict[str, _RCT]:
+        return dict()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -983,7 +990,7 @@ _ColorDiffFn = t.Callable[[IColorValue], Iterable[ApxResult[_RCT]]]
 
 # ---------------------------------------------------------------------------------------
 
-
+@final
 class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
     """
     Variant of a ``Color`` operating within the most basic color set
@@ -1015,8 +1022,8 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
         self._code_fg: int = code_fg
         self._code_bg: int = code_bg
 
-        super(Color16, self).__init__(value)
-        super(RenderColor, self).__init__(name, register, code_fg, aliases)
+        RealColor.__init__(self, value)
+        ResolvableColor.__init__(self, name, register, code_fg, aliases)
 
     def __hash__(self) -> int:  # pragma: no cover
         return hash(super(Color16, self)) + hash(super(RenderColor, self))
@@ -1103,6 +1110,7 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
         return None  # no equivalent for underline color
 
 
+@final
 class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
     """
     Variant of a ``Color`` operating within relatively modern **xterm-256**
@@ -1134,8 +1142,8 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
         self._code: int | None = code
         self._color16_equiv: Color16 | None = color16_equiv
 
-        super(Color256, self).__init__(value)
-        super(RenderColor, self).__init__(name, register, code, aliases)
+        RealColor.__init__(self, value)
+        ResolvableColor.__init__(self, name, register, code, aliases)
 
     def __hash__(self) -> int:  # pragma: no cover
         return hash(super(Color256, self)) + hash(super(RenderColor, self))
@@ -1167,7 +1175,7 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
                             SGR being made.
         """
         if upper_bound is ColorRGB:
-            if get_config().prefer_rgb:
+            if ConfigManager.get_default().prefer_rgb:
                 return make_color_rgb(*self.rgb, target=target)
             return make_color_256(self._code, target)
 
@@ -1243,6 +1251,7 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
         return f"{code}({params})"
 
 
+@final
 class ColorRGB(RealColor, RenderColor, ResolvableColor["ColorRGB"]):
     """
     Variant of a ``Color`` operating within RGB color space. Presets include
@@ -1271,8 +1280,8 @@ class ColorRGB(RealColor, RenderColor, ResolvableColor["ColorRGB"]):
         aliases: t.List[str] = None,
         variation_map: t.Dict[int, str] = None,
     ):
-        super(ColorRGB, self).__init__(value)
-        super(RenderColor, self).__init__(name, register, None, aliases, variation_map)
+        RealColor.__init__(self, value)
+        ResolvableColor.__init__(self, name, register, None, aliases, variation_map)
 
     def __hash__(self) -> int:  # pragma: no cover
         return hash(super(ColorRGB, self)) + hash(super(RenderColor, self))

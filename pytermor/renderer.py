@@ -10,6 +10,7 @@ depending on renderer type. Default global renderer type is `SgrRenderer`.
 """
 from __future__ import annotations
 
+from logging import getLogger
 import os
 import re
 import sys
@@ -21,8 +22,7 @@ from hashlib import md5
 from .ansi import ColorTarget, NOOP_SEQ, SeqIndex, SequenceSGR, get_closing_seq
 from .color import Color16, Color256, ColorRGB, DEFAULT_COLOR, Color, NOOP_COLOR, RenderColor
 from .common import ExtendedEnum, FT, get_qname
-from .config import get_config
-from .log import _trace_render, get_logger
+from .config import ConfigManager
 from .style import NOOP_STYLE, Style, Styles, make_style
 
 _T = t.TypeVar("_T", bound="IRenderer")
@@ -67,9 +67,9 @@ class RendererManager:
             cls._default = renderer
             return
 
-        renderer_classname: str = get_config().renderer_class
+        renderer_classname: str = ConfigManager.get_default().renderer_class
         if not (renderer_class := getattr(__import__(__package__), renderer_classname)):  # pragma: no cover
-            get_logger().warning(
+            getLogger(__package__).warning(
                 f"Renderer class does not exist: '{renderer_classname}'"
             )
             renderer_class = SgrRenderer
@@ -255,7 +255,7 @@ class SgrRenderer(IRenderer):
             allow_cache=True,
             allow_format=(self._output_mode is not OutputMode.NO_ANSI),
         )
-        get_logger().debug(f"Instantiated {self!r} => {getattr(io, 'name', repr(io))}")
+        getLogger(__package__).debug(f"Instantiated {self!r} => {getattr(io, 'name', repr(io))}")
 
     def __hash__(self) -> int:
         # although this renderer is immutable, its state can be set up differently
@@ -270,7 +270,6 @@ class SgrRenderer(IRenderer):
         ]
         return f"<{get_qname(self)}[{', '.join(attrs)}]>"
 
-    @_trace_render
     def render(self, string: str, fmt: FT = None) -> str:
         style = make_style(fmt)
         opening_seq = (
@@ -294,7 +293,7 @@ class SgrRenderer(IRenderer):
         return SgrRenderer(self._output_mode)
 
     def _determine_output_mode(self, arg_value: OutputMode, io: t.IO) -> OutputMode:
-        logger = get_logger()
+        logger = getLogger(__package__)
         ioname = "<" + getattr(io, "name", "?").strip("<>") + ">"
 
         if not isinstance(arg_value, OutputMode):
@@ -304,7 +303,7 @@ class SgrRenderer(IRenderer):
             logger.debug(f"Using explicit value from the constructor arg: {arg_value}")
             return arg_value
 
-        config_forced_value = OutputMode.resolve_by_value(get_config().force_output_mode)
+        config_forced_value = OutputMode.resolve_by_value(ConfigManager.get_default().force_output_mode)
         if config_forced_value is not OutputMode.AUTO:
             logger.debug(f"Using forced value from env/config: {config_forced_value}")
             return config_forced_value
@@ -330,7 +329,7 @@ class SgrRenderer(IRenderer):
             return OutputMode.XTERM_16
         if colorterm in ("truecolor", "24bit"):
             return OutputMode.TRUE_COLOR
-        return OutputMode.resolve_by_value(get_config().default_output_mode)
+        return OutputMode.resolve_by_value(ConfigManager.get_default().default_output_mode)
 
     def _render_attributes(self, style: Style) -> t.List[SequenceSGR] | SequenceSGR:
         if not self.is_format_allowed:
@@ -389,7 +388,6 @@ class TmuxRenderer(IRenderer):
     def __hash__(self) -> int:  # stateless
         return _digest(self.__class__.__qualname__)
 
-    @_trace_render
     def render(self, string: str, fmt: FT = None) -> str:
         style = make_style(fmt)
         command_open, command_close = self._render_attributes(style)
@@ -495,7 +493,6 @@ class HtmlRenderer(IRenderer):
     def __hash__(self) -> int:  # stateless
         return _digest(self.__class__.__qualname__)
 
-    @_trace_render
     def render(self, string: str, fmt: FT = None) -> str:
         style = make_style(fmt)
         opening_tag, closing_tag = self._render_attributes(style)
@@ -597,7 +594,6 @@ class SgrDebugger(SgrRenderer):
             return self._format_override
         return super().is_format_allowed
 
-    @_trace_render
     def render(self, string: str, fmt: FT = None) -> str:
         origin = super().render(string, fmt)
         return self.REPLACE_REGEX.sub(r"(ǝ\1)", origin)
@@ -648,7 +644,3 @@ def force_no_ansi_rendering():
     Shortcut for disabling all output formatting of a global renderer.
     """
     RendererManager.set_default(SgrRenderer(OutputMode.NO_ANSI))
-
-
-def init_renderer():
-    RendererManager.set_default()

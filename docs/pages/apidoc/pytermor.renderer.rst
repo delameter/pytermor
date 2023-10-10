@@ -15,7 +15,6 @@
    
       force_ansi_rendering
       force_no_ansi_rendering
-      init_renderer
    
    
 

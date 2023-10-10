@@ -90,9 +90,6 @@ from .common import ours as ours
 from .common import pad as pad
 from .common import padv as padv
 from .config import Config as Config
-from .config import get_config as get_config
-from .config import init_config as init_config
-from .config import replace_config as replace_config
 from .cval import cv as cv
 from .cval import cvr as cvr
 from .exception import ArgCountError as ArgCountError
@@ -151,10 +148,6 @@ from .filter import get_max_ucs_chars_cp_length as get_max_ucs_chars_cp_length
 from .filter import get_max_utf8_bytes_char_length as get_max_utf8_bytes_char_length
 from .filter import ljust_sgr as ljust_sgr
 from .filter import rjust_sgr as rjust_sgr
-from .log import TRACE as TRACE
-from .log import get_logger as get_logger
-from .log import init_logger as init_logger
-from .log import measure as measure
 from .numfmt import BaseUnit as BaseUnit
 from .numfmt import DualBaseUnit as DualBaseUnit
 from .numfmt import DualFormatter as DualFormatter
@@ -187,13 +180,11 @@ from .renderer import HtmlRenderer as HtmlRenderer
 from .renderer import IRenderer as IRenderer
 from .renderer import NoOpRenderer as NoOpRenderer
 from .renderer import OutputMode as OutputMode
-from .renderer import RendererManager as RendererManager
 from .renderer import SgrDebugger as SgrDebugger
 from .renderer import SgrRenderer as SgrRenderer
 from .renderer import TmuxRenderer as TmuxRenderer
 from .renderer import force_ansi_rendering as force_ansi_rendering
 from .renderer import force_no_ansi_rendering as force_no_ansi_rendering
-from .renderer import init_renderer as init_renderer
 from .style import FrozenStyle as FrozenStyle
 from .style import MergeMode as MergeMode
 from .style import NOOP_STYLE as NOOP_STYLE
@@ -264,6 +255,26 @@ from .text import is_rt as is_rt
 from .text import render as render
 from .text import wrap_sgr as wrap_sgr
 
-init_config()
-init_renderer()
-init_logger()
+
+
+from logging import getLogger, NullHandler
+from .config import ConfigManager as ConfigManager
+from .renderer import RendererManager as RendererManager
+
+getLogger(__package__).addHandler(NullHandler())  # discard all logs by default
+ConfigManager.set_default()
+RendererManager.set_default()
+
+"""
+# - 8< - - - - - - - - - in your project: - - - - - - - - - - - - - -
+
+fmt = '[%(levelname)5.5s][%(name)s.%(module)s] %(message)s'
+handler = logging.StreamHandler()
+handler.setLevel(logging.DEBUG)
+handler.setFormatter(logging.Formatter(fmt))
+logger = logging.getLogger('pytermor')
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - >8-
+"""

@@ -67,8 +67,8 @@ class UserAbort(Exception):
 
 
 class ColorNameConflictError(Exception):
-    def __init__(self, tokens: t.Tuple[str], existing_color, new_color):
-        msg = f"Color '{new_color.name}' -> {tokens} already exists"
+    def __init__(self, key: str|t.Tuple[str], existing_color, new_color):
+        msg = f"Color '{new_color.name}' -> {key} already exists"
         super().__init__(msg, [existing_color, new_color])
 
 

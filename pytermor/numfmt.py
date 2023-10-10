@@ -18,7 +18,6 @@ from math import floor, isclose, log, log10, trunc
 
 from .common import Align, RT, fit, get_qname
 from .exception import ConflictError
-from .log import measure
 from .style import Style, Styles, merge_styles
 from .text import Fragment, Text, FrozenText
 
@@ -112,7 +111,6 @@ class Highlighter:
     _UNITLESS_LENGTH_THRESHOLD = 3
     # fmt: on
 
-    @measure
     def colorize(self, string: str) -> Text:
         """
         parse and highlight
