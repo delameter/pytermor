@@ -26,8 +26,9 @@ pending
 - |REFACTOR| made `Color256` non-deferred
 - |DOCS| tracers math
 - |REMOVE|  `log` module
+- |FIX| conflict color tokens are allowed as long as original names differ
 
-.. <@pending:30c0259>
+.. <@pending:85a1eff>
 .. ^ blank line before should be kept
 
 

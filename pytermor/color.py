@@ -1028,7 +1028,7 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
         ResolvableColor.__init__(self, name, register, code_fg, aliases)
 
     def __hash__(self) -> int:  # pragma: no cover
-        return hash(super(Color16, self)) + hash(super(RenderColor, self))
+        return super(Color16, self).__hash__() + super(RenderColor, self).__hash__()
 
     @property
     def code_fg(self) -> int:
@@ -1148,7 +1148,7 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
         ResolvableColor.__init__(self, name, register, code, aliases)
 
     def __hash__(self) -> int:  # pragma: no cover
-        return hash(super(Color256, self)) + hash(super(RenderColor, self))
+        return super(Color256, self).__hash__() + super(RenderColor, self).__hash__()
 
     def to_sgr(
         self, target: ColorTarget = ColorTarget.FG, upper_bound: t.Type[Color] = None
@@ -1286,7 +1286,7 @@ class ColorRGB(RealColor, RenderColor, ResolvableColor["ColorRGB"]):
         ResolvableColor.__init__(self, name, register, None, aliases, variation_map)
 
     def __hash__(self) -> int:  # pragma: no cover
-        return hash(super(ColorRGB, self)) + hash(super(RenderColor, self))
+        return super(ColorRGB, self).__hash__() + super(RenderColor, self).__hash__()
 
     def to_sgr(
         self, target: ColorTarget = ColorTarget.FG, upper_bound: t.Type[Color] = None

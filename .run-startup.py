@@ -33,9 +33,6 @@ import pytermor as pt
 import signal, re, sys
 from examples import *  # noqa
 
-pt.init_config()
-pt.init_renderer()
-
 signal.signal(signal.SIGINT, signal.SIG_DFL)  # for ^C to terminate the demo instantly
 
 
