@@ -27,8 +27,9 @@ pending
 - |DOCS| tracers math
 - |REMOVE|  `log` module
 - |FIX| conflict color tokens are allowed as long as original names differ
+- |FIX| `Color16`, `Color256`, `ColorRGB` hash computation
 
-.. <@pending:85a1eff>
+.. <@pending:70db107>
 .. ^ blank line before should be kept
 
 

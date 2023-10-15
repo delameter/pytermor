@@ -19,10 +19,10 @@ CONFIG_PATH = join(PROJECT_ROOT, "config")
 
 
 def warning(string: str | pt.IRenderable):
-    get_stdout().write(pt.render(pt.Fragment("[WARN] ", pt.Styles.WARNING_LABEL) + pt.Text(string, pt.Styles.WARNING)))
+    get_stdout().write(pt.render(pt.Fragment("[WARN] ", pt.Styles.WARNING_LABEL) + pt.Text(string+'\n', pt.Styles.WARNING)))
 
 def error(string: str | pt.IRenderable):
-    get_stdout().write(pt.render(pt.Fragment("[ERROR] ", pt.Styles.ERROR) + string))
+    get_stdout().write(pt.render(pt.Fragment("[ERROR] ", pt.Styles.ERROR) + string+'\n'))
     exit(1)
 
 
@@ -43,16 +43,16 @@ class TaskRunner(metaclass=ABCMeta):
     def _run_callback(self, *args, **kwargs):
         pass
 
-    def _print_fin_result(self, fin: TextIO, filepath: str):
-        self.__print_file_result(fin, filepath, "Read", "<-", 'yellow')
+    def _render_fin_result(self, fin: TextIO, filepath: str):
+        return self.__render_file_result(fin, filepath, "Read", "<-", 'yellow')
 
-    def _print_fout_result(self, fout: TextIO, filepath: str):
-        self.__print_file_result(fout, filepath, "Wrote", "->", 'green')
+    def _render_fout_result(self, fout: TextIO, filepath: str):
+        return  self.__render_file_result(fout, filepath, "Wrote", "->", 'green')
 
-    def __print_file_result(self, f: TextIO, filepath: str, act: str, arr: str, sizecolor: str):
+    def __render_file_result(self, f: TextIO, filepath: str, act: str, arr: str, sizecolor: str):
         size = pt.format_si(f.tell(), unit="b", auto_color=False)
         size = Text(size, sizecolor, width=8)
-        get_stdout().write(pt.render(SimpleTable(width=100).pass_row(f"{act:<5s}", size, arr, Fragment(filepath, "blue"))))
+        return pt.render(SimpleTable(width=100).pass_row(f"{act:<5s}", size, arr, Fragment(filepath, "blue")))
 
 
 def get_stdout():

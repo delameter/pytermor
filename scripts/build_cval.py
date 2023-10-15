@@ -19,8 +19,9 @@ from string import Template
 import yaml
 
 from common import PROJECT_ROOT, CONFIG_PATH, TaskRunner
-from pytermor import pad
+from pytermor import pad, SgrRenderer, cv
 from pytermor.common import filtern
+from es7s_commons.progressbar import ProgressBar
 
 
 class IndexBuilder(TaskRunner):
@@ -41,8 +42,10 @@ class IndexBuilder(TaskRunner):
     def __init__(self):
         self._names = set()
         self._colors_count = 0
+        self._pbar = ProgressBar(SgrRenderer(), sys.stderr, cv.MAGENTA)
 
     def _run(self) -> int:
+        self._pbar.init_tasks(len(self.MODE_TO_SORTER_MAP.keys()), 0)
         result = {k: "" for k in self.MODE_TO_SORTER_MAP.keys()}
         counts = ""
         for mode, sorter in self.MODE_TO_SORTER_MAP.items():
@@ -63,17 +66,19 @@ class IndexBuilder(TaskRunner):
                     'counts': counts,
                     **{f"defs_{k}": v for k, v in result.items()}
                 }))
-                self._print_fout_result(fout, self.OUTPUT_DEST_PATH)
+                self._pbar._echo(self._render_fout_result(fout, self.OUTPUT_DEST_PATH), persist=True)
         return self._colors_count
 
     def _run_callback(self, colors_count: int):
-        print(f"Colors processed: {colors_count}", file=sys.stdout)
+        self._pbar._echo(f"Colors processed: {colors_count}", persist=True)
+        self._pbar.close()
 
     def _run_mode(self, mode: str, sorter: t.Callable):
+        self._pbar.next_task(mode)
         config_path = join(CONFIG_PATH, mode + ".yml")
         with open(config_path, "rt") as f:
             config = yaml.safe_load(f)
-            self._print_fin_result(f, config_path)
+            self._pbar._echo(self._render_fin_result(f, config_path), persist=True)
         self._colors_mode_class = config.get("class")
         self._deferred = config.get("_deferred")
 
@@ -87,12 +92,14 @@ class IndexBuilder(TaskRunner):
         )
 
         color_values = set()
+        self._pbar.init_steps(len(colors))
         for color in colors:
             self._colors_count += 1
             self._colors_mode_count += 1
 
             var_name = color.get("var_name")
             code = str(color.get("code"))
+            self._pbar.next_step(var_name)
             color16_equiv = None
             if mode == "xterm_256" and (color16_equiv := color.get("color16_equiv")):
                 color16_equiv = color.get("color16_equiv")

@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import re
+import sys
 import typing as t
 import unicodedata
 from os.path import join
@@ -18,8 +19,9 @@ import yaml
 
 import pytermor as pt
 from common import CONFIG_PATH, error
-from pytermor import ConflictError
+from pytermor import ConflictError, SgrRenderer, cv
 from scripts.common import warning
+from es7s_commons.progressbar import ProgressBar
 
 
 class RgbPreprocessor():
@@ -39,18 +41,14 @@ class RgbPreprocessor():
         self._ids: t.Set[t.Tuple[str, ...]] = set()
         self._colors: t.Dict[str, t.Dict] = {}
         self._variations: t.Dict[str, t.Dict[str, t.Dict]] = {}
+        self._pbar = ProgressBar(SgrRenderer(), sys.stderr, cv.MAGENTA)
 
-    # @_with_terminal_state
-    # @_with_progress_bar(task_label="Processing")
-    # def run(self, *, pbar: ProgressBar, tstatectl: TerminalStateController) -> t.List[t.Dict]:
     def run(self) -> t.List[t.Dict]:
         conflicts = 0
-        # self._pbar = pbar
 
-        # self._pbar.init_steps(len(self._color_defs))
+        self._pbar.init_steps(len(self._color_defs))
         for color_def in self._color_defs:
-            # self._pbar.next_step(color_def.get('name'))
-            # self._pbar.render()
+            self._pbar.next_step(color_def.get('name'))
 
             try:
                 self._process_color_def(color_def)
@@ -71,7 +69,7 @@ class RgbPreprocessor():
         config = self._assemble_config()
         self._dump_config(config)
 
-        # self._pbar.close()
+        self._pbar.close()
 
         if conflicts > 0:
             warning(f"Color conflicts: " + str(conflicts))

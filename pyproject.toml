@@ -44,7 +44,6 @@ disable = true
 [tool.hatch.build.targets.sdist]
 include = [
     "/pytermor",
-    "/pytermor/dev",
     "/tests",
 ]
 
