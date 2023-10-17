@@ -196,9 +196,15 @@ div.graphviz {
     background: var(--color-pt-doctest-background);
     border: 1px solid var(--color-pt-doctest-border)
 }
-.highlight-output > .highlight,
-body[data-theme="dark"]  .highlight-output > .highlight {
-    background: var(--color-pt-output-background);
+.output {
+    border: 1px inset var(--color-pt-doctest-border);
+    border-radius: 0;
+    box-sizing: border-box;
+}
+.output p,
+.output div {
+    background: #000 !important;
+    color: #fff !important;
 }
 .highlight-adjacent:not(:last-of-type) {
     margin-bottom: 0 !important;
@@ -225,6 +231,10 @@ body[data-theme="dark"]  .highlight-output > .highlight {
 }
 button.copybtn {
    background: var(--color-pt-doctest-background);
+}
+
+body:not([data-theme="light"]) .highlight .hll {
+    background-color: #1c4161;
 }
 
 /** Hyperlinks **/
@@ -280,6 +290,9 @@ a.image-reference img {
 }
 .bottom-of-page .icons {
     gap: 0.75rem;
+}
+.fullwidthimage img {
+    margin: 0;
 }
 
 body .graphviz-default,
@@ -511,6 +524,10 @@ dl[class].field-list em {
 
 
 /** XTerm palette **/
+
+.bgteal {
+    border: 1px solid var(--color-foreground-border);
+}
 
 table.xterm-palette td {
     font-family: ASM, monospace;

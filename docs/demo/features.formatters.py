@@ -1,12 +1,27 @@
 import io
 import math
+import re
 import typing as t
 import pytermor as pt
+from pytermor import IRenderer, FT, make_style, Color16
 
 n = lambda j: math.pi**j
 r = range
 
 # DRAFT
+
+class RudimentaryLatexRenderer(IRenderer):
+    def render(self, string: str, fmt: FT = None) -> str:
+        if not string:
+            return ""
+        style = make_style(fmt)
+        if not style.fg:
+            return string
+        if isinstance(style.fg, Color16):
+            return f':{style.fg.name}:`{string}`'
+        print(style)
+        raise NotImplementedError
+
 
 def p(fn: t.Callable, rmin=5, rmax=21, color=True):
     buf = io.StringIO()
@@ -20,7 +35,7 @@ def p(fn: t.Callable, rmin=5, rmax=21, color=True):
     print(sep, end="|", file=buf)
     [
         pt.echo(
-            pt.rjust_sgr(pt.render(fn(n(i), auto_color=color), renderer=pt.HtmlRenderer), 10)
+            pt.rjust_sgr(pt.render(fn(n(i), auto_color=color), renderer=pt.SgrRenderer).replace('`:', '`\ :'), 10)
             + "  "
             + ["", "|\n|", ""][i % 3],
             nl=False,
@@ -49,4 +64,4 @@ for bufl in bufs:
             continue
         prevt = t
         if len(t) > 3 or len(t) == 0:
-            print(t)
+            print(re.sub(r'[+|-]', ' ', t))

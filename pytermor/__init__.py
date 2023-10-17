@@ -66,6 +66,7 @@ from .color import find_closest as find_closest
 from .color import resolve_color as resolve_color
 from .common import Align as Align
 from .common import CDT as CDT
+from .common import CXT as CXT
 from .common import ExtendedEnum as ExtendedEnum
 from .common import FT as FT
 from .common import OVERFLOW_CHAR as OVERFLOW_CHAR

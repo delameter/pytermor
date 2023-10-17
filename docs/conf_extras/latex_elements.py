@@ -10,13 +10,15 @@ def get() -> dict:
         # 'passoptionstopackages': r'\PassOptionsToPackage{svgnames}{xcolor}', #
         "papersize"              : "a4paper",                                  # letter,a4paper
         "pointsize"              : "10pt",                                     # 10,11,12
-        "inputenc"               : "",                                         # -+
-        "utf8extra"              : "",                                         # -+- both necessary for unicode in pdf
+        "inputenc"               : "\\usepackage[utf8]",                       # ⎫
+        "utf8extra"              : "",                                         # ⎭ both necessary for unicode in pdf
         "classoptions"           : ",openany,oneside",                         # remove blank pages
         "babel"                  : "\\usepackage[english]{babel}",             # quote symbols and more
-        "pxunit"                 : "0.5bp",                                    # (dpi = 72*bp)  doesnt work btw
+        "pxunit"                 : "0.5bp",                                    # (dpi = 72*bp)           doesnt work btw
         "figure_align"           : "H",                                        # text wrapping
-        "fncychap"               :  read_x('latex_fncychap.sty'),              # chapter start pages
+        "fncychap"               : read_x('latex_fncychap.sty'),               # chapter start pages
+        #'fontpkg'                : '\\usepackage{amsmath,amsfonts,amssymb,amsthm}',
+        # 'fontpkg'                : '\\usepackage[defaultsans]{lato}',
         "printindex"             : r"\footnotesize\raggedright\printindex",    # decrease font for index
 
     }

@@ -49,12 +49,24 @@ function formatEnvLists() {
 }
 
 function squashNeighbourCodeSetions() {
-    // find "highlight-adjacent"s _preceeded_ by a "highlight-default"s
-    // and add adjacent classes to the latter. as of 2023 ":has" selector
-    // is not guaranteed to work in ALL browsers, but to hell with that
-    $("div.highlight-default:has(+ div.highlight-adjacent)").each(
+    // find "highlight-adjacent"'s _preceeded_ by a div with a "highlight"
+    // div inside and add adjacent classes to that parent div:
+    //
+    // <div> <!-- to this one -->
+    //     <div="highlight"> ... </div>
+    // </div>
+    // <div "highlight-adjacent"> ... </div>
+    //
+    // $("div:has(div.highlight):has(+ div.highlight-adjacent)").each(
+    //     (idx, el) => el.classList.add("highlight-adjacent")
+    // );
+
+    // actually found a bit better way; this will match all languages,
+    // including .highlight-python and .highlight-console:
+    $("div[class|=highlight]:has(+ div.highlight-adjacent)").each(
         (idx, el) => el.classList.add("highlight-adjacent")
     );
+    // as of 2023 ":has" selector is not guaranteed to work in ALL browsers, but to hell with that
 }
 
 function formatEscCharLabels() {

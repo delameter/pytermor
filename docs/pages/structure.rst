@@ -19,7 +19,7 @@ Library structure
       :class: graphviz-default
       :caption: Module dependency graph [#]_
 
-   .. [#] Overly common modules (``exception``, ``log``, ``config`` and ``common`` itself) are not shown, as they turn the graph into a mess. Same applies to internal modules which name starts with ``_``.
+   .. [#] Overly common modules (``exception``, ``config`` and ``common`` itself) are not shown, as they turn the graph into a mess. Same applies to internal modules which name starts with ``_``.
 
 
 .. autosummary::

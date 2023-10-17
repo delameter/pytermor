@@ -32,15 +32,44 @@
 .. include:: <isonum.txt>
 .. include:: <s5defs.txt>
 
+.. role:: xdaracu
+   :class: xdaracu
+
+.. role:: redonblue
+   :class: redonblue
+
+.. role:: yellowonredline
+   :class: yellowonredline
+
+.. role:: blackonyellow
+   :class: blackonyellow
+
+.. role:: blackonblue
+   :class: blackonblue
+
 .. role:: bgteal
    :class: bgteal
+
+.. role:: bgtealline
+   :class: bgtealline
 
 .. |nbspt| unicode:: 0xA0
    :trim:
 
-.. |nbspt5| replace:: |nbspt| |nbspt| |nbspt| |nbspt| |nbspt|
-
-.. |nbspt10| replace:: |nbspt5| |nbspt5|
+.. |nbspt2| replace:: |nbspt|\ |nbspt|
+.. |nbspt3| replace:: |nbspt2|\ |nbspt|
+.. |nbspt4| replace:: |nbspt3|\ |nbspt|
+.. |nbspt5| replace:: |nbspt4|\ |nbspt|
+.. |nbspt6| replace:: |nbspt5|\ |nbspt|
+.. |nbspt7| replace:: |nbspt6|\ |nbspt|
+.. |nbspt8| replace:: |nbspt7|\ |nbspt|
+.. |nbspt9| replace:: |nbspt8|\ |nbspt|
+.. |nbspt10| replace:: |nbspt9|\ |nbspt|
+.. |nbspt11| replace:: |nbspt10|\ |nbspt|
+.. |nbspt12| replace:: |nbspt11|\ |nbspt|
+.. |nbspt13| replace:: |nbspt12|\ |nbspt|
+.. |nbspt14| replace:: |nbspt13|\ |nbspt|
+.. |nbspt15| replace:: |nbspt14|\ |nbspt|
 
 .. role:: badge
     :class: badge

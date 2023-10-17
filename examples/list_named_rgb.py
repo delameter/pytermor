@@ -113,8 +113,8 @@ class ILoader:
 
 class _OriginLoader(ILoader):
     def load(self) -> t.Iterable[_IColorRGB]:
-        for k, v in pt.ColorRGB._registry._map.items():
-            yield _ColorRGBOriginAdapter(v, k)
+        for v in pt.ColorRGB._registry._set:
+            yield _ColorRGBOriginAdapter(v, [v.name])
 
 
 class _ConfigLoader(ILoader):
@@ -268,8 +268,8 @@ class Main():
     def __init__(self):
         pt.force_ansi_rendering()
         #pt.RendererManager.set_default(pt.HtmlRenderer)
-
-        config_list = [*_ConfigLoader().load()]
+        pt.cvr.load()
+        # config_list = [*_ConfigLoader().load()]
         origin_list = [*_OriginLoader().load()]
         self.run(origin_list)
 

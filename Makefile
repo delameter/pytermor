@@ -256,7 +256,7 @@ docs-all: depends demolish-docs docs docs-pdf docs-man
 
 open-docs-html:  ## Open HTML docs in browser
 	@$(call _ensure_x11) || return
-	@[ -d localhost ] && xdg-open ${LOCALHOST_URL}/docs/pages || xdg-open ${DOCS_IN_PATH}/_build/index.html
+	@[ -d localhost ] && xdg-open ${LOCALHOST_URL}/docs/pages || xdg-open ${DOCS_IN_PATH}/_build/pages/index.html
 
 open-docs-pdf:  ## Open PDF docs in reader
 	@$(call _ensure_x11) || return

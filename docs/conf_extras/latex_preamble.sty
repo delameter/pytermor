@@ -1,5 +1,6 @@
-\usepackage{tcolorbox}
+\RequirePackage{xcolor}\usepackage{tcolorbox}
 \usepackage{pgffor}
+\usepackage{charter}  % main font
 
 \newcommand{\DUroleblack}[1]{{\color[HTML]{000000} #1}}
 \newcommand{\DUrolegray}[1]{{\color[HTML]{808080} #1}}
@@ -22,12 +23,58 @@
 \newcommand{\DUrolenavy}[1]{{\color[HTML]{000080} #1}}
 \newcommand{\DUrolepurple}[1]{{\color[HTML]{800080} #1}}
 
+\newtcbox{fgbgbox}[1][]{notitle,on line,size=fbox,left=0pt,right=0pt,boxrule=0px,arc=0pt,outer arc=0pt,#1}
+
+\definecolor{xdaracu}{HTML}{DA9AC4}
+
+\newcommand{\DUrolexdaracu}[1]{{\begin{fgbgbox}[colupper=xdaracu,colback=black]{#1}\end{fgbgbox}}}
+\newcommand{\DUroleredonblue}[1]{{\begin{fgbgbox}[colupper=red,colback=blue]{#1}\end{fgbgbox}}}
+\newcommand{\DUroleblackonyellow}[1]{{\begin{fgbgbox}[colupper=black,colback=yellow]{#1}\end{fgbgbox}}}
+\newcommand{\DUroleblackonblue}[1]{{\begin{fgbgbox}[colupper=black,colback=blue]{#1}\end{fgbgbox}}}
+
 \newcommand{\DUrolebgteal}[1]
 {{
+    \begin{tcbox}[
+        notitle,on line,size=small,
+        boxrule=1px,arc=0pt,outer arc=0pt,
+        colback=teal,colupper=teal,colframe=black,
+    ]{ #1 }
+    \end{tcbox}
+}}
+
+\newcommand{\DUrolebgtealline}[1]
+{{
     \begin{tcolorbox}[
-        on line,arc=0pt,outer arc=0pt,
-        top=0pt,left=0pt,right=0pt,bottom=0pt,
-        colback=teal,width=\linewidth
+        width=\linewidth,notitle,size=small,
+        boxrule=0pt,arc=0pt,outer arc=0pt,
+        colback=teal,colupper=white,
     ]{ #1 }
     \end{tcolorbox}
 }}
+
+\newcommand{\DUroleyellowonredline}[1]
+{{
+    \begin{tcolorbox}[
+        width=\linewidth,notitle,size=small,
+        boxrule=0pt,arc=0pt,outer arc=0pt,
+        colback=red,colupper=yellow,fontupper=\bfseries,
+    ]{ #1 }
+    \end{tcolorbox}
+}}
+
+
+\newenvironment{sphinxclassoutputcaption}
+{\begin{centering}}
+{\end{centering}}
+
+\newtcolorbox{sphinxclassoutput}{
+    width=\linewidth,notitle,size=title,
+    before skip=0pt,after skip=.5cm,center,add to width=7pt,
+    boxrule=1px,arc=0pt,outer arc=0pt,
+    colback=black,colupper=white,fontupper=\ttfamily,
+}
+
+\newtcolorbox{sphinxclassoutputstandalone}{
+    size=minimal,before skip=.5cm,
+    boxrule=0px,arc=0pt,outer arc=0pt,
+}

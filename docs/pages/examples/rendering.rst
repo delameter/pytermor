@@ -12,6 +12,7 @@ definitions, helpers for composing various terminal escape sequences, the escape
 sequence abstractions themselves, as well as a large set of filters for
 chain-like application.
 
+
 .. _rendering-high-level:
 
 -----------------------------------
@@ -23,30 +24,61 @@ pipe an output of ``git`` and apply filters to do the job (yet), instead we
 copy-paste the output to python source code files as string literals and will try
 to add a formatting using all primary approaches.
 
-.. literalinclude:: /demo/examples/input.txt
-   :language: plain
+.. code-block:: plain
    :caption: Part of the input
 
-.. include:: /demo/examples/output.rst
+    These are common Git commands used in various situations:
+
+    start a working area (see also: git help tutorial)
+       clone             Clone a repository into a new directory
+       init              Create an empty Git repository or reinitialize an existing one
+       [..]
+
+.. container:: code-block-caption outputcaption
+
+    Part of the output
+
+.. container:: highlight highlight-manual highlight-adjacent output
+
+    | These are common Git commands used in various situations:
+    |
+    | :yellow:`start a working area` (see also: :lime:`git help tutorial`)
+    | |nbspt3|\ :lime:`clone`\ |nbspt13|\ Clone a repository into a new directory
+    | |nbspt3|\ :lime:`init`\ |nbspt14|\ Create an empty Git repository or reinitialize an existing one
+    | |nbspt3|\ [..]
+
 
 The examples in this part are sorted from simple ones at the beginning to
 complicated ones at the end.
 
 Isolated pre-rendering
 ================================
+
+.. highlight:: python
+   :linenothreshold: 5
+
 Use `render()` method to apply a :term:`style` to a string part individually for
-each of them.
+each of them::
 
-.. literalinclude:: /demo/examples/prerender.py
-   :linenos:
+    import pytermor as pt
 
-.. include:: /demo/examples/prerender.rst
+    subtitle = pt.render("start a working area", pt.Style(fg=pt.cv.YELLOW, bold=True))
+    subtitle += " (see also: "
+    subtitle += pt.render("git help tutorial", pt.cv.GREEN)
+    subtitle += ")"
+
+    pt.echo(subtitle)
+
+.. container:: highlight highlight-manual highlight-adjacent output
+
+    :yellow:`start a working area` (see also: :lime:`git help tutorial`)
+
 
 `render()` method uses `SgrRenderer` by default, which is set up automatically
 depending on output device characteristics and environment setup.
 
 Note that ``render()`` accepts `FT` as format argument, which can be `Style` or
-`Color` or *str* or *int* (there are a few methods to define a color).
+`Color` or *str* or *int* (there are a few ways to define a color).
 
 Fragments
 ====================
@@ -54,32 +86,55 @@ Fragments
 text string along with a `Style` instance and that's it.
 
 ``Fragment`` instances can be safely concatenated with a regular *str* (but not
-with another `Fragment`) from the left side as well as from the right side (line
-#15). If you attempt to add one ``Fragment`` to another ``Fragment``, you'll end
+with another `Fragment`) from the left side as well as from the right side
+(highlighted line). If you attempt to add one ``Fragment`` to another
+``Fragment``, you'll end
 up with a `Text` instance (see the example after next).
 
-.. literalinclude:: /demo/examples/fragments.py
-   :linenos:
+.. code-block::
+   :emphasize-lines: 12
 
-.. include:: /demo/examples/fragments.rst
+    from collections.abc import Iterable
+    import pytermor as pt
+
+    data = [
+        ("clone", "Clone a repository into a new directory"),
+        ("init", "Create an empty Git repository or reinitialize an existing one"),
+    ]
+
+    st = pt.Style(fg=pt.cv.GREEN)
+    for name, desc in data:
+        frag = pt.Fragment(name.ljust(16), st)
+        pt.echo('  ' + frag + desc)
+
+.. container:: highlight highlight-manual highlight-adjacent output
+
+    | |nbspt3|\ :lime:`clone`\ |nbspt13|\ Clone a repository into a new directory
+    | |nbspt3|\ :lime:`init`\ |nbspt14|\ Create an empty Git repository or reinitialize an existing one
 
 Fragments in f-strings
 ======================
 Another approach to align a formatted text is to combine Python's *f-strings*
-with `Fragment` instances.
+with `Fragment` instances::
 
-.. literalinclude:: /demo/examples.fragments-fstrings.py
-   :linenos:
+    import pytermor as pt
 
-.. only:: html
+    data = [
+        ("bisect", "Use binary search to find the commit that introduced a bug"),
+        ("diff", "Show changes between commits, commit and working tree, etc"),
+        ("grep", "Print lines matching a pattern"),
+    ]
 
-   .. raw:: html
-       :file: ../demo/examples.fragments-fstrings.html
+    st = pt.Style(fg=pt.cv.GREEN)
+    for name, desc in data:
+        frag = pt.Fragment(name, st)
+        pt.echo(f"  {frag:<16s}    {desc}")
 
-.. only:: latex
+.. container:: highlight highlight-manual highlight-adjacent output
 
-   .. figure:: /demo/examples.fragments-fstrings.svg
-      :align: center
+    | |nbspt3|\ :lime:`bisect`\ |nbspt12|\ Use binary search to find the commit that introduced a bug
+    | |nbspt3|\ :lime:`diff`\ |nbspt14|\ Show changes between commits, commit and working tree, etc
+    | |nbspt3|\ :lime:`grep`\ |nbspt14|\ Print lines matching a pattern
 
 Texts & FrozenTexts
 ====================
@@ -91,20 +146,23 @@ but most importantly it supports :def:`fargs` syntax (for the details see `guide
 which allows to compose formatted text parts much faster and keeps the code compact. Generally
 speaking, the basic input parameter is either a tuple of string and `Style` or `Color`,
 which then will be applied to preceeding string, or a standalone string. Usually
-explicit definition of a tuple is not neccessary, but there are cases, when it is.
+explicit definition of a tuple is not neccessary, but there are cases, when it is::
 
-.. literalinclude:: /demo/examples.texts.py
-   :linenos:
+    import pytermor as pt
 
-.. only:: html
+    subtitle_st = pt.Style(fg=pt.cv.YELLOW, bold=True)
+    command_st = pt.Style(fg=pt.cv.GREEN)
+    text = pt.FrozenText(
+        ("work on the current change ", subtitle_st),
+        "(see also: ",
+        "git help everyday", command_st,
+        ")"
+    )
+    pt.echo(text)
 
-   .. raw:: html
-       :file: ../demo/examples.texts.html
+.. container:: highlight highlight-manual highlight-adjacent output
 
-.. only:: latex
-
-   .. figure:: /demo/examples.texts.svg
-      :align: center
+    :yellow:`work on the current change` (see also: :lime:`git help everyday`\ )
 
 `FrozenText` is an immutable version of `Text` (to be precise, its quite the
 opposite: ``Text`` is a child of ``FrozenText``).
@@ -112,19 +170,26 @@ opposite: ``Text`` is a child of ``FrozenText``).
 We will utilize aligning capabilities of ``FrozenText`` class in a following
 code fragment:
 
-.. literalinclude:: /demo/examples.frozentexts.py
-   :linenos:
+.. code-block::
    :emphasize-lines: 11
 
-.. only:: html
+    import pytermor as pt
 
-   .. raw:: html
-       :file: ../demo/examples.frozentexts.html
+    data = [
+        ("add", "Add file contents to the index"),
+        ("mv", "Move or rename a file, a directory, or a symlink"),
+        ("restore", "Restore working tree files"),
+    ]
+    st = pt.Style(fg=pt.cv.GREEN)
 
-.. only:: latex
+    for name, desc in data:
+        pt.echo([pt.FrozenText("  ", name, st, width=18, pad=4), desc])
 
-   .. figure:: /demo/examples.frozentexts.svg
-      :align: center
+.. container:: highlight highlight-manual highlight-adjacent output
+
+    | |nbspt3|\ :lime:`add`\ |nbspt15|\ Add file contents to the index
+    | |nbspt3|\ :lime:`mv`\ |nbspt15| Move or rename a file, a directory, or a symlink
+    | |nbspt3|\ :lime:`restore`\ |nbspt11|\ Restore working tree files
 
 At highlighted line we compose a `FrozenText` instance with command
 name and set up desired width (18=16+2 for right margin), and explicitly set up
@@ -140,23 +205,26 @@ Template tags
 ========================
 There is a support of library's internal tag format, which allows to inline
 formatting into the original string, and get the final result by calling just
-one method:
+one method::
 
-.. literalinclude:: /demo/examples.templates.py
-   :linenos:
+    import pytermor as pt
 
-.. only:: html
+    s = """@st:[fg=yellow bold] @cmd:[fg=green]
+    :[st]grow, mark and tweak your common history:[-]
+       :[cmd]branch:[-]            List, create, or delete branches
+       :[cmd]commit:[-]            Record changes to the repository
+       :[cmd]merge:[-]             Join two or more development histories together
+    """
+    pt.echo(pt.TemplateEngine().substitute(s))
 
-   .. raw:: html
-       :file: ../demo/examples.templates.html
+.. container:: highlight highlight-manual highlight-adjacent output
 
-.. only:: latex
+    | |nbspt3|\ :lime:`branch`\ |nbspt12|\ List, create, or delete branches
+    | |nbspt3|\ :lime:`commit`\ |nbspt12|\ Record changes to the repository
+    | |nbspt3|\ :lime:`merge`\ |nbspt13|\ Join two or more development histories together
 
-   .. figure:: /demo/examples.templates.svg
-      :align: center
-
-Here ``@st:[fg=yellow bold]`` is a definition of a custom user style named ``st``,
-``:[st]`` is a opening tag for that style, and ``:[-]`` is a closing tag matching
+Here ``"@st:[fg=yellow bold]"`` is a definition of a custom user style named *"st"*,
+``":[st]"`` is a opening tag for that style, and ``":[-]"`` is a closing tag matching
 the most recently opened one. See `guide.templates` for the details.
 
   .. Template postprocessing
@@ -170,38 +238,47 @@ A little bit artificial example, but this method can be applied to
 solve real tasks nevertheless. The trick is to apply the desired style
 to a string containing special characters like ``r"\1"``, which
 will represent regexp group 1 after passing it into ``re.sub()``. The actual
-string being passed as 2nd argument will be ``ESC [ 32m \1 ESC [ m``. Regexp
-substitution function will replace all ``\1`` with a matching group in every
+string being passed as 2nd argument will be ``" ESC [ 32m \1 ESC [ m"``. Regexp
+substitution function will replace all ``"\1"`` with a matching group in every
 line of the input, therefore the match will end up being surrounded with
-(already rendered) SGRs responsible for green text color, ???, PROFIT:
+(already rendered) SGRs responsible for green text color, ???, PROFIT::
 
-.. literalinclude:: /demo/examples.regexp-group-rendering.py
-   :linenos:
-   :end-before: [extra-1-start]
+    import re
+    import pytermor as pt
 
-.. only:: html
+    s = """
+       fetch             Download objects and refs from another repository
+       pull              Fetch from and integrate with another repository or a local branch
+       push              Update remote refs along with associated objects
+    """
 
-   .. raw:: html
-       :file: ../demo/examples.regexp-group-rendering.html
+    regex = re.compile(r"^(\s+)(\S+)(.+)$")
+    for line in s.splitlines():
+        pt.echo(
+            regex.sub(
+                pt.render(r"\1" + pt.Fragment(r"\2", pt.cv.GREEN) + r"\3"),
+                line,
+            )
+        )
 
-.. only:: latex
+.. container:: highlight highlight-manual highlight-adjacent output
 
-   .. figure:: /demo/examples.regexp-group-rendering.svg
-      :align: center
+    | |nbspt3|\ :lime:`fetch`\ |nbspt13|\ Download objects and refs from another repository
+    | |nbspt3|\ :lime:`pull`\ |nbspt14|\ Fetch from and integrate with another repository or a local branch
+    | |nbspt3|\ :lime:`push`\ |nbspt14|\ Update remote refs along with associated objects
 
-For more complex logic it's usually better to extract it into separate function:
+For more complex logic it's usually better to extract it into separate function::
 
-.. literalinclude:: /demo/examples.regexp-group-rendering.py
-   :linenos:
-   :start-after: [extra-1-start]
-   :end-before: [extra-1-end]
+    def replace_expand(m: re.Match) -> str:
+        tpl = pt.render(r"\1" + pt.Fragment(r"\2", pt.cv.GREEN) + r"\3")
+        return m.expand(tpl)
+    regex.sub(replace_expand, "...")
 
-Another approach:
+Another approach::
 
-.. literalinclude:: /demo/examples.regexp-group-rendering.py
-   :linenos:
-   :start-after: [extra-2-start]
-   :end-before: [extra-2-end]
+    def replace_manual(m: re.Match) -> str:
+        return pt.render(m.group(1) + pt.Fragment(m.group(2), pt.cv.GREEN) + m.group(3))
+    regex.sub(replace_manual, "...")
 
 Refilters
 ========================
@@ -220,18 +297,34 @@ value is a `FT`), then (#19) the refilter is applied and result is printed.
    is placed into **high**\ -level group, because no manipulation at byte level
    or at color channel level is performed.
 
-.. literalinclude:: /demo/examples.refilters.py
-   :linenos:
+::
 
-.. only:: html
+    import re
+    import pytermor as pt
 
-   .. raw:: html
-       :file: ../demo/examples.refilters.html
+    s = """
+       reset             Reset current HEAD to the specified state
+       switch            Switch branches
+       tag               Create, list, delete or verify a tag object signed with GPG
+    """
 
-.. only:: latex
+    class SgrNamedGroupsRefilter(pt.AbstractNamedGroupsRefilter):
+        def _render(self, v: pt.IT, st: pt.FT) -> str:
+            return pt.render(v, st, pt.SgrRenderer)
 
-   .. figure:: /demo/examples.refilters.svg
-      :align: center
+    f = SgrNamedGroupsRefilter(
+        re.compile(r"(\s+)(?P<cmd>\S+)(.+)"),
+        {"cmd": pt.cv.GREEN},
+    )
+
+    pt.echo(pt.apply_filters(s, f))
+
+.. container:: highlight highlight-manual highlight-adjacent output
+
+    | |nbspt3|\ :lime:`reset`\ |nbspt13|\ Reset current HEAD to the specified state
+    | |nbspt3|\ :lime:`switch`\ |nbspt12|\ Switch branches
+    | |nbspt3|\ :lime:`tag`\ |nbspt15|\ Create, list, delete or verify a tag object signed with GPG
+
 
 .. _rendering-low-level:
 
@@ -248,28 +341,37 @@ individual basis.
 
 Preset compositions
 ====================================
-Preset composition methods produce sequence instances or already rendered
-sequence bytes as if they were rendered by `SgrRenderer`. Methods with
-names starting with ``make_`` return seq. instances, and methods named
-``compose_*`` return *str*, which means that more than one sequence were
-involved.
+Preset composition methods produce sequence instances or ready-to-print
+strings as if they were rendered by `SgrRenderer`. Methods with
+names starting with ``make_`` return single sequence instance each, while
+methods named ``compose_*`` return *str*\ ings which are several sequences
+rendered and concatenated.
 
-In the next example we create an SGR which colors text to black, and bg to
-:hex:`0xffaf00` (line #3), then compose a sequence chain which includes:
+In the next example we create an SGR which sets background color to
+:bgteal:`@`\ :hex:`#008787` (highlighted line) by specifying :term:`xterm-256`
+code 30 (see `guide.xterm-256-palette`), then compose a string which includes:
 
     - :abbr:`CUP (Cursor Position)` instruction: ``ESC [1;1H``;
-    - SGR instruction with our prev. defined colors: ``ESC [30;48;5;214m``;
+    - SGR instruction with our color: ``ESC [48;5;30m``;
     - :abbr:`EL (Erase in Line)` instruction: ``ESC [0K``.
 
-Effectively this results in a whole terminal line colored with colors specified,
+Effectively this results in a whole terminal line colored with a specified color,
 and note that we did not fill the line with spaces or something like that --
 this method is (in theory) faster, because the tty needs to process only ~10-20
 characters of input instead of 120+ (average terminal width).
 
-.. literalinclude:: /demo/examples/preset-compositons.py
-   :linenos:
+.. code-block::
+   :emphasize-lines: 3
 
-.. include:: /demo/examples/preset-compositons.rst
+    import pytermor as pt
+
+    col_sgr = pt.make_color_256(30, pt.ColorTarget.BG)
+    seq = pt.compose_clear_line_fill_bg(col_sgr)
+    pt.echo(seq + 'AAAA    BBBB')
+
+.. container:: highlight highlight-manual highlight-adjacent output
+
+    :bgtealline:`AAA    BBBB`
 
 .. note ::
 
@@ -298,20 +400,15 @@ Assisted wrapping
 ====================================
 Similar to the next one, but here we call helper method `ansi.enclose()`, which
 automatically builds the closing sequence complement to specified opening one,
-while there we pick and insert a closing sequence manually.
+while there we pick and insert a closing sequence manually::
 
-.. literalinclude:: /demo/examples.auto-wrap.py
-   :linenos:
+    import pytermor as pt
 
-.. only:: html
+    pt.echo(pt.enclose(pt.SeqIndex.CYAN, "imported") + " rich.inspect")
 
-   .. raw:: html
-       :file: ../demo/examples.auto-wrap.html
+.. container:: highlight highlight-manual highlight-adjacent output
 
-.. only:: latex
-
-   .. figure:: /demo/examples.auto-wrap.svg
-      :align: center
+    :cyan:`imported` rich.inspect
 
 Manual wrapping
 ====================================
@@ -327,38 +424,33 @@ be "hard-reset" sequence, which resets the terminal format stack completely (``E
 ones.
 
 `SeqIndex` class contains prepared sequences which can be inserted into f-string
-directly without any modifications.
+directly without any modifications::
 
-.. literalinclude:: /demo/examples.manual-wrap.py
-   :linenos:
+    import pytermor as pt
 
-.. only:: html
+    print(f"{pt.SeqIndex.CYAN}imported{pt.SeqIndex.RESET} rich.inspect", end="")
 
-   .. raw:: html
-       :file: ../demo/examples.manual-wrap.html
+.. container:: highlight highlight-manual highlight-adjacent output
 
-.. only:: latex
-
-   .. figure:: /demo/examples.manual-wrap.svg
-      :align: center
+    :cyan:`imported` rich.inspect
 
 Manual instantiating
 ====================================
 In case of necessity of some non-standard sequence types or "illegal" parameter
 values there is also a possibility to build the sequence from the scratch,
 instantiating one of the base sequence classes and providing required parameters
-values.
+values::
+
+    import pytermor as pt
+
+    print(pt.SequenceCSI("J", 2).assemble(), end="")
+    # which is equivalent to:
+    print(pt.make_erase_in_display(2).assemble(), end="")
 
 If your case is covered with an existing helper method in `term` package, use it
 instead of making new instance directly. This approach will make it easier to
 maintain the code, if something in internal logic of sequence base classes changes
 in the future.
-
-.. code:: python
-
-   print(pt.SequenceCSI("J", 2).assemble(), end="")
-   # equivalent to
-   print(pt.make_erase_in_display(2).assemble(), end="")
 
 Manual assembling :sup:`(don't do this)`
 ========================================
@@ -381,38 +473,42 @@ In short:
     - they are hard to maintain,
     - they are hard to debug.
 
-Even if it seems OK for a while:
-
-.. code-block:: python
+Even if it seems OK for a while::
 
     print('\x1b[41m', end="(；¬＿¬)")
-    print('\x1b[41m\x1b[2J\x1b[1;1H', end="(O∆O)")
+    print('\x1b[1;1H\x1b[41m\x1b[0K', end="(O∆O)")
 
-...things get worse pretty fast:
+...things get worse pretty fast::
 
-.. code-block:: python
-   :emphasize-lines: 1
+    print('\x1b[1;1H\x1b[38;2;232;232;22m\x1b[1;41m\x1b[0K', end="(╯°□°)╯")
 
-   print('\x1b[38;2;232;232;22m\x1b[1;41m\x1b[2J\x1b[1;1H', end="(╯°□°)╯")
+Compare with the next fragment, which does literally the same as the line
+from the example above, but is much easier to read thanks to low-level abstractions::
 
-Compare with the next fragment, which does literally the same as the *highlighted line*
-from the example above, but is much easier to read thanks to low-level abstractions:
+    import pytermor as pt
+    print(
+        pt.make_reset_cursor(),
+        pt.make_color_rgb(232, 232, 22),
+        pt.ansi.SeqIndex.BOLD,
+        pt.ansi.SeqIndex.BG_RED,
+        pt.make_erase_in_line(),
+        sep="", end="(°~°)",
+    )
 
-.. code-block:: python
+Or doing the same with high-level abstractions instead::
 
-    print(pt.make_color_rgb(232, 232, 22), end="")
-    print(pt.ansi.SeqIndex.BOLD + pt.ansi.SeqIndex.BG_RED, end="")
-    print(pt.make_erase_in_display(2).assemble(), end="")
-    print(pt.make_reset_cursor().assemble(), end="(°~°)")
-
-Or after adding some high-level abstractions as well:
-
-.. code-block:: python
-
+    import pytermor as pt
     st = pt.Style(fg=0xe8e816, bg='red', bold=True)
     fill = pt.compose_clear_line_fill_bg(st.fg.to_sgr())
     pt.echo(fill + "(°v°♡)", st)
 
-.. an empty comment that prevents pycharm from eating up
-   two consecutive newlines at the end, which are required
-   when the article ends with a code block
+.. container:: highlight highlight-manual highlight-adjacent output
+
+    :yellowonredline:`(°v°♡)`
+
+.. note ::
+
+    The last example also automatically resets the terminal back to normal
+    state, so that the text that is printed afterwards doesn't have any formatting,
+    in contrast with other examples requiring to assemble and print `SeqIndex.COLOR_OFF`
+    and `SeqIndex.BG_COLOR_OFF` (or just `SeqIndex.RESET`) at the end (which is omitted).

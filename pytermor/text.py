@@ -917,7 +917,7 @@ def apply_style_selective(
         ... ], renderer=SgrRenderer(OutputMode.XTERM_16))
         ['\x1b[31mA\x1b[39m', ' few ', '\x1b[31mCAPITAL\x1b[39m', 's']
 
-        .. container:: highlight highlight-manual highlight-adjacent highlight-output
+        .. container:: highlight highlight-manual highlight-adjacent highlight-output output
 
             :red:`A` few :red:`CAPITAL`\ s
 

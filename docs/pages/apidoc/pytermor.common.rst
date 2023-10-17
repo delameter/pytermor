@@ -10,6 +10,7 @@
    .. autosummary::
    
       CDT
+      CXT
       FT
       RT
       filterf

@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .color import Color, NOOP_COLOR, resolve_color, IColorValue, ColorRGB, RenderColor, RealColor
-from .common import CDT, FT
+from .common import CDT, CXT, FT
 from .cval import cv
 from .exception import ArgTypeError, LogicError
 
@@ -118,15 +118,15 @@ class Style:
         return self._underline_color
 
     @fg.setter
-    def fg(self, val: CDT | RenderColor | None):
+    def fg(self, val: CXT):
         self._fg: RenderColor = self._resolve_color(val)
 
     @bg.setter
-    def bg(self, val: CDT | RenderColor | None):
+    def bg(self, val: CXT):
         self._bg: RenderColor = self._resolve_color(val)
 
     @underline_color.setter
-    def underline_color(self, val: CDT | RenderColor | None):
+    def underline_color(self, val: CXT):
         self._underline_color: RenderColor = self._resolve_color(val)
 
     bold: bool
@@ -207,8 +207,8 @@ class Style:
     def __init__(
         self,
         fallback: Style = None,
-        fg: CDT | RenderColor = None,
-        bg: CDT | RenderColor = None,
+        fg: CXT = None,
+        bg: CXT = None,
         frozen: bool = False,
         *,
         bold: bool = None,
@@ -219,7 +219,7 @@ class Style:
         crosslined: bool = None,
         double_underlined: bool = None,
         curly_underlined: bool = None,
-        underline_color: CDT | RenderColor = None,
+        underline_color: CXT = None,
         inversed: bool = None,
         blink: bool = None,
         framed: bool = None,
@@ -447,7 +447,7 @@ class Style:
         if hasattr(self, "_frozen") and self._frozen:
             raise LogicError(f"{self.__class__.__qualname__} is immutable")
 
-    def _resolve_color(self, arg: CDT | IColorValue | RenderColor | None) -> RenderColor | None:
+    def _resolve_color(self, arg: CXT) -> RenderColor | None:
         if arg is None:
             return NOOP_COLOR
         if isinstance(arg, RenderColor):
@@ -457,7 +457,7 @@ class Style:
         if isinstance(arg, (str, int)) and not isinstance(arg, bool):
             # undesirable isinstance(True, int) --> #000001
             return resolve_color(arg)
-        raise ArgTypeError(arg, "arg", CDT, IColorValue, None)
+        raise ArgTypeError(arg, "arg", CXT, IColorValue, None)
 
     def __setattr__(self, name: str, value: Any) -> None:
         self._ensure_not_frozen()

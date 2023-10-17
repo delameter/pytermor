@@ -33,6 +33,11 @@ is `resolve_color()`. Valid values include:
     - *int* in a [:hex:`0`; :hex:`0xffffff`] range.
 """
 
+CXT = t.TypeVar("CXT", int, str, "IColorValue", "RenderColor", None)
+"""
+:todo:`TODO`
+"""
+
 FT = t.TypeVar("FT", int, str, "IColorValue", "Style", None)
 """
 :abbr:`FT (Format type)` is a style descriptor. Used as a shortcut precursor for actual 

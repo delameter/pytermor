@@ -11,7 +11,7 @@ import typing as t
 import pytest
 
 import pytermor as pt
-from pytermor import ArgTypeError, Color, CDT, FT, IT, Style, Color256
+from pytermor import ArgTypeError, Color, CXT, FT, IT, Style, Color256
 from pytermor.exception import ArgCountError
 from tests import format_test_params
 
@@ -39,7 +39,7 @@ class TestArgTypeError:
                 lambda: pt.make_style(pt.Style),
             ),
             (
-                ["Argument", "arg", CDT, Color, "list"],
+                ["Argument", "arg", CXT, Color, "list"],
                 lambda: setattr(pt.Style(), "fg", [None]),
             ),
             (

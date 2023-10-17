@@ -89,9 +89,37 @@
     color: purple;
 }
 
+.xdaracu {
+    color: #DA9AC4;
+}
 
+.redonblue {
+    color: red;
+    background: blue;
+}
+.yellowonredline {
+    color: yellow;
+    background: red;
+    font-weight: bold;
+}
+.blackonyellow {
+    color: black;
+    background: yellow;
+}
+.blackonblue {
+    color: black;
+    background: blue;
+}
 
-.bgteal {
+.bgteal,
+.bgtealline {
     background-color: teal;
+}
+.bgteal {
+    color: teal;
+    margin: 0.25em;
+}
+.yellowonredline,
+.bgtealline {
     display: block;
 }

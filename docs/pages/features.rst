@@ -4,44 +4,43 @@
     Features
 #################
 
+.. highlight:: python
+
 ==================================
 Flexible input formats
 ==================================
 
 `guide.fargs` allows to compose formatted text parts much faster and keeps the code
-compact:
+compact::
 
-.. literalinclude:: /demo/features.fargs.py
-   :linenos:
+    import pytermor as pt
 
-.. only:: html
+    ex_st = pt.Style(bg='#ffff00', fg='black')
+    text = pt.FrozenText(
+        'This is red ', pt.cv.RED,
+        "This is white ",
+        "This is black on yellow", ex_st,
+    )
+    pt.echo(text)
 
-   .. raw:: html
-       :file: ../demo/features.fargs.html
+.. container:: highlight highlight-manual highlight-adjacent output
 
-.. only:: latex
-
-   .. figure:: /demo/features.fargs.svg
-      :align: center
+    :red:`This is red`\ |nbsp| This is white\ |nbsp| :blackonyellow:`This is black on yellow`
 
 ==================================
 Content-aware format nesting
 ==================================
-r
-Template tags and non-closing `Fragments <Fragment>` allow to build complex formats.
 
-.. literalinclude:: /demo/features.templates.py
-   :linenos:
+Template tags and non-closing `Fragments <Fragment>` allow to build complex formats::
 
-.. only:: html
+   import pytermor as pt
 
-   .. raw:: html
-       :file: ../demo/features.templates.html
+   s = ":[fg=red]fg :[bg=blue]and bg :[fg=black]formatting with:[-] overlap:[-] support"
+   pt.echo(pt.TemplateEngine().substitute(s))
 
-.. only:: latex
+.. container:: highlight highlight-manual highlight-adjacent output
 
-   .. figure:: /demo/features.templates.svg
-      :align: center
+    :red:`fg` :redonblue:`and bg\ \ `\ :blackonblue:`formatting with\ \ `\ :redonblue:`overlap` :red:`support`
 
 
 ==================================
@@ -53,40 +52,45 @@ The library supports extended color modes:
 - XTerm 256 colors indexed mode
 - True Color RGB mode (16M colors)
 
+::
 
-.. literalinclude:: /demo/features.color-modes.py
-   :linenos:
+   import pytermor as pt
 
-.. only:: html
+   for outm in ['xterm_16', 'xterm_256', 'true_color']:
+       print(' '+outm.ljust(12), end="")
+       for c in range((W := 80) + 1):
+           b = pt.RGB.from_ratios(1 - (p := c / W), 2 * min(p, 1 - p), p).int
+           f = pt.Fragment(" ·"[c & 1], pt.Style(fg=(1 << 24) - b, bg=b, bold=True))
+           print(f.render(pt.SgrRenderer(outm)), end=["", 2*"\n"][c >= W], flush=True)
 
-   .. raw:: html
-       :file: ../demo/features.color-modes.html
+.. container:: highlight highlight-manual highlight-adjacent output fullwidthimage
 
-.. only:: latex
-
-   .. figure:: /demo/features.color-modes.svg
+    .. image:: /_generated/features/xterm-truecolor.png
+      :width: 100%
       :align: center
+      :class: no-scaled-link
 
 ==================================
 Different color spaces
 ==================================
 
-Currently supported spaces: `RGB`, `HSV`, `XYZ`, `LAB`. Any of these
-can be transparently translated to any other.
+Currently supported spaces: `RGB`, `HSV`, `XYZ`, `LAB`. A color defined
+in any of these can be transparently translated into any other::
 
-.. literalinclude:: /demo/features.color-spaces.py
-   :linenos:
+    import pytermor as pt
 
-.. only:: html
+    col = pt.RGB(0xDA9AC4)
+    st = pt.Style(fg=col)
+    for v in [col.rgb, col.hsv, col.xyz, col.lab]:
+        pt.echo(repr(v), st)
 
-   .. raw:: html
-       :file: ../demo/features.color-spaces.html
 
-.. only:: latex
+.. container:: highlight highlight-manual highlight-adjacent output
 
-   .. figure:: /demo/features.color-spaces.svg
-      :align: center
-
+    | :xdaracu:`RGB[#DA9AC4][R=218 G=154 B=196]`
+    | :xdaracu:`HSV[H=321° S=29% V=85%]`
+    | :xdaracu:`XYZ[X=50.43 Y=42.00% Z=57.66]`
+    | :xdaracu:`LAB[L=70.872% a=30.339 b=-12.031]`
 
 ==================================
 Named colors collection
@@ -95,15 +99,16 @@ Named colors collection
 Registry containing more than 2400 named colors, in addition to
 default 256 from ``xterm`` palette.
 
-.. only:: html
+.. code-block:: console
 
-   .. raw:: html
-       :file: ../demo/features.named-colors.html
+    $ /run-cli examples/list_named_rgb.py
 
-.. only:: latex
+.. container:: highlight highlight-manual highlight-adjacent output fullwidthimage
 
-   .. figure:: /demo/features.named-colors.svg
-      :align: center
+    .. image:: /_generated/features/named-colors.png
+       :width: 100%
+       :align: center
+       :class: no-scaled-link
 
 
 ==================================
@@ -115,19 +120,18 @@ formatted strings from `IRenderable` instances, which, in general, consist of
 a text piece and a :term:`Style` -- a set of formatting rules. Concrete implementation
 of the renderer determines the target format and/or platform.
 
-
 This is how `SgrRenderer`, `HtmlRenderer`, `TmuxRenderer`, `SgrDebugger` (from top
 to bottom) output can be seen in a terminal emulator:
 
-.. only:: html
+.. container:: highlight highlight-manual outputstandalone output
 
-   .. raw:: html
-       :file: ../demo/features.renderers.html
-
-.. only:: latex
-
-   .. figure:: /demo/features.renderers.svg
-      :align: center
+    | :red:`This is red`\ |nbsp| This is white\ |nbsp| :blackonyellow:`This is black on yellow`
+    |
+    | <span style="color: #800000">This is red </span><span style="">This is white </span><span style="background-color: #ffff00; color: #000000">This is black on yellow</span>
+    |
+    | #[fg=red]This is red #[fg=default]This is white #[fg=black bg=#ffff00]This is black on yellow#[fg=default bg=default]
+    |
+    | (·[31m)This is red (·[39m)This is white (·[30;48;5;11m)This is black on yellow(·[39;49m)
 
 
 ==================================
@@ -136,41 +140,41 @@ Number formatters
 
 Set of highly customizable helpers, see `numfmt`.
 
-`format_si()` output sample:
+.. container:: code-block-caption outputcaption
 
-.. only:: html
+    `format_si()` output sample
 
-   .. raw:: html
-      :file: ../demo/features.formatters.si.html
+.. container:: highlight highlight-manual highlight-adjacent output fullwidthimage
 
-.. only:: latex
-
-   .. figure:: /demo/features.formatters.si.svg
+    .. image:: /_generated/features/formatter-si.png
+      :width: 100%
       :align: center
+      :class: no-scaled-link
 
-`format_time_ns()` output samples:
 
-.. only:: html
+.. container:: code-block-caption outputcaption
 
-   .. raw:: html
-      :file: ../demo/features.formatters.time_ns.html
+    `format_time_ns()` output samples
 
-.. only:: latex
+.. container:: highlight highlight-manual highlight-adjacent output fullwidthimage
 
-   .. figure:: /demo/features.formatters.time_ns.svg
+    .. image:: /_generated/features/formatter-time-ns.png
+      :width: 100%
       :align: center
+      :class: no-scaled-link
 
-`format_time_delta()` output sample:
 
-.. only:: html
+.. container:: code-block-caption outputcaption
 
-   .. raw:: html
-      :file: ../demo/features.formatters.time_delta.html
+    `format_time_delta()` output sample
 
-.. only:: latex
+.. container:: highlight highlight-manual highlight-adjacent output fullwidthimage
 
-   .. figure:: /demo/features.formatters.time_delta.svg
+    .. image:: /_generated/features/formatter-time-delta.png
+      :width: 100%
       :align: center
+      :class: no-scaled-link
+
 
 ==================================
 Data dumps
