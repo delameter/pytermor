@@ -62,7 +62,7 @@ init-venv:  ## Prepare manual environment  <venv>
 	${VENV_LOCAL_PATH}/bin/python -m pip install -r requirements-build.txt -r requirements-test.txt
 	${VENV_LOCAL_PATH}/bin/python -m pytermor
 
-init-hatch:  ## Install build backend <system>
+init-hatch:  ## Install build backend  <system>
 	pipx install hatch
 
 init-system-pdf:  ## Prepare environment for pdf rendering
@@ -278,10 +278,10 @@ _set_next_version = (hatch version $1 | \
 )
 _set_current_date = (sed ${VERSION_FILE_PATH} -i -Ee 's/^(__updated__).+/\1 = "${NOW}"/w/dev/stdout' | cut -f2 -d'"')
 
-#next-version-dev: ## Increase version by <dev>
-#	@$(call _set_current_date)
-#	@$(call _set_next_version,dev)
-#	@echo
+next-version-dev:  ## Increase version by <dev>
+	@$(call _set_current_date)
+	@$(call _set_next_version,dev)
+	@echo
 
 next-version-micro: ## Increase version by 0.0.1
 	@$(call _set_current_date)

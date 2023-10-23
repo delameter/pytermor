@@ -28,8 +28,10 @@ pending
 - |REMOVE|  `log` module
 - |FIX| conflict color tokens are allowed as long as original names differ
 - |FIX| `Color16`, `Color256`, `ColorRGB` hash computation
+- |MAINTAIN| pre-build scripts
+- |DOCS| LaTeX terminal output examples formatting
 
-.. <@pending:70db107>
+.. <@pending:fa31ab4>
 .. ^ blank line before should be kept
 
 
