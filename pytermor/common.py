@@ -176,7 +176,8 @@ def fit(
         raise ValueError("Fill cannot be an empty string")
 
     max_len = max(0, max_len)
-    if max_len <= (ov_len := len(overflow)):
+    ov_len = len(overflow)
+    if max_len <= ov_len and max_len < len(s):
         return fit("", max_len, align, overflow="", fill=overflow)
 
     if (fill_len := max_len - len(s)) >= 0:
