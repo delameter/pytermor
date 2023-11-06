@@ -30,8 +30,10 @@ pending
 - |FIX| `Color16`, `Color256`, `ColorRGB` hash computation
 - |MAINTAIN| pre-build scripts
 - |DOCS| LaTeX terminal output examples formatting
+- |MAINTAIN|
+- |FIX| `pt.fit('N', 1)` unexpected results
 
-.. <@pending:fa31ab4>
+.. <@pending:b29daad>
 .. ^ blank line before should be kept
 
 

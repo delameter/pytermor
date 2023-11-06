@@ -17,7 +17,7 @@ from pytermor import (
     formatter_si_binary,
     render,
     BaseUnit,
-    Composite, Align,
+    Composite, Align, cv,
 )
 from pytermor.numfmt import (
     DualBaseUnit,
@@ -44,6 +44,7 @@ from tests import format_test_params
 class TestHighlighter:
     DIM = Style(dim=True)
     GRY = Style(fg="gray")
+    MAG = Style(fg="magenta", bold=True)
     BLU = Style(fg="blue", bold=True)
     CYN = Style(fg="cyan", bold=True)
     GRN = Style(fg="green", bold=True)
@@ -82,6 +83,12 @@ class TestHighlighter:
                     Text("901", DIM, "234", None, "567", DIM, "890"),
                 ),
             ),
+            ("0.223mg", Text(
+                "0", BLU,
+                ".223", Style(fg=cv.BLUE, bold=True, dim=True),
+                "m", Style(fg=cv.BLUE, dim=True),
+                "g", Style(fg=cv.BLUE, dim=True)
+            )),
         ],
         ids=format_test_params,
     )
@@ -664,6 +671,7 @@ class TestStaticFormatterBytesHuman:
             ["10.6G", 10_575_449_983],
             ["1.10T", 1_099_511_627_776],
             ["1.13P", 1_125_899_906_842_624],
+            ["1.33E", 1_332_332_457_352_746_784],
         ],
     )
     def test_format_bytes_human(self, expected: str, value: int):
@@ -760,9 +768,17 @@ class TestDynamicFormatter:
                 1e-18,
             ],
             [
-                "1" + "\x1b[2m" + ".0" + "\x1b[22m" + " "
-                "\x1b[2m" + "f" + "\x1b[22m"
-                "\x1b[2m" + "s" + "\x1b[22m",
+                "\x1b[1;91m" + "1" + "\x1b[22;39m"
+                                     "\x1b[1;2;91m" + ".1" + "\x1b[22;22;39m" + " "
+                                                                                "\x1b[2;91m" + "a" + "\x1b[22;39m"
+                                                                                                     "\x1b[2;91m" + "s" + "\x1b[22;39m",
+                1.1e-18,
+            ],
+            [
+                "\x1b[1;31m" + "1" + "\x1b[22;39m"
+                                     "\x1b[1;2;31m" + ".0" + "\x1b[22;22;39m" + " "
+                                                                                "\x1b[2;31m" + "f" + "\x1b[22;39m"
+                                                                                                     "\x1b[2;31m" + "s" + "\x1b[22;39m",
                 1e-15,
             ],
             [

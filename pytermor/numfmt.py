@@ -58,7 +58,7 @@ class Highlighter:
         )
         (?P<frac> [.,]\d+ )?
         (?P<sep>  \s? )
-        (?P<pfx>  (?-i: [KkmMuμµGgnTpP%] ) )?
+        (?P<pfx>  (?-i: [KkmMuμµGgnTpPfEa%] ) )?
         (?P<unit>
             i?b[/ip]?t?s?
           | s(econd|ec|)s?
@@ -68,9 +68,9 @@ class Highlighter:
           | w(eek|k|)s?
           | y(ear|r|)s?
           | hz
-          | (?-i:[VA])
+          | (?-i:[VAgl])
         )?
-        (?= [](){}<>,.:/\s\b\[-] | $ )
+        (?= [](){}<>,.:/xX×\s\b\[-] | $ )
         """,
         flags=re.IGNORECASE | re.VERBOSE,
     )                                           # | OOM | (+) GENERICS (-) |(+) TIME (-)|
@@ -79,11 +79,12 @@ class Highlighter:
     STYLE_NUL = Style(fg='gray', bold=False)    # |   0 | zero             |            |
     STYLE_PRC = Style(fg='magenta')             # |   2 |            perc. |            |
     STYLE_KIL = Style(fg='blue')                # |   3 | Kilo-     milli- | min.    ms |
-    STYLE_MEG = Style(fg='cyan')                # |   6 | Mega-     micro- | hour    μs |
+    STYLE_MEG = Style(fg='cyan')                # |   6 | Mega-     micro- | hour  μs/us|
     STYLE_GIG = Style(fg='green')               # |   9 | Giga-      nano- | day     ns |
     STYLE_TER = Style(fg='yellow')              # |  12 | Tera-      pico- | week    ps |
     STYLE_MON = Style(fg='hi-yellow')           # |     |                  | month      |
-    STYLE_PET = Style(fg='red')                 # |  15 | Peta-            | year       |
+    STYLE_PET = Style(fg='red')                 # |  15 | Peta-     femto- | year    fs |
+    STYLE_EXA = Style(fg='hi-red')              # |  18 | Exa-       atto- |         as |
 
     _PREFIX_MAP = {
         '%': STYLE_PRC,
@@ -91,7 +92,8 @@ class Highlighter:
         'M': STYLE_MEG,                 'u': STYLE_MEG, 'μ': STYLE_MEG, 'µ': STYLE_MEG,
         'G': STYLE_GIG, 'g': STYLE_GIG, 'n': STYLE_GIG,
         'T': STYLE_TER,                 'p': STYLE_TER,
-        'P': STYLE_PET,
+        'P': STYLE_PET,                 'f': STYLE_PET,
+        'E': STYLE_EXA,                 'a': STYLE_EXA,
     }
     _TIME_UNIT_MAP = {
         '%': STYLE_PRC,
