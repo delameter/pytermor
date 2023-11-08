@@ -222,6 +222,10 @@ class _SplitterStack(_LoggingStack[_StyleSplitter]):
 
 
 class TemplateEngine:
+    """
+    @TODO
+    """
+
     _TAG_REGEX = re.compile(
         r"""                  ##### TAG PREFIX #######
         ((?P<register>[?!@])  # save tag to local map as fallback/overwrite/explicitly
@@ -353,5 +357,8 @@ class TemplateEngine:
 
 
 _template_engine = TemplateEngine()
+
 substitute = _template_engine.substitute
+""" yes """
 render = _template_engine.render
+""" yes yes """

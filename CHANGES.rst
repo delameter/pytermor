@@ -32,8 +32,10 @@ pending
 - |DOCS| LaTeX terminal output examples formatting
 - |MAINTAIN|
 - |FIX| `pt.fit('N', 1)` unexpected results
+- |FIX| now `highlight()` correctly handles strings like 'NNNNN×'
+- |NEW| extended unit prefixes (femto, atto-, Exa-)
 
-.. <@pending:b29daad>
+.. <@pending:ff72842>
 .. ^ blank line before should be kept
 
 
