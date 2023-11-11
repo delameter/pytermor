@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import logging
 import re
 import sys
 import typing as t
@@ -69,7 +70,7 @@ class RgbPreprocessor():
         config = self._assemble_config()
         self._dump_config(config)
 
-        self._pbar.close()
+        self.destroy()
 
         if conflicts > 0:
             warning(f"Color conflicts: " + str(conflicts))
@@ -183,11 +184,15 @@ class RgbPreprocessor():
             )
             # get_stdout().echo(output_path)
 
+    def destroy(self):
+        self._pbar.close()
+
 
 if __name__ == "__main__":
+    # init_io()
+    processor = RgbPreprocessor()
     try:
-        # init_io()
-        processor = RgbPreprocessor()
         processor.run()
     except Exception as e:
-        error(str(e))
+        processor.destroy()
+        logging.exception(e)

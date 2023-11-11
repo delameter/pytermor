@@ -202,10 +202,10 @@ open-depends:  ## Open dependency graph output directory
 .:
 ## Documentation
 
-reinit-docs: ## Purge and recreate docs with auto table of contents
-	@export PT_ENV=build
-	@rm -rfv ${DOCS_IN_PATH}/*
-	./.invoke sphinx-apidoc --force --separate --module-first --tocfile index --output-dir ${DOCS_IN_PATH} ${PROJECT_NAME}
+#reinit-docs: # Purge and recreate docs with auto table of contents
+#	@export PT_ENV=build
+#	@rm -rfv ${DOCS_IN_PATH}/pages/apidoc/*
+#	./.invoke sphinx-apidoc --force --separate --module-first --tocfile index --output-dir ${DOCS_IN_PATH}/pages/apidoc ${PROJECT_NAME}
 
 demolish-docs:  ## Purge docs temp output folder
 	-rm -rvf ${DOCS_IN_PATH}/_build/* ${DOCS_IN_PATH}/_build/.* ${DOCS_IN_PATH}/_cache/*

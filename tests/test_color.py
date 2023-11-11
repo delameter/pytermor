@@ -258,7 +258,7 @@ def test_non_existing_colors_do_not_exist(value: int):
 
 class TestResolving:
     def setup_method(self):
-        Color256._approx_cache.clear()
+        Color256._approximator.invalidate_cache()
 
     def test_module_method_resolve_works(self):
         assert ColorRGB(0xFFFFCB) == resolve_color("ivory")
@@ -328,15 +328,15 @@ class TestResolving:
 
     def test_param_enables_cache(self):
         NEW_COLOR = 0xFA0CCC
-        assert NEW_COLOR not in Color256._approx_cache.keys()
+        assert not Color256._approximator.get_cached(NEW_COLOR)
         resolve_color(NEW_COLOR, Color256, approx_cache=True)
-        assert NEW_COLOR in Color256._approx_cache.keys()
+        assert Color256._approximator.get_cached(NEW_COLOR)
 
     def test_param_disables_cache(self):
         NEW_COLOR = 0xFA0CCC
-        assert NEW_COLOR not in Color256._approx_cache.keys()
+        assert not Color256._approximator.get_cached(NEW_COLOR)
         resolve_color(NEW_COLOR, Color256, approx_cache=False)
-        assert NEW_COLOR not in Color256._approx_cache.keys()
+        assert not Color256._approximator.get_cached(NEW_COLOR)
 
     @pytest.mark.parametrize(
         "ctype, expected_text",
@@ -476,7 +476,7 @@ class TestColorIndex:
         ColorRGB._index._map = copy(self._keeper_index._map)
 
     def test_adding_to_index_works(self):
-        col = Color256(0x1, 257, "test 1")
+        col = Color256(0x1, 257, "test 1", approx=True)
         assert col is Color256.find_closest(0x1)
 
     def test_adding_duplicate_to_index_doesnt_change_index_length(self):
@@ -544,7 +544,7 @@ class TestApproximation:
         assert Color256.approximate(0x87FFD7)[0].color == cv.AQUAMARINE_1
 
     def test_class_method_approximate_works_for_rgb(self):
-        assert ColorRGB.approximate(ColorRGB(0x87FFD7))[0].color.int == 0x87FFD7
+        assert ColorRGB.approximate(ColorRGB(0x87FFD7, approx=True))[0].color.int == 0x87FFD7
 
     def test_distance_is_correct(self):
         expected = [

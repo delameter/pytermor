@@ -59,8 +59,7 @@ class _ConstrainedValue(t.Generic[_VT]):
     ):
         if min_val is not None and max_val is not None and max_val < min_val:
             raise ValueError(
-                f"No value can satisfy specified constraints: "
-                f"{max_val} <= {val} <= {min_val})"
+                f"No value can satisfy specified constraints: " f"{max_val} <= {val} <= {min_val})"
             )
         self._max_val: t.Optional[_VT] = max_val
         self._min_val: t.Optional[_VT] = min_val
@@ -370,9 +369,7 @@ class HSV(IColorValue):
         else:
             r, g, b = v, pv, qv
 
-        return RGB.from_channels(
-            math.ceil(255 * r), math.ceil(255 * g), math.ceil(255 * b)
-        )
+        return RGB.from_channels(math.ceil(255 * r), math.ceil(255 * g), math.ceil(255 * b))
 
     @property
     def hsv(self) -> HSV:
@@ -699,7 +696,7 @@ class _ResolvableColorMeta(ABCMeta):
 
         cls._registry = _ColorRegistry[cls]()
         cls._index = _ColorIndex[cls]()
-        cls._approx_cache = dict()
+        cls._approximator = _ColorApproximator[cls]()
         return cls
 
     def __iter__(self) -> t.Iterator[_RCT]:
@@ -711,7 +708,7 @@ class _ColorRegistry(t.Generic[_RCT], t.Sized, t.Iterable):
 
     _TOKEN_SEPARATOR = "-"
     _QUERY_SPLIT_REGEX = re.compile(R"[\W_]+|(?<=[a-z])(?=[A-Z0-9])")
-    _QUERY_NORMALIZATION_REGEX = re.compile(R'[^a-zA-Z0-9 _-]+')  # replace non-matching
+    _QUERY_NORMALIZATION_REGEX = re.compile(R"[^a-zA-Z0-9 _-]+")  # replace non-matching
 
     def __init__(self):
         self._map: t.Dict[t.Tuple[str], _RCT] = {}
@@ -724,8 +721,10 @@ class _ColorRegistry(t.Generic[_RCT], t.Sized, t.Iterable):
 
         primary_tokens = None
         for name in [color.name] + (aliases or []):
+            # fmt: off
             self._register_unique_key(color, (name,))
             tokens = self._name_to_tokens(name,)
+            # fmt: on
             if not primary_tokens:
                 primary_tokens = tokens
             self._register_unique_key(color, tokens, ignore_dup=True)
@@ -753,7 +752,8 @@ class _ColorRegistry(t.Generic[_RCT], t.Sized, t.Iterable):
     def _name_to_tokens(self, name: str) -> t.Tuple[str, ...]:
         def _iter():
             for token in (*filtern(self._QUERY_SPLIT_REGEX.split(name)),):
-                yield self._QUERY_NORMALIZATION_REGEX.sub('', token).lower()
+                yield self._QUERY_NORMALIZATION_REGEX.sub("", token).lower()
+
         return (*_iter(),)
 
     def find_by_name(self, name: str) -> _RCT:
@@ -805,19 +805,45 @@ class _ColorIndex(t.Generic[_RCT], t.Sized):
     def __bool__(self) -> bool:
         return len(self) > 0
 
-    def __iter__(self) -> t.Iterator[_RCT]:
-        return iter(self._map.values())
+
+class _ColorApproximator(t.Generic[_RCT]):
+    def __init__(self):
+        self._set: t.Set[_RCT] = set()
+        self._cache: t.Dict[int, _RCT] = dict()
+
+    def add(self, color: _RCT):
+        self._set.add(color)
+        self.invalidate_cache()
+
+    def compute_distances(
+        self, diff_fn: _ColorDiffFn, value: IColorValue
+    ) -> Iterable[ApxResult[_RCT]]:
+        for el in self._set:
+            yield diff_fn(value, el)
+
+    def get_cached(self, value: int) -> _RCT | None:
+        return self._cache.get(value, None)
+
+    def set_cached(self, value: int, closest: _RCT):
+        self._cache.update({value: closest})
+
+    def invalidate_cache(self):
+        self._cache.clear()
 
 
 class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
     """
-    Mixin for other ``Colors``. Implements color search by name.
+    Mixin for other ``Colors``. Implements color searching by name and
+    approximation (i.e., determining closest color from a given set
+    to specified value).
     """
 
     _registry: _ColorRegistry[_RCT]
     _index: _ColorIndex[_RCT]
-    _approx_cache: t.Dict[int, _RCT]
+    _approximator: _ColorApproximator[_RCT]
     _color_diff_fn: t.ClassVar[_ColorDiffFn]
+
+    _required_attrs: t.List[str] = ["_registry", "_index", "_approximator"]
 
     @classmethod
     def names(cls) -> t.Iterable[t.Tuple[str]]:
@@ -834,10 +860,7 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
 
         :param name:  Name to search for.
         """
-        if not hasattr(cls, "_registry"):  # pragma: no cover
-            raise LogicError(
-                "Registry not found. Did you call an abstract class' method?"
-            )
+        cls._ensure_initialized()
         cls._ensure_loaded()
         return cls._registry.find_by_name(name)
 
@@ -850,24 +873,21 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
 
         :param value: Target color/color value.
         """
-        if not hasattr(cls, "_index"):  # pragma: no cover
-            raise LogicError("Index not found. Did you call an abstract class' method?")
+        cls._ensure_initialized()
 
         if not isinstance(value, IColorValue):
             value = RGB(value)
 
-        if value.int in cls._approx_cache.keys():
-            return cls._approx_cache.get(value.int)
+        if cached := cls._approximator.get_cached(value.int):
+            return cached
 
         closest = cls._find_neighbours(value)[0].color
-        cls._approx_cache[value.int] = closest
+        cls._approximator.set_cached(value.int, closest)
         return closest
 
     @classmethod
     def approximate(
-        cls: type[_RCT],
-        value: IColorValue | int,
-        max_results: int = 1,
+        cls: type[_RCT], value: IColorValue | int, max_results: int = 1
     ) -> t.List[ApxResult[_RCT]]:
         """
         Search for the colors nearest to ``value`` and return the first ``max_results``.
@@ -877,8 +897,7 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         :param value:       Target color/color value.
         :param max_results: Result limit.
         """
-        if not hasattr(cls, "_index"):  # pragma: no cover
-            raise LogicError("Index is empty. Did you call an abstract class' method?")
+        cls._ensure_initialized()
 
         if not isinstance(value, IColorValue):
             value = RGB(value)
@@ -897,7 +916,15 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         :param value: Target color/color value.
         """
         cls._ensure_loaded()
-        return sorted(cls._color_diff_fn(value), key=lambda r: r.distance)
+
+        apxs = cls._approximator.compute_distances(cls._color_diff_fn, value)
+        return sorted(apxs, key=lambda r: r.distance)
+
+    @classmethod
+    def _ensure_initialized(cls):
+        for attr in cls._required_attrs:
+            if not hasattr(cls, attr):  # pragma: no cover
+                raise LogicError(f"{attr!r} not found. Did you call an abstract class' method?")
 
     @classmethod
     def _ensure_loaded(cls):
@@ -909,12 +936,8 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         ...
 
     @classmethod
-    def _calc_lab_cie76_delta_e(
-        cls: type[_RCT], value: _CVT
-    ) -> Iterable[ApxResult[_RCT]]:
-        for el in cls._index:
-            if el.available_for_approximation:
-                yield ApxResult(el, LAB.diff(value, el))
+    def _calc_lab_cie76_delta_e(cls: type[_RCT], value: _CVT, el: _CVT) -> ApxResult[_RCT]:
+        return ApxResult(el, LAB.diff(value, el))
 
     def __new__(cls: t.Type[_RCT], *args, **kwargs) -> _RCT:
         cls._color_diff_fn = cls._calc_lab_cie76_delta_e
@@ -923,6 +946,7 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
     def __init__(
         self,
         name: str,
+        approx: bool,
         register: bool,
         code: int | None,
         aliases: t.List[str],
@@ -933,6 +957,8 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         self._variations: t.Dict[str, _RCT] = {}
 
         self._index.add(self, code)
+        if approx:
+            self._approximator.add(self)
         if variation_map:
             self._make_variations(variation_map)
         if register:
@@ -947,21 +973,13 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
             variation = type(self)(**args)
             variation._base = self
             self._index.add(variation, None)
+            # @todo add to approx?
             self._variations[vari_name] = variation
 
     @property
     def name(self) -> str | None:
         """Color name, e.g. "navy-blue"."""
         return self._name
-
-    @property
-    def available_for_approximation(self) -> bool:
-        """
-        All colors should be available for approximations, but there is one
-        exception -- `Color256` instances who have a `Color16` counterpart
-        with the same value. Details described in `guide.color16-256-equiv`.
-        """
-        return True
 
     @property
     def variations(self) -> t.Dict[str, _RCT]:
@@ -988,9 +1006,10 @@ class ApxResult(t.Generic[_RCT]):
         return self.color == other.color and self.distance == other.distance
 
 
-_ColorDiffFn = t.Callable[[IColorValue], Iterable[ApxResult[_RCT]]]
+_ColorDiffFn = t.Callable[[IColorValue, IColorValue], ApxResult[_RCT]]
 
 # ---------------------------------------------------------------------------------------
+
 
 @final
 class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
@@ -999,14 +1018,22 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
     -- **xterm-16**. Represents basic color-setting SGRs with primary codes
     30-37, 40-47, 90-97 and 100-107 (see `guide.ansi-presets.color16`).
 
+    .. important ::
+
+        In general, you should not create your own instances of this class;
+        it's possible, but meaningless, because all possible color values and
+        SGR code mappings are created on library initialization by the library
+        itself (see `cv`). What's more, this probably would cause value or
+        code collisions with existing instances.
+
     :param int|IColorValue value:
                            Color value as 24-bit integer in RGB space, or any
                            instance implementing color value interface (e.g. `HSV`).
     :param int code_fg:    Int code for a foreground color setup, e.g. 30.
     :param int code_bg:    Int code for a background color setup. e.g. 40.
     :param str name:       Name of the color, e.g. "red".
-    :param bool register:  If *True*, add color to registry for resolving by name
-                           and approximation.
+    :param approx:         Allow to use this color for approximations.
+    :param register:       Allow to resolve this color by name.
     :param list[str] aliases:
                            Alternative color names (used in `resolve_color()`).
     """
@@ -1018,6 +1045,7 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
         code_bg: int,
         name: str = None,
         *,
+        approx: bool = False,
         register: bool = False,
         aliases: t.List[str] = None,
     ):
@@ -1025,7 +1053,7 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
         self._code_bg: int = code_bg
 
         RealColor.__init__(self, value)
-        ResolvableColor.__init__(self, name, register, code_fg, aliases)
+        ResolvableColor.__init__(self, name, approx, register, code_fg, aliases)
 
     def __hash__(self) -> int:  # pragma: no cover
         return super(Color16, self).__hash__() + super(RenderColor, self).__hash__()
@@ -1124,7 +1152,8 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
                            instance implementing color value interface (e.g. `HSV`).
     :param code:      Int code for a color setup, e.g. 52.
     :param name:      Name of the color, e.g. "dark-red".
-    :param register:  If *True*, add color to registry for resolving by name.
+    :param approx:    Allow to use this color for approximations.
+    :param register:  Allow to resolve this color by name.
     :param aliases:   Alternative color names (used in `resolve_color()`).
     :param color16_equiv:
                       `Color16` counterpart (applies only to codes 0-15).
@@ -1137,6 +1166,7 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
         code: int,
         name: str = None,
         *,
+        approx: bool = False,
         register: bool = False,
         aliases: t.List[str] = None,
         color16_equiv: Color16 = None,
@@ -1145,7 +1175,7 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
         self._color16_equiv: Color16 | None = color16_equiv
 
         RealColor.__init__(self, value)
-        ResolvableColor.__init__(self, name, register, code, aliases)
+        ResolvableColor.__init__(self, name, approx, register, code, aliases)
 
     def __hash__(self) -> int:  # pragma: no cover
         return super(Color256, self).__hash__() + super(RenderColor, self).__hash__()
@@ -1237,10 +1267,6 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
 
         return self.int == other.int
 
-    @property
-    def available_for_approximation(self) -> bool:
-        return self._color16_equiv is None
-
     def repr_attrs(self, verbose: bool = True) -> str:
         code = f"x{getattr(self, '_code', None)}"
         if not verbose:
@@ -1266,7 +1292,8 @@ class ColorRGB(RealColor, RenderColor, ResolvableColor["ColorRGB"]):
                       :hex:`0x73a9c2`), or any instance implementing color value
                       interface (e.g. `HSV`).
     :param name:      Name of the color, e.g. "moonstone-blue".
-    :param register:  If *True*, add color to registry for resolving by name.
+    :param approx:    Allow to use this color for approximations.
+    :param register:  Allow to resolve this color by name.
     :param aliases:   Alternative color names (used in `resolve_color()`).
     :param variation_map:
                       Mapping {*int*: *str*}, where keys are hex values,
@@ -1278,12 +1305,13 @@ class ColorRGB(RealColor, RenderColor, ResolvableColor["ColorRGB"]):
         value: IColorValue | int,
         name: str = None,
         *,
+        approx: bool = False,
         register: bool = False,
         aliases: t.List[str] = None,
         variation_map: t.Dict[int, str] = None,
     ):
         RealColor.__init__(self, value)
-        ResolvableColor.__init__(self, name, register, None, aliases, variation_map)
+        ResolvableColor.__init__(self, name, approx, register, None, aliases, variation_map)
 
     def __hash__(self) -> int:  # pragma: no cover
         return super(ColorRGB, self).__hash__() + super(RenderColor, self).__hash__()
@@ -1557,9 +1585,9 @@ class DynamicColor(RenderColor, t.Generic[_T], metaclass=ABCMeta):
 
 def resolve_color(
     subject: CDT,
-    color_type: t.Type[_RCT | _RCT] = None,
+    color_type: t.Type[_RCT] = None,
     approx_cache=True,
-) -> _RCT | _RCT:
+) -> _RCT:
     """
     Suggested usage is to transform the user input in a free form in an attempt
     to find any matching color. The method operates in three different modes depending

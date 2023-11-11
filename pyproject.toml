@@ -77,12 +77,13 @@ test = "pytest"
 detached = false
 extra-dependencies = [
     "build~=0.8",
+    "es7s-commons==1.3.1",
     "furo~=2022.6",
     "Pillow~=9.1",
     "pydeps~=1.10",
-    "PyYAML~=5.4",
+    "PyYAML~=6.0",
     "sphinx-copybutton~=0.5",
-    "sphinx-design~=0.2",
+    "sphinx-design~=0.5",
     "sphinx-toolbox~=3.3",
     "sphinx~=5.3",
     "twine~=4.0",

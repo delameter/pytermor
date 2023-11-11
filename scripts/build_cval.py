@@ -146,6 +146,7 @@ class IndexBuilder(TaskRunner):
                 col_value,
                 *cols_code,
                 col_name,
+                f"approx={not bool(col_color16_eq)}, ",
                 "register=True, ",
                 col_aliases,
                 col_color16_eq,

@@ -83,7 +83,7 @@ class ApproxDemo:
                 else:
                     caption = "%s, approx. by %s distance" % (label, diff_fn_label)
                 run_num += 1
-                cls._approx_cache.clear()
+                cls._approximator.invalidate_cache()
                 self._draw_sample(
                     diff_fn, sample_num, run_num, runs_total, cls, caption, output_im
                 )

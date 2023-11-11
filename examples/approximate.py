@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import logging
 import random
 import sys
 from functools import partial
@@ -21,37 +22,28 @@ class Main:
         Approximator(argv or []).run()
 
 
-def _calc_srgb_euclidean_distance(
-    cls: t.Type[Color], value: IColorValue
-) -> Iterable[ApxResult[Color]]:
+def _calc_srgb_euclidean_distance(_, value: IColorValue, e: IColorValue) -> ApxResult[Color]:
     r, g, b = value.rgb
-    for e in cls._index:
-        er, eg, eb = e.rgb
-        distance_sq: int = (er - r) ** 2 + (eg - g) ** 2 + (eb - b) ** 2
-        yield ApxResult(e, distance_sq)
+    er, eg, eb = e.rgb
+    distance_sq: int = (er - r) ** 2 + (eg - g) ** 2 + (eb - b) ** 2
+    return ApxResult(e, distance_sq)
 
 
-def _calc_cie_distance(
-    cls: t.Type[Color], value: IColorValue
-) -> Iterable[ApxResult[Color]]:
+def _calc_cie_distance(_, value: IColorValue, e: IColorValue) -> ApxResult[Color]:
     l, a, b = value.lab
-    for e in cls._index:
-        el, ea, eb = e.lab
-        distance_sq: int = (el - l) ** 2 + (ea - a) ** 2 + (eb - b) ** 2
-        yield ApxResult(e, distance_sq)
+    el, ea, eb = e.lab
+    distance_sq: int = (el - l) ** 2 + (ea - a) ** 2 + (eb - b) ** 2
+    return ApxResult(e, distance_sq)
 
 
-def _calc_hsv_euclidean_distance(
-    cls: t.Type[Color], value: IColorValue
-) -> Iterable[ApxResult[Color]]:
+def _calc_hsv_euclidean_distance(_, value: IColorValue, e: IColorValue) -> ApxResult[Color]:
     h, s, v = value.hsv
-    for e in cls._index:
-        eh, es, ev = e.hsv
-        dh = min(abs(eh - h), 360 - abs(eh - h)) / 180.0
-        ds = abs(es - s)
-        dv = abs(ev - v)
-        distance_sq: int = dh**2 + ds**2 + dv**2
-        yield ApxResult(e, distance_sq)
+    eh, es, ev = e.hsv
+    dh = min(abs(eh - h), 360 - abs(eh - h)) / 180.0
+    ds = abs(es - s)
+    dv = abs(ev - v)
+    distance_sq: int = dh**2 + ds**2 + dv**2
+    return ApxResult(e, distance_sq)
 
 
 class Approximator:
@@ -69,7 +61,7 @@ class Approximator:
         self.input_values = []
         self._extended_mode = 0
         self._delta_name = "ΔE*"  # noqa
-        self._cdiff_method = f'CIE76 color distance'
+        self._cdiff_method = f"CIE76 color distance"
         self._color_diff_fn_override = None
 
         for arg in argv:
@@ -78,12 +70,12 @@ class Approximator:
                     if arg == "-H":
                         self._color_diff_fn_override = _calc_hsv_euclidean_distance
                         self._delta_name = "Δₕ "
-                        self._cdiff_method = 'HSV euclidean distance'
+                        self._cdiff_method = "HSV euclidean distance"
                         continue
                     if arg == "-R":
                         self._color_diff_fn_override = _calc_srgb_euclidean_distance
                         self._delta_name = "Δᵣ "
-                        self._cdiff_method = 'RGB euclidean distance'
+                        self._cdiff_method = "RGB euclidean distance"
                         continue
                     if m := re.fullmatch("-?-(e(?:xtended)?|e+)", arg):
                         self._extended_mode = len(m.group(1))
@@ -152,8 +144,7 @@ class Approximator:
                 "a string 1-6 characters long representing an integer(s) in a hexadecimal "
                 "form: 'FFFFFF' (case insensitive), or a name of the color in any format:",
                 "",
-                f"  venv/bin/python {sys.argv[0]} "
-                + fmt_arg_examples("3AEBA1 0bceeb 666"),
+                f"  venv/bin/python {sys.argv[0]} " + fmt_arg_examples("3AEBA1 0bceeb 666"),
                 f"  venv/bin/python {sys.argv[0]} "
                 + fmt_arg_examples("red DARK_RED icathian-yellow"),
             ],
@@ -182,9 +173,7 @@ class Approximator:
         pt.echo(f" {sample.format_value(prefix='')} ", pt.Style(bg=0x0), nl=False)
         pt.echo("\n\n ", nl=False)
 
-        results: list[
-            tuple[str | None, str, pt.Style | None, pt.IRenderer | None, str | None]
-        ] = []
+        results: list[tuple[str | None, str, pt.Style | None, pt.IRenderer | None, str | None]] = []
         descriptions = [
             "No approximation (as input)",
             "%s color in named colors list (pytermor)",
@@ -265,7 +254,9 @@ class Approximator:
             + "Code  Value   Name"
         )
         pt.echo(header.ljust(prim_len1 + prim_len2 + 2), nl=False)
-        pt.echo(f"  {self._delta_name.strip()} is {self._cdiff_method}", pt.Style(fg='gray', dim=True))
+        pt.echo(
+            f"  {self._delta_name.strip()} is {self._cdiff_method}", pt.Style(fg="gray", dim=True)
+        )
 
         for string1, string2, style, renderer, desc in results:
             if not string1:
@@ -287,5 +278,5 @@ if __name__ == "__main__":
     try:
         Main(*sys.argv[1:])
     except Exception as e:
-        pt.echo(f"[ERROR] {type(e).__qualname__}: {e}\n", fmt=pt.Styles.ERROR)
+        logging.exception(e)
         # raise e
