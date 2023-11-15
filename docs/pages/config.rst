@@ -14,7 +14,7 @@ The library initializes it's own config class just after being imported
     2) or preliminarily set the corresponding environment variables to intended
        values, and the default config instance will catch them up on initialization.
        Environment variable names are rendered in the documentation like this:
-       :env:`PYTERMOR_VARIABLE_NAME`.
+       :fas:`gear` :env:`PYTERMOR_VARIABLE_NAME`.
 
 .. todo ::
 
@@ -30,7 +30,7 @@ Variables
 Config.renderer_class
  Explicitly set default renderer class (e.g. ``TmuxRenderer``). Default renderer
  class is used for rendering if there is no explicitly specified one.
- Corresponding environment variable is :env:`PYTERMOR_RENDERER_CLASS`.
+ Corresponding environment variable is :fas:`gear` :env:`PYTERMOR_RENDERER_CLASS`.
  See also: `guide.renderer_priority`.
 
 .. _config.force_output_mode:

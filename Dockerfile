@@ -24,6 +24,7 @@ RUN set -ex && \
         texlive-latex-recommended \
         texlive-fonts-recommended \
         texlive-latex-extra \
+        texlive-fonts-extra \
         dvipng \
         dvisvgm \
         && \
@@ -43,6 +44,7 @@ RUN set -ex && \
 USER ${UID}:${GID}
 WORKDIR ${WORKDIR}
 ENV PATH="$PATH:/home/${USER}/.local/bin"
+ENV PYTHONPATH="$PYTHONPATH:${WORKDIR}"
 
 #==============================================================================
 

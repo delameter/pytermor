@@ -92,8 +92,7 @@ class DiffSet:
 
     def __str__(self):
         return "-".join(
-            [repr(self.col_a), repr(self.col_b)]
-            + [f"D{k}={getattr(self, k)}" for k in SPACES]
+            [repr(self.col_a), repr(self.col_b)] + [f"D{k}={getattr(self, k)}" for k in SPACES]
         )
 
 
@@ -150,7 +149,8 @@ DIFFS = [
 ]
 # fmt: on
 
-@pytest.mark.skip('it\'s just too complicated to mock all this. @TODO refactor')
+
+@pytest.mark.skip("it's just too complicated to mock all this. @TODO refactor")
 class TestDeferredLoading:
     def test_presets_are_not_loaded_initially(self):
         assert len(ColorRGB._registry) == 0
@@ -159,7 +159,6 @@ class TestDeferredLoading:
         assert len(ColorRGB._registry) == 0
         assert ColorRGB.find_by_name("red-bronze").int == 0xFB8136
         assert len(ColorRGB._registry) > 0
-
 
 
 class TestColorValue:
@@ -278,9 +277,7 @@ class TestResolving:
     @pytest.mark.skip("RGB is not indexed anymore")
     def test_module_method_resolve_rgb_form_works_with_instantiating(self):
         NON_EXISTING_COLOR = 0xFEDCBA
-        assert NON_EXISTING_COLOR not in [
-            c.int for c in ColorRGB._registry._map.values()
-        ]
+        assert NON_EXISTING_COLOR not in [c.int for c in ColorRGB._registry._map.values()]
         col1 = resolve_color(NON_EXISTING_COLOR)
         col2 = resolve_color(f"#{NON_EXISTING_COLOR:06x}")
         assert col1 == col2
@@ -328,15 +325,15 @@ class TestResolving:
 
     def test_param_enables_cache(self):
         NEW_COLOR = 0xFA0CCC
-        assert not Color256._approximator.get_cached(NEW_COLOR)
+        assert NEW_COLOR not in Color256._approximator._cache.keys()
         resolve_color(NEW_COLOR, Color256, approx_cache=True)
-        assert Color256._approximator.get_cached(NEW_COLOR)
+        assert NEW_COLOR in Color256._approximator._cache.keys()
 
     def test_param_disables_cache(self):
         NEW_COLOR = 0xFA0CCC
-        assert not Color256._approximator.get_cached(NEW_COLOR)
+        assert NEW_COLOR not in Color256._approximator._cache.keys()
         resolve_color(NEW_COLOR, Color256, approx_cache=False)
-        assert not Color256._approximator.get_cached(NEW_COLOR)
+        assert NEW_COLOR not in Color256._approximator._cache.keys()
 
     @pytest.mark.parametrize(
         "ctype, expected_text",
@@ -390,7 +387,8 @@ class TestColorRegistry:
         map_length_start = len(ColorRGB._registry)
         col = ColorRGB(0x2, "test 2", register=True)
 
-        assert map_length_start + 2 == len(ColorRGB._registry)  # one for original name, one for tokens
+        # one for original name, one for tokens
+        assert map_length_start + 2 == len(ColorRGB._registry)
         assert col is resolve_color("test 2", ColorRGB)
 
     def test_registering_of_duplicate_doesnt_change_map_length(self):
@@ -449,14 +447,13 @@ class TestColorRegistry:
 
     def test_name_with_prohibited_chars_can_be_resolved_by_tokens(self):
         col = ColorRGB(0x10, "test#B", register=True)
-        assert ("test", "b",) in ColorRGB._registry.names()
+        assert ("test", "b") in ColorRGB._registry.names()
         assert col is resolve_color("test-b", ColorRGB)
 
     @pytest.mark.xfail(raises=LookupError)
     def test_unnamed_color_cant_be_resolved(self):
         ColorRGB(0x11, None, register=True)
         resolve_color("", ColorRGB)
-
 
 
 class TestColorIndex:
@@ -512,9 +509,7 @@ class TestApproximation:
         assert color.find_closest(0x87FFD7, Color16) == cv.HI_CYAN
 
     def test_module_method_find_closest_works_for_rgb(self):
-        assert resolve_color("light-aqua", ColorRGB) == color.find_closest(
-            0x87FFD7, ColorRGB
-        )
+        assert resolve_color("light-aqua", ColorRGB) == color.find_closest(0x87FFD7, ColorRGB)
 
     def test_module_method_approximate_works_as_256_by_default(self):
         assert color.approximate(0x87FFD7)[0].color == cv.AQUAMARINE_1
@@ -524,8 +519,7 @@ class TestApproximation:
 
     def test_module_method_approximate_works_for_rgb(self):
         assert (
-            resolve_color("light-aqua", ColorRGB)
-            == color.approximate(0x87FFD7, ColorRGB)[0].color
+            resolve_color("light-aqua", ColorRGB) == color.approximate(0x87FFD7, ColorRGB)[0].color
         )
 
     def test_class_method_find_closest_works_for_16(self):
@@ -562,6 +556,20 @@ class TestApproximation:
     def test_approximation_ignores_colors256_with_16_equivs(self):
         assert Color256.get_by_code(1).int == 0x800000  # not accessible by cv constant
         assert Color256.find_closest(0x800000).int != 0x800000
+
+    @pytest.mark.parametrize(
+        "diff_fn, expected",
+        ids=format_test_params,
+        argvalues=[
+            (RGB.diff, 0x4C9085),
+            (HSV.diff, 0x5DA493),
+            (XYZ.diff, 0x6D9A79),
+            (LAB.diff, 0x3D9973),
+        ],
+    )
+    def test_color_diff_fn_change(self, diff_fn: color._ColorDiffFn, expected: int):
+        ColorRGB._approximator.assign_diff_fn(diff_fn)
+        assert color.find_closest(0x50A080, ColorRGB).rgb == expected
 
 
 @pytest.mark.parametrize("ctype", [Color16, Color256], ids=format_test_params)
@@ -736,12 +744,8 @@ class TestColor256:
     def test_to_sgr_with_16_upper_bound_results_in_sgr_16_equiv(self):
         col16 = Color16(0xFFCC00, 132, 142)
         col = Color256(0xFFCC01, 258, color16_equiv=col16)
-        assert col.to_sgr(ColorTarget.FG, upper_bound=Color16) == col16.to_sgr(
-            ColorTarget.FG
-        )
-        assert col.to_sgr(ColorTarget.BG, upper_bound=Color16) == col16.to_sgr(
-            ColorTarget.BG
-        )
+        assert col.to_sgr(ColorTarget.FG, upper_bound=Color16) == col16.to_sgr(ColorTarget.FG)
+        assert col.to_sgr(ColorTarget.BG, upper_bound=Color16) == col16.to_sgr(ColorTarget.BG)
         assert col.to_sgr(ColorTarget.UNDERLINE, upper_bound=Color16) == NOOP_SEQ
 
     @pytest.mark.parametrize(
@@ -795,12 +799,8 @@ class TestColor256:
 
     def test_not_equality(self):
         idx = len(Color256._index) + 10
-        assert Color256(0x010203, (idx := idx + 1)) != Color256(
-            0x030201, (idx := idx + 1)
-        )
-        assert Color256(0x010203, (idx := idx + 1)) != Color256(
-            0xFFEE14, (idx := idx + 1)
-        )
+        assert Color256(0x010203, (idx := idx + 1)) != Color256(0x030201, (idx := idx + 1))
+        assert Color256(0x010203, (idx := idx + 1)) != Color256(0xFFEE14, (idx := idx + 1))
         assert Color256(0x010203, (idx := idx + 1)) != Color16(
             0x010203, (idx := idx + 1), (idx := idx + 1)
         )
@@ -960,10 +960,7 @@ class TestDefaultColor:
         assert str(IntCode.COLOR_OFF.value) in DEFAULT_COLOR.to_sgr().assemble()
 
     def test_default_resets_bg_color(self):
-        assert (
-            str(IntCode.BG_COLOR_OFF.value)
-            in DEFAULT_COLOR.to_sgr(ColorTarget.BG).assemble()
-        )
+        assert str(IntCode.BG_COLOR_OFF.value) in DEFAULT_COLOR.to_sgr(ColorTarget.BG).assemble()
 
     @pytest.mark.parametrize(
         "target, expected_result",
@@ -1017,9 +1014,7 @@ class TestDynamicColor:
         assert col.to_sgr() == cv.DARK_GREEN.to_sgr()
 
     def test_with_callable_extractor(self):
-        col = self._TestDynamicColor(
-            extractor=lambda c: Color256(c._value.int * 2, code=267)
-        )
+        col = self._TestDynamicColor(extractor=lambda c: Color256(c._value.int * 2, code=267))
         col.update(current_mode="help")
         assert col._value._value.int == cv.DARK_GREEN._value.int * 2  # noqa
 

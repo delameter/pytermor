@@ -4,8 +4,8 @@ from ctypes import sizeof
 from typing import Tuple
 
 import PIL.ImageFont
-
-from pytermor import color, SeqIndex, ColorRGB, Color256, Color16, conv
+import pytermor as pt
+from pytermor import color, SeqIndex, ColorRGB, Color256, Color16
 from math import floor
 import profile
 import gc
@@ -163,7 +163,7 @@ def run_image():
 if __name__ == '__main__':
     LABEL_HEIGHT = 50
 
-    inp = Image.open('../../docs/generated/approx/input-bgwhite.png', 'r')
+    inp = Image.open('../../docs/_generated/approx/input-bgwhite-v2.png', 'r')
     samples = [
         (None, '(16M colors)'),
         (Color256, '(256 colors)'),
@@ -186,7 +186,7 @@ if __name__ == '__main__':
                 for vb in range(0, inp.height, 1):
                     (r, g, b) = inp.getpixel((va, vb))
                     c = s.find_closest((r << 16) + (g << 8) + b)
-                    im.putpixel((x1 + va, y1 + vb), pytermor.conv.hex_to_rgb(c.hex_value))
+                    im.putpixel((x1 + va, y1 + vb), (*c.rgb,))
 
                 if va%(inp.width//100) == 0:
                     perc = 1+round(100*va/inp.width)
@@ -204,4 +204,4 @@ if __name__ == '__main__':
             anchor='mm', font=font_default, fill=(0, 0, 0),
             text=caption)
 
-    im.save('../../docs/generated/approx/output-bgwhite.png')
+    im.save('../../docs/_generated/approx/output-bgwhite2.png')

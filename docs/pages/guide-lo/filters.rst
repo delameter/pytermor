@@ -4,9 +4,11 @@
 Filters
 ##########################
 
-=======================
-Filter class hierarchy
-=======================
+.. _guide.filter_class_diagram:
+
+=======================================
+:fas:`sitemap` Filter class hierarchy
+=======================================
 
 .. grid:: 1
    :class-container: inheritance-columns

@@ -30,10 +30,12 @@ Time delta formatter
    :align: center
    :class: no-scaled-link
 
-=============================
-NumFormatter class hierarchy
-=============================
 
+.. _guide.numfmt_class_diagram:
+
+=============================================
+:fas:`sitemap` Formatter class hierarchy
+=============================================
 
 .. grid:: 1
    :class-container: inheritance-columns

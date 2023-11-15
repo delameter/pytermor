@@ -1,10 +1,14 @@
 .. _guide.color-spaces:
 
-##################################
-Color spaces and transformations
-##################################
+################
+Color spaces
+################
 
+.. _guide.color_space_transforms:
 
+=======================================
+:fas:`sitemap` Color space transitions
+=======================================
 
 .. graphviz:: /_include/color-transforms.dot
-    :caption: Supported color spaces and transformations
+    :caption: Supported color spaces transition map

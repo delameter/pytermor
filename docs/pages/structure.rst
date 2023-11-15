@@ -25,6 +25,7 @@ Library structure
 .. autosummary::
 
    ansi
+   border
    color
    common
    config

@@ -4,9 +4,11 @@
 Text fragments
 ########################
 
-===========================
-Renderable class hierarchy
-===========================
+.. _guide.text_class_diagram:
+
+==========================================
+:fas:`sitemap` Fragment class hierarchy
+==========================================
 
 .. inheritance-diagram:: pytermor.text
    :parts: 1

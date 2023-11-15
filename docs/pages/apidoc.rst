@@ -12,6 +12,7 @@ API reference
    :toctree:    apidoc
 
    ansi
+   border
    color
    common
    config

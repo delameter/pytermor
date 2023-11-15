@@ -16,7 +16,6 @@ import pytermor as pt
 from pytermor import StaticFormatter
 from pytermor.color import *
 
-
 class Main:
     def __init__(self, *argv: t.List):
         Approximator(argv or []).run()
@@ -61,21 +60,18 @@ class Approximator:
         self.input_values = []
         self._extended_mode = 0
         self._delta_name = "ΔE*"  # noqa
-        self._cdiff_method = f"CIE76 color distance"
         self._color_diff_fn_override = None
 
         for arg in argv:
             try:
                 if arg.startswith("-"):
                     if arg == "-H":
-                        self._color_diff_fn_override = _calc_hsv_euclidean_distance
+                        self._color_diff_fn_override = HSV.diff
                         self._delta_name = "Δₕ "
-                        self._cdiff_method = "HSV euclidean distance"
                         continue
                     if arg == "-R":
-                        self._color_diff_fn_override = _calc_srgb_euclidean_distance
+                        self._color_diff_fn_override = RGB.diff
                         self._delta_name = "Δᵣ "
-                        self._cdiff_method = "RGB euclidean distance"
                         continue
                     if m := re.fullmatch("-?-(e(?:xtended)?|e+)", arg):
                         self._extended_mode = len(m.group(1))
@@ -196,9 +192,8 @@ class Approximator:
                     if om is pt.OutputMode.TRUE_COLOR:
                         max_results = 2 * self._extended_mode + 1
                 if self._color_diff_fn_override:
-                    upper_bound._color_diff_fn = partial(self._color_diff_fn_override, upper_bound)
-                else:
-                    upper_bound._color_diff_fn = partial(_calc_cie_distance, upper_bound)
+                    upper_bound._approximator.assign_diff_fn(self._color_diff_fn_override)
+                self._cdiff_method = upper_bound._approximator._diff_fn.__doc__.strip()
                 approx_results = upper_bound.approximate(sample, max_results)
 
             for aix, approx_result in enumerate(approx_results):

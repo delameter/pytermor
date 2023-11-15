@@ -6,9 +6,12 @@ import time
 import timeit
 import typing as t
 from math import trunc
+
+import line_profiler
 from _totalsize import total_size
 
 import pytermor as pt
+from line_profiler import profile
 
 puf = pt.StaticFormatter(
     max_value_len=4,
@@ -20,7 +23,7 @@ def mem():
     for c in [pt.ColorRGB]:  # pt.Color.__subclasses__()
         out(c, 'registry', len(c._registry), total_size(c._registry._map, verbose=False))
         out(c, 'index', len(c._index), total_size(c._index._map, verbose=False))
-        out(c, 'approx_cache', len(c._approx_cache), total_size(c._approx_cache, verbose=False))
+        out(c, 'approx_cache', len(c._approximator._cache), total_size(c._approximator._cache, verbose=False))
     print("-" * 50)
 
 
@@ -28,9 +31,9 @@ def out(subj: t.Any, desc:str, len: int, mem: int):
     print(
         "  ".join(
             (
-                puf.format(len, "").rjust(5),
-                pt.format_si_binary(mem).rjust(8),
-                (repr(subj)+desc).ljust(40),
+                puf.format(len, "").rjust(6),
+                pt.format_si_binary(mem).rjust(10),
+                (pt.get_qname(subj)+desc).ljust(40),
             )
         )
     )
@@ -49,7 +52,7 @@ def out(subj: t.Any, desc:str, len: int, mem: int):
 
 def hook(origin):
     def fn(*args, **kwargs):
-        if (n := len(pt.ColorRGB.index._name_index)) % 2000000 == 0:
+        if (n := len(pt.ColorRGB._index._map)) % 2000000 == 0:
             print(n)
         return origin(*args, **kwargs)
 
@@ -61,7 +64,8 @@ pt.ColorRGB._index.add = hook(pt.ColorRGB._index.add)
 idx = 0
 
 #MAX = 256 * 256 * 16  # 1m
-MAX = 25600
+MAX = 256
+#MAX = 25600
 
 
 def register_virtual():
@@ -71,26 +75,26 @@ def register_virtual():
 
 def instantiate():
     global idx
-    pt.ColorRGB(idx := idx + 1, (str(idx) + ":" + str(idx)))
+    pt.ColorRGB(idx := idx + 1, (str(idx) + ":" + str(idx)), approx=True)
 
 
 def instantiate_and_map():
     global idx
-    pt.ColorRGB(idx := idx + 1, (str(idx) + ":" + str(idx)), register=True)
+    pt.ColorRGB(idx := idx + 1, (str(idx) + ":" + str(idx)), register=True, approx=True)
 
 
 def resolve():
     idx = time.time_ns() % MAX + 1
-    pt.ColorRGB._registry.resolve(str(idx) + ":" + str(idx))
+    pt.ColorRGB._registry.find_by_name(str(idx) + ":" + str(idx))
 
 
 def approximate():
     val = time.time_ns() % 0xFFFFFF
     pt.ColorRGB.approximate(val, max_results=1)
 
-
 def approximate_cache_misses():
     val = time.time_ns() % 0xFFFFFF
+    print(f'{100*len(pt.ColorRGB._approximator._cache)/MAX:.2f}%', end='\r')
     pt.ColorRGB.find_closest(val)
 
 def approximate_cache_hits():
@@ -101,8 +105,8 @@ def approximate_cache_hits():
 p = timeit.timeit(instantiate_and_map, number=MAX, globals={"idx": 0})
 print(f"#       {p:6.2f} s  making {MAX} instances              #")
 
-ss = timeit.repeat(approximate_cache_misses, number=5000, repeat=5)
-print(f"#       {pt.format_time(sum(ss)/(5000*5))}  approximation (cache miss, 25Kavg) #")
+ss = timeit.repeat(approximate_cache_misses, number=500, repeat=5)
+print(f"#       {pt.format_time(sum(ss)/(500*5))}  approximation (cache miss, 2.5Kavg) #")
 
 ss = timeit.repeat(approximate_cache_hits, number=20000, repeat=50)
 print(f"#       {pt.format_time(sum(ss)/(20000*50))}  approximation (cache hit, 1Mavg) #")

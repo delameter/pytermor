@@ -92,7 +92,8 @@ html_css_files = [
     "custom.css",
     "custom-furo.css",
     "hint.css",
-    "fork-awesome-1.2.0.min.css",
+    # "fork-awesome-1.2.0.min.css",
+    "font-awesome-6.1.1.all.min.css",
 ]
 html_js_files = ["custom.js"]
 html_favicon = "_static/logo-96.svg"
@@ -123,6 +124,8 @@ latex_logo = "_static/logo-96.png"
 latex_elements = latex_elements.get()
 
 image_converter_args=["-density", "80"]
+
+sd_fontawesome_latex=True
 
 # -- autodoc ------------------------------------------------------------------
 

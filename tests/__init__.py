@@ -52,6 +52,8 @@ def format_test_params(val) -> str | None:
         return repr(val)
     if isinstance(val, IColorValue):
         return repr(val)
+    if isinstance(val, t.Callable):
+        return get_qname(val)
     return None
 
 

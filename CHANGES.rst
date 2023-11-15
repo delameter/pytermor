@@ -4,40 +4,44 @@
 pending
 ------------------
 - ...
-- |MAINTAIN| changelog update
-- |FIX| noop color .id read
-- |FIX| legacy virtual SequenceSGR descendants
-- |NEW| `DynamicColor`
-- |REFACTOR| split color hierarchy into `ResolvableColor`, `RenderColor` and `RealColor`
-- |FIX| restricted `DynamicColor` to `RenderColor` functionally
-- |REFACTOR| `DynamicColor` deferred mechanism
-- |FIX| missing imports
-- |DOCS| update
-- |U|pdate README.md
-- |U|pdate README.md
-- |NEW| deferred `cval` instantiating
-- |DOCS|  colored LaTeX output
-- |DOCS|  examples
-- |DOCS|  features WIP
-- |DOCS|  index rewrite
-- |REFACTOR| latex configuration files
-- |DOCS| bgcolor latex custom class
-- |FIX| color16_equiv approximation issue
-- |REFACTOR| made `Color256` non-deferred
-- |DOCS| tracers math
-- |REMOVE|  `log` module
-- |FIX| conflict color tokens are allowed as long as original names differ
-- |FIX| `Color16`, `Color256`, `ColorRGB` hash computation
-- |MAINTAIN| pre-build scripts
-- |DOCS| LaTeX terminal output examples formatting
-- |MAINTAIN|
-- |FIX| `pt.fit('N', 1)` unexpected results
-- |FIX| now `highlight()` correctly handles strings like 'NNNNN×'
-- |NEW| extended unit prefixes (femto, atto-, Exa-)
 
-.. <@pending:ff72842>
+.. <@pending:18ee2ba>
 .. ^ blank line before should be kept
 
+
+2.108-dev
+------------------
+:date:`Nov 23`
+- |DOCS| colored LaTeX output
+- |DOCS| examples
+- |DOCS| features WIP
+- |DOCS| index rewrite
+- |DOCS| LaTeX terminal output examples formatting
+- |DOCS| bgcolor latex custom class
+- |DOCS| tracers math
+- |FIX| `Color16`, `Color256`, `ColorRGB` hash computation
+- |FIX| `pt.fit('N', 1)` unexpected results
+- |FIX| color16_equiv approximation issue
+- |FIX| conflict color tokens are allowed as long as original names differ
+- |FIX| legacy virtual SequenceSGR descendants
+- |FIX| missing imports
+- |FIX| noop color .id read
+- |FIX| now `highlight()` correctly handles strings like 'NNNNN×'
+- |FIX| restricted `DynamicColor` to `RenderColor` functionally
+- |MAINTAIN| changelog update
+- |MAINTAIN| pre-build scripts
+- |NEW| `border` module
+- |NEW| docker-compose config for `nginx` docs web-server
+- |NEW| `DynamicColor`
+- |NEW| deferred `cval` instantiating
+- |NEW| extended unit prefixes (femto, atto-, Exa-)
+- |REFACTOR| `DynamicColor` deferred mechanism
+- |REFACTOR| `color.approximate()` internals
+- |REFACTOR| latex configuration files
+- |REFACTOR| made `Color256` non-deferred
+- |REFACTOR| split color hierarchy into `ResolvableColor`, `RenderColor` and `RealColor`
+- |REMOVE| `log` module
+- |UPDATE| README.md
 
 2.99-dev
 ------------------
@@ -88,11 +92,10 @@ pending
 - |REFACTOR| color transformation methods
 - |REMOVE| `AbstractRegexValRefilter`, `StringAligner`
 - |REMOVE| `TemplateRenderer`
-- |TESTS|  `common` module
+- |TESTS| `common` module
 - |TESTS| covered `filter` module
-- |TESTS|
 - |TESTS| `template`
-- |TESTS|  99% coverage
+- |TESTS| 99% coverage
 - |TESTS| 100% coverage
 - |TESTS| fix params
 - |TESTS| 100% coverage again

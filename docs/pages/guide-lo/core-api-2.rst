@@ -48,6 +48,7 @@ Core methods
    term.make_color_256
    term.make_color_rgb
    color.Color256.to_sgr
+   color.find_closest
 
 
 

@@ -105,20 +105,21 @@ class TestStyle:
             (0.10, 0xFF0000),
             (0.10, 0xFFFF00),
             (0.10, 0x00FFFF),
-            (0.10, 0x0000FF),
+            (0.70, 0x0000FF),
             (0.10, 0xFFFFFF),
-            (0.10, 0x800000),
+            (0.70, 0x800000),
             (0.10, 0x008000),
-            (0.10, 0x000080),  # @TODO fix this
+            (0.90, 0x000080),
             (0.10, 0x808000),
             (0.10, 0x008080),
             (0.10, 0x808080),
-            (0.80, 0x400000),
+            (0.90, 0x400000),
             (0.80, 0x004000),
-            (0.80, 0x000040),
+            (0.90, 0x000040),
             (0.80, 0x404040),
-            (0.80, 0x000000),
+            (0.90, 0x000000),
         ],
+        ids=format_test_params,
     )
     def test_autopick_fg(self, expected_fg_brightness: float, bg: int | None):
         st = Style(bg=bg).autopick_fg()

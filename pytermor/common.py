@@ -224,6 +224,8 @@ def get_qname(obj) -> str:
     if isinstance(obj, type):
         return f"<{obj.__name__}>"
     if isinstance(obj, object):
+        if obj.__class__.__name__ == 'method':
+            return obj.__qualname__
         return obj.__class__.__qualname__
     return str(obj)  # pragma: no cover
 

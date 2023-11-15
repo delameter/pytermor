@@ -5,14 +5,18 @@
 # -----------------------------------------------------------------------------
 """
 Abstractions for color definitions in three primary modes: 4-bit, 8-bit and
-24-bit (``xterm-16``, ``xterm-256`` and ``True Color/RGB``, respectively).
+24-bit (*xterm-16*, *xterm-256* and *True Color/RGB*, respectively).
 Provides a global registry for color searching by names and codes, as well as
 approximation algorithms, which are used for output devices with limited
 advanced color modes support. Renderers do that automatically and transparently
 for the developer, but the manual control over this process is also an option.
 
+:fas:`sitemap;sd-text-primary` `guide.color_class_diagram`
+
+:fas:`sitemap;sd-text-primary` `guide.color_space_transforms`
+
 Supports 4 different color spaces: `RGB`, `HSV`, `XYZ` and `LAB`, and also
-provides methods to covert colors from any space to any other.
+provides methods to convert colors from any space to any other.
 
 """
 from __future__ import annotations
@@ -138,14 +142,13 @@ _REF_Z: float = 108.883
 class RGB(IColorValue):
     """
     Color value stored internally as an 24-bit integer.
-    Base for more complex color classes.
+    Base for more complex color classes. Channels' values
+    are within [0;255] range.
     """
 
     @classmethod
-    def diff(cls, c1: RGB, c2: RGB) -> float:
-        """
-        RGB euclidean distance.
-        """
+    def diff(cls, c1: IColorValue, c2: IColorValue) -> float:
+        """RGB euclidean distance"""
         if not isinstance(c1, RGB):
             c1 = getattr(c1, "rgb")
         if not isinstance(c2, RGB):
@@ -160,15 +163,11 @@ class RGB(IColorValue):
     @classmethod
     def from_channels(cls, red: int, green: int, blue: int) -> RGB:
         """
+        Initialize a new instance with integer channel values.
 
-        :param red:
-        :type red:
-        :param green:
-        :type green:
-        :param blue:
-        :type blue:
-        :return:
-        :rtype:
+        :param red:     Red channel value [0;255]
+        :param green:   Green channel value [0;255]
+        :param blue:    Blue channel value [0;255]
         """
         chans = (red, green, blue)
         return RGB(sum(int(ch) << 8 * (2 - idx) for (idx, ch) in enumerate(chans)))
@@ -176,14 +175,20 @@ class RGB(IColorValue):
     @classmethod
     def from_ratios(cls, rr: float, gr: float, br: float) -> RGB:
         """
-        d
-        :param rr:
-        :param gr:
-        :param br:
+        Initialize a new instance with floating-point channel values.
+
+        :param rr:    Red channel value [0;1]
+        :param gr:    Green channel value [0;1]
+        :param br:    Blue channel value [0;1]
         """
         return cls.from_channels(round(rr * 255), round(gr * 255), round(br * 255))
 
     def __init__(self, value: int):
+        """
+        Initialize an instance with one integer value.
+
+        :param value:   24-bit integer in :hex:`0xRRGGBB` format.
+        """
         self._int = _ConstrainedValue[int](value, max_val=0xFFFFFF)
 
     def __iter__(self) -> t.Iterator[int]:
@@ -280,17 +285,15 @@ class RGB(IColorValue):
 class HSV(IColorValue):
     """
     Initially HSV is a transformation of RGB color space; color is stored as 3
-    floats representing Hue channel, Saturation channel and Value channel
-    correspondingly. Supports direct (fast) transformation to RGB and indirect
-    (=slow) to all other spaces through using more than one conversion with
-    HSV → RGB being the first one.
+    floats representing Hue channel [0;360], Saturation channel [0;1] and Value
+    channel [0;1] correspondingly. Supports direct (fast) transformation to RGB
+    and indirect (=slow) to all other spaces through using more than one
+    conversion with HSV → RGB being the first one.
     """
 
     @classmethod
-    def diff(cls, c1: HSV, c2: HSV) -> float:
-        """
-        HSV euclidean distance.
-        """
+    def diff(cls, c1: IColorValue, c2: IColorValue) -> float:
+        """HSV euclidean distance"""
         if not isinstance(c1, HSV):
             c1 = getattr(c1, "hsv")
         if not isinstance(c2, HSV):
@@ -386,13 +389,13 @@ class HSV(IColorValue):
 
 class XYZ(IColorValue):
     """
-    Color in XYZ space is represented by three floats: Y is the luminance, Z is
-    quasi-equal to blue (of CIE RGB), and X is a mix of the three CIE RGB curves
-    chosen to be nonnegative. CIE 1931 XYZ color space was one of the first
-    attempts to produce a color space based on measurements of human color
-    perception. Setting Y as luminance has the useful result that for any given
-    Y value, the XZ plane will contain all possible chromaticities at that
-    luminance.
+    Color in XYZ space is represented by three floats: Y is the luminance
+    [0;100], Z is quasi-equal to blue [0;100) (of CIE RGB), and X is a mix of
+    the three CIE RGB curves chosen to be nonnegative [0;100). CIE 1931 XYZ
+    color space was one of the first attempts to produce a color space based on
+    measurements of human color perception. Setting Y as luminance has the
+    useful result that for any given Y value, the XZ plane will contain all
+    possible chromaticities at that luminance.
 
     .. note ::
 
@@ -401,12 +404,15 @@ class XYZ(IColorValue):
     """
 
     @classmethod
-    def diff(cls, c1: XYZ, c2: XYZ) -> float:  # pragma: no cover
+    def diff(cls, c1: IColorValue, c2: IColorValue) -> float:  # pragma: no cover
         """
-        .. note ::
+        Color distance in XYZ space.
 
-            This one is written on the analogy of other diffs, therefore
-            it can be actually a little bit incorrect or outright wrong.
+        .. warning ::
+
+            This one is written on the analogy of other diffs, just for
+            the completeness, therefore it can actually be a little bit
+            incorrect or even outright wrong.
 
         """
         if not isinstance(c1, XYZ):
@@ -509,18 +515,17 @@ class XYZ(IColorValue):
 class LAB(IColorValue):
     """
     Color value in a *uniform* color space, CIELAB, which expresses color as
-    three values: L* for perceptual lightness and a* and b* for the four unique
-    colors of human vision: red, green, blue and yellow. CIELAB was intended as
-    a perceptually uniform space, where a given numerical change corresponds to
-    a similar perceived change in color. Like the CIEXYZ space it derives from,
-    CIELAB color space is a device-independent, "standard observer" model.
+    three values: L* for perceptual lightness [0;100] and a* [-100;100] and
+    b* [-100;100] for the four unique colors of human vision: red, green, blue
+    and yellow. CIELAB was intended as a perceptually uniform space, where a
+    given numerical change corresponds to a similar perceived change in color.
+    Like the CIEXYZ space it derives from, CIELAB color space is a
+    device-independent, "standard observer" model.
     """
 
     @classmethod
-    def diff(cls, c1: LAB, c2: LAB) -> float:
-        """
-        CIE76 \u0394E\\* color difference.
-        """
+    def diff(cls, c1: IColorValue, c2: IColorValue) -> float:
+        """CIE76 color difference"""
         if not isinstance(c1, LAB):
             c1 = getattr(c1, "lab")
         if not isinstance(c2, LAB):
@@ -808,6 +813,7 @@ class _ColorIndex(t.Generic[_RCT], t.Sized):
 
 class _ColorApproximator(t.Generic[_RCT]):
     def __init__(self):
+        self._diff_fn = LAB.diff
         self._set: t.Set[_RCT] = set()
         self._cache: t.Dict[int, _RCT] = dict()
 
@@ -815,17 +821,26 @@ class _ColorApproximator(t.Generic[_RCT]):
         self._set.add(color)
         self.invalidate_cache()
 
-    def compute_distances(
-        self, diff_fn: _ColorDiffFn, value: IColorValue
-    ) -> Iterable[ApxResult[_RCT]]:
+    def assign_diff_fn(self, diff_fn: _ColorDiffFn):
+        self._diff_fn = diff_fn
+        self.invalidate_cache()
+
+    def compute_distances(self, value: IColorValue) -> Iterable[ApxResult[_RCT]]:
+        if not self._set:
+            raise LogicError("At least one color instance with 'approx=True' must be created.")
         for el in self._set:
-            yield diff_fn(value, el)
+            yield ApxResult[_RCT](el, self._diff_fn(value, el))
 
-    def get_cached(self, value: int) -> _RCT | None:
-        return self._cache.get(value, None)
+    def approximate(self, value: IColorValue, max_results=1) -> list[ApxResult[_RCT]]:
+        return sorted(self.compute_distances(value), key=lambda r: r.distance)[:max_results]
 
-    def set_cached(self, value: int, closest: _RCT):
-        self._cache.update({value: closest})
+    def find_closest(self, value: IColorValue) -> _RCT:
+        if cached := self._cache.get(value.int, None):
+            return cached
+
+        closest = self.approximate(value, max_results=1).pop(0).color
+        self._cache.update({value.int: closest})
+        return closest
 
     def invalidate_cache(self):
         self._cache.clear()
@@ -834,14 +849,13 @@ class _ColorApproximator(t.Generic[_RCT]):
 class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
     """
     Mixin for other ``Colors``. Implements color searching by name and
-    approximation (i.e., determining closest color from a given set
-    to specified value).
+    approximation (i.e., determining closest to specified value color
+    from a set).
     """
 
     _registry: _ColorRegistry[_RCT]
     _index: _ColorIndex[_RCT]
     _approximator: _ColorApproximator[_RCT]
-    _color_diff_fn: t.ClassVar[_ColorDiffFn]
 
     _required_attrs: t.List[str] = ["_registry", "_index", "_approximator"]
 
@@ -874,20 +888,16 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         :param value: Target color/color value.
         """
         cls._ensure_initialized()
+        cls._ensure_loaded()
 
         if not isinstance(value, IColorValue):
             value = RGB(value)
 
-        if cached := cls._approximator.get_cached(value.int):
-            return cached
-
-        closest = cls._find_neighbours(value)[0].color
-        cls._approximator.set_cached(value.int, closest)
-        return closest
+        return cls._approximator.find_closest(value)
 
     @classmethod
     def approximate(
-        cls: type[_RCT], value: IColorValue | int, max_results: int = 1
+        cls: type[_RCT], value: IColorValue | int, max_results=1
     ) -> t.List[ApxResult[_RCT]]:
         """
         Search for the colors nearest to ``value`` and return the first ``max_results``.
@@ -898,27 +908,12 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         :param max_results: Result limit.
         """
         cls._ensure_initialized()
+        cls._ensure_loaded()
 
         if not isinstance(value, IColorValue):
             value = RGB(value)
 
-        return cls._find_neighbours(value)[:max_results]
-
-    @classmethod
-    def _find_neighbours(cls: type[_RCT], value: IColorValue) -> t.List[ApxResult[_RCT]]:
-        """
-        Iterate the registered colors table and compute CIE76 \u0394E\\* (color difference)
-        between argument and each color of the palette. Sort the results and return them.
-
-        **CIELAB \u0394E\\***
-            https://en.wikipedia.org/wiki/Color_difference#CIE76
-
-        :param value: Target color/color value.
-        """
-        cls._ensure_loaded()
-
-        apxs = cls._approximator.compute_distances(cls._color_diff_fn, value)
-        return sorted(apxs, key=lambda r: r.distance)
+        return cls._approximator.approximate(value, max_results)
 
     @classmethod
     def _ensure_initialized(cls):
@@ -934,14 +929,6 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
     @classmethod
     def _load(cls):
         ...
-
-    @classmethod
-    def _calc_lab_cie76_delta_e(cls: type[_RCT], value: _CVT, el: _CVT) -> ApxResult[_RCT]:
-        return ApxResult(el, LAB.diff(value, el))
-
-    def __new__(cls: t.Type[_RCT], *args, **kwargs) -> _RCT:
-        cls._color_diff_fn = cls._calc_lab_cie76_delta_e
-        return super().__new__(cls)
 
     def __init__(
         self,
@@ -1006,7 +993,7 @@ class ApxResult(t.Generic[_RCT]):
         return self.color == other.color and self.distance == other.distance
 
 
-_ColorDiffFn = t.Callable[[IColorValue, IColorValue], ApxResult[_RCT]]
+_ColorDiffFn = t.Callable[[IColorValue, IColorValue], float]
 
 # ---------------------------------------------------------------------------------------
 
@@ -1633,7 +1620,7 @@ def resolve_color(
         The instance created this way is an "unbound" color, i.e. it does
         not end up in a registry or an index bound to its type, thus the resolver
         and approximation algorithms are unaware of its existence. The rationale
-        for this is to keep the registries clean and stateless to ensure that
+        for this is to keep the registries clean and immutable to ensure that
         the same input always resolves to the same output.
 
     ::
@@ -1672,7 +1659,7 @@ def resolve_color(
             return ColorRGB(value)
         if approx_cache:
             return find_closest(value, color_type)
-        return approximate(value, color_type)[0].color
+        return approximate(value, color_type).pop(0).color
 
     color_types: t.List[t.Type[Color]] = [Color16, Color256, ColorRGB]
     if color_type:
@@ -1695,6 +1682,18 @@ def find_closest(value: IColorValue | int, color_type: t.Type[_RCT] = None) -> _
     Search and return nearest to ``value`` instance of specified ``color_type``.
     If `color_type` is omitted, search for the closest `Color256` element.
 
+    .. important ::
+
+        This method caches the results, i.e., the same search query will from then
+        onward result in the same return value without the necessity of iterating
+        through the color index. If that's not applicable, use similar method
+        `approximate()`, which is unaware of caching mechanism altogether.
+
+    Method is useful for finding applicable color alternatives if user's
+    terminal is incapable of operating in more advanced mode. Usually it is
+    done by the library automatically and transparently for both the developer
+    and the end-user.
+
     .. note ::
 
         Distance between two colors is calculated using CIE76 \u0394E\\* color
@@ -1702,18 +1701,6 @@ def find_closest(value: IColorValue | int, color_type: t.Type[_RCT] = None) -> _
         an acceptable tradeoff between sRGB euclidean distance, which doesn't
         account for differences in human color perception, and CIE94/CIEDE2000,
         which are more complex and in general excessive for this task.
-
-    Method is useful for finding applicable color alternatives if user's
-    terminal is incapable of operating in more advanced mode. Usually it is
-    done by the library automatically and transparently for both the developer
-    and the end-user.
-
-    .. important ::
-
-        This method caches the results, i.e., the same search query will from then
-        onward result in the same return value without the necessity of iterating
-        through the color index. If that's not applicable, use similar method
-        `approximate()`, which is unaware of caching mechanism altogether.
 
     :param value:       Target color/color value.
     :param color_type:  Target color type (`Color16`, `Color256` or `ColorRGB`).
@@ -1733,9 +1720,9 @@ def approximate(
     for the closest `Color256` instances. This method is similar to the
     `find_closest()`, although they differ in some aspects:
 
-        - `approximate()` can return more than one result;
-        - `approximate()` returns not just a ``Color`` instance(s), but also a
-          number equal to squared distance to the target color for each of them;
+        - `approximate()` returns list of results instead of the closest one;
+        - `approximate()` results also contain numeric distances from the target
+          color to found ones;
         - `find_closest()` caches the results, while `approximate()` ignores
           the cache completely.
 

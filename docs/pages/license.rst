@@ -8,19 +8,10 @@ License
 
    \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}%
 
-
-.. rst-class:: centered mono
-
-   .. include::  /_include/LICENSE
-      :start-line: 1
-      :end-line: 7
-      :literal:
-
 .. rst-class:: justified mono
 
-   .. include::  /_include/LICENSE
-      :start-line: 9
-      :literal:
+   .. literalinclude::  /_include/LICENSE
+      :language: Text
 
 
 Disclaimer of Warranty
@@ -28,9 +19,8 @@ Disclaimer of Warranty
 
 .. rst-class:: justified mono
 
-   .. include::  /_include/DISCLAIMER
-      :start-line: 3
-      :literal:
+   .. literalinclude::  /_include/DISCLAIMER
+      :language: Text
 
 
 Limitation of Liability
@@ -38,6 +28,10 @@ Limitation of Liability
 
 .. rst-class:: justified mono
 
-   .. include::  /_include/LEGAL
-      :start-line: 3
-      :literal:
+   .. literalinclude::  /_include/LEGAL
+      :language: Text
+
+Copyright
+===========
+
+.. include::  /_include/COPYRIGHT

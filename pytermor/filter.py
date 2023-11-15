@@ -7,6 +7,9 @@
 Formatters for prettier output and utility classes to avoid writing boilerplate
 code when dealing with escape sequences. Also includes several Python Standard
 Library methods rewritten for correct work with strings containing control sequences.
+
+:fas:`sitemap;sd-text-primary` `guide.filter_class_diagram`
+
 """
 from __future__ import annotations
 

@@ -16,11 +16,19 @@ main() {
         esac
     fi
 
+    local -a INTERPRETER=(python -q)
+    if [[ $# -eq 0 ]] ; then
+        echo "No args: checking if ipython is installed"
+        if venv-demo/bin/pip show ipython &>/dev/null ; then
+            INTERPRETER=(ipython)
+        fi
+    fi
+
     if [[ -f .run-startup.py ]] ; then
-        PYTHONSTARTUP=.run-startup.py PYTHONPATH=. venv-demo/bin/python -q "$@"
+        PYTHONSTARTUP=.run-startup.py PYTHONPATH=. venv-demo/bin/${INTERPRETER[@]} "$@"
     else
         printf '%s\n' "import pytermor as pt" "print('imported pytermor %s as pt' % pt.__version__)" > /tmp/ptstartup
-        PYTHONSTARTUP=/tmp/ptstartup PYTHONPATH=. venv-demo/bin/python -q "$@"
+        PYTHONSTARTUP=/tmp/ptstartup PYTHONPATH=. venv-demo/bin/${INTERPRETER[@]} "$@"
         rm /tmp/ptstartup
     fi
 }

@@ -13,6 +13,8 @@ Can be used for creating a variety of sequences including:
       selective screen clearing);
     - :abbr:`OSC (Operating System Command)` sequences (various system commands).
 
+:fas:`sitemap;sd-text-primary` `guide.ansi_class_diagram`
+
 Provides a bunch of ready-to-use sequence makers, as well as core method
 `get_closing_seq()` that queries SGR pairs registry and composes "counterpart"
 sequence for a specified one: every attribute that the latter modifies, will be
@@ -647,6 +649,9 @@ class SubtypedParam:
     @property
     def subtype(self) -> int:
         return self._subtype
+
+    def __hash__(self):
+        return hash(self._value + self._subtype)
 
     def __str__(self):
         return f"{self._value}{self._SEPARATOR}{self._subtype}"

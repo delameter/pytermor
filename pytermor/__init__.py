@@ -42,6 +42,31 @@ from .ansi import get_closing_seq as get_closing_seq
 from .ansi import get_resetter_codes as get_resetter_codes
 from .ansi import parse as parse
 from .ansi import seq_from_dict as seq_from_dict
+from .border import BORDER_ASCII_DOUBLE as BORDER_ASCII_DOUBLE
+from .border import BORDER_ASCII_SINGLE as BORDER_ASCII_SINGLE
+from .border import BORDER_DOTTED_COMPACT as BORDER_DOTTED_COMPACT
+from .border import BORDER_DOTTED_DOUBLE as BORDER_DOTTED_DOUBLE
+from .border import BORDER_DOTTED_DOUBLE_SEMI as BORDER_DOTTED_DOUBLE_SEMI
+from .border import BORDER_DOTTED_REGULAR as BORDER_DOTTED_REGULAR
+from .border import BORDER_LINE_BOLD as BORDER_LINE_BOLD
+from .border import BORDER_LINE_DASHED as BORDER_LINE_DASHED
+from .border import BORDER_LINE_DASHED_2 as BORDER_LINE_DASHED_2
+from .border import BORDER_LINE_DASHED_3 as BORDER_LINE_DASHED_3
+from .border import BORDER_LINE_DASHED_BOLD as BORDER_LINE_DASHED_BOLD
+from .border import BORDER_LINE_DASHED_BOLD_2 as BORDER_LINE_DASHED_BOLD_2
+from .border import BORDER_LINE_DASHED_BOLD_3 as BORDER_LINE_DASHED_BOLD_3
+from .border import BORDER_LINE_DOUBLE as BORDER_LINE_DOUBLE
+from .border import BORDER_LINE_SINGLE as BORDER_LINE_SINGLE
+from .border import BORDER_LINE_SINGLE_ROUND as BORDER_LINE_SINGLE_ROUND
+from .border import BORDER_SOLID_12_COMPACT as BORDER_SOLID_12_COMPACT
+from .border import BORDER_SOLID_12_DIAGONAL as BORDER_SOLID_12_DIAGONAL
+from .border import BORDER_SOLID_12_EXTENDED as BORDER_SOLID_12_EXTENDED
+from .border import BORDER_SOLID_12_REGULAR as BORDER_SOLID_12_REGULAR
+from .border import BORDER_SOLID_18_COMPACT as BORDER_SOLID_18_COMPACT
+from .border import BORDER_SOLID_18_DIAGONAL as BORDER_SOLID_18_DIAGONAL
+from .border import BORDER_SOLID_18_REGULAR as BORDER_SOLID_18_REGULAR
+from .border import BORDER_SOLID_FULL as BORDER_SOLID_FULL
+from .border import Border as Border
 from .color import ApxResult as ApxResult
 from .color import Color as Color
 from .color import Color16 as Color16
@@ -255,7 +280,6 @@ from .text import flatten1 as flatten1
 from .text import is_rt as is_rt
 from .text import render as render
 from .text import wrap_sgr as wrap_sgr
-
 
 
 from logging import getLogger, NullHandler

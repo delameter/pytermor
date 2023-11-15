@@ -4,7 +4,12 @@
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
 """
-utilnum
+Various general-purpose numeric formatters and highlighters with prefix
+auto-select suitable for any SI unit or a unitless value as well, plus
+dedicated methods for formatting time intervals from femtoseconds to years.
+
+:fas:`sitemap;sd-text-primary` `guide.numfmt_class_diagram`
+
 """
 from __future__ import annotations
 

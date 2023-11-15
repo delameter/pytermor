@@ -115,9 +115,11 @@ other than terminal emulator, or try to find a matching rule from this list:
     :caption: Auto output mode algorithm
 
 
-===========================
-Renderer class hierarchy
-===========================
+.. _guide.renderer_class_diagram:
+
+========================================
+:fas:`sitemap` Renderer class hierarchy
+========================================
 
 .. inheritance-diagram::  pytermor.renderer
    :parts: 1

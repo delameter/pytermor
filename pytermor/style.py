@@ -16,8 +16,8 @@ import typing as t
 from dataclasses import dataclass, field
 from typing import Any
 
-from .color import Color, NOOP_COLOR, resolve_color, IColorValue, ColorRGB, RenderColor, RealColor
-from .common import CDT, CXT, FT
+from .color import Color, Color256, LAB, NOOP_COLOR, resolve_color, IColorValue, ColorRGB, RenderColor, RealColor
+from .common import CXT, FT
 from .cval import cv
 from .exception import ArgTypeError, LogicError
 
@@ -296,11 +296,12 @@ class Style:
         if not isinstance(self._bg, RealColor):
             return self
 
-        h, s, v = self._bg.hsv
-        if v >= 0.45:  # @FIXME
+        l, _, _ = self._bg.lab
+        if l > 40:
             self._fg = cv.GRAY_3
         else:
-            self._fg = cv.GRAY_82
+            self._fg = Color256.find_closest(LAB(90 - l//2, 0, 0))
+            # self._fg = Color256.find_closest(HSV(0, 0, 0.9 - (l/40)*0.2))
         return self
 
     def flip(self) -> Style:

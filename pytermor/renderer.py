@@ -6,7 +6,10 @@
 """
 Renderers transform :class:`.Style` instances into lower-level abstractions like
 :term:`SGR sequences <SGR>`, tmux-compatible directives, HTML markup etc.,
-depending on renderer type. Default global renderer type is `SgrRenderer`.
+depending on a renderer type. Default global renderer type is `SgrRenderer`.
+
+:fas:`sitemap;sd-text-primary` `guide.renderer_class_diagram`
+
 """
 from __future__ import annotations
 

@@ -5,17 +5,8 @@
 .PHONY: help test docs
 
 PROJECT_NAME = pytermor
-HOST_DEFAULT_PYTHON = /usr/bin/python3.10
 
-VENV_LOCAL_PATH = venv
-DOCS_IN_PATH = docs
-DOCS_OUT_PATH = docs-build
-DEPENDS_PATH = misc/depends
-VERSION_FILE_PATH = pytermor/_version.py
-
-LOCALHOST_URL = http://localhost/pt
-LOCALHOST_WRITE_PATH = localhost
-
+include .env.dist
 -include .env
 export
 VERSION := $(shell ./.version)
@@ -45,7 +36,7 @@ RESET  := $(shell printf '\e[m')
 
 help:   ## Show this help
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s?(\s*#?[^#]+)#*\s*(.*)/\1${YELLOW}\2${RESET}#\3/; s/(.+):(#|\s)+(.+)/##   ${GREEN}\1${RESET}#\3/; s/\*(\w+)\*/${BOLD}\1${RESET}/g; 2~1s/<([ )*<@>.A-Za-z0-9_(-]+)>/${DIM}\1${RESET}/gi' -e 's/(\x1b\[)33m#/\136m/' | column -ts# | sed -Ee 's/ {3}>/ >/'
-	PYTERMOR_FORCE_OUTPUT_MODE=xterm_256 ${VENV_LOCAL_PATH}/bin/python .run-startup.py | tail -2 ; echo
+	PYTERMOR_FORCE_OUTPUT_MODE=xterm_256 ./run-cli ./.run-startup.py | sed -nEe 's/^(python|pytermor).+/    &/p' ;  echo
 
 cli: ## Launch python interpreter  <hatch>
 	hatch run python -uq
@@ -69,16 +60,17 @@ init-system-pdf:  ## Prepare environment for pdf rendering
 	sudo apt install texlive-latex-recommended \
 					 texlive-fonts-recommended \
 					 texlive-latex-extra \
+					 texlive-fonts-extra \
 					 latexmk \
 					 dvipng \
 					 dvisvgm
 
 .:
-## Docker
+## Docker (build)
 
 docker-cli: ## [host] Launch shell in a container
 docker-cli: build-image
-	docker run -it ${DOCKER_TAG} /bin/bash
+	docker run -it --rm ${DOCKER_TAG} /bin/bash
 
 build-image-base: ## [host] Build base docker image
 	docker build . \
@@ -122,10 +114,20 @@ docker-docs-pdf: build-image make-docs-out-dir
 make-docs-out-dir:
 	@mkdir -p ${DOCS_OUT_PATH}/${VERSION}
 
-_ensure_x11 = ([ -n "${DISPLAY}" ] && return; echo 'ERROR: No $$DISPLAY'; return 1)
+
+.:
+## Docker (docs web-server)
+
+docker-up:  ## Launch nginx container with documentation
+	docker-compose up -d
+
+docker-down:  ## Stop nginx container with documentation
+	docker-compose down
 
 .:
 ## Automation
+
+_ensure_x11 = ([ -n "${DISPLAY}" ] && return; echo 'ERROR: No $$DISPLAY'; return 1)
 
 pre-build:  ## Update CVAL  <runs on docker image building>
 	@export PT_ENV=build
@@ -177,14 +179,10 @@ cover: ## Run coverage and make a report
 	./.invoke coverage json
 	./.invoke coverage report
 	@$(call _notify,success,Coverage $$(jq -r < coverage.json .totals.percent_covered_display)%)
-	@if [ -d "${LOCALHOST_WRITE_PATH}" ] ; then \
-	    mkdir -p ${LOCALHOST_WRITE_PATH}/coverage-report && \
-	    cp -au coverage-report/* ${LOCALHOST_WRITE_PATH}/coverage-report/
-	fi
 
 open-coverage:  ## Open coverage report in browser
 	@$(call _ensure_x11) || return
-	@[ -d localhost ] && xdg-open ${LOCALHOST_URL}/coverage-report || xdg-open coverage-report/index.html
+	xdg-open coverage-report/index.html
 
 update-coveralls:  ## Manually send last coverage statistics  <coveralls.io>
 	@if [ -n "${SKIP_COVERALLS_UPDATE}" ] ; then echo "DISABLED" && return 0 ; fi
@@ -222,11 +220,7 @@ docs-html: ## Build HTML documentation  <caching allowed>
 	@export PT_ENV=build
 	@mkdir -p ${DOCS_OUT_PATH}/${VERSION}
 	$(call _build_html) || { $(call _notify,error,HTML docs build failed) ; return 1 ; }
-	@cp -auv ${DOCS_IN_PATH}/_build/* ${DOCS_OUT_PATH}/${VERSION}/ ; \
-	if [ -d localhost ] ; then \
-    	mkdir -p ${LOCALHOST_WRITE_PATH}/docs && \
-		cp -auv ${DOCS_IN_PATH}/_build/* ${LOCALHOST_WRITE_PATH}/docs/ ; \
-    fi
+	@cp -auv ${DOCS_IN_PATH}/_build/* ${DOCS_OUT_PATH}/${VERSION}/
 	@$(call _notify,success,HTML docs updated) || return 0
 	#find docs/_build -type f -name '*.html' | sort | xargs -n1 grep -HnT ^ | sed s@^docs/_build/@@ > docs-build/${PROJECT_NAME}.html.dump
 
@@ -256,7 +250,7 @@ docs-all: depends demolish-docs docs docs-pdf docs-man
 
 open-docs-html:  ## Open HTML docs in browser
 	@$(call _ensure_x11) || return
-	@[ -d localhost ] && xdg-open ${LOCALHOST_URL}/docs/pages || xdg-open ${DOCS_IN_PATH}/_build/pages/index.html
+	xdg-open ${DOCS_OUT_PATH}/${VERSION}/pages/index.html
 
 open-docs-pdf:  ## Open PDF docs in reader
 	@$(call _ensure_x11) || return

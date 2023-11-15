@@ -28,7 +28,7 @@ postprocess_module() {
         head -n $((placheolder_lineno-1)) "$tpl_path" | sed -Ee '/^#/d'
         sed -Ee '/^\s*pytermor/!d;'\
              -e '/(_ansi|_conv|_config|_color|_filter|_term).+(label|->)/ s/(fillcolor="#)[0-9a-f]+(")/shape="folder",group="low",\1'$LOW_LEVEL_GROUP_COLOR'\2/;'\
-             -e '/(_renderer|_text|_style|_cval|_numfmt|_template).+(label|->)/ s/(fillcolor="#)[0-9a-f]+(")/shape="tab",\1'$HIGH_LEVEL_GROUP_COLOR'\2/;'\
+             -e '/(_renderer|_text|_style|_cval|_numfmt|_template|_border).+(label|->)/ s/(fillcolor="#)[0-9a-f]+(")/shape="tab",\1'$HIGH_LEVEL_GROUP_COLOR'\2/;'\
              -e '/->/ s/(shape|group)="[a-z]*",//g; ' \
              -e 's/(label=")(renderer|text|style|color)(")/\1☢️ \2\3/g; '
         tail -n +$((placheolder_lineno+1)) "$tpl_path"

@@ -21,8 +21,12 @@ import yaml
 import pytermor as pt
 from common import CONFIG_PATH, error
 from pytermor import ConflictError, SgrRenderer, cv
-from scripts.common import warning
 from es7s_commons.progressbar import ProgressBar
+
+
+
+def warning(string: str | pt.IRenderable):
+    print(pt.render(pt.Fragment("[WARN] ", pt.Styles.WARNING_LABEL) + pt.Text(string+'\n', pt.Styles.WARNING)))
 
 
 class RgbPreprocessor():

@@ -4,10 +4,14 @@
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
 """
-"Front-end" module of the library. Contains *renderables* -- classes supporting
-high-level operations such as nesting-aware style application, concatenating and
-cropping of styled strings before the rendering, text alignment and wrapping, etc.
-Also provides rendering entrypoints `render()` and `echo()`.
+"Front-end" module of the library containing *renderables* -- classes that
+support high-level operations such as nesting-aware style application,
+concatenating and cropping of styled strings before the rendering, text
+alignment and wrapping, etc. Also provides rendering entrypoints `render()` and
+`echo()`.
+
+:fas:`sitemap;sd-text-primary` `guide.text_class_diagram`
+
 """
 from __future__ import annotations
 
