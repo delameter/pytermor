@@ -368,3 +368,12 @@ class TestSubtypeParam:
             sp3 := SubtypedParam(4, 2),
         ]
         assert sorted(arr) == [sp3, sp1, sp2]
+
+    def test_hash(self):
+        assert hash(SubtypedParam(4, 3))
+
+    def test_equality(self):
+        assert SubtypedParam(4, 4) == SubtypedParam(4, 4)
+
+    def test_inequality(self):
+        assert SubtypedParam(3, 4) != SubtypedParam(4, 3)

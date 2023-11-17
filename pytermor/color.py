@@ -933,10 +933,11 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
     def __init__(
         self,
         name: str,
+        code: int = None,
+        *,
         approx: bool,
         register: bool,
-        code: int | None,
-        aliases: t.List[str],
+        aliases: t.List[str] = None,
         variation_map: t.Dict[int, str] = None,
     ):
         self._name: str | None = name
@@ -1040,7 +1041,14 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
         self._code_bg: int = code_bg
 
         RealColor.__init__(self, value)
-        ResolvableColor.__init__(self, name, approx, register, code_fg, aliases)
+        ResolvableColor.__init__(
+            self,
+            name,
+            code_fg,
+            approx=approx,
+            register=register,
+            aliases=aliases,
+        )
 
     def __hash__(self) -> int:  # pragma: no cover
         return super(Color16, self).__hash__() + super(RenderColor, self).__hash__()
@@ -1162,7 +1170,14 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
         self._color16_equiv: Color16 | None = color16_equiv
 
         RealColor.__init__(self, value)
-        ResolvableColor.__init__(self, name, approx, register, code, aliases)
+        ResolvableColor.__init__(
+            self,
+            name,
+            code,
+            approx=approx,
+            register=register,
+            aliases=aliases,
+        )
 
     def __hash__(self) -> int:  # pragma: no cover
         return super(Color256, self).__hash__() + super(RenderColor, self).__hash__()
@@ -1298,7 +1313,14 @@ class ColorRGB(RealColor, RenderColor, ResolvableColor["ColorRGB"]):
         variation_map: t.Dict[int, str] = None,
     ):
         RealColor.__init__(self, value)
-        ResolvableColor.__init__(self, name, approx, register, None, aliases, variation_map)
+        ResolvableColor.__init__(
+            self,
+            name,
+            aliases=aliases,
+            variation_map=variation_map,
+            approx=approx,
+            register=register,
+        )
 
     def __hash__(self) -> int:  # pragma: no cover
         return super(ColorRGB, self).__hash__() + super(RenderColor, self).__hash__()
