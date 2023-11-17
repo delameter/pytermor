@@ -72,6 +72,8 @@ escaped strings
 
    .. code-block:: python
 
+
+      import re
       "\u21bc", "\U000f0909", re.compile(R"\x1b\[[0-9;]*m")
 
 

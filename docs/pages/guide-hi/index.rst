@@ -14,5 +14,5 @@ Guide · High-level
    renderers
    templates
    num-formatters
-   named-colors
+   es7s-colors
    dynamic-deferred-colors

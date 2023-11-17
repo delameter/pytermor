@@ -356,7 +356,6 @@ class AbstractNamedGroupsRefilter(IRefilter[str], StringReplacer, metaclass=ABCM
         >>> class SgrNamedGroupsRefilter(AbstractNamedGroupsRefilter):
         ...     def _render(self, v: IT, st: FT) -> str:
         ...         return pt.render(v, st, pt.SgrRenderer(pt.OutputMode.XTERM_16))
-        ...
         >>> SgrNamedGroupsRefilter(
         ...     re.compile(r'<?(<)(?P<val>.+?)(>)>?'),
         ...     {"val": pt.cv.GREEN},

@@ -4,8 +4,9 @@
 pending
 ------------------
 - ...
+- |REFACTOR|  `ResolvableColor` signature
 
-.. <@pending:e6066ed>
+.. <@pending:ef410f8>
 .. ^ blank line before should be kept
 
 

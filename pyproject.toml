@@ -116,13 +116,14 @@ target-version = ['py37']
 testpaths = [
     "pytermor",
     "tests",
+    "docs/pages",
 ]
 addopts = [
     "-p", "no:doctest",
     "-W", "ignore:SimpleTable:DeprecationWarning",
     "--strict-config",
     "--strict-markers",
-    "--maxfail", "5",
+    "--maxfail", "15",
     "--durations", "5",
 ]
 xfail_strict = true

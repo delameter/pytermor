@@ -28,34 +28,33 @@ property ``_color16_equiv``, which is used to determine the result of comparison
 between two colors -- i.e., ``==`` opeartor will return *True* for pairs of
 equivalent colors:
 
-    >>> col1, col2 = pt.Color256.get_by_code(1), pt.Color16.get_by_code(31)
-    (<Color256[x1(#800000? maroon)]>, <Color16[c31(#800000? red)]>)
-    >>> col1 == col2
+    >>> from pytermor import Color256, Color16
+    >>> Color256.get_by_code(1)
+    <Color256[x1(#800000? maroon)]>
+
+    >>> Color16.get_by_code(31)
+    <Color16[c31(#800000? red)]>
+
+    >>> Color256.get_by_code(1) == Color16.get_by_code(31)
     True
 
 At the same time, colors which share the color value, but behave differently due
 to equivalence mechanics are considered different:
 
-    >>> col1, col2 = pt.Color256.get_by_code(9), pt.Color256.get_by_code(196)
-    (<Color256[x9(#ff0000? red)]>, <Color256[x196(#ff0000 red-1)]>)
-    >>> col1 == col2
+    >>> Color256.get_by_code(9)
+    <Color256[x9(#ff0000? red)]>
+
+    >>> Color256.get_by_code(196)
+    <Color256[x196(#ff0000 red-1)]>
+
+    >>> Color256.get_by_code(9) == Color256.get_by_code(196)
     False
-
-.. _guide.approximation:
-
----------------------------------
-Approximation algorithm
----------------------------------
 
 The approximation algorithm was explicitly made to ignore these colors because
 otherwise the results of transforming `RGB` values into e.g. ``Color256``, would
 be unpredictable, in addition to different results for different users, depending
-on their terminal emulator setup.
+on their terminal emulator setup. See also: <guide.approximation>.
 
-.. todo ::
-
-   Approximation algorithm is as simple as iterating through all colors in the
-   *lookup table* (which contains all possible ...
 
 .. _guide.xterm-256-palette:
 

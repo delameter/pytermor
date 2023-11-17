@@ -97,7 +97,7 @@ Named colors collection
 ==================================
 
 Registry containing more than 2400 named colors, in addition to
-default 256 from ``xterm`` palette.
+default 256 from ``xterm`` palette. See `guide.es7s-colors`.
 
 .. code-block:: console
 

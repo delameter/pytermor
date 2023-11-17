@@ -280,19 +280,18 @@ next-version-dev:  ## Increase version by <dev>
 next-version-micro: ## Increase version by 0.0.1
 	@$(call _set_current_date)
 	@$(call _set_next_version,micro | head -2)
-#	@$(call _set_next_version,dev | tail -1)
+	@$(call _set_next_version,dev | tail -1)
 	@echo
 
 next-version-minor: ## Increase version by 0.1
 	@$(call _set_current_date)
 	@$(call _set_next_version,minor | head -2)
-#	@$(call _set_next_version,dev | tail -1)
+	@$(call _set_next_version,dev | tail -1)
 	@echo
 
 next-version-major: ## Increase version by 1
 	@$(call _set_current_date)
 	@$(call _set_next_version,major | head -2)
-#	@$(call _set_next_version,dev | tail -1)
 	@echo
 
 set-current-date:  # Update timestamp in version file (done automatically)

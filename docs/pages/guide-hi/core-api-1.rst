@@ -23,10 +23,11 @@ Glossary
       with each other. See :py:class:`.Style` constructor description for the details.
 
    color
-      Three different classes describing the color options: `Color16`, `Color256`
-      and `ColorRGB`. The first one corresponds to 16-color terminal mode, the
-      second -- to 256-color mode, and the last one represents full RGB color
-      space rather than color index palette. The first two also contain terminal
+      Three main classes describing the colors: `Color16`, `Color256` and `ColorRGB`.
+      The first one corresponds to 16-color terminal mode, the second -- to
+      256-color mode, and the last one represents full RGB color space and filled
+      with
+      rather than color index palette. The first two also contain terminal
       :term:`SGR` bindings.
 
 

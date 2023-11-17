@@ -46,12 +46,12 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.inheritance_diagram",
     "sphinx.ext.graphviz",
-    "sphinx.ext.doctest",  # replaced with sybil
+    # "sphinx.ext.doctest",  # replaced with sybil
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
     "sphinx_design",  # <<<MAKE_DOCS_MAN<<<
     "sphinx.ext.imgmath",
-    #"sphinx_toolbox.more_autodoc.regex",
+    #"sphinx_toolbox.more_autodoc.regex",   # broken lookarounds :(
     #"sphinx_toolbox.more_autodoc.overloads",
     # "sphinx_toolbox.more_autodoc.generic_bases",
     #"sphinx_toolbox.more_autodoc.typehints",

@@ -870,7 +870,7 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         """
         Case-insensitive search through registry contents.
 
-        .. seealso:: `resolve_color()` for the details
+        .. seealso::  `resolve_color()` for additional usage details.
 
         :param name:  Name to search for.
         """
@@ -1599,60 +1599,13 @@ def resolve_color(
 ) -> _RCT:
     """
     Suggested usage is to transform the user input in a free form in an attempt
-    to find any matching color. The method operates in three different modes depending
-    on arguments: resolving by name, resolving by value and instantiating.
+    to find any matching color. The method operates in three different modes
+    depending on arguments: resolving by name, resolving by value and
+    instantiating.
 
-    **Resolving by name**\\ : If ``subject`` is a *str* starting with any character
-    except `#`, case-insensitive search through the registry of ``color_type`` colors
-    is performed. In this mode the algorithm looks for the instance which has all the
-    words from ``subject`` as parts of its name (the order must be the same). Color
-    names are stored in registries as sets of tokens, which allows to use any form
-    of input and get the correct result regardless. The only requirement is to
-    separate the words in any matter (see the example below), so that they could be
-    split to tokens which will be matched with the registry keys.
+    See `Color resolving <guide.color-resolving>` for the details.
 
-    If ``color_type`` is omitted, all the registries will be requested in this order:
-    [`Color16`, `Color256`, `ColorRGB`]. Should any registry find a full match, the
-    resolving is stopped and the result is returned.
-
-        >>> resolve_color('deep-sky-blue-7')
-        <Color256[x23(#005f5f deep-sky-blue-7)]>
-        >>> resolve_color('DEEP SKY BLUE 7')
-        <Color256[x23(#005f5f deep-sky-blue-7)]>
-        >>> resolve_color('DeepSkyBlue7')
-        <Color256[x23(#005f5f deep-sky-blue-7)]>
-
-        >>> resolve_color('deepskyblue7')
-        Traceback (most recent call last):
-        LookupError: Color 'deepskyblue7' was not found in any registry
-
-    **Resolving by value** or **instantiating**\\ : if ``subject`` is specified as:
-
-        1) *int* in [:hex:`0x000000`; :hex:`0xffffff`] range, or
-        2) *str* in full hexadecimal form: ":hex:`#RRGGBB`", or
-        3) *str* in short hexadecimal form: ":hex:`#RGB`",
-
-    and ``color_type`` is **present** , the result will be the best ``subject``
-    approximation to corresponding color index. Note that this value is expected
-    to differ from the requested one (and sometimes differs a lot). If ``color_type``
-    is **missing**, no searching is performed; instead a new nameless `ColorRGB`
-    is instantiated and returned.
-
-    .. note::
-        The instance created this way is an "unbound" color, i.e. it does
-        not end up in a registry or an index bound to its type, thus the resolver
-        and approximation algorithms are unaware of its existence. The rationale
-        for this is to keep the registries clean and immutable to ensure that
-        the same input always resolves to the same output.
-
-    ::
-
-        >>> resolve_color("#333")
-        <ColorRGB[#333333]>
-        >>> resolve_color(0xfafef0)
-        <ColorRGB[#fafef0]>
-
-    :param str|int subject: ``Color`` name or hex value to search for. See `CDT`.
+    :param subject:         ``Color`` name or hex value to search for.
     :param color_type:      Target color type (`Color16`, `Color256` or `ColorRGB`).
     :param approx_cache:    Use the approximation cache for **resolving by value**
                             mode or ignore it. For the details see `find_closest` and
@@ -1703,26 +1656,9 @@ def find_closest(value: IColorValue | int, color_type: t.Type[_RCT] = None) -> _
     """
     Search and return nearest to ``value`` instance of specified ``color_type``.
     If `color_type` is omitted, search for the closest `Color256` element.
+    This method caches the results.
 
-    .. important ::
-
-        This method caches the results, i.e., the same search query will from then
-        onward result in the same return value without the necessity of iterating
-        through the color index. If that's not applicable, use similar method
-        `approximate()`, which is unaware of caching mechanism altogether.
-
-    Method is useful for finding applicable color alternatives if user's
-    terminal is incapable of operating in more advanced mode. Usually it is
-    done by the library automatically and transparently for both the developer
-    and the end-user.
-
-    .. note ::
-
-        Distance between two colors is calculated using CIE76 \u0394E\\* color
-        difference formula in LAB color space. This method is considered to be
-        an acceptable tradeoff between sRGB euclidean distance, which doesn't
-        account for differences in human color perception, and CIE94/CIEDE2000,
-        which are more complex and in general excessive for this task.
+    See `guide.approximation` for the details.
 
     :param value:       Target color/color value.
     :param color_type:  Target color type (`Color16`, `Color256` or `ColorRGB`).

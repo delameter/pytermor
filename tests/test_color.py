@@ -354,6 +354,28 @@ class TestResolving:
         except LookupError as e:
             assert expected_text in str(e)
 
+    def test_resolving_works(self):
+        assert ColorRGB.find_by_name("atomic tangerine")
+
+    def test_resolving_by_kebab_cased_name(self):
+        assert ColorRGB.find_by_name("atomic-tangerine")
+
+    def test_resolving_by_snake_cased_name(self):
+        assert ColorRGB.find_by_name("air_superiority_blue")
+
+    def test_resolving_by_screaming_cased_name(self):
+        assert ColorRGB.find_by_name("AIR_SUPERIORITY_BLUE")
+
+    def test_resolving_by_camel_cased_name(self):
+        assert ColorRGB.find_by_name("celestialBlue")
+
+    def test_resolving_by_pascal_cased_name(self):
+        assert ColorRGB.find_by_name("CelestialBlue")
+
+    @pytest.mark.parametrize("name", ["icathian YELLOW", "Icathian-Yellow", "AIR superiority-blue"], ids=format_test_params)
+    def test_resolving_by_mixed_name(self, name):
+        assert ColorRGB.find_by_name("icathian YELLOW")
+
 
 class TestColorRegistry:
     # @TEMP? The problem: reimporting the CVAL class that recreates colors and
