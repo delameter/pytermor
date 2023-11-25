@@ -33,9 +33,12 @@
       fit
       flatten
       flatten1
+      flip_unpack
       get_qname
       get_subclasses
+      isimmutable
       isiterable
+      ismutable
       only
       others
       ours

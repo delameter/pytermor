@@ -23,6 +23,7 @@ from pytermor import (
     apply_filters,
     get_qname,
 )
+from pytermor.common import isimmutable
 from .fixtures import *  # noqa
 
 str_filters = [
@@ -35,13 +36,23 @@ def format_test_params(val) -> str | None:
     if isinstance(val, str):
         return apply_filters(val, *str_filters)
     if isinstance(val, bool):
-        return ('FALSE', 'TRUE')[bool(val)]
+        return ("FALSE", "TRUE")[bool(val)]
     if isinstance(val, int):
         return f"0x{val:06x}"
     if isinstance(val, (RGB, HSV, LAB, XYZ)):
         return str(val).replace("°", "")
-    if isinstance(val, (list, tuple)):
+    if isinstance(val, (list, tuple, set, frozenset)):
+        seqitems = ",".join(map(repr, val))
+        if isinstance(val, list):
+            return f"[{seqitems}]"
+        if isinstance(val, tuple):
+            return f"({seqitems})"
+        if isinstance(val, (set, frozenset)):
+            return f"{{{seqitems}}}"
+    if isinstance(val, tuple):
         return "(" + ",".join(map(repr, val)) + ")"
+    if isinstance(val, set):
+        return "{" + ",".join(map(repr, val)) + "}"
     if isinstance(val, dict):
         return f"(" + (" ".join((str(k) + "=" + str(v)) for k, v in val.items())) + ")"
     if isinstance(val, timedelta):
@@ -54,7 +65,7 @@ def format_test_params(val) -> str | None:
         return repr(val)
     if isinstance(val, t.Callable):
         return get_qname(val)
-    return None
+    return repr(val)
 
 
 def format_timedelta(val: timedelta) -> str:
@@ -74,9 +85,13 @@ TT = TypeVar("TT", tuple, IColorValue)
 @overload
 def assert_close(a: TT, b: TT):
     ...
+
+
 @overload
 def assert_close(a: float | int, b: float | int):
     ...
+
+
 def assert_close(a, b):
     def get_base_type(v) -> type:
         if isinstance(v, int):
@@ -113,5 +128,7 @@ def load_data_file(data_filename: str) -> AnyStr:
 
 
 from _pytest.mark import ParameterSet
-def raises(e, *params) -> 'ParameterSet':
+
+
+def raises(e, *params) -> "ParameterSet":
     return pytest.param(*params, marks=pytest.mark.xfail(raises=e))

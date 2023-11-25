@@ -104,6 +104,9 @@ from .common import filterf as filterf
 from .common import filterfv as filterfv
 from .common import filtern as filtern
 from .common import filternv as filternv
+from .common import flip_unpack as flip_unpack
+from .common import ismutable as ismutable
+from .common import isimmutable as isimmutable
 from .common import fit as fit
 from .common import flatten as flatten
 from .common import flatten1 as flatten1

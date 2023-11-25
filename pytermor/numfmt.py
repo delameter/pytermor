@@ -54,18 +54,24 @@ class Highlighter:
     _PREFIX_UNIT_REGEX = re.compile(
         r"""
         (?: ^ | (?<! \x1b\[ )
-                (?<= [](){}<>,.:/\s=\[-] )
+                (?<= [](){}<>,.:/$\s=\[-] )
                 \b 
         )
         (?P<intp> 
             ( 0?x (?-i: [\dA-F]+ | [\da-f]+) )
+            | [1-9]\d{0,2}([, ][\d]{3})*
             | \d+ 
         )
         (?P<frac> [.,]\d+ )?
         (?P<sep>  \s? )
-        (?P<pfx>  (?-i: [KkmMuμµGgnTpPfEa%] ) )?
+        (?P<pfx>  
+          (?-i: [KkmMuμµGgnTpPfEa%] )
+          | kilo | mega | giga | tera | peta | exa
+          | milli | micro | nano | pico | femto | atto
+        )?
         (?P<unit>
             i?b[/ip]?t?s?
+          | (?<=\S)bytes?  
           | s(econd|ec|)s?
           | m(inute|in|onth|on|o|)s?
           | h(our|r|)s?
@@ -91,15 +97,20 @@ class Highlighter:
     STYLE_PET = Style(fg='red')                 # |  15 | Peta-     femto- | year    fs |
     STYLE_EXA = Style(fg='hi-red')              # |  18 | Exa-       atto- |         as |
 
+    # @REFACTOR all these into one single mapping:
+    #     {OOM: {style: <Style>, prefixes: [...], timeunits: [...]}, ...}
+    # @TODO or just load from a config
+
     _PREFIX_MAP = {
         '%': STYLE_PRC,
-        'K': STYLE_KIL, 'k': STYLE_KIL, 'm': STYLE_KIL,
-        'M': STYLE_MEG,                 'u': STYLE_MEG, 'μ': STYLE_MEG, 'µ': STYLE_MEG,
-        'G': STYLE_GIG, 'g': STYLE_GIG, 'n': STYLE_GIG,
-        'T': STYLE_TER,                 'p': STYLE_TER,
-        'P': STYLE_PET,                 'f': STYLE_PET,
-        'E': STYLE_EXA,                 'a': STYLE_EXA,
+        'K': STYLE_KIL, 'k': STYLE_KIL, 'kilo': STYLE_KIL, 'm': STYLE_KIL, 'milli': STYLE_KIL,
+        'M': STYLE_MEG,                 'mega': STYLE_MEG, 'u': STYLE_MEG, 'micro': STYLE_MEG, 'μ': STYLE_MEG, 'µ': STYLE_MEG,
+        'G': STYLE_GIG, 'g': STYLE_GIG, 'giga': STYLE_GIG, 'n': STYLE_GIG,  'nano': STYLE_GIG,
+        'T': STYLE_TER,                 'tera': STYLE_TER, 'p': STYLE_TER,  'pico': STYLE_TER,
+        'P': STYLE_PET,                 'peta': STYLE_PET, 'f': STYLE_PET, 'femto': STYLE_PET,
+        'E': STYLE_EXA,                  'exa': STYLE_EXA, 'a': STYLE_EXA,  'atto': STYLE_EXA,
     }
+
     _TIME_UNIT_MAP = {
         '%': STYLE_PRC,
         's': STYLE_PRC, 'sec': STYLE_PRC, 'second': STYLE_PRC,
@@ -134,9 +145,7 @@ class Highlighter:
         result += string[cursor:]
         return result
 
-    def apply(
-        self, intp: str, frac: str, sep: str, pfx: str, unit: str
-    ) -> t.List[Fragment]:
+    def apply(self, intp: str, frac: str, sep: str, pfx: str, unit: str) -> t.List[Fragment]:
         """
         highlight already parsed
 
@@ -186,6 +195,10 @@ class Highlighter:
         ]
 
     def _multiapply(self, num: str, *, reverse: bool = False) -> Iterable[Fragment]:
+        # @TODO this can be refactored to support multi-colored values TOGETHER WITH prefixed units
+        #       (now it supports unitless values only); the function has to be extended with another
+        #       argument ``oom_shift``, which is added to _iter() ``oom`` default value (0); and we
+        #       need to teach apply()  to
         def _get_style(oom: int, fade: int) -> Style:
             base = self._OOM_MAP.get(abs(oom), self.STYLE_DEFAULT)
             if abs(oom) < 3:
@@ -507,9 +520,7 @@ class StaticFormatter(NumFormatter):
             prefix = "?" * self._get_max_prefix_len()
 
         sep = self._unit_separator
-        fractional_output = self._allow_fractional and not (
-            base_output and self._discrete_input
-        )
+        fractional_output = self._allow_fractional and not (base_output and self._discrete_input)
 
         # drop excessive digits first, or get excessive zeros for the values near float
         # precision limit for 64-bit systems, e.g. for 10 - e-15 (=9.999999999999998) and
@@ -526,9 +537,11 @@ class StaticFormatter(NumFormatter):
             val_str = f"{trunc(eff_val):d}"
 
         if __debug__:
-            errmsg = (
-                "Inconsistent result -- max val length %d exceeded (%d): '%s' <- %f"
-                % (self._max_value_len, len(val_str), val_str, origin_val)
+            errmsg = "Inconsistent result -- max val length %d exceeded (%d): '%s' <- %f" % (
+                self._max_value_len,
+                len(val_str),
+                val_str,
+                origin_val,
             )
             assert len(val_str) <= self._max_value_len, errmsg
 
@@ -544,7 +557,7 @@ class StaticFormatter(NumFormatter):
         return max([0, *[len(p) for p in self._prefixes if p is not None]])
 
     def __repr__(self) -> str:
-        return f'<{get_qname(self)}>'
+        return f"<{get_qname(self)}>"
 
 
 # noinspection PyProtectedMember
@@ -796,9 +809,7 @@ class DualFormatter(NumFormatter):
 
         if self._allow_fractional and num < self._units[0].in_next:
             if self._max_len is not None:
-                result = self._fractional_formatter.format(
-                    val_sec, auto_color=auto_color
-                )
+                result = self._fractional_formatter.format(val_sec, auto_color=auto_color)
                 if len(result) > self._max_len:
                     # for example, 500ms doesn't fit in the shortest possible
                     # delta string (which is 3 chars), so "<1s" will be returned
@@ -825,9 +836,7 @@ class DualFormatter(NumFormatter):
 
             if abs(num) < 1:
                 if negative:
-                    result = self._colorize(
-                        auto_color, "~", "0", sep, unit_name_suffixed
-                    )
+                    result = self._colorize(auto_color, "~", "0", sep, unit_name_suffixed)
                 elif isclose(num, 0, abs_tol=1e-03):
                     result = self._colorize(auto_color, "", "0", sep, unit_name_suffixed)
                 else:
@@ -835,16 +844,11 @@ class DualFormatter(NumFormatter):
 
             elif unit.collapsible_after is not None and num < unit.collapsible_after:
                 val_sec = str(floor(num))
-                result = (
-                    self._colorize(auto_color, sign, val_sec, "", unit_short)
-                    + result_sub
-                )
+                result = self._colorize(auto_color, sign, val_sec, "", unit_short) + result_sub
 
             elif not next_unit_ratio or num < next_unit_ratio:
                 val_sec = str(floor(num))
-                result = self._colorize(
-                    auto_color, sign, val_sec, sep, unit_name_suffixed
-                )
+                result = self._colorize(auto_color, sign, val_sec, sep, unit_name_suffixed)
 
             else:
                 next_num = floor(num / next_unit_ratio)
@@ -856,9 +860,7 @@ class DualFormatter(NumFormatter):
 
         return result or ""
 
-    def _colorize(
-        self, auto_color: bool, extra: str, val: str, sep: str, unit: str
-    ) -> RT:
+    def _colorize(self, auto_color: bool, extra: str, val: str, sep: str, unit: str) -> RT:
         if not self._get_color_effective(auto_color):
             return "".join((extra, val, sep, unit))
 
@@ -1241,9 +1243,7 @@ def format_auto_float(val: float, req_len: int, allow_exp_form: bool = True) -> 
         # max_significand_len can be 0, in that case significand_str will be empty;
         # that means we cannot fit it the significand, but still can display approximate
         # number power using the 'eN'/'-eN' output format:  -52515050000 -> '-e10'
-        significand_str = format_auto_float(
-            significand, max_significand_len, allow_exp_form=False
-        )
+        significand_str = format_auto_float(significand, max_significand_len, allow_exp_form=False)
         return f"{sign}{significand_str}e{oom}"
 
     integer_len = max(1, oom + 1)
@@ -1367,7 +1367,7 @@ def format_si_binary(val: float, unit: str = None, auto_color: bool = False) -> 
     return formatter_si_binary.format(val, unit, auto_color)
 
 
-def format_bytes_human(val: int, auto_color: bool = False) -> RT:
+def format_bytes_human(val: int | float, auto_color: bool = False) -> RT:
     """
     Invoke special case of fixed-length SI formatter optimized for processing
     byte-based values. Inspired by default stats formatting used in
@@ -1424,7 +1424,7 @@ def format_bytes_human(val: int, auto_color: bool = False) -> RT:
     '1.01k'
     >>> format_bytes_human(45200)
     '45.2k'
-    >>> format_bytes_human(1.258 * pow(10, 6))
+    >>> format_bytes_human(1.258e6)
     '1.26M'
 
     :max output len:   5
@@ -1510,9 +1510,7 @@ def format_time_ns(value_ns: float, auto_color: bool = None) -> RT:
     return formatter_time_ms.format(value_ns, auto_color, oom_shift=-9)
 
 
-def format_time_delta(
-    val_sec: float, max_len: int = None, auto_color: bool = None
-) -> RT:
+def format_time_delta(val_sec: float, max_len: int = None, auto_color: bool = None) -> RT:
     """
     Format time interval using the most suitable format with one or
     two time units, depending on ``max_len`` argument. Key feature

@@ -5,6 +5,7 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
+import builtins
 import enum
 import itertools
 import typing as t
@@ -15,7 +16,8 @@ from math import ceil
 
 
 _T = t.TypeVar("_T")
-
+_KT = t.TypeVar("_KT")
+_VT = t.TypeVar("_VT")
 _TT = t.TypeVar("_TT", bound=type)
 
 
@@ -35,7 +37,8 @@ is `resolve_color()`. Valid values include:
 
 CXT = t.TypeVar("CXT", int, str, "IColorValue", "RenderColor", None)
 """
-:todo:`TODO`
+.. todo ::
+    TODO
 """
 
 FT = t.TypeVar("FT", int, str, "IColorValue", "Style", None)
@@ -224,7 +227,7 @@ def get_qname(obj) -> str:
     if isinstance(obj, type):
         return f"<{obj.__name__}>"
     if isinstance(obj, object):
-        if obj.__class__.__name__ == 'method':
+        if obj.__class__.__name__ == "method":
             return obj.__qualname__
         return obj.__class__.__qualname__
     return str(obj)  # pragma: no cover
@@ -255,11 +258,8 @@ def chunk(items: Iterable[_T], size: int) -> t.Iterator[t.Tuple[_T, ...]]:
     Split item list into chunks of size ``size`` and return these
     chunks as *tuples*.
 
-    >>> print(*chunk(range(10), 3), sep='''\n''')
-    (0, 1, 2)
-    (3, 4, 5)
-    (6, 7, 8)
-    (9,)
+    >>> ', '.join(map(str, chunk(range(10), 3)))
+    '(0, 1, 2), (3, 4, 5), (6, 7, 8), (9,)'
 
     :param items:  Input elements.
     :param size:   Chunk size.
@@ -280,6 +280,7 @@ def get_subclasses(target: _T) -> Iterable[t.Type[_T]]:
     >>> get_subclasses(Color16)
     []
 
+    :param target:
     """
     if not isinstance(target, type):
         target = type(target)
@@ -304,12 +305,40 @@ def get_subclasses(target: _T) -> Iterable[t.Type[_T]]:
     return result
 
 
-# -----------------------------------------------------------------------------
-# iterables
+def ismutable(arg) -> bool:  # pragma: no cover
+    """
+    Test ``arg`` for mutability. Only build-in types are supported.
+    Mutability is determined by trying to compute a hash of an argument.
+    """
+    return not isimmutable(arg)
+
+def isimmutable(arg) -> bool:
+    if not hasattr(builtins, type(arg).__name__):
+        raise TypeError(f"Only built-in types are supported, got: {get_qname(arg)}")
+    try:
+        hash(arg)
+        return True
+    except TypeError:
+        return False
+
+
+isimmutable.__doc__ = ismutable.__doc__
 
 
 def isiterable(arg) -> bool:  # pragma: no cover
-    return isinstance(arg, Iterable) and not isinstance(arg, (str, bytes))
+    """
+    Test if ``arg`` is an *Iterable*.
+
+    .. important ::
+        This method was designed for traversing sequences and was
+        explicitly implemented not to count *str*, *bytes* and *bytearrays*
+        as iterables to prevent breaking them down in a recursive descent
+        algorithms.
+    """
+    return isinstance(arg, Iterable) and not isinstance(arg, (str, bytes, bytearray))
+
+# -----------------------------------------------------------------------------
+# iterables
 
 
 def flatten1(items: Iterable[Iterable[_T]]) -> t.List[_T]:
@@ -323,21 +352,28 @@ def flatten1(items: Iterable[Iterable[_T]]) -> t.List[_T]:
     return flatten(items, level_limit=1)
 
 
-def flatten(items: Iterable[_T | Iterable[_T]], level_limit: int = None) -> t.List[_T]:
+def flatten(
+    items: Iterable[_T | Iterable[_T]],
+    level_limit: int = 0,
+    *,
+    track=False,
+    catch=False,
+) -> t.List[_T]:
     """
     Unpack a list consisting of any amount of nested lists to 1d-array, or flat list,
     eliminating all the nesting. Note that nesting can be irregular, i.e. one part
-    of initial list can have deepest elemenets on 3rd level, while the other --
+    of initial list can have deepest elements on 3rd level, while the other --
     on 5th level.
 
     .. attention ::
 
-        Tracking of visited objects is not performed, i.e., circular references
-        and self-references will be unpacked again and again endlessly, until
-        max recursion depth limit exceeds with a `RecursionError` or until the
-        program eats up all the available RAM (in theory, that is; in practice
-        I personally didn't enconuter that outcome even once). That was the
-        reason of adding `level_limit` parameter (see below).
+        Tracking of visited objects is not performed by default, i.e., circular
+        references and self-references will be unpacked again and again endlessly,
+        until max recursion depth limit exceeds with a ``RecursionError``. The
+        tracking can be enabled with setting ``track`` parameter to True. Another
+        option is to set ``catch`` parameter to True, which will make the function
+        stop upon receiveing a ``RecursionError`` instead of raising it all the way
+        to the top.
 
     >>> flatten([1, 2, [3, [4, [[5]], [6, 7, [8]]]]])
     [1, 2, 3, 4, 5, 6, 7, 8]
@@ -352,25 +388,55 @@ def flatten(items: Iterable[_T | Iterable[_T]], level_limit: int = None) -> t.Li
 
                         Note that altering/disabling this limit doesn't affect
                         max recursion depth limiting mechanism, which will (sooner
-                        or later) interrupt the attempt to descent on hierarchy
+                        or later) interrupt the attempt to descent on a hierarchy
                         with a self-referencing object or several objects forming
-                        a circular reference.
-    """
+                        a circular reference(s).
 
-    def _flatten(parent, lvl=0) -> Iterable[_T | Iterable[_T]]:
+    :param track:       Setting to *True* enables tracking mechanism which forbids
+                        descending into already encountered items for a second time,
+                        thus allowing to flatten circular- and/or self-referencing
+                        structures.
+    :param catch:       Setting to *True* suppresses RecursionError, and instead
+                        of raising an exception the function just stops descending
+                        further.
+    """
+    _seen = set()
+
+    def _iter(parent, lvl=0) -> Iterable[_T | Iterable[_T]]:
+        if track:
+            if (pid := id(parent)) in _seen:
+                return
+            _seen.add(pid)
+
         if isiterable(parent):
-            for child in parent:
-                if isiterable(child):  # 2nd+ level, e.g. parent = [[1]]
-                    if not level_limit or lvl < level_limit - 1:  # while below limit
-                        yield from _flatten(child, lvl + 1)  # unpack recursively
-                    else:  # keep the structure if limit exceeded
-                        yield from child
-                else:  # 1st level, e.g. parent = [1]
-                    yield child
-        else:  # 0th level, e.g. parent = 1
+            if level_limit and lvl >= level_limit:
+                yield from parent  # stop descending
+            else:
+                for child in parent:
+                    try:
+                        yield from _iter(child, lvl + 1)
+                    except RecursionError:
+                        if catch:
+                            return
+                        raise
+        else:
             yield parent
 
-    return [*_flatten(items)]
+    return [*_iter(items)]
+
+
+def flip_unpack(d: dict[_KT, Iterable[_VT]]) -> dict[_VT, _KT]:
+    """
+    Unpack each value of a dictionary and return a new dictionary with unpacked
+    values mapped as keys and with corresponding keys as values.
+
+    >>> flip_unpack({1: ['a', 'b', 'c'], 2: ['d', 'e', 'f']})
+    {'a': 1, 'b': 1, 'c': 1, 'd': 2, 'e': 2, 'f': 2}
+
+    :param d: dictionary in form {key1: [val1, val2, ...], key2: [val3, val4, ...], ...}
+    :return:  dictionary in form  {val1: key1, val2: key1, ..., val3: key2, val4: key2, ...}
+    """
+    return {v: k for k, vv in d.items() for v in vv}
 
 
 def char_range(start: str, stop: str):
@@ -384,12 +450,12 @@ def char_range(start: str, stop: str):
 
     .. note ::
 
-        In some cases the result will seem to be incorrent, i.e. this:
+        In some cases the result will seem to be incorrect, i.e. this:
         `pt.char_range('¹', '⁴')` yields 8124 characters total. The reason
         is that the algoritm works with input characters as Unicode codepoints,
         and '¹', '⁴' are relatively distant from each other: "¹" :hex:`U+B9`,
         "⁴" :hex:`Ux2074`, which leads to an unexpected results. Character
-        ranges in regular expessetions, e.g. `[A-Z0-9]` work the same way.
+        ranges in Python regular expessetions, e.g. `[¹-⁴]`, work the same way.
 
     :param start; Character to start from (inclusive)
     :param stop;  Character to stop at (**inclusive**)
@@ -414,10 +480,10 @@ filtern = partial(filter, lambda v: v is not None)
 
 
 def filterfv(mapping: dict) -> dict:
-    """ Shortcut for filtering out falsy values from mappings """
+    """Shortcut for filtering out falsy values from mappings"""
     return dict(filter(None, mapping.items()))
 
 
 def filternv(mapping: dict) -> dict:
-    """ Shortcut for filtering out None values from mappings """
+    """Shortcut for filtering out None values from mappings"""
     return dict(filter(lambda kv: kv[1] is not None, mapping.items()))

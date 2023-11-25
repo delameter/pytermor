@@ -18,9 +18,6 @@ DOCKER_IMAGE = ghcr.io/delameter/pytermor
 DOCKER_TAG = ${DOCKER_IMAGE}:${VERSION}
 DOCKER_CONTAINER = pytermor-build-${VERSION}
 
-DOCKER_BASE_IMAGE = delameter/python-texlive
-DOCKER_BASE_TAG = ${DOCKER_BASE_IMAGE}:3.10-2022
-
 NOW    := $(shell LC_TIME=en_US.UTF-8 date --rfc-3339=seconds)
 BOLD   := $(shell tput -Txterm bold)
 GREEN  := $(shell tput -Txterm setaf 2)
@@ -72,11 +69,6 @@ docker-cli: ## [host] Launch shell in a container
 docker-cli: build-image
 	docker run -it --rm ${DOCKER_TAG} /bin/bash
 
-build-image-base: ## [host] Build base docker image
-	docker build . \
-    	--target python-texlive \
-    	--tag ${DOCKER_BASE_TAG}
-
 build-image: ## [host] Build docker image
 	docker build . \
     	--build-arg PYTERMOR_VERSION="${VERSION}" \
@@ -105,11 +97,13 @@ docker-docs-html:  ## Update PDF docs in docker container
 docker-docs-html: build-image make-docs-out-dir
 	$(call _docker_run,"make docs-html")
 	$(call _docker_cp_docs)
+	$(call _docker_rm)
 
 docker-docs-pdf:  ## Update PDF docs in docker container
 docker-docs-pdf: build-image make-docs-out-dir
 	$(call _docker_run,"make docs-pdf")
 	$(call _docker_cp_docs)
+	$(call _docker_rm)
 
 make-docs-out-dir:
 	@mkdir -p ${DOCS_OUT_PATH}/${VERSION}

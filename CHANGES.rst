@@ -13,6 +13,7 @@ pending
 2.108-dev
 ------------------
 :date:`Nov 23`
+
 - |DOCS| colored LaTeX output
 - |DOCS| examples
 - |DOCS| features WIP

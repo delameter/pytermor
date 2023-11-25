@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 from typing import Optional, Union
@@ -301,6 +302,31 @@ class TestChunk:
         assert [*chunk(input, size)] == expected
 
 
+class TestTypes:
+    @pytest.mark.parametrize(
+        "inp, exp_mutable",
+        [
+            (bool(), False),
+            (int(), False),
+            (float(), False),
+            (complex(), False),
+            (str(), False),
+            (bytes(), False),
+            (tuple(), False),
+            (frozenset(), False),
+            (object(), False),
+            (set(), True),
+            (list(), True),
+            (dict(), True),
+            (bytearray(), True),
+            pytest.param(Align.LEFT, True, marks=pytest.mark.xfail(raises=TypeError)),
+        ],
+        ids=format_test_params
+    )
+    def test_mutability(self, inp, exp_mutable: bool):
+        assert ismutable(inp) == exp_mutable
+
+
 class TestFlatten:
     ARRAY_2D = [
         [1, 2, 3],
@@ -324,6 +350,20 @@ class TestFlatten:
         [[[[5]]]],
     ]
     ARRAY_IRREGULAR_2 = [1, [2, [3, [4, [5, [6, [7, [8]]]]]]]]
+
+    class RecursiveThrower(t.Iterable):
+        def __init__(self, max_level=5):
+            self.level = 0
+            self.max_level = max_level
+
+        def __iter__(self):
+            yield self.level
+
+            self.level += 1
+            if self.level >= self.max_level:
+                raise RecursionError
+
+            yield [self]
 
     def test_flatten_2d_array(self):
         assert flatten(self.ARRAY_2D) == [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -366,10 +406,38 @@ class TestFlatten:
         ],
         ids=format_test_params,
     )
-    def test_flatten_irregular_array(
-        self, limit_level: int, input: t.List, expected: t.List
-    ):
+    def test_flatten_irregular_array(self, limit_level: int, input: t.List, expected: t.List):
         assert flatten(input, limit_level) == expected
+
+    def test_flatten_circular_references_tracked(self):
+        a, b, c = [1, 2], [3, 4], [5, 6]
+        a.append(b)
+        b.append(c)
+        c.append(a)
+        assert flatten(a, track=True) == [1, 2, 3, 4, 5, 6]
+
+    def test_flatten_self_references_tracked(self):
+        a = [0]
+        a = [a, 1]
+        assert flatten(a, track=True) == [0, 1]
+
+    def test_flatten_circular_references_untracked(self):
+        a, b = [0], [1]
+        a.append(b)
+        b.append(a)
+        assert flatten(a, level_limit=5, track=False) == [0, 1, 0, 1, 0, 1, [0, [1, a]]]
+
+    def test_flatten_self_references_untracked(self):
+        a = [0]
+        a.extend([1, a])
+        assert flatten(a, level_limit=5, track=False) == [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, a]
+
+    def test_flatten_circular_references_catch(self):
+        assert flatten(self.RecursiveThrower(), catch=True) == [0, 1, 2, 3, 4]
+
+    @pytest.mark.xfail(raises=RecursionError)
+    def test_flatten_circular_references_throw(self):
+        flatten(self.RecursiveThrower(), catch=False)
 
 
 class TestCharRange:
@@ -457,33 +525,85 @@ class TestGetQName:
 
 class TestFiltersFV:
     def test_filterf(self):
-        assert [*filterf([
-            True, False, 0, 1, '', "0", "False", None, [], {}, [0], {0},
-        ])] == [
-            True, 1, '0', "False", [0], {0},
+        assert [*filterf([True, False, 0, 1, "", "0", "False", None, [], {}, [0], {0},])] == [
+            True,
+            1,
+            "0",
+            "False",
+            [0],
+            {0},
         ]
 
     def test_filtern(self):
-        assert [*filtern([
-            True, False, 0, 1, '', "0", "False", None, [], {}, [0], {0},
-        ])] == [
-            True, False, 0, 1, '', "0", "False", [], {}, [0], {0},
+        assert [*filtern([True, False, 0, 1, "", "0", "False", None, [], {}, [0], {0},])] == [
+            True,
+            False,
+            0,
+            1,
+            "",
+            "0",
+            "False",
+            [],
+            {},
+            [0],
+            {0},
         ]
 
     def test_filterfv(self):
-        assert {**filterfv({
-            'a': 0, 'b': 1, 'c': True, 'd': False, 'e': '', 'f': 'False',
-            'h': [], 'i': {}, 'j': [0], 'k': {0},
-        })} == {
-            'a': 0, 'b': 1, 'c': True, 'd': False, 'e': '', 'f': 'False',
-            'h': [], 'i': {}, 'j': [0], 'k': {0},
+        assert {
+            **filterfv(
+                {
+                    "a": 0,
+                    "b": 1,
+                    "c": True,
+                    "d": False,
+                    "e": "",
+                    "f": "False",
+                    "h": [],
+                    "i": {},
+                    "j": [0],
+                    "k": {0},
+                }
+            )
+        } == {
+            "a": 0,
+            "b": 1,
+            "c": True,
+            "d": False,
+            "e": "",
+            "f": "False",
+            "h": [],
+            "i": {},
+            "j": [0],
+            "k": {0},
         }
 
     def test_filternv(self):
-        assert {**filternv({
-            'a': 0, 'b': 1, 'c': True, 'd': False, 'e': '', 'f': 'False',
-            'g': None, 'h': [], 'i': {}, 'j': [0], 'k': {0},
-        })} == {
-            'a': 0, 'b': 1, 'c': True, 'd': False, 'e': '', 'f': 'False',
-            'h': [], 'i': {}, 'j': [0], 'k': {0},
+        assert {
+            **filternv(
+                {
+                    "a": 0,
+                    "b": 1,
+                    "c": True,
+                    "d": False,
+                    "e": "",
+                    "f": "False",
+                    "g": None,
+                    "h": [],
+                    "i": {},
+                    "j": [0],
+                    "k": {0},
+                }
+            )
+        } == {
+            "a": 0,
+            "b": 1,
+            "c": True,
+            "d": False,
+            "e": "",
+            "f": "False",
+            "h": [],
+            "i": {},
+            "j": [0],
+            "k": {0},
         }

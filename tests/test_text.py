@@ -37,7 +37,10 @@ def format_test_rt_params(val) -> str | None:
     if isinstance(val, Tx):
         return repr(val)[:16] + ".."
     if isinstance(val, IRen):
-        return repr(val)
+        try:
+            return repr(val)
+        except TypeError:
+            pass
     return None
 
 
