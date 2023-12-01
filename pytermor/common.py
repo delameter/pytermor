@@ -472,18 +472,31 @@ def char_range(start: str, stop: str):
     yield from map(chr, codes)
 
 
-filterf = partial(filter, None)
-""" Shortcut for filtering out falsy values from sequences """
+def joincoal(*arg: any, sep="") -> str:
+    return sep.join(map(str, filtern(arg)))
 
-filtern = partial(filter, lambda v: v is not None)
+
+_isnotnone = lambda v: v is not None
+_istruly = lambda v: bool(v)
+_isfilled = lambda v: bool(v) and len(str(v).strip())
+
+filtern = partial(filter, _isnotnone)
 """ Shortcut for filtering out Nones from sequences """
 
+filterf = partial(filter, _istruly)
+""" Shortcut for filtering out falsy values from sequences """
 
-def filterfv(mapping: dict) -> dict:
-    """Shortcut for filtering out falsy values from mappings"""
-    return dict(filter(None, mapping.items()))
-
+filtere = partial(filter, _isfilled)
+""" Shortcut for filtering out falsy AND empty values from sequences """
 
 def filternv(mapping: dict) -> dict:
     """Shortcut for filtering out None values from mappings"""
-    return dict(filter(lambda kv: kv[1] is not None, mapping.items()))
+    return dict(filter(lambda kv: _isnotnone(kv[1]), mapping.items()))
+
+def filterfv(mapping: dict) -> dict:
+    """Shortcut for filtering out falsy values from mappings"""
+    return dict(filter(lambda kv: _istruly(kv[1]), mapping.items()))
+
+def filterev(mapping: dict) -> dict:
+    """Shortcut for filtering out falsy AND empty values from mappings"""
+    return dict(filter(lambda kv: _isfilled(kv[1]), mapping.items()))

@@ -5,6 +5,8 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
+import copy
+import math
 import os
 import re
 import sys
@@ -321,7 +323,7 @@ class TestTypes:
             (bytearray(), True),
             pytest.param(Align.LEFT, True, marks=pytest.mark.xfail(raises=TypeError)),
         ],
-        ids=format_test_params
+        ids=format_test_params,
     )
     def test_mutability(self, inp, exp_mutable: bool):
         assert ismutable(inp) == exp_mutable
@@ -523,87 +525,56 @@ class TestGetQName:
         assert get_qname(input) == expected
 
 
+class TestJoinCoal:
+    @pytest.mark.parametrize('inp, sep, exp', [
+        (['a', 'b', 'c'], '', 'abc'),
+        (['a', 'b', 'c'], ' ', 'a b c'),
+        (['', '', ''], ',', ',,'),
+    ], ids=format_test_params)
+    def test_filters(self, inp, sep, exp):
+        assert joincoal(*inp, sep=sep) == exp
+
+
 class TestFiltersFV:
-    def test_filterf(self):
-        assert [*filterf([True, False, 0, 1, "", "0", "False", None, [], {}, [0], {0},])] == [
-            True,
-            1,
-            "0",
-            "False",
-            [0],
-            {0},
-        ]
-
-    def test_filtern(self):
-        assert [*filtern([True, False, 0, 1, "", "0", "False", None, [], {}, [0], {0},])] == [
-            True,
-            False,
-            0,
-            1,
-            "",
-            "0",
-            "False",
-            [],
-            {},
-            [0],
-            {0},
-        ]
-
-    def test_filterfv(self):
-        assert {
-            **filterfv(
-                {
-                    "a": 0,
-                    "b": 1,
-                    "c": True,
-                    "d": False,
-                    "e": "",
-                    "f": "False",
-                    "h": [],
-                    "i": {},
-                    "j": [0],
-                    "k": {0},
-                }
-            )
-        } == {
-            "a": 0,
-            "b": 1,
-            "c": True,
-            "d": False,
-            "e": "",
-            "f": "False",
-            "h": [],
-            "i": {},
-            "j": [0],
-            "k": {0},
-        }
-
-    def test_filternv(self):
-        assert {
-            **filternv(
-                {
-                    "a": 0,
-                    "b": 1,
-                    "c": True,
-                    "d": False,
-                    "e": "",
-                    "f": "False",
-                    "g": None,
-                    "h": [],
-                    "i": {},
-                    "j": [0],
-                    "k": {0},
-                }
-            )
-        } == {
-            "a": 0,
-            "b": 1,
-            "c": True,
-            "d": False,
-            "e": "",
-            "f": "False",
-            "h": [],
-            "i": {},
-            "j": [0],
-            "k": {0},
-        }
+    # fmt: off
+    FN_LIST_MAP = {
+        'n': filtern,
+        'f': filterf,
+        'e': filtere,
+    }
+    FN_DICT_MAP = {
+        'n': filternv,
+        'f': filterfv,
+        'e': filterev,
+    }
+    @pytest.mark.parametrize('inp, fn_exp_map', [
+        (               None, {'n': False, 'f': False, 'e': False}),
+        (              False, {'n':  True, 'f': False, 'e': False}),
+        (               True, {'n':  True, 'f':  True, 'e':  True}),
+        (                0.0, {'n':  True, 'f': False, 'e': False}),
+        (                  0, {'n':  True, 'f': False, 'e': False}),
+        (                  1, {'n':  True, 'f':  True, 'e':  True}),
+        (           math.nan, {'n':  True, 'f':  True, 'e':  True}),
+        (          -math.inf, {'n':  True, 'f':  True, 'e':  True}),
+        ( sys.float_info.min, {'n':  True, 'f':  True, 'e':  True}),
+        (                 "", {'n':  True, 'f': False, 'e': False}),
+        (                " ", {'n':  True, 'f':  True, 'e': False}),
+        (             "\t\n", {'n':  True, 'f':  True, 'e': False}),
+        (                "0", {'n':  True, 'f':  True, 'e':  True}),
+        (            "False", {'n':  True, 'f':  True, 'e':  True}),
+        (                 [], {'n':  True, 'f': False, 'e': False}),
+        (                 {}, {'n':  True, 'f': False, 'e': False}),
+        (                [0], {'n':  True, 'f':  True, 'e':  True}),
+        (                {0}, {'n':  True, 'f':  True, 'e':  True}),
+        (               [""], {'n':  True, 'f':  True, 'e':  True}),
+        (               {""}, {'n':  True, 'f':  True, 'e':  True}),
+        (              [" "], {'n':  True, 'f':  True, 'e':  True}),
+        (              {" "}, {'n':  True, 'f':  True, 'e':  True}),
+    ], ids=format_test_params)
+    # fmt: on
+    def test_filters(self, inp: any, fn_exp_map: dict[str, bool]):
+        for fn, kept in fn_exp_map.items():
+            fnlist = self.FN_LIST_MAP.get(fn)
+            fndict = self.FN_DICT_MAP.get(fn)
+            assert len([*fnlist([inp])]) == [0, 1][kept]
+            assert len({**fndict({"k": inp})}.values()) == [0, 1][kept]

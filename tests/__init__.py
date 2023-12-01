@@ -5,8 +5,10 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
+import functools
 import os.path
 from datetime import timedelta
+from functools import partial
 from math import isclose
 from typing import AnyStr, TypeVar, overload
 
@@ -23,7 +25,7 @@ from pytermor import (
     apply_filters,
     get_qname,
 )
-from pytermor.common import isimmutable
+from pytermor.common import isimmutable, joincoal
 from .fixtures import *  # noqa
 
 str_filters = [
@@ -33,6 +35,7 @@ str_filters = [
 
 
 def format_test_params(val) -> str | None:
+    self = format_test_params
     if isinstance(val, str):
         return apply_filters(val, *str_filters)
     if isinstance(val, bool):
@@ -42,7 +45,7 @@ def format_test_params(val) -> str | None:
     if isinstance(val, (RGB, HSV, LAB, XYZ)):
         return str(val).replace("°", "")
     if isinstance(val, (list, tuple, set, frozenset)):
-        seqitems = ",".join(map(repr, val))
+        seqitems = ",".join(map(self, val))
         if isinstance(val, list):
             return f"[{seqitems}]"
         if isinstance(val, tuple):
@@ -50,19 +53,19 @@ def format_test_params(val) -> str | None:
         if isinstance(val, (set, frozenset)):
             return f"{{{seqitems}}}"
     if isinstance(val, tuple):
-        return "(" + ",".join(map(repr, val)) + ")"
+        return "(" + ",".join(map(self, val)) + ")"
     if isinstance(val, set):
-        return "{" + ",".join(map(repr, val)) + "}"
+        return "{" + ",".join(map(self, val)) + "}"
     if isinstance(val, dict):
-        return f"(" + (" ".join((str(k) + "=" + str(v)) for k, v in val.items())) + ")"
+        return f"(" + (" ".join((self(k) + "=" + self(v)) for k, v in val.items())) + ")"
     if isinstance(val, timedelta):
         return format_timedelta(val)
     if isinstance(val, Style):
         return "%s(%s)" % (get_qname(val), val.repr_attrs(False))
-    if isinstance(val, ISequence):
+    if isinstance(val, (ISequence, IColorValue)):
         return repr(val)
-    if isinstance(val, IColorValue):
-        return repr(val)
+    if isinstance(val, functools.partial):
+        return '<partial>'
     if isinstance(val, t.Callable):
         return get_qname(val)
     return repr(val)

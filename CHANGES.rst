@@ -5,8 +5,14 @@ pending
 ------------------
 - ...
 - |REFACTOR|  `ResolvableColor` signature
+- |DOCS|
+- |TESTS| add resolving tests
+- |NEW| `flip_unpack`, `ismutable`, `isimmutable`
+- |NEW| extended `highlight()`
+- |REFACTOR| `flatten`
+- |REFACTOR| separated `python-texlive` base image to its own repository
 
-.. <@pending:ef410f8>
+.. <@pending:a28c207>
 .. ^ blank line before should be kept
 
 
