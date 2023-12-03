@@ -288,7 +288,7 @@ def get_subclasses(target: _T) -> Iterable[t.Type[_T]]:
     if not isinstance(target, type):
         target = type(target)
 
-    visited: t.OrderedDict[_TT] = OrderedDict[_TT]()
+    visited: t.OrderedDict[_TT] = OrderedDict()
     # using ordered dict keys as an *ordered set*
 
     def fn(_cls: _TT):

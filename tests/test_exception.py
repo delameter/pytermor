@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import re
+import sys
 import typing as t
 
 import pytest
@@ -13,7 +14,7 @@ import pytest
 import pytermor as pt
 from pytermor import ArgTypeError, Color, CXT, FT, IT, Style, Color256
 from pytermor.exception import ArgCountError
-from tests import format_test_params
+from tests import format_test_params, skip_pre_310_typing
 
 
 def word_normalize(word: str | type) -> str:
@@ -30,6 +31,7 @@ def words_to_regex(words: t.Iterable[str | type]) -> t.Pattern:
 
 class TestArgTypeError:
     # noinspection PyTypeChecker
+    @skip_pre_310_typing
     @pytest.mark.parametrize(
         "exp_words, fn",
         [
@@ -66,4 +68,4 @@ class TestArgTypeError:
 class TestArgCountError:
     def test(self):
         err = str(ArgCountError(29, 35))
-        assert all(num in err for num in ('29', '35'))
+        assert all(num in err for num in ("29", "35"))

@@ -26,7 +26,7 @@ class TestSgrVisualizer(pt.SgrStringReplacer):
         super().__init__(self._visualize)
         self._resetters: t.Set[str] = {str(rc.value) for rc in pt.get_resetter_codes()}
 
-    def _visualize(self, m: re.Match[str]) -> str:
+    def _visualize(self, m: t.Match[str]) -> str:
         params = {*m.groupdict().get("param", "").split(pt.SequenceSGR.PARAM_SEPARATOR)}
         resetters = {p for p in params if p in self._resetters}
         regulars = params - resetters

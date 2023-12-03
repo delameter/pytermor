@@ -5,7 +5,6 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
-import importlib
 import itertools
 import typing as t
 from collections.abc import Iterable
@@ -16,7 +15,6 @@ from typing import overload
 import pytest
 from _pytest.mark import ParameterSet
 
-import pytermor
 from pytermor import (
     HSV,
     LAB,
@@ -31,9 +29,6 @@ from pytermor import (
     RealColor,
     DynamicColor,
     FrozenStyle,
-    SeqIndex,
-    cval,
-    ColorRGB,
 )
 from pytermor import (
     NOOP_SEQ,
@@ -55,9 +50,9 @@ from pytermor.color import (
     _ColorIndex,
     _ConstrainedValue,
 )
+from pytermor.cval import cv
 from pytermor.exception import LogicError, ColorNameConflictError, ColorCodeConflictError
-from tests import assert_close, format_test_params
-from pytermor.cval import cv, _ColorValuesRGB, _ColorValuesLoader
+from tests import assert_close, format_test_params, skip_pre_310_typing
 
 NON_EXISTING_COLORS = [0xFEDCBA, 0xFA0CCC, *range(1, 7)]
 
@@ -286,7 +281,7 @@ class TestResolving:
 
     @pytest.mark.skip("RGB is not indexed anymore")
     def test_module_method_resolve_rgb_form_works_upon_color_rgb(self):
-        assert ColorRGB.resolve("wash-me") == resolve_color("#fafafe", ColorRGB)
+        assert ColorRGB.find_by_name("wash-me") == resolve_color("#fafafe", ColorRGB)
 
     def test_module_method_resolve_rgb_form_works_upon_color_256(self):
         assert cv.GREEN_5 == resolve_color("#118800", Color256)
@@ -372,7 +367,11 @@ class TestResolving:
     def test_resolving_by_pascal_cased_name(self):
         assert ColorRGB.find_by_name("CelestialBlue")
 
-    @pytest.mark.parametrize("name", ["icathian YELLOW", "Icathian-Yellow", "AIR superiority-blue"], ids=format_test_params)
+    @pytest.mark.parametrize(
+        "name",
+        ["icathian YELLOW", "Icathian-Yellow", "AIR superiority-blue"],
+        ids=format_test_params,
+    )
     def test_resolving_by_mixed_name(self, name):
         assert ColorRGB.find_by_name("icathian YELLOW")
 
@@ -1041,6 +1040,7 @@ class TestDynamicColor:
         assert col._value._value.int == cv.DARK_GREEN._value.int * 2  # noqa
 
 
+@skip_pre_310_typing
 class TestDeferredColor:
     def test_initial_state(self, deferred: tuple[Style, any]):
         deferred_style, _ = deferred

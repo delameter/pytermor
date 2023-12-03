@@ -272,7 +272,7 @@ class TemplateEngine:
     def _split(self, tpl: str) -> deque[Union[str, _TemplateTag]]:
         tpl_cursor = 0
         tpl_nocom = self._COMMENT_REGEX.sub("", tpl)
-        tpl_parts = deque[Union[str, _TemplateTag]]()
+        tpl_parts: t.Deque[Union[str, _TemplateTag]] = deque()
 
         for idx, tag_match in enumerate(self._TAG_REGEX.finditer(tpl_nocom)):
             tpl_span = tag_match.span()

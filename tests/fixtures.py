@@ -5,6 +5,7 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
+import sys
 import typing as t
 from collections import deque
 from dataclasses import dataclass
@@ -24,6 +25,10 @@ from pytermor.config import Config, ConfigManager
 from pytermor.cval import cv
 from pytermor.exception import NotInitializedError
 
+skip_pre_310_typing = pytest.mark.skipif(
+    sys.version_info < (3, 10),
+    reason="Obsolete typing in versions prior to 3.10",
+)
 _default_config = Config()
 
 
@@ -113,7 +118,7 @@ def dynamic_style(request) -> Style:
 
 
 @pytest.fixture(scope="function")
-def deferred() -> tuple[Style, any]:
+def deferred() -> t.Tuple[Style, any]:
     class _TestDeferredModeResolver:
         _mode: t.ClassVar[str] = None
         _callbacks: t.ClassVar[deque[t.Callable]] = deque()

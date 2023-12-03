@@ -832,8 +832,8 @@ class TestMisc:
             (False, float),
             (False, bool),
             (False, bytes),
-            (False, list[str]),
-            (False, dict[str, str]),
+            (False, list),
+            (False, dict),
         ],
         ids=format_test_rt_params,
     )

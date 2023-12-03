@@ -19,4 +19,4 @@ scripts/fileWatchers
 scripts/runConfigurations
 .wakatime-project
 .mkrunid
-venv-demo
+venv*

@@ -24,5 +24,4 @@ scripts/archive
 scripts/fileWatchers
 scripts/runConfigurations
 temp
-venv
-venv-demo
+venv*

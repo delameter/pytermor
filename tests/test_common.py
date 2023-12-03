@@ -19,7 +19,7 @@ import pytest
 from pytermor import Color256, IFilter, StringReplacer
 from pytermor.common import *
 from pytermor.filter import IT, OT
-from tests import format_test_params
+from tests import format_test_params, skip_pre_310_typing
 
 
 class IExampleEnum(ExtendedEnum):
@@ -476,6 +476,7 @@ class TestGetQName:
     def _empty_fn(self):
         pass
 
+    @skip_pre_310_typing
     @pytest.mark.parametrize(
         "input, expected",
         [
@@ -509,12 +510,11 @@ class TestGetQName:
             (T, "<~T>"),
             (t.Generic, "<Generic>"),
             (t.Generic[T], ("<typing.Generic[~T]>", "_GenericAlias")),
-            (t.Generic[T](), "Generic"),
             (IFilter, "<IFilter>"),
             (StringReplacer, "<StringReplacer>"),
             (StringReplacer("", ""), "StringReplacer"),
-            (list[T], "<list>"),
-            (list[T](), "list"),
+            (t.List[T], "<typing.List[~T]>"),
+            (list(), "list"),
             (Optional[IT], ("<typing.Optional[~IT]>", "_UnionGenericAlias")),
             (Union[FT, None], ("<typing.Optional[~FT]>", "_UnionGenericAlias")),
             (Union[RT, OT], ("<typing.Union[~RT, ~OT]>", "_UnionGenericAlias")),
