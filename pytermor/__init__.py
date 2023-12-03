@@ -3,15 +3,6 @@
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
-"""
-.. note ::
-    Almost all public classes are imported into the first package level
-    on its initialization, which makes kind of a contract on library's API.
-    The exceptions include some abstract superclasses or metaclasses, which
-    generally should not be used outside of the library, but still can be
-    imported directly using a full module path.
-
-"""
 from __future__ import annotations
 
 from ._version import __updated__ as __updated__

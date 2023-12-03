@@ -53,7 +53,6 @@ complicated ones at the end.
 
 Isolated pre-rendering
 ================================
-
 .. highlight:: python
    :linenothreshold: 5
 

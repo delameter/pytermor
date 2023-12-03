@@ -2,6 +2,14 @@
 # pytermor [ANSI formatted terminal output toolset]
 # (C) 2022 A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
+# ### ### ### ### ### ### ### ###   WARNING   ### ### ### ### ### ### ### ### #
+#                                                                             #
+#   This is an archived script kept for historical purposes. It can contain   #
+#   bugs or even not work all because it was made for old pytermor version.   #
+#                                                                             #
+#               P R O C E E D   A T   Y O U R   O W N   R I S K               #
+#                                                                             #
+# ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### #
 import io
 from collections import deque
 from contextlib import redirect_stdout

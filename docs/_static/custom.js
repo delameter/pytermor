@@ -34,7 +34,7 @@ function transformReferences() {
             el.firstChild.replaceWith(code);
         }
     }
-    for (let el of $(".field-list dd:last-child > p:first-child")) {
+    for (let el of $(".class .field-list dd:last-child > p:first-child")) {
         if (el.childNodes.length !== 1) continue;
         if (el.firstChild.nodeType !== Node.TEXT_NODE) continue;
         let em = document.createElement('em');

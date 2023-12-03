@@ -5,7 +5,7 @@ digraph G {
     rankdir = TB;
     #TBbalance = min;
     ratio=fill;
-    size="3";
+    size="1.8";
 
     node [
         style="filled",
@@ -21,7 +21,6 @@ digraph G {
     ];
 
     pytermor_ansi [shape="folder",group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="ansi"];
-    pytermor_border [shape="tab",fillcolor="#769440",fontcolor="#ffffff",label="border"];
     pytermor_color [shape="folder",group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="☢️ color"];
     pytermor_cval [shape="tab",fillcolor="#769440",fontcolor="#ffffff",label="cval"];
     pytermor_filter [shape="folder",group="low",fillcolor="#5f819d",fontcolor="#ffffff",label="filter"];
@@ -54,7 +53,6 @@ digraph G {
     pytermor_term -> pytermor_filter [fillcolor="#5f819d"];
     pytermor_term -> pytermor_template [fillcolor="#5f819d"];
     pytermor_term -> pytermor_text [fillcolor="#5f819d"];
-    pytermor_text -> pytermor_border [fillcolor="#769440"];
     pytermor_text -> pytermor_numfmt [fillcolor="#769440"];
     pytermor_text -> pytermor_template [fillcolor="#769440"];
 }

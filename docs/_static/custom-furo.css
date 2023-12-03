@@ -78,6 +78,9 @@ article,
 article[role=main] .highlight pre {
     /*line-height: 1.3;*/
 }
+.field-list dt, .option-list dt, dl.footnote dt, dl.glossary dt, dl.simple dt, dl:not([class]) dt {
+    font-weight: bold;
+}
 
 code.literal {
     font-size: var(--font-size--small);

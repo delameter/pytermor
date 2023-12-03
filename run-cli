@@ -7,7 +7,7 @@
 
 main() {
     if [[ ! -f venv-demo/bin/python ]] ; then
-        echo "[ERROR] virtual environment is not present"
+        echo "Virtual environment is not present"
         echo -n "Initialize it in '$PWD/venv-demo'? "
         read -r -n1 -p'(y/n): ' yn
         case "$yn" in
@@ -21,14 +21,16 @@ main() {
         echo "No args: checking if ipython is installed"
         if venv-demo/bin/pip show ipython &>/dev/null ; then
             INTERPRETER=(ipython)
+        else
+            echo "ipython not found, launching default interpreter"
         fi
     fi
 
     if [[ -f .run-startup.py ]] ; then
-        PYTHONSTARTUP=.run-startup.py PYTHONPATH=. venv-demo/bin/${INTERPRETER[@]} "$@"
+        PYTHONSTARTUP=.run-startup.py PYTHONPATH=. venv-demo/bin/${INTERPRETER[*]} "$@"
     else
         printf '%s\n' "import pytermor as pt" "print('imported pytermor %s as pt' % pt.__version__)" > /tmp/ptstartup
-        PYTHONSTARTUP=/tmp/ptstartup PYTHONPATH=. venv-demo/bin/${INTERPRETER[@]} "$@"
+        PYTHONSTARTUP=/tmp/ptstartup PYTHONPATH=. venv-demo/bin/${INTERPRETER[*]} "$@"
         rm /tmp/ptstartup
     fi
 }
@@ -40,14 +42,14 @@ init-venv() {
         return 1
     fi
     if ! venv-demo/bin/python -m pip install . ; then
-        echo "[ERROR] failed to install source-distributed 'pytermor' into created venv. ensure that the script working dir is same as the project root. trying to install from package registry..."
+        echo "[ERROR] failed to install source-distributed 'pytermor' into created venv. Ensure that working dir is same as the project root. Trying to install from package registry..."
 
         if ! venv-demo/bin/python -m pip install pytermor ; then
-            echo "[CRITICAL] failed to install 'pytermor' even from the registry // ToT"
+            echo "[CRITICAL] failed to install 'pytermor' even from the registry  # ToT"
             return 1
         fi
     fi
-    venv-demo/bin/python -m pip install -r requirements-demo.txt || echo "[ERROR] Failed to install demo mode requirements"
+    venv-demo/bin/python -m pip install -r requirements-demo.txt || echo "[ERROR] Failed to install requirements"
 }
 
 main "$@"

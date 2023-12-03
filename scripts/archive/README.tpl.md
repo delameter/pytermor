@@ -1,4 +1,12 @@
 <div align="center">
+  <blockquote>
+    <h2>
+    This README file is for an obsolete version of the library (1.8.0)
+    and is kept for historical reasons only.
+    </h2>
+    <br>
+  </blockquote>
+  <hr>
   <h1>
     <img src="https://user-images.githubusercontent.com/50381946/167745623-66bcb825-f787-4f8a-a317-18775d3f104a.png">
     <br>

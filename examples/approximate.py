@@ -211,7 +211,7 @@ class Approximator:
                     sample_approx.repr_attrs(True),
                 ).groups()
                 # input_on_result = '%4s %-8s %s' % (code or '--', value, name or '--')
-                sample_approx_str = "%4s %-8s %s" % (
+                sample_approx_str = "%4s %-8s %-18s" % (
                     code or "--",
                     value,
                     (lambda b: b.name + " (" + name + ")" if b else (name or "--"))(

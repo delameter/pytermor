@@ -10,6 +10,7 @@ from __future__ import annotations
 import abc
 import os.path
 import shutil
+import sys
 import typing as t
 from abc import abstractmethod
 from os.path import abspath, join, dirname
@@ -30,7 +31,7 @@ def _sorter_by_name(cdef: _IColorRGB) -> str:
 def _sorter_by_hue(cdef: _IColorRGB) -> t.Tuple[float, ...]:
     # partitioning by hue, sat and val, grayscale group first:
     h, s, v = pt.RGB(cdef.value).hsv
-    result = (h // 18 if s > 0 else -v), h // 18, s * 5 // 1, v * 20 // 1
+    result = int(h/18 if s > 0 else -v), int(s*5), int(v*20), h, s, v
     return result
 
 
@@ -80,9 +81,12 @@ class _ColorRGBConfigAdapter(_IColorRGB):
 class _ColorRGBOriginAdapter(_IColorRGB):
     SEP = pt.color._ColorRegistry._TOKEN_SEPARATOR
 
-    def __init__(self, origin: pt.ColorRGB, tokens: t.Tuple[str]):
+    def __init__(self, origin: pt.ColorRGB, tokens: list[str]):
         self._origin = origin
         self._name = self.SEP.join(tokens)
+
+    def __repr__(self):
+        return f'<{pt.get_qname(self)}[{self.value:06x}, {_sorter_by_hue(self), {self.name}}]>'
 
     @property
     def value(self) -> int:
@@ -199,8 +203,8 @@ class _RgbTablePrinter:
         lines = [""] * self._cell_height
         cur_x = 0
         max_idx = len(colors)
-
-        for idx, c in enumerate(sorted(colors, key=_sorter_by_hue)):
+        sorted_colors = sorted(colors, key=_sorter_by_hue)
+        for idx, c in enumerate(sorted_colors):
             style = pt.Style(bg=pt.ColorRGB(c.value)).autopick_fg()
 
             sparse_x = max(0, self._cell_width - self._cell_padding_x)
@@ -255,7 +259,7 @@ class _RgbTablePrinter:
                 )
                 lines[pid] += part
 
-            if cur_x + result_len > self._term_width:
+            if cur_x + result_len > self._term_width or idx == len(sorted_colors) - 1:
                 for pid, line in enumerate(lines):
                     print(line)
                     lines[pid] = ""
@@ -274,13 +278,51 @@ class Main():
         self.run(origin_list)
 
     def run(self, colors: t.Sequence[_IColorRGB]):
-        _RgbListPrinter().print(colors)
+        if '--help' in sys.argv or 'help' in sys.argv:
+            self._print_help(0)
+
+        mode = 'list'
+        cell_size = 0
+        cell_height = 0
+        try:
+            sys.argv.pop(0)
+            if len(sys.argv):
+                mode = sys.argv.pop(0)
+            if mode not in ['list', 'grid']:
+                raise ValueError(f"Invalid mode: {mode}")
+            if mode == 'grid' and len(sys.argv):
+                cell_size = int(sys.argv.pop(0))
+            if mode == 'grid' and len(sys.argv):
+                cell_height = int(sys.argv.pop(0))
+        except (IndexError, ValueError):
+            self._print_help()
+            raise
+
+        if mode == 'list':
+            _RgbListPrinter().print(colors)
+        elif mode == 'grid':
+            _RgbTablePrinter(cell_size, cell_height).print(colors)
         print()
 
-        cell_size = int(os.environ.get("CELL_SIZE", 0))
-        cell_height = int(os.environ.get("CELL_HEIGHT", 0))
-        _RgbTablePrinter(cell_size, cell_height).print(colors)
-        print()
+    def _print_help(self, exit_code: int = None):
+        print("""
+USAGE: 
+    list_named_rgb [MODE [CELL_SIZE [CELL_HEIGHT]]]
+    
+Where MODE can be either "list" (default) or "grid". In the latter case the
+application takes two more optional arguments - CELL_SIZE, an integer which
+specifies grid cell width, and CELL_HEIGHT, an integer which specifies grid 
+cell height. If CELL_HEIGHT is not present, cell height is set to width / 2,
+rounded down.
+
+EXAMPLES:
+    list_named_rgb list
+    list_named_rgb grid 2
+    list_named_rgb grid 6 3
+    list_named_rgb grid 16 6
+""")
+        if exit_code is not None:
+            exit(exit_code)
 
 
 if __name__ == "__main__":

@@ -3,6 +3,15 @@
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
+# ### ### ### ### ### ### ### ###   WARNING   ### ### ### ### ### ### ### ### #
+#                                                                             #
+#   This is an archived script kept for historical purposes. It can contain   #
+#   bugs or even not work all because it was made for old pytermor version.   #
+#                                                                             #
+#               P R O C E E D   A T   Y O U R   O W N   R I S K               #
+#                                                                             #
+# ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### #
+
 from __future__ import annotations
 
 import logging

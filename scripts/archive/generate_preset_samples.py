@@ -2,6 +2,15 @@
 # pytermor [ANSI formatted terminal output toolset]
 # (C) 2022 A. Shavykin <0.delameter@gmail.com>
 # -----------------------------------------------------------------------------
+# ### ### ### ### ### ### ### ###   WARNING   ### ### ### ### ### ### ### ### #
+#                                                                             #
+#   This is an archived script kept for historical purposes. It can contain   #
+#   bugs or even not work all because it was made for old pytermor version.   #
+#                                                                             #
+#               P R O C E E D   A T   Y O U R   O W N   R I S K               #
+#                                                                             #
+# ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### #
+
 from __future__ import annotations
 
 import re
@@ -21,4 +30,3 @@ for c in cfg_indexed:
     p = join(dirname(__name__), '../..', 'docs', '_generated', 'preset-samples', f'color{c["id"]}.png')
     print(p)
     im.save(p)
-

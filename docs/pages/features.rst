@@ -10,8 +10,8 @@
 Flexible input formats
 ==================================
 
-`guide.fargs` allows to compose formatted text parts much faster and keeps the code
-compact::
+`guide.fargs` allows to compose formatted text parts much faster and to keep the
+code compact::
 
     import pytermor as pt
 

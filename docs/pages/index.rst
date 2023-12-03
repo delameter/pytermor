@@ -91,8 +91,7 @@ The library is extendable and supports a variety of formatters (called
 
          *all functions, classes, terms*
 
-
-.. rubric:: Contents
+   .. rubric:: Contents
 
 .. toctree::
    :caption: Introduction
@@ -105,7 +104,6 @@ The library is extendable and supports a variety of formatters (called
    :caption: Documentation
    :maxdepth: 2
 
-   structure
    guide-hi/index
    guide-lo/index
    apidoc

@@ -3,7 +3,7 @@
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
-
+import random
 import re
 import typing as t
 
@@ -148,7 +148,7 @@ def tones(col: pt.IColorValue):
                             pt.echo(part, st, nl=False)
                         else:
                             if re.search(valrex := R"([0-9a-f]{6})", part):
-                                pfx, val, sfx = re.split(valrex, part)
+                                pfx, val, sfx = re.split(valrex, part, 1)
                                 if c.hsv == col.hsv:
                                     pt.echo("▶", stfb, nl=False)
                                     pfx = pfx[1:]
@@ -166,12 +166,27 @@ def tones(col: pt.IColorValue):
                     print()
 
 
+def _print_help(self, exit_code: int = None):
+    print(
+        """
+USAGE: 
+    tone_neighbours [COLOR...]
+
+Print example output of combinations of all the renderers defined in the
+library and all possible output modes. No arguments or options. Table width 
+adjusts for terminal size.
+"""
+    )
+    if exit_code is not None:
+        exit(exit_code)
+
+
 import sys
 
 args = sys.argv[1:]
 
 if not args:
-    args.append("00006c")
+    args.append(hex(pt.RGB.from_channels(*(random.randint(40, 255) for _ in range(3))).int))
 
 while args:
     tones(pt.RGB(int(args.pop(0), 16)))

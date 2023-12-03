@@ -50,8 +50,8 @@ run --rmprefix "${PROJECT_NAME}". \
 
 export EDGE_COLOR="#101010"
 export LABEL_COLOR="#000000"
-export SIZE="3"
-export LEGEND_SIZE="2.0,0.5"
+export SIZE="1.8"
+export LEGEND_SIZE="3.0,0.5"
 envsubst < "${DOCS_IN_PATH}/_generated/module-generic.dot" > "${DOCS_IN_PATH}/_generated/module-pdf.dot"
 envsubst < "${DOCS_IN_PATH}/_generated/module_legend.template" > "${DOCS_IN_PATH}/_generated/module_legend-pdf.dot"
 

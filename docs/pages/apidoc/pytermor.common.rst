@@ -13,8 +13,9 @@
       CXT
       FT
       RT
-      filterf
       filtern
+      filterf
+      filtere
    
    
 
@@ -28,6 +29,7 @@
       char_range
       chunk
       cut
+      filterev
       filterfv
       filternv
       fit
@@ -39,6 +41,7 @@
       isimmutable
       isiterable
       ismutable
+      joincoal
       only
       others
       ours

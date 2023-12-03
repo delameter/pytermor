@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 import os
-from math import ceil
+import sys
 
 import pytermor as pt
 import pytermor.common
@@ -32,6 +32,9 @@ class Main:
         self.run()
 
     def run(self):
+        if "--help" in sys.argv or "help" in sys.argv:
+            self._print_help(0)
+
         pt.echo(
             ["", "Look at the rectangle below. In normal conditions you:"],
             wrap=True,
@@ -75,7 +78,7 @@ class Main:
                 f"  TERM={os.environ.get('TERM', '')}",
                 f"  COLORTERM={os.environ.get('COLORTERM', '')}",
                 "",
-                "-"*min(80, pt.get_terminal_width()),
+                "-"*min(80, pt.get_terminal_width()-4),
                 "",
                 "Previous test cannot tell with enough confidence, which mode exactly "
                 "you are running -- the difference between advanced modes would be "
@@ -123,11 +126,37 @@ class Main:
                 "",
                 "If ALL these are met -- your terminal is in True Color mode and "
                 "can display full variety of RGB color space (16M colors). Otherwise "
-                "the mode is indexed xterm-256."
+                "the mode is indexed xterm-256.",
+                "",
+                "-"*min(80, pt.get_terminal_width()-4),
+                "",
+                "IMPORTANT",
+                "",
+                "When the output is redirected to a file or a pipe, the library detects "
+                "that the receiving end is not a terminal emulator and automatically "
+                "disables all the formatting. This is intended. To keep the formatting "
+                "even in redirected output, set the environment var PYTERMOR_FORCE_OUTPUT_MODE "
+                "to either of: 'xterm-16', 'xterm-256' or 'true_color'.",
+                "",
+                "Your output device " + f"IS{[' NOT', ''][sys.stdout.isatty()]} a terminal emulator.",
+                "\x1b[m"
             ],
             wrap=True,
             indent_first=2,
         )
+
+    def _print_help(self, exit_code: int = None):
+        print(
+            """
+USAGE: 
+    terminal_color_mode
+    
+Script made for manual testing of terminal color mode capabilities. No arguments
+of options. Run and follow the instructions.
+"""
+        )
+        if exit_code is not None:
+            exit(exit_code)
 
 
 if __name__ == "__main__":

@@ -11,8 +11,13 @@ pending
 - |NEW| extended `highlight()`
 - |REFACTOR| `flatten`
 - |REFACTOR| separated `python-texlive` base image to its own repository
+- |NEW| `filtere`, `filterev`, `joinciak`
+- |FIX| `filtern`, `filterenv`
+- |DOCS| `demo` page
+- |DOCS| `make_docs_sshots` automation script
+- |DOCS| `term-output`/example001-007 images
 
-.. <@pending:a28c207>
+.. <@pending:cf41a5e>
 .. ^ blank line before should be kept
 
 

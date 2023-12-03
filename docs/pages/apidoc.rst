@@ -4,6 +4,38 @@
 API reference
 ###################
 
+Almost all public classes are imported into the first package level
+on its initialization, which makes kind of a contract on library's API.
+The exceptions include some abstract superclasses or metaclasses, which
+generally should not be used outside of the library, but still can be
+imported directly using a full module path.
+
+.. only:: html
+
+   .. graphviz:: /_generated/module-dark.dot
+      :class: graphviz-dark
+
+   .. graphviz:: /_generated/module_legend-dark.dot
+      :class: graphviz-dark
+
+   .. graphviz:: /_generated/module-default.dot
+      :class: graphviz-default
+
+   .. graphviz:: /_generated/module_legend-default.dot
+      :class: graphviz-default
+      :caption: Module dependency graph [#]_
+
+   .. [#] Overly common modules (``exception``, ``log``, ``config`` and ``common`` itself) are not shown, as they turn the graph into a mess. Same applies to internal modules which name starts with ``_``. ``border`` module is not shown because it does not import any other module and is not imported either.
+
+.. only:: latex
+
+   .. graphviz:: /_generated/module-pdf.dot
+
+   .. graphviz:: /_generated/module_legend-pdf.dot
+      :caption: Module dependency graph [#]_
+
+   .. [#] Overly common modules (``exception``, ``log``, ``config`` and ``common`` itself) are not shown, as they turn the graph into a mess. Same applies to internal modules which name starts with ``_``. ``border`` module is not shown because it does not import any other module and is not imported either.
+
 .. automodule:: pytermor
 
 .. .. @autosummary/start

@@ -3,6 +3,10 @@
 #  (c) 2022-2023. A. Shavykin <0.delameter@gmail.com>
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
+"""
+Module for drawing various borders around text using
+ASCII and Unicode characters.
+"""
 from __future__ import annotations
 
 from collections.abc import Iterable

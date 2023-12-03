@@ -10,7 +10,7 @@ readme = "README.md"
 license = "LGPL-3.0"
 requires-python = ">=3.8"
 platforms = ["linux"]
-keywords = ["color", "format", "console", "terminal", "ansi"]
+keywords = ["color", "format", "console", "terminal", "ansi", "sgr", "text"]
 authors = [
     { name = "Aleksandr Shavykin", email = "0.delameter@gmail.com" },
 ]
@@ -95,16 +95,9 @@ extra-dependencies = [
 detached = false
 extra-dependencies = [
     "pygments~=2.15",
+    "PyYAML==6.0.1",
     "rich~=12.6",
 ]
-
-[tool.hatch.envs.demo.scripts]
-ex-approx = "python examples/approximate.py"
-ex-list-render = "python examples/list_renderers.py"
-ex-list-named = "python examples/list_named_rgb.py"
-ex-render-bmark = "python examples/render_benchmark.py"
-ex-terminal-bmark = "python examples/terminal_benchmark.py"
-ex-terminal-mode = "python examples/terminal_color_mode.py"
 
 # ---------------------------------------------------------
 

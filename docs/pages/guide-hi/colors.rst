@@ -120,7 +120,7 @@ all upper-cased letters to lower case.
 Finding closest colors
 =====================================
 
-if first argument of `resolve_color()` is specified as:
+When first argument of `resolve_color()` is specified as:
 
     1) *int* in [:hex:`0x000000`; :hex:`0xffffff`] range, or
     2) *str* in full hexadecimal form: ":hex:`#RRGGBB`", or
@@ -130,9 +130,9 @@ and ``color_type`` is **present**\ , the result will be the best ``subject``
 approximation to corresponding color index. Note that this value is expected
 to differ from the requested one (and sometimes differs a lot), unless the
 exact color requested is present in the index (e.g. :hex:`#ff0000` can be
-found in all three color types).
+found in all three color palettes).
 
-To create an exact color omit the second parameter: if ``color_type`` is
+Omit the second parameter to create an exact color: if ``color_type`` is
 **missing**, no searching is performed; instead a new nameless `ColorRGB` is
 instantiated and returned.
 
@@ -161,11 +161,14 @@ instantiated and returned.
 
         Color256(0x123456, code=257, register=True, index=True)
 
-    But it will not work properly in any way whatsoever, because code 257 does
-    not exist, and not a single terminal emulator does know anything about it.
+    Although this will not work properly for xterm-indexed colors, because code
+    257 does not exist, and not a single terminal emulator does know anything
+    about it, this can be used to extend `ColorRGB` color set, as it translates
+    to SGRs explicitly (by color value).
 
 
-There are two top-level methods that provide a capability to search for
+
+Also there are two top-level methods that provide a capability to search for
 the colors closest to specified one in an indexed palette: `find_closest()`
 and `approximate()`.
 
@@ -175,7 +178,7 @@ done by the library automatically and transparently for both the developer
 and the end-user.
 
 Both methods take ``value`` parameter which is a target color value, e.g.
-0x404030, and ``color_type`` which determines the type of the result.
+:hex:`0x404030`, and ``color_type`` which determines the type of the result.
 If `color_type` is omitted, the searching is performed in `Color256` index.
 
 `find_closest()` caches the results, i.e., the same search query will from
@@ -201,13 +204,18 @@ Approximator implementation
 ============================
 
 Approximation algorithm is as simple as iterating through all colors in the
-*lookup table* (which contains all possible ...
+*lookup table*, computing the color distance between target color and each of
+those, and returning the minimal result.
 
 Distance between two colors is calculated using CIE76 ΔE\* color
 difference formula in LAB color space\ [#]_. This method is considered to be
 an acceptable tradeoff between sRGB euclidean distance, which doesn't
 account for differences in human color perception, and CIE94/CIEDE2000,
 which are more complex and in general excessive for this task.
+
+There is a demo script which can illustrate the difference between approximated
+colors using different color distance formulas. For the details see `Examples —
+Demo — approximate.py <examples.demo.approximate>`.
 
 .. [#] http://www.brucelindbloom.com/index.html?Eqn_DeltaE_CIE76.html
 

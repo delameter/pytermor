@@ -9,6 +9,7 @@ import random
 import time
 import typing as t
 import math
+import sys
 
 import pytermor
 import pytermor as pt
@@ -59,6 +60,7 @@ def median(N: t.Sequence[float], key: t.Callable[[float], float] = lambda x: x) 
 
 class Main:
     def __init__(self):
+        pt.force_ansi_rendering()
         RenderBemchmarker().run()
 
 
@@ -178,6 +180,9 @@ class RenderBemchmarker:
         return sample_
 
     def run(self):
+        if "--help" in sys.argv or "help" in sys.argv:
+            self._print_help(0)
+
         for idx, (sample_src, classes) in enumerate(reversed(self.sources)):
             pt.echo(
                 pt.fit(
@@ -239,6 +244,20 @@ class RenderBemchmarker:
                             self.prev_frame_ts = end
                     pt.echo()
                 print()
+
+    def _print_help(self, exit_code: int = None):
+        print(
+            """
+USAGE: 
+    render_benchmark
+    
+Kind of profiling tool made for measuring how long does it take to render a
+colored text using different `IRenderable` implementations. No arguments or
+options.
+"""
+        )
+        if exit_code is not None:
+            exit(exit_code)
 
 
 if __name__ == "__main__":

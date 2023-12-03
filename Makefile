@@ -18,22 +18,36 @@ DOCKER_IMAGE = ghcr.io/delameter/pytermor
 DOCKER_TAG = ${DOCKER_IMAGE}:${VERSION}
 DOCKER_CONTAINER = pytermor-build-${VERSION}
 
-NOW    := $(shell LC_TIME=en_US.UTF-8 date --rfc-3339=seconds)
-BOLD   := $(shell tput -Txterm bold)
-GREEN  := $(shell tput -Txterm setaf 2)
-YELLOW := $(shell tput -Txterm setaf 3)
-BLUE   := $(shell tput -Txterm setaf 4)
-CYAN   := $(shell tput -Txterm setaf 6)
-GRAY   := $(shell tput -Txterm setaf 7)
-DIM    := $(shell tput -Txterm dim)
-RESET  := $(shell printf '\e[m')
-                                # tput -Txterm sgr0 returns SGR-0 with
-                                # nF code switching esq, which displaces the columns
+NL      := $(shell printf '\n')
+__      := $(shell printf '\e[m')
+                                  # "tput -Txterm sgr0" also prints nF code
+                                  # switching esq, which breaks the columns
+NOW     := $(shell LC_TIME=en_US.UTF-8 date --rfc-3339=seconds)
+BOLD    := $(shell tput -Txterm bold)
+INV     := $(shell tput -Txterm smso)
+NOINV   := $(shell tput -Txterm rmso)
+NOBG    := $(shell tput -Txterm setab 0)
+RED     := $(shell tput -Txterm setaf 1)
+BGRED   := $(shell tput -Txterm setab 1)
+GREEN   := $(shell tput -Txterm setaf 2)
+BGGREEN := $(shell tput -Txterm setab 2)
+YELLOW  := $(shell tput -Txterm setaf 3)
+BLUE    := $(shell tput -Txterm setaf 4)
+CYAN    := $(shell tput -Txterm setaf 6)
+GRAY    := $(shell tput -Txterm setaf 7)
+DIM     := $(shell tput -Txterm dim)
+TERMW   := $(shell tput -Txterm cols)
+SSEP    := $(shell printf %80s | tr ' ' -)
+SEP     := $(shell printf %${TERMW}s | tr ' ' -)
+BSEP    := ${BLUE}${SEP}${RESET}${NL}
+_error   = (echo "${BGRED}${BOLD} ERROR ${__}${RED} ${1} ${__}"; return 1)
+_success = (echo "${GREEN}${INV}${BOLD} OK ${__} ${1}")
+
 ## Common
 
 help:   ## Show this help
-	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s?(\s*#?[^#]+)#*\s*(.*)/\1${YELLOW}\2${RESET}#\3/; s/(.+):(#|\s)+(.+)/##   ${GREEN}\1${RESET}#\3/; s/\*(\w+)\*/${BOLD}\1${RESET}/g; 2~1s/<([ )*<@>.A-Za-z0-9_(-]+)>/${DIM}\1${RESET}/gi' -e 's/(\x1b\[)33m#/\136m/' | column -ts# | sed -Ee 's/ {3}>/ >/'
-	PYTERMOR_FORCE_OUTPUT_MODE=xterm_256 ./run-cli ./.run-startup.py | sed -nEe 's/^(python|pytermor).+/    &/p' ;  echo
+	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v @fgrep | sed -Ee 's/^(##)\s?(\s*#?[^#]+)#*\s*(.*)/\1${YELLOW}\2${__}#\3/; s/(.+):(#|\s)+(.+)/##   ${GREEN}\1${__}#\3/; s/\*(\w+)\*/${BOLD}\1${__}/g; 2~1s/<([ )*<@>.A-Za-z0-9_(-]+)>/${DIM}\1${__}/gi' -e 's/(\x1b\[)33m#/\136m/' | column -ts# | sed -Ee 's/ {3}>/ >/'
+	PYTERMOR_FORCE_OUTPUT_MODE=xterm_256 ./run-cli ./.run-startup.py | sed -nEe 's/.+\(.+\)/ &/p' -e '1a$(SSEP)\n' ;  echo
 
 cli: ## Launch python interpreter  <hatch>
 	hatch run python -uq
@@ -112,26 +126,32 @@ make-docs-out-dir:
 .:
 ## Docker (docs web-server)
 
-docker-up:  ## Launch nginx container with documentation
+docker-dws-up:  ## Launch nginx container with documentation
 	docker-compose up -d
 
-docker-down:  ## Stop nginx container with documentation
+docker-dws-down:  ## Stop nginx container with documentation
 	docker-compose down
+
 
 .:
 ## Automation
 
-_ensure_x11 = ([ -n "${DISPLAY}" ] && return; echo 'ERROR: No $$DISPLAY'; return 1)
+_ensure_x11 = ([ -z $$DISPLAY ] && { $(call _error,"No \$$DISPLAY") ; return ; } || return 0; )
 
-pre-build:  ## Update CVAL  <runs on docker image building>
-	@export PT_ENV=build
-	./.invoke python scripts/preprocess_rgb.py && \
-      ./.invoke python scripts/build_cval.py
+pre-build:  ## Rebuild cval.py  <runs on docker image building>
+	export PT_ENV=build \
+		&& ./.invoke python scripts/preprocess_rgb.py \
+		&& ./.invoke python scripts/build_cval.py
+
+remake-docs-sshots:  ## Remake demo screenshots for docs
+	@$(call _ensure_x11) || return
+	@./scripts/make_docs_sshots.sh -ay && $(call _success,Done)
 
 lint:  ## Run flake8
 	@export PT_ENV=test
 	./.invoke flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 	./.invoke flake8 . --count --exit-zero --max-line-length=127 --statistics
+
 
 .:
 ## Testing
@@ -154,6 +174,7 @@ test-trace: ## Run pytest with detailed output  <@last_test_trace.log>
 	# optional: PYTERMOR_TRACE_RENDERS=1
 	@/usr/bin/ls --size --si last_test_trace.log
 
+
 .:
 ## Profiling
 
@@ -161,6 +182,7 @@ profile-import-tuna:  ## Profile imports
 	@PT_ENV=test \
 		./.invoke python -X importtime ./.run-import.py 2> ./import.log && \
 		tuna ./import.log
+
 
 .:
 ## Coverage / dependencies
@@ -191,6 +213,7 @@ open-depends:  ## Open dependency graph output directory
 	@$(call _ensure_x11) || return
 	@xdg-open ./${DEPENDS_PATH}
 
+
 .:
 ## Documentation
 
@@ -207,8 +230,10 @@ docs: depends demolish-docs docs-html
 
 _build_html = (./.invoke sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b html -d ${DOCS_IN_PATH}/_cache -n)
 _build_pdf = (yes "" | ./.invoke sphinx-build -M latexpdf ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -d ${DOCS_IN_PATH}/_cache $1)
-_build_man = (./.invoke sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b man -d ${DOCS_IN_PATH}/_cache -n )
-_notify = (command -v es7s >/dev/null && es7s exec notify -s $1 "${PROJECT_NAME} ${VERSION}" "[\#${RUN_ID}] ${2}")
+_build_man = (./.invoke sphinx-build ${DOCS_IN_PATH} ${DOCS_IN_PATH}/_build -b man -d ${DOCS_IN_PATH}/_cache -n)
+_notify = ($(call _notify_es7s,$1,$2) ; $(call _notify_fb,$1,$2))
+_notify_es7s = (command -v es7s >/dev/null && es7s exec notify -s $1 "${PROJECT_NAME} ${VERSION}" "[\#${RUN_ID}] ${2}")
+_notify_fb = ([ $1 = success ] && echo -n "$(OK)" || echo -n "$(ERROR)" ; echo "$2$(__)")
 
 docs-html: ## Build HTML documentation  <caching allowed>
 	@export PT_ENV=build
@@ -250,11 +275,12 @@ open-docs-pdf:  ## Open PDF docs in reader
 	@$(call _ensure_x11) || return
 	@xdg-open ${DOCS_OUT_PATH}/${VERSION}.pdf
 
+
 .:
 ## Packaging
 
 show-version: ## Show current package version
-	@hatch version | sed -Ee "s/.+/Current: ${CYAN}&${RESET}/"
+	@hatch version | sed -Ee "s/.+/Current: ${CYAN}&${__}/"
 
 tag-version: ## Tag current git branch HEAD with the current version
 	@git tag $(shell hatch version | cut -f1,2  -d\.) && git log -1
@@ -262,7 +288,7 @@ tag-version: ## Tag current git branch HEAD with the current version
 _set_next_version = (hatch version $1 | \
 						tr -d '\n' | \
 						sed -zEe "s/(Old:\s*)(\S+)(New:\s*)(\S+)/Version updated:\n\
-										${CYAN} \2${RESET} -> ${YELLOW}\4${RESET}/" \
+										${CYAN} \2${__} -> ${YELLOW}\4${__}/" \
 )
 _set_current_date = (sed ${VERSION_FILE_PATH} -i -Ee 's/^(__updated__).+/\1 = "${NOW}"/w/dev/stdout' | cut -f2 -d'"')
 
@@ -294,6 +320,7 @@ set-current-date:  # Update timestamp in version file (done automatically)
 update-changelist:  ## Auto-update with new commits  <@CHANGES.rst>
 	@./update-changelist.sh
 
+
 .:
 ## Building / Publishing
 
@@ -318,7 +345,7 @@ build: ## Build a package   <hatch>
 build: demolish-build
 	hatch -e build build
 
-### dev
+### [dev]
 
 publish-dev: ## Upload latest build to dev registry   <hatch>
 	hatch -e build publish -r "${PYPI_REPO_URL_DEV}" -u "${PYPI_USERNAME_DEV}" -a "${PYPI_PASSWORD_DEV}"
@@ -326,7 +353,7 @@ publish-dev: ## Upload latest build to dev registry   <hatch>
 install-dev: ## Install latest build from dev registry  <system>
 	python -m pip install -i "${PYPI_REPO_URL_DEV}/simple" ${PROJECT_NAME}==${VERSION}
 
-### test
+### [test]
 
 publish-test: ## Upload latest build to test registry   <hatch>
 	hatch -e build publish -r test -u "${PYPI_USERNAME}" -a "${PYPI_PASSWORD_TEST}"
@@ -335,7 +362,7 @@ install-test: ## Install latest build from test registry  <system>
 	python -m pip install -i https://test.pypi.org/simple/ ${PROJECT_NAME}==${VERSION}
 
 
-### release
+### [release]
 
 publish: ## Upload last build (=> PRIMARY registry)   <hatch>
 	@[ -n "${SKIP_MODULE_UPLOAD}" ] && return 0

@@ -4,7 +4,7 @@
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
 """
-A
+Preset terminal control sequence builders.
 """
 
 from __future__ import annotations
