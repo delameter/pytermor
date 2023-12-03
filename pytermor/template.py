@@ -178,7 +178,7 @@ class _TemplateTag:
         return Style(base_style, **style_attrs)
 
 
-class _LoggingStack(deque[_T], metaclass=ABCMeta):
+class _LoggingStack(t.Deque[_T], metaclass=ABCMeta):
     def __init__(self, name: str, *, maxlen: int = None):
         super().__init__(maxlen=maxlen)
         self._name = name

@@ -16,8 +16,11 @@ pending
 - |DOCS| `demo` page
 - |DOCS| `make_docs_sshots` automation script
 - |DOCS| `term-output`/example001-007 images
+- |DOCS| `demo` page
+- |DOCS| `make_docs_sshots` automation script
+- |DOCS| `term-output`/example001-007 images
 
-.. <@pending:cf41a5e>
+.. <@pending:8b3da6b>
 .. ^ blank line before should be kept
 
 
