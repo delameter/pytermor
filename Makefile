@@ -123,6 +123,11 @@ docker-docs-pdf: build-image make-docs-out-dir
 	$(call _docker_cp_docs)
 	$(call _docker_rm)
 
+docker-docs:  ## Update all docs in docker container
+docker-docs: build-image make-docs-out-dir
+	$(call _docker_run,"make docs")
+	$(call _docker_cp_docs)
+
 make-docs-out-dir:
 	@mkdir -p ${DOCS_OUT_PATH}/${VERSION}
 
