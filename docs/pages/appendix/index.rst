@@ -7,3 +7,4 @@ Appendix
 .. toctree::
 
    tracers-math
+   approx-diff

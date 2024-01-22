@@ -228,7 +228,7 @@ class SequenceNf(ISequence):
     """
     Escape sequences mostly used for ANSI/ISO code-switching mechanisms.
 
-    All **nF**-class sequences start with ``ESC`` plus ASCII byte from
+    All **nF**-class sequences start with :ansi:`ESC` plus ASCII byte from
     the range :hex:`0x20-0x2F` (space, ``!``, ``"``, ``#``, ``$``, ``%``,
     ``&``, ``'``, ``(``, ``)``, ``*``, ``+``, ``,``, ``-``, ``.``, ``/``).
     """
@@ -266,7 +266,7 @@ class SequenceFp(ISequence):
     """
     Sequence class representing private control functions.
 
-    All **Fp**-class sequences start with ``ESC`` plus ASCII byte in the
+    All **Fp**-class sequences start with :ansi:`ESC` plus ASCII byte in the
     range :hex:`0x30-0x3F` (``0``-``9``, ``:``, ``;``, ``<``, ``=``, ``>``,
     ``?``).
     """
@@ -290,7 +290,7 @@ class SequenceFs(ISequence):
     """
     Sequences referred by ECMA-48 as "independent control functions".
 
-    All **Fs**-class sequences start with ``ESC`` plus a byte in the range
+    All **Fs**-class sequences start with :ansi:`ESC` plus a byte in the range
     :hex:`0x60-0x7E` (``\u0060``, ``a``-``z``, ``{``, ``|``, ``}``).
     """
 
@@ -314,7 +314,7 @@ class SequenceFe(ISequence):
     C1 set sequences -- a wide range of sequences that includes
     `CSI <SequenceCSI>`, `OSC <SequenceOSC>` and more.
 
-    All **Fe**-class sequences start with ``ESC`` plus ASCII byte
+    All **Fe**-class sequences start with :ansi:`ESC` plus ASCII byte
     from :hex:`0x40` to :hex:`0x5F` (``@``, ``[``, ``\\``, ``]``, ``_``, ``^``
     and capital letters ``A``-``Z``).
     """
@@ -353,7 +353,7 @@ class SequenceFe(ISequence):
 class SequenceST(SequenceFe):
     """
     String Terminator sequence (ST). Terminates strings in other control
-    sequences. Encoded as ``ESC \\`` (:hex:`0x1B 0x5C`).
+    sequences. Encoded as :ansi:`ESC`\\ ``\\`` (:hex:`0x1B 0x5C`).
     """
 
     _CLASSIFIER = "\\"
@@ -370,9 +370,9 @@ class SequenceST(SequenceFe):
 class SequenceOSC(SequenceFe):
     """
     :abbr:`OSC (Operating System Command)`-type sequence. Starts a control
-    string for the operating system to use. Encoded as ``ESC ]``, plus params
-    separated by ``;``. The control string can contain bytes from ranges
-    :hex:`0x08-0x0D`, `0x20-0x7E` and is usually terminated by
+    string for the operating system to use. Encoded as :ansi:`ESC`\\ ``]``,
+    plus params separated by ``;``. The control string can contain bytes
+    from ranges :hex:`0x08-0x0D`, `0x20-0x7E` and is usually terminated by
     `ST <SequenceST>`.
     """
 
@@ -395,7 +395,7 @@ class SequenceOSC(SequenceFe):
 class SequenceCSI(SequenceFe):
     """
     Class representing :abbr:`CSI (Control Sequence Introducer)`-type ANSI
-    escape sequence. All subtypes of this sequence start with ``ESC [``.
+    escape sequence. All subtypes of this sequence start with :ansi:`ESC`\\ ``[``.
 
     Sequences of this type are used to control text formatting,
     change cursor position, erase screen and more.
@@ -485,7 +485,7 @@ class SequenceSGR(SequenceCSI):
         '\x1b[31mshould be red\x1b[0m'
 
     .. note ::
-        `SequenceSGR` with zero params ``ESC [m`` is interpreted by terminal emulators
+        `SequenceSGR` with zero params :ansi:`ESC`\\ ``[m`` is interpreted by terminal emulators
         as ``ESC [0m``, which is *hard* reset sequence. The empty-string-sequence is
         predefined at module level as `NOOP_SEQ`.
 
@@ -672,7 +672,7 @@ class SubtypedParam:
 # -----------------------------------------------------------------------------
 
 
-class IntCode(enum.IntEnum):
+class IntCode(enum.IntEnum):   # @FIXME hide default `int` docstrings
     """
     Complete or almost complete list of reliably working SGR param integer codes.
     Fully interchangeable with plain *int*. Suitable for `SequenceSGR`
@@ -1191,7 +1191,7 @@ classes. Useful for removing the sequences as well as for granular search
 thanks to named match groups, which include:
 
     ``escape_byte``
-        first byte of every sequence -- ``ESC``, or :hex:`0x1B`.
+        first byte of every sequence -- :ansi:`ESC`, or :hex:`0x1B`.
         
     ``data``
         remaining bytes of the sequence (without escape byte) represented as 
@@ -1207,6 +1207,11 @@ thanks to named match groups, which include:
           ``fe_interm`` and ``fe_final`` for **Fe**-class generic sequences and 
           subtypes (including :term:`SGRs <SGR>`),
         - ``fs_classifier`` for **Fs**-class sequences.
+        
+.. todo ::
+
+    Port Paul Flo Williams's `VT500-Series Parser <https://vt100.net/emu/dec_ansi_parser>`_ instead of messing 
+    with regular expressions.
 
 .. [#] `ECMA-35 specification <https://ecma-international.org/publications-and-standards/standards/ecma-35/>`_
 

@@ -18,10 +18,9 @@ from string import Template
 
 import yaml
 
-from common import PROJECT_ROOT, CONFIG_PATH, TaskRunner
+from common import PROJECT_ROOT, CONFIG_PATH, TaskRunner, ProgressBar
 from pytermor import pad, SgrRenderer, cv
 from pytermor.common import filtern
-from es7s_commons.progressbar import ProgressBar
 
 
 class IndexBuilder(TaskRunner):
@@ -32,9 +31,7 @@ class IndexBuilder(TaskRunner):
     MODE_TO_SORTER_MAP: t.Dict[str, t.Callable] = {
         "xterm_16": lambda _: 0,
         "xterm_256": lambda col: (
-            "_" + str(col.get("code")).zfill(2)
-            if col.get("color16_equiv")
-            else col.get("name")
+            "_" + str(col.get("code")).zfill(2) if col.get("color16_equiv") else col.get("name")
         ),
         "rgb": lambda col: col.get("name"),
     }
@@ -45,7 +42,7 @@ class IndexBuilder(TaskRunner):
         self._pbar = ProgressBar(SgrRenderer(), sys.stderr, cv.MAGENTA)
 
     def _run(self) -> int:
-        self._pbar.init_tasks(len(self.MODE_TO_SORTER_MAP.keys()), 0)
+        # self._pbar.init_tasks(len(self.MODE_TO_SORTER_MAP.keys()), 0)
         result = {k: "" for k in self.MODE_TO_SORTER_MAP.keys()}
         counts = ""
         for mode, sorter in self.MODE_TO_SORTER_MAP.items():
@@ -54,31 +51,37 @@ class IndexBuilder(TaskRunner):
             self._colors_mode_unique = 0
             mode_results = [*self._run_mode(mode, sorter)]
             result[mode] += ("\n".join(mode_results) + "\n\n").rstrip()
-            counts += f"\n - {self._colors_mode_count:4d}x " \
-                      f"`{self._colors_mode_class}` " \
-                      f"({self._colors_mode_unique} unique)"
+            counts += (
+                f"\n - {self._colors_mode_count:4d}x "
+                f"`{self._colors_mode_class}` "
+                f"({self._colors_mode_unique} unique)"
+            )
 
         now = datetime.datetime.now().isoformat()
         with open(self.OUTPUT_TPL_PATH, "rt") as fin:
             with open(self.OUTPUT_DEST_PATH, "wt") as fout:
-                fout.write(Template(fin.read()).safe_substitute({
-                    'created_at': now,
-                    'counts': counts,
-                    **{f"defs_{k}": v for k, v in result.items()}
-                }))
-                self._pbar._echo(self._render_fout_result(fout, self.OUTPUT_DEST_PATH), persist=True)
+                fout.write(
+                    Template(fin.read()).safe_substitute(
+                        {
+                            "created_at": now,
+                            "counts": counts,
+                            **{f"defs_{k}": v for k, v in result.items()},
+                        }
+                    )
+                )
+                # self._pbar._echo(self._render_fout_result(fout, self.OUTPUT_DEST_PATH), persist=True)
         return self._colors_count
 
     def _run_callback(self, colors_count: int):
-        self._pbar._echo(f"Colors processed: {colors_count}", persist=True)
+        self._pbar.echo(f"Colors processed: {colors_count}", persist=True)
         self._pbar.close()
 
     def _run_mode(self, mode: str, sorter: t.Callable):
-        self._pbar.next_task(mode)
+        # self._pbar.next_task(mode)
         config_path = join(CONFIG_PATH, mode + ".yml")
         with open(config_path, "rt") as f:
             config = yaml.safe_load(f)
-            self._pbar._echo(self._render_fin_result(f, config_path), persist=True)
+            self._pbar.echo(self._render_fin_result(f, config_path), persist=True)
         self._colors_mode_class = config.get("class")
         self._deferred = config.get("_deferred")
 
@@ -87,9 +90,7 @@ class IndexBuilder(TaskRunner):
             color["var_name"] = color.get("name").upper().replace("-", "_")
             self._validate_names(color)
 
-        longest_name_len = 2 + max(
-            len(color.get("var_name")) for color in config.get("colors")
-        )
+        longest_name_len = 2 + max(len(color.get("var_name")) for color in config.get("colors"))
 
         color_values = set()
         self._pbar.init_steps(len(colors))
@@ -136,13 +137,13 @@ class IndexBuilder(TaskRunner):
                 variation_map = self._map_variations(variations)
                 col_variations = f"variation_map={{\n{variation_map} }}, "
 
-            constructor_call = ': %s = %s('
+            constructor_call = ": %s = %s("
             if self._deferred and not color16_equiv:
-                constructor_call = ': %s = lambda *_: %s('
+                constructor_call = ": %s = lambda *_: %s("
 
             columns = [
                 col_var_name,
-                constructor_call % (*[self._colors_mode_class]*2,),
+                constructor_call % (*[self._colors_mode_class] * 2,),
                 col_value,
                 *cols_code,
                 col_name,

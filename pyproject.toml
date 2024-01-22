@@ -31,12 +31,18 @@ classifiers = [
 ]
 dependencies = []
 
+[project.optional-dependencies]
+fast = [
+    "numpy~=1.26.3",
+    "scipy~=1.11.4",
+]
+
 [project.urls]
 "Homepage" = "https://github.com/delameter/pytermor"
 "Bug Tracker" = "https://github.com/delameter/pytermor/issues"
 "Changelog" = "https://github.com/delameter/pytermor/blob/master/CHANGES.md"
 
-# ---------------------------------------------------------
+# =========================================================
 
 [tool.hatch.publish.index]
 disable = true
@@ -54,10 +60,11 @@ path = "pytermor/_version.py"
 version = "python -m pytermor"
 importtime = "python -qX importtime -m pytermor 2> import.log && tuna import.log"
 
-# [test]
+# --- [test] ---
 
 [tool.hatch.envs.test]
 detached = true
+features = ["fast"]
 extra-dependencies = [
     "coverage[toml]~=6.4",
     "coveralls~=3.3",
@@ -71,14 +78,16 @@ extra-dependencies = [
 [tool.hatch.envs.test.scripts]
 test = "pytest"
 
-# [build]
+# --- [build] ---
 
 [tool.hatch.envs.build]
 detached = false
+features = ["fast"]
 extra-dependencies = [
     "build~=0.8",
-    "es7s-commons==1.3.1",
+    'docutils-stubs~=0.0.22',
     "furo~=2022.6",
+    "matplotlib~=3.7",
     "Pillow~=9.1",
     "pydeps~=1.10",
     "PyYAML~=6.0",
@@ -89,7 +98,7 @@ extra-dependencies = [
     "twine~=4.0",
 ]
 
-# [demo]
+# --- [demo] ---
 
 [tool.hatch.envs.demo]
 detached = false
@@ -99,7 +108,7 @@ extra-dependencies = [
     "rich~=12.6",
 ]
 
-# ---------------------------------------------------------
+# =========================================================
 
 [tool.black]
 line-length = 89
@@ -126,7 +135,7 @@ markers = [
     "deferred(): make deferred dynamic color, set up dynamic style and resolver",
 ]
 
-# ---------------------------------------------------------
+# =========================================================
 
 [tool.coverage.run]
 source = ["pytermor"]
@@ -167,4 +176,4 @@ ignore_errors = true
 directory = "coverage-report"
 title = "pytermor coverage report"
 
-# ---------------------------------------------------------
+# =========================================================

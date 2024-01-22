@@ -9,16 +9,24 @@ import typing as t
 
 import pytermor as pt
 
+
 def tones(col: pt.IColorValue):
     BORDER = pt.Border(*"▌▌")
 
     W = min(60, pt.get_terminal_width() // 3)
 
     h, s, v = col.hsv
-    vmin = max(0, int(100 * v - 50))
-    vmax = min(100, int(100 * v + 50))
+    vmin = 0 # max(0, int(100 * v - 50))
+    vmax = 100 #min(100, int(100 * v + 50))
 
     inputs = []
+
+    inputs_h = []
+    HH = {*range(-180, 180, 10), *range(-40, 44, 4)}
+    for H in sorted(HH):
+        inputs_h.append((h + H, s, v))
+    inputs.extend(inputs_h)
+    inputs.append([None] * 3)
 
     self = (h, s, v)
     inputs_s = []
@@ -31,20 +39,19 @@ def tones(col: pt.IColorValue):
     if self:
         inputs_s.append(self)
     inputs.extend(sorted({*inputs_s}, key=lambda hsv: hsv[1]))
-
     inputs.append([None] * 3)
 
     self = (h, s, v)
-    inputs_h = []
+    inputs_v = []
     for V in range(vmin, vmax + 1, 2):
         if V == round(100 * v):
-            inputs_h.append(self)
+            inputs_v.append(self)
             self = None
         else:
-            inputs_h.append((h, s, V / 100))
+            inputs_v.append((h, s, V / 100))
     if self:
-        inputs_s.append(self)
-    inputs.extend(sorted({*inputs_h}, key=lambda hsv: hsv[2]))
+        inputs_v.append(self)
+    inputs.extend(sorted({*inputs_v}, key=lambda hsv: hsv[2]))
 
     prev = dict()
     rep = 0
@@ -63,11 +70,11 @@ def tones(col: pt.IColorValue):
                 def generator(*args, **kwargs):
                     gen = origin(*args, **kwargs)
                     indent = [9, 2][max_width < 18]
-                    lines = pt.wrap_sgr([*gen], max_width-2, indent_subseq=indent).splitlines()
+                    lines = pt.wrap_sgr([*gen], max_width - 2, indent_subseq=indent).splitlines()
 
-                    yield b.make_top(max_width, lines.pop(0), '<')
+                    yield b.make_top(max_width, lines.pop(0), "<", 0)
                     for line in lines:
-                        yield b.make_middle(max_width, line, '<')
+                        yield b.make_middle(max_width, line, "<", 0)
 
                 return generator
 
@@ -121,7 +128,7 @@ def tones(col: pt.IColorValue):
                 stfb = pt.Style(stf2)
                 stfp = pt.Style(stf2, dim=True)
                 st = pt.Style(st, inversed=True)
-                bchars = "".join(re.escape("".join(BORDER.chars)))
+                bchars = "".join(re.escape("".join(BORDER.part_chars)))
 
                 line = lines.pop(0) or pt.pad(W)
 
@@ -132,7 +139,9 @@ def tones(col: pt.IColorValue):
                 else:
                     prev[type(c)] = line
                     rep = 0
-                st.overlined = stf.overlined = stf2.overlined = stf3.overlined = stfp.overlined= stfb.overlined = rep == 0
+                st.overlined = (
+                    stf.overlined
+                ) = stf2.overlined = stf3.overlined = stfp.overlined = stfb.overlined = (rep == 0)
 
                 regex = re.compile(R"([" + bchars + "]+)")
                 for pdx, part in enumerate(pt.flatten1(regex.split(line))):
@@ -188,6 +197,15 @@ args = sys.argv[1:]
 if not args:
     args.append(hex(pt.RGB.from_channels(*(random.randint(40, 255) for _ in range(3))).int))
 
-while args:
-    tones(pt.RGB(int(args.pop(0), 16)))
-    print()
+input_colors = []
+while args and (arg := args.pop(0)):
+    try:
+        if input_color := pt.resolve_color(arg):
+            input_colors.append(input_color)
+            continue
+    except LookupError as e:
+        print(e)
+
+for input_color in input_colors:
+    tones(input_color.rgb)
+print()

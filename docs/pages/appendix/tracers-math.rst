@@ -36,8 +36,10 @@ length `L_O` in a general way -- through `C_L` (characters per line) and
 `L_{adr}` (length of maximum address value for given input):
 
 .. math ::
-         L_O& = L_{spc} + L_{sep} + L_{adr} + L_{hex},                 \\\\\
-     L_{adr}& = 2 + 2 \cdot ceil(\frac{L_{Ihex}}{2}), \qquad\qquad (1) \\\\\
+   :label: cl_main
+
+         L_O& = L_{spc} + L_{sep} + L_{adr} + L_{hex},              \\\\\
+     L_{adr}& = 2 + 2 \cdot ceil(\frac{L_{Ihex}}{2}), \qquad\qquad  \\\\\
      L_{hex}& = 3C_L + floor(\frac{C_L}{4}),
 
 where:
@@ -64,10 +66,10 @@ where:
       expression `2 \cdot ceil(\frac{L_{Ihex}}{2})` is used for rounding `L_{adr}` up
       to next even integer to avoid printing the addresses in :hex:`0x301` form,
       and displaying them more or less aligned instead. The first constant item
-      `2` in `(1)` represents :hex:`0x` prefix.
+      `2` in :eq:`cl_main` represents :hex:`0x` prefix.
     - `L_{hex}` represents amount of chars required to display `C_L` hexadecimal bytes.
       First item `3C_L` is trivial and corresponds to every byte's hexadecimal value
-      plus a space after (giving us `2+1=3`, e.g. ``"34 "``), while the second one
+      plus a space after (giving us `2+1=3`, e.g. `34`), while the second one
       represents one extra space character per each 4-byte group.
 
 Let's introduce `L_T` as current terminal width, then `\boxed{L_O \leqslant L_T}`, which
@@ -84,7 +86,9 @@ Substitute the variables:
 Suppose we limit `C_L` values to the integer factor of `4`, then:
 
 .. math ::
-    3C_L + floor(\frac{C_L}{4}) = 3.25C_L \qquad \forall C_L \in [4, 8, 12..) , \qquad (2)
+   :label: cl_limit
+
+    3C_L + floor(\frac{C_L}{4}) = 3.25C_L \qquad \forall C_L \in [4, 8, 12..) , \qquad
 
 which gives us:
 
@@ -99,7 +103,7 @@ Therefore:
     C_{Lmax} = floor(\frac{4L_T - 4 \cdot ceil(\frac{L_{Ihex}}{2}) - 24}{13}) .
 
 Last step would be to round the result (down) to the nearest integer
-factor of `4` as we have agreed earlier in `(2)`.
+factor of `4` as we have agreed earlier in :eq:`cl_limit`\ .
 
 .. _appendix.tracers-math.string-tracer:
 

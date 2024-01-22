@@ -18,13 +18,13 @@ in general. According to `ECMA-48`_ specification the classes are: **nF**,
 .. |u45x| replace:: ``@[\\]_^ABCDEFGHIJKLMNOPQRSTUVWXYZ``
 
 - **nF** escape sequences are mostly used for ANSI/ISO code-switching
-  mechanisms. All **nF**-class sequences start with ``ESC`` plus ASCII byte
+  mechanisms. All **nF**-class sequences start with :ansi:`ESC` plus ASCII byte
   from the range :hex:`0x20-0x2F`: ( |u2x| ).
 
   They are represented by :any:`SequenceNf` class without any specific implementations.
 
 - **fP**-class sequences can be used for invoking private control functions.
-  The characteristic property is that the first byte after ``ESC`` is always
+  The characteristic property is that the first byte after :ansi:`ESC` is always
   in range :hex:`0x30-0x3F` (|u3x|).
 
   They are represented by :any:`SequenceFp` class, which, for example,

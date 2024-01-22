@@ -1,0 +1,14 @@
+# ---------------------------
+# JetClient
+# ---------------------------
+
+- name: "http get"
+  value: 0x499c54
+- name: "http post"
+  value: 0xd9a343
+- name: "http put"
+  value: 0x6897bb
+- name: "http delete"
+  value: 0xc75450
+- name: "http patch"
+  value: 0xabb2bf

@@ -31,15 +31,6 @@ body {
 
 
 /** Font **/
-
-/*h1,*/
-/*abbr,*/
-/*.sidebar-brand-text,*/
-/*.brand,*/
-/*dl[class].field-list > dt {*/
-/*    font-family: 'Iose7ka Terminal', monospace;*/
-/*    text-transform: lowercase;*/
-/*}*/
 .hex {
     font-family: ASM, monospace;
     font-size: var(--font-size--small);
@@ -58,7 +49,6 @@ h6 { font-size: 1rem; }
 pre,
 .pre,
 kbd,
-.env,
 a.reference.internal code,
 .xterm-palette,
 .field-list dd.field-odd strong,
@@ -69,22 +59,26 @@ a.reference.internal code,
 
 #configuration dl dt {
     font-weight: bold;
-    margin-right: 1em;
 }
 
-pre, .pre, kbd,
+/*pre, .pre, kbd,
 .xterm-palette,
 article,
 article[role=main] .highlight pre {
-    /*line-height: 1.3;*/
-}
-.field-list dt, .option-list dt, dl.footnote dt, dl.glossary dt, dl.simple dt, dl:not([class]) dt {
+    line-height: 1.3;
+}*/
+.field-list dt,
+.option-list dt,
+dl.footnote dt,
+dl.glossary dt,
+dl.simple dt,
+dl:not([class]) dt {
     font-weight: bold;
 }
 
-code.literal {
+/*code.literal {
     font-size: var(--font-size--small);
-}
+}*/
 
 abbr, abbr[title] {
     text-decoration: 1px underline dashed var(--color-content-foreground);
@@ -106,14 +100,10 @@ td > * > .aux {
     display: block;
 }
 
-.env {
-    font-size: 0.9em;
+.fas:before {
+    margin-inline: 0.125em;
 }
-.env:before {
-    font-family: "ForkAwesome";
-    margin-inline: 0.25em;
-}
-body[data-theme="dark"] .env:before {
+body[data-theme="dark"] .fa-gear:before {
     color: rgb(255 228 196 / .50);
     text-shadow: -1px -1px wheat;
 }
@@ -143,7 +133,6 @@ dd p.rubric {
 .right { text-align: right; }
 .centered { text-align: center; }
 .justified { text-align: justify; }
-.mono { font-family: ElementaCyr-Bold, monospace; }
 
 article .align-center, article .align-default {
     margin-block: 0.5em 1.0em; /** more below **/
@@ -168,6 +157,7 @@ div.graphviz {
 @media not (max-width: 46em) {
     .bottom-of-page .left-details {
         white-space: nowrap;
+        /*noinspection CssUnknownProperty*/
         text-overflow: ellipsis;
         overflow-x: hidden;
     }
@@ -184,21 +174,21 @@ div.graphviz {
 
 /** Code **/
 
-.control-char {
-    /*background: var(--color-pt-control-char-background);*/
+.ansi {
+    background: var(--color-inline-code-background);
     border: 1px dashed /*dotted*/;
-    padding: 3px;
-    margin: 1px;
-    font-family: 'ASM';
+    padding: 0 3px;
+    font-family: 'ASM', sans-serif;
     font-size: .8em;
     letter-spacing: -1px;
-    vertical-align: middle;
 }
 
+/*noinspection CssUnresolvedCustomProperty*/
 .highlight {
     background: var(--color-pt-doctest-background);
     border: 1px solid var(--color-pt-doctest-border)
 }
+/*noinspection CssUnresolvedCustomProperty*/
 .output {
     border: 1px inset var(--color-pt-doctest-border);
     border-radius: 0;
@@ -222,7 +212,7 @@ div.graphviz {
 .highlight-manual div.line-block {
     padding: .625rem .875rem;
     margin: 0;
-    font-family: "Iose7ka Terminal";
+    font-family: "Iose7ka Terminal", monospace;
     font-size: var(--code-font-size);
 }
 .code-block-caption p,
@@ -232,6 +222,7 @@ div.graphviz {
     padding-inline: 0.875em;
     margin: 0
 }
+/*noinspection CssUnresolvedCustomProperty*/
 button.copybtn {
    background: var(--color-pt-doctest-background);
 }
@@ -255,7 +246,7 @@ a.reference:not(.internal):hover {
 }
 .std-term {
     font-style: italic;
-    font-family: "TeX Gyre Schola";
+    font-family: "TeX Gyre Schola", serif;
 }
 .content a.reference.internal code :not(.std-term) {
     text-decoration-style: solid;
@@ -371,6 +362,7 @@ article[role=main] dt.sig {
     margin-bottom: 0.5rem;
 }
 
+/*noinspection CssUnresolvedCustomProperty*/
 dl.class > dt,
 dl.class > dt:hover  {
     background: var(--color-pt-class-background);
@@ -378,12 +370,14 @@ dl.class > dt:hover  {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
+/*noinspection CssUnresolvedCustomProperty*/
 dl.class > * > dl.class > dt,
 dl.class > * > dl.class > dt:hover  {
     width: fit-content;
     border-left: var(--api-header-border) var(--color-pt-class-border);
     border-top: none;
 }
+/*noinspection CssUnresolvedCustomProperty*/
 dl.function > dt,
 dl.function > dt:hover  {
     background: var(--color-pt-module-method-background);
@@ -391,6 +385,7 @@ dl.function > dt:hover  {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
+/*noinspection CssUnresolvedCustomProperty*/
 dl.exception > dt,
 dl.exception > dt:hover {
     background: var(--color-pt-exception-background);
@@ -398,12 +393,14 @@ dl.exception > dt:hover {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
+/*noinspection CssUnresolvedCustomProperty*/
 dl.class > * > dl.exception > dt,
 dl.class > * > dl.exception > dt:hover {
     width: fit-content;
     border-left: var(--api-header-border) var(--color-pt-exception-border);
     border-top: none;
 }
+/*noinspection CssUnresolvedCustomProperty*/
 dl.data > dt,
 dl.data > dt:hover {
     background: var(--color-pt-data-background);
@@ -411,32 +408,36 @@ dl.data > dt:hover {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
+/*noinspection CssUnresolvedCustomProperty*/
 dl.attribute > dt,
 dl.attribute > dt:hover {
     width: fit-content;
     background: var(--color-pt-data-background);
     border-left: var(--api-header-border) var(--color-pt-data-border);
 }
+
+/*noinspection CssUnresolvedCustomProperty*/
 dl.property > dt,
 dl.property > dt:hover {
     width: fit-content;
     background: var(--color-pt-data-background);
     border-left: var(--api-header-border) var(--color-pt-data-border);
 }
+/*noinspection CssUnresolvedCustomProperty*/
 dl.method > dt,
 dl.method > dt:hover {
     width: fit-content;
     background: var(--color-pt-method-background);
     border-left: var(--api-header-border) var(--color-pt-method-border);
 }
+/*noinspection CssUnresolvedCustomProperty*/
 #configuration dl > dt,
 #configuration dl > dt:hover {
-    width: fit-content;
     background: var(--color-pt-config-background);
     border-left: var(--api-header-border) var(--color-pt-config-border);
-    text-indent: 1em;
 }
 
+/*noinspection CssUnresolvedCustomProperty*/
 dl.class > dt.sig:target,
 dl.function > dt.sig:target,
 dl.exception > dt.sig:target,
@@ -469,6 +470,7 @@ dl.method > dt.sig:target,
     font-weight: bold;
     color: var(--color-api-keyword);
 }
+/*noinspection CssUnresolvedCustomProperty*/
 :target .sig-name {
     color: var(--color-pt-highlight-target-foreground);
 }
@@ -626,43 +628,51 @@ table.core-api-refs td {
 
 /** Badges **/
 
+/*noinspection CssUnresolvedCustomProperty*/
 span.badge {
     padding: 2px 5px;
     width: 10px;
     text-align: center;
-    font-family: 'ASM-Bold';
+    font-family: 'ASM-Bold', sans-serif;
     font-weight: 700;
     vertical-align: middle;
     /*border: thin outset var(--color-pt-badge-border, #333);;*/
     /*border-radius: 5px;*/
     color: #666;
     font-size: 95%;
-    text-shadow: 1px 1px 0px var(--color-pt-badge-text-shadow, black);
+    text-shadow: 1px 1px 0 var(--color-pt-badge-text-shadow, black);
 }
+/*noinspection CssUnresolvedCustomProperty*/
 span.badge-new, span.badge-update {
     /*background: var(--color-pt-badge-background, #7fff7f40);*/
     color: var(--color-pt-badge-foreground, #7fff7f);
 }
+/*noinspection CssUnresolvedCustomProperty*/
 span.badge-fix {
     /*background: var(--color-pt-badge-background, #FF7F7F40);*/
     color: var(--color-pt-badge-foreground, #FF7F7F);
 }
+/*noinspection CssUnresolvedCustomProperty*/
 span.badge-doc {
     /*background: var(--color-pt-badge-background, #ffaf5f40);*/
     color: var(--color-pt-badge-foreground, #ffaf5f);
 }
+/*noinspection CssUnresolvedCustomProperty*/
 span.badge-test {
     /*background: var(--color-pt-badge-background, #be79ff40);*/
     color: var(--color-pt-badge-foreground, #be79ff);
 }
+/*noinspection CssUnresolvedCustomProperty*/
 span.badge-refactor {
     /*background: var(--color-pt-badge-background, #5f7fff40);*/
     color: var(--color-pt-badge-foreground, #5f7fff);
 }
+/*noinspection CssUnresolvedCustomProperty*/
 span.badge-rework {
     /*background: var(--color-pt-badge-background, #ffd15e40);*/
     color: var(--color-pt-badge-foreground, #ffdf5f);
 }
+/*noinspection CssUnresolvedCustomProperty*/
 span.badge-ci-cd {
     /*background: var(--color-pt-badge-background, #ffd15e40);*/
     color: var(--color-pt-badge-foreground, #dfdfdf);
@@ -713,4 +723,12 @@ table.presets aside.footnote {
     flex-direction: row;
     align-items: flex-start;
     margin: 0.5rem;
+}
+
+
+/** misc **/
+
+.colorbox {
+    padding: 0 0.4em;
+    border: 1px outset var(--color-content-foreground);
 }

@@ -52,7 +52,7 @@ def make_color_256(code: int, target: ColorTarget = ColorTarget.FG) -> SequenceS
 
     :param code:  Index of the color in the palette, 0 -- 255.
     :param target:
-    :example:     ``ESC [38;5;141m``
+    :example:     :ansi:`ESC`\\ ``[38;5;141m``
     """
 
     SequenceSGR.validate_extended_color(code)
@@ -79,7 +79,7 @@ def make_color_rgb(
     :param g:  Blue channel value, 0 -- 255.
     :param b:  Green channel value, 0 -- 255.
     :param target:
-    :example:  ``ESC [38;2;255;51;0m``
+    :example:  :ansi:`ESC`\\ ``[38;2;255;51;0m``
     """
 
     [SequenceSGR.validate_extended_color(color) for color in [r, g, b]]
@@ -94,7 +94,7 @@ def make_reset_cursor() -> SequenceCSI:
     Create :abbr:`CUP (Cursor Position)` sequence without params, which moves
     the cursor to top left corner of the screen. See `make_set_cursor()`.
 
-    :example:  ``ESC [H``
+    :example:  :ansi:`ESC`\\ ``[H``
     """
     return make_set_cursor()
 
@@ -107,10 +107,11 @@ def make_set_cursor(line: int = 1, column: int = 1) -> SequenceCSI:
 
     .. note ::
         Both sequence params are optional and defaults to 1 if omitted, e.g.
-        ``ESC [;3H`` is effectively ``ESC [1;3H``, and ``ESC [4H`` is the
-        same as ``ESC [4;H`` or ``ESC [4;1H``.
+        :ansi:`ESC`\\ ``[;3H`` is effectively :ansi:`ESC`\\ ``[1;3H``, and
+        :ansi:`ESC`\\ ``[4H`` is the same as :ansi:`ESC`\\ ``[4;H`` or
+        :ansi:`ESC`\\ ``[4;1H``.
 
-    :example:  ``ESC [9;15H``
+    :example:  :ansi:`ESC`\\ ``[9;15H``
     """
     SequenceCSI.validate_line_abs_value(line)
     SequenceCSI.validate_column_abs_value(column)
@@ -123,7 +124,7 @@ def make_move_cursor_up(lines: int = 1) -> SequenceCSI:
     specified amount of `lines`. If the cursor is already at the top of the
     screen, this has no effect.
 
-    :example:  ``ESC [2A``
+    :example:  :ansi:`ESC`\\ ``[2A``
     """
     SequenceCSI.validate_line_rel_value(lines)
     return SequenceCSI("A", lines, abbr="CUU")
@@ -135,7 +136,7 @@ def make_move_cursor_down(lines: int = 1) -> SequenceCSI:
     specified amount of `lines`. If the cursor is already at the bottom of the
     screen, this has no effect.
 
-    :example:  ``ESC [3B``
+    :example:  :ansi:`ESC`\\ ``[3B``
     """
     SequenceCSI.validate_line_rel_value(lines)
     return SequenceCSI("B", lines, abbr="CUD")
@@ -147,7 +148,7 @@ def make_move_cursor_left(columns: int = 1) -> SequenceCSI:
     specified amount of `columns`. If the cursor is already at the left edge of
     the screen, this has no effect.
 
-    :example:  ``ESC [4D``
+    :example:  :ansi:`ESC`\\ ``[4D``
     """
     SequenceCSI.validate_column_rel_value(columns)
     return SequenceCSI("D", columns, abbr="CUB")
@@ -159,7 +160,7 @@ def make_move_cursor_right(columns: int = 1) -> SequenceCSI:
     specified amount of `columns`. If the cursor is already at the right edge
     of the screen, this has no effect.
 
-    :example:  ``ESC [5C``
+    :example:  :ansi:`ESC`\\ ``[5C``
     """
     SequenceCSI.validate_column_rel_value(columns)
     return SequenceCSI("C", columns, abbr="CUF")
@@ -170,7 +171,7 @@ def make_move_cursor_up_to_start(lines: int = 1) -> SequenceCSI:
     Create :abbr:`CPL (Cursor Previous Line)` sequence that moves the cursor
     to the beginning of the line and up by specified amount of `lines`.
 
-    :example:  ``ESC [2F``
+    :example:  :ansi:`ESC`\\ ``[2F``
     """
     SequenceCSI.validate_line_rel_value(lines)
     return SequenceCSI("F", lines, abbr="CPL")
@@ -181,7 +182,7 @@ def make_move_cursor_down_to_start(lines: int = 1) -> SequenceCSI:
     Create :abbr:`CNL (Cursor Next Line)` sequence that moves the cursor
     to the beginning of the line and down by specified amount of `lines`.
 
-    :example:  ``ESC [3E``
+    :example:  :ansi:`ESC`\\ ``[3E``
     """
     SequenceCSI.validate_line_rel_value(lines)
     return SequenceCSI("E", lines, abbr="CNL")
@@ -192,7 +193,7 @@ def make_set_cursor_line(line: int = 1) -> SequenceCSI:
     Create :abbr:`VPA (Vertical Position Absolute)` sequence that sets
     cursor vertical position to `line`.
 
-    :example:       ``ESC [9d``
+    :example:       :ansi:`ESC`\\ ``[9d``
     """
     SequenceCSI.validate_line_abs_value(line)
     return SequenceCSI("d", line, abbr="VPA")
@@ -204,7 +205,7 @@ def make_set_cursor_column(column: int = 1) -> SequenceCSI:
     cursor horizontal position to `column`.
 
     :param column:  New cursor horizontal position.
-    :example:       ``ESC [15G``
+    :example:       :ansi:`ESC`\\ ``[15G``
     """
     SequenceCSI.validate_column_abs_value(column)
     return SequenceCSI("G", column, abbr="CHA")
@@ -221,7 +222,7 @@ def make_query_cursor_position() -> SequenceCSI:
         Sending this sequence to the terminal may **block** infinitely. Consider
         using a thread or set a timeout for the main thread using a signal.
 
-    :example:   ``ESC [6n``
+    :example:   :ansi:`ESC`\\ ``[6n``
     """
 
     return SequenceCSI("n", 6, abbr="QCP")
@@ -244,7 +245,7 @@ def make_erase_in_display(mode: int = 0) -> SequenceCSI:
                      - If set to 2, clear the entire screen.
                      - If set to 3, clear terminal history (xterm only).
 
-    :example:     ``ESC [0J``
+    :example:     :ansi:`ESC`\\ ``[0J``
     """
     if not (0 <= mode <= 3):
         raise ValueError(f"Invalid mode: {mode}, expected [0;3]")
@@ -256,7 +257,7 @@ def make_clear_display_after_cursor() -> SequenceCSI:
     Create :abbr:`ED (Erase in Display)` sequence that clears a part of the screen
     from cursor to the end of the screen. Cursor position does not change.
 
-    :example:     ``ESC [0J``
+    :example:     :ansi:`ESC`\\ ``[0J``
     """
     return make_erase_in_display(0)
 
@@ -266,7 +267,7 @@ def make_clear_display_before_cursor() -> SequenceCSI:
     Create :abbr:`ED (Erase in Display)` sequence that clears a part of the screen
     from cursor to the beginning of the screen. Cursor position does not change.
 
-    :example:     ``ESC [1J``
+    :example:     :ansi:`ESC`\\ ``[1J``
     """
     return make_erase_in_display(1)
 
@@ -276,7 +277,7 @@ def make_clear_display() -> SequenceCSI:
     Create :abbr:`ED (Erase in Display)` sequence that clears an entire screen.
     Cursor position does not change.
 
-    :example:     ``ESC [2J``
+    :example:     :ansi:`ESC`\\ ``[2J``
     """
     return make_erase_in_display(2)
 
@@ -287,7 +288,7 @@ def make_clear_history() -> SequenceCSI:
     invisible lines on the top that can be scrolled back down. Cursor position
     does not change. This is a xterm extension.
 
-    :example:     ``ESC [3J``
+    :example:     :ansi:`ESC`\\ ``[3J``
     """
     return make_erase_in_display(3)
 
@@ -305,7 +306,7 @@ def make_erase_in_line(mode: int = 0) -> SequenceCSI:
                      - If set to 1, clear from cursor to the beginning of the line.
                      - If set to 2, clear the entire line.
 
-    :example:     ``ESC [0K``
+    :example:     :ansi:`ESC`\\ ``[0K``
     """
     if not (0 <= mode <= 2):
         raise ValueError(f"Invalid mode: {mode}, expected [0;2]")
@@ -317,7 +318,7 @@ def make_clear_line_after_cursor() -> SequenceCSI:
     Create :abbr:`EL (Erase in Line)` sequence that clears a part of the line
     from cursor to the end of the same line. Cursor position does not change.
 
-    :example:     ``ESC [0K``
+    :example:     :ansi:`ESC`\\ ``[0K``
     """
     return make_erase_in_line(0)
 
@@ -328,7 +329,7 @@ def make_clear_line_before_cursor() -> SequenceCSI:
     from cursor to the beginning of the same line. Cursor position does not
     change.
 
-    :example:     ``ESC [1K``
+    :example:     :ansi:`ESC`\\ ``[1K``
     """
     return make_erase_in_line(1)
 
@@ -338,7 +339,7 @@ def make_clear_line() -> SequenceCSI:
     Create :abbr:`EL (Erase in Line)` sequence that clears an entire line
     at the cursor position. Cursor position does not change.
 
-    :example:     ``ESC [2K``
+    :example:     :ansi:`ESC`\\ ``[2K``
     """
     return make_erase_in_line(2)
 
@@ -408,14 +409,14 @@ def make_hyperlink() -> SequenceOSC:
 
 def make_save_cursor_position() -> SequenceFp:
     """
-    :example:  ``ESC 7``
+    :example:  :ansi:`ESC`\\ ``7``
     """
     return SequenceFp("7", abbr="DECSC")
 
 
 def make_restore_cursor_position() -> SequenceFp:
     """
-    :example:  ``ESC 8``
+    :example:  :ansi:`ESC`\\ ``8``
     """
     return SequenceFp("8", abbr="DECRC")
 
@@ -436,12 +437,15 @@ def compose_clear_line_fill_bg(basis: SequenceSGR, line: int = None, column: int
 
 def compose_hyperlink(url: str, label: str = None) -> str:
     """
-    Syntax: ``(OSC 8 ; ;) (url) (ST) (label) (OSC 8 ; ;) (ST)``, where
-    `OSC <SequenceOSC>` is ``ESC ]``.
+    Syntax::
+
+        (OSC 8 ; ;) (url) (ST) (label) (OSC 8 ; ;) (ST)
+
+    where `OSC <SequenceOSC>` is :ansi:`ESC]`, and `ST <SequenceST>` is :ansi:`ESC\\\\`.
 
     :param url:
     :param label:
-    :example:  ``ESC ]8;;http://localhost ESC \\Text ESC ]8;; ESC \\``
+    :example:  :ansi:`ESC ]8;;http://localhost ESC \\\\Text ESC ]8;; ESC \\\\`
     """
 
     return (
@@ -479,8 +483,8 @@ def get_terminal_width(fallback: int = 80, pad: int = 2) -> int:  # pragma: no c
     Return current terminal width with an optional "safety buffer", which
     ensures that no unwanted line wrapping will happen.
 
-    :param fallback: Default value when shutil is unavailable and environment
-                     variable COLUMNS is unset.
+    :param fallback: Default value when shutil is unavailable and :envvar:`COLUMNS`
+                     is unset.
     :param pad:      Additional safety space to prevent unwanted line wrapping.
     """
     try:

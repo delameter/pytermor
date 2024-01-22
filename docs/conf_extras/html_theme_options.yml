@@ -53,8 +53,13 @@ light_css_variables:
 #  color-pt-badge-background: none
   color-pt-badge-foreground: inherit
   color-pt-badge-text-shadow: inherit
+  color-admonition-title: hsl(0, 0%, 56%)
+  color-admonition-title-background: hsl(0, 0%, 56%, .10)
+  color-admonition-title--important: hsl(10,100%,66%)
+  color-admonition-title-background--important: hsl(10,100%,66%,.1)
+  color-admonition-title-background--warning: rgba(255,145,0,.1)
   color-admonition-title--admonition-todo: hsl(54, 85%, 50%)
-  color-admonition-title-background--admonition-todo: hsla(54, 68%, 47%, .10);
+  color-admonition-title-background--admonition-todo: hsla(54, 68%, 47%, .10)
 
 dark_css_variables:
   color-internal-reference: '#ffffff'
@@ -93,5 +98,9 @@ dark_css_variables:
 #  color-pt-badge-background: black
   color-pt-badge-foreground: inherit
   color-pt-badge-text-shadow: none
-  color-admonition-title--admonition-todo: hsl(54, 85%, 50%)
-  color-admonition-title-background--admonition-todo: hsla(54, 68%, 47%, .10);
+#  color-admonition-title-background: inherit
+#  color-admonition-title--important: inherit
+#  color-admonition-title-background--important: inherit
+#  color-admonition-title-background--warning: inherit
+#  color-admonition-title--admonition-todo: inherit
+#  color-admonition-title-background--admonition-todo: inherit

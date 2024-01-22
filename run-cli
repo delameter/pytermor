@@ -19,7 +19,7 @@ main() {
     local -a INTERPRETER=(python -q)
     if [[ $# -eq 0 ]] ; then
         echo "No args: checking if ipython is installed"
-        if venv-demo/bin/pip show ipython &>/dev/null ; then
+        if [[ -f venv-demo/bin/ipython ]] ; then
             INTERPRETER=(ipython)
         else
             echo "ipython not found, launching default interpreter"

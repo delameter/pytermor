@@ -18,8 +18,10 @@ def get() -> dict:
         "figure_align"           : "H",                                        # text wrapping
         "fncychap"               : read_x('latex_fncychap.sty'),               # chapter start pages
         #'fontpkg'                : '\\usepackage{amsmath,amsfonts,amssymb,amsthm}',
-        # 'fontpkg'                : '\\usepackage[defaultsans]{lato}',
+        # 'fontpkg'               : '\\usepackage[defaultsans]{lato}',        # eliminates bold monospace chars
         "printindex"             : r"\footnotesize\raggedright\printindex",    # decrease font for index
+        # "releasename"            : "",  ## does not work
+        'sphinxsetup'            : ', '.join(f'{k}={v}' for k, v in dict().items()),
 
     }
 

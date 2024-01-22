@@ -1,54 +1,139 @@
 digraph {
-   rankdir = TB;
-   nodesep = .2;
-   ranksep = .33;
-   splines=ortho;
-   ratio=expand;
-   size="8,6";
+  rankdir = LR
+  nodesep = .25
+  ranksep = .5
+  splines = ortho
 
-   node [
-      fontname="Pragmasevka"
-       fontsize=12
-       margin=".125,.125"
-       style="filled"
-       color="#000000"
-       fillcolor="#fbf8f8"
-   ];
-   edge [fontname = "Pragmasevka"  fontsize=10 ];
+  # nodes ------------------------------------------------------------------------------------------
 
-   start [shape=Mrecord label="START" style="filled,bold" fontname="ASM-Bold" fontsize=16 margin=".5,0"]
-   is_config_force [shape=diamond label="<config.force>\nis set?"]
-   is_a_tty [shape=diamond label="is a tty?" tailport=s]
-   is_true [shape=diamond label="TERM=xterm-256color &&\n(COLORTERM=truecolor ||\nCOLORTERM=24bit) ?"]
-   is_xterm [shape=diamond label="TERM=xterm ?"]
-   is_256 [shape=diamond label="TERM=*-256color ?"]
-   is_16 [shape=diamond label="TERM=xterm-color ?" ]
+  {
+    node [
+      shape = "point"
+      margin = 0
+      peripheries = 2
+      penwidth = 4
+      width = 0.1
+      height = 0.1
+      label = ""
+    ]
+    { rank=min start }
+    { rank=max end }
+  }
 
-   node [margin=".25,.125" style="filled,bold" fontname="ASM-Bold" ]
+  {
+    node [
+      style="filled"
+      color = "#000000"
+      fillcolor = "#fbf8f8"
+      penwidth = 1
+      height = 1
+      fixedsize=1
+      width = 2
+      margin = 0
+      fontsize = 12
+    ]
 
-   set_no_ansi [shape=Mrecord label="set\nNO_ANSI"]
-   set_true_color [shape=Mrecord label="set\nTRUE_COLOR"]
-   set_256 [shape=Mrecord label="set\nXTERM_256"]
-   set_16 [shape=Mrecord label="set\nXTERM_16"]
-   set_config_force [shape=Mrecord label="set\n\<config.force\>"]
-   set_config_default [shape=Mrecord label="set\n\<config.default\>"]
+    {
+      rank = same
+      node [
+        shape = diamond
+        width = 3.5
+        fontname = "Courier"
+      ]
+      is_config_force   [ label = "is\n<config.force>\nset?" ]
+      is_a_tty          [ label = "is output\npiped or\nredirected?" ]
+      is_true           [
+        label = "TERM = xterm-256color &&\nCOLORTERM &isin; [truecolor,24bit]?"
+        fontsize = 10
+      ]
+      is_256            [ label = "TERM &asymp; *-256color" ]
+      is_16             [ label = "TERM = xterm-color" ]
+      is_xterm          [ label = "TERM = xterm" ]
+    }
 
-   edge [labeldistance=1.5 labelangle=-45];
+    {
+      rank = same
+      node [
+        shape = box
+        width = 1.8
+        fontname = "Courier"
+      ]
+      set_config_force  [label = "set from\n<config.force>"]
+      set_no_ansi       [label = "set NO_ANSI"]
+      set_true_color    [label = "set TRUE_COLOR"]
+      set_256           [label = "set XTERM_256"]
+      set_16            [label = "set XTERM_16"]
+      set_no_ansi_2     [label = "set NO_ANSI"]
+      set_config_default [label = "set from\n<config.default>"]
+    }
+  }
 
-   start -> is_config_force []
-   is_config_force -> is_a_tty [taillabel=no ]
-   is_a_tty -> is_true [taillabel=yes ]
-   is_true -> is_256 [taillabel=no ]
-   is_256 -> is_16 [taillabel=no ]
-   is_16 -> is_xterm [taillabel=no]
+  # START/END edges ------------------------------------------------------------------------------------------
 
-   edge [labeldistance=1.5 labelangle=45];
+  {
+    edge [
+      fontname = "Arial"
+      fontsize = 12
+      minlen = 2
+      labeldistance = 4
+      labelangle = 180
+    ]
+    start -> is_config_force [ taillabel = "START" ]
+    set_config_default -> end [ headlabel = "END" ]
 
-   is_xterm -> set_no_ansi [taillabel=yes minlen=1]
-   is_config_force -> set_config_force [taillabel=yes minlen=6 tailport=e]
-   is_a_tty -> set_no_ansi [taillabel=no]
-   is_true -> set_true_color [taillabel=yes minlen=4 ]
-   is_256 -> set_256 [taillabel=yes minlen=3]
-   is_16 -> set_16 [taillabel=yes minlen=2 ]
-   is_xterm -> set_config_default [taillabel=no]
+
+    edge [
+      constraint = 0
+      arrowsize = 0.5
+    ]
+    set_config_force -> end
+    set_no_ansi -> end
+    set_true_color -> end
+    set_256 -> end
+    set_16 -> end
+    set_no_ansi_2 -> end
+
+  }
+
+  # YES/NO edges ------------------------------------------------------------------------------------------
+
+  {
+    edge [
+      minlen = 1
+      fontname = "sans-serif"
+      fontsize = 12
+      labelangle = 75
+      penwidth = 1.5
+    ]
+
+    edge [
+      fillcolor = green
+      color = darkgreen
+      fontcolor = darkgreen
+    ]
+    edge [ taillabel = "yes" ]
+    is_config_force -> set_config_force
+    is_a_tty -> set_no_ansi
+    edge [ taillabel = "true" ]
+    is_true -> set_true_color
+    is_256 -> set_256
+    is_16 -> set_16
+    is_xterm -> set_no_ansi_2
+
+    edge [
+      fillcolor = red
+      color = darkred
+      labeldistance = 2.5
+      fontcolor = darkred
+    ]
+    edge [ taillabel = "no" ]
+    is_config_force -> is_a_tty
+    is_a_tty -> is_true
+    edge [ taillabel = "false" ]
+    is_true -> is_256
+    is_256 -> is_16
+    is_16 -> is_xterm
+    is_xterm -> set_config_default
+
+  }
 }

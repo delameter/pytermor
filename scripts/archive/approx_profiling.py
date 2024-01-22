@@ -16,11 +16,9 @@ import timeit
 import typing as t
 from math import trunc
 
-import line_profiler
 from _totalsize import total_size
 
 import pytermor as pt
-from line_profiler import profile
 
 puf = pt.StaticFormatter(
     max_value_len=4,

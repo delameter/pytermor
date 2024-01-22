@@ -1,4 +1,4 @@
-FROM delameter/python-texlive:3.10-2022-extra AS build-hatch
+FROM delameter/python-texlive:1.3.0 AS build-hatch
 
 ARG UID=1000
 ARG GID=1000

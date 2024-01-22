@@ -1,0 +1,147 @@
+# placeholders:
+#          SIZE=$SIZE
+#    EDGE_COLOR=$EDGE_COLOR
+#   LABEL_COLOR=$LABEL_COLOR
+#    CORE_COLOR=$CORE_COLOR
+
+strict digraph G {
+    dpi = 150
+  # concentrate = true
+    rankdir = BT
+    #ordering = out
+    #TBbalance = min
+    #bgcolor=red
+    #clusterrank = global
+    #compound=true
+     ratio=fill
+    size="$SIZE"
+    splines = ortho
+    outputorder = nodesfirst
+    pack = 55
+    packmode = array_t4
+    nodesep=.8
+    ranksep=0.5
+    pad = .125
+    fontname="Arial"
+   # page="$SIZE"
+
+
+    style="rounded"
+    color="#f0f0f080"
+
+    edge [dir="back"]
+    node [
+        fontname="monospace"
+        style="filled,solid"
+        margin="0.0,0.0"
+        fontsize=12
+        fixedsize=true
+        width=1.2
+        height=.5
+        penwidth=.5
+        fillcolor=none
+        shape="rect"
+    ];
+
+    subgraph mid {
+
+        penwidth=0
+        margin=0
+        cval[ fillcolor="#FFFFFF80"];
+    }
+
+    subgraph cluster_low {
+        bgcolor="#fafafa80"
+        label="Low AL domain"
+        fontsize=16
+        labelloc="t"
+        labeljust="c"
+
+        penwidth=20
+        margin=50
+
+        node [group="low" ]
+
+        {
+            node[penwidth=1 fillcolor="$CORE_COLOR" fontcolor="$LABEL_COLOR"   shape="ellipse"];
+            color
+        }
+        {
+            ansi
+            border
+            filter
+            term
+
+        }
+    }
+    subgraph cluster_high {
+        bgcolor="#fafafa80"
+        labelloc="b"
+        labeljust="c"
+        label="High AL domain"
+        fontsize=16
+        penwidth=20
+        margin=20
+
+        node [group="high"]
+        {
+            node[ penwidth=1 fillcolor="$CORE_COLOR"  fontcolor="$LABEL_COLOR"     shape="ellipse"];
+            renderer
+            style
+            text
+        }
+
+        numfmt
+        template
+    }
+
+    edge [
+        color="$EDGE_COLOR"
+        fillcolor=white
+    ];
+
+    {
+        edge[
+            penwidth=.5 color=gray weight=1 minlen=1 style=dashed
+            #ltail=cluster_low
+        ]
+        ansi -> renderer
+        color -> renderer
+        color -> style
+        ansi -> template
+        color -> template
+        term -> template
+        color -> text
+        term -> text
+    }
+    {
+        edge[penwidth=1 ]
+        ansi -> color
+        term -> color
+        color -> cval[weight=50 minlen=1]
+        ansi -> filter
+        term -> filter
+        style -> numfmt
+        text -> numfmt
+        style -> renderer
+        cval -> style[weight=50 minlen=1]
+        renderer -> template
+        text -> template
+        style -> template
+        ansi -> term
+        renderer -> text
+        style -> text
+    }
+    subgraph cluster_legend {
+        margin=30
+        label="Legend"
+        fontsize=16
+        labelloc="t"
+        labeljust="c"
+        penwidth=1
+        node [margin=.3 fontsize=10 fontname="Arial"]
+        core[ penwidth=1 fillcolor="$CORE_COLOR" fontcolor="$LABEL_COLOR"   shape="ellipse" label="core\nmodule"];
+        support[ label="support\nmodule" penwidth=1 ];
+        support -> core
+    }
+}

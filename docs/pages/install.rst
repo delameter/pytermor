@@ -18,6 +18,14 @@ required.
 
    $ python -m pip install pytermor
 
+If approximation time is essential, there is an option to install few extra
+dependencies (``numpy`` and ``scipy``), which allows to perform the approximation
+about 10x times faster (`details <guide.approximators>`):
+
+.. code-block:: console
+
+   $ python -m pip install 'pytermor[fast]'
+
 .. _install.demo:
 
 ---------------------------

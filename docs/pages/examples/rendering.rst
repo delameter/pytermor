@@ -1,3 +1,5 @@
+.. _examples.rendering:
+
 #################
    Rendering
 #################
@@ -13,8 +15,6 @@ sequence abstractions themselves, as well as a large set of filters for
 chain-like application.
 
 
-.. _rendering-high-level:
-
 -----------------------------------
 High-level
 -----------------------------------
@@ -24,7 +24,7 @@ pipe an output of ``git`` and apply filters to do the job (yet), instead we
 copy-paste the output to python source code files as string literals and will try
 to add a formatting using all primary approaches.
 
-.. code-block:: plain
+.. code-block:: text
    :caption: Part of the input
 
     These are common Git commands used in various situations:
@@ -236,11 +236,12 @@ Regexp group substitution
 A little bit artificial example, but this method can be applied to
 solve real tasks nevertheless. The trick is to apply the desired style
 to a string containing special characters like ``r"\1"``, which
-will represent regexp group 1 after passing it into ``re.sub()``. The actual
-string being passed as 2nd argument will be ``" ESC [ 32m \1 ESC [ m"``. Regexp
-substitution function will replace all ``"\1"`` with a matching group in every
-line of the input, therefore the match will end up being surrounded with
-(already rendered) SGRs responsible for green text color, ???, PROFIT::
+will represent regexp group 1 after passing it into ``re.sub()``.
+The actual string being passed as 2nd argument will be
+:ansi:`ESC[32m\1`\ :ansi:`ESC[m`. Regexp substitution function
+will replace all ``\1`` with a matching group in every line of the input,
+therefore the match will end up being surrounded with(already rendered)
+SGRs responsible for green text color, ???, PROFIT::
 
     import re
     import pytermor as pt
@@ -325,8 +326,6 @@ value is a `FT`), then (#19) the refilter is applied and result is printed.
     | |nbspt3|\ :lime:`tag`\ |nbspt15|\ Create, list, delete or verify a tag object signed with GPG
 
 
-.. _rendering-low-level:
-
 -----------------------------------
 Low-level
 -----------------------------------
@@ -347,12 +346,12 @@ methods named ``compose_*`` return *str*\ ings which are several sequences
 rendered and concatenated.
 
 In the next example we create an SGR which sets background color to
-:bgteal:`@`\ :hex:`#008787` (highlighted line) by specifying :term:`xterm-256`
+:colorbox:`008787` (highlighted line) by specifying :term:`xterm-256`
 code 30 (see `guide.xterm-256-palette`), then compose a string which includes:
 
-    - :abbr:`CUP (Cursor Position)` instruction: ``ESC [1;1H``;
-    - SGR instruction with our color: ``ESC [48;5;30m``;
-    - :abbr:`EL (Erase in Line)` instruction: ``ESC [0K``.
+    - :abbr:`CUP (Cursor Position)` instruction: :ansi:`ESC[1;1H`;
+    - SGR instruction with our color: :ansi:`ESC[48;5;30m`;
+    - :abbr:`EL (Erase in Line)` instruction: :ansi:`ESC[0K`.
 
 Effectively this results in a whole terminal line colored with a specified color,
 and note that we did not fill the line with spaces or something like that --
@@ -418,9 +417,9 @@ which ensures that they can be safely evaluated in f-strings even without
 format specifying.
 
 :def:`Resetter`, of closing sequence, in this case can vary; for example, it can
-be "hard-reset" sequence, which resets the terminal format stack completely (``ESC
-[m``), or it can be text color reset sequence (``ESC [39m``), or even more exotic
-ones.
+be "hard-reset" sequence, which resets the terminal format stack completely (\
+:ansi:`ESC[m`), or it can be text color reset sequence (:ansi:`ESC[39m`),
+or even more exotic ones.
 
 `SeqIndex` class contains prepared sequences which can be inserted into f-string
 directly without any modifications::
@@ -509,5 +508,6 @@ Or doing the same with high-level abstractions instead::
 
     The last example also automatically resets the terminal back to normal
     state, so that the text that is printed afterwards doesn't have any formatting,
-    in contrast with other examples requiring to assemble and print `SeqIndex.COLOR_OFF`
-    and `SeqIndex.BG_COLOR_OFF` (or just `SeqIndex.RESET`) at the end (which is omitted).
+    in contrast with other examples requiring to assemble and print
+    `COLOR_OFF <SeqIndex.COLOR_OFF>` and `BG_COLOR_OFF <SeqIndex.BG_COLOR_OFF>`
+    (or just `RESET <SeqIndex.RESET>`) at the end (which is omitted).

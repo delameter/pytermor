@@ -7438,6 +7438,9 @@ colors:
   - name: yankees-blue
     original_name: Yankees blue
     value: 0x1c2841
+  - name: yasuo-blue
+    original_name: yasuo blue
+    value: 0x407191
   - name: yellow
     original_name: yellow
     value: 0xffff14

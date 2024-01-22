@@ -25,7 +25,6 @@ from pytermor import (
     apply_filters,
     get_qname,
 )
-from pytermor.common import isimmutable, joincoal
 from .fixtures import *  # noqa
 
 str_filters = [

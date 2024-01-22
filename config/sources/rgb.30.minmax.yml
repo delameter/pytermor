@@ -1,0 +1,29 @@
+# ---------------------------
+# minmax channel value colors
+# ---------------------------
+
+- name: "Full white"
+  value: 0xffffff
+  aliases:
+    - True white
+    - Pure white
+    - Doctor (Atlassian)
+
+- name: "Full black"
+  value: 0x000000
+  aliases:
+    - True black
+    - Pure black
+
+- name: "Full red"
+  value: 0xff0000
+- name: "Full green"
+  value: 0x00ff00
+- name: "Full blue"
+  value: 0x0000ff
+- name: "Full yellow"
+  value: 0xffff00
+- name: "Full cyan"
+  value: 0x00ffff
+- name: "Full magenta"
+  value: 0xff00ff

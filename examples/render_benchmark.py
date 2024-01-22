@@ -18,7 +18,7 @@ import pytermor.common
 import pytermor.style
 import pytermor.term
 from pytermor import NOOP_STYLE, Fragment, ColorTarget
-from pytermor.renderer import NoOpRenderer
+from pytermor.renderer import NoopRenderer
 
 
 def percentile(
@@ -173,7 +173,7 @@ class RenderBemchmarker:
                 sample_ = dst(src, self.st)
         else:
             if dst is str:
-                return pt.render(src, renderer=NoOpRenderer())
+                return pt.render(src, renderer=NoopRenderer())
             sample_ = dst(src)
 
         sample_.render = self._render_wrapper(sample_.render)

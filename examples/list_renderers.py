@@ -96,7 +96,7 @@ class ListRenderer:
             (pt.renderer.SgrDebugger(om), per_sgr_width),
             (pt.renderer.TmuxRenderer(), per_sgr_width),
             (pt.renderer.HtmlRenderer(), per_sgr_width),
-            (pt.renderer.NoOpRenderer(), per_sgr_width // 2),
+            (pt.renderer.NoopRenderer(), per_sgr_width // 2),
         ]
 
     def _print_help(self, exit_code: int = None):

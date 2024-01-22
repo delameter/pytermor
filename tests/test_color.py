@@ -13,7 +13,8 @@ from dataclasses import dataclass
 from typing import overload
 
 import pytest
-from _pytest.mark import ParameterSet
+
+xfail = pytest.mark.xfail
 
 from pytermor import (
     HSV,
@@ -579,17 +580,17 @@ class TestApproximation:
         assert Color256.find_closest(0x800000).int != 0x800000
 
     @pytest.mark.parametrize(
-        "diff_fn, expected",
+        "space, expected",
         ids=format_test_params,
         argvalues=[
-            (RGB.diff, 0x4C9085),
-            (HSV.diff, 0x5DA493),
-            (XYZ.diff, 0x6D9A79),
-            (LAB.diff, 0x3D9973),
+            (RGB, 0x4C9085),
+            (HSV, 0x5DA493),
+            (XYZ, 0x6D9A79),
+            (LAB, 0x3D9973),
         ],
     )
-    def test_color_diff_fn_change(self, diff_fn: color._ColorDiffFn, expected: int):
-        ColorRGB._approximator.assign_diff_fn(diff_fn)
+    def test_different_spaces(self, space: t.Type[IColorValue], expected: int):
+        ColorRGB._approximator.assign_space(space)
         assert color.find_closest(0x50A080, ColorRGB).rgb == expected
 
 
@@ -602,21 +603,6 @@ class TestColor:
         assert len([*ctype.names()]) == len([*ctype._registry.names()])
 
 
-@overload
-def get_underline_not_impl_param() -> ParameterSet:
-    ...
-
-
-@overload
-def get_underline_not_impl_param(ub: t.Type[Color] | None) -> ParameterSet:
-    ...
-
-
-def get_underline_not_impl_param(*args: t.Any) -> ParameterSet:
-    params = (*args, ColorTarget.UNDERLINE, None)
-    return pytest.param(*params, marks=pytest.mark.xfail(raises=NotImplementedError))
-
-
 class TestColor16:
     def test_get_code(self):
         col = Color16(0xF00000, 200 + IntCode.RED, 200 + IntCode.BG_RED)
@@ -624,37 +610,77 @@ class TestColor16:
         assert col.code_bg == 200 + IntCode.BG_RED
 
     @pytest.mark.parametrize(
-        "upper_bound, target, expected_result",
-        [
-            (None, ColorTarget.FG, SequenceSGR(31)),
-            (None, ColorTarget.BG, SequenceSGR(41)),
-            get_underline_not_impl_param(None),
-            (ColorRGB, ColorTarget.FG, SequenceSGR(31)),
-            (ColorRGB, ColorTarget.BG, SequenceSGR(41)),
-            get_underline_not_impl_param(ColorRGB),
-            (Color256, ColorTarget.FG, SequenceSGR(31)),
-            (Color256, ColorTarget.BG, SequenceSGR(41)),
-            get_underline_not_impl_param(Color256),
-            (Color16, ColorTarget.FG, SequenceSGR(31)),
-            (Color16, ColorTarget.BG, SequenceSGR(41)),
-            get_underline_not_impl_param(Color16),
-        ],
+        "upper_bound, target, expected_result, msg",
+        map(lambda p: (p+[None])[:4], [
+            [None, ColorTarget.FG, SequenceSGR(31)],
+            [None, ColorTarget.BG, SequenceSGR(41)],
+            [None, ColorTarget.UNDERLINE, NOOP_SEQ],
+            [ColorRGB, ColorTarget.FG, SequenceSGR(31)],
+            [ColorRGB, ColorTarget.BG, SequenceSGR(41)],
+            [
+                ColorRGB,
+                ColorTarget.UNDERLINE,
+                SequenceSGR(58, 5, 88),
+                "should be 256 because prefer_rgb is False by default",
+            ],
+            [Color256, ColorTarget.FG, SequenceSGR(31)],
+            [Color256, ColorTarget.BG, SequenceSGR(41)],
+            [Color256, ColorTarget.UNDERLINE, SequenceSGR(58, 5, 88)],
+            [Color16, ColorTarget.FG, SequenceSGR(31)],
+            [Color16, ColorTarget.BG, SequenceSGR(41)],
+            [Color16, ColorTarget.UNDERLINE, NOOP_SEQ],
+        ]),
     )
     def test_to_sgr(
         self,
         upper_bound: type[Color] | None,
         target: ColorTarget,
         expected_result: str | None,
+        msg: str,
     ):
         c = Color16(0x800000, IntCode.RED, IntCode.BG_RED)
-        assert c.to_sgr(target, upper_bound) == expected_result
+        assert c.to_sgr(target, upper_bound) == expected_result, msg
+
+    @pytest.mark.parametrize(
+        "upper_bound, target, expected_result, msg",
+        [
+            (
+                ColorRGB,
+                ColorTarget.UNDERLINE,
+                SequenceSGR(58, 2, 135, 0, 0),
+                "should be RGB because of configuration param",
+            ),
+            (
+                Color256,
+                ColorTarget.UNDERLINE,
+                SequenceSGR(58, 5, 88),
+                "should be 256 because of restriction",
+            ),
+            (
+                Color16,
+                ColorTarget.UNDERLINE,
+                NOOP_SEQ,
+                "should be NOOP because no such SGR exists",
+            ),
+        ],
+    )
+    @pytest.mark.config(prefer_rgb=True)
+    def test_to_sgr_with_rgb_upper_bound_results_in_sgr_rgb_if_preferred(
+        self,
+        upper_bound: type[Color] | None,
+        target: ColorTarget,
+        expected_result: str | None,
+        msg: str,
+    ):
+        c = Color16(0x800000, IntCode.RED, IntCode.BG_RED)
+        assert c.to_sgr(target, upper_bound) == expected_result, msg
 
     @pytest.mark.parametrize(
         "target, expected_result",
         [
             (ColorTarget.FG, "ultrared"),
             (ColorTarget.BG, "ultrared"),
-            get_underline_not_impl_param(),
+            pytest.param(ColorTarget.UNDERLINE, None, marks=xfail(raises=NotImplementedError)),
         ],
     )
     def test_to_tmux(self, target: ColorTarget, expected_result: str | None):
@@ -729,7 +755,11 @@ class TestColor256:
             (None, ColorTarget.UNDERLINE, SequenceSGR(58, 5, 1)),
             (ColorRGB, ColorTarget.FG, SequenceSGR(38, 5, 1)),
             (ColorRGB, ColorTarget.BG, SequenceSGR(48, 5, 1)),
-            (ColorRGB, ColorTarget.UNDERLINE, SequenceSGR(58, 5, 1)),
+            (
+                ColorRGB,
+                ColorTarget.UNDERLINE,
+                SequenceSGR(58, 5, 1),
+            ),  # prefer_rgb is False by default
             (Color256, ColorTarget.FG, SequenceSGR(38, 5, 1)),
             (Color256, ColorTarget.BG, SequenceSGR(48, 5, 1)),
             (Color256, ColorTarget.UNDERLINE, SequenceSGR(58, 5, 1)),
@@ -774,7 +804,7 @@ class TestColor256:
         [
             (ColorTarget.FG, "colour258"),
             (ColorTarget.BG, "colour258"),
-            get_underline_not_impl_param(),
+            pytest.param(ColorTarget.UNDERLINE, None, marks=xfail(raises=NotImplementedError)),
         ],
     )
     def test_to_tmux(self, target: ColorTarget, expected_result: str | None):

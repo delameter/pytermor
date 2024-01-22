@@ -57,3 +57,34 @@ class TaskRunner(metaclass=ABCMeta):
 
 def get_stdout():
     return sys.stdout
+
+
+class ProgressBar:
+    def __init__(self, renderer: pt.IRenderer, f: TextIO, col: pt.Color):
+        self._renderer = renderer
+        self._f = f
+        self._col = col
+        self._step_amount = 0
+        self._step_num = 0
+
+    def init_steps(self, step_amount: int):
+        self._step_amount = step_amount
+
+    def next_step(self, step_name: str):
+        slen = len(str(self._step_amount))
+        self._step_num += 1
+        s = f'[{self._step_num:>{slen}d}/{self._step_amount:<{slen}d}]  {step_name}'
+        self.echo(pt.render(s, self._col, self._renderer), False)
+
+    def close(self):
+        self._f.write('\n')
+        self._f.flush()
+
+    def echo(self, s: str, persist: bool):
+        if not persist:
+            clr = pt.make_clear_line()
+            self._f.write('\r'+clr.assemble())
+        self._f.write(s)
+        if persist:
+            self._f.write('\n')
+        self._f.flush()

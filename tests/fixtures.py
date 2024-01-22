@@ -54,11 +54,9 @@ def config(request):
             kwargs[k] = v
         current_config = Config(**kwargs)
 
-    ConfigManager.set_default(current_config)
-    RendererManager.set_default()
+    ConfigManager.set(current_config)
     yield current_config
-    ConfigManager.set_default()
-    RendererManager.set_default()
+    ConfigManager.set()
 
 
 @dataclass

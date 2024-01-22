@@ -9,21 +9,13 @@ import os.path
 import time
 import typing as t
 from collections.abc import Iterable
-from functools import partial
 from pathlib import Path
-
-import pytermor as pt
 
 from PIL import Image, ImageFont, ImageDraw
 
+import pytermor as pt
+
 DistanceResult = Iterable[pt.ApxResult[pt.ResolvableColor]]
-
-
-def _calc_distance(
-    space: type[pt.IColorValue], cls: type[pt.ResolvableColor], value: pt.IColorValue
-) -> DistanceResult:
-    for el in cls._index:
-        yield pt.ApxResult(el, space.diff(value, el))
 
 
 class ApproxDemo:
@@ -44,16 +36,7 @@ class ApproxDemo:
         (pt.Color16, "16 colors"),
     ]
 
-    DIFF_FNS: t.List[
-        t.Tuple[
-            t.Callable[[t.Type[pt.ResolvableColor], pt.IColorValue], DistanceResult], str
-        ]
-    ] = [
-        (partial(_calc_distance, pt.RGB), "RGB"),
-        (partial(_calc_distance, pt.HSV), "HSV"),
-        (partial(_calc_distance, pt.LAB), "LAB"),
-        (partial(_calc_distance, pt.XYZ), "XYZ"),
-    ]
+    SPACES: t.List[t.Type[pt.IColorValue]] = [pt.RGB] #, pt.HSV, pt.XYZ, pt.LAB]
 
     def __init__(self):
         self.font_header = ImageFont.truetype(**self.FONT_HEADER)
@@ -62,13 +45,13 @@ class ApproxDemo:
 
     def run(self):
         run_num = 0
-        runs_total = len(self.DIFF_FNS) * len(self.SAMPLES)
-        for diff_fn, diff_fn_label in self.DIFF_FNS:
+        runs_total = len(self.SPACES) * len(self.SAMPLES)
+        for space in self.SPACES:
             output_size = (
                 self.input_im.width * len(self.SAMPLES),
                 self.input_im.height + self.LABEL_HEIGHT,
             )
-            output_filepath = self.OUTPUT_FILEPATH_TPL % diff_fn_label.lower()
+            output_filepath = self.OUTPUT_FILEPATH_TPL % pt.get_qname(space).strip('<>').lower()
             if os.path.exists(output_filepath):
                 output_im_existing = Image.open(output_filepath, "r")
                 output_im = output_im_existing.copy()
@@ -77,22 +60,19 @@ class ApproxDemo:
                 output_im = Image.new("RGB", size=output_size, color=(255, 255, 255))
 
             for sample_num, sample in enumerate(self.SAMPLES):
-                [cls, label] = sample
+                cls, label = sample
                 if cls == pt.ColorRGB:
                     caption = "%s, no approximation" % label
                 else:
-                    caption = "%s, approx. by %s distance" % (label, diff_fn_label)
+                    caption = "%s, approx. by %s distance" % (label, pt.get_qname(space).lower())
                 run_num += 1
-                cls._approximator.invalidate_cache()
-                self._draw_sample(
-                    diff_fn, sample_num, run_num, runs_total, cls, caption, output_im
-                )
+                cls._approximator.assign_space(space)
+                self._draw_sample(sample_num, run_num, runs_total, cls, caption, output_im)
 
             output_im.save(output_filepath)
 
     def _draw_sample(
         self,
-        diff_fn: t.Callable,
         sample_num: int,
         run_num: int,
         runs_total: int,
@@ -109,7 +89,6 @@ class ApproxDemo:
             self._print_status(run_num, runs_total, caption, None, None, 1)
             print()
         else:
-            cls._color_diff_fn = partial(diff_fn, cls)
             approx_speed = None
             approx_interval = None
             for va in range(0, self.input_im.width, 1):
@@ -117,7 +96,7 @@ class ApproxDemo:
                 for vb in range(0, self.input_im.height, 1):
                     val = pt.RGB.from_channels(*self.input_im.getpixel((va, vb)))
                     # cval = cls.approximate(val, max_results=1)[0].color
-                    cval = cls.find_closest(val)
+                    cval = cls.find_closest(val, True, True) or pt.ColorRGB(0)
                     output_im.putpixel((x1 + va, y1 + vb), (*cval.rgb,))
 
                     if va % (self.input_im.width // 100) == 0:
@@ -159,13 +138,13 @@ class ApproxDemo:
         approx_interval: float | None,
         perc: float,
     ):
-        speed_str = '---- kpx/s'
-        interval_str = ' ---ms/col.'
+        speed_str = "---- kpx/s"
+        interval_str = " ---ms/col."
         if approx_speed:
-            speed_str = f'{pt.format_si(approx_speed):>6s}px/s'
+            speed_str = f"{pt.format_si(approx_speed):>6s}px/s"
         if approx_interval:
             interval_str = f"{pt.format_time_ns(approx_interval):>6s}/col."
-        perc_num = round(100*perc)
+        perc_num = round(100 * perc)
         perc_chr = round(self.SCALE_WIDTH * perc)
         msg = (
             f"\r{perc_num:>4d}% "
@@ -175,7 +154,7 @@ class ApproxDemo:
             f"Sample {run_num:>{len(str(runs_total))}d}/{runs_total} | "
             f"{caption:<40s}"
         )
-        print(msg, end='')
+        print(msg, end="")
 
 
 if __name__ == "__main__":

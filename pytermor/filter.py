@@ -299,7 +299,7 @@ class SgrStringReplacer(StringReplacer):
 
 class CsiStringReplacer(StringReplacer):
     """
-    Find all `CSI <SequenceCSI>` seqs (i.e., starting with ``ESC [``) and replace
+    Find all `CSI <SequenceCSI>` seqs (i.e., starting with :ansi:`ESC`\\ ``[``) and replace
     with given string. Less specific version of :class:`SgrReplacer`, as CSI
     consists of SGR and many other sequence subtypes.
 
@@ -972,7 +972,7 @@ def apply_filters(inp: IT, *args: Union[IFilter, t.Type[IFilter]]) -> OT:
     """
     Method for applying dynamic filter list to a target string/bytes.
 
-    Example (will replace all ``ESC`` control characters to ``E`` and
+    Example (will replace all :ansi:`ESC` control characters to ``E`` and
     thus make SGR params visible)::
 
         >>> from pytermor import SeqIndex

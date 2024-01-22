@@ -1,0 +1,138 @@
+# ---------------------------
+# Atlassian
+# ---------------------------
+
+- name: "Slate (Atlassian)"
+  value: 0x091e42
+- name: "Squid ink (Atlassian)"
+  value: 0x172b4d
+  aliases:
+    - Jira Black
+- name: "Snorlax (Atlassian)"
+  value: 0x253858
+- name: "Pet rock (Atlassian)"
+  value: 0x344563
+- name: "McFanning (Atlassian)"
+  value: 0x42526e
+- name: "Concrete jungle (Atlassian)"
+  value: 0x505f79
+- name: "Clooney (Atlassian)"
+  value: 0x5e6c84
+- name: "Bling bling (Atlassian)"
+  value: 0x6b778c
+- name: "Humboldt fog (Atlassian)"
+  value: 0x7a869a
+- name: "Meredith (Atlassian)"
+  value: 0x8993a4
+- name: "Spooky ghost (Atlassian)"
+  value: 0x97a0af
+- name: "Blanche (Atlassian)"
+  value: 0xa5adba
+- name: "Sentinel (Atlassian)"
+  value: 0xb3bac5
+- name: "Karl (Atlassian)"
+  value: 0xc1c7d0
+- name: "Jolly fun time (Atlassian)"
+  value: 0xdfe1e6
+- name: "Northeast snow (Atlassian)"
+  value: 0xebecf0
+- name: "Gram's hair (Atlassian)"
+  value: 0xf4f5f7
+- name: "Wash me (Atlassian)"
+  value: 0xfafbfc
+- name: "Dragon's blood (Atlassian)"
+  value: 0xbf2600
+- name: "Red dirt (Atlassian)"
+  value: 0xde350b
+- name: "Poppy surprise (Atlassian)"
+  value: 0xff5630
+  aliases:
+    - Jira Red
+- name: "Salmon sashimi (Atlassian)"
+  value: 0xff7452
+- name: "Alexandria (Atlassian)"
+  value: 0xff8f73
+- name: "Bondi sunburn (Atlassian)"
+  value: 0xffbdad
+- name: "Rosie (Atlassian)"
+  value: 0xffebe6
+- name: "Debrito (Atlassian)"
+  value: 0xff8b00
+- name: "Cheezy blasters (Atlassian)"
+  value: 0xff991f
+- name: "Golden state (Atlassian)"
+  value: 0xffab00
+  aliases:
+    - Jira Yellow
+- name: "Pub mix (Atlassian)"
+  value: 0xffc400
+- name: "Cowbell (Atlassian)"
+  value: 0xffe380
+- name: "Dandelion whisper (Atlassian)"
+  value: 0xfff0b3
+- name: "James blonde (Atlassian)"
+  value: 0xfffae6
+- name: "Keen green (Atlassian)"
+  value: 0x006644
+- name: "Slime (Atlassian)"
+  value: 0x00875a
+- name: "Fine pine (Atlassian)"
+  value: 0x36b37e
+  aliases:
+    - Jira Green
+- name: "Green tea (Atlassian)"
+  value: 0x57d9a3
+- name: "Cloverleaf (Atlassian)"
+  value: 0x79f2c0
+- name: "Mintie (Atlassian)"
+  value: 0xabf5d1
+- name: "The smell (Atlassian)"
+  value: 0xe3fcef
+- name: "Chore coat (Atlassian)"
+  value: 0x0747a6
+- name: "Pacific bridge (Atlassian)"
+  value: 0x0052cc
+  aliases:
+    - Jira Blue
+- name: "Sodium explosion (Atlassian)"
+  value: 0x0065ff
+- name: "Coogee (Atlassian)"
+  value: 0x2684ff
+- name: "Arvo breeze (Atlassian)"
+  value: 0x4c9aff
+- name: "Schwag (Atlassian)"
+  value: 0xb3d4ff
+- name: "Pixie dust (Atlassian)"
+  value: 0xdeebff
+- name: "Shabby chic (Atlassian)"
+  value: 0x008da6
+- name: "Prom dress (Atlassian)"
+  value: 0x00a3bf
+- name: "Tamarama (Atlassian)"
+  value: 0x00b8d9
+  aliases:
+    - Jira Cyan
+- name: "Mermaid net (Atlassian)"
+  value: 0x00c7e6
+- name: "Hairy fairy (Atlassian)"
+  value: 0x79e2f2
+- name: "Arctic chill (Atlassian)"
+  value: 0xb3f5ff
+- name: "Gram's sofa (Atlassian)"
+  value: 0xe6fcff
+- name: "Prince (Atlassian)"
+  value: 0x403294
+- name: "Snozzberry (Atlassian)"
+  value: 0x5243aa
+- name: "Da' juice (Atlassian)"
+  value: 0x6554c0
+  aliases:
+    - Jira Violet
+- name: "Pastelli (Atlassian)"
+  value: 0x8777d9
+- name: "Herky jerky (Atlassian)"
+  value: 0x998dd9
+- name: "Phantom mist (Atlassian)"
+  value: 0xc0b6f2
+- name: "Lavender secret (Atlassian)"
+  value: 0xeae6ff

@@ -24,7 +24,7 @@ from collections import deque
 from copy import copy
 from typing import overload
 
-from .common import Align, FT, RT, flatten1, get_qname, fit, pad, isiterable
+from .common import Align, FT, RT, flatten1, get_qname, fit, pad, isiterable, instantiate
 from .color import Color
 from .exception import ArgTypeError, LogicError
 from .renderer import IRenderer, OutputMode, RendererManager, SgrRenderer
@@ -109,12 +109,11 @@ class IRenderable(t.Sized, ABC):
         """return False"""
 
     @staticmethod
-    def _resolve_renderer(renderer: IRenderer | t.Type[IRenderer] = None) -> IRenderer:
-        if isinstance(renderer, type):
-            return renderer()
-        if renderer is None:
-            return RendererManager.get_default()
-        return renderer
+    def _resolve_renderer(local_override: IRenderer | t.Type[IRenderer] = None) -> IRenderer:
+        if local_override is not None:
+            if (inst := instantiate(IRenderer, local_override)) is not None:
+                return inst
+        return RendererManager.get()
 
 
 class Fragment(IRenderable):
@@ -557,10 +556,12 @@ class Composite(IRenderable):
         return False
 
 
-# @deprecated("SimpleTable is discouraged to use as it has very limited application and "
-#             "will be replaced with something much more generic in the future.")
 class SimpleTable(IRenderable):
     """
+    .. deprecated:: 2.74
+       SimpleTable is discouraged to use as it has very limited application and
+       will be replaced with something much more generic in the future.
+
     Table class with dynamic (not bound to each other) rows. By defualt expands to
     the maximum width (terminal size).
 
@@ -749,7 +750,7 @@ def echo(
     renderer: IRenderer = None,
     *,
     nl: bool = True,
-    file: t.IO = sys.stdout,
+    file: t.IO = None,
     flush: bool = True,
     wrap: bool | int = False,
     indent_first: int = 0,
@@ -762,12 +763,13 @@ def echo(
     :param fmt:
     :param renderer:
     :param nl:
-    :param file:
+    :param file:          if not set, `sys.stdout` will be used instead
     :param flush:
     :param wrap:
     :param indent_first:
     :param indent_subseq:
     """
+    file = file or sys.stdout
     end = "\n" if nl else ""
     will_wrap = wrap or indent_first or indent_subseq
 
@@ -790,7 +792,7 @@ def echoi(
     fmt: FT = NOOP_STYLE,
     renderer: IRenderer = None,
     *,
-    file: t.IO = sys.stdout,
+    file: t.IO = None,
     flush: bool = True,
 ) -> None:
     """
@@ -799,7 +801,7 @@ def echoi(
     :param string:
     :param fmt:
     :param renderer:
-    :param file:
+    :param file:        if not set, `sys.stdout` will be used instead
     :param flush:
     :return:
     """

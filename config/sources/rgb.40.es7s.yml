@@ -1,0 +1,92 @@
+# ---------------------------
+# es7s
+# ---------------------------
+
+- name: "superuser"
+  value: 0xf8b889
+- name: "incompatibility"
+  value: 0xffd19e
+- name: "icathian yellow"
+  value: 0xe7c899
+- name: "macedonian orange"
+  value: 0xe97f28
+- name: "moonlightd"
+  value: 0x7280e2
+- name: "skylight blue"
+  value: 0x0395f3
+- name: "yasuo blue"
+  value: 0x407191
+
+# ---------------------------
+# es7s c45-kalm scheme
+# ---------------------------
+
+- name: "Black kalm"
+  value: 0x181a1e
+- name: "Red kalm"
+  value: 0xa54242
+- name: "Green kalm"
+  value: 0x769440
+- name: "Blue kalm"
+  value: 0x5f819d
+- name: "Yellow kalm"
+  value: 0xde935f
+- name: "Cyan kalm"
+  value: 0x5e8d87
+- name: "Magenta kalm"
+  value: 0x85678f
+- name: "White kalm"
+  value: 0xc5c8c6
+- name: "Gray kalm"
+  value: 0x676c73
+- name: "Hi-Red kalm"
+  value: 0xcc6666
+- name: "Hi-Green kalm"
+  value: 0xa4bd68
+- name: "Hi-Blue kalm"
+  value: 0x81a2be
+- name: "Hi-Yellow kalm"
+  value: 0xf0c674
+- name: "Hi-Cyan kalm"
+  value: 0x8abeb7
+- name: "Hi-Magenta kalm"
+  value: 0xb294bb
+- name: "Hi-White kalm"
+  value: 0xdde3ec
+
+# ---------------------------
+# es7s V95-PANIK scheme
+# ---------------------------
+
+- name: "Black panik"
+  value: 0x101112
+- name: "Red panik"
+  value: 0xff5b56
+- name: "Green panik"
+  value: 0x5af78d
+- name: "Blue panik"
+  value: 0x5786fe
+- name: "Yellow panik"
+  value: 0xf3f99c
+- name: "Cyan panik"
+  value: 0x5dd6ed
+- name: "Magenta panik"
+  value: 0xff69c1
+- name: "White panik"
+  value: 0xececec
+- name: "Gray panik"
+  value: 0x424242
+- name: "Hi-Red panik"
+  value: 0xfe7f74
+- name: "Hi-Green panik"
+  value: 0xacf99f
+- name: "Hi-Blue panik"
+  value: 0xbeb4fe
+- name: "Hi-Yellow panik"
+  value: 0xfffed4
+- name: "Hi-Cyan panik"
+  value: 0xa1fffe
+- name: "Hi-Magenta panik"
+  value: 0xff90fd
+- name: "Hi-White panik"
+  value: 0xf1f1f0

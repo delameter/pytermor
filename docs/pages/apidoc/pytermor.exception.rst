@@ -21,6 +21,8 @@
 
    .. autosummary::
    
+      ApproximatorLockedException
+      ApproximatorUnlockedException
       ArgCountError
       ArgTypeError
       ColorCodeConflictError

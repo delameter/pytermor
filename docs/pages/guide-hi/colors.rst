@@ -9,14 +9,16 @@ Primary method for getting a color by name is `resolve_color()`.
 Suggested usage is to feed it the input in a free form and hope for the best.
 Supported formats include:
 
-    - *str* with a color name in any form distinguishable by the color resolver,
-      e.g. 'red', 'navy blue', etc. (all preset color names listed in
-      `guide.ansi-presets` and `guide.es7s-colors`);
+    - *int* in a [:hex:`0`; :hex:`0xffffff`] range;
+    - *str* containing a valid integer in hexadecimal form, optionally prefixed with
+      "0x": ":hex:`ddaa80`", ":hex:`0xAA9910`", even ":hex:`1`";
     - *str* starting with a "#" and consisting of 6 more hexadecimal characters, case
       insensitive (RGB regular form), e.g. ":hex:`#0b0cca`";
     - *str* starting with a "#" and consisting of 3 more hexadecimal characters, case
       insensitive (RGB short form), e.g. ":hex:`#666`";
-    - *int* in a [:hex:`0`; :hex:`0xffffff`] range.
+    - *str* with a color name in any form distinguishable by the color resolver,
+      e.g. 'red', 'navy blue', etc. (all preset color names listed in
+      `guide.ansi-presets` and `guide.es7s-colors`).
 
 The method operates in three different modes depending on argument types:
 resolving by name, resolving by value and instantiating; all of three
@@ -79,21 +81,21 @@ letter OR a digit). This rule in a form of a regular expression:
 It covers all popular methods of writing an enumerated name. It is implied
 that queries to the registry will look like one of the cases below:
 
-+----------------+-----------------------+-------------------------------+-------------------------------+
-|     Case       |     Example query     |         Split query           |     Normalized token set      |
-+================+=======================+===============================+===============================+
-|snake_case      |atomic_tangerine       |('atomic', 'tangerine')        |('atomic', 'tangerine')        |
-+----------------+-----------------------+-------------------------------+                               |
-|camelCase       |atomicTangerine        |('atomic', 'Tangerine')        |                               |
-+----------------+-----------------------+-------------------------------+-------------------------------+
-|kebab-case      |icathian-yellow        |('icathian', 'yellow')         |('icathian', 'yellow')         |
-+----------------+-----------------------+-------------------------------+                               |
-|SCREAMING_CASE  |ICATHIAN_YELLOW        |('ICATHIAN', 'YELLOW')         |                               |
-+----------------+-----------------------+-------------------------------+-------------------------------+
-|PascalCase      |AirSuperiorityBlue     |('Air', 'Superiority', 'Blue') |('air', 'superiority', 'blue') |
-+----------------+-----------------------+-------------------------------+                               |
-|*(mixed)*       |AIR superiority-blue   |('AIR', 'superiority', 'blue') |                               |
-+----------------+-----------------------+-------------------------------+-------------------------------+
++---------------+---------------------+-----------------------------+-----------------------------+
+|     Case      |     Example query   |         Split query         |     Normalized token set    |
++===============+=====================+=============================+=============================+
+|snake_case     |``atomic_tangerine`` |``('atomic', 'tangerine')``  |``('atomic', 'tangerine')``  |
++---------------+---------------------+-----------------------------+                             |
+|camelCase      |``atomicTangerine``  |``('atomic', 'Tangerine')``  |                             |
++---------------+---------------------+-----------------------------+-----------------------------+
+|kebab-case     |``icathian-yellow``  |``('icathian', 'yellow')``   |``('icathian', 'yellow')``   |
++---------------+---------------------+-----------------------------+                             |
+|SCREAMING_CASE |``ICATHIAN_YELLOW``  |``('ICATHIAN', 'YELLOW')``   |                             |
++---------------+---------------------+-----------------------------+-----------------------------+
+|PascalCase     |``AirForceBlue``     |``('Air', 'Force', 'Blue')`` |``('air', 'force', 'blue')`` |
++---------------+---------------------+-----------------------------+                             |
+|*(mixed)*      |``AIR force-blue``   |``('AIR', 'force', 'blue')`` |                             |
++---------------+---------------------+-----------------------------+-----------------------------+
 
 Normalization consists of two operations: discarding all characters
 except latin letters, digits, underscore and hyphen, and translating
@@ -106,7 +108,6 @@ all upper-cased letters to lower case.
     and upper case in the middle of the word (=token), e.g.
     "AtoMicTangErine" will end up being split into four tokens ('ato',
     'mic', 'tang', 'erine'), and such query will fail with zero results.
-
     Pre-normalization instead of post-normalization can help here, but
     that will break all valid camel case and pascal case queries. The
     aforementioned query is more like an artificial example than a real
@@ -115,6 +116,7 @@ all upper-cased letters to lower case.
     token set exists in a registry, and if it's not -- normalize it
     preemptively and try again.
 
+.. _guide.finding_closest_color:
 
 =====================================
 Finding closest colors
@@ -122,19 +124,22 @@ Finding closest colors
 
 When first argument of `resolve_color()` is specified as:
 
-    1) *int* in [:hex:`0x000000`; :hex:`0xffffff`] range, or
-    2) *str* in full hexadecimal form: ":hex:`#RRGGBB`", or
-    3) *str* in short hexadecimal form: ":hex:`#RGB`",
+    1) *int* in [:hex:`0x000000`; :hex:`0xFFFFFF`] range, or
+    2) *str* in hexadecimal form: ":hex:`RRGGBB`" / ":hex:`0xRRGGBB`", or
+    3) *str* in full hexadecimal form: ":hex:`#RRGGBB`", or
+    4) *str* in short hexadecimal form: ":hex:`#RGB`",
 
 and ``color_type`` is **present**\ , the result will be the best ``subject``
 approximation to corresponding color index. Note that this value is expected
 to differ from the requested one (and sometimes differs a lot), unless the
-exact color requested is present in the index (e.g. :hex:`#ff0000` can be
+exact color requested is present in the index (e.g. :hex:`#FF0000` can be
 found in all three color palettes).
 
 Omit the second parameter to create an exact color: if ``color_type`` is
 **missing**, no searching is performed; instead a new nameless `ColorRGB` is
 instantiated and returned.
+
+Integer values over the maximum of :hex:`0xFFFFFF` will be set to match the limit.
 
 ::
 
@@ -199,8 +204,10 @@ distance to the target.
     ApxResult(color=<Color256[x60(#5f5f87 medium-purple-7)]>, distance=22.56723105940626)
     ApxResult(color=<Color256[x236(#303030 gray-19)]>, distance=24.151294783796793)
 
+.. _guide.approximators:
+
 ============================
-Approximator implementation
+Approximator implementations
 ============================
 
 Approximation algorithm is as simple as iterating through all colors in the
@@ -213,35 +220,34 @@ an acceptable tradeoff between sRGB euclidean distance, which doesn't
 account for differences in human color perception, and CIE94/CIEDE2000,
 which are more complex and in general excessive for this task.
 
+
+.. figure::  /_static/approx-spaces.png
+  :align: center
+
+  Approximation of red colors using different color spaces for color distance
+  computation
+
+More examples: :ref:`appendix.approx-diff`
+
+There are two approximator implementations in the library, the first one does
+not require any dependencies -- `_BruteForceApproximator`, while the second one,
+`_KDTreeApproximator`, requires ``scipy`` package to be installed along with the
+library. The latter is about **10.06** times faster than the first one thanks to
+using optimized data structure\ [#]_. The library must be installed as
+``pytermor[fast]`` in order to utilize it, which provides extra dependencies
+automatically.
+
+.. important::
+    Approximator implementation is selected automatically depending on availability of
+    `numpy` and `scipy` packages.
+
 There is a demo script which can illustrate the difference between approximated
 colors using different color distance formulas. For the details see `Examples —
 Demo — approximate.py <examples.demo.approximate>`.
 
 .. [#] http://www.brucelindbloom.com/index.html?Eqn_DeltaE_CIE76.html
 
-.. todo::
-
-    @TODO
-
-====================
-Color mode fallbacks
-====================
-
-.. only:: html
-
-   .. figure::  /_generated/approx/output-rgb.png
-      :width: 400px
-      :align: center
-
-      Color approximations for indexed modes
-      :comment:`(click to enlarge)`
-
-.. only:: latex
-
-   .. figure::  /_generated/approx/output-rgb.png
-      :align: center
-
-      Color approximations for indexed modes
+.. [#] https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.KDTree.html
 
 
 .. _guide.color_class_diagram:
@@ -258,9 +264,8 @@ Color mode fallbacks
 
       .. inheritance-diagram:: pytermor.color
          :parts: 1
+         :private-bases:
          :top-classes:         pytermor.color.IColorValue,
-                               pytermor.color.NamedColor,
-                               pytermor.color.IndexedColor,
                                pytermor.color.RenderColor,
                                pytermor.color.ResolvableColor
          :caption:             ``Color`` inheritance diagram

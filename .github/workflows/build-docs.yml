@@ -1,4 +1,4 @@
-name: build docker image and generate the docs w/f
+name: build and push docker image
 
 on:
   push:

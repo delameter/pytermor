@@ -28,6 +28,9 @@
       but
       char_range
       chunk
+      coale
+      coalf
+      coaln
       cut
       filterev
       filterfv
@@ -38,10 +41,13 @@
       flip_unpack
       get_qname
       get_subclasses
+      instantiate
       isimmutable
       isiterable
       ismutable
-      joincoal
+      joine
+      joinf
+      joinn
       only
       others
       ours

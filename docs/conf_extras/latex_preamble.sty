@@ -1,81 +1,157 @@
-\RequirePackage{xcolor}\usepackage{tcolorbox}
+\setlength{\emergencystretch}{5em}   % decrease can't fit warnings
+\DeclareUnicodeCharacter{2588}{~}    % █
+
+\RequirePackage{xcolor}
+\RequirePackage{color}\usepackage{tcolorbox}\tcbuselibrary{skins}
 \usepackage{pgffor}
 \usepackage{charter}  % main font
 \usepackage{fontawesome}
 
-\newcommand{\DUroleblack}[1]{{\color[HTML]{000000} #1}}
-\newcommand{\DUrolegray}[1]{{\color[HTML]{808080} #1}}
-\newcommand{\DUrolesilver}[1]{{\color[HTML]{C0C0C0} #1}}
-\newcommand{\DUrolewhite}[1]{{\color[HTML]{FFFFFF} #1}}
-\newcommand{\DUrolemaroon}[1]{{\color[HTML]{800000} #1}}
-\newcommand{\DUrolered}[1]{{\color[HTML]{FF0000} #1}}
-\newcommand{\DUrolemagenta}[1]{{\color[HTML]{FF00FF} #1}}
-\newcommand{\DUrolefuchsia}[1]{{\color[HTML]{FF00FF} #1}}
-\newcommand{\DUrolepink}[1]{{\color[HTML]{FFC0CB} #1}}
-\newcommand{\DUroleorange}[1]{{\color[HTML]{FFA500} #1}}
-\newcommand{\DUroleyellow}[1]{{\color[HTML]{FFFF00} #1}}
-\newcommand{\DUrolelime}[1]{{\color[HTML]{00FF00} #1}}
-\newcommand{\DUrolegreen}[1]{{\color[HTML]{008000} #1}}
-\newcommand{\DUroleolive}[1]{{\color[HTML]{808000} #1}}
-\newcommand{\DUroleteal}[1]{{\color[HTML]{008080} #1}}
-\newcommand{\DUrolecyan}[1]{{\color[HTML]{00FFFF} #1}}
-\newcommand{\DUroleaqua}[1]{{\color[HTML]{00FFFF} #1}}
-\newcommand{\DUroleblue}[1]{{\color[HTML]{0000FF} #1}}
-\newcommand{\DUrolenavy}[1]{{\color[HTML]{000080} #1}}
-\newcommand{\DUrolepurple}[1]{{\color[HTML]{800080} #1}}
+% colors
 
-\newtcbox{fgbgbox}[1][]{notitle,on line,size=fbox,left=0pt,right=0pt,boxrule=0px,arc=0pt,outer arc=0pt,#1}
+\definecolor{su}{HTML}{F8B889}
+\newcommand{\DUroleblack}[1]{{      \color[HTML]{000000} #1}}
+\newcommand{\DUrolegray}[1]{{       \color[HTML]{808080} #1}}
+\newcommand{\DUrolesilver}[1]{{     \color[HTML]{C0C0C0} #1}}
+\newcommand{\DUrolewhite}[1]{{      \color[HTML]{FFFFFF} #1}}
+\newcommand{\DUrolemaroon}[1]{{     \color[HTML]{800000} #1}}
+\newcommand{\DUrolered}[1]{{        \color[HTML]{FF0000} #1}}
+\newcommand{\DUrolemagenta}[1]{{    \color[HTML]{FF00FF} #1}}
+\newcommand{\DUrolefuchsia}[1]{{    \color[HTML]{FF00FF} #1}}
+\newcommand{\DUrolepink}[1]{{       \color[HTML]{FFC0CB} #1}}
+\newcommand{\DUroleorange}[1]{{     \color[HTML]{FFA500} #1}}
+\newcommand{\DUroleyellow}[1]{{     \color[HTML]{FFFF00} #1}}
+\newcommand{\DUrolelime}[1]{{       \color[HTML]{00FF00} #1}}
+\newcommand{\DUrolegreen}[1]{{      \color[HTML]{008000} #1}}
+\newcommand{\DUroleolive}[1]{{      \color[HTML]{808000} #1}}
+\newcommand{\DUroleteal}[1]{{       \color[HTML]{008080} #1}}
+\newcommand{\DUrolecyan}[1]{{       \color[HTML]{00FFFF} #1}}
+\newcommand{\DUroleaqua}[1]{{       \color[HTML]{00FFFF} #1}}
+\newcommand{\DUroleblue}[1]{{       \color[HTML]{0000FF} #1}}
+\newcommand{\DUrolenavy}[1]{{       \color[HTML]{000080} #1}}
+\newcommand{\DUrolepurple}[1]{{     \color[HTML]{800080} #1}}
 
-\definecolor{xdaracu}{HTML}{DA9AC4}
+\newcommand{\DUrolehex}[1]{{\ttfamily{#1}}}
+\newcommand{\DUroleaux}[1]{{\small{#1}}}
 
-\newcommand{\DUrolexdaracu}[1]{{\begin{fgbgbox}[colupper=xdaracu,colback=black]{#1}\end{fgbgbox}}}
-\newcommand{\DUroleredonblue}[1]{{\begin{fgbgbox}[colupper=red,colback=blue]{#1}\end{fgbgbox}}}
-\newcommand{\DUroleblackonyellow}[1]{{\begin{fgbgbox}[colupper=black,colback=yellow]{#1}\end{fgbgbox}}}
-\newcommand{\DUroleblackonblue}[1]{{\begin{fgbgbox}[colupper=black,colback=blue]{#1}\end{fgbgbox}}}
+% color boxes
 
-\newcommand{\DUrolebgteal}[1]
-{{
+\newcommand{\DUroleansi}[1]{{
     \begin{tcbox}[
-        notitle,on line,size=small,
-        boxrule=1px,arc=0pt,outer arc=0pt,
-        colback=teal,colupper=teal,colframe=black,
-    ]{ #1 }
+        enhanced, notitle, on line, size=minimal,
+        left=0pt, right=0pt, left*=0pt, right*=0pt,
+        boxrule=0pt, arc=0pt, outer arc=0pt, frame hidden, empty,
+        fontupper=\ttfamily, borderline={1pt}{-3pt}{black, dotted},
+    ]{#1}
     \end{tcbox}
 }}
 
-\newcommand{\DUrolebgtealline}[1]
-{{
-    \begin{tcolorbox}[
-        width=\linewidth,notitle,size=small,
-        boxrule=0pt,arc=0pt,outer arc=0pt,
-        colback=teal,colupper=white,
-    ]{ #1 }
-    \end{tcolorbox}
-}}
-
-\newcommand{\DUroleyellowonredline}[1]
-{{
-    \begin{tcolorbox}[
-        width=\linewidth,notitle,size=small,
-        boxrule=0pt,arc=0pt,outer arc=0pt,
-        colback=red,colupper=yellow,fontupper=\bfseries,
-    ]{ #1 }
-    \end{tcolorbox}
-}}
-
-
-\newenvironment{sphinxclassoutputcaption}
-{\begin{centering}}
-{\end{centering}}
-
-\newtcolorbox{sphinxclassoutput}{
-    width=\linewidth,notitle,size=title,
-    before skip=0pt,after skip=.5cm,center,add to width=7pt,
-    boxrule=1px,arc=0pt,outer arc=0pt,
-    colback=black,colupper=white,fontupper=\ttfamily,
+\newtcbox{ptcolorbox}[1][]{
+    notitle, on line, size=minimal, left=0pt, right=0pt, boxrule=0px, arc=0pt, outer arc=0pt, #1
+}
+\newtcbox{ptinlbox}[1][]{
+    notitle, on line, size=fbox, left=0pt, right=0pt, boxrule=0px, arc=0pt, outer arc=0pt, #1
+}
+\newtcolorbox{ptblkbox}[1][]{
+    width=\linewidth, notitle, size=small, boxrule=0px, arc=0pt, outer arc=0pt, colupper=white, #1
 }
 
+\newcommand{\DUrolebgteal}[1]{{\begin{ptinlbox}[
+    colupper=teal, colback=teal, colframe=black, boxrule=1px]{#1}
+\end{ptinlbox}}}
+\newcommand{\DUrolesuperuser}[1]{{      \begin{ptinlbox}[colupper=su,     colback=black]{#1}  \end{ptinlbox}}}
+\newcommand{\DUroleredonblue}[1]{{      \begin{ptinlbox}[colupper=red,    colback=blue]{#1}   \end{ptinlbox}}}
+\newcommand{\DUroleblackonyellow}[1]{{  \begin{ptinlbox}[colupper=black,  colback=yellow]{#1} \end{ptinlbox}}}
+\newcommand{\DUroleblackonblue}[1]{{    \begin{ptinlbox}[colupper=black,  colback=blue]{#1}   \end{ptinlbox}}}
+\newcommand{\DUroleyellowonredline}[1]{{\begin{ptblkbox}[colupper=yellow, colback=red]{#1}    \end{ptblkbox}}}
+\newcommand{\DUrolewhiteonredline}[1]{{ \begin{ptblkbox}[colupper=white,  colback=red]{#1}    \end{ptblkbox}}}
+\newcommand{\DUrolebgtealline}[1]{{     \begin{ptblkbox}[colupper=white,  colback=teal]{#1}   \end{ptblkbox}}}
+
+% output sections
+
+\newenvironment{sphinxclassoutputcaption}{\begin{centering}}{\end{centering}}
+
+\newtcolorbox{sphinxclassoutput}{
+    width=\linewidth, notitle, size=title,
+    before skip=2mm, after skip=5mm,
+    center, add to width=7pt,
+    boxrule=1px, arc=0pt, outer arc=0pt,
+    colback=black!90!white, colupper=white,
+    fontupper=\ttfamily,
+}
 \newtcolorbox{sphinxclassoutputstandalone}{
-    size=minimal,before skip=.5cm,
-    boxrule=0px,arc=0pt,outer arc=0pt,
+    size=minimal, before skip=.5cm, boxrule=0px, arc=0pt, outer arc=0pt,
+}
+
+
+
+%\RequirePackage[framemethod=TikZ]{mdframed}
+%\newenvironment{theo}[2][]{
+%    \mdfsetup{
+%        frametitle={
+%            \tikz[baseline=(current bounding box.east),outer sep=0pt]
+%            \node[anchor=east,rectangle,fill=#1]{\strut #2};
+%       }
+%    }
+%    \mdfsetup{
+%        linecolor=#1,linewidth=2pt,
+%        topline=true,frametitleaboveskip=\dimexpr-\ht\strutbox\relax
+%    }
+%    \begin{mdframed}[]\relax
+%}{\end{mdframed}}
+%
+
+\newcommand{\test}{colback=red}
+
+\renewenvironment{sphinxattention}[2][]{}{}
+\renewenvironment{sphinxdanger}[2][]{}{}
+\renewenvironment{sphinxerror}[2][]{}{}
+\renewenvironment{sphinximportant}[2][]{}{}
+\renewenvironment{sphinxcaution}[2][]{}{}
+\renewenvironment{sphinxwarning}[2][]{}{}
+\renewenvironment{sphinxnote}[2][]{}{}
+
+\tcolorboxenvironment{sphinxattention}{
+    sharp corners, detach title, fonttitle=\bfseries, title=Attention:,
+    before upper={\color{red!70!black}\faicon{exclamation-circle}\color{}~\tcbtitle},
+    colback=red!5!white, colframe=red!75!black, coltitle=black,
+}
+\tcolorboxenvironment{sphinxdanger}{
+    sharp corners, detach title, fonttitle=\bfseries, title=Danger:,
+    before upper={\color{red!70!black}\faicon{bolt}\color{}~\tcbtitle},
+    colback=red!5!white, colframe=red!75!black, coltitle=black,
+}
+\tcolorboxenvironment{sphinxerror}{
+    sharp corners, detach title, fonttitle=\bfseries, title=Error:,
+    before upper={\color{red!70!black}\faicon{times}\color{}~\tcbtitle},
+    colback=red!5!white, colframe=red!75!black, coltitle=black,
+}
+\tcolorboxenvironment{sphinximportant}{
+    sharp corners, detach title, fonttitle=\bfseries, title=Important:,
+    before upper={\color{red!70!black}\faicon{exclamation-triangle}\color{}~\tcbtitle},
+    colback=red!5!white, colframe=red!90!black, coltitle=black,
+}
+\tcolorboxenvironment{sphinxcaution}{
+    sharp corners, detach title, fonttitle=\bfseries, title=Caution:,
+    before upper={\color{orange!70!black}\faicon{bolt}\color{}~\tcbtitle},
+    colback=orange!20!white, colframe=orange!75!black, coltitle=black,
+}
+
+\tcolorboxenvironment{sphinxwarning}{
+    sharp corners, detach title, fonttitle=\bfseries, title=Warning:,
+    before upper={\color{orange!70!black}\faicon{exclamation-triangle}\color{}~\tcbtitle},
+    colback=orange!5!white, colframe=orange!90!black, coltitle=black,
+}
+
+%\renewenvironment{}[2]{    \begin{theo}[orange!20]{#1}} {\end{theo}}
+%\renewenvironment{}[2]{    \begin{theo}[orange!20]{#1}} {\end{theo}}
+%\renewenvironment{sphinxtodo}[2]{       \begin{theo}[yellow!20]{#1}} {\end{theo}}
+%\renewenvironment{sphinxtip}[2]{        \begin{theo}[green!20]{#1}}  {\end{theo}}
+%\renewenvironment{sphinxhint}[2]{       \begin{theo}[green!20]{#1}}  {\end{theo}}
+
+
+\tcolorboxenvironment{sphinxnote}{
+    sharp corners, detach title, fonttitle=\bfseries, title=Note:,
+    before upper={\color{blue!70!black}\faicon{edit}\color{}~\tcbtitle},
+    colback=blue!5!white, colframe=blue!90!black, coltitle=black,
 }

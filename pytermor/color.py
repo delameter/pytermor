@@ -21,6 +21,7 @@ provides methods to convert colors from any space to any other.
 """
 from __future__ import annotations
 
+import abc
 import dataclasses
 import math
 import re
@@ -43,6 +44,13 @@ from .exception import (
     NotInitializedError,
 )
 from .term import make_color_256, make_color_rgb
+
+try:
+    import numpy as np
+    from scipy.spatial import KDTree
+except ImportError as e:
+    np = None
+    KDTree = None
 
 _T = t.TypeVar("_T", bound=object)
 ExtractorT = t.Union[str, t.Callable[[_T], "Color"], None]
@@ -80,6 +88,13 @@ class _ConstrainedValue(t.Generic[_VT]):
     def value(self) -> _VT:
         return self._value
 
+class _RingConstrainedValue(_ConstrainedValue[_VT]):
+    def __init__(self, val: _VT, max_val: _VT):
+        super().__init__(val, min_val=0, max_val=max_val)
+
+    def _normalize(self, value: _VT) -> _VT:
+        # -12 -> 348, 376 ->  16
+        return value % self._max_val
 
 class IColorValue(metaclass=ABCMeta):
     @classmethod
@@ -308,7 +323,7 @@ class HSV(IColorValue):
         return float(sqrt(dh**2 + ds**2 + dv**2))
 
     def __init__(self, hue: float, saturation: float, value: float):
-        self._hue = _ConstrainedValue[float](hue, max_val=360.0)
+        self._hue = _RingConstrainedValue[float](hue, max_val=360.0)
         self._saturation = _ConstrainedValue[float](saturation, max_val=1.0)
         self._value = _ConstrainedValue[float](value, max_val=1.0)
 
@@ -618,6 +633,17 @@ class RenderColor:
     """
     Abstract superclass for other ``Colors``. Provides interfaces for
     transforming RGB values to SGRs for different terminal modes.
+
+    .. todo ::
+        There is no actual need in this superclass, better merge it
+        into `ResolvableColor`. Because:
+
+            - if a color can be resolved, then
+            - it has a registry with real color values,
+            - which can be rendered to e.g. SGR.
+
+        Special cases like `NoopColor` or `DefaultColor` neither
+        can be rendered nor be resolved.
     """
 
     @abstractmethod
@@ -696,16 +722,23 @@ class RealColor(IColorValue):
 
 
 class _ResolvableColorMeta(ABCMeta):
-    def __new__(mcls, name, bases, namespace, **kwargs):
-        cls = super().__new__(mcls, name, bases, namespace, **kwargs)
+    def __new__(mcls, name, bases, d, **kwargs):
+        if np and KDTree:
+            approx = _KDTreeApproximator[name]()
+        else:
+            approx = _BruteForceApproximator[name]()
 
-        cls._registry = _ColorRegistry[cls]()
-        cls._index = _ColorIndex[cls]()
-        cls._approximator = _ColorApproximator[cls]()
-        return cls
+        d.update(
+            dict(
+                _registry=_ColorRegistry[name](),
+                _index=_ColorIndex[name](),
+                _approximator=approx,
+            )
+        )
+        return super().__new__(mcls, name, bases, d, **kwargs)
 
     def __iter__(self) -> t.Iterator[_RCT]:
-        return iter(self._registry)
+        return iter(getattr(self, "_registry"))
 
 
 class _ColorRegistry(t.Generic[_RCT], t.Sized, t.Iterable):
@@ -811,39 +844,140 @@ class _ColorIndex(t.Generic[_RCT], t.Sized):
         return len(self) > 0
 
 
-class _ColorApproximator(t.Generic[_RCT]):
+class _IColorApproximator(t.Generic[_RCT], metaclass=abc.ABCMeta):
     def __init__(self):
-        self._diff_fn = LAB.diff
-        self._set: t.Set[_RCT] = set()
+        self._space = LAB
         self._cache: t.Dict[int, _RCT] = dict()
+
+    @abstractmethod
+    def add(self, color: _RCT):
+        ...
+
+    @abstractmethod
+    def approximate(self, value: IColorValue, max_results=1) -> list[ApxResult[_RCT]]:
+        ...
+
+    def assign_space(self, space: t.Type[IColorValue]):
+        self._space = space
+        self.invalidate_cache()
+
+    def find_closest(self, value: IColorValue, read_cache=True, write_cache=True) -> _RCT:
+        if read_cache and (cached := self.get_cached(value)):
+            return cached
+
+        closest = self.approximate(value, max_results=1).pop(0).color
+        if write_cache:
+            self._cache.update({value.int: closest})
+        return closest
+
+    def get_cached(self, value: IColorValue) -> _RCT | None:
+        return self._cache.get(value.int, None)
+
+    def invalidate_cache(self):
+        self._cache.clear()
+
+    def __repr__(self) -> str:
+        return f"<{get_qname(self)}[{get_qname(self._space)}]>"
+
+
+class _KDTreeApproximator(_IColorApproximator, t.Generic[_RCT]):  # @TODO test coverage
+    """
+    Fast approximation module based on `scipy.spatial.KDTree`. Requires
+    `scipy` dependency, which can be installed in user mode with::
+
+        pip install 'pytermor[fast]'
+
+    and in dev mode with::
+
+        hatch run build:pip install 'pytermor[fast]'
+
+    """
+
+    def __init__(self):
+        super().__init__()
+        self._list: t.List[_RCT] = list()
+        self._tree = None
+
+    def add(self, color: _RCT):
+        if self._locked:
+            self.unlock()
+        self._list.append(color)
+        self.invalidate_cache()
+
+    def assign_space(self, space: t.Type[IColorValue]):
+        if self._locked:
+            self.unlock()
+        super().assign_space(space)
+
+    def lock(self):
+        self._build_kdtree()
+
+    def unlock(self):
+        self._tree = None
+
+    def approximate(self, value: IColorValue, max_results=1) -> list[ApxResult[_RCT]]:
+        if not self._locked:
+            self.lock()
+
+        def __iter():
+            extract = self._get_extractor_fn()
+            q = np.asarray([extract(value)], dtype=float)
+            dists, idxs = self._tree.query(q, k=max_results)
+            for (dist, idx) in zip(dists, idxs):
+                yield ApxResult[_RCT](self._list[idx], dist)
+
+        return [*__iter()]
+
+    @property
+    def _locked(self) -> bool:
+        return self._tree is not None
+
+    def _get_extractor_fn(self) -> t.Callable[[IColorValue], tuple[float, ...]]:
+        if self._space == RGB:
+            return lambda v: (*v.rgb,)
+        if self._space == HSV:
+            def hsv_normalized(v: IColorValue) -> tuple[float, float, float]:
+                h, s, v = v.hsv
+                return h / 100000, s, v  # makes diff in hue much more significant
+            return hsv_normalized
+        if self._space == LAB:
+            return lambda v: (*v.lab,)
+        if self._space == XYZ:
+            return lambda v: (*v.xyz,)
+        raise LogicError(f"No extractor defined for space {self._space!r}")
+
+    def _build_kdtree(self):
+        if not np:
+            raise RuntimeError("Optional `numpy` dependency is not installed")
+        if not KDTree:
+            raise RuntimeError("Optional `scipy` dependency is not installed")
+        if not self._list:
+            raise LogicError("At least one color instance with 'approx=True' must be created.")
+
+        data = np.ndarray((len(self._list), 3), dtype=float)
+        extract = self._get_extractor_fn()
+        for idx, color in enumerate(self._list):
+            data[idx] = extract(color)
+        self._tree = KDTree(data)
+
+
+class _BruteForceApproximator(_IColorApproximator, t.Generic[_RCT]):
+    def __init__(self):
+        super().__init__()
+        self._set: t.Set[_RCT] = set()
 
     def add(self, color: _RCT):
         self._set.add(color)
         self.invalidate_cache()
 
-    def assign_diff_fn(self, diff_fn: _ColorDiffFn):
-        self._diff_fn = diff_fn
-        self.invalidate_cache()
+    def approximate(self, value: IColorValue, max_results=1) -> list[ApxResult[_RCT]]:
+        return sorted(self._compute_distances(value), key=lambda r: r.distance)[:max_results]
 
-    def compute_distances(self, value: IColorValue) -> Iterable[ApxResult[_RCT]]:
+    def _compute_distances(self, value: IColorValue) -> Iterable[ApxResult[_RCT]]:
         if not self._set:
             raise LogicError("At least one color instance with 'approx=True' must be created.")
         for el in self._set:
-            yield ApxResult[_RCT](el, self._diff_fn(value, el))
-
-    def approximate(self, value: IColorValue, max_results=1) -> list[ApxResult[_RCT]]:
-        return sorted(self.compute_distances(value), key=lambda r: r.distance)[:max_results]
-
-    def find_closest(self, value: IColorValue) -> _RCT:
-        if cached := self._cache.get(value.int, None):
-            return cached
-
-        closest = self.approximate(value, max_results=1).pop(0).color
-        self._cache.update({value.int: closest})
-        return closest
-
-    def invalidate_cache(self):
-        self._cache.clear()
+            yield ApxResult[_RCT](el, self._space.diff(value, el))
 
 
 class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
@@ -855,7 +989,7 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
 
     _registry: _ColorRegistry[_RCT]
     _index: _ColorIndex[_RCT]
-    _approximator: _ColorApproximator[_RCT]
+    _approximator: _BruteForceApproximator[_RCT]
 
     _required_attrs: t.List[str] = ["_registry", "_index", "_approximator"]
 
@@ -879,7 +1013,7 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         return cls._registry.find_by_name(name)
 
     @classmethod
-    def find_closest(cls: type[_RCT], value: IColorValue | int) -> _RCT:
+    def find_closest(cls: type[_RCT], value: IColorValue | int, read_cache=True, write_cache=True) -> _RCT:
         """
         Search and return color instance nearest to ``value``.
 
@@ -893,7 +1027,7 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         if not isinstance(value, IColorValue):
             value = RGB(value)
 
-        return cls._approximator.find_closest(value)
+        return cls._approximator.find_closest(value, read_cache, write_cache)
 
     @classmethod
     def approximate(
@@ -1116,7 +1250,16 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
     ) -> SequenceSGR:
         if code := self._target_to_code(target):
             return SequenceSGR(code)
-        raise NotImplementedError(f"No color-16 equivalent for {target}")
+
+        # underline color can be defined as Color256 (58;5;x) or ColorRGB (58;2;r;g;b),
+        # but not as Color16 (no equivalent SGR code)...
+        if target == ColorTarget.UNDERLINE and upper_bound in [Color256, ColorRGB]:
+            # but, if upper bound (=user terminal capabilities) allows us to use
+            # higher-order palette, let's return the most similar xterm-256 color:
+            return Color256.find_closest(self).to_sgr(target, upper_bound)
+
+        #
+        return NOOP_SEQ
 
     def to_tmux(self, target: ColorTarget = ColorTarget.FG) -> str:
         if self._name is None:
@@ -1132,7 +1275,7 @@ class Color16(RealColor, RenderColor, ResolvableColor["Color16"]):
             return self._code_fg
         if target == ColorTarget.BG:
             return self._code_bg
-        return None  # no equivalent for underline color
+        return None  # underline color cannot be set up with xterm-16 SGRs
 
 
 @final
@@ -1209,22 +1352,19 @@ class Color256(RealColor, RenderColor, ResolvableColor["Color256"]):
                             SGR being made.
         """
         if upper_bound is ColorRGB:
-            if ConfigManager.get_default().prefer_rgb:
+            if ConfigManager.get().prefer_rgb:
                 return make_color_rgb(*self.rgb, target=target)
             return make_color_256(self._code, target)
 
         if upper_bound is Color256 or upper_bound is None:
             return make_color_256(self._code, target)
 
+        # upper_bound is Color16 --------------------------------------------------------
+
         # underline color can be defined as Color256 (58;5;x) or ColorRGB (58;2;r;g;b),
-        # but not as Color16 (no equivalent SGR code);
+        # but not as Color16 (no equivalent SGR code)
         if target == ColorTarget.UNDERLINE:
             return NOOP_SEQ
-            # that's why we should not raise NotImplemented here, as it will result in an
-            # unpredictable behaviour depending on user's terminal mode, i.e., underlined
-            # color working as expected in xterm-256color mode, but throwing an exception
-            # in xterm-color mode; whereas Color16.to_sgr(target=UNDERLINE) will raise an
-            # error regardless of terminal mode, which allows to detect and fix it early.
 
         if self._color16_equiv:
             return self._color16_equiv.to_sgr(target, upper_bound)
@@ -1432,27 +1572,18 @@ class DefaultColor(RenderColor):
         >>> render("MISMATCH", Style(Styles.INCONSISTENCY, fg=NOOP_COLOR), sgr_renderer)
         '\x1b[93;101mMISMATCH\x1b[39;49m'
 
-    .. raw:: html
+    .. container:: highlight highlight-manual highlight-adjacent output
 
-      <div class="highlight-adjacent highlight-output">
-         <div class="highlight">
-            <pre><span style="color: #ffff00; background-color: #d70000">MISMATCH</span></pre>
-         </div>
-      </div>
-
+        :yellowonredline:`MISMATCH`
 
     While `DEFAULT_COLOR` is actually resetting the color to default (terminal) value::
 
         >>> render("MISMATCH", Style(Styles.INCONSISTENCY, fg=DEFAULT_COLOR), sgr_renderer)
         '\x1b[39;101mMISMATCH\x1b[49m'
 
-    .. raw:: html
+    .. container:: highlight highlight-manual highlight-adjacent output
 
-      <div class="highlight-adjacent highlight-output">
-         <div class="highlight">
-            <pre><span style="background-color: #d70000">MISMATCH</span></pre>
-         </div>
-      </div>
+        :whiteonredline:`MISMATCH`
 
     """  # noqa
 
@@ -1625,6 +1756,10 @@ def resolve_color(
                 # https://www.quackit.com/css/color/values/css_hex_color_notation_3_digits.cfm
                 s = "".join(map(lambda c: 2 * c, s))
             return int(s, 16)
+        try:
+            return int(s, 16)  # 0xNNNNNN
+        except ValueError:
+            pass
         return None
 
     if (value := as_hex(subject)) is not None:

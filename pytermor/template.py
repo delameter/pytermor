@@ -260,7 +260,7 @@ class TemplateEngine:
     def reset(self):
         self._user_styles.clear()
 
-    def render(self, tpl: str, renderer: IRenderer) -> str:
+    def render(self, tpl: str, renderer: IRenderer = None) -> str:
         return text_render(self.substitute(tpl), renderer=renderer)
 
     def substitute(self, tpl: str) -> Text:

@@ -1,0 +1,24 @@
+ARG PYTHON_VERSION=3.10
+FROM python:${PYTHON_VERSION}-slim
+
+ARG UID=1000
+ARG GID=1000
+
+COPY --chown=${UID}:${GID} requirements-test.txt ./
+RUN set -ex && \
+    pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements-test.txt && \
+    mkdir -p ./pytermor
+
+COPY --chown=${UID}:${GID} . .
+
+CMD [ "pytest" ]
+
+ARG PYTERMOR_VERSION=0
+ARG IMAGE_BUILD_DATE=0
+
+ENV PYTERMOR_VERSION=${PYTERMOR_VERSION}
+
+LABEL org.opencontainers.image.source=https://github.com/delameter/pytermor
+LABEL org.opencontainers.image.version=${PYTERMOR_VERSION}
+LABEL org.opencontainers.image.created=${IMAGE_BUILD_DATE}

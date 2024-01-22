@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import re
 import sys
 import typing as t
@@ -19,28 +20,34 @@ from os.path import join
 import yaml
 
 import pytermor as pt
-from common import CONFIG_PATH, error
+from common import CONFIG_PATH, ProgressBar
 from pytermor import ConflictError, SgrRenderer, cv
-from es7s_commons.progressbar import ProgressBar
-
 
 
 def warning(string: str | pt.IRenderable):
-    print(pt.render(pt.Fragment("[WARN] ", pt.Styles.WARNING_LABEL) + pt.Text(string+'\n', pt.Styles.WARNING)))
+    print(
+        pt.render(
+            pt.Fragment("[WARN] ", pt.Styles.WARNING_LABEL)
+            + pt.Text(string + "\n", pt.Styles.WARNING)
+        )
+    )
 
 
-class RgbPreprocessor():
+class RgbPreprocessor:
     NAME_ALLOWED_CHARS = "[a-z0-9 -]+"
     NAME_ALLOWED_REGEX = re.compile(NAME_ALLOWED_CHARS, flags=re.ASCII)
 
-    INPUT_CONFIG_FILENAME = "sources/rgb.source.yml"
+    INPUT_CONFIG_DIRNAME = "sources"
     OUTPUT_CONFIG_FILENAME = "rgb.yml"
 
     def __init__(self):
-        config_path = join(CONFIG_PATH, self.INPUT_CONFIG_FILENAME)
-        with open(config_path, "rt") as f:
-            self._color_defs = yaml.safe_load(f)
-            print(config_path)
+        self._color_defs = []
+        input_path = join(CONFIG_PATH, self.INPUT_CONFIG_DIRNAME)
+        for input_file in sorted(os.listdir(input_path)):
+            with open(join(input_path, input_file), "rt") as f:
+                for cd in yaml.safe_load(f):
+                    cd["source"] = input_file
+                    self._color_defs.append(cd)
 
         # tuple(name, variation_part_1, variation_part_2...)
         self._ids: t.Set[t.Tuple[str, ...]] = set()
@@ -53,7 +60,7 @@ class RgbPreprocessor():
 
         self._pbar.init_steps(len(self._color_defs))
         for color_def in self._color_defs:
-            self._pbar.next_step(color_def.get('name'))
+            self._pbar.next_step(color_def.get("name"))
 
             try:
                 self._process_color_def(color_def)
@@ -66,9 +73,10 @@ class RgbPreprocessor():
                     " ← ",
                     ("▇▇", color_def.get("value")),
                     f" #{color_def.get('value'):06x} for ",
+                    ".".join(color_def.get("source").split(".")[:2]) + ":",
                     (color_name, "bold"),
                 )
-                # get_stdout().echo_rendered(msg)
+                # self._pbar._echo(msg.render(), persist=True)
                 conflicts += 1
                 continue
         config = self._assemble_config()
@@ -132,9 +140,7 @@ class RgbPreprocessor():
                 self._ids.add(possible_id)
                 return parts[0], "-".join(parts[1 : part_idx + 1])
 
-    def _create_color(
-        self, name: str, variation: str, value: int, original_name: str
-    ) -> t.Dict:
+    def _create_color(self, name: str, variation: str, value: int, original_name: str) -> t.Dict:
         color: t.Dict[str, t.Any] = {
             "name": variation if variation else name,
             "value": value,
@@ -153,9 +159,7 @@ class RgbPreprocessor():
         for color in sorted(self._colors.values(), key=lambda c: c.get("name")):
             color_name = color.get("name")
             if color_variations := self._variations.get(color_name):
-                sorted_variations = sorted(
-                    color_variations.values(), key=lambda v: v["name"]
-                )
+                sorted_variations = sorted(color_variations.values(), key=lambda v: v["name"])
                 color.update({"variations": list(sorted_variations)})
             color_defs.append(color)
         return {

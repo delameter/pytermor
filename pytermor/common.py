@@ -212,7 +212,63 @@ def fit(
 # types
 
 
-def get_qname(obj) -> str:
+def instantiate(bound: t.Type[_T], subject: str | t.Type[_T] | _T, default=None) -> _T | None:
+    """
+    Instantiate a class by a definition ``subject`` and ensure that it is
+    an instance of ``bound`` argument or a subclass of it. ``subject`` can be
+    either:
+
+        - a qualified class name as a string, e.g. 'logging.StreamHandler'
+        - a local class name as a string, e.g. 'SgrRenderer'
+        - a type, e.g. `logging.StreamHandler` or `pytermor.SgrRenderer`
+        - an instance, e.g. `logging.StreamHandler()` or
+          `pytermor.SgrRenderer()`, in which case a function does not create
+          any new instances, just performs the type check.
+
+    The return value is guaranteed to be a subclass of ``bound``: either
+    instantiated from ``subject`` definition, or, if that attempt fails for
+    some reason, an instance provided as a ``default``. The only exception to
+    this is when a ``default`` is not a subclass of ``bound`` itself, in which
+    case **None** will be returned, should the instantiating OR type checking
+    fail.
+
+    :param subject:  required type of the instance defined as a *str* or *type*,
+                     or already instantiated object of ``bound`` type
+    :param bound:    type or supertype of the result
+    :param default:  fallback result which is returned if an instantiating or
+                     type, checking fail; must be an instance or a subclass of
+                     ``bound``, or it will be replaced with **None**
+    :return:         instance defined in ``subject`` or a ``default``
+    :rtype:          ``bound`` or its subclass, or *None*
+    """
+    if default is not None:
+        default = instantiate(bound, default)
+
+    if isinstance(subject, bound):
+        return subject
+
+    cls = None
+    if isinstance(subject, type) and issubclass(subject, bound):
+        cls = subject
+    elif isinstance(subject, str):
+        if "." in subject:
+            pkgname, _, clsname = subject.rpartition(".")
+        else:
+            pkgname, clsname = __package__, subject
+        try:
+            cls = getattr(__import__(pkgname), clsname)
+        except AttributeError:
+            return default
+
+    if cls is not None:
+        try:
+            return cls()
+        except TypeError:
+            pass
+    return default
+
+
+def get_qname(obj: any) -> str:
     """
     Convenient method for getting a class name for the instances as well as
     for the classes themselves, in case where a variable in question can be both.
@@ -237,7 +293,7 @@ def get_qname(obj) -> str:
 
 
 def only(cls: t.Type, inp: Iterable[_T]) -> t.List[_T]:
-    """Return all elements from `inp` that *are* instances of `cls`"""
+    """Return all elements from `inp` that *are* instances of `cls`."""
     return [*(a for a in inp if isinstance(a, cls))]
 
 
@@ -308,14 +364,15 @@ def get_subclasses(target: _T) -> Iterable[t.Type[_T]]:
     return result
 
 
-def ismutable(arg) -> bool:  # pragma: no cover
+def ismutable(arg: any) -> bool:  # pragma: no cover
     """
     Test ``arg`` for mutability. Only build-in types are supported.
     Mutability is determined by trying to compute a hash of an argument.
     """
     return not isimmutable(arg)
 
-def isimmutable(arg) -> bool:
+
+def isimmutable(arg: any) -> bool:
     if not hasattr(builtins, type(arg).__name__):
         raise TypeError(f"Only built-in types are supported, got: {get_qname(arg)}")
     try:
@@ -328,7 +385,7 @@ def isimmutable(arg) -> bool:
 isimmutable.__doc__ = ismutable.__doc__
 
 
-def isiterable(arg) -> bool:  # pragma: no cover
+def isiterable(arg: any) -> bool:  # pragma: no cover
     """
     Test if ``arg`` is an *Iterable*.
 
@@ -339,6 +396,7 @@ def isiterable(arg) -> bool:  # pragma: no cover
         algorithms.
     """
     return isinstance(arg, Iterable) and not isinstance(arg, (str, bytes, bytearray))
+
 
 # -----------------------------------------------------------------------------
 # iterables
@@ -386,8 +444,7 @@ def flatten(
                         if set to 1, only 2nd-level elements will be raised up
                         to level 1, but not the deeper ones. If set to 2, the
                         first two levels will be unpacked, while keeping the 3rd
-                        and others. 0 disables the limit. *None* is treated like
-                        a default value, which is set to 50 empirically.
+                        and others. 0 disables the limit.
 
                         Note that altering/disabling this limit doesn't affect
                         max recursion depth limiting mechanism, which will (sooner
@@ -396,7 +453,7 @@ def flatten(
                         a circular reference(s).
 
     :param track:       Setting to *True* enables tracking mechanism which forbids
-                        descending into already encountered items for a second time,
+                        descending into already visited items for a second time,
                         thus allowing to flatten circular- and/or self-referencing
                         structures.
     :param catch:       Setting to *True* suppresses RecursionError, and instead
@@ -475,31 +532,71 @@ def char_range(start: str, stop: str):
     yield from map(chr, codes)
 
 
-def joincoal(*arg: any, sep="") -> str:
-    return sep.join(map(str, filtern(arg)))
-
+# -----------------------------------------------------------------------------
+# none/false/empty handling
 
 _isnotnone = lambda v: v is not None
 _istruly = lambda v: bool(v)
 _isfilled = lambda v: bool(v) and len(str(v).strip())
 
+
+def _first(items: t.Iterable[_T]) -> _T | None:
+    # can be a generator so we should not access length property
+    for item in items:
+        return item
+    return None
+
+
 filtern = partial(filter, _isnotnone)
-""" Shortcut for filtering out Nones from sequences """
+"""Shortcut for filtering out Nones from sequences."""
 
 filterf = partial(filter, _istruly)
-""" Shortcut for filtering out falsy values from sequences """
+"""Shortcut for filtering out falsy values from sequences."""
 
 filtere = partial(filter, _isfilled)
-""" Shortcut for filtering out falsy AND empty values from sequences """
+"""Shortcut for filtering out falsy AND empty values from sequences."""
 
-def filternv(mapping: dict) -> dict:
-    """Shortcut for filtering out None values from mappings"""
+
+def filternv(mapping: dict[_KT, _VT]) -> dict[_KT, _VT]:
+    """Shortcut for filtering out None values from mappings."""
     return dict(filter(lambda kv: _isnotnone(kv[1]), mapping.items()))
 
-def filterfv(mapping: dict) -> dict:
-    """Shortcut for filtering out falsy values from mappings"""
+
+def filterfv(mapping: dict[_KT, _VT]) -> dict[_KT, _VT]:
+    """Shortcut for filtering out falsy values from mappings."""
     return dict(filter(lambda kv: _istruly(kv[1]), mapping.items()))
 
-def filterev(mapping: dict) -> dict:
-    """Shortcut for filtering out falsy AND empty values from mappings"""
+
+def filterev(mapping: dict[_KT, _VT]) -> dict[_KT, _VT]:
+    """Shortcut for filtering out falsy AND empty values from mappings."""
     return dict(filter(lambda kv: _isfilled(kv[1]), mapping.items()))
+
+
+def coaln(*arg: _T) -> _T | None:
+    """Return first ``arg`` that is not **None**"""
+    return _first(filtern(arg))
+
+
+def coalf(*arg: _T) -> _T | None:
+    """Return first non-falsy ``arg``"""
+    return _first(filterf(arg))
+
+
+def coale(*arg: _T) -> _T | None:
+    """Return first non-empty ``arg``"""
+    return _first(filtere(arg))
+
+
+def joinn(*arg: any, sep="") -> str:
+    """Drop all *Nones* from ``args``, map the rest to *str* and join them with ``sep``."""
+    return sep.join(map(str, filtern(arg)))
+
+
+def joinf(*arg: any, sep="") -> str:
+    """Drop all falsy values from ``args``, map the rest to *str* and join them with ``sep``."""
+    return sep.join(map(str, filtern(arg)))
+
+
+def joine(*arg: any, sep="") -> str:
+    """Drop all empty valuues ``args``, map the rest to *str* and join them with ``sep``."""
+    return sep.join(map(str, filtern(arg)))

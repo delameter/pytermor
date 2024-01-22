@@ -89,8 +89,8 @@
     color: purple;
 }
 
-.xdaracu {
-    color: #DA9AC4;
+.superuser {
+    color: #f8b889;
 }
 
 .redonblue {
@@ -120,6 +120,11 @@
     margin: 0.25em;
 }
 .yellowonredline,
-.bgtealline {
+.bgtealline,
+.whiteonredline {
     display: block;
+}
+.whiteonredline {
+    color: white;
+    background-color: red;
 }

@@ -82,3 +82,11 @@ class ColorCodeConflictError(Exception):
 
     def __str__(self) -> str:
         return self._msg
+
+class ApproximatorLockedException(Exception):
+    def __init__(self, *args):
+        super().__init__("Approximator is locked, call unlock() before modifying", *args)
+
+class ApproximatorUnlockedException(Exception):
+    def __init__(self, *args):
+        super().__init__("Approximator must be locked to perform approximations", *args)

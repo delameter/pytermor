@@ -9,6 +9,13 @@
 
    
    
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      force_ansi_rendering
+      force_no_ansi_rendering
+   
    
 
    

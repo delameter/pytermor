@@ -16,18 +16,18 @@ comes in the form of :term:`renderers <rendering>` .
 Selecting the renderer can be accomplished in several ways:
 
   a. By using general-purpose functions `render()<text.render>` and
-     `echo()<text.echo()>` -- both have an argument ``renderer`` (preferrable;
+     `echo()<text.echo()>` -- both have an argument ``renderer`` (preferable;
      *introduced in v2.x*).
-  b. Method `RendererManager.set_default()` sets the default renderer globally.
-     After that calling `render()<text.render>` will automatically invoke a
-     said renderer and apply the required formatting (but only if ``renderer``
+  b. Method `RendererManager.override()` sets the default renderer globally.
+     After that calling `render()<text.render>` will automatically invoke
+     specified renderer and apply the required formatting (but only if ``renderer``
      argument of ``render()`` method is left empty).
-  c. Set up the config variable `Config.renderer_class` directly or
-     via environment variable.
+  c. Set up the config variable :option:`renderer_classname` directly or
+     preliminary via :envvar:`environment variable`.
   d. Use renderer's instance method `IRenderer.render()` directly,
      but that's not recommended and possibly will be deprecated in the future.
 
-Generally speaking, if you need to invoke a custom renderer just once, it's
+Generally speaking, if you need to invoke a custom renderer just once or twice, it's
 convenient to use the first method for this matter, and use the second one
 in all the other cases.
 
@@ -47,20 +47,26 @@ To unconditionally print formatted message to standard output, call
 Default renderers priority
 ===========================
 
-When it comes to the rendering, `RendererManager` will use the first non-empty
-renderer from the list below, skipping the undefined elements:
+When it comes to the rendering, `RendererManager` will use the **first non-empty**
+renderer from the list below:
 
    1. Explicitly specified as argument ``renderer`` in methods
       `render()<text.render>`, `echo()<text.echo>`, `echoi()<text.echoi>`.
    2. Default renderer in global `RendererManager` class (see
-      `RendererManager.set_default()`)
-   3. Renderer class in the current loaded library config:
-      `Config.renderer_class`.
-   4. Value from environment variable :env:`PYTERMOR_RENDERER_CLASS`.
-   5. Default library renderer `SgrRenderer`.
+      `RendererManager.override()`)
+   3. Renderer class in the current loaded config:
+      :ref:`config.renderer_classname`.
+   4. Default library renderer `SgrRenderer`.
 
-   Argument > RendererManager > Config > Environment > Library's default
+   .. important::
 
+      Argument > `Global override<RendererManager.override>` > Current config > Library fallback
+
+Also note that the approach of setting up a renderer with a config in one place
+and overriding the global one in another can cause hard-to-catch bugs when the
+attempts to change renderer mode with config value will seem to fail, whereas in
+fact they work, but with no effect, as the renderer defined in config always gets
+shadowed by a global override.
 
 .. _guide.output_mode_select:
 
@@ -68,36 +74,31 @@ renderer from the list below, skipping the undefined elements:
 Output mode auto-selection
 ===========================
 
-`SgrRenderer` can be set up with automatic output mode `OutputMode.AUTO`.
-In that case the renderer will return `OutputMode.NO_ANSI` for any output device
+`SgrRenderer` can be set up with automatic output mode `AUTO`.
+In that case the renderer will return `NO_ANSI` for any output device
 other than terminal emulator, or try to find a matching rule from this list:
-
+                                                            
 .. |ANY| replace:: :aux:`<any>`
-
-.. |CV_FORCE| replace:: :ref:`Config.force_output_mode`
-.. |CV_DEFAULT| replace:: :ref:`Config.default_output_mode`
 
 .. table:: Auto output mode parameters and results
 
-   +--------+---------------------------+---------------+--------------------+
-   | Is a   | ``TERM``                  | ``COLORTERM`` | Result             |
-   | tty?   | env. var                  | env. var [#]_ | output mode        |
-   +========+===========================+===============+====================+
-   |                      |ANY|                         | |CV_FORCE| [#]_    |
-   +--------+---------------------------+---------------+--------------------+
-   | No     |                   |ANY|                   | `NO_ANSI`          |
-   +--------+---------------------------+---------------+--------------------+
-   |        | ``xterm-256color``        | ``24bit``,    | `TRUE_COLOR`       |
-   | Yes    |                           | ``truecolor`` |                    |
-   |        +---------------------------+---------------+--------------------+
-   |        | ``*-256color`` [#]_       |     |ANY|     | `XTERM_256`        |
-   |        +---------------------------+---------------+--------------------+
-   |        | ``xterm-color``           |     |ANY|     | `XTERM_16`         |
-   |        +---------------------------+---------------+--------------------+
-   |        | ``xterm``                 |     |ANY|     | `NO_ANSI`          |
-   |        +---------------------------+---------------+--------------------+
-   |        | :aux:`<any other>`        |     |ANY|     | |CV_DEFAULT| [#]_  |
-   +--------+---------------------------+---------------+--------------------+
+   +-----------+---------------------+--------------------------+-------------------------------------+
+   | Is a tty? | :envvar:`TERM`      | :envvar:`COLORTERM` [#]_ | Result output mode                  |
+   +===========+=====================+==========================+=====================================+
+   | |ANY|                                                      | :option:`force_output_mode` [#]_    |
+   +-----------+---------------------+--------------------------+-------------------------------------+
+   | No        | |ANY|                                          | `NO_ANSI`                           |
+   +-----------+---------------------+--------------------------+-------------------------------------+
+   | Yes       | ``xterm-256color``  | ``24bit``, ``truecolor`` | `TRUE_COLOR`                        |
+   |           +---------------------+--------------------------+-------------------------------------+
+   |           | ``*-256color`` [#]_ |          |ANY|           | `XTERM_256`                         |
+   |           +---------------------+--------------------------+-------------------------------------+
+   |           | ``xterm-color``     |          |ANY|           | `XTERM_16`                          |
+   |           +---------------------+--------------------------+-------------------------------------+
+   |           | ``xterm``           |          |ANY|           | `NO_ANSI`                           |
+   |           +---------------------+--------------------------+-------------------------------------+
+   |           | :aux:`<any other>`  |          |ANY|           | :option:`default_output_mode` [#]_  |
+   +-----------+---------------------+--------------------------+-------------------------------------+
 
 ..
 
@@ -113,6 +114,17 @@ other than terminal emulator, or try to find a matching rule from this list:
 
 .. graphviz:: /_include/sgr-output-mode.dot
     :caption: Auto output mode algorithm
+
+
+====================
+Color mode fallbacks
+====================
+
+There is a couple of approximation algorithms implemented in the library, the main purpose of which
+is to provide a nearest color supported by a user's terminal emulator when the original color is defined
+in a higher-order palette. For example, if user's terminal is only capable of displaying 256 colors, all
+`ColorRGB` instances will be automatically approximated to the nearest color available in the palette.
+Details described in :ref:`guide.finding_closest_color` section.
 
 
 .. _guide.renderer_class_diagram:

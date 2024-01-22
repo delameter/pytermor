@@ -33,30 +33,30 @@ from .ansi import get_closing_seq as get_closing_seq
 from .ansi import get_resetter_codes as get_resetter_codes
 from .ansi import parse as parse
 from .ansi import seq_from_dict as seq_from_dict
-from .border import BORDER_ASCII_DOUBLE as BORDER_ASCII_DOUBLE
-from .border import BORDER_ASCII_SINGLE as BORDER_ASCII_SINGLE
-from .border import BORDER_DOTTED_COMPACT as BORDER_DOTTED_COMPACT
-from .border import BORDER_DOTTED_DOUBLE as BORDER_DOTTED_DOUBLE
-from .border import BORDER_DOTTED_DOUBLE_SEMI as BORDER_DOTTED_DOUBLE_SEMI
-from .border import BORDER_DOTTED_REGULAR as BORDER_DOTTED_REGULAR
-from .border import BORDER_LINE_BOLD as BORDER_LINE_BOLD
-from .border import BORDER_LINE_DASHED as BORDER_LINE_DASHED
-from .border import BORDER_LINE_DASHED_2 as BORDER_LINE_DASHED_2
-from .border import BORDER_LINE_DASHED_3 as BORDER_LINE_DASHED_3
-from .border import BORDER_LINE_DASHED_BOLD as BORDER_LINE_DASHED_BOLD
-from .border import BORDER_LINE_DASHED_BOLD_2 as BORDER_LINE_DASHED_BOLD_2
-from .border import BORDER_LINE_DASHED_BOLD_3 as BORDER_LINE_DASHED_BOLD_3
-from .border import BORDER_LINE_DOUBLE as BORDER_LINE_DOUBLE
-from .border import BORDER_LINE_SINGLE as BORDER_LINE_SINGLE
-from .border import BORDER_LINE_SINGLE_ROUND as BORDER_LINE_SINGLE_ROUND
-from .border import BORDER_SOLID_12_COMPACT as BORDER_SOLID_12_COMPACT
-from .border import BORDER_SOLID_12_DIAGONAL as BORDER_SOLID_12_DIAGONAL
-from .border import BORDER_SOLID_12_EXTENDED as BORDER_SOLID_12_EXTENDED
-from .border import BORDER_SOLID_12_REGULAR as BORDER_SOLID_12_REGULAR
-from .border import BORDER_SOLID_18_COMPACT as BORDER_SOLID_18_COMPACT
-from .border import BORDER_SOLID_18_DIAGONAL as BORDER_SOLID_18_DIAGONAL
-from .border import BORDER_SOLID_18_REGULAR as BORDER_SOLID_18_REGULAR
-from .border import BORDER_SOLID_FULL as BORDER_SOLID_FULL
+from .border import ASCII_SINGLE as ASCII_SINGLE
+from .border import ASCII_DOUBLE as ASCII_DOUBLE
+from .border import LINE_SINGLE as LINE_SINGLE
+from .border import LINE_ROUNDED as LINE_ROUNDED
+from .border import LINE_BOLD as LINE_BOLD
+from .border import LINE_DOUBLE as LINE_DOUBLE
+from .border import LINE_DASHED as LINE_DASHED
+from .border import LINE_DASHED_2 as LINE_DASHED_2
+from .border import LINE_DASHED_3 as LINE_DASHED_3
+from .border import LINE_DASHED_BOLD as LINE_DASHED_BOLD
+from .border import LINE_DASHED_BOLD_2 as LINE_DASHED_BOLD_2
+from .border import LINE_DASHED_BOLD_3 as LINE_DASHED_BOLD_3
+from .border import BLOCK_THIN as BLOCK_THIN
+from .border import BLOCK_THIN_INNER as BLOCK_THIN_INNER
+from .border import BLOCK_THIN_ROUNDED as BLOCK_THIN_ROUNDED
+from .border import BLOCK_THICK as BLOCK_THICK
+from .border import BLOCK_THICK_INNER as BLOCK_THICK_INNER
+from .border import BLOCK_THICK_ROUNDED as BLOCK_THICK_ROUNDED
+from .border import BLOCK_FULL as BLOCK_FULL
+from .border import DOTS as DOTS
+from .border import DOTS_INNER as DOTS_INNER
+from .border import DOTS_ROUNDED as DOTS_ROUNDED
+from .border import DOTS_LIGHT as DOTS_LIGHT
+from .border import DOTS_HEAVY as DOTS_HEAVY
 from .border import Border as Border
 from .color import ApxResult as ApxResult
 from .color import Color as Color
@@ -90,6 +90,9 @@ from .common import RT as RT
 from .common import but as but
 from .common import char_range as char_range
 from .common import chunk as chunk
+from .common import coale as coale
+from .common import coalf as coalf
+from .common import coaln as coaln
 from .common import cut as cut
 from .common import filtere as filtere
 from .common import filterev as filterev
@@ -103,16 +106,22 @@ from .common import flatten1 as flatten1
 from .common import flip_unpack as flip_unpack
 from .common import get_qname as get_qname
 from .common import get_subclasses as get_subclasses
+from .common import instantiate as instantiate
 from .common import isimmutable as isimmutable
 from .common import isiterable as isiterable
 from .common import ismutable as ismutable
-from .common import joincoal as joincoal
+from .common import joine as joine
+from .common import joinf as joinf
+from .common import joinn as joinn
 from .common import only as only
 from .common import others as others
 from .common import ours as ours
 from .common import pad as pad
 from .common import padv as padv
 from .config import Config as Config
+from .config import ConfigManager as ConfigManager
+from .config import force_ansi_rendering as force_ansi_rendering
+from .config import force_no_ansi_rendering as force_no_ansi_rendering
 from .cval import cv as cv
 from .cval import cvr as cvr
 from .exception import ArgCountError as ArgCountError
@@ -201,13 +210,12 @@ from .numfmt import formatter_time_ms as formatter_time_ms
 from .numfmt import highlight as highlight
 from .renderer import HtmlRenderer as HtmlRenderer
 from .renderer import IRenderer as IRenderer
-from .renderer import NoOpRenderer as NoOpRenderer
+from .renderer import NoopRenderer as NoopRenderer
 from .renderer import OutputMode as OutputMode
+from .renderer import RendererManager as RendererManager
 from .renderer import SgrDebugger as SgrDebugger
 from .renderer import SgrRenderer as SgrRenderer
 from .renderer import TmuxRenderer as TmuxRenderer
-from .renderer import force_ansi_rendering as force_ansi_rendering
-from .renderer import force_no_ansi_rendering as force_no_ansi_rendering
 from .style import FrozenStyle as FrozenStyle
 from .style import MergeMode as MergeMode
 from .style import NOOP_STYLE as NOOP_STYLE
@@ -280,15 +288,16 @@ from .text import wrap_sgr as wrap_sgr
 
 
 from logging import getLogger, NullHandler
-from .config import ConfigManager as ConfigManager
-from .renderer import RendererManager as RendererManager
 
 getLogger(__package__).addHandler(NullHandler())  # discard all logs by default
-ConfigManager.set_default()
-RendererManager.set_default()
+ConfigManager.set()
 
 """
-# - 8< - - - - - - - - - in your project: - - - - - - - - - - - - - -
+# example configuration, insert into your project:                    
+# -8< - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+import pytermor as pt
+import logging
 
 fmt = '[%(levelname)5.5s][%(name)s.%(module)s] %(message)s'
 handler = logging.StreamHandler()
@@ -296,7 +305,15 @@ handler.setLevel(logging.DEBUG)
 handler.setFormatter(logging.Formatter(fmt))
 logger = logging.getLogger('pytermor')
 logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG)  # or whatever
+
+pt.ConfigManager.get().renderer_classname = 'SgrRenderer'
+
+# either of:
+pt.ConfigManager.get().default_output_mode = pt.OutputMode.XTERM_256
+# pt.force_ansi_rendering()
+# pt.force_no_ansi_rendering()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - >8-
+
 """

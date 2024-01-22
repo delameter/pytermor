@@ -24,7 +24,7 @@ from pytermor import (
     Style as St,
     Composite as Co,
 )
-from pytermor.renderer import NoOpRenderer
+from pytermor.renderer import NoopRenderer
 from pytermor.text import is_rt
 from tests import format_test_params, raises
 
@@ -217,7 +217,7 @@ class TestFargsFlow:
             ),
             (
                 ["1", "red", "2", "3", "blue"],
-                [Fg("1", pt.cv.RED), Fg("2"), Fg("3", pt.cv.BLUE)],
+                [Fg("1", pt.cv.RED), Fg("2", 0x000003), Fg("blue")],
             ),
             (
                 ["1", pt.cv.DARK_RED_2],
@@ -253,11 +253,11 @@ class TestFargsFlow:
             ),
             (
                 ["a", "b", "blue"],
-                [Fg("a"), Fg("b", pt.cv.BLUE)],
+                [Fg("a", 0x00000b), Fg("blue")],
             ),
             (
                 ["a", "b", tuple(), "blue"],
-                [Fg("a"), Fg("b"), Fg("blue")],
+                [Fg("a", 0x00000b), Fg("blue")],
             ),
             (
                 [("a", "red", "b", "blue")],
@@ -340,7 +340,7 @@ class TestAdding:
     def test_incremental_adding_works(self, renderable: IRen):
         renderable += "qwe"
         assert len(renderable) == 6
-        assert renderable.render(NoOpRenderer).endswith("qwe")
+        assert renderable.render(NoopRenderer).endswith("qwe")
 
     @pytest.mark.xfail(raises=pytermor.exception.LogicError)
     def test_incremental_adding_fails_for_immutables(self):
@@ -452,7 +452,7 @@ class TestFragmentFormatting:
 class TestTextFormatting:
     @classmethod
     def setup_class(cls) -> None:
-        cls.renderer_no_sgr = pt.renderer.NoOpRenderer()
+        cls.renderer_no_sgr = pt.renderer.NoopRenderer()
         cls.fragments = [Fg("123"), Fg("456", "red"), Fg("789")]
 
     # fmt: off
@@ -812,13 +812,13 @@ class TestMisc:
             raises(ValueError, "1 2 3", 5, ("1", "2", "3"), {"pad_left": True}),
         ],
     )
-    @pytest.mark.config(renderer_class=NoOpRenderer.__name__)
+    @pytest.mark.config(renderer_classname=NoopRenderer.__name__)
     def test_distribute_padded(self, expected: str, max_len: int, args, kwargs):
         result = pt.distribute_padded(max_len, *args, **kwargs)
         result_rendered = pt.render(result)
-        assert len(result) == max_len
-        assert len(result_rendered) == max_len
         assert result_rendered == expected
+        assert len(result_rendered) == max_len
+        assert len(result) == max_len
 
     @pytest.mark.parametrize(
         "expected, class_",

@@ -19,6 +19,7 @@ class TestTemplate:
     def setup_class(self):
         self._tpleng = TemplateEngine()
 
+    @pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
     @pytest.mark.parametrize(
         "tpl, exp",
         [
@@ -112,7 +113,6 @@ class TestTemplate:
         ],
         ids=format_test_params,
     )
-    @pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
     def test_render(self, tpl: str, exp: str):
         self._tpleng.reset()
-        assert self._tpleng.render(tpl, RendererManager.get_default()) == exp
+        assert self._tpleng.render(tpl) == exp

@@ -46,7 +46,7 @@ class TestRendererConfiguration:
             assert result == "12345"
 
 
-@pytest.mark.config(renderer_class=TmuxRenderer.__name__)
+@pytest.mark.config(renderer_classname=TmuxRenderer.__name__)
 class TestTmuxRenderer:
     def test_basic_render_works(self):
         result = pt.render("12345", Style(fg="red", bg="black", bold=True))
@@ -119,7 +119,7 @@ class TestTmuxRenderer:
         assert hash(renderer1) == hash(renderer2)
 
 
-@pytest.mark.config(renderer_class=HtmlRenderer.__name__)
+@pytest.mark.config(renderer_classname=HtmlRenderer.__name__)
 class TestHtmlRenderer:
     def test_noop_render_works(self):
         result = HtmlRenderer().render("12345", NOOP_STYLE)
@@ -286,22 +286,25 @@ class TestSgrRendererDebugger:
 
 
 class TestRendererManager:
-    def test_set_default_class_works(self):
-        RendererManager.set_default(SgrRenderer)
-        assert isinstance(RendererManager.get_default(), SgrRenderer)
+    def teardown_method(self):
+        RendererManager.override(None)
 
-    def test_set_default_none_works(self):
-        RendererManager.set_default(None)  # noqa
-        assert isinstance(RendererManager.get_default(), IRenderer)
+    def test_override_class_works(self):
+        RendererManager.override(SgrRenderer)
+        assert isinstance(RendererManager.get(), SgrRenderer)
 
-    @pytest.mark.config(renderer_class=TmuxRenderer.__name__)
-    def test_set_default_config_value_works(self):
-        RendererManager.set_default()
-        assert isinstance(RendererManager.get_default(), TmuxRenderer)
+    def test_override_none_works(self):
+        RendererManager.override(None)
+        assert isinstance(RendererManager.get(), IRenderer)
 
-    def test_set_default_instance_works(self):
-        RendererManager.set_default(renderer := SgrRenderer())
-        assert RendererManager.get_default() is renderer
+    @pytest.mark.config(renderer_classname=TmuxRenderer.__name__)
+    def test_override_config_value_works(self):
+        RendererManager.override()
+        assert isinstance(RendererManager.get(), TmuxRenderer)
+
+    def test_override_instance_works(self):
+        RendererManager.override(renderer := SgrRenderer())
+        assert RendererManager.get() is renderer
 
     # def test_set_as_string_works(self):
     #     RendererManager.set_default("HtmlRenderer")
@@ -312,11 +315,11 @@ class TestMisc:
     def test_force_ansi_rendering(self):
         force_ansi_rendering()
         assert (
-            RendererManager.get_default().render("123", "red") == "\x1b[31m"
+            RendererManager.get().render("123", "red") == "\x1b[31m"
             "123"
             "\x1b[39m"
         )
 
     def test_force_no_ansi_rendering(self):
         force_no_ansi_rendering()
-        assert RendererManager.get_default().render("123", "red") == "123"
+        assert RendererManager.get().render("123", "red") == "123"

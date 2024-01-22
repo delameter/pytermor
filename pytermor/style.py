@@ -89,12 +89,12 @@ class Style:
     :param class_name:  Custom class name for the element.
     """
 
-    _fg: RenderColor = field(default=None, init=False)
-    _bg: RenderColor = field(default=None, init=False)
-    _underline_color: RenderColor = field(default=None, init=False)
+    _fg: RenderColor|RealColor = field(default=None, init=False)
+    _bg: RenderColor|RealColor = field(default=None, init=False)
+    _underline_color: RenderColor|RealColor = field(default=None, init=False)
 
     @property
-    def fg(self) -> RenderColor:
+    def fg(self) -> RenderColor|RealColor:
         """
         Foreground (i.e., text) color. Can be set as `CDT` or ``Color``,
         stored always as ``Color``.
@@ -102,7 +102,7 @@ class Style:
         return self._fg
 
     @property
-    def bg(self) -> RenderColor:
+    def bg(self) -> RenderColor|RealColor:
         """
         Background color. Can be set as `CDT` or ``Color``, stored always
         as ``Color``.
@@ -110,7 +110,7 @@ class Style:
         return self._bg
 
     @property
-    def underline_color(self) -> RenderColor:
+    def underline_color(self) -> RenderColor|RealColor:
         """
         Underline color. Can be set as `CDT` or ``Color``, stored always
         as ``Color``.
@@ -448,7 +448,7 @@ class Style:
         if hasattr(self, "_frozen") and self._frozen:
             raise LogicError(f"{self.__class__.__qualname__} is immutable")
 
-    def _resolve_color(self, arg: CXT) -> RenderColor | None:
+    def _resolve_color(self, arg: CXT) -> RenderColor | RealColor | None:
         if arg is None:
             return NOOP_COLOR
         if isinstance(arg, RenderColor):

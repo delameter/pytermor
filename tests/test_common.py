@@ -5,19 +5,46 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 
-import copy
+import logging
 import math
 import os
 import re
 import sys
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
-from typing import Optional, Union, _GenericAlias
+from collections.abc import Iterable
 
 import pytest
-
+import typing as t
 from pytermor import Color256, IFilter, StringReplacer
-from pytermor.common import *
+from pytermor.common import (
+    ExtendedEnum,
+    Align,
+    fit,
+    cut,
+    pad,
+    padv,
+    only,
+    but,
+    ours,
+    others,
+    chunk,
+    ismutable,
+    flatten,
+    char_range,
+    FT,
+    RT,
+    get_qname,
+    instantiate,
+    joinn,
+    filtern,
+    filterf,
+    filtere,
+    filternv,
+    filterfv,
+    filterev,
+)
+from pytermor.renderer import SgrRenderer, TmuxRenderer, NoopRenderer, IRenderer
 from pytermor.filter import IT, OT
 from tests import format_test_params, skip_pre_310_typing
 
@@ -85,7 +112,7 @@ class TestExtendedEnum:
 
 class TestAlign:
     @pytest.mark.parametrize(
-        "input",
+        "inp",
         [
             Align.LEFT,
             Align.CENTER,
@@ -96,13 +123,13 @@ class TestAlign:
             pytest.param(2, marks=pytest.mark.xfail(raises=KeyError)),
         ],
     )
-    def test_align(self, input: str | Align):
-        assert isinstance(Align.resolve(input), (Align, str))
+    def test_align(self, inp: str | Align):
+        assert isinstance(Align.resolve(inp), (Align, str))
 
 
 class TestCutAndFit:
     @pytest.mark.parametrize(
-        "input, max_len, align, overflow, fillchar, expected_fit",
+        "inp, max_len, align, overflow, fillchar, expected_fit",
         [
             ("1234567890", 12, None, "‥", " ", "1234567890  "),
             ("1234567890", 10, None, "‥", " ", "1234567890"),
@@ -188,19 +215,19 @@ class TestCutAndFit:
     )
     def test_fit(
         self,
-        input: str,
+        inp: str,
         max_len: int,
         align: Align | str,
         overflow: str,
         fillchar: str,
         expected_fit: str,
     ):
-        actual_fit = fit(input, max_len, align, overflow, fillchar)
+        actual_fit = fit(inp, max_len, align, overflow, fillchar)
         assert len(actual_fit) <= max_len
         assert actual_fit == expected_fit
 
     @pytest.mark.parametrize(
-        "input, max_len, align, overflow, expected_cut",
+        "inp, max_len, align, overflow, expected_cut",
         [
             ("1234567890", 12, None, "‥", "1234567890"),
             ("1234567890", 10, None, "‥", "1234567890"),
@@ -255,13 +282,13 @@ class TestCutAndFit:
     )
     def test_cut(
         self,
-        input: str,
+        inp: str,
         max_len: int,
         align: Align | str,
         overflow: str,
         expected_cut: str,
     ):
-        actual_cut = cut(input, max_len, align, overflow)
+        actual_cut = cut(inp, max_len, align, overflow)
         assert len(actual_cut) <= max_len
         assert actual_cut == expected_cut
 
@@ -282,15 +309,15 @@ class TestRelations:
         assert but(int, [1, 2, 3, "4", 5, 6, 7]) == ["4"]
 
     def test_ours(self):
-        assert ours(Iterable, [[1], {2}, {3: 4}, 5]) == [[1], {2}, {3: 4}]
+        assert ours(t.Iterable, [[1], {2}, {3: 4}, 5]) == [[1], {2}, {3: 4}]
 
     def test_others(self):
-        assert others(Iterable, [[1], {2}, {3: 4}, 5]) == [5]
+        assert others(t.Iterable, [[1], {2}, {3: 4}, 5]) == [5]
 
 
 class TestChunk:
     @pytest.mark.parametrize(
-        "size, input, expected",
+        "size, inp, expected",
         [
             (0, range(3), []),
             (1, range(3), [(0,), (1,), (2,)]),
@@ -300,11 +327,11 @@ class TestChunk:
         ],
         ids=format_test_params,
     )
-    def test_chunk(self, size: int, input: Iterable, expected: list):
-        assert [*chunk(input, size)] == expected
+    def test_chunk(self, size: int, inp: t.Iterable, expected: list):
+        assert [*chunk(inp, size)] == expected
 
 
-class TestTypes:
+class TestMutability:
     @pytest.mark.parametrize(
         "inp, exp_mutable",
         [
@@ -383,7 +410,7 @@ class TestFlatten:
         assert flatten(self.ARRAY_5D) == [1, 2, 3, 4]
 
     @pytest.mark.parametrize(
-        "limit_level, input, expected",
+        "limit_level, inp, expected",
         [
             (1, 0, [0]),
             (1, [], []),
@@ -408,8 +435,8 @@ class TestFlatten:
         ],
         ids=format_test_params,
     )
-    def test_flatten_irregular_array(self, limit_level: int, input: t.List, expected: t.List):
-        assert flatten(input, limit_level) == expected
+    def test_flatten_irregular_array(self, limit_level: int, inp: t.List, expected: t.List):
+        assert flatten(inp, limit_level) == expected
 
     def test_flatten_circular_references_tracked(self):
         a, b, c = [1, 2], [3, 4], [5, 6]
@@ -443,8 +470,9 @@ class TestFlatten:
 
 
 class TestCharRange:
+    # noinspection NonAsciiCharacters
     @pytest.mark.parametrize(
-        "input, expected",
+        "inp, expected",
         [
             (("a", "z"), "abcdefghijklmnopqrstuvwxyz"),
             (("!", "/"), "!\"#$%&'()*+,-./"),
@@ -466,8 +494,8 @@ class TestCharRange:
         ],
         ids=format_test_params,
     )
-    def test_char_range(self, input: tuple[str, str], expected: list):
-        assert "".join(char_range(*input)) == expected
+    def test_char_range(self, inp: tuple[str, str], expected: list):
+        assert "".join(char_range(*inp)) == expected
 
 
 class TestGetQName:
@@ -478,7 +506,7 @@ class TestGetQName:
 
     @skip_pre_310_typing
     @pytest.mark.parametrize(
-        "input, expected",
+        "inp, expected",
         [
             ("avc", "str"),
             (b"avc", "bytes"),
@@ -515,19 +543,121 @@ class TestGetQName:
             (StringReplacer("", ""), "StringReplacer"),
             (t.List[T], "<typing.List[~T]>"),
             (list(), "list"),
-            (Optional[IT], ("<typing.Optional[~IT]>", "_UnionGenericAlias")),
-            (Union[FT, None], ("<typing.Optional[~FT]>", "_UnionGenericAlias")),
-            (Union[RT, OT], ("<typing.Union[~RT, ~OT]>", "_UnionGenericAlias")),
+            (t.Optional[IT], ("<typing.Optional[~IT]>", "_UnionGenericAlias")),
+            (t.Union[FT, None], ("<typing.Optional[~FT]>", "_UnionGenericAlias")),
+            (t.Union[RT, OT], ("<typing.Union[~RT, ~OT]>", "_UnionGenericAlias")),
         ],
         ids=format_test_params,
     )
-    def test_get_qname(self, input: t.Any, expected: str | tuple[str]):
+    def test_get_qname(self, inp: t.Any, expected: str | tuple[str]):
         if isinstance(expected, str):
             expected = [expected]
-        assert any(get_qname(input) == ex for ex in expected)
+        assert any(get_qname(inp) == ex for ex in expected)
 
 
-class TestJoinCoal:
+class TestInstantiate:
+    @pytest.mark.parametrize(
+        "bound, subject, default, expected_type, msg",
+        map(
+            lambda p: (p + ["instance of subject should be returned"])[:5],
+            [
+                [
+                    IRenderer,
+                    SgrRenderer,
+                    TmuxRenderer(),
+                    SgrRenderer,
+                ],
+                [
+                    IRenderer,
+                    Color256,
+                    NoopRenderer,
+                    NoopRenderer,
+                    "subject is not a subclass of bound: default should be returned",
+                ],
+                [
+                    IRenderer,
+                    Color256,
+                    Color256,
+                    type(None),
+                    "default is not a subclass of bound, but subject is: instance of subject should be returned",
+                ],
+                [
+                    IRenderer,
+                    Color256,
+                    None,
+                    type(None),
+                    "subject is not a subclass of bound: default (=None) should be returned",
+                ],
+                [
+                    IRenderer,
+                    Color256,
+                    Color256,
+                    type(None),
+                    "neither of subject and default is a subclass of bound: None should be returned",
+                ],
+                [
+                    IRenderer,
+                    "SgrRenderer",
+                    TmuxRenderer(),
+                    SgrRenderer,
+                ],
+                [
+                    logging.Handler,
+                    "logging.StreamHandler",
+                    None,
+                    logging.StreamHandler,
+                ],
+                [
+                    logging.Handler,
+                    logging.StreamHandler,
+                    None,
+                    logging.StreamHandler,
+                ],
+                [
+                    logging.Handler,
+                    logging.StreamHandler(),
+                    None,
+                    logging.StreamHandler,
+                    "the subject itself should be returned",
+                ],
+                [
+                    IRenderer,
+                    IRenderer,
+                    NoopRenderer(),
+                    NoopRenderer,
+                    "subject cannot be instantiated: default should be returned",
+                ],
+                [
+                    IRenderer,
+                    "IRenderer",
+                    NoopRenderer(),
+                    NoopRenderer,
+                    "subject cannot be instantiated: default should be returned",
+                ],
+                [
+                    IRenderer,
+                    "NotExistingClass",
+                    NoopRenderer(),
+                    NoopRenderer,
+                    "subject cannot be found: default should be returned",
+                ],
+                [
+                    IRenderer,
+                    "logging.NotExistingClass",
+                    NoopRenderer(),
+                    NoopRenderer,
+                    "subject cannot be found: default should be returned",
+                ],
+            ],
+        ),
+        ids=format_test_params,
+    )
+    def test_instantiate(self, bound, subject, default, expected_type, msg):
+        result = instantiate(bound, subject, default)
+        assert issubclass(type(result), expected_type), msg
+
+
+class TestJoin:
     @pytest.mark.parametrize(
         "inp, sep, exp",
         [
@@ -538,7 +668,7 @@ class TestJoinCoal:
         ids=format_test_params,
     )
     def test_filters(self, inp, sep, exp):
-        assert joincoal(*inp, sep=sep) == exp
+        assert joinn(*inp, sep=sep) == exp
 
 
 class TestFiltersFV:
@@ -553,6 +683,7 @@ class TestFiltersFV:
         'f': filterfv,
         'e': filterev,
     }
+
     @pytest.mark.parametrize('inp, fn_exp_map', [
         (               None, {'n': False, 'f': False, 'e': False}),
         (              False, {'n':  True, 'f': False, 'e': False}),

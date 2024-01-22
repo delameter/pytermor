@@ -46,26 +46,24 @@ run --rmprefix "${PROJECT_NAME}". \
         pytermor.exception \
         pytermor.log \
         pytermor.config \
-    | postprocess_module
+    -o "${DEPENDS_PATH}/package-tree.svg"
+    # | postprocess_module
+
+export CORE_COLOR="#95d0fc"
 
 export EDGE_COLOR="#101010"
 export LABEL_COLOR="#000000"
-export SIZE="1.8"
-export LEGEND_SIZE="3.0,0.5"
-envsubst < "${DOCS_IN_PATH}/_generated/module-generic.dot" > "${DOCS_IN_PATH}/_generated/module-pdf.dot"
-envsubst < "${DOCS_IN_PATH}/_generated/module_legend.template" > "${DOCS_IN_PATH}/_generated/module_legend-pdf.dot"
+export SIZE="2.8"
+envsubst < "${DOCS_IN_PATH}/_include/package-tree.template.dot" > "${DOCS_IN_PATH}/_generated/package-tree-pdf.dot"
 
 export EDGE_COLOR="#101010"
 export LABEL_COLOR="#000000"
 export SIZE="4"
-export LEGEND_SIZE="2.66,1"
-envsubst < "${DOCS_IN_PATH}/_generated/module-generic.dot" > "${DOCS_IN_PATH}/_generated/module-default.dot"
-envsubst < "${DOCS_IN_PATH}/_generated/module_legend.template" > "${DOCS_IN_PATH}/_generated/module_legend-default.dot"
+envsubst < "${DOCS_IN_PATH}/_include/package-tree.template.dot" > "${DOCS_IN_PATH}/_generated/package-tree-default.dot"
 
-export EDGE_COLOR="#C0C0C0"
-export LABEL_COLOR="#dadada"
-envsubst < "${DOCS_IN_PATH}/_generated/module-generic.dot" > "${DOCS_IN_PATH}/_generated/module-dark.dot"
-envsubst < "${DOCS_IN_PATH}/_generated/module_legend.template" > "${DOCS_IN_PATH}/_generated/module_legend-dark.dot"
+export EDGE_COLOR="#ffffff80"
+export LABEL_COLOR="#ffffff"
+envsubst < "${DOCS_IN_PATH}/_include/package-tree.template.dot" > "${DOCS_IN_PATH}/_generated/package-tree-dark.dot"
 
 run --rmprefix "${PROJECT_NAME}". \
     --start-color 0 \

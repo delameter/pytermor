@@ -24,7 +24,7 @@ from hashlib import md5
 
 from .ansi import ColorTarget, NOOP_SEQ, SeqIndex, SequenceSGR, get_closing_seq
 from .color import Color16, Color256, ColorRGB, DEFAULT_COLOR, Color, NOOP_COLOR, RenderColor
-from .common import ExtendedEnum, FT, get_qname
+from .common import ExtendedEnum, FT, get_qname, instantiate
 from .config import ConfigManager
 from .style import NOOP_STYLE, Style, Styles, make_style
 
@@ -39,51 +39,51 @@ class RendererManager:
     """
     Class for global rendering mode setup. For the details and recommendations
     see `guide.renderer_setup`.
+
+    .. important ::
+        All methods which are named ``render`` and have an argument named
+        ``renderer`` (e.g., `text.render()`) use the global default one if said
+        argument is omitted or set to *None*.
     """
 
     _default: IRenderer = None
+    _global_override: IRenderer | t.Type[IRenderer] = None
 
     @classmethod
-    def set_default(cls, renderer: IRenderer | t.Type[IRenderer] = None):
+    def override(cls, renderer: IRenderer | t.Type[IRenderer] = None):
         # noinspection PyUnresolvedReferences
         """
-        Select a global renderer. See also: `guide.renderer_priority`.
+        Override a global default renderer. Resolving priority is described in
+        `guide.renderer_priority`.
 
         :param renderer:
-            Default renderer to use globally. Calling this method without arguments
-            will result in library default renderer `SgrRenderer` being set as default.
-
-            All the methods with the ``renderer`` argument (e.g., `text.render()`)
-            will use the global default one if said argument is omitted or set to *None*.
-
-            You can specify either the renderer class, in which case manager will
-            instantiate it with the default parameters, or provide already instantiated
-            and set up renderer, which will be registered as global.
+            Can be provided as a **type**, in which case manager will
+            instantiate it with default arguments, or as already instantiated
+            and set up renderer, which will be registered as global. Calling
+            this method without an argument resets the override, which makes
+            default renderer class will be the one defined in configuration
+            instead (see :option:`renderer_classname`).
         """
-        if isinstance(renderer, type):
-            try:
-                renderer = renderer()
-            except TypeError:  # pragma: no cover
-                pass
-
-        if renderer is not None:
-            cls._default = renderer
-            return
-
-        renderer_classname: str = ConfigManager.get_default().renderer_class
-        if not (renderer_class := getattr(__import__(__package__), renderer_classname)):  # pragma: no cover
-            getLogger(__package__).warning(
-                f"Renderer class does not exist: '{renderer_classname}'"
-            )
-            renderer_class = SgrRenderer
-        cls._default = renderer_class()
+        cls._global_override = renderer
 
     @classmethod
-    def get_default(cls) -> IRenderer:
+    def get(cls) -> IRenderer:
         """
-        Get global renderer instance (`SgrRenderer`, or the one provided earlier with
-        `set_default()`).
+        Get current renderer instance. Resolving priority is described in
+        `guide.renderer_priority`.
         """
+
+        if cls._global_override is not None:
+            if (inst := instantiate(IRenderer,  cls._global_override)) is not None:
+                return inst
+
+        classname = ConfigManager.get().renderer_classname
+        return instantiate(IRenderer, classname, cls._get_default())
+
+    @classmethod
+    def _get_default(cls) -> IRenderer:
+        if cls._default is None:
+            cls._default = SgrRenderer()
         return cls._default
 
 
@@ -145,6 +145,22 @@ class IRenderer(metaclass=ABCMeta):
                  renderer settings.
         """
 
+    def is_256_color_supported(self) -> bool:
+        """
+        Return *True* if it's OK to use ``xterm-256`` color palette
+        and *False* otherwise. Non-SGR renderers returns *True* if
+        formatting is allowed, and *false* when it's not.
+        """
+        return self._allow_format
+
+    def is_true_color_supported(self) -> bool:
+        """
+        Return *True* if the output device can handle ``True Color``/RGB palette
+        and *False* otherwise. Non-SGR renderers returns *True* if formatting is
+        allowed, and *false* when it's not.
+        """
+        return self._allow_format
+
     def clone(self: _T, *args: t.Any, **kwargs: t.Any) -> _T:  # pragma: no cover
         """
         Make a copy of the renderer with the same setup.
@@ -152,10 +168,10 @@ class IRenderer(metaclass=ABCMeta):
         return self.__class__()
 
     def __repr__(self) -> str:
-        return f'<{get_qname(self)}[]>'
+        return f"<{get_qname(self)}[]>"
 
 
-class OutputMode(ExtendedEnum):
+class OutputMode(str, ExtendedEnum):
     """
     Determines what types of SGR sequences are allowed to use in the output.
     """
@@ -168,7 +184,7 @@ class OutputMode(ExtendedEnum):
     """
     16-colors mode. Enforces the renderer to approximate all color types
     to `Color16` and render them as basic mode selection SGR sequences
-    (``ESC [31m``, ``ESC [42m`` etc). See `Color.approximate()` for approximation
+    (:ansi:`ESC`\\ ``[31m``, :ansi:`ESC`\\ ``[42m`` etc). See `Color.approximate()` for approximation
     algorithm details.
     """
     XTERM_256 = "xterm_256"
@@ -249,7 +265,7 @@ class SgrRenderer(IRenderer):
         "framed": SeqIndex.FRAMED,
     }
 
-    def __init__(self, output_mode: str|OutputMode = OutputMode.AUTO, io: t.IO = sys.stdout):
+    def __init__(self, output_mode: str | OutputMode = OutputMode.AUTO, io: t.IO = sys.stdout):
         self._output_mode: OutputMode = self._determine_output_mode(output_mode, io)
         self._color_upper_bound: t.Type[Color] | None = self._COLOR_UPPER_BOUNDS.get(
             self._output_mode, None
@@ -276,10 +292,10 @@ class SgrRenderer(IRenderer):
     def render(self, string: str, fmt: FT = None) -> str:
         style = make_style(fmt)
         opening_seq = (
-            self._render_attributes(style)
-            + self._render_color(style.fg, ColorTarget.FG)
-            + self._render_color(style.bg, ColorTarget.BG)
-            + self._render_color(style.underline_color, ColorTarget.UNDERLINE)
+                self._render_attributes(style)
+                + self._render_color(style.fg, ColorTarget.FG)
+                + self._render_color(style.bg, ColorTarget.BG)
+                + self._render_color(style.underline_color, ColorTarget.UNDERLINE)
         )
         closing_seq = get_closing_seq(opening_seq)
         rendered_text = ""
@@ -291,6 +307,12 @@ class SgrRenderer(IRenderer):
         for line in string.splitlines(keepends=True):
             rendered_text += f"{opening_seq}{line}{closing_seq}"
         return rendered_text
+
+    def is_256_color_supported(self) -> bool:
+        return self._output_mode in [OutputMode.XTERM_256, OutputMode.TRUE_COLOR]
+
+    def is_true_color_supported(self) -> bool:
+        return self._output_mode in [OutputMode.TRUE_COLOR]
 
     def clone(self) -> SgrRenderer:
         return SgrRenderer(self._output_mode)
@@ -306,7 +328,9 @@ class SgrRenderer(IRenderer):
             logger.debug(f"Using explicit value from the constructor arg: {arg_value}")
             return arg_value
 
-        config_forced_value = OutputMode.resolve_by_value(ConfigManager.get_default().force_output_mode)
+        config_forced_value = OutputMode.resolve_by_value(
+            ConfigManager.get().force_output_mode
+        )
         if config_forced_value is not OutputMode.AUTO:
             logger.debug(f"Using forced value from env/config: {config_forced_value}")
             return config_forced_value
@@ -317,9 +341,7 @@ class SgrRenderer(IRenderer):
         term = os.environ.get("TERM", None)
         colorterm = os.environ.get("COLORTERM", None)
 
-        logger.debug(
-            f"{ioname} Determining output mode automatically: {config_forced_value}"
-        )
+        logger.debug(f"{ioname} Determining output mode automatically: {config_forced_value}")
         logger.debug(f"{ioname} {get_qname(io)} is a terminal: {isatty}")
         logger.debug(f"{ioname} Environment: TERM='{term}'")
         logger.debug(f"{ioname} Environment: COLORTERM='{colorterm}'")
@@ -332,7 +354,7 @@ class SgrRenderer(IRenderer):
             return OutputMode.XTERM_16
         if colorterm in ("truecolor", "24bit"):
             return OutputMode.TRUE_COLOR
-        return OutputMode.resolve_by_value(ConfigManager.get_default().default_output_mode)
+        return OutputMode.resolve_by_value(ConfigManager.get().default_output_mode)
 
     def _render_attributes(self, style: Style) -> t.List[SequenceSGR] | SequenceSGR:
         if not self.is_format_allowed:
@@ -430,14 +452,14 @@ class TmuxRenderer(IRenderer):
         return "#[" + (" ".join(f"{k}{v}" for k, v in kv)) + "]"
 
 
-class NoOpRenderer(IRenderer):
+class NoopRenderer(IRenderer):
     """
     Special renderer type that does nothing with the input string and just
     returns it as is (i.e. raw text without any `Styles<Style>` applied.
     Often used as a default argument value (along with similar "NoOps" like
     `NOOP_STYLE`, `NOOP_COLOR` etc.)
 
-    >>> NoOpRenderer().render('text', Style(fg='green', bold=True))
+    >>> NoopRenderer().render('text', Style(fg='green', bold=True))
     'text'
 
     :cache allowed:    *False*
@@ -450,7 +472,7 @@ class NoOpRenderer(IRenderer):
     def __bool__(self) -> bool:  # pragma: no cover
         return False
 
-    def __hash__(self) -> int:   # pragma: no cover
+    def __hash__(self) -> int:  # pragma: no cover
         return _digest(self.__class__.__qualname__)  # stateless
 
     def render(self, string: str, fmt: FT = None) -> str:
@@ -537,9 +559,7 @@ class HtmlRenderer(IRenderer):
         if style.underlined:
             span_styles["text-decoration"].add("underline")
 
-        span_class_str = (
-            "" if style.class_name is None else f' class="{style.class_name}"'
-        )
+        span_class_str = "" if style.class_name is None else f' class="{style.class_name}"'
         span_style_str = "; ".join(
             f"{k}: {' '.join(sorted(v))}" for k, v in sorted(span_styles.items()) if len(v) > 0
         )
@@ -552,7 +572,7 @@ class HtmlRenderer(IRenderer):
 class SgrDebugger(SgrRenderer):
     """
     Subclass of regular `SgrRenderer` with two differences -- instead of rendering the
-    proper ANSI escape sequences it renders them with ``ESC`` character replaced by "ǝ",
+    proper ANSI escape sequences it renders them with :ansi:`ESC` character replaced by "ǝ",
     and encloses the whole sequence into '()' for visual separation.
 
     Can be used for debugging of assembled sequences, because such a transformation
@@ -628,22 +648,3 @@ class SgrDebugger(SgrRenderer):
 
 # @todo
 # class Win32Renderer
-
-
-def force_ansi_rendering():
-    """
-    Shortcut for forcing all control sequences to be present in the
-    output of a global renderer.
-
-    Note that it applies only to the renderer that is set up as default at
-    the moment of calling this method, i.e., all previously created instances,
-    as well as the ones that will be created afterwards, are unaffected.
-    """
-    RendererManager.set_default(SgrRenderer(OutputMode.TRUE_COLOR))
-
-
-def force_no_ansi_rendering():
-    """
-    Shortcut for disabling all output formatting of a global renderer.
-    """
-    RendererManager.set_default(SgrRenderer(OutputMode.NO_ANSI))

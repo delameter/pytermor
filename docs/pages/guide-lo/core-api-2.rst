@@ -22,7 +22,7 @@ Glossary
       ..escape sequence is a standard for in-band signaling to control cursor
       location, color, font styling, and other options on video text terminals
       and terminal emulators. Certain sequences of bytes, most starting with an
-      :term:`ASCII` escape character (``ESC`` :hex:`0x1B`) and a bracket
+      :term:`ASCII` escape character (:ansi:`ESC`\ :hex:`0x1B`) and a bracket
       character (``[`` :hex:`0x5B`), are embedded into text. The terminal
       interprets these sequences as commands, rather than text to display
       verbatim. [#]_

@@ -7,14 +7,13 @@
 
 from __future__ import annotations
 
-import logging
 import random
 import sys
-from functools import partial
 
 import pytermor as pt
 from pytermor import StaticFormatter
 from pytermor.color import *
+
 
 class Main:
     def __init__(self, *argv: t.List):
@@ -60,17 +59,17 @@ class Approximator:
         self.input_values = []
         self._extended_mode = 0
         self._delta_name = "ΔE*"  # noqa
-        self._color_diff_fn_override = None
+        self._space_override = None
 
         for arg in argv:
             try:
                 if arg.startswith("-"):
                     if arg == "-H":
-                        self._color_diff_fn_override = HSV.diff
+                        self._space_override = HSV
                         self._delta_name = "Δₕ "
                         continue
                     if arg == "-R":
-                        self._color_diff_fn_override = RGB.diff
+                        self._space_override = RGB
                         self._delta_name = "Δᵣ "
                         continue
                     if m := re.fullmatch("-?-(e(?:xtended)?|e+)", arg):
@@ -112,7 +111,7 @@ class Approximator:
             for sample_value in self.input_values:
                 self._run(sample_value, "Input")
 
-        if len(self.input_values) > 0 or self._extended_mode or self._color_diff_fn_override:
+        if len(self.input_values) > 0 or self._extended_mode or self._space_override:
             return
 
         def fmt_arg_examples(*s: str) -> pt.Text:
@@ -191,9 +190,9 @@ class Approximator:
                     max_results = self._extended_mode + 1
                     if om is pt.OutputMode.TRUE_COLOR:
                         max_results = 2 * self._extended_mode + 1
-                if self._color_diff_fn_override:
-                    upper_bound._approximator.assign_diff_fn(self._color_diff_fn_override)
-                self._cdiff_method = upper_bound._approximator._diff_fn.__doc__.strip()
+                if self._space_override:
+                    upper_bound._approximator.assign_space(self._space_override)
+                self._cdiff_method = upper_bound._approximator._space.__name__.strip() + " distance"
                 approx_results = upper_bound.approximate(sample, max_results)
 
             for aix, approx_result in enumerate(approx_results):

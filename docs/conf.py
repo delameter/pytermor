@@ -8,7 +8,6 @@ import os
 import sys
 
 import yaml
-from docs.conf_extras import read_x, latex_elements
 
 # -- Path setup ---------------------------------------------------------------
 
@@ -19,6 +18,8 @@ from docs.conf_extras import read_x, latex_elements
 # sys.path.insert(0, os.path.abspath("/usr/bin/python3.8"))
 sys.path.insert(0, os.path.abspath(".."))
 root_doc = "pages/index"
+
+from docs.conf_extras import read_x, latex_elements
 
 # -- Project information ------------------------------------------------------
 
@@ -51,18 +52,19 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_design",  # <<<MAKE_DOCS_MAN<<<
     "sphinx.ext.imgmath",
-    #"sphinx_toolbox.more_autodoc.regex",   # broken lookarounds :(
-    #"sphinx_toolbox.more_autodoc.overloads",
+    # "sphinx_toolbox.more_autodoc.regex",   # broken lookarounds :(
+    # "sphinx_toolbox.more_autodoc.overloads",
     # "sphinx_toolbox.more_autodoc.generic_bases",
-    #"sphinx_toolbox.more_autodoc.typehints",
-    #"sphinx_toolbox.more_autodoc.typevars",
-    #"sphinxext-opengraph", # @TODO
+    # "sphinx_toolbox.more_autodoc.typehints",
+    # "sphinx_toolbox.more_autodoc.typevars",
+    # "sphinxext-opengraph", # @TODO
+    "docs.conf_extras.sphinx",
 ]
 # sphinx-design breaks building docs in man format, so `make` comments that
 # line before building it and uncomments it afterwards (yeah I know it's ugly)
 
-rst_prolog = read_x('_prolog.rsti')
-default_role = 'any'
+rst_prolog = read_x("_prolog.rsti")
+default_role = "any"
 
 templates_path = ["_templates"]
 exclude_patterns = [
@@ -82,9 +84,10 @@ exclude_patterns = [
 # html_theme = 'alabaster'  # alibabaster f[f[f[
 html_theme = "furo"
 html_title = ("<br>" if len(version) > 5 else "").join([project, version])
-#html_baseurl = "https://pwk.local/pt"
+# html_baseurl = "https://pwk.local/pt"
+html_baseurl = "pages"
 html_copy_source = False
-html_last_updated_fmt = '%d %b %Y'
+html_last_updated_fmt = "%d %b %Y"
 
 html_static_path = ["_static"]
 html_css_files = [
@@ -99,7 +102,7 @@ html_js_files = ["custom.js"]
 html_favicon = "_static/logo-96.svg"
 html_logo = "_static/logo-96.svg"
 
-html_theme_options = yaml.safe_load(read_x('html_theme_options.yml'))
+html_theme_options = yaml.safe_load(read_x("html_theme_options.yml"))
 
 pygments_style = "tango"
 pygments_dark_style = "github-dark"
@@ -118,18 +121,17 @@ imgmath_use_preview = True
 # -- LaTeX / PDF --------------------------------------------------------------
 
 latex_logo = "_static/logo-96.png"
-#latex_show_urls = "footnote"
-
-# noinspection SpellCheckingInspection
+# latex_show_urls = "footnote"
 latex_elements = latex_elements.get()
 
-image_converter_args=["-density", "80"]
-
-sd_fontawesome_latex=True
+image_converter_args = ["-density", "80"]
+sd_fontawesome_latex = True
 
 # -- autodoc ------------------------------------------------------------------
 
-# from sphinx.application import Sphinx  # noqa E402
+autodoc_member_order = 'bysource'  # 'alphabetical', 'groupwise'
+
+# from sphinx.application import Sphinx  # noqa E4024
 #
 # def setup(app: Sphinx):
 #     app.connect('autodoc-skip-member', autodoc_skip_member)
@@ -138,7 +140,7 @@ sd_fontawesome_latex=True
 #     if what == 'class' and name.startswith('__'):
 #         print(what, name, obj, skip, options)
 
-autodoc_typehints_format = 'short'
+autodoc_typehints_format = "short"
 autodoc_default_options = {
     "members": True,
     # 'undoc-members': True,
@@ -188,7 +190,7 @@ keep_warnings = True
 nitpicky = True
 nitpick_ignore = []
 
-for line in read_x('nitpick-exceptions').splitlines():
+for line in read_x("nitpick-exceptions").splitlines():
     if (line := line.strip()) == "" or line.startswith("#"):
         continue
     dtype, target = line.split(None, 1)
@@ -218,22 +220,25 @@ intersphinx_disabled_reftypes = ["*"]  # 'py:*'
 # graphviz_output_format = "svg"
 graphviz_output_format = "png"
 
-graphviz_dot_args = ["-Gbgcolor=transparent"] # "-Nfontname=ASM-Bold"
+graphviz_dot_args = ["-Gbgcolor=transparent"]  # "-Nfontname=ASM-Bold"
 
 # -- Inheritance graph --------------------------------------------------------
 
 inheritance_graph_attrs = dict(
     rankdir="LR",
     size='"8,5"',
-    fontsize=12,
+    fontsize=10,
     ratio="compress",
-    splines="line",
+    splines="splines",
 )
-inheritance_node_attrs = dict(fontname='"Pragmasevka"')
+inheritance_node_attrs = dict(
+    fontname='"monospace"',
+    fillcolor='"#fbf8f8"',
+)
 inheritance_edge_attrs = dict(
     arrowsize=0.5,
     style='"setlinewidth(0.5)"',
-    fillcolor="white",
+    fillcolor="black",
     headport="w",
 )
 
@@ -263,7 +268,9 @@ ClassDocumenter.add_directive_header = add_directive_header_no_object_base
 
 # ---------------------------------------------------------------------------------------
 
+from sphinx.application import Sphinx
 
-def setup(app):
+
+def setup(app: Sphinx):
     # mark index docfile as always outdated, forces static files (e.g. CSS) update:
     app.connect("env-get-outdated", lambda *args: ["index"])

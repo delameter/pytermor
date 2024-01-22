@@ -54,14 +54,14 @@ The library supports extended color modes:
 
 ::
 
-   import pytermor as pt
+    import pytermor as pt
 
-   for outm in ['xterm_16', 'xterm_256', 'true_color']:
-       print(' '+outm.ljust(12), end="")
-       for c in range((W := 80) + 1):
-           b = pt.RGB.from_ratios(1 - (p := c / W), 2 * min(p, 1 - p), p).int
-           f = pt.Fragment(" ·"[c & 1], pt.Style(fg=(1 << 24) - b, bg=b, bold=True))
-           print(f.render(pt.SgrRenderer(outm)), end=["", 2*"\n"][c >= W], flush=True)
+    for outm in ['true_color', 'xterm_256', 'xterm_16']:
+        for c in range((W:=80) + 1):
+            b = pt.RGB.from_ratios(1 - (p := c / W), 2 * min(p, 1 - p), p).int
+            f = pt.Fragment("▁", pt.Style(fg=pt.cv.GRAY_0, bg=b, bold=True))
+            print(f.render(pt.SgrRenderer(outm)), end=["", "\n"][c >= W], flush=True)
+
 
 .. container:: highlight highlight-manual highlight-adjacent output fullwidthimage
 
@@ -79,18 +79,14 @@ in any of these can be transparently translated into any other::
 
     import pytermor as pt
 
-    col = pt.RGB(0xDA9AC4)
-    st = pt.Style(fg=col)
-    for v in [col.rgb, col.hsv, col.xyz, col.lab]:
-        pt.echo(repr(v), st)
+    col = pt.cvr.SUPERUSER
+    pt.echo(repr(col.rgb) + ", " + repr(col.hsv), col)
 
 
 .. container:: highlight highlight-manual highlight-adjacent output
 
-    | :xdaracu:`RGB[#DA9AC4][R=218 G=154 B=196]`
-    | :xdaracu:`HSV[H=321° S=29% V=85%]`
-    | :xdaracu:`XYZ[X=50.43 Y=42.00% Z=57.66]`
-    | :xdaracu:`LAB[L=70.872% a=30.339 b=-12.031]`
+    | :superuser:`RGB[#F8B889][R=248 G=184 B=137]`
+    | :superuser:`HSV[H=25° S=45% V=97%]`
 
 ==================================
 Named colors collection

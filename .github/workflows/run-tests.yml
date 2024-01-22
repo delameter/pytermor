@@ -1,4 +1,4 @@
-name: testing and coverage w/f
+name: test and cover
 
 on:
   push:
@@ -9,10 +9,24 @@ on:
 jobs:
   test:
     runs-on: self-hosted
+    continue-on-error: ${{ matrix.experimental }}
+    # (applies to a single job) If jobs.<job_id>.continue-on-error is true,
+    # other jobs in the matrix will continue running even if the job with
+    # jobs.<job_id>.continue-on-error: true fails.
     strategy:
-      fail-fast: false
+      fail-fast: true
+      # (applies to the entire matrix) If jobs.<job_id>.strategy.fail-fast is
+      # set to true or its expression evaluates to true, GitHub will cancel all
+      # in-progress and queued jobs in the matrix if any job in the matrix
+      # fails. This property defaults to true.
       matrix:
         python-version: [ "3.8", "3.9", "3.10" ]
+        experimental: [false]
+        include:
+          - python-version: "3.11"
+            experimental: true
+          - python-version: "3.12"
+            experimental: true
 
     steps:
       - uses: actions/checkout@v3
@@ -49,10 +63,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ vars.PYTHON_VERSION }}
         uses: actions/setup-python@v3
         with:
-          python-version: "3.10"
+          python-version: ${{ vars.PYTHON_VERSION }}
 
       - name: Install dependencies
         run: |

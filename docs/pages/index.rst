@@ -3,6 +3,8 @@
 
 .. title:: pytermor
 
+:hide-toc:
+
 #####################
 pytermor
 #####################
@@ -43,8 +45,10 @@ The library is extendable and supports a variety of formatters (called
       :class-container: intro
 
       .. grid-item-card::
+         :link-type: ref
+         :link:      install
 
-         :ref:`install`
+         `install`
 
       .. grid-item-card::
 
@@ -75,9 +79,9 @@ The library is extendable and supports a variety of formatters (called
 
       .. grid-item-card::
 
-         :ref:`structure`
+         :ref:`Package tree <package_graph>`
 
-         *module dependency graph*
+         *internal imports graph*
 
       .. grid-item-card::
 
@@ -107,8 +111,8 @@ The library is extendable and supports a variety of formatters (called
    guide-hi/index
    guide-lo/index
    apidoc
-   appendix/index
    config
+   appendix/index
 
 .. toctree::
    :caption: Development
