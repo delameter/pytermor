@@ -14,6 +14,7 @@ import itertools
 import typing as t
 from collections import OrderedDict
 from collections.abc import Iterable
+from dataclasses import dataclass
 from functools import lru_cache, partial
 from math import ceil
 
@@ -96,6 +97,27 @@ class ExtendedEnum(enum.Enum):
         msg += ", ".join(map(str, rdict.keys()))
         raise LookupError(msg)
 
+
+@dataclass
+class CacheStats:
+    hits: int = 0
+    misses: int = 0
+    cursize: int = 0
+    maxsize: int = 0
+
+    @property
+    def hit_ratio(self) -> float:
+        return self.hits / ((self.hits + self.misses) or 1)
+
+    def format(self) -> str:
+        from .numfmt import format_thousand_sep
+        return "%s hits, %s misses (%3.1f%% ratio), size %d/%d" % (
+            format_thousand_sep(self.hits),
+            format_thousand_sep(self.misses),
+            100 * self.hit_ratio,
+            self.cursize,
+            self.maxsize,
+        )
 
 # -----------------------------------------------------------------------------
 # strings
@@ -268,7 +290,7 @@ def instantiate(bound: t.Type[_T], subject: str | t.Type[_T] | _T, default=None)
     return default
 
 
-def get_qname(obj: any) -> str:
+def get_qname(obj: any, *, name_only=False) -> str:
     """
     Convenient method for getting a class name for the instances as well as
     for the classes themselves, in case where a variable in question can be both.
@@ -282,9 +304,9 @@ def get_qname(obj: any) -> str:
     if obj is None:
         return "None"
     if isinstance(obj, t.TypeVar) or hasattr(obj, "_typevar_types"):
-        return f"<{obj!s}>"
+        return str(obj) if name_only else f"<{obj!s}>"
     if isinstance(obj, type):
-        return f"<{obj.__name__}>"
+        return obj.__name__ if name_only else f"<{obj.__name__}>"
     if isinstance(obj, object):
         if obj.__class__.__name__ == "method":
             return obj.__qualname__

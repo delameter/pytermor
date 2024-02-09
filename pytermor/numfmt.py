@@ -1093,10 +1093,10 @@ dual_registry.register(
     DualFormatter(
         units=[
             DualBaseUnit("sec", 60),
-            DualBaseUnit("min", 60, custom_short="min"),
+            DualBaseUnit("min", 60, collapsible_after=10, custom_short="min"),
             DualBaseUnit("hour", 24, collapsible_after=24),
             DualBaseUnit("day", 30, collapsible_after=10),
-            DualBaseUnit("month", 12),
+            DualBaseUnit("month", 12, collapsible_after=0),
             DualBaseUnit("year", overflow_after=999),
         ],
         allow_negative=True,

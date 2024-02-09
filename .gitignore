@@ -7,7 +7,7 @@ dist-dev
 .env
 venv
 .coverage
-coverage.*
+coverage*
 docs/_build
 docs/_cache
 docs-build/*/

@@ -30,15 +30,13 @@ class AnsiRole(SphinxRole):
     def run(self) -> Tuple[List[Node], List[system_message]]:
         node_list = []
 
-        for span in re.split(r'(\s*ESC\s*)', self.text):
+        for span in re.split(r'\s*(ESC)\s*', self.text):
             if 'ESC' in span:
-                node = nodes.inline(rawtext='ESC', classes=[self.name])
-                node += nodes.Text('ESC')
-                node_list.append(node)
+                node = nodes.inline(rawtext=span, classes=[self.name])
             else:
                 node = nodes.literal(rawtext=span, role='literal', classes=[self.name])
-                node += nodes.Text(span)
-                node_list.append(node)
+            node += nodes.Text(span)
+            node_list.append(node)
 
         return node_list, []
 

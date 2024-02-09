@@ -33,7 +33,7 @@ from math import sqrt
 from typing import TypeVar, OrderedDict, final
 
 from .ansi import BG_HI_COLORS, ColorTarget, HI_COLORS, NOOP_SEQ, SequenceSGR
-from .common import CDT
+from .common import CDT, CacheStats
 from .common import filtern
 from .common import get_qname
 from .config import ConfigManager
@@ -88,6 +88,7 @@ class _ConstrainedValue(t.Generic[_VT]):
     def value(self) -> _VT:
         return self._value
 
+
 class _RingConstrainedValue(_ConstrainedValue[_VT]):
     def __init__(self, val: _VT, max_val: _VT):
         super().__init__(val, min_val=0, max_val=max_val)
@@ -95,6 +96,7 @@ class _RingConstrainedValue(_ConstrainedValue[_VT]):
     def _normalize(self, value: _VT) -> _VT:
         # -12 -> 348, 376 ->  16
         return value % self._max_val
+
 
 class IColorValue(metaclass=ABCMeta):
     @classmethod
@@ -845,9 +847,12 @@ class _ColorIndex(t.Generic[_RCT], t.Sized):
 
 
 class _IColorApproximator(t.Generic[_RCT], metaclass=abc.ABCMeta):
+    _CACHE_MISS = object()
+
     def __init__(self):
         self._space = LAB
         self._cache: t.Dict[int, _RCT] = dict()
+        self._stats = CacheStats()
 
     @abstractmethod
     def add(self, color: _RCT):
@@ -868,13 +873,20 @@ class _IColorApproximator(t.Generic[_RCT], metaclass=abc.ABCMeta):
         closest = self.approximate(value, max_results=1).pop(0).color
         if write_cache:
             self._cache.update({value.int: closest})
+            self._stats.cursize = len(self._cache)
         return closest
 
     def get_cached(self, value: IColorValue) -> _RCT | None:
-        return self._cache.get(value.int, None)
+        result = self._cache.get(value.int, self._CACHE_MISS)
+        if result == self._CACHE_MISS:
+            self._stats.misses += 1
+            return None
+        self._stats.hits += 1
+        return result
 
     def invalidate_cache(self):
         self._cache.clear()
+        self._stats.cursize = 0
 
     def __repr__(self) -> str:
         return f"<{get_qname(self)}[{get_qname(self._space)}]>"
@@ -936,9 +948,11 @@ class _KDTreeApproximator(_IColorApproximator, t.Generic[_RCT]):  # @TODO test c
         if self._space == RGB:
             return lambda v: (*v.rgb,)
         if self._space == HSV:
+
             def hsv_normalized(v: IColorValue) -> tuple[float, float, float]:
                 h, s, v = v.hsv
-                return h / 100000, s, v  # makes diff in hue much more significant
+                return abs(h / 360), s, v  # makes diff in hue much more significant
+
             return hsv_normalized
         if self._space == LAB:
             return lambda v: (*v.lab,)
@@ -1013,13 +1027,20 @@ class ResolvableColor(t.Generic[_RCT], metaclass=_ResolvableColorMeta):
         return cls._registry.find_by_name(name)
 
     @classmethod
-    def find_closest(cls: type[_RCT], value: IColorValue | int, read_cache=True, write_cache=True) -> _RCT:
+    def find_closest(
+        cls: type[_RCT],
+        value: IColorValue | int,
+        read_cache=True,
+        write_cache=True,
+    ) -> _RCT:
         """
         Search and return color instance nearest to ``value``.
 
         .. seealso:: `color.find_closest()` for the details
 
-        :param value: Target color/color value.
+        :param value:       Target color/color value.
+        :param read_cache:  Search for cached values before computing.
+        :param write_cache: Write the result into the cache.
         """
         cls._ensure_initialized()
         cls._ensure_loaded()
@@ -1127,8 +1148,6 @@ class ApxResult(t.Generic[_RCT]):
             return False
         return self.color == other.color and self.distance == other.distance
 
-
-_ColorDiffFn = t.Callable[[IColorValue, IColorValue], float]
 
 # ---------------------------------------------------------------------------------------
 
@@ -1722,6 +1741,8 @@ class DynamicColor(RenderColor, t.Generic[_T], metaclass=ABCMeta):
 
 # ---------------------------------------------------------------------------------------
 
+RESOLVABLES = [Color16, Color256, ColorRGB]
+
 
 def resolve_color(
     subject: CDT,
@@ -1745,46 +1766,49 @@ def resolve_color(
     :raises LookupError:    If nothing was found in either of registries.
     :return:               ``Color`` instance with specified name or value.
     """
+    if not isinstance(subject, int):
+        subject = str(subject).strip()
+
+    if isinstance(color_type, type):
+        if not issubclass(color_type, ResolvableColor):
+            color_type = None
+    else:
+        color_type = None
 
     def as_hex(s: CDT):
         if isinstance(s, int):
             return s
-        if re.fullmatch(r"#[\da-f]{3}([\da-f]{3})?", s, flags=re.IGNORECASE):
-            s = s[1:]
-            if len(s) == 3:
-                # 3-digit hex notation, basically #RGB -> #RRGGBB
-                # https://www.quackit.com/css/color/values/css_hex_color_notation_3_digits.cfm
-                s = "".join(map(lambda c: 2 * c, s))
+        if m := re.fullmatch(R"#([\da-f]{3})", s, flags=re.IGNORECASE):
+            # 3-digit hex notation, basically #RGB -> #RRGGBB
+            # https://www.quackit.com/css/color/values/css_hex_color_notation_3_digits.cfm
+            s = "".join(map(lambda c: 2 * c, m.group(1)))
             return int(s, 16)
-        try:
-            return int(s, 16)  # 0xNNNNNN
-        except ValueError:
-            pass
+        if m := re.fullmatch(R"(?:#|0x)?([\da-f]+)", s, flags=re.IGNORECASE):
+            s = m.group(1)
+            try:
+                return int(s, 16)
+            except ValueError:
+                pass
         return None
 
     if (value := as_hex(subject)) is not None:
         if color_type is None:
             return ColorRGB(value)
-        if not issubclass(color_type, ResolvableColor):
-            return ColorRGB(value)
         if approx_cache:
             return find_closest(value, color_type)
         return approximate(value, color_type).pop(0).color
 
-    color_types: t.List[t.Type[Color]] = [Color16, Color256, ColorRGB]
-    if color_type:
+    color_types: t.List[t.Type[_RCT]] = RESOLVABLES
+    if color_type is not None:
         color_types = [color_type]
 
     for ct in color_types:
-        if not issubclass(ct, ResolvableColor):
-            continue  # pragma: no cover
         try:
             return ct.find_by_name(str(subject))
         except LookupError:
             continue
 
-    registry = str(color_type) if color_type else "any registry"
-    raise LookupError(f"Color '{subject}' was not found in {registry}")
+    raise LookupError(f"Color '{subject}' was not found in {color_type or 'any registry'}")
 
 
 def find_closest(value: IColorValue | int, color_type: t.Type[_RCT] = None) -> _RCT:

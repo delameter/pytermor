@@ -409,19 +409,33 @@ def make_hyperlink() -> SequenceOSC:
 
 def make_save_cursor_position() -> SequenceFp:
     """
-    :example:  :ansi:`ESC`\\ ``7``
+    :example:  :ansi:`ESC 7`
     """
     return SequenceFp("7", abbr="DECSC")
 
 
 def make_restore_cursor_position() -> SequenceFp:
     """
-    :example:  :ansi:`ESC`\\ ``8``
+    :example:  :ansi:`ESC8`
     """
     return SequenceFp("8", abbr="DECRC")
 
 
 # Sequence composites ---------------------------------------------------------
+
+def compose_clear_line() -> str:
+    """
+    Combines `make_set_cursor_column` with `make_erase_in_line`, which
+    effectively moves the cursor to the beginning of the current line and then
+    clears that line completely. Can be used e.g. for progress bar rendering,
+    (should printed just before every update) when plain ``\\r`` can't be used --
+    for cases when the elements contain spaces or have a dynamic width, so the
+    line must be cleared preemptively in order to avoid overlaying two lines of
+    the output one on another.
+
+    :example:  :ansi:`ESC [1G ESC [0K`
+    """
+    return f"{make_set_cursor_column()}{make_erase_in_line()}"
 
 
 def compose_clear_line_fill_bg(basis: SequenceSGR, line: int = None, column: int = None) -> str:
@@ -678,7 +692,7 @@ def measure_char_width(char: str, clear_after: bool = True) -> int:  # pragma: n
     .. warning ::
 
         Invoking this method produces a bit of garbage in the output stream,
-        which looks like this: ``⠁\x1b[3;2R``. By default, it is hidden using
+        which looks like this: :ansi:`ESC[3;2R`. By default, it is hidden using
         screen line clearing (see ``clear_after``).
 
     .. warning ::

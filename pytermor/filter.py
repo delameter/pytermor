@@ -31,9 +31,7 @@ from .common import FT, chunk, pad, cut
 from .exception import ArgTypeError, LogicError
 from .term import get_terminal_width
 
-codecs.register_error(
-    "replace_with_qmark", lambda e: ("?", e.start + 1)
-)  # pragma: no cover
+codecs.register_error("replace_with_qmark", lambda e: ("?", e.start + 1))  # pragma: no cover
 
 
 SGR_SEQ_REGEX = re.compile(R"(?P<esc>\x1b)(?P<csi>\[)(?P<param>[0-9;:]*)(?P<final>m)")
@@ -44,9 +42,7 @@ sequence params extraction.
 :meta hide-value:
 """
 
-CSI_SEQ_REGEX = re.compile(
-    R"(?P<esc>\x1b)(?P<csi>\[)(?P<param>([0-9;:<=>?])*)(?P<final>[@A-Za-z])"
-)
+CSI_SEQ_REGEX = re.compile(R"(?P<esc>\x1b)(?P<csi>\[)(?P<param>([0-9;:<=>?])*)(?P<final>[@A-Za-z])")
 """
 Regular expression that matches CSI sequences (a superset which includes 
 :term:`SGRs <SGR>`). 
@@ -369,16 +365,12 @@ class AbstractNamedGroupsRefilter(IRefilter[str], StringReplacer, metaclass=ABCM
         :param group_st_map:
         """
         self._group_st_map = group_st_map
-        self._groups_name_index: dict[int, str] = {
-            v: k for k, v in pattern.groupindex.items()
-        }
+        self._groups_name_index: dict[int, str] = {v: k for k, v in pattern.groupindex.items()}
         super(AbstractNamedGroupsRefilter, self).__init__(pattern, self._replace_by_key)
         super(StringReplacer, self).__init__()
 
     def _replace_by_key(self, m: re.Match) -> str:
-        return "".join(
-            self._process_group(idx + 1, v) for idx, v in enumerate(m.groups())
-        )
+        return "".join(self._process_group(idx + 1, v) for idx, v in enumerate(m.groups()))
 
     def _process_group(self, idx: int, v: str) -> str:
         if not v:
@@ -441,16 +433,12 @@ class OmniMapper(IFilter[IT, IT]):
             bytes: bytes.maketrans(*self._make_bytemaps(override)),
         }
 
-    def _make_premap(
-        self, inp_type: t.Type[IT], override: MPT | None
-    ) -> t.Dict[int, IT]:
+    def _make_premap(self, inp_type: t.Type[IT], override: MPT | None, single=False) -> t.Dict[int, IT]:
         default_map = dict()
         default_replacer = None
         for i in self._get_default_keys():
             if default_replacer is None:
-                default_replacer = self._transcode(
-                    self._get_default_replacer(), inp_type
-                )
+                default_replacer = self._transcode(self._get_default_replacer(), inp_type)
             default_map.setdefault(i, default_replacer)
 
         if override is None:
@@ -458,7 +446,7 @@ class OmniMapper(IFilter[IT, IT]):
         if not isinstance(override, dict):
             raise ArgTypeError(override, "override", MPT, None)
 
-        if not all(isinstance(k, int) and 0 <= k <= 255 for k in override.keys()):
+        if single and not all(isinstance(k, int) and 0 <= k <= 255 for k in override.keys()):
             raise TypeError("Mapper keys should be ints such as: 0 <= key <= 255")
         if not all(isinstance(v, (str, bytes)) for v in override.values()):
             raise TypeError("Map values should be either 'str' or 'bytes' single chars")
@@ -467,7 +455,7 @@ class OmniMapper(IFilter[IT, IT]):
         return default_map
 
     def _make_bytemaps(self, override: MPT | None) -> t.Tuple[bytes, bytes]:
-        premap = self._make_premap(bytes, override)
+        premap = self._make_premap(bytes, override, single=True)
         srcmap = b"".join(int.to_bytes(k, 1, "big") for k in premap.keys())
         for v in premap.values():
             if len(v) != 1:
@@ -740,9 +728,7 @@ class AbstractStringTracer(AbstractTracer[str], metaclass=ABCMeta):
         raise NotImplementedError
 
     def _format_output_text(self, text: str) -> str:
-        return apply_filters(text, *self._output_filters).ljust(
-            self._state.char_per_line
-        )
+        return apply_filters(text, *self._output_filters).ljust(self._state.char_per_line)
 
 
 # noinspection NonAsciiCharacters
@@ -884,10 +870,10 @@ def _get_tracer(tracer_cls: t.Type[AbstractTracer], max_width: int) -> AbstractT
 # @TODO  - special handling of one-line input
 #        - squash repeating lines
 def dump(
-    data: t.Any,
-    tracer_cls: t.Type[AbstractTracer] = None,
-    extra: TracerExtra = None,
-    force_width: int = None,
+        data: t.Any,
+        tracer_cls: t.Type[AbstractTracer] = None,
+        extra: TracerExtra = None,
+        force_width: int = None,
 ) -> str:
     """
     .

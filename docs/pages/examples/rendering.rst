@@ -375,13 +375,13 @@ characters of input instead of 120+ (average terminal width).
 
   ``compose_*`` methods do not belong to any `renderer`, so the decision of using
   or not using these depending on a terminal settings should be made by the developer
-  on a higher level. The suggested implementation of conditional composite sequences
+  on a separate basis. The suggested implementation of conditional composite sequences
   would be to request current renderer setup and ensure `is_format_allowed` returns
   *True*, in which case it's ok to write composite sequences (as the default renderer
   already uses them)::
 
      seq = ""
-     if pt.RendererManager.get_default().is_format_allowed:
+     if pt.RendererManager.get().is_format_allowed:
        seq = pt.compose_clear_line_fill_bg(pt.cv.NAVY_BLUE)
      pt.echo(seq + 'AAAA    BBBB')
 

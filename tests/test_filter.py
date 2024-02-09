@@ -275,10 +275,10 @@ class TestMappers:
             ("abc def ghi", {0x20: "."}, "abc.def.ghi"),
             ("abc def ghi", {0x20: ""}, "abcdefghi"),
             ("abc def ghi", {0x20: "Й"}, "abcЙdefЙghi"),  # noqa
-            pytest.param("", {400: "@"}, "", marks=pytest.mark.xfail(raises=TypeError)),
             pytest.param("", {32: 3}, "", marks=pytest.mark.xfail(raises=TypeError)),
             pytest.param("", {32: None}, "", marks=pytest.mark.xfail(raises=TypeError)),
             pytest.param(b"", {32: "q"}, "", marks=pytest.mark.xfail(raises=TypeError)),
+            pytest.param(b"", {400: "@"}, "", marks=pytest.mark.xfail(raises=TypeError)),
         ],
         ids=format_test_params,
     )

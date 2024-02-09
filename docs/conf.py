@@ -156,9 +156,10 @@ autodoc_default_options = {
 # add_module_names = False
 
 # include signature in the class desc or document __init__ separately
-autodoc_class_signature = "mixed"  # 'separated'
-
-autoclass_content = "both"  # "class" "init"
+# autodoc_class_signature = "separated"
+# autoclass_content = "class"
+autodoc_class_signature = "mixed"
+autoclass_content = "both"
 
 # doctest_test_doctest_blocks = 'True'
 

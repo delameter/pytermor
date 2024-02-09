@@ -24,7 +24,7 @@ from collections import deque
 from copy import copy
 from typing import overload
 
-from .common import Align, FT, RT, flatten1, get_qname, fit, pad, isiterable, instantiate
+from .common import Align, FT, RT, flatten1, fit, pad, isiterable, instantiate
 from .color import Color
 from .exception import ArgTypeError, LogicError
 from .renderer import IRenderer, OutputMode, RendererManager, SgrRenderer
@@ -91,6 +91,10 @@ class IRenderable(t.Sized, ABC):
         """pass"""
 
     @abstractmethod
+    def splitlines(self) -> t.List[IRenderable | t.List[IRenderable]]:
+        """..."""
+
+    @abstractmethod
     def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
         """pass"""
 
@@ -114,6 +118,21 @@ class IRenderable(t.Sized, ABC):
             if (inst := instantiate(IRenderer, local_override)) is not None:
                 return inst
         return RendererManager.get()
+
+    def _splitlines(self) -> t.Iterable[Fragment]:
+        line = []
+        for frag in self.as_fragments():
+            raw = frag.raw()
+            if "\n" not in raw:
+                line.append(frag)
+                continue
+            for part in re.split(r"(\n)", raw):
+                if part == "\n":
+                    yield from line
+                    line.clear()
+                    continue
+                line.append(Fragment(part, frag.style))
+        yield from line
 
 
 class Fragment(IRenderable):
@@ -198,6 +217,9 @@ class Fragment(IRenderable):
 
     def raw(self) -> str:
         return self._string
+
+    def splitlines(self) -> t.List[t.List[Fragment]]:
+        return [*self._splitlines()]
 
     @property
     def style(self) -> Style:
@@ -352,22 +374,22 @@ class FrozenText(IRenderable):
 
     def as_fragments(self) -> t.List[Fragment]:
         if self.has_width:
-            raise NotImplementedError(
-                f"Cannot make Fragments from fixed-width {get_qname(self.__class__)}"
-            )  # @TODO
+            return [Fragment(*fpst) for fpst in self._get_frag_parts()]
         return [*self._fragments]
 
     def raw(self) -> str:
         return "".join(f.raw() for f in self._fragments)
 
+    def splitlines(self) -> t.List[IRenderable]:
+        return [self.__class__(frags) for frags in self._splitlines()]
+
     def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
+        renderer = self._resolve_renderer(renderer)
+        return "".join(renderer.render(*fpst) for fpst in self._get_frag_parts())
+
+    def _get_frag_parts(self) -> t.Iterable[tuple[str, FT]]:
         """
         Core rendering method
-
-        :param renderer:
-        :type renderer:
-        :return:
-        :rtype:
         """
         max_len = len(self) + self._pad
         if self._width is not None:
@@ -381,7 +403,6 @@ class FrozenText(IRenderable):
         attrs_stack: t.Dict[str, t.List[bool | Color | None]] = {
             attr: [None] for attr in Style.renderable_attributes
         }
-        renderer = self._resolve_renderer(renderer)
 
         # cropping and overflow handling
         while cur_len < max_len and cur_frag_idx < len(self._fragments):
@@ -440,7 +461,7 @@ class FrozenText(IRenderable):
             last_fp, last_st = result_parts.pop()
             result_parts.append((last_fp + fill_right, last_st))
 
-        return "".join(renderer.render(fp, st) for fp, st in result_parts)
+        return result_parts
 
     @property
     def allows_width_setup(self) -> bool:
@@ -541,6 +562,9 @@ class Composite(IRenderable):
     def raw(self) -> str:
         return "".join(p.raw() for p in self._parts)
 
+    def splitlines(self) -> t.List[IRenderable]:
+        return [self.__class__(frags) for frags in self._splitlines()]
+
     def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
         return "".join(p.render(self._resolve_renderer(renderer)) for p in self._parts)
 
@@ -630,6 +654,9 @@ class SimpleTable(IRenderable):
     def raw(self) -> str:
         return "\n".join(*[[cell.raw() for cell in row] for row in self._rows])
 
+    def splitlines(self) -> t.List[IRenderable]:
+        raise NotImplementedError
+
     @property
     def allows_width_setup(self) -> bool:
         return True
@@ -660,9 +687,7 @@ class SimpleTable(IRenderable):
             self.add_row(*row)
 
     def add_row(self, *cells: RT):
-        fixed_cell_count = sum(
-            int(c.has_width) if isinstance(c, IRenderable) else 1 for c in cells
-        )
+        fixed_cell_count = sum(int(c.has_width) if isinstance(c, IRenderable) else 1 for c in cells)
         if fixed_cell_count < len(cells) - 1:
             raise TypeError(
                 "Row should have no more than one dynamic width cell, "
@@ -674,9 +699,7 @@ class SimpleTable(IRenderable):
             raise ValueError(f"Row is too long (>{self._width})")
         self._rows.append(row)
 
-    def pass_row(
-        self, *cells: RT, renderer: IRenderer | t.Type[IRenderer] = None
-    ) -> str:
+    def pass_row(self, *cells: RT, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
         renderer = self._resolve_renderer(renderer)
         return self._render_row(renderer, self._make_row(*cells))
 
@@ -894,7 +917,7 @@ def wrap_sgr(
 
 
 def apply_style_words_selective(string: str, st: Style) -> t.Sequence[Fragment]:
-    """ ... """
+    """..."""
     return apply_style_selective(SELECT_WORDS_REGEX, string, st)
 
 

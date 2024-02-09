@@ -62,9 +62,7 @@ all: test-verbose cover update-coveralls docs-all build
 ## Initialization
 
 init-venv:  ## Prepare manual environment  <venv>
-	${HOST_DEFAULT_PYTHON} -m venv --clear ${VENV_LOCAL_PATH}
-	${VENV_LOCAL_PATH}/bin/python -m pip install -r requirements-build.txt -r requirements-test.txt
-	${VENV_LOCAL_PATH}/bin/python -m pytermor
+init-venv: reinit-manual-venv
 
 init-hatch:  ## Install build backend  <host>
 	pipx install hatch
@@ -77,6 +75,24 @@ init-system-pdf:  ## Prepare environment for pdf rendering  <host>
 					 latexmk \
 					 dvipng \
 					 dvisvgm
+
+reinit:  ## Demolish and install auto and manual(=default) environments <hatch> <venv>
+reinit: reinit-hatch reinit-manual-venv
+
+reinit-hatch:  ## Demolish and install auto environments <hatch>
+	@for envname in $$(hatch env show --json | jq '.|keys[]' -r) ; do \
+  		if test $$envname = default ; then continue ; fi ; \
+  		echo ------------ $$envname --------------- ;  \
+        hatch env remove $$envname ; \
+        hatch run $$envname:es7s -VV ; \
+    done
+
+reinit-manual-venv:    ## Demolish and install manual environment <venv>
+	${HOST_DEFAULT_PYTHON} -m venv --clear ${VENV_LOCAL_PATH}
+	${VENV_LOCAL_PATH}/bin/python -m pip install -r requirements-build.txt -r requirements-test.txt
+	${VENV_LOCAL_PATH}/bin/python -m pytermor
+
+
 
 ##
 ## Docker
@@ -235,9 +251,10 @@ update-coveralls:  ## Manually send last coverage statistics  <coveralls.io>
 ## Dependencies
 
 depends:  ## Build module dependency graphs
-	@rm -vrf ${DEPENDS_PATH}
-	@mkdir -p ${DEPENDS_PATH}
-	@./pydeps.sh ${PROJECT_NAME} ${DEPENDS_PATH}
+	@:  # manual for now
+#	@rm -vrf ${DEPENDS_PATH}
+#	@mkdir -p ${DEPENDS_PATH}
+#	@./pydeps.sh ${PROJECT_NAME} ${DEPENDS_PATH}
 
 open-depends:  ## Open dependency graph output directory
 	@$(call _ensure_x11) || return

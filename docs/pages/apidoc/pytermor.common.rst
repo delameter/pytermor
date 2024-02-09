@@ -63,6 +63,7 @@
    .. autosummary::
    
       Align
+      CacheStats
       ExtendedEnum
    
    

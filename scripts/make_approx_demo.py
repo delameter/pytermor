@@ -8,125 +8,138 @@ from __future__ import annotations
 import os.path
 import time
 import typing as t
+from collections import deque
 from collections.abc import Iterable
 from pathlib import Path
 
-from PIL import Image, ImageFont, ImageDraw
+from PIL import Image, ImageDraw
 
 import pytermor as pt
+from pytermor.common import CacheStats
 
 DistanceResult = Iterable[pt.ApxResult[pt.ResolvableColor]]
 
 
 class ApproxDemo:
-    LABEL_HEIGHT = 50
     SCALE_WIDTH = 20
 
     PROJECT_ROOT = Path(os.path.dirname(__file__)).parent
-    INPUT_FILEPATH = f"{PROJECT_ROOT}/docs/_generated/approx/input-bgwhite-v2.png"
-    OUTPUT_FILEPATH_TPL = f"{PROJECT_ROOT}/docs/_generated/approx/output-%s.png"
-
-    FONT_DIRPATH = f"{PROJECT_ROOT}/docs/_static/fonts"
-    FONT_HEADER = dict(font=f"{FONT_DIRPATH}/asm-bold.woff", size=16)
-    FONT_LABEL = dict(font=f"{FONT_DIRPATH}/asm-regular.woff", size=12)
+    INPUT_FILEPATH = f"{PROJECT_ROOT}/docs/_generated/approx/input-bgtransp-v5.png"
+    OUTPUT_FILEPATH_TPL = f"{PROJECT_ROOT}/docs/_generated/approx/output-%s-%s.png"
 
     SAMPLES: t.List[t.Tuple[pt.Color16 | pt.Color256 | pt.ColorRGB, str]] = [
-        (pt.ColorRGB, "16M colors"),
-        (pt.Color256, "256 colors"),
-        (pt.Color16, "16 colors"),
+        (pt.ColorRGB, "ColorRGB"),
+        (pt.Color256, "Color256"),
+        (pt.Color16, "Color16"),
     ]
 
-    SPACES: t.List[t.Type[pt.IColorValue]] = [pt.RGB] #, pt.HSV, pt.XYZ, pt.LAB]
+    SPACES: t.List[t.Type[pt.IColorValue]] = [pt.RGB, pt.HSV, pt.LAB, pt.XYZ]
+    #SPACES: t.List[t.Type[pt.IColorValue]] = [pt.LAB]
 
     def __init__(self):
-        self.font_header = ImageFont.truetype(**self.FONT_HEADER)
-        self.font_default = ImageFont.truetype(**self.FONT_LABEL)
-        self.input_im = Image.open(self.INPUT_FILEPATH, "r")
+        self._avg_speed = deque(maxlen=20)
+        self._avg_eta = deque(maxlen=5)
+        self._input_im = Image.open(self.INPUT_FILEPATH, "r")
+        self._eta_fmter = pt.DualFormatter(
+            units=[
+                pt.DualBaseUnit("sec", 60),
+                pt.DualBaseUnit("min", 60, collapsible_after=10, custom_short="min"),
+                pt.DualBaseUnit("hour", 24, collapsible_after=24),
+                pt.DualBaseUnit("day", 30, collapsible_after=10),
+                pt.DualBaseUnit("month", 12),
+                pt.DualBaseUnit("year", overflow_after=999),
+            ],
+            allow_negative=True,
+            allow_fractional=True,
+            unit_separator=" ",
+            plural_suffix="s",
+        )
+        # self._label_font = ImageFont.load("arial.pil")
+        self._run_start_ts = time.monotonic_ns() / 1e9
 
     def run(self):
         run_num = 0
         runs_total = len(self.SPACES) * len(self.SAMPLES)
         for space in self.SPACES:
-            output_size = (
-                self.input_im.width * len(self.SAMPLES),
-                self.input_im.height + self.LABEL_HEIGHT,
-            )
-            output_filepath = self.OUTPUT_FILEPATH_TPL % pt.get_qname(space).strip('<>').lower()
-            if os.path.exists(output_filepath):
-                output_im_existing = Image.open(output_filepath, "r")
-                output_im = output_im_existing.copy()
-                output_im_existing.close()
-            else:
-                output_im = Image.new("RGB", size=output_size, color=(255, 255, 255))
-
-            for sample_num, sample in enumerate(self.SAMPLES):
-                cls, label = sample
-                if cls == pt.ColorRGB:
-                    caption = "%s, no approximation" % label
+            for (cls, label) in self.SAMPLES:
+                output_size = (self._input_im.width, self._input_im.height)
+                fmt_class = lambda o: pt.get_qname(o).strip("<>").lower()
+                output_filepath = self.OUTPUT_FILEPATH_TPL % (fmt_class(space), fmt_class(cls))
+                if os.path.exists(output_filepath):
+                    output_im_existing = Image.open(output_filepath, "r")
+                    output_im = output_im_existing.copy()
+                    output_im_existing.close()
                 else:
-                    caption = "%s, approx. by %s distance" % (label, pt.get_qname(space).lower())
-                run_num += 1
-                cls._approximator.assign_space(space)
-                self._draw_sample(sample_num, run_num, runs_total, cls, caption, output_im)
+                    output_im = Image.new("RGBA", size=output_size, color=(255, 255, 255, 0))
 
-            output_im.save(output_filepath)
+                caption = "%s, %s" % (pt.get_qname(space).lower(), label)
+                cls._approximator.assign_space(space)
+                run_num += 1
+
+                self._draw_sample(run_num, runs_total, cls, caption, output_im)
+                self._draw_label(cls, caption, output_im)
+
+                output_im.save(output_filepath)
+                output_im.show()
 
     def _draw_sample(
         self,
-        sample_num: int,
         run_num: int,
         runs_total: int,
         cls: pt.Color,
         caption: str,
         output_im: Image,
     ):
-        x1 = sample_num * self.input_im.width
-        y1 = 0
-        y2 = self.input_im.height
+        print(f"Running on {cls._approximator}, {output_im}")
+        ts_start = time.monotonic_ns() / 1e9
+        ts_status_upd = 0
+        eta_sec = None
 
-        if cls is pt.ColorRGB:
-            output_im.paste(self.input_im, (x1, y1))
-            self._print_status(run_num, runs_total, caption, None, None, 1)
-            print()
-        else:
-            approx_speed = None
-            approx_interval = None
-            for va in range(0, self.input_im.width, 1):
-                ts_before = time.monotonic_ns()
-                for vb in range(0, self.input_im.height, 1):
-                    val = pt.RGB.from_channels(*self.input_im.getpixel((va, vb)))
-                    # cval = cls.approximate(val, max_results=1)[0].color
-                    cval = cls.find_closest(val, True, True) or pt.ColorRGB(0)
-                    output_im.putpixel((x1 + va, y1 + vb), (*cval.rgb,))
+        for va in range(0, self._input_im.width, 1):
+            for vb in range(0, self._input_im.height, 1):
+                pxval = self._input_im.getpixel((va, vb))
+                rgbval = pt.RGB.from_channels(*pxval[:3])
+                cval = cls.find_closest(rgbval, True, True) or pt.ColorRGB(0)
+                output_im.putpixel((va, vb), (*cval.rgb, pxval[-1]))
 
-                    if va % (self.input_im.width // 100) == 0:
-                        perc = va / self.input_im.width
-                        self._print_status(
-                            run_num,
-                            runs_total,
-                            caption,
-                            approx_speed,
-                            approx_interval,
-                            perc,
-                        )
-                ts_after = time.monotonic_ns()
-                approx_interval = ts_after - ts_before
-                approx_speed = (self.input_im.height * 1e9) / approx_interval
-            print()
+                ts_now = time.monotonic_ns() / 1e9
+                approx_interval = ts_now - ts_start
+                cache_stats = cls._approximator._stats
+
+                if not ts_status_upd or ts_now - ts_status_upd > 0.25:
+                    ts_status_upd = ts_now
+                    perc = va / self._input_im.width
+                    if perc == 0:
+                        continue
+                    approx_speed = approx_interval / perc
+                    self._avg_speed.append(approx_speed)
+                    eta_sec = (
+                        (1 - perc + runs_total - run_num)
+                        * sum(self._avg_speed)
+                        / len(self._avg_speed)
+                    )
+                    elapsed_sec = ts_now - self._run_start_ts
+                    self._print_status(
+                        run_num, runs_total, caption, perc, eta_sec, elapsed_sec, cache_stats
+                    )
+
+        elapsed_sec = time.monotonic_ns() / 1e9 - self._run_start_ts
+        self._print_status(run_num, runs_total, caption, 1, eta_sec, elapsed_sec, cache_stats)
+        print()
+
+    def _draw_label(self, cls: pt.Color, caption: str, output_im: Image):
+        cls_str = pt.get_qname(cls, name_only=True)
+        apx_str = pt.get_qname(cls._approximator)
+        meth_str = pt.get_qname(cls._approximator._space)
 
         ImageDraw.Draw(output_im).text(
-            (x1 + self.input_im.width / 2, y2 + self.LABEL_HEIGHT / 4),
-            anchor="mm",
-            font=self.font_header,
-            fill=(0, 0, 0),
-            text=pt.get_qname(cls) + " class",
-        )
-        ImageDraw.Draw(output_im).text(
-            (x1 + self.input_im.width / 2, y2 + self.LABEL_HEIGHT / 1.75),
-            anchor="mm",
-            font=self.font_default,
-            fill=(0, 0, 0),
-            text=caption,
+            (0, 0),
+            fill=(0, 0, 0, 255),
+            stroke_fill=(255, 255, 255, 255),
+            stroke_width=1,
+            text=f"{apx_str} {meth_str} {cls_str}",
+
+            # font=self._label_font,
         )
 
     def _print_status(
@@ -134,27 +147,39 @@ class ApproxDemo:
         run_num: int,
         runs_total: int,
         caption: str,
-        approx_speed: float | None,
-        approx_interval: float | None,
         perc: float,
+        eta_sec: float = None,
+        elapsed_sec: float = False,
+        cache_stats: pt.common.CacheStats = None,
     ):
-        speed_str = "---- kpx/s"
-        interval_str = " ---ms/col."
-        if approx_speed:
-            speed_str = f"{pt.format_si(approx_speed):>6s}px/s"
-        if approx_interval:
-            interval_str = f"{pt.format_time_ns(approx_interval):>6s}/col."
+        eta_str = "--- "
+        elapsed_str = "--- "
+        if eta_sec:
+            eta_str = self._eta_fmter.format(eta_sec) + " ETA"
+        if elapsed_sec:
+            elapsed_str = self._eta_fmter.format(elapsed_sec)
         perc_num = round(100 * perc)
         perc_chr = round(self.SCALE_WIDTH * perc)
         msg = (
-            f"\r{perc_num:>4d}% "
+            f"\r"
+            f"[{elapsed_str:>8s}]  {eta_str:>12s}"
+            f"  | "
+            f"Sample {run_num:>{len(str(runs_total))}d}/{runs_total} |"
+            f"{perc_num:>4d}% "
             f'{"█"*perc_chr}{"░"*(self.SCALE_WIDTH-perc_chr)}|  '
-            f"{speed_str}  "
-            f"{interval_str} | "
-            f"Sample {run_num:>{len(str(runs_total))}d}/{runs_total} | "
             f"{caption:<40s}"
         )
-        print(msg, end="")
+        print(msg + ("  " + ApproxDemo._print_cache_info(cache_stats)), end="")
+
+    @staticmethod
+    def _print_cache_info(ci: CacheStats):
+        return "%s hits, %s misses (%3.1f%% ratio), size %d/%d" % (
+            pt.format_thousand_sep(ci.hits),
+            pt.format_thousand_sep(ci.misses),
+            100 * ci.hit_ratio,
+            ci.cursize,
+            ci.maxsize,
+        )
 
 
 if __name__ == "__main__":

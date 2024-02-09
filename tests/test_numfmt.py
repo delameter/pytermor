@@ -17,7 +17,9 @@ from pytermor import (
     formatter_si_binary,
     render,
     BaseUnit,
-    Composite, Align, cv,
+    Composite,
+    Align,
+    cv,
 )
 from pytermor.numfmt import (
     DualBaseUnit,
@@ -83,12 +85,19 @@ class TestHighlighter:
                     Text("901", DIM, "234", None, "567", DIM, "890"),
                 ),
             ),
-            ("0.223mg", Text(
-                "0", BLU,
-                ".223", Style(fg=cv.BLUE, bold=True, dim=True),
-                "m", Style(fg=cv.BLUE, dim=True),
-                "g", Style(fg=cv.BLUE, dim=True)
-            )),
+            (
+                "0.223mg",
+                Text(
+                    "0",
+                    BLU,
+                    ".223",
+                    Style(fg=cv.BLUE, bold=True, dim=True),
+                    "m",
+                    Style(fg=cv.BLUE, dim=True),
+                    "g",
+                    Style(fg=cv.BLUE, dim=True),
+                ),
+            ),
         ],
         ids=format_test_params,
     )
@@ -277,9 +286,7 @@ class TestStaticFormatter:
         argvalues=[(0.2, False, "200m"), (0.2, True, "0.20")],
         ids=["legacy OFF", "legacy ON"],
     )
-    def test_legacy_rounding_works(
-        self, value: float, legacy_rounding: bool, expected: str
-    ):
+    def test_legacy_rounding_works(self, value: float, legacy_rounding: bool, expected: str):
         formatter = StaticFormatter(
             fallback=formatter_si, unit_separator="", legacy_rounding=legacy_rounding
         )
@@ -560,9 +567,7 @@ class TestStaticFormatterSi:
     def test_format_si_with_unit(self, expected: str, value: float):
         assert format_si(value, unit="m" if abs(value) <= 1 else "V") == expected
 
-    LENGTH_LIMIT_PARAMS = [
-        (0.076 * pow(11, x) * (1 - 2 * (x % 2))) for x in range(-20, 20)
-    ]
+    LENGTH_LIMIT_PARAMS = [(0.076 * pow(11, x) * (1 - 2 * (x % 2))) for x in range(-20, 20)]
 
     @pytest.mark.parametrize("value", LENGTH_LIMIT_PARAMS)
     def test_default_si_metric_result_len_is_le_than_6(self, value: float):
@@ -570,9 +575,7 @@ class TestStaticFormatterSi:
 
     @pytest.mark.parametrize("value", LENGTH_LIMIT_PARAMS)
     def test_si_with_unit_result_len_is_le_than_6(self, value: float):
-        formatter = StaticFormatter(
-            allow_fractional=False, allow_negative=False, unit="m"
-        )
+        formatter = StaticFormatter(allow_fractional=False, allow_negative=False, unit="m")
         result = formatter.format(value)
         assert len(result) <= 6, f"Expected len <= 6, got {len(result)} for '{result}'"
 
@@ -769,16 +772,16 @@ class TestDynamicFormatter:
             ],
             [
                 "\x1b[1;91m" + "1" + "\x1b[22;39m"
-                                     "\x1b[1;2;91m" + ".1" + "\x1b[22;22;39m" + " "
-                                                                                "\x1b[2;91m" + "a" + "\x1b[22;39m"
-                                                                                                     "\x1b[2;91m" + "s" + "\x1b[22;39m",
+                "\x1b[1;2;91m" + ".1" + "\x1b[22;22;39m" + " "
+                "\x1b[2;91m" + "a" + "\x1b[22;39m"
+                "\x1b[2;91m" + "s" + "\x1b[22;39m",
                 1.1e-18,
             ],
             [
                 "\x1b[1;31m" + "1" + "\x1b[22;39m"
-                                     "\x1b[1;2;31m" + ".0" + "\x1b[22;22;39m" + " "
-                                                                                "\x1b[2;31m" + "f" + "\x1b[22;39m"
-                                                                                                     "\x1b[2;31m" + "s" + "\x1b[22;39m",
+                "\x1b[1;2;31m" + ".0" + "\x1b[22;22;39m" + " "
+                "\x1b[2;31m" + "f" + "\x1b[22;39m"
+                "\x1b[2;31m" + "s" + "\x1b[22;39m",
                 1e-15,
             ],
             [
@@ -816,33 +819,27 @@ class TestDynamicFormatter:
                 0,
             ],
             [
-                "\x1b[1;34m" + "3" + "\x1b[22;39m" + " "
-                "\x1b[2;34m" + "m" + "\x1b[22;39m",
+                "\x1b[1;34m" + "3" + "\x1b[22;39m" + " " "\x1b[2;34m" + "m" + "\x1b[22;39m",
                 180,
             ],
             [
-                "\x1b[1;36m" + "1" + "\x1b[22;39m" + " "
-                "\x1b[2;36m" + "h" + "\x1b[22;39m",
+                "\x1b[1;36m" + "1" + "\x1b[22;39m" + " " "\x1b[2;36m" + "h" + "\x1b[22;39m",
                 6230,
             ],
             [
-                "\x1b[1;32m" + "1" + "\x1b[22;39m" + " "
-                "\x1b[2;32m" + "d" + "\x1b[22;39m",
+                "\x1b[1;32m" + "1" + "\x1b[22;39m" + " " "\x1b[2;32m" + "d" + "\x1b[22;39m",
                 133_300,
             ],
             [
-                "\x1b[1;33m" + "1" + "\x1b[22;39m" + " "
-                "\x1b[2;33m" + "w" + "\x1b[22;39m",
+                "\x1b[1;33m" + "1" + "\x1b[22;39m" + " " "\x1b[2;33m" + "w" + "\x1b[22;39m",
                 1_048_576,
             ],
             [
-                "\x1b[1;93m" + "5" + "\x1b[22;39m" + " "
-                "\x1b[2;93m" + "mo" + "\x1b[22;39m",
+                "\x1b[1;93m" + "5" + "\x1b[22;39m" + " " "\x1b[2;93m" + "mo" + "\x1b[22;39m",
                 13_048_576,
             ],
             [
-                "\x1b[1;31m" + "2" + "9\x1b[22;39m" + " "
-                "\x1b[2;31m" + "yr" + "\x1b[22;39m",
+                "\x1b[1;31m" + "2" + "9\x1b[22;39m" + " " "\x1b[2;31m" + "yr" + "\x1b[22;39m",
                 932_048_576,
             ],
         ],
@@ -889,7 +886,7 @@ class TestDualFormatter:
         [delta(d=-5),             [ "5d",   "5 d",   "-5 d",   "5d 0h",     "-5d 0h"]],
         [delta(d=-1, h=10, m=30), ["13h",  "13 h",  "-13 h",   "13 hr", "-13h 30min"]],
         [delta(h=-1, m=15),       ["45m",  "45 m",  "-45 m",  "45 min",   "-45 mins"]],
-        [delta(m=-5),             [ "5m",   "5 m",   "-5 m",   "5 min",    "-5 mins"]],
+        [delta(m=-5),             [ "5m",   "5 m",   "-5 m",   "5 min",   "-5min 0s"]],
         [delta(s=-2.01),          [ "0s",    "0s",  "-2.0s",      "0s",      "-2.0s"]],
         [delta(s=-2),             [ "0s",    "0s",  "-2.0s",      "0s",      "-2.0s"]],
         [delta(s=-2, us=1),       [ "0s",    "0s",  "-2.0s",      "0s",      "-2.0s"]],
@@ -916,8 +913,8 @@ class TestDualFormatter:
         [delta(s=2.0),            [ "2s",   "2 s",  "2.00s",   "2.00s",      "2.00s"]],
         [delta(s=2.5),            [ "2s",   "2 s",  "2.50s",   "2.50s",      "2.50s"]],
         [delta(s=10),             ["10s",  "10 s",  "10.0s",   "10.0s",      "10.0s"]],
-        [delta(m=1),              [ "1m",   "1 m",    "1 m",   "1 min",      "1 min"]],
-        [delta(m=5),              [ "5m",   "5 m",    "5 m",   "5 min",     "5 mins"]],
+        [delta(m=1),              [ "1m",   "1 m",    "1 m",   "1 min",    "1min 0s"]],
+        [delta(m=5),              [ "5m",   "5 m",    "5 m",   "5 min",    "5min 0s"]],
         [delta(m=15),             ["15m",  "15 m",   "15 m",  "15 min",    "15 mins"]],
         [delta(m=45),             ["45m",  "45 m",   "45 m",  "45 min",    "45 mins"]],
         [delta(h=1, m=30),        [ "1h",   "1 h",    "1 h",  "1h 30m",   "1h 30min"]],
@@ -947,16 +944,12 @@ class TestDualFormatter:
     ]
     # fmt: on
 
-    @pytest.mark.parametrize(
-        "delta,expected", TIMEDELTA_TEST_SET, ids=format_test_params
-    )
+    @pytest.mark.parametrize("delta,expected", TIMEDELTA_TEST_SET, ids=format_test_params)
     @pytest.mark.parametrize("max_len,column", [(3, 0), (4, 1), (5, 2), (6, 3), (10, 4)])
     def test_output(self, max_len: int, column: int, expected: str, delta: timedelta):
         assert format_time_delta(delta.total_seconds(), max_len) == expected[column]
 
-    @pytest.mark.parametrize(
-        "delta", [l[0] for l in TIMEDELTA_TEST_SET], ids=format_test_params
-    )
+    @pytest.mark.parametrize("delta", [l[0] for l in TIMEDELTA_TEST_SET], ids=format_test_params)
     @pytest.mark.parametrize("max_len", [3, 4, 5, 6, 10, 9, 1000])
     def test_output_fits_in_required_length(self, max_len: int, delta: timedelta):
         actual_output = format_time_delta(delta.total_seconds(), max_len)
@@ -1002,19 +995,12 @@ class TestDualFormatter:
                 delta(s=1.9),
             ],
             [
-                "\x1b[1;34m" + "15" + "\x1b[22;39m" + " "
-                "\x1b[2;34m" + "mins" + "\x1b[22;39m",
+                "\x1b[1;34m" + "15" + "\x1b[22;39m" + " " "\x1b[2;34m" + "mins" + "\x1b[22;39m",
                 delta(m=15),
             ],
             [
                 "\x1b[1;36m" + "18" + "\x1b[22;39m"
-                "\x1b[2;36m"
-                + "h"
-                + "\x1b[22;39m"
-                + " "
-                + "\x1b[1;34m"
-                + "45"
-                + "\x1b[22;39m"
+                "\x1b[2;36m" + "h" + "\x1b[22;39m" + " " + "\x1b[1;34m" + "45" + "\x1b[22;39m"
                 "\x1b[2;34m" + "min" + "\x1b[22;39m",
                 delta(h=18, m=45),
             ],
@@ -1026,8 +1012,7 @@ class TestDualFormatter:
                 delta(d=9, h=23),
             ],
             [
-                "\x1b[1;93m" + "3" + "\x1b[22;39m" + " "
-                "\x1b[2;93m" + "months" + "\x1b[22;39m",
+                "\x1b[1;93m" + "3" + "\x1b[22;39m" + " " "\x1b[2;93m" + "months" + "\x1b[22;39m",
                 delta(d=100),
             ],
             ["\x1b[1;31m" "OVERFLOW" "\x1b[22;39m", delta(d=400000)],
@@ -1061,21 +1046,24 @@ class TestDualFormatter:
     def test_format_pad(self):
         formatter = DualFormatter(dual_registry.find_matching(10), pad=True)
         actual = formatter.format(60, auto_color=False)
-        assert actual == f"{'1 min':>10s}"
+        assert actual == f"{'1min 0s':>10s}"
 
     def test_format_pad_align(self):
         formatter = DualFormatter(dual_registry.find_matching(10), pad=Align.CENTER)
         actual = formatter.format(60, auto_color=False)
-        assert actual == f"{'1 min':^10s}"
+        assert actual == f"{'1min 0s':^10s}"
 
     @pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
     def test_format_pad_colored(self):
         formatter = DualFormatter(dual_registry.find_matching(10), pad=True)
         actual = formatter.format(60, auto_color=True)
         assert (
-            actual.render() == "     "
-            "\x1b[1;34m" + "1" + "\x1b[22;39m" + " "
+            actual.render().strip() == ""
+            "\x1b[1;34m" + "1" + "\x1b[22;39m"
             "\x1b[2;34m" + "min" + "\x1b[22;39m"
+            " "
+            "\x1b[90m" + "0" + "\x1b[39m"
+            "\x1b[2;90" + "ms" + "\x1b[22;39m"
         )
 
     def test_formatting_with_shortest(self):

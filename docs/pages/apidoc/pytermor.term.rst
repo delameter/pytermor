@@ -19,6 +19,7 @@
 
    .. autosummary::
    
+      compose_clear_line
       compose_clear_line_fill_bg
       compose_hyperlink
       confirm

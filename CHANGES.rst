@@ -19,8 +19,27 @@ pending
 - |DOCS| `demo` page
 - |DOCS| `make_docs_sshots` automation script
 - |DOCS| `term-output`/example001-007 images
+- |TESTS|  'fix for python 3.9`
+- |CI|/CD:  self-hosted runner
+- |TESTS|  fixes for 3.8, 3.9
+- |NEW| `_KDTreeApproximator` implementation for fast computations (10x faster)
+- |NEW| `border` presets
+- |NEW| `common` module fns: `coal*`, `join*`, `instantiate`
+- |NEW| colors in "RRGGBB" string-integer form resolving
+- |NEW| `[fast]` feature
+- |FIX| removed default `sys.stdout` value of `file` param in `echo*()` methods as its messing up unit tests in other projects which use the library
+- |FIX| removed `es7s.commons` dependency from aux scripts
+- |REFACTOR| `package tree`, `sgr output mode` graphs
+- |REFACTOR| `NoOpRenderer` -> `NoopRenderer`
+- |REFACTOR| `force_ansi_rendering` and `force_no_ansi_rendering` moved from `renderer` to `config` module
+- |REFACTOR| `RendererManager` and `ConfigManager` interfaces
+- |DOCS| `ansi`, `colorbox`, ``env` and `option` custom text roles
+- |DOCS| admonitions pdf designs
+- |DOCS| `docs-guidelines` update
+- |DOCS| `tone_neighbours` example update
+- |TESTS| `border` module
 
-.. <@pending:8b3da6b>
+.. <@pending:9d4df0c>
 .. ^ blank line before should be kept
 
 

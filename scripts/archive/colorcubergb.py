@@ -1,5 +1,3 @@
-import math
-
 import matplotlib.markers
 import matplotlib.pyplot as plt
 import pytermor as pt
@@ -13,34 +11,22 @@ plt.style.use('_mpl-gallery')
 # ys = rng.uniform(0, 255, n)
 # zs = rng.uniform(0, 255, n)
 CC = []
-S = 5
-palette = pt.LAB
-pt.ColorRGB._approximator.assign_space(palette)
+S = 2
+pt.ColorRGB._approximator.assign_space(pt.HSV)
 pt.cvr.AIR_FORCE_BLUE
 for c in [*pt.Color256]: #, *pt.ColorRGB]:
     r,g,b = c.rgb
     print(r,g,b,end='\r')
     CC.append(pt.RGB.from_channels(r,g,b))
 CC.append(pt.RGB.from_channels(255,255,255))
-
-CC.clear()
-for h in range(0,360):
-    for s in range(0,100+S,S):
-        for v in range(0,100+S,S):
-            CC.append(pt.HSV(h,s/100,v/100))
 for fm in matplotlib.markers.MarkerStyle.filled_markers:
-    print(fm)
+       print(fm)
 xyzc = []
-for idx,c in enumerate(CC):
-    print(f'\r{100*idx/len(CC):3.1f}',end="")
-    apx = pt.Color256._approximator.find_closest(c, read_cache=False, write_cache=True)
-    h,s,v = c.hsv
-    r = 2*math.pi*h/360
-    x, y = s * math.cos(r), s * math.sin(r)
-    z = v
-    xyzc.append(
-        (x,y,z, (*(cc/255 for cc in apx.rgb),1,), )
-    )
+for c in CC:
+   h,s,v = c.hsv
+   xyzc.append(
+          (2*h*3.14/360,v+s,s*100, (*(cc/255 for cc in c.rgb),), )
+   )
 xs, ys, zs, cs = zip(*xyzc)
 # xs, ys, zs, cs = zip(*[(*c.rgb, (*(cc/255 for cc in c.rgb),)) for c in CC])
 
@@ -48,10 +34,12 @@ for m in "s":# ".ov^<>8sp*hHDdPX" :
     # Plot
     # fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
     fig = plt.figure(figsize=(6,5))
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(xs, ys, zs, c=cs, s=40, marker='s')#, linewidths=1, edgecolors=(0,0,0))#cmap='hsv')
-    ax.set_zlabel('V')
-    ax.view_init(25, 25, 0)
+    ax = fig.add_subplot(111, projection='polar')
+    ax.scatter(xs, ys, s=zs, c=cs, linewidths=1, edgecolors=(0,0,0))#cmap='hsv')
+    ax.set_xlabel('R')
+    ax.set_ylabel('G')
+    ax.set_label('B')
+    # ax.view_init(25, 25, 0)
 
     plt.savefig('z.png', dpi=300)
     plt.show()

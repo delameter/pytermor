@@ -7,7 +7,7 @@ def get() -> dict:
     return {
         # 'fontenc'              : r'\usepackage[X2,T1]{fontenc}',             # with language = "ru"
         "preamble"               : '\n'.join(_get_preamble()),
-        # 'passoptionstopackages': r'\PassOptionsToPackage{svgnames}{xcolor}', #
+         'passoptionstopackages': r'\PassOptionsToPackage{svgnames}{xcolor}', #
         "papersize"              : "a4paper",                                  # letter,a4paper
         "pointsize"              : "10pt",                                     # 10,11,12
         "inputenc"               : "\\usepackage[utf8]",                       # ⎫
@@ -20,8 +20,8 @@ def get() -> dict:
         #'fontpkg'                : '\\usepackage{amsmath,amsfonts,amssymb,amsthm}',
         # 'fontpkg'               : '\\usepackage[defaultsans]{lato}',        # eliminates bold monospace chars
         "printindex"             : r"\footnotesize\raggedright\printindex",    # decrease font for index
-        # "releasename"            : "",  ## does not work
-        'sphinxsetup'            : ', '.join(f'{k}={v}' for k, v in dict().items()),
+        "releasename"            : " ",  ## does not work with empty string
+        'sphinxsetup'            : ', '.join(f'{k}={v}' for k, v in _get_sphinxsetup().items()),
 
     }
 
@@ -29,4 +29,10 @@ def _get_preamble() -> Iterable[str]:
     yield r'\setlength{\emergencystretch}{5em}'  # decrease "can't fit" warnings
     yield r'\DeclareUnicodeCharacter{2588}{~}'   # █
     yield read_x('latex_preamble.sty')
+
+def _get_sphinxsetup() -> dict[str, str]:
+    return {
+        'div.warning_border-TeXcolor'    :  'DarkCyan',
+        'div.warning_background-TeXcolor':  'LightCyan',
+    }
 # fmt: on

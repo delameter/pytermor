@@ -39,7 +39,7 @@
 \newcommand{\DUroleansi}[1]{{
     \begin{tcbox}[
         enhanced, notitle, on line, size=minimal,
-        left=0pt, right=0pt, left*=0pt, right*=0pt,
+        left=3pt, right=0pt, left*=0pt, right*=0pt,
         boxrule=0pt, arc=0pt, outer arc=0pt, frame hidden, empty,
         fontupper=\ttfamily, borderline={1pt}{-3pt}{black, dotted},
     ]{#1}
@@ -101,57 +101,61 @@
 %}{\end{mdframed}}
 %
 
-\newcommand{\test}{colback=red}
-
-\renewenvironment{sphinxattention}[2][]{}{}
-\renewenvironment{sphinxdanger}[2][]{}{}
-\renewenvironment{sphinxerror}[2][]{}{}
-\renewenvironment{sphinximportant}[2][]{}{}
-\renewenvironment{sphinxcaution}[2][]{}{}
-\renewenvironment{sphinxwarning}[2][]{}{}
-\renewenvironment{sphinxnote}[2][]{}{}
-
-\tcolorboxenvironment{sphinxattention}{
-    sharp corners, detach title, fonttitle=\bfseries, title=Attention:,
-    before upper={\color{red!70!black}\faicon{exclamation-circle}\color{}~\tcbtitle},
-    colback=red!5!white, colframe=red!75!black, coltitle=black,
-}
-\tcolorboxenvironment{sphinxdanger}{
-    sharp corners, detach title, fonttitle=\bfseries, title=Danger:,
-    before upper={\color{red!70!black}\faicon{bolt}\color{}~\tcbtitle},
-    colback=red!5!white, colframe=red!75!black, coltitle=black,
-}
-\tcolorboxenvironment{sphinxerror}{
-    sharp corners, detach title, fonttitle=\bfseries, title=Error:,
-    before upper={\color{red!70!black}\faicon{times}\color{}~\tcbtitle},
-    colback=red!5!white, colframe=red!75!black, coltitle=black,
-}
-\tcolorboxenvironment{sphinximportant}{
-    sharp corners, detach title, fonttitle=\bfseries, title=Important:,
-    before upper={\color{red!70!black}\faicon{exclamation-triangle}\color{}~\tcbtitle},
-    colback=red!5!white, colframe=red!90!black, coltitle=black,
-}
-\tcolorboxenvironment{sphinxcaution}{
-    sharp corners, detach title, fonttitle=\bfseries, title=Caution:,
-    before upper={\color{orange!70!black}\faicon{bolt}\color{}~\tcbtitle},
-    colback=orange!20!white, colframe=orange!75!black, coltitle=black,
-}
-
-\tcolorboxenvironment{sphinxwarning}{
-    sharp corners, detach title, fonttitle=\bfseries, title=Warning:,
-    before upper={\color{orange!70!black}\faicon{exclamation-triangle}\color{}~\tcbtitle},
-    colback=orange!5!white, colframe=orange!90!black, coltitle=black,
-}
-
-%\renewenvironment{}[2]{    \begin{theo}[orange!20]{#1}} {\end{theo}}
-%\renewenvironment{}[2]{    \begin{theo}[orange!20]{#1}} {\end{theo}}
-%\renewenvironment{sphinxtodo}[2]{       \begin{theo}[yellow!20]{#1}} {\end{theo}}
-%\renewenvironment{sphinxtip}[2]{        \begin{theo}[green!20]{#1}}  {\end{theo}}
-%\renewenvironment{sphinxhint}[2]{       \begin{theo}[green!20]{#1}}  {\end{theo}}
-
-
-\tcolorboxenvironment{sphinxnote}{
-    sharp corners, detach title, fonttitle=\bfseries, title=Note:,
-    before upper={\color{blue!70!black}\faicon{edit}\color{}~\tcbtitle},
-    colback=blue!5!white, colframe=blue!90!black, coltitle=black,
-}
+%\renewenvironment{sphinxattention}[2][]{}{}
+%\renewenvironment{sphinxdanger}[2][]{}{}
+%\renewenvironment{sphinxerror}[2][]{}{}
+%\renewenvironment{sphinximportant}[2][]{}{}
+%\renewenvironment{sphinxcaution}[2][]{}{}
+%\renewenvironment{sphinxwarning}[2][]{}{}
+%\renewenvironment{sphinxnote}[2][]{}{}
+%
+%\tcolorboxenvironment{sphinxattention}{
+%    sharp corners, detach title, fonttitle=\bfseries, title=Attention:,
+%    before upper={\color{red!70!black}\faicon{exclamation-circle}\color{}~\tcbtitle},
+%    colback=red!5!white, colframe=red!75!black, coltitle=black,
+%}
+%\tcolorboxenvironment{sphinxdanger}{
+%    sharp corners, detach title, fonttitle=\bfseries, title=Danger:,
+%    before upper={\color{red!70!black}\faicon{bolt}\color{}~\tcbtitle},
+%    colback=red!5!white, colframe=red!75!black, coltitle=black,
+%}
+%\tcolorboxenvironment{sphinxerror}{
+%    sharp corners, detach title, fonttitle=\bfseries, title=Error:,
+%    before upper={\color{red!70!black}\faicon{times}\color{}~\tcbtitle},
+%    colback=red!5!white, colframe=red!75!black, coltitle=black,
+%}
+%\tcolorboxenvironment{sphinximportant}{
+%    sharp corners, detach title, fonttitle=\bfseries, title=Important:,
+%    before upper={\color{red!70!black}\faicon{exclamation-triangle}\color{}~\tcbtitle},
+%    colback=red!5!white, colframe=red!90!black, coltitle=black,
+%}
+%\tcolorboxenvironment{sphinxcaution}{
+%    sharp corners, detach title, fonttitle=\bfseries, title=Caution:,
+%    before upper={\color{orange!70!black}\faicon{bolt}\color{}~\tcbtitle},
+%    colback=orange!20!white, colframe=orange!75!black, coltitle=black,
+%}
+%
+%\tcolorboxenvironment{sphinxwarning}{
+%    sharp corners, detach title, fonttitle=\bfseries, title=Warning:,
+%    before upper={\color{orange!70!black}\faicon{exclamation-triangle}\color{}~\tcbtitle},
+%    colback=orange!5!white, colframe=orange!90!black, coltitle=black,
+%}
+%
+%%\renewenvironment{}[2]{    \begin{theo}[orange!20]{#1}} {\end{theo}}
+%%\renewenvironment{}[2]{    \begin{theo}[orange!20]{#1}} {\end{theo}}
+%%\renewenvironment{sphinxtodo}[2]{       \begin{theo}[yellow!20]{#1}} {\end{theo}}
+%%\renewenvironment{sphinxtip}[2]{        \begin{theo}[green!20]{#1}}  {\end{theo}}
+%%\renewenvironment{sphinxhint}[2]{       \begin{theo}[green!20]{#1}}  {\end{theo}}
+%
+%
+%\tcolorboxenvironment{sphinxadmonition}{
+%    sharp corners, detach title, fonttitle=\bfseries, title=Todo:,
+%    before upper={\color{yellow!70!white}\faicon{edit}\color{}~\tcbtitle},
+%    colback=yellow!5!white, colframe=yellow!90!white, coltitle=black,
+%}
+%
+%\tcolorboxenvironment{sphinxnote}{
+%    sharp corners, detach title, fonttitle=\bfseries, title=Note:,
+%    before upper={\color{blue!70!black}\faicon{edit}\color{}~\tcbtitle},
+%    colback=blue!5!white, colframe=blue!90!black, coltitle=black,
+%}
