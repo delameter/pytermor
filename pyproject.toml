@@ -36,6 +36,33 @@ fast = [
     "numpy~=1.26.3",
     "scipy~=1.11.4",
 ]
+demo = [
+    "pygments~=2.15",
+    "PyYAML==6.0.1",
+    "rich~=12.6",
+]
+build = [
+    "build~=0.8",
+    'docutils-stubs~=0.0.22',
+    "furo~=2022.6",
+    "matplotlib~=3.7",
+    "Pillow~=9.1",
+    "pydeps~=1.10",
+    "PyYAML==6.0.1",
+    "sphinx-copybutton~=0.5",
+    "sphinx-design~=0.5",
+    "sphinx-toolbox~=3.3",
+    "sphinx~=5.3",
+    "twine~=4.0",
+]
+test = [
+    "coverage[toml]~=6.4",
+    "coveralls~=3.3",
+    "pytest~=7.1",
+    "pytest-cov~=4.1",
+    "sybil~=3.0",
+    "typing-extensions~=4.6",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/delameter/pytermor"
@@ -44,75 +71,53 @@ fast = [
 
 # =========================================================
 
+[tool.hatch.version]
+path = "pytermor/_version.py"
+
 [tool.hatch.publish.index]
 disable = true
 
 [tool.hatch.build.targets.sdist]
 include = [
+    "/examples",
     "/pytermor",
+    "/requirements",
     "/tests",
 ]
 
-[tool.hatch.version]
-path = "pytermor/_version.py"
+[tool.hatch.env]
+requires = [
+    "hatch-pip-compile",
+]
+
+[tool.hatch.envs.default]
+type = "pip-compile"
+#pip-compile-hashes = true
 
 [tool.hatch.envs.default.scripts]
 version = "python -m pytermor"
 importtime = "python -qX importtime -m pytermor 2> import.log && tuna import.log"
 
-# --- [test] ---
+[tool.hatch.envs.demo]
+features = ["fast", "demo"]
+
+[tool.hatch.envs.build]
+features = ["fast", "build"]
 
 [tool.hatch.envs.test]
-detached = true
-features = ["fast"]
-extra-dependencies = [
-    "coverage[toml]~=6.4",
-    "coveralls~=3.3",
-    "flake8~=5.0",
-    "pytest~=7.1",
-    "pytest-cov~=4.1",
-    "sybil~=3.0",
-    "typing-extensions~=4.6",
-]
+features = ["fast", "test"]
 
 [tool.hatch.envs.test.scripts]
 test = "pytest"
-
-# --- [build] ---
-
-[tool.hatch.envs.build]
-detached = false
-features = ["fast"]
-extra-dependencies = [
-    "build~=0.8",
-    'docutils-stubs~=0.0.22',
-    "furo~=2022.6",
-    "matplotlib~=3.7",
-    "Pillow~=9.1",
-    "pydeps~=1.10",
-    "PyYAML~=6.0",
-    "sphinx-copybutton~=0.5",
-    "sphinx-design~=0.5",
-    "sphinx-toolbox~=3.3",
-    "sphinx~=5.3",
-    "twine~=4.0",
-]
-
-# --- [demo] ---
-
-[tool.hatch.envs.demo]
-detached = false
-extra-dependencies = [
-    "pygments~=2.15",
-    "PyYAML==6.0.1",
-    "rich~=12.6",
-]
 
 # =========================================================
 
 [tool.black]
 line-length = 89
 target-version = ['py37']
+
+[tool.isort]
+profile = "black"
 
 [tool.pytest.ini_options]
 testpaths = [
@@ -134,8 +139,6 @@ markers = [
     "dynamic_style(**kwargs): make dynamic color and set up dynamic style",
     "deferred(): make deferred dynamic color, set up dynamic style and resolver",
 ]
-
-# =========================================================
 
 [tool.coverage.run]
 source = ["pytermor"]
@@ -175,5 +178,3 @@ ignore_errors = true
 [tool.coverage.html]
 directory = "coverage-report"
 title = "pytermor coverage report"
-
-# =========================================================

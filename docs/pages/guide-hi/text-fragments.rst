@@ -1,8 +1,21 @@
 .. _guide.text-fragments:
 
 ########################
-Text fragments
+Fragments
 ########################
+
+
+
+.. _guide.fargs:
+
+===================================
+:def:`fargs` syntax
+===================================
+
+.. todo ::
+
+   @TODO
+
 
 .. _guide.text_class_diagram:
 

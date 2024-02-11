@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --no-cache-dir --upgrade pip
-          pip install --no-cache-dir -r requirements-test.txt
+          pip install --no-cache-dir -r requirements/requirements-test.txt
 
 #      - name: Lint with flake8
 #        run: |
@@ -71,7 +71,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --no-cache-dir --upgrade pip
-          pip install --no-cache-dir -r requirements-test.txt
+          pip install --no-cache-dir -r requirements/requirements-test.txt
 
       - name: Run coverage
         run: |

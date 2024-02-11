@@ -37,8 +37,8 @@ Core methods
 
 .. autosummary::
 
-   text.render
-   text.echo
-   color.resolve_color
    style.make_style
    style.merge_styles
+   color.resolve_color
+   text.render
+   text.echo

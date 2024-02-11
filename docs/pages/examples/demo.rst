@@ -54,6 +54,30 @@ LAB color space as a default color difference computation algorithm.
            :align: center
            :class: no-scaled-link
 
+.. _examples.demo.autopick_fg:
+
+-----------------------------------
+autopick_fg.py
+-----------------------------------
+
+Script demonstrating auto selection of foreground color depending on a specified
+background color defined as :meth:`.Style.autopick_fg()`. No arguments of options.
+
+The details on color selection algorithm can be found at `guide.styles.autopick_fg`.
+
+:Usage:
+    .. code-block::
+
+        ./run-cli examples/autopick_fg.py
+
+:Examples:
+    .. container:: fullwidthimage
+
+        .. image:: /_generated/term-output/example008.png
+          :width: 100%
+          :align: center
+          :class: no-scaled-link
+
 -----------------------------------
 list_named_rgb.py
 -----------------------------------

@@ -72,6 +72,7 @@ from .color import Color as Color
 from .color import Color16 as Color16
 from .color import Color256 as Color256
 from .color import ColorRGB as ColorRGB
+from .color import CDT as CDT
 from .color import DEFAULT_COLOR as DEFAULT_COLOR
 from .color import DefaultColor as DefaultColor
 from .color import DynamicColor as DynamicColor
@@ -90,13 +91,9 @@ from .color import approximate as approximate
 from .color import find_closest as find_closest
 from .color import resolve_color as resolve_color
 from .common import Align as Align
-from .common import CDT as CDT
-from .common import CXT as CXT
 from .common import CacheStats as CacheStats
 from .common import ExtendedEnum as ExtendedEnum
-from .common import FT as FT
 from .common import OVERFLOW_CHAR as OVERFLOW_CHAR
-from .common import RT as RT
 from .common import but as but
 from .common import char_range as char_range
 from .common import chunk as chunk
@@ -230,6 +227,8 @@ from .renderer import SgrRenderer as SgrRenderer
 from .renderer import TmuxRenderer as TmuxRenderer
 from .style import FrozenStyle as FrozenStyle
 from .style import MergeMode as MergeMode
+from .style import CXT as CXT
+from .style import FT as FT
 from .style import NOOP_STYLE as NOOP_STYLE
 from .style import Style as Style
 from .style import Styles as Styles
@@ -286,6 +285,7 @@ from .text import Composite as Composite
 from .text import Fragment as Fragment
 from .text import FrozenText as FrozenText
 from .text import IRenderable as IRenderable
+from .text import RT as RT
 from .text import SELECT_WORDS_REGEX as SELECT_WORDS_REGEX
 from .text import SimpleTable as SimpleTable
 from .text import Text as Text

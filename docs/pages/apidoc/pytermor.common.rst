@@ -9,10 +9,6 @@
 
    .. autosummary::
    
-      CDT
-      CXT
-      FT
-      RT
       filtern
       filterf
       filtere

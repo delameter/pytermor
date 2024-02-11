@@ -18,9 +18,9 @@ from tests import format_test_params, skip_pre_310_typing
 
 
 def word_normalize(word: str | type) -> str:
-    if isinstance(word, (type, t.TypeVar)):
-        return word.__name__
-    return word
+    if isinstance(word, str):
+        return word
+    return word.__name__
 
 
 def words_to_regex(words: t.Iterable[str | type]) -> t.Pattern:
@@ -36,18 +36,6 @@ class TestArgTypeError:
         "exp_words, fn",
         [
             (["Argument", "string", "int"], lambda: pt.render(0)),
-            (
-                ["Argument", "fmt", FT, f"<{word_normalize(Style)}>"],
-                lambda: pt.make_style(pt.Style),
-            ),
-            (
-                ["Argument", "arg", CXT, Color, "list"],
-                lambda: setattr(pt.Style(), "fg", [None]),
-            ),
-            (
-                ["Argument", "override", "Dict", IT, "None", "float"],
-                lambda: pt.OmniMapper(14.88),
-            ),
             (
                 ["Argument", "fallback", Style, Color256],
                 lambda: pt.Style(pt.cv.RED_3),

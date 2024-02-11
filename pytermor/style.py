@@ -14,12 +14,27 @@ from __future__ import annotations
 import enum
 import typing as t
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Union
 
-from .color import Color, Color256, LAB, NOOP_COLOR, resolve_color, IColorValue, ColorRGB, RenderColor, RealColor
-from .common import CXT, FT
+from .color import (
+    Color,
+    NOOP_COLOR,
+    resolve_color,
+    IColorValue,
+    ColorRGB,
+    RenderColor,
+    RealColor,
+    CDT,
+)
 from .cval import cv
 from .exception import ArgTypeError, LogicError
+
+
+CXT = Union[CDT, IColorValue, RenderColor, None]
+"""
+.. todo ::
+    TODO
+"""
 
 
 class MergeMode(str, enum.Enum):
@@ -35,7 +50,8 @@ class Style:
     Create new text render descriptior.
 
     Both ``fg`` and ``bg`` can be specified as existing ``Color`` instance as well
-    as plain *str* or *int* (for the details see `resolve_color()`).
+    as plain *str* or *int* (for the details see `resolve_color()`). This applies
+    to ``underline_color`` as well.
 
         >>> Style(fg='green', bold=True)
         <Style[green +BOLD]>
@@ -61,7 +77,7 @@ class Style:
         with nullable color-type variables. Merge methods are aware of this and
         trear `NOOP_COLOR` as *None*.
 
-    .. important ::
+    .. attention ::
         *None* and `NOOP_COLOR` are always treated as placeholders for fallback
         values, i.e., they can't be used as *resetters* -- that's what `DEFAULT_COLOR`
         is for.
@@ -89,12 +105,12 @@ class Style:
     :param class_name:  Custom class name for the element.
     """
 
-    _fg: RenderColor|RealColor = field(default=None, init=False)
-    _bg: RenderColor|RealColor = field(default=None, init=False)
-    _underline_color: RenderColor|RealColor = field(default=None, init=False)
+    _fg: RenderColor | RealColor = field(default=None, init=False)
+    _bg: RenderColor | RealColor = field(default=None, init=False)
+    _underline_color: RenderColor | RealColor = field(default=None, init=False)
 
     @property
-    def fg(self) -> RenderColor|RealColor:
+    def fg(self) -> RenderColor | RealColor:
         """
         Foreground (i.e., text) color. Can be set as `CDT` or ``Color``,
         stored always as ``Color``.
@@ -102,7 +118,7 @@ class Style:
         return self._fg
 
     @property
-    def bg(self) -> RenderColor|RealColor:
+    def bg(self) -> RenderColor | RealColor:
         """
         Background color. Can be set as `CDT` or ``Color``, stored always
         as ``Color``.
@@ -110,7 +126,7 @@ class Style:
         return self._bg
 
     @property
-    def underline_color(self) -> RenderColor|RealColor:
+    def underline_color(self) -> RenderColor | RealColor:
         """
         Underline color. Can be set as `CDT` or ``Color``, stored always
         as ``Color``.
@@ -175,9 +191,9 @@ class Style:
 
     class_name: str
     """ 
-    Arbitary string used by some `renderers <IRenderer>`, e.g. by `
-    `HtmlRenderer``, which will include the value of this property to an output
-    element class list. This property is not inheritable.
+    Arbitary string used by some `renderers <IRenderer>`, e.g. by 
+    ``HtmlRenderer``, which will include the value of this property to
+    an output element class list. This property is not inheritable.
     """
 
     renderable_attributes = frozenset(
@@ -282,13 +298,8 @@ class Style:
     def autopick_fg(self) -> Style:
         """
         Pick ``fg_color`` depending on ``bg_color``. Set ``fg_color`` to
-        either 3% gray (almost black) if background is bright, or to 80% gray
-        (bright gray) if it is dark. If background is None, do nothing.
-
-        .. todo ::
-
-            check if there is a better algorithm,
-            because current thinks text on :hex:`#000080` should be black
+        either :colorbox:`gray-0` if background is bright, or to :colorbox:`gray-100`
+        if it is dark. If background is None, do nothing.
 
         Modifies the instance in-place and returns it as well (for chained calls).
         """
@@ -296,12 +307,11 @@ class Style:
         if not isinstance(self._bg, RealColor):
             return self
 
-        l, _, _ = self._bg.lab
-        if l > 40:
-            self._fg = cv.GRAY_3
+        _, bg_y, _ = self._bg.xyz
+        if bg_y > 17.8:
+            self._fg = cv.GRAY_0
         else:
-            self._fg = Color256.find_closest(LAB(90 - l//2, 0, 0))
-            # self._fg = Color256.find_closest(HSV(0, 0, 0.9 - (l/40)*0.2))
+            self._fg = cv.GRAY_100
         return self
 
     def flip(self) -> Style:
@@ -467,12 +477,10 @@ class Style:
     def __eq__(self, other: Style) -> bool:
         if not isinstance(other, Style):  # pragma: no cover
             return False
-        return all(
-            getattr(self, attr) == getattr(other, attr) for attr in self._attributes
-        )
+        return all(getattr(self, attr) == getattr(other, attr) for attr in self._attributes)
 
     def __repr__(self) -> str:
-        frozen = "*" if self._frozen else ""
+        frozen = "@" if self._frozen else ""
         return f"<{frozen}{self.__class__.__name__}[{self.repr_attrs(False)}]>"
 
     def repr_attrs(self, verbose: bool) -> str:
@@ -509,7 +517,7 @@ class FrozenStyle(Style):
         super().__init__(*args, **kwargs)
 
 
-class _NoOpStyle(Style):
+class NoOpStyle(Style):
     def __init__(self):
         super().__init__(frozen=True)
 
@@ -517,7 +525,7 @@ class _NoOpStyle(Style):
         return False
 
 
-NOOP_STYLE = _NoOpStyle()
+NOOP_STYLE = NoOpStyle()
 # noinspection NonAsciiCharacters
 """ 
 Special style passing the text through without any modifications. 
@@ -548,50 +556,70 @@ class Styles:
     """
 
     BOLD = Style(bold=True, frozen=True)
+    """ BOLD """
     DIM = Style(dim=True, frozen=True)
+    """ DIM """
     ITALIC = Style(italic=True, frozen=True)
+    """ ITALIC """
     UNDERLINED = Style(underlined=True, frozen=True)
+    """ UNDERLINED """
 
     WARNING = Style(fg=cv.YELLOW, frozen=True)
-    """ """
+    """ WARNING """
     WARNING_LABEL = Style(WARNING, frozen=True, bold=True)
-    """ """
+    """ WARNING_LABEL """
     WARNING_ACCENT = Style(fg=cv.HI_YELLOW, frozen=True)
-    """ """
+    """ WARNING_ACCENT """
 
     ERROR = Style(fg=cv.RED, frozen=True)
-    """ """
+    """ ERROR """
     ERROR_LABEL = Style(ERROR, frozen=True, bold=True)
-    """ """
+    """ ERROR_LABEL """
     ERROR_ACCENT = Style(fg=cv.HI_RED, frozen=True)
-    """ """
+    """ ERROR_ACCENT """
 
     CRITICAL = Style(bg=cv.RED_3, fg=cv.HI_WHITE, frozen=True)
-    """ """
+    """ CRITICAL """
     CRITICAL_LABEL = Style(CRITICAL, frozen=True, bold=True)
-    """ """
+    """ CRITICAL_LABEL """
     CRITICAL_ACCENT = Style(CRITICAL_LABEL, frozen=True, blink=True)
-    """ """
+    """ CRITICAL_ACCENT """
 
     INCONSISTENCY = Style(bg=cv.RED_3, fg=cv.HI_YELLOW, frozen=True)
-    """ """
+    """ INCONSISTENCY """
 
 
-def is_ft(arg) -> bool:
-    return isinstance(arg, (type(None), int, str, IColorValue, Style))
+FT = Union[int, str, IColorValue, Style, None]
+"""
+:abbr:`FT (Format type)` is a style descriptor. Used as a shortcut precursor for actual 
+styles. Primary handler is `make_style()`.
+"""
+
+
+def is_ft(arg: any) -> bool:
+    """User-side type checking shortcut."""
+    return isinstance(arg, FT)
 
 
 def make_style(fmt: FT = None) -> Style:
     """
-    General :class:`.Style` constructor. Accepts a variety of argument types:
+    General :class:`.Style` constructor, which invokes `resolve_color()` when the
+    ``fmt`` is provided as hexadecimal value or color name. All supported argument types:
+
+        - :class:`.Style` or *str*
+            Existing style instance, which is returned as it is, OR a name of the constant
+            defined in `Styles`; if there are no constant with that name found in the class,
+            the function assumes that the string is either a hex color value or a color name.
 
         - `CDT` (*str* or *int*)
             This argument type implies the creation of basic :class:`.Style`
-            with the only attribute set being `fg` (i.e., text color). For the
-            details on color resolving see `resolve_color()`.
+            with the only attribute set being `fg` (i.e., text color). The color
+            can be specified as hexadecimal RGB value or a color name in a free form.
+            For the details on color resolving see `resolve_color()`.
 
-        - :class:`.Style`
-            Existing style instance. Return it as is.
+        - `IColorValue` (`RGB` or `HSV` etc.)
+            Color value is also accepted as `fmt` and is used as `fg` color of
+            newly created style.
 
         - *None*
             Return `NOOP_STYLE`.

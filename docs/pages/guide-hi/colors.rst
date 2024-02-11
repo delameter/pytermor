@@ -4,21 +4,21 @@
 Colors
 ########################
 
-Primary method for getting a color by name is `resolve_color()`.
+Primary method for getting a color by name is `resolve_color()`. Suggested usage
+is to feed it the input in a free form and hope for the best. First argument is
+`CDT` and can be specified as
 
-Suggested usage is to feed it the input in a free form and hope for the best.
-Supported formats include:
+    1) *str* with color name in any form distinguishable by the color resolver,
+       e.g. 'red', 'navy blue', etc. (all preset color names are listed in
+       `guide.ansi-presets` and `guide.es7s-colors`);
 
-    - *int* in a [:hex:`0`; :hex:`0xffffff`] range;
-    - *str* containing a valid integer in hexadecimal form, optionally prefixed with
-      "0x": ":hex:`ddaa80`", ":hex:`0xAA9910`", even ":hex:`1`";
-    - *str* starting with a "#" and consisting of 6 more hexadecimal characters, case
-      insensitive (RGB regular form), e.g. ":hex:`#0b0cca`";
-    - *str* starting with a "#" and consisting of 3 more hexadecimal characters, case
-      insensitive (RGB short form), e.g. ":hex:`#666`";
-    - *str* with a color name in any form distinguishable by the color resolver,
-      e.g. 'red', 'navy blue', etc. (all preset color names listed in
-      `guide.ansi-presets` and `guide.es7s-colors`).
+    2) *str* in full hexadecimal form: ":hex:`#RRGGBB`" or  ":hex:`0xRRGGBB`" or
+       ":hex:`RRGGBB`";
+
+    3) *str* in RGB short form: ":hex:`#RGB`", which is a special case; e.g.
+       ":hex:`#3c9`" will be interpreted as :colorbox:`#3c9`;
+
+    4) *int* in [:hex:`0x000000`; :hex:`0xFFFFFF`] range.
 
 The method operates in three different modes depending on argument types:
 resolving by name, resolving by value and instantiating; all of three
@@ -32,8 +32,8 @@ corresponding methods can be invoked independently, which makes
 Resolving by name
 ====================
 
-If first argument of `resolve_color()` is a *str* starting with any character
-except `#`, case-insensitive search through the registry of ``color_type`` colors is
+If first argument of `resolve_color()` does not represent a hexadecimal number,
+case-insensitive search through the registry of ``color_type`` colors is
 performed. The main method is `Color256.find_by_name()` and his siblings in
 other color classes, so everything in this section can be applied to them as well.
 
@@ -109,12 +109,14 @@ all upper-cased letters to lower case.
     "AtoMicTangErine" will end up being split into four tokens ('ato',
     'mic', 'tang', 'erine'), and such query will fail with zero results.
     Pre-normalization instead of post-normalization can help here, but
-    that will break all valid camel case and pascal case queries. The
-    aforementioned query is more like an artificial example than a real
+    that will break all valid camel case and pascal case queries.
+
+    The aforementioned query is more like an artificial example than a real
     case anyway, but if it's essential, then one way to fix it is to
-    perform two searches instead of just one, i.e. first see if split
-    token set exists in a registry, and if it's not -- normalize it
-    preemptively and try again.
+    perform two searches instead of just one, i.e. first to see if split
+    token set exists in a registry, and if it does not -- normalize it
+    and try again.
+
 
 .. _guide.finding_closest_color:
 
@@ -122,17 +124,11 @@ all upper-cased letters to lower case.
 Finding closest colors
 =====================================
 
-When first argument of `resolve_color()` is specified as:
-
-    1) *int* in [:hex:`0x000000`; :hex:`0xFFFFFF`] range, or
-    2) *str* in hexadecimal form: ":hex:`RRGGBB`" / ":hex:`0xRRGGBB`", or
-    3) *str* in full hexadecimal form: ":hex:`#RRGGBB`", or
-    4) *str* in short hexadecimal form: ":hex:`#RGB`",
-
+When first argument of `resolve_color()` represents a hexadecimal number
 and ``color_type`` is **present**\ , the result will be the best ``subject``
 approximation to corresponding color index. Note that this value is expected
 to differ from the requested one (and sometimes differs a lot), unless the
-exact color requested is present in the index (e.g. :hex:`#FF0000` can be
+exact color requested is present in the index (e.g. :colorbox:`#0000FF` can be
 found in all three color palettes).
 
 Omit the second parameter to create an exact color: if ``color_type`` is
@@ -210,9 +206,17 @@ distance to the target.
 Approximator implementations
 ============================
 
-Approximation algorithm is as simple as iterating through all colors in the
-*lookup table*, computing the color distance between target color and each of
-those, and returning the minimal result.
+There are two approximator implementations in the library -- the first one does
+not require any dependencies, but is slow, as it has to iterate all the colors
+in the index and calculate color distance to each of those, and the second one,
+which requires ``scipy`` package to be installed along with the library, which
+results in approximating about **10.06** times faster than the first one thanks to
+using optimized data structure\ [#]_. In order to utilize the second one the library
+must be installed as ``pytermor[fast]`` , which installs extra dependencies automatically.
+
+.. important::
+    Approximator implementation is selected automatically on library initialization
+    depending on availability of `numpy` and `scipy` packages.
 
 Distance between two colors is calculated using CIE76 ΔE\* color
 difference formula in LAB color space\ [#]_. This method is considered to be
@@ -227,27 +231,15 @@ which are more complex and in general excessive for this task.
   Approximation of red colors using different color spaces for color distance
   computation
 
-More examples: :ref:`appendix.approx-diff`
+More details: :ref:`appendix.approx-diff`
 
-There are two approximator implementations in the library, the first one does
-not require any dependencies -- `_BruteForceApproximator`, while the second one,
-`_KDTreeApproximator`, requires ``scipy`` package to be installed along with the
-library. The latter is about **10.06** times faster than the first one thanks to
-using optimized data structure\ [#]_. The library must be installed as
-``pytermor[fast]`` in order to utilize it, which provides extra dependencies
-automatically.
-
-.. important::
-    Approximator implementation is selected automatically depending on availability of
-    `numpy` and `scipy` packages.
-
-There is a demo script which can illustrate the difference between approximated
+There is also a demo script which can illustrate the difference between approximated
 colors using different color distance formulas. For the details see `Examples —
 Demo — approximate.py <examples.demo.approximate>`.
 
-.. [#] http://www.brucelindbloom.com/index.html?Eqn_DeltaE_CIE76.html
-
 .. [#] https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.KDTree.html
+
+.. [#] http://www.brucelindbloom.com/index.html?Eqn_DeltaE_CIE76.html
 
 
 .. _guide.color_class_diagram:

@@ -4,10 +4,10 @@ FROM python:${PYTHON_VERSION}-slim
 ARG UID=1000
 ARG GID=1000
 
-COPY --chown=${UID}:${GID} requirements-test.txt ./
+COPY --chown=${UID}:${GID} requirements/requirements-test.txt requirements/
 RUN set -ex && \
     pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements-test.txt && \
+    pip install --no-cache-dir -r requirements/requirements-test.txt && \
     mkdir -p ./pytermor
 
 COPY --chown=${UID}:${GID} . .

@@ -172,6 +172,8 @@ div.graphviz {
     }
 }
 
+
+
 /** Code **/
 
 .ansi {
@@ -281,6 +283,7 @@ a.reference:not(.internal):hover {
 a.image-reference img {
     border: 1px dotted var(--color-background-item);
     padding: 5px;
+    height: auto !important;
 }
 .bottom-of-page .icons {
     gap: 0.75rem;
@@ -731,4 +734,8 @@ table.presets aside.footnote {
 .colorbox {
     padding: 0 0.4em;
     border: 1px outset var(--color-content-foreground);
+}
+
+.colorboxlabel {
+    font-style: italic;
 }

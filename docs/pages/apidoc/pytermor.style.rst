@@ -9,7 +9,9 @@
 
    .. autosummary::
    
+      CXT
       NOOP_STYLE
+      FT
    
    
 
@@ -33,6 +35,7 @@
    
       FrozenStyle
       MergeMode
+      NoOpStyle
       Style
       Styles
    

@@ -49,7 +49,7 @@ init-venv() {
             return 1
         fi
     fi
-    venv-demo/bin/python -m pip install -r requirements-demo.txt || echo "[ERROR] Failed to install requirements"
+    venv-demo/bin/python -m pip install -r requirements/requirements-demo.txt || echo "[ERROR] Failed to install requirements"
 }
 
 main "$@"

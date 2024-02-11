@@ -3,7 +3,7 @@ FROM delameter/python-texlive:1.3.0 AS build-hatch
 ARG UID=1000
 ARG GID=1000
 
-COPY --chown=${UID}:${GID} requirements-*.txt ./
+COPY --chown=${UID}:${GID} requirements/* requirements/
 RUN set -ex && \
     pip install --no-cache-dir --upgrade pip virtualenv hatch && \
     mkdir -p ./pytermor

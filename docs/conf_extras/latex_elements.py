@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 
 from . import read_x
+import pytermor as pt
 
 # fmt: off
 def get() -> dict:
@@ -32,7 +33,8 @@ def _get_preamble() -> Iterable[str]:
 
 def _get_sphinxsetup() -> dict[str, str]:
     return {
-        'div.warning_border-TeXcolor'    :  'DarkCyan',
-        'div.warning_background-TeXcolor':  'LightCyan',
+        'div.warning_background-TeXcolor':  'FloralWhite',
+        'div.attention_background-TeXcolor':  'FloralWhite',
+        'div.attention_border-TeXcolor':  f'Crimson',
     }
 # fmt: on

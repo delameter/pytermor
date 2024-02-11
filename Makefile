@@ -84,12 +84,15 @@ reinit-hatch:  ## Demolish and install auto environments <hatch>
   		if test $$envname = default ; then continue ; fi ; \
   		echo ------------ $$envname --------------- ;  \
         hatch env remove $$envname ; \
-        hatch run $$envname:es7s -VV ; \
+        hatch run $$envname:version ; \
     done
 
 reinit-manual-venv:    ## Demolish and install manual environment <venv>
 	${HOST_DEFAULT_PYTHON} -m venv --clear ${VENV_LOCAL_PATH}
-	${VENV_LOCAL_PATH}/bin/python -m pip install -r requirements-build.txt -r requirements-test.txt
+	${VENV_LOCAL_PATH}/bin/python -m pip install \
+		-r requirements/requirements-build.txt \
+		-r requirements/requirements-test.txt \
+		-r requirements/requirements-demo.txt
 	${VENV_LOCAL_PATH}/bin/python -m pytermor
 
 
@@ -192,11 +195,7 @@ remake-docs-sshots:  ## Remake demo screenshots for docs
 	@$(call _ensure_x11) || return
 	@./scripts/make_docs_sshots.sh -ay && $(call _success,Done)
 
-lint:  ## Run flake8
-	@export PT_ENV=test
-	./.invoke flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-	./.invoke flake8 . --count --exit-zero --max-line-length=127 --statistics
-
+# lint
 
 ##
 ## Testing
@@ -382,20 +381,6 @@ update-changelist:  ## Auto-update with new commits  <@CHANGES.rst>
 
 ###
 ## Packaging
-
-_freeze = (	echo "${BSEP}\e[34mFreezing \e[1;94m$1\e[22;34m:\e[m\n${BSEP}"; \
-			hatch -e $1 run pip freeze -q --exclude-editable | \
-				sed --unbuffered -E -e '/^(Checking|Syncing|Creating|Installing)/d' | \
-				fgrep -e pytermor -v | \
-				tee requirements-$1.txt | \
-				sed --unbuffered -E -e 's/^([a-zA-Z0-9_-]+)/\x1b[32m\1\x1b[m/' \
-									-e 's/([0-9.]+|@[a-zA-Z0-9_-]+)$$/\x1b[33m\1\x1b[m/'; \
-			echo)
-
-freeze:  ## Update requirements-*.txt   <hatch>
-	@$(call _freeze,test)
-	@$(call _freeze,build)
-	@$(call _freeze,demo)
 
 demolish-build:  ## Delete build output folders  <hatch>
 	hatch clean

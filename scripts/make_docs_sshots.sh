@@ -5,7 +5,7 @@
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
 # Docs terminal screenshot generator
-declare -ir PP=7
+declare -ir PP=8
 declare -ar HEADER_STROKES=(1)
 
 declare -ir CHAR_W_PX=9
@@ -75,6 +75,14 @@ __pytermor() {
     done
     shift $((OPTIND-1))
 
+    if command -v gnome-terminal 2>/dev/null && [[ -z $ES7S_X11_SHELL ]] ; then
+      local srcpath=$(realpath "${BASH_SOURCE[0]}")
+      ES7S_X11_SHELL=$$ es7s exec open-terminal . -- \
+          --window --full-screen -- \
+          bash -i "$srcpath" "$@"
+      return
+    fi
+
     # shellcheck disable=SC2086
     function invoke() {
       # args: cmd [opts...]
@@ -116,6 +124,10 @@ __pytermor() {
         COLUMNS=160 \
         invoke examples/list_named_rgb.py grid 1 |
         cutl '' '' "s/^|$/\xa0/g;"
+    }
+    function p8() {
+      PYTERMOR_FORCE_OUTPUT_MODE=true_color \
+        invoke examples/autopick_fg.py
     }
     function cutl() {
       # args: [start_lineno], [end_lineno] [extra_expr]

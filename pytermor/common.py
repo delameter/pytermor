@@ -18,44 +18,10 @@ from dataclasses import dataclass
 from functools import lru_cache, partial
 from math import ceil
 
-
 _T = t.TypeVar("_T")
 _KT = t.TypeVar("_KT")
 _VT = t.TypeVar("_VT")
 _TT = t.TypeVar("_TT", bound=type)
-
-
-CDT = t.TypeVar("CDT", int, str)
-"""
-:abbr:`CDT (Color descriptor type)` represents a RGB color value. Primary handler 
-is `resolve_color()`. Valid values include:
-
-    - *str* with a color name in any form distinguishable by the color resolver;
-      the color lists can be found at: `guide.ansi-presets` and `guide.es7s-colors`;
-    - *str* starting with a "#" and consisting of 6 more hexadecimal characters, case
-      insensitive (RGB regular form), e.g. ":hex:`#0b0cca`";
-    - *str* starting with a "#" and consisting of 3 more hexadecimal characters, case
-      insensitive (RGB short form), e.g. ":hex:`#666`";
-    - *int* in a [:hex:`0`; :hex:`0xffffff`] range.
-"""
-
-CXT = t.TypeVar("CXT", int, str, "IColorValue", "RenderColor", None)
-"""
-.. todo ::
-    TODO
-"""
-
-FT = t.TypeVar("FT", int, str, "IColorValue", "Style", None)
-"""
-:abbr:`FT (Format type)` is a style descriptor. Used as a shortcut precursor for actual 
-styles. Primary handler is `make_style()`.
-"""
-
-RT = t.TypeVar("RT", str, "IRenderable")
-"""
-:abbr:`RT (Renderable type)` includes regular *str*\\ s as well as `IRenderable` 
-implementations.
-"""
 
 
 class ExtendedEnum(enum.Enum):
@@ -111,6 +77,7 @@ class CacheStats:
 
     def format(self) -> str:
         from .numfmt import format_thousand_sep
+
         return "%s hits, %s misses (%3.1f%% ratio), size %d/%d" % (
             format_thousand_sep(self.hits),
             format_thousand_sep(self.misses),
@@ -118,6 +85,7 @@ class CacheStats:
             self.cursize,
             self.maxsize,
         )
+
 
 # -----------------------------------------------------------------------------
 # strings
@@ -149,14 +117,14 @@ class Align(str, ExtendedEnum):
             raise KeyError(f"Invalid align name: {input}") from e
 
 
-def pad(n: int) -> str:
+def pad(n: int = 1) -> str:
     """
     Convenient method to use instead of ``\"\".ljust(n)``.
     """
     return " " * n
 
 
-def padv(n: int) -> str:
+def padv(n: int = 1) -> str:
     """
     Convenient method to use instead of ``"\\n\" * n``.
     """
@@ -452,11 +420,12 @@ def flatten(
 
         Tracking of visited objects is not performed by default, i.e., circular
         references and self-references will be unpacked again and again endlessly,
-        until max recursion depth limit exceeds with a ``RecursionError``. The
-        tracking can be enabled with setting ``track`` parameter to True. Another
-        option is to set ``catch`` parameter to True, which will make the function
-        stop upon receiveing a ``RecursionError`` instead of raising it all the way
-        to the top.
+        until recursion limit is exceeded with a ``RecursionError``. The tracking
+        can be enabled via setting ``track`` parameter to True.
+
+        Another option is to set ``catch`` parameter to True, which makes the
+        function stop and return upon receiveing a ``RecursionError`` instead of
+        propagating it further.
 
     >>> flatten([1, 2, [3, [4, [[5]], [6, 7, [8]]]]])
     [1, 2, 3, 4, 5, 6, 7, 8]

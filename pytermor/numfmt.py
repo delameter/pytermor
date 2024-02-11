@@ -21,10 +21,10 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from math import floor, isclose, log, log10, trunc
 
-from .common import Align, RT, fit, get_qname
+from .common import Align, fit, get_qname
 from .exception import ConflictError
 from .style import Style, Styles, merge_styles
-from .text import Fragment, Text, FrozenText
+from .text import Fragment, Text, FrozenText, RT
 
 _OVERFLOW_CHAR = "!"
 

@@ -106,11 +106,13 @@ Custom text roles
 
     * ``:envvar:`PYTERMOR_RENDERER_CLASSNAME``` |rarr| :envvar:`PYTERMOR_RENDERER_CLASSNAME`
 
-- Colors should be defined using special role ``:colorbox:``:
+- Colors should be defined using special role ``:cbox:``, ``:colorbox:`` or ``:lcolorbox:`` :
+
+    * ``:cbox:`dark-red``` |rarr| :cbox:`dark-red`
 
     * ``:colorbox:`0xBADA90``` |rarr| :colorbox:`0xBADA90`
 
-    * ``:colorbox:`icathian-yellow``` |rarr| :colorbox:`icathian-yellow`
+    * ``:lcolorbox:`icathian-yellow``` |rarr| :lcolorbox:`icathian-yellow`
 
 --------------------
 Hexadecimals

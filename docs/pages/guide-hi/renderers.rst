@@ -40,6 +40,8 @@ instantiate and invoke both renderers independently.
 To unconditionally print formatted message to standard output, call
 `force_ansi_rendering()` and then `render()<text.render>`.
 
+See `Examples — Rendering <examples.rendering>` for practical applications.
+
 
 .. _guide.renderer_priority:
 

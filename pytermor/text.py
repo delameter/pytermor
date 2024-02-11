@@ -22,13 +22,13 @@ import typing as t
 from abc import ABC, abstractmethod
 from collections import deque
 from copy import copy
-from typing import overload
+from typing import overload, Union
 
-from .common import Align, FT, RT, flatten1, fit, pad, isiterable, instantiate
+from .common import Align, flatten1, fit, pad, isiterable, instantiate
 from .color import Color
 from .exception import ArgTypeError, LogicError
 from .renderer import IRenderer, OutputMode, RendererManager, SgrRenderer
-from .style import NOOP_STYLE, Style, is_ft, make_style
+from .style import NOOP_STYLE, Style, is_ft, make_style, FT
 from .term import get_preferable_wrap_width, get_terminal_width
 
 # from typing_extensions import deprecated
@@ -91,10 +91,6 @@ class IRenderable(t.Sized, ABC):
         """pass"""
 
     @abstractmethod
-    def splitlines(self) -> t.List[IRenderable | t.List[IRenderable]]:
-        """..."""
-
-    @abstractmethod
     def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
         """pass"""
 
@@ -119,21 +115,26 @@ class IRenderable(t.Sized, ABC):
                 return inst
         return RendererManager.get()
 
-    def _splitlines(self) -> t.Iterable[Fragment]:
-        line = []
+    def splitlines(self) -> t.List[t.List[Fragment] | IRenderable]:
+        result = [[]]
         for frag in self.as_fragments():
             raw = frag.raw()
             if "\n" not in raw:
-                line.append(frag)
+                result[-1].append(frag)
                 continue
             for part in re.split(r"(\n)", raw):
                 if part == "\n":
-                    yield from line
-                    line.clear()
+                    result.append([])
                     continue
-                line.append(Fragment(part, frag.style))
-        yield from line
+                result[-1].append(Fragment(part, frag.style))
+        return result
 
+
+RT = Union[str, IRenderable]
+"""
+:abbr:`RT (Renderable type)` consists of regular *str*\\ s as well as
+any `IRenderable` implementation.
+"""
 
 class Fragment(IRenderable):
     """
@@ -218,9 +219,6 @@ class Fragment(IRenderable):
     def raw(self) -> str:
         return self._string
 
-    def splitlines(self) -> t.List[t.List[Fragment]]:
-        return [*self._splitlines()]
-
     @property
     def style(self) -> Style:
         return self._style
@@ -246,6 +244,79 @@ class Fragment(IRenderable):
 
     def set_width(self, width: int):
         self._string = f"{self._string:{width}.{width}s}"
+
+
+class Composite(IRenderable):
+    """
+    Simple class-container supporting concatenation of
+    any `IRenderable` instances with each other without
+    extra logic on top of it. Renders parts joined by an
+    empty string.
+
+    :param parts: text parts in any format implementing
+                  `IRenderable` interface.
+    """
+
+    def __init__(self, *parts: RT):
+        super().__init__()
+        renderables = [self.as_renderable(p) for p in parts]
+        self._parts: deque[IRenderable] = deque(renderables)
+
+    def __len__(self) -> int:
+        return sum(len(part) for part in self._parts)
+
+    def __eq__(self, o: t.Any) -> bool:
+        if not isinstance(o, type(self)):  # pragma: no cover
+            return False
+        return self._parts == o._parts
+
+    def __repr__(self) -> str:
+        if not hasattr(self, "_parts"):
+            return super().__repr__()
+        frags = len(self._parts)
+        result = f"<{self.__class__.__qualname__}[F={frags}%s]>"
+        if frags == 0:
+            return result % ""
+        return result % (", " + ", ".join([repr(f) for f in self._parts]))
+
+    def __add__(self, other: RT) -> Composite:
+        self._parts.append(self.as_renderable(other))
+        return self
+
+    def __iadd__(self, other: RT) -> Composite:
+        self._parts.append(self.as_renderable(other))
+        return self
+
+    def __radd__(self, other: RT) -> Composite:
+        self._parts.appendleft(self.as_renderable(other))
+        return self
+
+    def as_renderable(self, rt: RT) -> IRenderable:
+        if isinstance(rt, IRenderable):
+            return rt
+        if not isinstance(rt, str):
+            raise TypeError(f"RT expected, cannot make fragment out of: {rt!r}")
+        return Fragment(rt)
+
+    def as_fragments(self) -> t.List[Fragment]:
+        return flatten1([p.as_fragments() for p in self._parts])
+
+    def raw(self) -> str:
+        return "".join(p.raw() for p in self._parts)
+
+    def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
+        return "".join(p.render(self._resolve_renderer(renderer)) for p in self._parts)
+
+    def set_width(self, width: int):
+        raise NotImplementedError
+
+    @property
+    def has_width(self) -> bool:
+        return False
+
+    @property
+    def allows_width_setup(self) -> bool:
+        return False
 
 
 class FrozenText(IRenderable):
@@ -380,9 +451,6 @@ class FrozenText(IRenderable):
     def raw(self) -> str:
         return "".join(f.raw() for f in self._fragments)
 
-    def splitlines(self) -> t.List[IRenderable]:
-        return [self.__class__(frags) for frags in self._splitlines()]
-
     def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
         renderer = self._resolve_renderer(renderer)
         return "".join(renderer.render(*fpst) for fpst in self._get_frag_parts())
@@ -480,6 +548,25 @@ class FrozenText(IRenderable):
     def set_width(self, width: int):  # pragma: no cover
         raise LogicError("FrozenText is immutable")
 
+    def splitlines(self) -> t.List[t.List[Fragment] | IRenderable]:
+        result = super().splitlines()
+
+        def __iter():
+            for line in result:
+                yield self.__class__(
+                    *line,
+                    width=self._width,
+                    align=self._align,
+                    fill=self._fill,
+                    overflow=self._overflow,
+                    pad=self._pad,
+                    pad_styled=self._pad_styled,
+                )
+
+        if self.has_width:
+            return [*__iter()]
+        return result
+
 
 class Text(FrozenText):
     def __iadd__(self, other: str | Fragment) -> Text:
@@ -506,78 +593,6 @@ class Text(FrozenText):
         for frag in origin_fragments:
             self._fragments += apply_style_selective(regex, frag.raw(), frag.style)
         origin_fragments.clear()
-
-
-class Composite(IRenderable):
-    """
-    Simple class-container supporting concatenation of
-    any `IRenderable` instances with each other without
-    extra logic on top of it. Renders parts joined by an
-    empty string.
-
-    :param parts: text parts in any format implementing
-                  `IRenderable` interface.
-    """
-
-    def __init__(self, *parts: RT):
-        super().__init__()
-        renderables = [self.as_renderable(p) for p in parts]
-        self._parts: deque[IRenderable] = deque(renderables)
-
-    def __len__(self) -> int:
-        return sum(len(part) for part in self._parts)
-
-    def __eq__(self, o: t.Any) -> bool:
-        if not isinstance(o, type(self)):  # pragma: no cover
-            return False
-        return self._parts == o._parts
-
-    def __repr__(self) -> str:
-        frags = len(self._parts)
-        result = f"<{self.__class__.__qualname__}[F={frags}%s]>"
-        if frags == 0:
-            return result % ""
-        return result % (", " + ", ".join([repr(f) for f in self._parts]))
-
-    def __add__(self, other: RT) -> Composite:
-        self._parts.append(self.as_renderable(other))
-        return self
-
-    def __iadd__(self, other: RT) -> Composite:
-        self._parts.append(self.as_renderable(other))
-        return self
-
-    def __radd__(self, other: RT) -> Composite:
-        self._parts.appendleft(self.as_renderable(other))
-        return self
-
-    def as_renderable(self, rt: RT) -> IRenderable:
-        if isinstance(rt, IRenderable):
-            return rt
-        return Fragment(rt)
-
-    def as_fragments(self) -> t.List[Fragment]:
-        return flatten1([p.as_fragments() for p in self._parts])
-
-    def raw(self) -> str:
-        return "".join(p.raw() for p in self._parts)
-
-    def splitlines(self) -> t.List[IRenderable]:
-        return [self.__class__(frags) for frags in self._splitlines()]
-
-    def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
-        return "".join(p.render(self._resolve_renderer(renderer)) for p in self._parts)
-
-    def set_width(self, width: int):
-        raise NotImplementedError
-
-    @property
-    def has_width(self) -> bool:
-        return False
-
-    @property
-    def allows_width_setup(self) -> bool:
-        return False
 
 
 class SimpleTable(IRenderable):
@@ -733,8 +748,9 @@ class SimpleTable(IRenderable):
         return sum(len(c) for c in row if not fixed_only or c.has_width)
 
 
-def is_rt(arg) -> bool:
-    return isinstance(arg, (str, IRenderable))
+def is_rt(arg: any) -> bool:
+    """ User-side type checking shortcut. """
+    return isinstance(arg, RT)
 
 
 def render(
@@ -948,7 +964,7 @@ def apply_style_selective(
 
         .. container:: highlight highlight-manual highlight-adjacent highlight-output output
 
-            :red:`A` few :red:`CAPITAL`\ s
+            :red:`A` few :red:`CAPITAL`\\ s
 
     :param regex:
     :param string:

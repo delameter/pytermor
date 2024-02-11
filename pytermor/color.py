@@ -33,7 +33,7 @@ from math import sqrt
 from typing import TypeVar, OrderedDict, final
 
 from .ansi import BG_HI_COLORS, ColorTarget, HI_COLORS, NOOP_SEQ, SequenceSGR
-from .common import CDT, CacheStats
+from .common import CacheStats
 from .common import filtern
 from .common import get_qname
 from .config import ConfigManager
@@ -51,6 +51,7 @@ try:
 except ImportError as e:
     np = None
     KDTree = None
+
 
 _T = t.TypeVar("_T", bound=object)
 ExtractorT = t.Union[str, t.Callable[[_T], "Color"], None]
@@ -223,6 +224,9 @@ class RGB(IColorValue):
         return f"{get_qname(self)}[#{self.int:06X}][{' '.join(attrs)}]"
 
     __repr__ = __str__
+
+    def as_ratios(self) -> tuple[float, float, float]:
+        return self.red / 255, self.green / 255, self.blue / 255
 
     @cached_property
     def red(self) -> int:
@@ -935,7 +939,9 @@ class _KDTreeApproximator(_IColorApproximator, t.Generic[_RCT]):  # @TODO test c
             extract = self._get_extractor_fn()
             q = np.asarray([extract(value)], dtype=float)
             dists, idxs = self._tree.query(q, k=max_results)
-            for (dist, idx) in zip(dists, idxs):
+            if max_results == 1:   # kdtree unwraps 1-element arrays by default >.<
+                dists, idxs = [dists], [idxs]
+            for (dist, idx) in zip(dists[0], idxs[0]):
                 yield ApxResult[_RCT](self._list[idx], dist)
 
         return [*__iter()]
@@ -968,11 +974,11 @@ class _KDTreeApproximator(_IColorApproximator, t.Generic[_RCT]):  # @TODO test c
         if not self._list:
             raise LogicError("At least one color instance with 'approx=True' must be created.")
 
-        data = np.ndarray((len(self._list), 3), dtype=float)
+        data = np.ndarray((len(self._list), 3), dtype=float)  # noqa
         extract = self._get_extractor_fn()
         for idx, color in enumerate(self._list):
             data[idx] = extract(color)
-        self._tree = KDTree(data)
+        self._tree = KDTree(data)  # noqa
 
 
 class _BruteForceApproximator(_IColorApproximator, t.Generic[_RCT]):
@@ -1743,6 +1749,20 @@ class DynamicColor(RenderColor, t.Generic[_T], metaclass=ABCMeta):
 
 RESOLVABLES = [Color16, Color256, ColorRGB]
 
+CDT = t.Union[int, str]
+"""
+:abbr:`CDT (Color descriptor type)` represents a RGB color value. Primary handler 
+is `resolve_color()`. Valid values include:
+
+    1) *str* with color name in any form distinguishable by the color resolver,
+       e.g. 'red', 'navy blue', etc. (all preset color names are listed in
+       `guide.ansi-presets` and `guide.es7s-colors`);
+    2) *str* in full hexadecimal form: ":hex:`#RRGGBB`" or  ":hex:`0xRRGGBB`" or
+       ":hex:`RRGGBB`";
+    3) *str* in RGB short form: ":hex:`#RGB`", which is a special case; e.g.
+       ":hex:`#3c9`" will be interpreted as :colorbox:`#3c9`;
+    4) *int* in [:hex:`0x000000`; :hex:`0xFFFFFF`] range.
+"""
 
 def resolve_color(
     subject: CDT,
@@ -1776,19 +1796,16 @@ def resolve_color(
         color_type = None
 
     def as_hex(s: CDT):
-        if isinstance(s, int):
-            return s
+        if isinstance(s, (int, float)):
+            return int(s)
+
         if m := re.fullmatch(R"#([\da-f]{3})", s, flags=re.IGNORECASE):
             # 3-digit hex notation, basically #RGB -> #RRGGBB
             # https://www.quackit.com/css/color/values/css_hex_color_notation_3_digits.cfm
-            s = "".join(map(lambda c: 2 * c, m.group(1)))
-            return int(s, 16)
-        if m := re.fullmatch(R"(?:#|0x)?([\da-f]+)", s, flags=re.IGNORECASE):
-            s = m.group(1)
-            try:
-                return int(s, 16)
-            except ValueError:
-                pass
+            return int("".join(map(lambda c: 2 * c, m.group(1))), 16)
+
+        if m := re.fullmatch(R"(?:#|0x)?([\da-f]{6})", s, flags=re.IGNORECASE):
+            return int(m.group(1), 16)
         return None
 
     if (value := as_hex(subject)) is not None:

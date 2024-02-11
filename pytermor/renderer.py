@@ -24,9 +24,9 @@ from hashlib import md5
 
 from .ansi import ColorTarget, NOOP_SEQ, SeqIndex, SequenceSGR, get_closing_seq
 from .color import Color16, Color256, ColorRGB, DEFAULT_COLOR, Color, NOOP_COLOR, RenderColor
-from .common import ExtendedEnum, FT, get_qname, instantiate
+from .common import ExtendedEnum,  get_qname, instantiate
 from .config import ConfigManager
-from .style import NOOP_STYLE, Style, Styles, make_style
+from .style import FT, NOOP_STYLE, Style, Styles, make_style
 
 _T = t.TypeVar("_T", bound="IRenderer")
 

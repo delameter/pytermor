@@ -42,13 +42,25 @@ class AnsiRole(SphinxRole):
 
 # -------------------------------------------------------------------------
 
+class CBoxRole(SphinxRole):
+    def run(self) -> Tuple[List[Node], List[system_message]]:
+        col: pt.ColorRGB = pt.resolve_color(self.text)
+        box = CBoxNode(value=col)
+        return [box], []
+
 class ColorBoxRole(SphinxRole):
     def run(self) -> Tuple[List[Node], List[system_message]]:
         col: pt.ColorRGB = pt.resolve_color(self.text)
         box = ColorBoxNode(value=col)
         return [box], []
 
-class ColorBoxNode(nodes.General, nodes.Element):
+class LabeledColorBoxRole(ColorBoxRole):
+    def run(self) -> Tuple[List[Node], List[system_message]]:
+        col: pt.ColorRGB = pt.resolve_color(self.text)
+        box = LabeledColorBoxNode(value=col, label=col.name)
+        return [box], []
+
+class CBoxNode(nodes.General, nodes.Element):
     def hexval(self, prefix):
         return self["value"].format_value(prefix)
 
@@ -56,14 +68,12 @@ class ColorBoxNode(nodes.General, nodes.Element):
     def visit_node_html(self, node: ColorBoxNode):
         hexval = node.hexval("#")
         self.body.append(f'<span class="colorbox" style="background-color: {hexval}">&nbsp;</span>')
-        self.body.append(f'<code class="colorboxlabel hex literal">{hexval}</code>')
 
     @staticmethod
     def visit_node_latex(self, node):
         hexval = node.hexval("")
         self.body.append("\\definecolor{HEX%s}{HTML}{%s}" % (hexval, hexval))
         self.body.append("\\begin{ptcolorbox}[colback=HEX%s,colupper=HEX%s]{@}\\end{ptcolorbox}" % (hexval, hexval))
-        self.body.append("\\begin{ptinlbox}[]{\\#%s}\\end{ptinlbox}" % (hexval,))
 
     @staticmethod
     def visit_node_plain(self, node):
@@ -78,6 +88,36 @@ class ColorBoxNode(nodes.General, nodes.Element):
             "texinfo": (visit_node_unsupported, None),
             "text": (cls.visit_node_plain, depart_node_noop),
         }
+
+
+class ColorBoxNode(CBoxNode):
+    @staticmethod
+    def visit_node_html(self, node):
+        CBoxNode.visit_node_html(self, node)
+        self.body.append(f'<code class="colorboxvalue hex literal">{node.hexval("#")}</code>')
+
+    @staticmethod
+    def visit_node_latex(self, node):
+        CBoxNode.visit_node_latex(self, node)
+        self.body.append("\\begin{ptinlbox}[]{\\#%s}\\end{ptinlbox}" % (node.hexval("#")))
+
+
+class LabeledColorBoxNode(ColorBoxNode):
+    def label(self) -> str:
+        return self["label"]
+
+    @staticmethod
+    def visit_node_html(self, node):
+        if label := node.label():
+            self.body.append(f'<span class="colorboxlabel literal">{label}</span> ')
+        ColorBoxNode.visit_node_html(self, node)
+
+    @staticmethod
+    def visit_node_latex(self, node):
+        if label := node.label():
+            self.body.append("\\emph{%s}\\space" % label)
+        ColorBoxNode.visit_node_latex(self, node)
+
 
 # -------------------------------------------------------------------------
 
@@ -150,8 +190,12 @@ def _patch_add_icon(node_cls: type[IconNode], elem_classes: tuple[type[SphinxRol
 def setup(app: Sphinx):
     app.add_role('ansi', AnsiRole(), override=True)
 
+    app.add_role('cbox', CBoxRole())
     app.add_role('colorbox', ColorBoxRole())
+    app.add_role('lcolorbox', LabeledColorBoxRole())
+    app.add_node(CBoxNode, **CBoxNode.get_visitors())
     app.add_node(ColorBoxNode, **ColorBoxNode.get_visitors())
+    app.add_node(LabeledColorBoxNode, **LabeledColorBoxNode.get_visitors())
 
     for icon_node_cls in ICON_NODES:
         app.add_node(icon_node_cls, **icon_node_cls.get_visitors())

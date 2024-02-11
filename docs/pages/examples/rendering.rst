@@ -452,10 +452,10 @@ in the future.
 
 Manual assembling :sup:`(don't do this)`
 ========================================
-The last resort method which works in 100% is to assemble the sequence char by char
-manually, contain it as a string in source code and just print it when there is a
-necessity to do that. The only problem with this approach is an empirical rule,
-which says:
+The last resort method which works in 100% of the cases is to assemble the
+sequence char by char manually, contain it as a string in source code and just
+print it when there is a necessity to do that. The only problem with this
+approach is an empirical rule, which says:
 
 .. highlights::
 
@@ -464,14 +464,14 @@ which says:
 
 This means that even 2 SGRs would give 25% readability of the original, while 4
 SGRs give ≈6% :comment:`(this rule is a joke I made up just now, but the key
-idea should be true)`.
+idea should be true)`. In short:
 
-In short:
     - they are hard to modify,
     - they are hard to maintain,
-    - they are hard to debug.
+    - they are hard to debug,
 
-Even if it seems OK for a while::
+... and most importantly, they are hard to comprehend, possibly even harder than regular
+expressions. Even if it seems OK for a while::
 
     print('\x1b[41m', end="(；¬＿¬)")
     print('\x1b[1;1H\x1b[41m\x1b[0K', end="(O∆O)")

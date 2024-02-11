@@ -27,4 +27,5 @@ For more advanced ones proceed to the next section.
 .. toctree::
 
    rendering
+   style-registry
    demo

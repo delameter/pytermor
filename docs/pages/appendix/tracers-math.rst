@@ -157,8 +157,8 @@ Then the condition of fitting the data to a terminal can be written as:
 where `L_T` is current terminal width. Next:
 
 .. math ::
-    3 + 2 + L_{adr} + (2C_{Umax}+1) \cdot C_L + C_L ,& \leqslant L_T \\\\\
-              L_{adr} + 5 + (2C_{Umax}+2) \cdot C_L ,& \leqslant L_T
+    3 + 2 + L_{adr} + (2C_{Umax}+1) \cdot C_L + C_L & \leqslant L_T \\\\\
+              L_{adr} + 5 + (2C_{Umax}+2) \cdot C_L & \leqslant L_T
 
 Express `C_L` through `L_T`, `L_{adr}` and `C_{Umax}`:
 

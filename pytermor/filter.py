@@ -25,9 +25,9 @@ from functools import lru_cache, reduce
 from hashlib import md5, shake_128
 from math import ceil, floor
 from typing import Union
-
+from .style import FT
 from .ansi import ESCAPE_SEQ_REGEX
-from .common import FT, chunk, pad, cut
+from .common import chunk, pad, cut
 from .exception import ArgTypeError, LogicError
 from .term import get_terminal_width
 

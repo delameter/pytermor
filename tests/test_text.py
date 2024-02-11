@@ -24,6 +24,9 @@ from pytermor import (
     Style as St,
     Composite as Co,
 )
+
+RED = Style(fg="red")
+BLUE = Style(fg="blue")
 from pytermor.renderer import NoopRenderer
 from pytermor.text import is_rt
 from tests import format_test_params, raises
@@ -123,10 +126,7 @@ class TestText:
 @pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
 class TestComposite:
     def test_style_applying_works(self):
-        assert (
-            Co(Fg("12"), Fg("3", St(fg="red"))).render() == "12"
-            "\x1b[31m" + "3" + "\x1b[39m"
-        )
+        assert Co(Fg("12"), Fg("3", St(fg="red"))).render() == "12" "\x1b[31m" + "3" + "\x1b[39m"
 
     def test_style_closing_works(self):
         comp = Co(Fg("123", St(fg="red")), Fg("456"))
@@ -217,7 +217,7 @@ class TestFargsFlow:
             ),
             (
                 ["1", "red", "2", "3", "blue"],
-                [Fg("1", pt.cv.RED), Fg("2", 0x000003), Fg("blue")],
+                [Fg("1", pt.cv.RED), Fg("2"), Fg("3", pt.cv.BLUE)],
             ),
             (
                 ["1", pt.cv.DARK_RED_2],
@@ -253,11 +253,11 @@ class TestFargsFlow:
             ),
             (
                 ["a", "b", "blue"],
-                [Fg("a", 0x00000b), Fg("blue")],
+                [Fg("a"), Fg("b", pt.cv.BLUE)],
             ),
             (
                 ["a", "b", tuple(), "blue"],
-                [Fg("a", 0x00000b), Fg("blue")],
+                [Fg("a"), Fg("b"), Fg("blue")],
             ),
             (
                 [("a", "red", "b", "blue")],
@@ -334,9 +334,7 @@ class TestAdding:
             result = result + element
         assert result == expected
 
-    @pytest.mark.parametrize(
-        "renderable", [frag1, Tx("123", "red"), Co(pt.Fragment("123", "red"))]
-    )
+    @pytest.mark.parametrize("renderable", [frag1, Tx("123", "red"), Co(pt.Fragment("123", "red"))])
     def test_incremental_adding_works(self, renderable: IRen):
         renderable += "qwe"
         assert len(renderable) == 6
@@ -598,6 +596,36 @@ class TestSplitting:
         input.split_by_spaces()
         assert input == expected
 
+    @pytest.mark.parametrize(
+        "expected, input",
+        [
+            ([[Fg("", RED)]], Fg("", RED)),
+            ([[Fg("1", RED)]], Fg("1", RED)),
+            ([[Fg("", RED)], [Fg("", RED)]], Fg("\n", RED)),
+            ([[Fg("1", RED)], [Fg("", RED)]], Fg("1\n", RED)),
+            ([[Fg("", RED)], [Fg("2", RED)]], Fg("\n2", RED)),
+            ([[Fg("", RED)], [Fg("", RED)], [Fg("3", RED)]], Fg("\n\n3", RED)),
+            ([[Fg("123", RED)], [Fg("456", RED)], [Fg("789", RED)]], Fg("123\n456\n789", RED)),
+            ([[Fg("123", RED)], [Fg("456", RED)], [Fg("789", RED)]], Tx("123\n456\n789", RED)),
+            ([[Fg("123", RED)], [Fg("456", RED)], [Fg("789", RED)]], Fzt("123\n456\n789", RED)),
+            (
+                [[Fg("123", RED)], [Fg("456", RED)], [Fg("789", RED)]],
+                Co(Fg("123\n456\n789", RED)),
+            ),
+            (
+                [[Fg("12345", RED), Fg("678", BLUE)], [Fg("90", BLUE)]],
+                Co(Fg("12345", RED), Fg("678\n90", BLUE)),
+            ),
+            (
+                [[Fg("12345", RED), Fg("678", RED)], [Fg("90", RED)]],
+                Co(Fg("12345", RED), Fg("678\n90", RED)),
+            ),  # @todo implement squashing ?
+        ],
+    )
+    def test_splitlines(self, expected, input):
+        actual = input.splitlines()
+        assert expected == actual
+
 
 class TestEchoRender:
     PARAMSET = [
@@ -778,9 +806,7 @@ class TestWrap:
         ids=format_test_params,
     )
     def test_wrap_sgr(self, expected: str, input: t.List[str]):
-        pt.echo(
-            input, wrap=50, indent_first=2, indent_subseq=0, file=(file := io.StringIO())
-        )
+        pt.echo(input, wrap=50, indent_first=2, indent_subseq=0, file=(file := io.StringIO()))
         file.seek(0)
         data = file.read().rstrip("\n")
         assert "".join(data) == expected
