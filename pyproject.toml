@@ -67,7 +67,7 @@ test = [
 [project.urls]
 "Homepage" = "https://github.com/delameter/pytermor"
 "Bug Tracker" = "https://github.com/delameter/pytermor/issues"
-"Changelog" = "https://github.com/delameter/pytermor/blob/master/CHANGES.md"
+"Changelog" = "https://github.com/delameter/pytermor/blob/master/CHANGES.rst"
 
 # =========================================================
 

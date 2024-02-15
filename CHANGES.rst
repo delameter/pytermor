@@ -3,45 +3,61 @@
 
 pending
 ------------------
-- ...
-- |REFACTOR|  `ResolvableColor` signature
-- |DOCS|
-- |TESTS| add resolving tests
-- |NEW| `flip_unpack`, `ismutable`, `isimmutable`
-- |NEW| extended `highlight()`
-- |REFACTOR| `flatten`
-- |REFACTOR| separated `python-texlive` base image to its own repository
-- |NEW| `filtere`, `filterev`, `joinciak`
-- |FIX| `filtern`, `filterenv`
-- |DOCS| `demo` page
-- |DOCS| `make_docs_sshots` automation script
-- |DOCS| `term-output`/example001-007 images
-- |DOCS| `demo` page
-- |DOCS| `make_docs_sshots` automation script
-- |DOCS| `term-output`/example001-007 images
-- |TESTS|  'fix for python 3.9`
+
+.. <@pending:9e4e0f6>
+.. ^ blank line before should be kept
+
+
+2.116-dev
+------------------
+:date:`Feb 24`
+
 - |CI|/CD:  self-hosted runner
-- |TESTS|  fixes for 3.8, 3.9
+- |DOCS| `ansi`, `colorbox`, ``env` and `option` custom text roles
+- |DOCS| `autopick_fg.py` example
+- |DOCS| `demo` page
+- |DOCS| `demo` page
+- |DOCS| `docs-guidelines` update
+- |DOCS| `make_docs_sshots` automation script
+- |DOCS| `make_docs_sshots` automation script
+- |DOCS| `term-output`/example001-007 images
+- |DOCS| `term-output`/example001-007 images
+- |DOCS| `tone_neighbours` example update
+- |DOCS| admonitions pdf designs
+- |DOCS| color cube approximation examples
+- |DOCS| color cube approximations
+- |DOCS| latex styling
+- |FIX| `StringMapper` restricted keys to 1-char only
+- |FIX| `filtern`, `filterenv`
+- |FIX| removed `es7s.commons` dependency from aux scripts
+- |FIX| removed default `sys.stdout` value of `file` param in `echo*()` methods as its messing up unit tests in other projects which use the library
+- |MAINTAIN| `docker-docs`
+- |NEW| `Common.CacheStats`
+- |NEW| `IRenderable.splitlines`
+- |NEW| `[fast]` feature
 - |NEW| `_KDTreeApproximator` implementation for fast computations (10x faster)
 - |NEW| `border` presets
 - |NEW| `common` module fns: `coal*`, `join*`, `instantiate`
+- |NEW| `compose_clear_line`
+- |NEW| `filtere`, `filterev`, `joinciak`
+- |NEW| `flip_unpack`, `ismutable`, `isimmutable`
+- |NEW| adopted  `hatch-pip-compile` which makes requirements lock files
 - |NEW| colors in "RRGGBB" string-integer form resolving
-- |NEW| `[fast]` feature
-- |FIX| removed default `sys.stdout` value of `file` param in `echo*()` methods as its messing up unit tests in other projects which use the library
-- |FIX| removed `es7s.commons` dependency from aux scripts
-- |REFACTOR| `package tree`, `sgr output mode` graphs
+- |NEW| extended `highlight()`
+- |REFACTOR| `.IRenderable.splitlines()` is shared now
+- |REFACTOR| `.Style.autopick_fg()` now accounts contrast ratio
 - |REFACTOR| `NoOpRenderer` -> `NoopRenderer`
-- |REFACTOR| `force_ansi_rendering` and `force_no_ansi_rendering` moved from `renderer` to `config` module
 - |REFACTOR| `RendererManager` and `ConfigManager` interfaces
-- |DOCS| `ansi`, `colorbox`, ``env` and `option` custom text roles
-- |DOCS| admonitions pdf designs
-- |DOCS| `docs-guidelines` update
-- |DOCS| `tone_neighbours` example update
+- |REFACTOR| `ResolvableColor` signature
+- |REFACTOR| `flatten`
+- |REFACTOR| `force_ansi_rendering` and `force_no_ansi_rendering` moved from `renderer` to `config` module
+- |REFACTOR| `format_time_delta_longest()`: '2 min' -> '1min 57sec'
+- |REFACTOR| `package tree`, `sgr output mode` graphs
+- |REFACTOR| separated `python-texlive` base image to its own repository
+- |TESTS| 'fix for python 3.9`
 - |TESTS| `border` module
-
-.. <@pending:9d4df0c>
-.. ^ blank line before should be kept
-
+- |TESTS| add resolving tests
+- |TESTS| fixes for 3.8, 3.9
 
 2.108-dev
 ------------------

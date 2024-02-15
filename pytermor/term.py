@@ -24,6 +24,7 @@ from .ansi import (
     SequenceOSC,
     SequenceSGR,
     SequenceST,
+    SequenceFe,
 )
 from .exception import UserAbort, UserCancel
 
@@ -36,7 +37,7 @@ See `decompose_report_cursor_position()`.
 """
 
 
-# SGR sequences assembly ------------------------------------------------------
+# SGR -----------------------------------------------------
 
 
 def make_color_256(code: int, target: ColorTarget = ColorTarget.FG) -> SequenceSGR:
@@ -59,9 +60,7 @@ def make_color_256(code: int, target: ColorTarget = ColorTarget.FG) -> SequenceS
     return SequenceSGR(target.open_code, IntCode.EXTENDED_MODE_256, code)
 
 
-def make_color_rgb(
-    r: int, g: int, b: int, target: ColorTarget = ColorTarget.FG
-) -> SequenceSGR:
+def make_color_rgb(r: int, g: int, b: int, target: ColorTarget = ColorTarget.FG) -> SequenceSGR:
     """
     Wrapper for creation of `SequenceSGR` operating in True Color mode (16M).
     Valid values for ``r``, ``g`` and ``b`` are in range of [0; 255]. This range
@@ -86,7 +85,7 @@ def make_color_rgb(
     return SequenceSGR(target.open_code, IntCode.EXTENDED_MODE_RGB, r, g, b)
 
 
-# CSI / Cursor position control sequences assembly ----------------------------
+# Cursor position -----------------------------------------
 
 
 def make_reset_cursor() -> SequenceCSI:
@@ -228,7 +227,38 @@ def make_query_cursor_position() -> SequenceCSI:
     return SequenceCSI("n", 6, abbr="QCP")
 
 
-# CSI / Erase sequences assembly ----------------------------------------------
+# Tabs control --------------------------------------------
+
+
+def make_cursor_next_tab(cols: int = 1) -> SequenceCSI:
+    """:abbr:`CHT <Cursor Horizontal Tab>`"""
+    return SequenceCSI("I", cols, abbr="CHT")
+
+
+def make_cursor_prev_tab(cols: int = 1) -> SequenceCSI:
+    """:abbr:`CBT <Cursor Backwards Tab>`"""
+    return SequenceCSI("Z", cols, abbr="CBT")
+
+
+def make_clear_tabs(mode: int | t.Literal[0, 3]) -> SequenceCSI:
+    """:abbr:`TBC <Tab Clear>`"""
+    return SequenceCSI("g", mode, abbr="TBC")
+
+
+def make_clear_tabs_all() -> SequenceCSI:
+    return make_clear_tabs(3)
+
+
+def make_clear_tabs_cur_column() -> SequenceCSI:
+    return make_clear_tabs(0)
+
+
+def make_set_horizontal_tab() -> SequenceFe:
+    """:abbr:`HTS <Horizontal Tab Set>`"""
+    return SequenceFe("H", abbr="HTC")
+
+
+# Erase ---------------------------------------------------
 
 
 def make_erase_in_display(mode: int = 0) -> SequenceCSI:
@@ -344,7 +374,7 @@ def make_clear_line() -> SequenceCSI:
     return make_erase_in_line(2)
 
 
-# CSI / Private mode sequences assembly ---------------------------------------
+# Private mode --------------------------------------------
 
 
 def make_show_cursor() -> SequenceCSI:
@@ -389,7 +419,7 @@ def make_disable_alt_screen_buffer() -> SequenceCSI:
     return SequenceCSI("l", 1049, interm="?")
 
 
-# OSC sequences assembly ------------------------------------------------------
+# Misc ----------------------------------------------------
 
 
 def make_hyperlink() -> SequenceOSC:
@@ -402,9 +432,6 @@ def make_hyperlink() -> SequenceOSC:
         compose_hyperlink()`.
     """
     return SequenceOSC(8, "", "")
-
-
-# Fp sequences assembly -------------------------------------------------------
 
 
 def make_save_cursor_position() -> SequenceFp:
@@ -421,7 +448,8 @@ def make_restore_cursor_position() -> SequenceFp:
     return SequenceFp("8", abbr="DECRC")
 
 
-# Sequence composites ---------------------------------------------------------
+# Sequence composites -------------------------------------
+
 
 def compose_clear_line() -> str:
     """
@@ -463,9 +491,26 @@ def compose_hyperlink(url: str, label: str = None) -> str:
     """
 
     return (
-        f"{make_hyperlink()}{url}{SequenceST()}{label or url}"
-        f"{make_hyperlink()}{SequenceST()}"
+        f"{make_hyperlink()}{url}{SequenceST()}{label or url}" f"{make_hyperlink()}{SequenceST()}"
     )
+
+
+def compose_terminal_tabs_reset(interval: int = None, shift: int = None, debug=False) -> str:
+    shift = shift or 0
+
+    def __iter():
+        yield make_clear_tabs_all().assemble()
+        if not interval:
+            return
+        maxc = get_terminal_width(pad=0) + 1
+        for c in range(1 + shift, maxc + shift, interval):
+            yield make_set_cursor_column(c).assemble()
+            yield make_set_horizontal_tab().assemble()
+            if debug:
+                yield "↓".ljust(interval, ".")[: maxc - c]
+        yield make_set_cursor_column().assemble()
+
+    return "".join(__iter())
 
 
 def decompose_report_cursor_position(string: str) -> t.Tuple[int, int] | None:
@@ -489,7 +534,7 @@ def decompose_report_cursor_position(string: str) -> t.Tuple[int, int] | None:
     return None
 
 
-# Utility ---------------------------------------------------------
+# Utility -------------------------------------------------
 
 
 def get_terminal_width(fallback: int = 80, pad: int = 2) -> int:  # pragma: no cover
@@ -502,7 +547,7 @@ def get_terminal_width(fallback: int = 80, pad: int = 2) -> int:  # pragma: no c
     :param pad:      Additional safety space to prevent unwanted line wrapping.
     """
     try:
-        import shutil as _shutil
+        import shutil as _shutil  # noqa
 
         return _shutil.get_terminal_size().columns - pad
     except ImportError:
@@ -535,7 +580,7 @@ def wait_key(block: bool = True) -> t.AnyStr | None:  # pragma: no cover
     :param block: Determines setup of O_NONBLOCK flag.
     """
     # http://love-python.blogspot.com/2010/03/getch-in-python-get-single-character.html
-    import sys, termios, fcntl
+    import sys, termios, fcntl  # noqa
 
     if os.name == "nt":
         import msvcrt
@@ -748,12 +793,7 @@ def guess_char_width(c: str) -> int:  # pragma: no cover
         return 1
 
     # Some Cf/Zp/Zl characters which should be zero-width.
-    if (
-        o == 0x0000
-        or 0x200B <= o <= 0x200F
-        or 0x2028 <= o <= 0x202E
-        or 0x2060 <= o <= 0x2063
-    ):
+    if o == 0x0000 or 0x200B <= o <= 0x200F or 0x2028 <= o <= 0x202E or 0x2060 <= o <= 0x2063:
         return 0
 
     category = unicodedata.category(c)

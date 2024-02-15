@@ -132,70 +132,79 @@ def padv(n: int = 1) -> str:
 
 
 def cut(
-    s: str,
+    string: str,
     max_len: int,
     align: Align | str = Align.LEFT,
+    *,
+    keep: Align | str = Align.LEFT,
     overflow=OVERFLOW_CHAR,
 ) -> str:
     """
     cut
 
-    :param s:
+    :param string:
     :param max_len:
     :param align:
+    :param keep:
     :param overflow:
     """
-    if len(s) <= max_len:
-        return s
-    return fit(s, max_len, align, overflow)
+    if len(string) <= max_len:
+        return string
+    return fit(string, max_len, align, keep=keep, overflow=overflow)
 
 
 def fit(
-    s: str,
+    string: str,
     max_len: int,
     align: Align | str = Align.LEFT,
+    *,
+    keep: Align | str = Align.LEFT,
     overflow: str = OVERFLOW_CHAR,
     fill: str = " ",
 ) -> str:
     """
     fit
-    :param s:
+    :param string:
     :param max_len:
     :param align:
+    :param keep:
     :param overflow:
     :param fill:
     """
     align = Align.resolve(align)
-    if max_len == 0:
+    keep = Align.resolve(keep, fallback=Align.LEFT)
+
+    if max_len <= 0:
         return ""
     if len(fill) == 0:  # pragma: no cover
         raise ValueError("Fill cannot be an empty string")
 
     max_len = max(0, max_len)
     ov_len = len(overflow)
-    if max_len <= ov_len and max_len < len(s):
-        return fit("", max_len, align, overflow="", fill=overflow)
+    if max_len <= ov_len and max_len < len(string):
+        return fit("", max_len, align, keep=keep, overflow="", fill=overflow)
 
-    if (fill_len := max_len - len(s)) >= 0:
+    # excessive space or tight fit
+    if (fill_len := max_len - len(string)) >= 0:
         fill_pnum = ceil(fill_len / len(fill))
-        fill_full = fit(fill * fill_pnum, fill_len, align, overflow="")
+        fill_full = fit(fill * fill_pnum, fill_len, align, keep=keep, overflow="")
 
         if align == Align.LEFT:
-            return s + fill_full
+            return string + fill_full
         if align == Align.RIGHT:
-            return fill_full + s
+            return fill_full + string
         fillmid = len(fill_full) // 2
-        return fill_full[:fillmid] + s + fill_full[fillmid:]
+        return fill_full[:fillmid] + string + fill_full[fillmid:]
 
-    if align == Align.LEFT:
-        return s[: max_len - ov_len] + overflow
-    if align == Align.RIGHT:
-        return overflow + s[-max_len + ov_len :]
-    else:
-        s_chars = max_len - ov_len
-        left_part = s_chars // 2
-        right_part = s_chars - left_part
-        return s[:left_part] + overflow + s[-right_part:]
+    # not enough space
+    if keep == Align.LEFT:
+        return string[: max_len - ov_len] + overflow
+    if keep == Align.RIGHT:
+        return overflow + string[-max_len + ov_len :]
+    s_chars = max_len - ov_len
+    left_part = s_chars // 2
+    right_part = s_chars - left_part
+    return string[:left_part] + overflow + string[-right_part:]
 
 
 # -----------------------------------------------------------------------------

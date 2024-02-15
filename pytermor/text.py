@@ -328,7 +328,7 @@ class FrozenText(IRenderable):
 
     def __init__(
         self,
-        *fargs: RT | FT,
+        *fargs: RT | FT | tuple[str, FT],
         width: int = None,
         align: str | Align = None,
         fill: str = " ",
@@ -512,14 +512,14 @@ class FrozenText(IRenderable):
 
         # aligning and filling
         model_result = cur_len * "@"
-        model = fit(model_result, (self._width or max_len), self._align, "", " ")
+        model = fit(model_result, (self._width or max_len), self._align, overflow="")
 
         spare_left, spare_right = pad(model.count(" ")), ""
         if model_result:
             spare_left, _, spare_right = model.partition(model_result)
 
-        fill_left = fit("", len(spare_left), "right", "", self._fill)
-        fill_right = fit("", len(spare_right), "left", "", self._fill)
+        fill_left = fit("", len(spare_left), ">", overflow="", fill=self._fill)
+        fill_right = fit("", len(spare_right), "<", overflow="", fill=self._fill)
         if not self._pad_styled or len(result_parts) == 0:
             result_parts.insert(0, (fill_left, NOOP_STYLE))
             result_parts.append((fill_right, NOOP_STYLE))
