@@ -3,8 +3,10 @@
 
 pending
 ------------------
+- |NEW| `cut` and `fit` "keep" param
+- |NEW| tab control ANSI sequences
 
-.. <@pending:9e4e0f6>
+.. <@pending:1592ff2>
 .. ^ blank line before should be kept
 
 

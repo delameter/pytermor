@@ -599,25 +599,25 @@ class TestSplitting:
     @pytest.mark.parametrize(
         "expected, input",
         [
-            ([[Fg("", RED)]], Fg("", RED)),
-            ([[Fg("1", RED)]], Fg("1", RED)),
-            ([[Fg("", RED)], [Fg("", RED)]], Fg("\n", RED)),
-            ([[Fg("1", RED)], [Fg("", RED)]], Fg("1\n", RED)),
-            ([[Fg("", RED)], [Fg("2", RED)]], Fg("\n2", RED)),
-            ([[Fg("", RED)], [Fg("", RED)], [Fg("3", RED)]], Fg("\n\n3", RED)),
-            ([[Fg("123", RED)], [Fg("456", RED)], [Fg("789", RED)]], Fg("123\n456\n789", RED)),
-            ([[Fg("123", RED)], [Fg("456", RED)], [Fg("789", RED)]], Tx("123\n456\n789", RED)),
-            ([[Fg("123", RED)], [Fg("456", RED)], [Fg("789", RED)]], Fzt("123\n456\n789", RED)),
+            ([Co(Fg("", RED))], Fg("", RED)),
+            ([Co(Fg("1", RED))], Fg("1", RED)),
+            ([Co(Fg("", RED)), Co(Fg("", RED))], Fg("\n", RED)),
+            ([Co(Fg("1", RED)), Co(Fg("", RED))], Fg("1\n", RED)),
+            ([Co(Fg("", RED)), Co(Fg("2", RED))], Fg("\n2", RED)),
+            ([Co(Fg("", RED)), Co(Fg("", RED)), Co(Fg("3", RED))], Fg("\n\n3", RED)),
+            ([Co(Fg("123", RED)), Co(Fg("456", RED)), Co(Fg("789", RED))], Fg("123\n456\n789", RED)),
+            ([Co(Fg("123", RED)), Co(Fg("456", RED)), Co(Fg("789", RED))], Tx("123\n456\n789", RED)),
+            ([Co(Fg("123", RED)), Co(Fg("456", RED)), Co(Fg("789", RED))], Fzt("123\n456\n789", RED)),
             (
-                [[Fg("123", RED)], [Fg("456", RED)], [Fg("789", RED)]],
+                [Co(Fg("123", RED)), Co(Fg("456", RED)), Co(Fg("789", RED))],
                 Co(Fg("123\n456\n789", RED)),
             ),
             (
-                [[Fg("12345", RED), Fg("678", BLUE)], [Fg("90", BLUE)]],
+                [Co(Fg("12345", RED), Fg("678", BLUE)), Co(Fg("90", BLUE))],
                 Co(Fg("12345", RED), Fg("678\n90", BLUE)),
             ),
             (
-                [[Fg("12345", RED), Fg("678", RED)], [Fg("90", RED)]],
+                [Co(Fg("12345", RED), Fg("678", RED)), Co(Fg("90", RED))],
                 Co(Fg("12345", RED), Fg("678\n90", RED)),
             ),  # @todo implement squashing ?
         ],

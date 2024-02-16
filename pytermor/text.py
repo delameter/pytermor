@@ -24,7 +24,7 @@ from collections import deque
 from copy import copy
 from typing import overload, Union
 
-from .common import Align, flatten1, fit, pad, isiterable, instantiate
+from .common import Align, flatten1, fit, cut, pad, isiterable, instantiate
 from .color import Color
 from .exception import ArgTypeError, LogicError
 from .renderer import IRenderer, OutputMode, RendererManager, SgrRenderer
@@ -115,18 +115,18 @@ class IRenderable(t.Sized, ABC):
                 return inst
         return RendererManager.get()
 
-    def splitlines(self) -> t.List[t.List[Fragment] | IRenderable]:
-        result = [[]]
+    def splitlines(self) -> t.List[Composite]:
+        result = [Composite()]
         for frag in self.as_fragments():
             raw = frag.raw()
             if "\n" not in raw:
-                result[-1].append(frag)
+                result[-1] += frag
                 continue
             for part in re.split(r"(\n)", raw):
                 if part == "\n":
-                    result.append([])
+                    result.append(Composite())
                     continue
-                result[-1].append(Fragment(part, frag.style))
+                result[-1] += Fragment(part, frag.style)
         return result
 
 
@@ -185,7 +185,7 @@ class Fragment(IRenderable):
 
     def __repr__(self):
         max_sl = 9
-        sample = self._string[:max_sl] + ("‥" * (len(self._string) > max_sl))
+        sample = cut(re.sub(r' +', lambda m: '␣‥'[len(m.group(0)) > 1], self._string), max_sl)
         props_set = [f"({len(self._string)}, {sample!r})", repr(self._style)]
         flags = []
         if self._close_this:
