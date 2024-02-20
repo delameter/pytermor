@@ -287,7 +287,6 @@ from .text import FrozenText as FrozenText
 from .text import IRenderable as IRenderable
 from .text import RT as RT
 from .text import SELECT_WORDS_REGEX as SELECT_WORDS_REGEX
-from .text import SimpleTable as SimpleTable
 from .text import Text as Text
 from .text import apply_style_selective as apply_style_selective
 from .text import apply_style_words_selective as apply_style_words_selective

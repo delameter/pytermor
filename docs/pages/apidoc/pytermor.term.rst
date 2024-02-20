@@ -22,6 +22,7 @@
       compose_clear_line
       compose_clear_line_fill_bg
       compose_hyperlink
+      compose_terminal_tabs_reset
       confirm
       decompose_report_cursor_position
       get_char_width
@@ -35,8 +36,13 @@
       make_clear_line
       make_clear_line_after_cursor
       make_clear_line_before_cursor
+      make_clear_tabs
+      make_clear_tabs_all
+      make_clear_tabs_cur_column
       make_color_256
       make_color_rgb
+      make_cursor_next_tab
+      make_cursor_prev_tab
       make_disable_alt_screen_buffer
       make_enable_alt_screen_buffer
       make_erase_in_display
@@ -58,6 +64,7 @@
       make_set_cursor
       make_set_cursor_column
       make_set_cursor_line
+      make_set_horizontal_tab
       make_show_cursor
       measure_char_width
       wait_key

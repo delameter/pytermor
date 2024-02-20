@@ -141,6 +141,7 @@ class ApproxDemo:
 
             # font=self._label_font,
         )
+        output_im.save()
 
     def _print_status(
         self,

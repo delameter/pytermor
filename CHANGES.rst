@@ -5,8 +5,9 @@ pending
 ------------------
 - |NEW| `cut` and `fit` "keep" param
 - |NEW| tab control ANSI sequences
+- |UPDATE| `splitlines` now returns `Composites`, not list of `Fragments`
 
-.. <@pending:1592ff2>
+.. <@pending:90a3a88>
 .. ^ blank line before should be kept
 
 

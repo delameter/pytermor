@@ -127,7 +127,6 @@ testpaths = [
 ]
 addopts = [
     "-p", "no:doctest",
-    "-W", "ignore:SimpleTable:DeprecationWarning",
     "--strict-config",
     "--strict-markers",
     "--maxfail", "15",
@@ -168,9 +167,6 @@ exclude_lines = [
     "[A-Z0-9_]+ *= *((Sequence|Color|Style)\\w*\\([]' ,.\\w=[]+\\)?|[A-Z0-9_]+)(\\s*#.+)?$",
     "class SeqIndex.+",
     "class SgrDebugger.+",
-    "class SimpleTable.+",
-    "def allows_width_setup\\(.+",
-    "def has_width\\(.+",
     "def repr_attrs\\(.+",
 ]
 ignore_errors = true

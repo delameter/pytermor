@@ -40,7 +40,6 @@
       Fragment
       FrozenText
       IRenderable
-      SimpleTable
       Text
    
    

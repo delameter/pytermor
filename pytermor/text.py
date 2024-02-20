@@ -29,7 +29,7 @@ from .color import Color
 from .exception import ArgTypeError, LogicError
 from .renderer import IRenderer, OutputMode, RendererManager, SgrRenderer
 from .style import NOOP_STYLE, Style, is_ft, make_style, FT
-from .term import get_preferable_wrap_width, get_terminal_width
+from .term import get_preferable_wrap_width
 
 # from typing_extensions import deprecated
 # waiting till it will make its way to stdlib
@@ -103,11 +103,6 @@ class IRenderable(t.Sized, ABC):
     def has_width(self) -> bool:
         """return self._width is not None"""
 
-    @property
-    @abstractmethod
-    def allows_width_setup(self) -> bool:
-        """return False"""
-
     @staticmethod
     def _resolve_renderer(local_override: IRenderer | t.Type[IRenderer] = None) -> IRenderer:
         if local_override is not None:
@@ -135,6 +130,7 @@ RT = Union[str, IRenderable]
 :abbr:`RT (Renderable type)` consists of regular *str*\\ s as well as
 any `IRenderable` implementation.
 """
+
 
 class Fragment(IRenderable):
     """
@@ -185,7 +181,7 @@ class Fragment(IRenderable):
 
     def __repr__(self):
         max_sl = 9
-        sample = cut(re.sub(r' +', lambda m: '␣‥'[len(m.group(0)) > 1], self._string), max_sl)
+        sample = cut(re.sub(r" +", lambda m: "␣‥"[len(m.group(0)) > 1], self._string), max_sl)
         props_set = [f"({len(self._string)}, {sample!r})", repr(self._style)]
         flags = []
         if self._close_this:
@@ -235,14 +231,11 @@ class Fragment(IRenderable):
     def has_width(self) -> bool:
         return True
 
-    @property
-    def allows_width_setup(self) -> bool:
-        return False
-
     def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
         return self._resolve_renderer(renderer).render(self._string, self._style)
 
     def set_width(self, width: int):
+        width = max(0, width)
         self._string = f"{self._string:{width}.{width}s}"
 
 
@@ -312,10 +305,6 @@ class Composite(IRenderable):
 
     @property
     def has_width(self) -> bool:
-        return False
-
-    @property
-    def allows_width_setup(self) -> bool:
         return False
 
 
@@ -532,10 +521,6 @@ class FrozenText(IRenderable):
         return result_parts
 
     @property
-    def allows_width_setup(self) -> bool:
-        return True
-
-    @property
     def has_width(self) -> bool:
         return self._width is not None
 
@@ -549,12 +534,20 @@ class FrozenText(IRenderable):
         raise LogicError("FrozenText is immutable")
 
     def splitlines(self) -> t.List[t.List[Fragment] | IRenderable]:
+        """
+        .. caution::
+
+            Line splitting of width-constrained `Text` and `FrozenText` is
+            not implemented. A workaround would be splitting the text manually
+            and converting each line to `Text` instance together with width setup.
+
+        """
         result = super().splitlines()
 
         def __iter():
             for line in result:
                 yield self.__class__(
-                    *line,
+                    *line.as_fragments(),
                     width=self._width,
                     align=self._align,
                     fill=self._fill,
@@ -569,6 +562,28 @@ class FrozenText(IRenderable):
 
 
 class Text(FrozenText):
+    def __init__(
+        self,
+        *fargs: RT | FT | tuple[str, FT],
+        width: int = None,
+        align: str | Align = None,
+        fill: str = " ",
+        overflow: str = "",
+        pad: int = 0,
+        pad_styled: bool = True,
+    ):
+        super().__init__(
+            *fargs,
+            width=width,
+            align=align,
+            fill=fill,
+            overflow=overflow,
+            pad=pad,
+            pad_styled=pad_styled,
+        )
+        if self._width is not None:
+            self.set_width(self._width)
+
     def __iadd__(self, other: str | Fragment) -> Text:
         return self.append(other)
 
@@ -581,7 +596,7 @@ class Text(FrozenText):
         return self
 
     def set_width(self, width: int):
-        self._width = width
+        self._width = max(0, width)
 
     def split_by_spaces(self):
         self.split(regex=SELECT_WORDS_REGEX)
@@ -595,161 +610,8 @@ class Text(FrozenText):
         origin_fragments.clear()
 
 
-class SimpleTable(IRenderable):
-    """
-    .. deprecated:: 2.74
-       SimpleTable is discouraged to use as it has very limited application and
-       will be replaced with something much more generic in the future.
-
-    Table class with dynamic (not bound to each other) rows. By defualt expands to
-    the maximum width (terminal size).
-
-    Allows 0 or 1 dynamic-width cell in each row, while all the others should be
-    static, i.e., be instances of `FrozenText`.
-
-    >>> echo(
-    ...     SimpleTable(
-    ...     [
-    ...         Text("1", width=1),
-    ...         Text("word", width=6, align='center'),
-    ...         Text("smol string"),
-    ...     ],
-    ...     [
-    ...         Text("2", width=1),
-    ...         Text("padded word", width=6, align='center', pad=2),
-    ...         Text("biiiiiiiiiiiiiiiiiiiiiiiiiiiiiiig string"),
-    ...     ],
-    ...     width=30,
-    ...     sep="|"
-    ... ), file=sys.stdout)
-    |1| word |smol string        |
-    |2| padd |biiiiiiiiiiiiiiiiii|
-
-    """
-
-    def __init__(
-        self,
-        *rows: t.Iterable[RT],
-        width: int = None,
-        sep: str = 2 * " ",
-        border_st: Style = NOOP_STYLE,
-    ):
-        """
-        Create
-
-        :param rows:
-        :param width: Table width, in characters. When omitted, equals to terminal size
-                      if applicable, and to fallback value (80) otherwise.
-        :param sep:
-        :param border_st:
-        """
-        super().__init__()
-        self._width: int = width or get_terminal_width()
-        self._column_sep: Fragment = Fragment(sep, border_st)
-        self._border_st = border_st
-        self._rows: list[list[IRenderable]] = []
-        self.add_rows(rows=rows)
-
-    def __len__(self) -> int:
-        return sum(flatten1((len(frag) for frag in row) for row in self._rows))
-
-    def __eq__(self, o: t.Any) -> bool:
-        if not isinstance(o, type(self)):  # pragma: no cover
-            return False
-        return self._rows == o._rows
-
-    def __repr__(self) -> str:
-        frags = len(flatten1(self._rows))
-        result = f"<{self.__class__.__qualname__}[R={len(self._rows)}, F={frags}]>"
-        return result
-
-    def as_fragments(self) -> t.List[Fragment]:
-        raise NotImplementedError
-
-    def raw(self) -> str:
-        return "\n".join(*[[cell.raw() for cell in row] for row in self._rows])
-
-    def splitlines(self) -> t.List[IRenderable]:
-        raise NotImplementedError
-
-    @property
-    def allows_width_setup(self) -> bool:
-        return True
-
-    @property
-    def has_width(self) -> bool:
-        return True
-
-    @property
-    def row_count(self) -> int:
-        return len(self._rows)
-
-    def add_header_row(self, *cells: RT):
-        self.add_separator_row()
-        self.add_row(*cells)
-        self.add_separator_row()
-
-    def add_footer_row(self, *cells: RT):
-        self.add_separator_row()
-        self.add_row(*cells)
-        self.add_separator_row()
-
-    def add_separator_row(self):
-        self._rows.append([Fragment("-" * self._width, self._border_st)])
-
-    def add_rows(self, rows: t.Iterable[t.Iterable[RT]]):
-        for row in rows:
-            self.add_row(*row)
-
-    def add_row(self, *cells: RT):
-        fixed_cell_count = sum(int(c.has_width) if isinstance(c, IRenderable) else 1 for c in cells)
-        if fixed_cell_count < len(cells) - 1:
-            raise TypeError(
-                "Row should have no more than one dynamic width cell, "
-                "all the others should be Text instances with fixed width."
-            )
-
-        row = [*self._make_row(*cells)]
-        if self._sum_len(*row, fixed_only=True) > self._width:
-            raise ValueError(f"Row is too long (>{self._width})")
-        self._rows.append(row)
-
-    def pass_row(self, *cells: RT, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
-        renderer = self._resolve_renderer(renderer)
-        return self._render_row(renderer, self._make_row(*cells))
-
-    def render(self, renderer: IRenderer | t.Type[IRenderer] = None) -> str:
-        renderer = self._resolve_renderer(renderer)
-        return "\n".join(self._render_row(renderer, row) for row in self._rows)
-
-    def set_width(self, width: int):
-        self._width = width
-
-    def _make_row(self, *cells: RT) -> t.Iterable[IRenderable]:
-        yield self._column_sep
-        for cell in cells:
-            if not isinstance(cell, IRenderable):
-                cell = Fragment(cell)
-            yield cell
-            yield self._column_sep
-
-    def _render_row(self, renderer: IRenderer, row: t.Iterable[IRenderable]) -> str:
-        return "".join(self._render_cells(renderer, *row))
-
-    def _render_cells(self, renderer: IRenderer, *row: IRenderable) -> t.Iterable[str]:
-        fixed_len = self._sum_len(*row, fixed_only=True)
-        free_len = max(0, self._width - fixed_len)
-        for cell in row:
-            if not cell.has_width and cell.allows_width_setup:
-                cell.set_width(free_len)
-            yield cell.render(renderer=renderer)
-
-    def _sum_len(self, *row: IRenderable, fixed_only: bool) -> int:
-        return sum(len(c) for c in row if not fixed_only or c.has_width)
-
-
 def is_rt(arg: any) -> bool:
-    """ User-side type checking shortcut. """
+    """User-side type checking shortcut."""
     return isinstance(arg, RT)
 
 

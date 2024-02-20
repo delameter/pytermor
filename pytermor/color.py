@@ -535,7 +535,7 @@ class XYZ(IColorValue):
 
 class LAB(IColorValue):
     """
-    Color value in a *uniform* color space, CIELAB, which expresses color as
+    Color value in a *uniform* color space, CIELAB, which represents color as
     three values: L* for perceptual lightness [0;100] and a* [-100;100] and
     b* [-100;100] for the four unique colors of human vision: red, green, blue
     and yellow. CIELAB was intended as a perceptually uniform space, where a

@@ -12,8 +12,6 @@ from typing import Iterable as Ie
 import pytest
 
 import pytermor as pt
-import pytermor.common
-import pytermor.exception
 import pytermor.text
 from pytermor import *
 from pytermor import (
@@ -437,6 +435,9 @@ class TestFragmentFormatting:
             ("12345     ", "12345", 10),
             ("12345", "1234567890", 5),
             ("12345", "12345", 5),
+            ("1", "12345", 1),
+            ("", "12345", 0),
+            ("", "12345", -1),
         ],
         ids=format_test_params,
     )
@@ -556,21 +557,21 @@ class TestTextFormatting:
         assert pt.render(text) == expected
         assert pt.render(text, renderer=self.renderer_no_sgr) == expected_no_sgr
 
-
-@pytest.mark.config(force_output_mode=OutputMode.TRUE_COLOR)
-class TestSimpleTable:
-    def setup_method(self) -> None:
-        self.style = St(fg="yellow")
-        self.table = pt.SimpleTable(width=30, sep="|")
-
     @pytest.mark.parametrize(
-        "cell",
-        ["1", pt.Fragment("1"), pt.FrozenText("1"), pt.Text("1"), pt.SimpleTable("1")],
-        ids=format_test_rt_params,
+        "expected, input, width",
+        [
+            ("12345     ", "12345", 10),
+            ("12345", "1234567890", 5),
+            ("12345", "12345", 5),
+            ("1", "12345", 1),
+            ("", "12345", 0),
+            ("", "12345", -1),
+        ],
+        ids=format_test_params,
     )
-    def test_cell_types_accepted(self, cell: pytermor.common.RT):
-        self.table.add_row(cell)
-        assert self.table.row_count == 1
+    def test_set_width(self, expected: str, input: str, width: int):
+        tx = pt.Text(input, width=width)
+        assert tx.as_fragments()[0].raw() == expected
 
 
 class TestSplitting:
@@ -599,32 +600,91 @@ class TestSplitting:
     @pytest.mark.parametrize(
         "expected, input",
         [
-            ([Co(Fg("", RED))], Fg("", RED)),
-            ([Co(Fg("1", RED))], Fg("1", RED)),
-            ([Co(Fg("", RED)), Co(Fg("", RED))], Fg("\n", RED)),
-            ([Co(Fg("1", RED)), Co(Fg("", RED))], Fg("1\n", RED)),
-            ([Co(Fg("", RED)), Co(Fg("2", RED))], Fg("\n2", RED)),
-            ([Co(Fg("", RED)), Co(Fg("", RED)), Co(Fg("3", RED))], Fg("\n\n3", RED)),
-            ([Co(Fg("123", RED)), Co(Fg("456", RED)), Co(Fg("789", RED))], Fg("123\n456\n789", RED)),
-            ([Co(Fg("123", RED)), Co(Fg("456", RED)), Co(Fg("789", RED))], Tx("123\n456\n789", RED)),
-            ([Co(Fg("123", RED)), Co(Fg("456", RED)), Co(Fg("789", RED))], Fzt("123\n456\n789", RED)),
+            ([""], Fg("", RED)),
+            (["\x1b[31m" "1" "\x1b[39m"], Fg("1", RED)),
+            (["", ""], Fg("\n", RED)),
+            (["\x1b[31m" "1" "\x1b[39m", ""], Fg("1\n", RED)),
+            (["", "\x1b[31m" "2" "\x1b[39m"], Fg("\n2", RED)),
+            (["", "", "\x1b[31m" "3" "\x1b[39m"], Fg("\n\n3", RED)),
             (
-                [Co(Fg("123", RED)), Co(Fg("456", RED)), Co(Fg("789", RED))],
+                [
+                    "\x1b[31m" "123" "\x1b[39m",
+                    "\x1b[31m" "456" "\x1b[39m",
+                    "\x1b[31m" "789" "\x1b[39m",
+                ],
+                Fg("123\n456\n789", RED),
+            ),
+            (
+                [
+                    "\x1b[31m" "123" "\x1b[39m",
+                    "\x1b[31m" "456" "\x1b[39m",
+                    "\x1b[31m" "789" "\x1b[39m",
+                ],
+                Tx("123\n456\n789", RED),
+            ),
+            (
+                [
+                    "\x1b[31m" "123" "\x1b[39m",
+                    "\x1b[31m" "456" "\x1b[39m",
+                    "\x1b[31m" "789" "\x1b[39m",
+                ],
+                Fzt("123\n456\n789", RED),
+            ),
+            (
+                [
+                    "\x1b[31m" "123" "\x1b[39m",
+                    "\x1b[31m" "456" "\x1b[39m",
+                    "\x1b[31m" "789" "\x1b[39m",
+                ],
                 Co(Fg("123\n456\n789", RED)),
             ),
             (
-                [Co(Fg("12345", RED), Fg("678", BLUE)), Co(Fg("90", BLUE))],
+                [
+                    "\x1b[31m" "12345" "\x1b[39m" "\x1b[34m" "678" "\x1b[39m",
+                    "\x1b[34m" "90" "\x1b[39m",
+                ],
                 Co(Fg("12345", RED), Fg("678\n90", BLUE)),
             ),
             (
-                [Co(Fg("12345", RED), Fg("678", RED)), Co(Fg("90", RED))],
+                [
+                    "\x1b[31m" "12345" "\x1b[39m" "\x1b[31m" "678" "\x1b[39m",
+                    "\x1b[31m" "90" "\x1b[39m",
+                ],
                 Co(Fg("12345", RED), Fg("678\n90", RED)),
             ),  # @todo implement squashing ?
         ],
     )
+    @pytest.mark.config(force_output_mode=OutputMode.XTERM_16)
     def test_splitlines(self, expected, input):
         actual = input.splitlines()
-        assert expected == actual
+        assert pt.render(actual) == expected
+
+    @pytest.mark.parametrize(
+        "expected, input",
+        [
+            (["\x1b[31m" "12345" "\x1b[39m"], Tx("12345\n67890", RED, width=5)),
+            (
+                # @FIXME ↓ this test case demonstrates a bug: "8" was eaten by `splitlines()`
+                #        ↓ because newline is treated like a regular character which occupies
+                #        ↓ one width unit, but in reality it does not
+                ["\x1b[31m12345   \x1b[39m", "\x1b[31m67      \x1b[39m"],
+                Tx("12345\n67890", RED, width=8),
+            ),
+            (
+                [
+                    "\x1b[31m12345          \x1b[39m",
+                    "\x1b[31m67890          \x1b[39m",
+                ],
+                Tx("12345\n67890", RED, width=15),
+            ),
+            (["\x1b[31m" "1" "\x1b[39m"], Tx("12345\n67890", RED, width=1)),
+            ([""], Tx("12345\n67890", RED, width=0)),
+        ],
+    )
+    @pytest.mark.config(force_output_mode=OutputMode.XTERM_16)
+    def test_splitlines_with_width(self, expected, input):
+        actual = input.splitlines()
+        assert pt.render(actual) == expected
 
 
 class TestEchoRender:
