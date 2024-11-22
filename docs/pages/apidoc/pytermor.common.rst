@@ -1,6 +1,16 @@
 ﻿pytermor.common
 ===============
 
+
+
+
+
+
+
+
+
+
+
 .. automodule:: pytermor.common
 
    
@@ -35,9 +45,13 @@
       flatten
       flatten1
       flip_unpack
+      get
       get_qname
       get_subclasses
+      getn
+      getr
       instantiate
+      isbuiltin
       isimmutable
       isiterable
       ismutable

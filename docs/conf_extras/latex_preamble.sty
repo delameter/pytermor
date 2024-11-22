@@ -47,7 +47,11 @@
 }}
 
 \newtcbox{ptcolorbox}[1][]{
-    notitle, on line, size=minimal, left=0pt, right=0pt, boxrule=0px, arc=0pt, outer arc=0pt, #1
+    width=10pt,
+    left=0pt, right=0pt,
+    square, circular arc,
+    boxrule=1px,
+    notitle, on line, #1
 }
 \newtcbox{ptinlbox}[1][]{
     notitle, on line, size=fbox, left=0pt, right=0pt, boxrule=0px, arc=0pt, outer arc=0pt, #1
@@ -61,6 +65,9 @@
 \end{ptinlbox}}}
 \newcommand{\DUrolesuperuser}[1]{{      \begin{ptinlbox}[colupper=su,     colback=black]{#1}  \end{ptinlbox}}}
 \newcommand{\DUroleredonblue}[1]{{      \begin{ptinlbox}[colupper=red,    colback=blue]{#1}   \end{ptinlbox}}}
+\newcommand{\DUroleredonblack}[1]{{     \begin{ptinlbox}[colupper=red,    colback=black]{#1}  \end{ptinlbox}}}
+\newcommand{\DUroleblueonblack}[1]{{    \begin{ptinlbox}[colupper=blue,   colback=black]{#1}  \end{ptinlbox}}}
+\newcommand{\DUrolewhiteonblack}[1]{{   \begin{ptinlbox}[colupper=white,  colback=black]{#1}  \end{ptinlbox}}}
 \newcommand{\DUroleblackonyellow}[1]{{  \begin{ptinlbox}[colupper=black,  colback=yellow]{#1} \end{ptinlbox}}}
 \newcommand{\DUroleblackonblue}[1]{{    \begin{ptinlbox}[colupper=black,  colback=blue]{#1}   \end{ptinlbox}}}
 \newcommand{\DUroleyellowonredline}[1]{{\begin{ptblkbox}[colupper=yellow, colback=red]{#1}    \end{ptblkbox}}}
@@ -83,6 +90,12 @@
     size=minimal, before skip=.5cm, boxrule=0px, arc=0pt, outer arc=0pt,
 }
 
+%\newtcbox{sphinxclasslabeledbutton}[1][]{
+%    notitle, on line, size=fbox, left=0pt, right=0pt,
+%    boxrule=1px, arc=0pt, outer arc=0pt,
+%    colback=white, colupper=blue!20!darkgray, colframe=blue!5!black,
+%    #1
+%}
 
 
 %\RequirePackage[framemethod=TikZ]{mdframed}

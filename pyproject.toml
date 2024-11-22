@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "ANSI formatted terminal output toolset"
 readme = "README.md"
 license = "LGPL-3.0"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 platforms = ["linux"]
 keywords = ["color", "format", "console", "terminal", "ansi", "sgr", "text"]
 authors = [
@@ -22,9 +22,10 @@ classifiers = [
     "Intended Audience :: System Administrators",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Libraries",
     "Topic :: Text Processing :: General",
     "Topic :: Text Processing :: Filters",
@@ -39,10 +40,10 @@ fast = [
 demo = [
     "pygments~=2.15",
     "PyYAML==6.0.1",
-    "rich~=12.6",
+    "rich>=12.6",
 ]
 build = [
-    "build~=0.8",
+    "build~=1.0",
     'docutils-stubs~=0.0.22',
     "furo~=2022.6",
     "matplotlib~=3.7",
@@ -58,10 +59,14 @@ build = [
 test = [
     "coverage[toml]~=6.4",
     "coveralls~=3.3",
+    "ruff>=0.2.2",
     "pytest~=7.1",
     "pytest-cov~=4.1",
     "sybil~=3.0",
     "typing-extensions~=4.6",
+]
+dev = [
+    "radon>=6.0.1",
 ]
 
 [project.urls]
@@ -110,11 +115,18 @@ features = ["fast", "test"]
 [tool.hatch.envs.test.scripts]
 test = "pytest"
 
+[tool.hatch.envs.dev]
+features = ["fast", "demo", "build", "test", "dev"]
+
+[tool.hatch.envs.dev.scripts]
+test = "pytest"
+metrics = "radon"
+
 # =========================================================
 
 [tool.black]
 line-length = 89
-target-version = ['py37']
+target-version = ['py310']
 
 [tool.isort]
 profile = "black"

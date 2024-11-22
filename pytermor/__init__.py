@@ -51,6 +51,8 @@ from .border import BLOCK_THIN_INNER as BLOCK_THIN_INNER
 from .border import BLOCK_THIN_ROUNDED as BLOCK_THIN_ROUNDED
 from .border import Border as Border
 from .border import DOTS as DOTS
+from .border import DOTS_DIAGONAL_LBRT as DOTS_DIAGONAL_LBRT
+from .border import DOTS_DIAGONAL_RBLT as DOTS_DIAGONAL_RBLT
 from .border import DOTS_HEAVY as DOTS_HEAVY
 from .border import DOTS_INNER as DOTS_INNER
 from .border import DOTS_LIGHT as DOTS_LIGHT
@@ -68,6 +70,8 @@ from .border import LINE_DOUBLE as LINE_DOUBLE
 from .border import LINE_ROUNDED as LINE_ROUNDED
 from .border import LINE_SINGLE as LINE_SINGLE
 from .color import ApxResult as ApxResult
+from .color import BG_LUMINANCE_THRESHOLD as BG_LUMINANCE_THRESHOLD
+from .color import CONTRAST_RATIO_THRESHOLD as CONTRAST_RATIO_THRESHOLD
 from .color import Color as Color
 from .color import Color16 as Color16
 from .color import Color256 as Color256
@@ -150,7 +154,6 @@ from .filter import BytesTracer as BytesTracer
 from .filter import CONTROL_CHARS as CONTROL_CHARS
 from .filter import CSI_SEQ_REGEX as CSI_SEQ_REGEX
 from .filter import CsiStringReplacer as CsiStringReplacer
-from .filter import ESCAPE_SEQ_REGEX as ESCAPE_SEQ_REGEX
 from .filter import EscSeqStringReplacer as EscSeqStringReplacer
 from .filter import IFilter as IFilter
 from .filter import IRefilter as IRefilter
@@ -293,7 +296,6 @@ from .text import apply_style_words_selective as apply_style_words_selective
 from .text import distribute_padded as distribute_padded
 from .text import echo as echo
 from .text import echoi as echoi
-from .text import flatten1 as flatten1
 from .text import is_rt as is_rt
 from .text import render as render
 from .text import wrap_sgr as wrap_sgr

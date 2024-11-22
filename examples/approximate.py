@@ -20,30 +20,6 @@ class Main:
         Approximator(argv or []).run()
 
 
-def _calc_srgb_euclidean_distance(_, value: IColorValue, e: IColorValue) -> ApxResult[Color]:
-    r, g, b = value.rgb
-    er, eg, eb = e.rgb
-    distance_sq: int = (er - r) ** 2 + (eg - g) ** 2 + (eb - b) ** 2
-    return ApxResult(e, distance_sq)
-
-
-def _calc_cie_distance(_, value: IColorValue, e: IColorValue) -> ApxResult[Color]:
-    l, a, b = value.lab
-    el, ea, eb = e.lab
-    distance_sq: int = (el - l) ** 2 + (ea - a) ** 2 + (eb - b) ** 2
-    return ApxResult(e, distance_sq)
-
-
-def _calc_hsv_euclidean_distance(_, value: IColorValue, e: IColorValue) -> ApxResult[Color]:
-    h, s, v = value.hsv
-    eh, es, ev = e.hsv
-    dh = min(abs(eh - h), 360 - abs(eh - h)) / 180.0
-    ds = abs(es - s)
-    dv = abs(ev - v)
-    distance_sq: int = dh**2 + ds**2 + dv**2
-    return ApxResult(e, distance_sq)
-
-
 class Approximator:
     def __init__(self, argv: t.List):
         self.usage = [
@@ -61,6 +37,10 @@ class Approximator:
         self._delta_name = "ΔE*"  # noqa
         self._space_override = None
 
+        for arg in argv:
+            if arg in ("-h", "-?", "--help"):
+                self.echo_help(argv, None)
+                return
         for arg in argv:
             try:
                 if arg.startswith("-"):
@@ -88,21 +68,24 @@ class Approximator:
                 self.input_values.append(input_color)
 
             except ValueError as e:
-                if len(argv) > 1:
-                    pt.echo(f"WARNING: {e}", pt.Styles.WARNING)
-                    continue
-                pt.echo("USAGE:")
-                pt.echo(
-                    [
-                        *self.usage,
-                        r"Allowed COLOR format: '#?[\da-f]{6}', "
-                        "i.e. a hexadecimal integer from the range [0; 0xFFFFFF], "
-                        "optionally prefixed with '#'; "
-                        "or a name from named colors list.",
-                    ],
-                    wrap=True,
-                )
-                raise e
+                self.echo_help(argv, e)
+
+    def echo_help(self, argv, e: Exception):
+        if e and len(argv) > 1:
+            pt.echo(f"WARNING: {e}", pt.Styles.WARNING)
+            return
+        pt.echo("USAGE:")
+        pt.echo(
+            [
+                *self.usage,
+                r"Allowed COLOR format: '#?[\da-f]{6}', "
+                "i.e. a hexadecimal integer from the range [0; 0xFFFFFF], "
+                "optionally prefixed with '#'; "
+                "or a name from named colors list.",
+            ],
+            wrap=True,
+        )
+        exit(1)
 
     def run(self):
         if len(self.input_values) == 0:
@@ -114,10 +97,10 @@ class Approximator:
         if len(self.input_values) > 0 or self._extended_mode or self._space_override:
             return
 
-        def fmt_arg_examples(*s: str) -> pt.Text:
+        def fmt_arg_inp(*s: str) -> pt.Text:
             text = pt.Text()
             for w in s:
-                text.append(pt.Fragment(w, pt.Style(bold=True, underlined=True)))
+                text.append(pt.Fragment(w, pt.Style(underlined=True)))
             text.split(re.compile("([^ _]+)([ _]+|$)"))
             return text
 
@@ -139,9 +122,9 @@ class Approximator:
                 "a string 1-6 characters long representing an integer(s) in a hexadecimal "
                 "form: 'FFFFFF' (case insensitive), or a name of the color in any format:",
                 "",
-                f"  venv/bin/python {sys.argv[0]} " + fmt_arg_examples("3AEBA1 0bceeb 666"),
-                f"  venv/bin/python {sys.argv[0]} "
-                + fmt_arg_examples("red DARK_RED icathian-yellow"),
+                f"  venv/bin/python {sys.argv[0]} " + fmt_arg_inp("3AEBA1 0bceeb 666"),
+                f"  venv/bin/python {sys.argv[0]} " + fmt_arg_inp("red DARK_RED icathian-yellow"),
+                "\n\xa0",
             ],
             wrap=True,
             indent_first=2,
@@ -203,6 +186,7 @@ class Approximator:
                     sample_approx = sample
                     dist = 0.0
                 style = pt.Style(bg=sample_approx).autopick_fg()
+                style = pt.Style(fg=style.fg.rgb, bg=style.bg.rgb)
 
                 dist_str = " -- " if not dist else formatter.format(dist)
                 code, value, name = re.search(
@@ -235,7 +219,7 @@ class Approximator:
                     if aix > 0:
                         desc = "%s"
                     desc = desc % f"#{aix+1} closest" if "%s" in desc else desc
-                results.append((string1, string2, style, renderer, desc))
+                results.append((string1, string2, style, direct_renderer, desc))
             descriptions.pop(0)
 
         prim_len1 = max(len(s[0]) for s in results if s[0])
@@ -272,5 +256,7 @@ if __name__ == "__main__":
     try:
         Main(*sys.argv[1:])
     except Exception as e:
+        import logging
+
         logging.exception(e)
         # raise e

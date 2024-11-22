@@ -32,6 +32,20 @@ Built-in text roles
 
     ``:class:`.Style``` |rarr| :class:`.Style`
 
+  Also there is an option to use ``currentmodule`` directive (the links look
+  same, but the targets are different):
+
+    - ``render()`` |rarr| `render`
+
+    .. currentmodule:: pytermor.template
+
+    - ``.. currentmodule:: pytermor.template``
+
+      ``render()`` |rarr| `render`
+
+  Note that the subject must be indexed by sphinx in order to be referrable.
+  Usually adding the docstring is sufficient.
+
 - Argument names and string literals should be wrapped in double backticks:
 
     ````arg1```` |rarr| ``arg1``
@@ -42,9 +56,7 @@ Built-in text roles
 
 - Any formula should be formatted using LaTeX syntax (``:math:`` role or ``.. math::`` directive):
 
-    ``:math:`d_{min} = 350*10^{-3}```
-
-    |rarr|  :math:`d_{min} = 350*10^{-3}`
+    ``:math:`d_{min} = 350*10^{-3}``` |rarr|  :math:`d_{min} = 350*10^{-3}`
 
 - Inlined definitions should be formatted with ``:def:`` text role:
 
@@ -56,38 +68,59 @@ Built-in text roles
 References
 -----------
 
-External page setup
-    ``.. _github: //github.com``
-
-External page
-    ```github`_`` |rarr| `github`_
-
 .. _github: //github.com
 
-External page inlined
-    ```gitlab <//gitlab.com>`_`` |rarr| `gitlab <//gitlab.com>`_
+.. hlist::
+    :columns: 2
 
-External pydoc
-    ``:class:`re.Match``` |rarr| :class:`re.Match`
+    - **External page**  |rarr| `github`_ ::
 
-Internal page setup
-    ``.. _guide.core-api-1:``
+        .. _github: //github.com
+        `github`_
 
-Internal page
-    ```guide.core-api-1``` |rarr| `guide.core-api-1`
+    - **External page inlined**  |rarr| `gitlab <//gitlab.com>`_ ::
 
-Internal page custom label
-    ```CORE I <guide.core-api-1>``` |rarr| `CORE I <guide.core-api-1>`
+        `gitlab <//gitlab.com>`_
 
-Internal pydoc
-    * ```wait_key()``` |rarr| `wait_key()`
-    * ``:class:`.Style``` |rarr| :class:`.Style`
+    - **External pydoc**  |rarr| :class:`re.Match` ::
 
-Internal anchor
-    ```References`_`` |rarr| `References`_
+        :class:`re.Match`
 
-Term in glossary
-    ``:term:`rendering``` |rarr| :term:`rendering`
+    - **Internal page**  |rarr| `guide.core-api-1` ::
+
+        .. _guide.core-api-1:
+        `guide.core-api-1`
+
+    - **Internal page custom label**  |rarr| `INSTALL <install>` ::
+
+        `INSTALL <install>`
+
+    - **Internal pydoc**  |rarr| `wait_key()`, :class:`.Style` ::
+
+        `wait_key()`, :class:`.Style`
+
+    - **Internal anchor**  |rarr| `References`_ ::
+
+        `References`_
+
+    - **Glossary term**  |rarr| :term:`rendering` ::
+
+         :term:`rendering`
+
+    - **Special reference** (HTML only)
+        .. only:: html
+
+            ::
+
+                .. button-ref:: guide.color_transitions
+                    :color: primary
+                    :class: fa-retweet sidebar-button
+                    :outline:
+
+            .. button-ref:: guide.color_transitions
+                :color: primary
+                :class: fa-retweet sidebar-button sd-text-nowrap
+                :outline:
 
 
 ===================
@@ -106,13 +139,32 @@ Custom text roles
 
     * ``:envvar:`PYTERMOR_RENDERER_CLASSNAME``` |rarr| :envvar:`PYTERMOR_RENDERER_CLASSNAME`
 
-- Colors should be defined using special role ``:cbox:``, ``:colorbox:`` or ``:lcolorbox:`` :
+- Colors should be defined using special role ``:cbox:`` or ``:colorbox:`` (short/long version):
+
+    * ``:cbox:`#234``` |rarr| :cbox:`#234`
 
     * ``:cbox:`dark-red``` |rarr| :cbox:`dark-red`
 
     * ``:colorbox:`0xBADA90``` |rarr| :colorbox:`0xBADA90`
 
-    * ``:lcolorbox:`icathian-yellow``` |rarr| :lcolorbox:`icathian-yellow`
+    .. only:: html
+
+      * ``:colorbox:`icathian-yellow``` |rarr| (HTML) :colorbox:`icathian-yellow`
+
+      * ``:colorbox:`icathian-yellow``` |rarr| (LaTeX) *icathian-ydellow* :colorbox:`#e7c899`
+
+    .. only:: latex
+
+      * ``:colorbox:`icathian-yellow``` |rarr| (HTML) *icathian-yellow* :cbox:`#e7c899`
+
+      * ``:colorbox:`icathian-yellow``` |rarr| (LaTeX) :colorbox:`icathian-yellow`
+
+    .. admonition:: Format-depending differences
+
+        The results of long version with color defined by name differ for HTML
+        and LaTeX, as in the former case color code can always be seen by
+        hovering the color box with a cursor, whereas there is no such feature
+        available in PDF.
 
 --------------------
 Hexadecimals
@@ -137,7 +189,7 @@ used, the upper case is acceptable:
        :hex:`e0a489 efbfbe efbfaf f0af8cb3`
 
     RGB colors (*int*/*str* forms)
-       :hex:`0xeb0c0c` ; :hex:`#ff00ff`
+       :hex:`0xEB0C0C` ; :hex:`#ff00ff`
 
     escaped strings
         ::
@@ -187,9 +239,6 @@ Paragraph header
 
    .. rubric:: Rubric
 
-   ::
-
-      ...
 
 ===================
 Admonitions primer
@@ -224,7 +273,11 @@ Admonitions primer
      A hint with type of the change shows up when icon is hovered with the mouse pointer.
 
  .. hint::
-     <hint>
+     Waste majority of the methods in this module were initially
+     developed for usage as a formatters of CLI indicators, status
+     bars, etc, in other words -- for something that is rapidly
+     updating, and when the fixed width is much more important than
+     consistent alignment.
 
  .. note::
      Known limitation of this approach is inability to correctly handle

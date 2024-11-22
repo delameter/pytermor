@@ -150,9 +150,7 @@ class TestGenericFilters:
 
 class TestReplacers:
     def test_replace_esq_replacer(self):
-        actual = EscSeqStringReplacer(".").apply(
-            f"{make_clear_line()}1{make_set_cursor_column()}"
-        )
+        actual = EscSeqStringReplacer(".").apply(f"{make_clear_line()}1{make_set_cursor_column()}")
         assert actual == ".1."
 
     def test_replace_sgr_filter(self):
@@ -340,9 +338,7 @@ class TestTracers:
         ["f" * 64, "qй" * 32, "晦࢈ຮ" * 16, "·＊🐶𑼑􏿿" * 8],  # noqa
         ids=lambda s: "UTF8x" + str(get_max_utf8_bytes_char_length(s)),
     )
-    @mark.parametrize(
-        "cls", [BytesTracer, StringTracer, StringUcpTracer], ids=format_test_params
-    )
+    @mark.parametrize("cls", [BytesTracer, StringTracer, StringUcpTracer], ids=format_test_params)
     def test_line_len_doesnt_exceed_max(
         self, max_width: int | None, input: t.AnyStr, cls: t.Type[AbstractTracer]
     ):
@@ -379,9 +375,7 @@ class TestTracers:
         ],
         ids=format_test_params,
     )
-    def test_empty_input(
-        self, input: t.AnyStr, cls: t.Type[AbstractTracer], expected: str
-    ):
+    def test_empty_input(self, input: t.AnyStr, cls: t.Type[AbstractTracer], expected: str):
         assert cls().apply(input).rstrip("\n") == expected
 
     @mark.parametrize(
@@ -409,13 +403,8 @@ class TestTracers:
         ],
         ids=format_test_params,
     )
-    def test_long_label(
-        self, input: t.AnyStr, cls: t.Type[AbstractTracer], expected: str
-    ):
-        assert (
-            cls().apply(input, extra=TracerExtra("1234567890" * 20)).rstrip("\n")
-            == expected
-        )
+    def test_long_label(self, input: t.AnyStr, cls: t.Type[AbstractTracer], expected: str):
+        assert cls().apply(input, extra=TracerExtra("1234567890" * 20)).rstrip("\n") == expected
 
     def test_input_cast(self):
         assert dump([1, 2, 3], StringTracer, TracerExtra("input cast")) == (

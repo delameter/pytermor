@@ -20,21 +20,22 @@ class TestSequence:
     @mark.parametrize(
         "seq, expected",
         [
-            (SequenceFp('0'), True),
-            (SequenceFp('4'), True),
-            (SequenceFe('Z'), True),
-            (SequenceFs('|'), True),
-            (SequenceNf('!', 's'), True),
+            (SequenceFp("0"), True),
+            (SequenceFp("4"), True),
+            (SequenceFe("Z"), True),
+            (SequenceFs("|"), True),
+            (SequenceNf("!", "s"), True),
             (make_set_cursor(), True),
             (make_move_cursor_down(), True),
             (make_erase_in_display(), True),
             (make_enable_alt_screen_buffer(), True),
             (NOOP_SEQ, False),
         ],
-        ids=format_test_params
+        ids=format_test_params,
     )
     def test_cast_to_bool(self, seq: ISequence, expected: bool):
         assert bool(seq) == expected
+
 
 class TestSequenceNf:
     def test_assembling(self):
@@ -64,9 +65,7 @@ class TestSequenceCSI:
         ],
         ids=format_test_params,
     )
-    def test_compose_clear_line_fill_bg(
-        self, line: int | None, column: int | None, exp_seq: str
-    ):
+    def test_compose_clear_line_fill_bg(self, line: int | None, column: int | None, exp_seq: str):
         s = compose_clear_line_fill_bg(SeqIndex.BG_BLACK, line, column)
 
         assert exp_seq in s
@@ -129,9 +128,7 @@ class TestSequenceSGR:
         SequenceSGR(1) + 2
 
     def test_build_code_args(self):
-        assert SequenceSGR(1, 31, 43) == SequenceSGR(
-            IntCode.BOLD, IntCode.RED, IntCode.BG_YELLOW
-        )
+        assert SequenceSGR(1, 31, 43) == SequenceSGR(IntCode.BOLD, IntCode.RED, IntCode.BG_YELLOW)
 
     @pytest.mark.xfail(raises=KeyError)
     def test_build_key_args_invalid(self):
@@ -173,9 +170,7 @@ class TestSequenceSGR:
 
     def test_make_color_rgb_background(self):
         s1 = make_color_rgb(50, 70, 90, target=ColorTarget.BG)
-        s2 = SequenceSGR(
-            IntCode.BG_COLOR_EXTENDED, IntCode.EXTENDED_MODE_RGB, 50, 70, 90
-        )
+        s2 = SequenceSGR(IntCode.BG_COLOR_EXTENDED, IntCode.EXTENDED_MODE_RGB, 50, 70, 90)
         assert s1 == s2
 
     @pytest.mark.parametrize(

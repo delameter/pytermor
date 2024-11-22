@@ -7,9 +7,6 @@
 Formatters for prettier output and utility classes to avoid writing boilerplate
 code when dealing with escape sequences. Also includes several Python Standard
 Library methods rewritten for correct work with strings containing control sequences.
-
-:fas:`sitemap;sd-text-primary` `guide.filter_class_diagram`
-
 """
 from __future__ import annotations
 
@@ -25,10 +22,11 @@ from functools import lru_cache, reduce
 from hashlib import md5, shake_128
 from math import ceil, floor
 from typing import Union
-from .style import FT
+
 from .ansi import ESCAPE_SEQ_REGEX
-from .common import chunk, pad, cut
+from .common import chunk, pad, cut, char_range
 from .exception import ArgTypeError, LogicError
+from .style import FT
 from .term import get_terminal_width
 
 codecs.register_error("replace_with_qmark", lambda e: ("?", e.start + 1))  # pragma: no cover
@@ -52,30 +50,41 @@ Regular expression that matches CSI sequences (a superset which includes
 
 CONTROL_CHARS = [*range(0x00, 0x08 + 1), *range(0x0E, 0x1F + 1), 0x7F]
 """
-Set of ASCII control characters: :hex:`0x00-0x08`, :hex:`0x0E-0x1F` and
+Set of ASCII control character codes: :hex:`0x00-0x08`, :hex:`0x0E-0x1F` and
 :hex:`0x7F`.
 
 :meta hide-value:
 """
+
 WHITESPACE_CHARS = [*range(0x09, 0x0D + 1), 0x20]
 """ 
-Set of ASCII whitespace characters: :hex:`0x09-0x0D` and :hex:`0x20`.
+Set of ASCII whitespace character codes: :hex:`0x09-0x0D` and :hex:`0x20`.
 
 :meta hide-value:
 """
+
 PRINTABLE_CHARS = [*range(0x21, 0x7E + 1)]
 """
-Set of ASCII "normal" characters, i.e. non-control and non-space ones:
+Set of ASCII "normal" character codes, i.e. non-control and non-space ones:
 letters, digits and punctuation (:hex:`0x21-0x7E`).
 
 :meta hide-value:
 """
+
 NON_ASCII_CHARS = [*range(0x80, 0xFF + 1)]
 """ 
-Set of bytes that are invalid in ASCII-7 context: :hex:`0x80-0xFF`.
+Set of character codes that are invalid in ASCII-7 context: :hex:`0x80-0xFF`.
 
 :meta hide-value: 
 """
+
+UNICODE_CONTROL_CHARS = [*char_range("\u0080", "\u009f")]
+"""
+Set of Unicode control characters: :hex:`U+0080`-:hex:`U+009F`.
+
+:meta hide-value:
+"""
+
 
 UCS_CHAR_CPS = {
     re.compile(r"[\U000fffff-\U0010ffff]"): 6,
@@ -433,7 +442,12 @@ class OmniMapper(IFilter[IT, IT]):
             bytes: bytes.maketrans(*self._make_bytemaps(override)),
         }
 
-    def _make_premap(self, inp_type: t.Type[IT], override: MPT | None, single=False) -> t.Dict[int, IT]:
+    def _make_premap(
+        self,
+        inp_type: t.Type[IT],
+        override: MPT | None,
+        single=False,
+    ) -> t.Dict[int, IT]:
         default_map = dict()
         default_replacer = None
         for i in self._get_default_keys():
@@ -870,10 +884,10 @@ def _get_tracer(tracer_cls: t.Type[AbstractTracer], max_width: int) -> AbstractT
 # @TODO  - special handling of one-line input
 #        - squash repeating lines
 def dump(
-        data: t.Any,
-        tracer_cls: t.Type[AbstractTracer] = None,
-        extra: TracerExtra = None,
-        force_width: int = None,
+    data: t.Any,
+    tracer_cls: t.Type[AbstractTracer] = None,
+    extra: TracerExtra = None,
+    force_width: int = None,
 ) -> str:
     """
     .

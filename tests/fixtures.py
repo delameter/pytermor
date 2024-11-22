@@ -20,7 +20,7 @@ from pytermor import (
     RenderColor,
 )
 from pytermor import DynamicColor, FrozenStyle
-from pytermor import ExtendedEnum, RendererManager
+from pytermor import ExtendedEnum
 from pytermor.config import Config, ConfigManager
 from pytermor.cval import cv
 from pytermor.exception import NotInitializedError

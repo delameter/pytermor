@@ -58,6 +58,8 @@ extensions = [
     # "sphinx_toolbox.more_autodoc.typehints",
     # "sphinx_toolbox.more_autodoc.typevars",
     # "sphinxext-opengraph", # @TODO
+    "sphinx_toolbox.latex",
+    "sphinx_toolbox.tweaks.latex_toc",
     "docs.conf_extras.sphinx",
 ]
 # sphinx-design breaks building docs in man format, so `make` comments that
@@ -129,7 +131,7 @@ sd_fontawesome_latex = True
 
 # -- autodoc ------------------------------------------------------------------
 
-autodoc_member_order = 'bysource'  # 'alphabetical', 'groupwise'
+autodoc_member_order = "bysource"  # 'alphabetical', 'groupwise'
 
 # from sphinx.application import Sphinx  # noqa E4024
 #

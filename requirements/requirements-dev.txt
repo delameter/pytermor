@@ -13,8 +13,19 @@
 # - sphinx-toolbox~=3.3
 # - sphinx~=5.3
 # - twine~=4.0
+# - pygments~=2.15
+# - pyyaml==6.0.1
+# - rich>=12.6
+# - radon>=6.0.1
 # - numpy~=1.26.3
 # - scipy~=1.11.4
+# - coverage[toml]~=6.4
+# - coveralls~=3.3
+# - pytest-cov~=4.1
+# - pytest~=7.1
+# - ruff>=0.2.2
+# - sybil~=3.0
+# - typing-extensions~=4.6
 #
 
 alabaster==0.7.16
@@ -32,7 +43,7 @@ beautifulsoup4==4.12.3
     #   furo
     #   sphinx-toolbox
 build==1.0.3
-    # via hatch.envs.build
+    # via hatch.envs.dev
 cachecontrol==0.14.0
     # via sphinx-toolbox
 certifi==2024.2.2
@@ -41,8 +52,17 @@ cffi==1.16.0
     # via cryptography
 charset-normalizer==3.3.2
     # via requests
+colorama==0.4.6
+    # via radon
 contourpy==1.2.0
     # via matplotlib
+coverage==6.5.0
+    # via
+    #   hatch.envs.dev
+    #   coveralls
+    #   pytest-cov
+coveralls==3.3.1
+    # via hatch.envs.dev
 cryptography==42.0.5
     # via secretstorage
 cssutils==2.9.0
@@ -51,6 +71,8 @@ cycler==0.12.1
     # via matplotlib
 dict2css==0.3.0.post1
     # via sphinx-toolbox
+docopt==0.6.2
+    # via coveralls
 docutils==0.19
     # via
     #   docutils-stubs
@@ -59,13 +81,15 @@ docutils==0.19
     #   sphinx-tabs
     #   sphinx-toolbox
 docutils-stubs==0.0.22
-    # via hatch.envs.build
+    # via hatch.envs.dev
 domdf-python-tools==3.8.0.post2
     # via
     #   apeye
     #   apeye-core
     #   dict2css
     #   sphinx-toolbox
+exceptiongroup==1.2.0
+    # via pytest
 filelock==3.13.1
     # via
     #   cachecontrol
@@ -73,7 +97,7 @@ filelock==3.13.1
 fonttools==4.49.0
     # via matplotlib
 furo==2022.12.7
-    # via hatch.envs.build
+    # via hatch.envs.dev
 html5lib==1.1
     # via sphinx-toolbox
 idna==3.6
@@ -86,6 +110,8 @@ importlib-metadata==7.0.1
     # via
     #   keyring
     #   twine
+iniconfig==2.0.0
+    # via pytest
 jaraco-classes==3.3.1
     # via keyring
 jeepney==0.8.0
@@ -100,6 +126,8 @@ keyring==24.3.1
     # via twine
 kiwisolver==1.4.5
     # via matplotlib
+mando==0.7.1
+    # via radon
 markdown-it-py==3.0.0
     # via rich
 markupsafe==2.1.5
@@ -107,7 +135,7 @@ markupsafe==2.1.5
     #   jinja2
     #   sphinx-jinja2-compat
 matplotlib==3.8.3
-    # via hatch.envs.build
+    # via hatch.envs.dev
 mdurl==0.1.2
     # via markdown-it-py
 more-itertools==10.2.0
@@ -120,7 +148,7 @@ nh3==0.2.15
     # via readme-renderer
 numpy==1.26.4
     # via
-    #   hatch.envs.build
+    #   hatch.envs.dev
     #   contourpy
     #   matplotlib
     #   scipy
@@ -128,21 +156,25 @@ packaging==23.2
     # via
     #   build
     #   matplotlib
+    #   pytest
     #   sphinx
 pillow==9.5.0
     # via
-    #   hatch.envs.build
+    #   hatch.envs.dev
     #   matplotlib
 pkginfo==1.9.6
     # via twine
 platformdirs==4.2.0
     # via apeye
+pluggy==1.4.0
+    # via pytest
 pycparser==2.21
     # via cffi
 pydeps==1.12.18
-    # via hatch.envs.build
+    # via hatch.envs.dev
 pygments==2.17.2
     # via
+    #   hatch.envs.dev
     #   furo
     #   readme-renderer
     #   rich
@@ -153,16 +185,25 @@ pyparsing==3.1.1
     # via matplotlib
 pyproject-hooks==1.0.0
     # via build
+pytest==7.4.4
+    # via
+    #   hatch.envs.dev
+    #   pytest-cov
+pytest-cov==4.1.0
+    # via hatch.envs.dev
 python-dateutil==2.8.2
     # via matplotlib
 pyyaml==6.0.1
-    # via hatch.envs.build
+    # via hatch.envs.dev
+radon==6.0.1
+    # via hatch.envs.dev
 readme-renderer==43.0
     # via twine
 requests==2.31.0
     # via
     #   apeye
     #   cachecontrol
+    #   coveralls
     #   requests-toolbelt
     #   sphinx
     #   twine
@@ -171,18 +212,23 @@ requests-toolbelt==1.0.0
 rfc3986==2.0.0
     # via twine
 rich==13.7.1
-    # via twine
+    # via
+    #   hatch.envs.dev
+    #   twine
 ruamel-yaml==0.18.6
     # via sphinx-toolbox
 ruamel-yaml-clib==0.2.8
     # via ruamel-yaml
+ruff==0.2.2
+    # via hatch.envs.dev
 scipy==1.11.4
-    # via hatch.envs.build
+    # via hatch.envs.dev
 secretstorage==3.3.3
     # via keyring
 six==1.16.0
     # via
     #   html5lib
+    #   mando
     #   python-dateutil
 snowballstemmer==2.2.0
     # via sphinx
@@ -190,7 +236,7 @@ soupsieve==2.5
     # via beautifulsoup4
 sphinx==5.3.0
     # via
-    #   hatch.envs.build
+    #   hatch.envs.dev
     #   autodocsumm
     #   furo
     #   sphinx-autodoc-typehints
@@ -205,9 +251,9 @@ sphinx-autodoc-typehints==1.23.0
 sphinx-basic-ng==1.0.0b2
     # via furo
 sphinx-copybutton==0.5.2
-    # via hatch.envs.build
+    # via hatch.envs.dev
 sphinx-design==0.5.0
-    # via hatch.envs.build
+    # via hatch.envs.dev
 sphinx-jinja2-compat==0.2.0.post1
     # via sphinx-toolbox
 sphinx-prompt==1.5.0
@@ -215,7 +261,7 @@ sphinx-prompt==1.5.0
 sphinx-tabs==3.4.5
     # via sphinx-toolbox
 sphinx-toolbox==3.5.0
-    # via hatch.envs.build
+    # via hatch.envs.dev
 sphinxcontrib-applehelp==1.0.8
     # via sphinx
 sphinxcontrib-devhelp==1.0.6
@@ -230,16 +276,21 @@ sphinxcontrib-serializinghtml==1.1.10
     # via sphinx
 stdlib-list==0.10.0
     # via pydeps
+sybil==3.0.1
+    # via hatch.envs.dev
 tabulate==0.9.0
     # via sphinx-toolbox
 tomli==2.0.1
     # via
     #   build
+    #   coverage
     #   pyproject-hooks
+    #   pytest
 twine==4.0.2
-    # via hatch.envs.build
+    # via hatch.envs.dev
 typing-extensions==4.10.0
     # via
+    #   hatch.envs.dev
     #   domdf-python-tools
     #   sphinx-toolbox
 urllib3==2.2.1

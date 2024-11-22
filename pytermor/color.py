@@ -11,10 +11,6 @@ approximation algorithms, which are used for output devices with limited
 advanced color modes support. Renderers do that automatically and transparently
 for the developer, but the manual control over this process is also an option.
 
-:fas:`sitemap;sd-text-primary` `guide.color_class_diagram`
-
-:fas:`sitemap;sd-text-primary` `guide.color_space_transforms`
-
 Supports 4 different color spaces: `RGB`, `HSV`, `XYZ` and `LAB`, and also
 provides methods to convert colors from any space to any other.
 
@@ -48,7 +44,7 @@ from .term import make_color_256, make_color_rgb
 try:
     import numpy as np
     from scipy.spatial import KDTree
-except ImportError as e:
+except ImportError:
     np = None
     KDTree = None
 
@@ -155,6 +151,12 @@ _CIE_E: float = 216.0 / 24389.0  # 0.008856451679035631  # see http://brucelindb
 _REF_X: float = 95.047  # Observer= 2°, Illuminant= D65
 _REF_Y: float = 100.000
 _REF_Z: float = 108.883
+
+CONTRAST_RATIO_THRESHOLD: float = 3.0
+""" Lowest contrast ratio allowed by https://www.w3.org/TR/2008/REC-WCAG20-20081211 . """
+
+BG_LUMINANCE_THRESHOLD: float = 17.8
+""" Pre-computed constant providing maximum contrast ratio, see `guide.styles.autopick_fg`. """
 
 
 class RGB(IColorValue):
@@ -466,6 +468,21 @@ class XYZ(IColorValue):
         return f"{self.__class__.__name__}[{' '.join(attrs)}]"
 
     __repr__ = __str__
+
+    @classmethod
+    def contrast(cls, c1: IColorValue, c2: IColorValue) -> float:
+        """
+        Compute contrast ratio of two colors.
+        See https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
+        """
+        if not isinstance(c1, XYZ):
+            c1 = getattr(c1, "xyz")
+        if not isinstance(c2, XYZ):
+            c2 = getattr(c2, "xyz")
+
+        ymax = max(c1.y, c2.y) / 100
+        ymin = min(c1.y, c2.y) / 100
+        return (ymax + 0.05) / (ymin + 0.05)
 
     @property
     def x(self) -> float:
@@ -939,7 +956,7 @@ class _KDTreeApproximator(_IColorApproximator, t.Generic[_RCT]):  # @TODO test c
             extract = self._get_extractor_fn()
             q = np.asarray([extract(value)], dtype=float)
             dists, idxs = self._tree.query(q, k=max_results)
-            if max_results == 1:   # kdtree unwraps 1-element arrays by default >.<
+            if max_results == 1:  # kdtree unwraps 1-element arrays by default >.<
                 dists, idxs = [dists], [idxs]
             for (dist, idx) in zip(dists[0], idxs[0]):
                 yield ApxResult[_RCT](self._list[idx], dist)
@@ -974,11 +991,11 @@ class _KDTreeApproximator(_IColorApproximator, t.Generic[_RCT]):  # @TODO test c
         if not self._list:
             raise LogicError("At least one color instance with 'approx=True' must be created.")
 
-        data = np.ndarray((len(self._list), 3), dtype=float)  # noqa
+        data = np.ndarray((len(self._list), 3), dtype=float)
         extract = self._get_extractor_fn()
         for idx, color in enumerate(self._list):
             data[idx] = extract(color)
-        self._tree = KDTree(data)  # noqa
+        self._tree = KDTree(data)
 
 
 class _BruteForceApproximator(_IColorApproximator, t.Generic[_RCT]):
@@ -1764,6 +1781,7 @@ is `resolve_color()`. Valid values include:
     4) *int* in [:hex:`0x000000`; :hex:`0xFFFFFF`] range.
 """
 
+
 def resolve_color(
     subject: CDT,
     color_type: t.Type[_RCT] = None,
@@ -1834,7 +1852,7 @@ def find_closest(value: IColorValue | int, color_type: t.Type[_RCT] = None) -> _
     If `color_type` is omitted, search for the closest `Color256` element.
     This method caches the results.
 
-    See `guide.approximation` for the details.
+    See `guide.approximators` for the details.
 
     :param value:       Target color/color value.
     :param color_type:  Target color type (`Color16`, `Color256` or `ColorRGB`).

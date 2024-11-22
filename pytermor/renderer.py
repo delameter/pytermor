@@ -7,13 +7,9 @@
 Renderers transform :class:`.Style` instances into lower-level abstractions like
 :term:`SGR sequences <SGR>`, tmux-compatible directives, HTML markup etc.,
 depending on a renderer type. Default global renderer type is `SgrRenderer`.
-
-:fas:`sitemap;sd-text-primary` `guide.renderer_class_diagram`
-
 """
 from __future__ import annotations
 
-from logging import getLogger
 import os
 import re
 import sys
@@ -24,7 +20,7 @@ from hashlib import md5
 
 from .ansi import ColorTarget, NOOP_SEQ, SeqIndex, SequenceSGR, get_closing_seq
 from .color import Color16, Color256, ColorRGB, DEFAULT_COLOR, Color, NOOP_COLOR, RenderColor
-from .common import ExtendedEnum,  get_qname, instantiate
+from .common import ExtendedEnum, get_qname, instantiate
 from .config import ConfigManager
 from .style import FT, NOOP_STYLE, Style, Styles, make_style
 
@@ -74,7 +70,7 @@ class RendererManager:
         """
 
         if cls._global_override is not None:
-            if (inst := instantiate(IRenderer,  cls._global_override)) is not None:
+            if (inst := instantiate(IRenderer, cls._global_override)) is not None:
                 return inst
 
         classname = ConfigManager.get().renderer_classname
@@ -274,7 +270,6 @@ class SgrRenderer(IRenderer):
             allow_cache=True,
             allow_format=(self._output_mode is not OutputMode.NO_ANSI),
         )
-        getLogger(__package__).debug(f"Instantiated {self!r} => {getattr(io, 'name', repr(io))}")
 
     def __hash__(self) -> int:
         # although this renderer is immutable, its state can be set up differently
@@ -292,10 +287,10 @@ class SgrRenderer(IRenderer):
     def render(self, string: str, fmt: FT = None) -> str:
         style = make_style(fmt)
         opening_seq = (
-                self._render_attributes(style)
-                + self._render_color(style.fg, ColorTarget.FG)
-                + self._render_color(style.bg, ColorTarget.BG)
-                + self._render_color(style.underline_color, ColorTarget.UNDERLINE)
+            self._render_attributes(style)
+            + self._render_color(style.fg, ColorTarget.FG)
+            + self._render_color(style.bg, ColorTarget.BG)
+            + self._render_color(style.underline_color, ColorTarget.UNDERLINE)
         )
         closing_seq = get_closing_seq(opening_seq)
         rendered_text = ""
@@ -318,21 +313,14 @@ class SgrRenderer(IRenderer):
         return SgrRenderer(self._output_mode)
 
     def _determine_output_mode(self, arg_value: OutputMode, io: t.IO) -> OutputMode:
-        logger = getLogger(__package__)
-        ioname = "<" + getattr(io, "name", "?").strip("<>") + ">"
-
         if not isinstance(arg_value, OutputMode):
             arg_value = OutputMode.resolve_by_value(arg_value)
 
         if arg_value is not OutputMode.AUTO:
-            logger.debug(f"Using explicit value from the constructor arg: {arg_value}")
             return arg_value
 
-        config_forced_value = OutputMode.resolve_by_value(
-            ConfigManager.get().force_output_mode
-        )
+        config_forced_value = OutputMode.resolve_by_value(ConfigManager.get().force_output_mode)
         if config_forced_value is not OutputMode.AUTO:
-            logger.debug(f"Using forced value from env/config: {config_forced_value}")
             return config_forced_value
 
         isatty = None
@@ -340,11 +328,6 @@ class SgrRenderer(IRenderer):
             isatty = io.isatty()
         term = os.environ.get("TERM", None)
         colorterm = os.environ.get("COLORTERM", None)
-
-        logger.debug(f"{ioname} Determining output mode automatically: {config_forced_value}")
-        logger.debug(f"{ioname} {get_qname(io)} is a terminal: {isatty}")
-        logger.debug(f"{ioname} Environment: TERM='{term}'")
-        logger.debug(f"{ioname} Environment: COLORTERM='{colorterm}'")
 
         if not isatty:
             return OutputMode.NO_ANSI

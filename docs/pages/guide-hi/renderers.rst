@@ -132,7 +132,7 @@ Details described in :ref:`guide.finding_closest_color` section.
 .. _guide.renderer_class_diagram:
 
 ========================================
-:fas:`sitemap` Renderer class hierarchy
+:fas:`sitemap` Renderer family
 ========================================
 
 .. inheritance-diagram::  pytermor.renderer

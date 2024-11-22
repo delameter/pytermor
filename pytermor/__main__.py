@@ -10,7 +10,6 @@ import typing as t
 from os.path import dirname
 from subprocess import CalledProcessError, DEVNULL, PIPE, run
 
-import pytermor
 from pytermor._version import __updated__, __version__
 
 
@@ -46,7 +45,7 @@ class Main:
                     return
             except (FileNotFoundError, CalledProcessError, UnicodeDecodeError) as e:
                 errors.append(f"ERROR: {e.__class__.__name__}: {e}")
-        print("\n".join((*errors, f"Failed to determine the version")))
+        print("\n".join((*errors, "Failed to determine the version")))
 
     def _get_version_from_package(self, short: bool) -> t.Generator[str]:
         yield __version__

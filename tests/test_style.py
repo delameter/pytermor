@@ -9,7 +9,7 @@ import typing
 from math import isclose
 
 import pytest
-from pytermor.cval import cv
+
 from pytermor import (
     Style,
     IntCode,
@@ -25,8 +25,8 @@ from pytermor import (
     XYZ,
     LAB,
 )
+from pytermor.cval import cv
 from pytermor.exception import LogicError, ArgTypeError
-
 from tests import format_test_params
 
 
@@ -42,10 +42,10 @@ class TestStyle:
             (Style(fg=0xAAAAAA), "#aaa"),
             (Style(fg=0xA0AACA), "#a0aaca"),
             (Style(bg="red", bold=True), Style(bg="red", bold=True)),
-            (Style(bold=True, frozen=True), 'bold'),
-            (Style(dim=True, frozen=True), 'dim'),
-            (Style(italic=True, frozen=True), 'italic'),
-            (Style(underlined=True, frozen=True), 'underlined'),
+            (Style(bold=True, frozen=True), "bold"),
+            (Style(dim=True, frozen=True), "dim"),
+            (Style(italic=True, frozen=True), "italic"),
+            (Style(underlined=True, frozen=True), "underlined"),
             pytest.param(None, [], marks=pytest.mark.xfail(raises=ArgTypeError)),
         ],
         ids=format_test_params,
@@ -128,6 +128,45 @@ class TestStyle:
 
     def test_autopick_fg_doesnt_change_without_bg(self):
         assert Style(fg=0x800080).autopick_fg().fg.int == 0x800080
+
+    @pytest.mark.parametrize(
+        "expect_preserved, fg, bg",
+        [
+            (True, 0x808080, 0xFFFFFF),
+            (True, 0x808080, 0x000000),
+            (False, 0x808080, 0x7F7F7F),
+            (False, 0x808080, 0x818181),
+            (True, 0x000000, 0xFFFFFF),
+            (False, 0x000000, 0x101010),
+            (True, 0xFFFFFF, 0x000000),
+            (False, 0xFFFFFF, 0xF0F0F0),
+            (False, 0xFFFF00, 0xFFFFFF),
+            (False, 0xFFFF00, 0xC0C0C0),
+            (False, 0xFFFF00, 0x999999),
+            (True, 0xFFFF00, 0x808080),
+            (True, 0xFFFF00, 0x666666),
+            (True, 0xFFFF00, 0x404040),
+            (True, 0xFFFF00, 0x202020),
+            (True, 0xFFFF00, 0x000000),
+        ],
+        ids=format_test_params,
+    )
+    def test_autopick_fg_preserves_original_when_needed(
+        self, expect_preserved: bool, fg: int, bg: int
+    ):
+        result = Style(fg=fg, bg=bg).autopick_fg(preserve_origin=True).fg.int
+        assert (result == fg) == expect_preserved
+
+    def test_autopick_fg_treats_transparent_bg_as_black(self):
+        assert Style().autopick_fg(transparent_as_black=True).fg == cv.GRAY_100
+
+    def test_autopick_fg_preserves_original_for_transparent_bg(self):
+        fg = cv.GRAY_85
+        assert Style(fg=fg).autopick_fg(preserve_origin=True, transparent_as_black=True).fg == fg
+
+    def test_autopick_fg_changes_original_for_transparent_bg(self):
+        fg = cv.GRAY_11
+        assert Style(fg=fg).autopick_fg(preserve_origin=True, transparent_as_black=True).fg != fg
 
     @pytest.mark.parametrize(
         "style1,style2",
@@ -352,9 +391,7 @@ class TestStyleMerging:
         ],
         ids=format_test_params,
     )
-    def test_style_merging_overwrite(
-        self, expected: Style, base: Style, overwrite: Style
-    ):
+    def test_style_merging_overwrite(self, expected: Style, base: Style, overwrite: Style):
         assert base.merge_overwrite(overwrite) == expected
 
     @pytest.mark.parametrize(

@@ -20,11 +20,9 @@ jobs:
       # in-progress and queued jobs in the matrix if any job in the matrix
       # fails. This property defaults to true.
       matrix:
-        python-version: [ "3.8", "3.9", "3.10" ]
+        python-version: [ "3.9", "3.10", "3.11" ]
         experimental: [false]
         include:
-          - python-version: "3.11"
-            experimental: true
           - python-version: "3.12"
             experimental: true
 

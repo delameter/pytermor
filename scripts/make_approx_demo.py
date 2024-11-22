@@ -12,7 +12,7 @@ from collections import deque
 from collections.abc import Iterable
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 import pytermor as pt
 from pytermor.common import CacheStats
@@ -24,8 +24,9 @@ class ApproxDemo:
     SCALE_WIDTH = 20
 
     PROJECT_ROOT = Path(os.path.dirname(__file__)).parent
-    INPUT_FILEPATH = f"{PROJECT_ROOT}/docs/_generated/approx/input-bgtransp-v5.png"
-    OUTPUT_FILEPATH_TPL = f"{PROJECT_ROOT}/docs/_generated/approx/output-%s-%s.png"
+    INPUT_FILEPATH = PROJECT_ROOT / "docs" / "_generated" / "approx" / "input-bgtransp-v5.png"
+    OUTPUT_FILEPATH_TPL = PROJECT_ROOT / "docs" / "_generated" / "approx" / "output-%s-%s.png"
+    LABEL_FONT_PATH = PROJECT_ROOT / "docs" / "_static" / "fonts" / "Smallest_Pixel_7_Regular.ttf"
 
     SAMPLES: t.List[t.Tuple[pt.Color16 | pt.Color256 | pt.ColorRGB, str]] = [
         (pt.ColorRGB, "ColorRGB"),
@@ -34,9 +35,9 @@ class ApproxDemo:
     ]
 
     SPACES: t.List[t.Type[pt.IColorValue]] = [pt.RGB, pt.HSV, pt.LAB, pt.XYZ]
-    #SPACES: t.List[t.Type[pt.IColorValue]] = [pt.LAB]
 
     def __init__(self):
+        self._use_cache = True
         self._avg_speed = deque(maxlen=20)
         self._avg_eta = deque(maxlen=5)
         self._input_im = Image.open(self.INPUT_FILEPATH, "r")
@@ -54,7 +55,7 @@ class ApproxDemo:
             unit_separator=" ",
             plural_suffix="s",
         )
-        # self._label_font = ImageFont.load("arial.pil")
+        self._label_font = ImageFont.truetype(str(self.LABEL_FONT_PATH), 10)
         self._run_start_ts = time.monotonic_ns() / 1e9
 
     def run(self):
@@ -64,7 +65,7 @@ class ApproxDemo:
             for (cls, label) in self.SAMPLES:
                 output_size = (self._input_im.width, self._input_im.height)
                 fmt_class = lambda o: pt.get_qname(o).strip("<>").lower()
-                output_filepath = self.OUTPUT_FILEPATH_TPL % (fmt_class(space), fmt_class(cls))
+                output_filepath = str(self.OUTPUT_FILEPATH_TPL) % (fmt_class(space), fmt_class(cls))
                 if os.path.exists(output_filepath):
                     output_im_existing = Image.open(output_filepath, "r")
                     output_im = output_im_existing.copy()
@@ -80,7 +81,7 @@ class ApproxDemo:
                 self._draw_label(cls, caption, output_im)
 
                 output_im.save(output_filepath)
-                output_im.show()
+                # output_im.show()
 
     def _draw_sample(
         self,
@@ -94,13 +95,17 @@ class ApproxDemo:
         ts_start = time.monotonic_ns() / 1e9
         ts_status_upd = 0
         eta_sec = None
+        cache_stats = None
+        cache = self._use_cache
 
+        has_alpha = len(self._input_im.getbands()) > 3
         for va in range(0, self._input_im.width, 1):
             for vb in range(0, self._input_im.height, 1):
                 pxval = self._input_im.getpixel((va, vb))
                 rgbval = pt.RGB.from_channels(*pxval[:3])
-                cval = cls.find_closest(rgbval, True, True) or pt.ColorRGB(0)
-                output_im.putpixel((va, vb), (*cval.rgb, pxval[-1]))
+                cval = cls.find_closest(rgbval, cache, cache) or pt.ColorRGB(0)
+                aval = pxval[-1] if has_alpha else 255
+                output_im.putpixel((va, vb), (*cval.rgb, aval))
 
                 ts_now = time.monotonic_ns() / 1e9
                 approx_interval = ts_now - ts_start
@@ -134,14 +139,12 @@ class ApproxDemo:
 
         ImageDraw.Draw(output_im).text(
             (0, 0),
-            fill=(0, 0, 0, 255),
-            stroke_fill=(255, 255, 255, 255),
+            font=self._label_font,
+            fill=(255, 255, 255, 255),
+            stroke_fill=(0, 0, 0, 255),
             stroke_width=1,
             text=f"{apx_str} {meth_str} {cls_str}",
-
-            # font=self._label_font,
         )
-        output_im.save()
 
     def _print_status(
         self,
@@ -173,7 +176,9 @@ class ApproxDemo:
         print(msg + ("  " + ApproxDemo._print_cache_info(cache_stats)), end="")
 
     @staticmethod
-    def _print_cache_info(ci: CacheStats):
+    def _print_cache_info(ci: CacheStats = None) -> str:
+        if not ci:
+            return "--"
         return "%s hits, %s misses (%3.1f%% ratio), size %d/%d" % (
             pt.format_thousand_sep(ci.hits),
             pt.format_thousand_sep(ci.misses),

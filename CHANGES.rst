@@ -6,8 +6,9 @@ pending
 - |NEW| `cut` and `fit` "keep" param
 - |NEW| tab control ANSI sequences
 - |UPDATE| `splitlines` now returns `Composites`, not list of `Fragments`
+- |REMOVAL|  deprecated `SimpleTable` class and `IRenderable.allows_width_setup()` method
 
-.. <@pending:90a3a88>
+.. <@pending:2d1d751>
 .. ^ blank line before should be kept
 
 

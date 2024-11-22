@@ -7,6 +7,7 @@
 # - coveralls~=3.3
 # - pytest-cov~=4.1
 # - pytest~=7.1
+# - ruff>=0.2.2
 # - sybil~=3.0
 # - typing-extensions~=4.6
 #
@@ -18,7 +19,6 @@ charset-normalizer==3.3.2
 coverage==6.5.0
     # via
     #   hatch.envs.test
-    #   coverage
     #   coveralls
     #   pytest-cov
 coveralls==3.3.1
@@ -47,6 +47,8 @@ pytest-cov==4.1.0
     # via hatch.envs.test
 requests==2.31.0
     # via coveralls
+ruff==0.2.2
+    # via hatch.envs.test
 scipy==1.11.4
     # via hatch.envs.test
 sybil==3.0.1
@@ -55,7 +57,7 @@ tomli==2.0.1
     # via
     #   coverage
     #   pytest
-typing-extensions==4.9.0
+typing-extensions==4.10.0
     # via hatch.envs.test
-urllib3==2.2.0
+urllib3==2.2.1
     # via requests

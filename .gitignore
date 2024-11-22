@@ -20,3 +20,6 @@ scripts/runConfigurations
 .wakatime-project
 .mkrunid
 venv*
+docs-build
+.hatch
+

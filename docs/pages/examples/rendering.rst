@@ -6,7 +6,7 @@
 
 The library can be split into two domains, the first one being "**high**\ -level"
 domain, which includes templating, style abstractions, text implementations
-which support aligning, wrapping, padding, etc., as well as number formatting
+which support alignment, wrapping, padding, etc., as well as number formatting
 helpers and a registry of preset colors.
 
 The second one is "**low**\ -level", containing colors and color spaces
@@ -140,7 +140,7 @@ Texts & FrozenTexts
 `Text` is a general-purpose composite `IRenderable` implementation, which can
 contain any amount of strings linked with styles (i.e. `Fragment` instances).
 
-``Text`` also supports aligning, padding with specified chars to specified width,
+``Text`` also supports alignment, padding with specified chars to specified width,
 but most importantly it supports :def:`fargs` syntax (for the details see `guide.fargs`),
 which allows to compose formatted text parts much faster and keeps the code compact. Generally
 speaking, the basic input parameter is either a tuple of string and `Style` or `Color`,
@@ -166,7 +166,7 @@ explicit definition of a tuple is not neccessary, but there are cases, when it i
 `FrozenText` is an immutable version of `Text` (to be precise, its quite the
 opposite: ``Text`` is a child of ``FrozenText``).
 
-We will utilize aligning capabilities of ``FrozenText`` class in a following
+We will utilize alignment capabilities of ``FrozenText`` class in a following
 code fragment:
 
 .. code-block::
@@ -346,7 +346,7 @@ methods named ``compose_*`` return *str*\ ings which are several sequences
 rendered and concatenated.
 
 In the next example we create an SGR which sets background color to
-:colorbox:`008787` (highlighted line) by specifying :term:`xterm-256`
+:colorbox:`#008787` (highlighted line) by specifying :term:`xterm-256`
 code 30 (see `guide.xterm-256-palette`), then compose a string which includes:
 
     - :abbr:`CUP (Cursor Position)` instruction: :ansi:`ESC[1;1H`;

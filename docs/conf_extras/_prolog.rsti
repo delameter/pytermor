@@ -35,6 +35,15 @@
 .. role:: redonblue
    :class: redonblue
 
+.. role:: redonblack
+   :class: redonblack
+
+.. role:: whiteonblack
+   :class: whiteonblack
+
+.. role:: blueonblack
+   :class: blueonblack
+
 .. role:: yellowonredline
    :class: yellowonredline
 
@@ -52,6 +61,8 @@
 
 .. role:: whiteonredline
    :class: whiteonredline
+
+.. |warn| unicode:: 0x26A0 0xFE0F
 
 .. |nbspt| unicode:: 0xA0
    :trim:

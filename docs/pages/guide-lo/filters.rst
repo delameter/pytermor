@@ -7,7 +7,7 @@ Filters
 .. _guide.filter_class_diagram:
 
 =======================================
-:fas:`sitemap` Filter class hierarchy
+:fas:`sitemap` Filter family
 =======================================
 
 .. grid:: 1

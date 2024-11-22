@@ -33,6 +33,10 @@ def _get_preamble() -> Iterable[str]:
 
 def _get_sphinxsetup() -> dict[str, str]:
     return {
+        # @TODO sphinx 6.0+ required: ----------------------------
+        # 'importantBgColor': 'FloralWhite',
+        # 'div.important_background-TeXcolor':  'FloralWhite',
+        # @-------------------------------------------------------
         'div.warning_background-TeXcolor':  'FloralWhite',
         'div.attention_background-TeXcolor':  'FloralWhite',
         'div.attention_border-TeXcolor':  f'Crimson',

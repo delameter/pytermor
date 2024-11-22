@@ -9,9 +9,6 @@ support high-level operations such as nesting-aware style application,
 concatenating and cropping of styled strings before the rendering, text
 alignment and wrapping, etc. Also provides rendering entrypoints `render()` and
 `echo()`.
-
-:fas:`sitemap;sd-text-primary` `guide.text_class_diagram`
-
 """
 from __future__ import annotations
 
@@ -37,7 +34,7 @@ from .term import get_preferable_wrap_width
 
 SELECT_WORDS_REGEX = re.compile(r"(\S+)?(\s*)")
 
-_PRIVATE_REPLACER = "\U000E5750"
+_PRIVATE_REPLACER = "\U0010E575"
 
 
 # suggestion on @rewriting the renderables:
@@ -204,6 +201,9 @@ class Fragment(IRenderable):
         if isinstance(other, str):
             other = Fragment(other)
         return Text(other, self)
+
+    def __mul__(self, other):
+        return Text(sum([self] * other))
 
     def __format__(self, format_spec: str) -> str:
         formatted = self._string.__format__(format_spec)
@@ -499,7 +499,7 @@ class FrozenText(IRenderable):
                             f'cannot proceed (attribute "{attr}" in {frag})'
                         )
 
-        # aligning and filling
+        # alignment and filling
         model_result = cur_len * "@"
         model = fit(model_result, (self._width or max_len), self._align, overflow="")
 
@@ -737,7 +737,7 @@ def distribute_padded(max_len: int, *values, pad_left: int = 0, pad_right: int =
     values_len = sum(len(v) for v in val_list)
     spaces_amount = max_len - values_len
     if spaces_amount < gapes_amount:
-        raise ValueError(f"There is not enough space for all values with padding")
+        raise ValueError("There is not enough space for all values with padding")
 
     result = ""
     for value_idx, value in enumerate(val_list):
@@ -781,7 +781,7 @@ def wrap_sgr(
     for raw_line in inp:
         # had an inspiration and wrote it; no idea how does it work exactly, it just does
         replaced_line = re.sub(r"(\s?\S?)((\x1b\[([0-9;]*)m)+)", push, raw_line)
-        wrapped_line = f"\n".join(
+        wrapped_line = "\n".join(
             textwrap.wrap(
                 replaced_line,
                 width=width,

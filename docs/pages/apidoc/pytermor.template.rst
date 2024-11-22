@@ -1,6 +1,16 @@
 ﻿pytermor.template
 =================
 
+
+
+
+
+
+
+
+
+
+
 .. automodule:: pytermor.template
 
    

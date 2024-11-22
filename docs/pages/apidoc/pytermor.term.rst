@@ -1,6 +1,16 @@
 ﻿pytermor.term
 =============
 
+
+
+
+
+
+
+
+
+
+
 .. automodule:: pytermor.term
 
    

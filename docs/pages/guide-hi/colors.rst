@@ -76,7 +76,7 @@ Splitting string into tokens is performed by transitions between (lower
 cased letter OR underscore OR non-letter character) AND (upper-cased
 letter OR a digit). This rule in a form of a regular expression:
 
-:regexp:`[\W_]+|(?<=[a-z])(?=[A-Z0-9])`
+.. centered::  :regexp:`[\W_]+|(?<=[a-z])(?=[A-Z0-9])`
 
 It covers all popular methods of writing an enumerated name. It is implied
 that queries to the registry will look like one of the cases below:
@@ -210,7 +210,7 @@ There are two approximator implementations in the library -- the first one does
 not require any dependencies, but is slow, as it has to iterate all the colors
 in the index and calculate color distance to each of those, and the second one,
 which requires ``scipy`` package to be installed along with the library, which
-results in approximating about **10.06** times faster than the first one thanks to
+results in approximating about **10.06** times faster\ [#]_ than the first one thanks to
 using optimized data structure\ [#]_. In order to utilize the second one the library
 must be installed as ``pytermor[fast]`` , which installs extra dependencies automatically.
 
@@ -234,8 +234,13 @@ which are more complex and in general excessive for this task.
 More details: :ref:`appendix.approx-diff`
 
 There is also a demo script which can illustrate the difference between approximated
-colors using different color distance formulas. For the details see `Examples —
-Demo — approximate.py <examples.demo.approximate>`.
+colors using different color distance formulas. For the details see `demo.approximate`.
+
+.. [#] but it's still so damn slow compared to the compiled implementations because
+       there is just too many operations of converting Python's data types to actual
+       values in memory back and forth, which are expensive; nevertheless, the library
+       was not supposed to perform processing of big image datas, and approximation
+       in general has being invoked infrequently.
 
 .. [#] https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.KDTree.html
 
@@ -245,7 +250,7 @@ Demo — approximate.py <examples.demo.approximate>`.
 .. _guide.color_class_diagram:
 
 ========================================
-:fas:`sitemap` Color class hierarchy
+:fas:`sitemap` Color family
 ========================================
 
 

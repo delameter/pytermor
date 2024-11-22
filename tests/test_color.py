@@ -611,25 +611,28 @@ class TestColor16:
 
     @pytest.mark.parametrize(
         "upper_bound, target, expected_result, msg",
-        map(lambda p: (p+[None])[:4], [
-            [None, ColorTarget.FG, SequenceSGR(31)],
-            [None, ColorTarget.BG, SequenceSGR(41)],
-            [None, ColorTarget.UNDERLINE, NOOP_SEQ],
-            [ColorRGB, ColorTarget.FG, SequenceSGR(31)],
-            [ColorRGB, ColorTarget.BG, SequenceSGR(41)],
+        map(
+            lambda p: (p + [None])[:4],
             [
-                ColorRGB,
-                ColorTarget.UNDERLINE,
-                SequenceSGR(58, 5, 88),
-                "should be 256 because prefer_rgb is False by default",
+                [None, ColorTarget.FG, SequenceSGR(31)],
+                [None, ColorTarget.BG, SequenceSGR(41)],
+                [None, ColorTarget.UNDERLINE, NOOP_SEQ],
+                [ColorRGB, ColorTarget.FG, SequenceSGR(31)],
+                [ColorRGB, ColorTarget.BG, SequenceSGR(41)],
+                [
+                    ColorRGB,
+                    ColorTarget.UNDERLINE,
+                    SequenceSGR(58, 5, 88),
+                    "should be 256 because prefer_rgb is False by default",
+                ],
+                [Color256, ColorTarget.FG, SequenceSGR(31)],
+                [Color256, ColorTarget.BG, SequenceSGR(41)],
+                [Color256, ColorTarget.UNDERLINE, SequenceSGR(58, 5, 88)],
+                [Color16, ColorTarget.FG, SequenceSGR(31)],
+                [Color16, ColorTarget.BG, SequenceSGR(41)],
+                [Color16, ColorTarget.UNDERLINE, NOOP_SEQ],
             ],
-            [Color256, ColorTarget.FG, SequenceSGR(31)],
-            [Color256, ColorTarget.BG, SequenceSGR(41)],
-            [Color256, ColorTarget.UNDERLINE, SequenceSGR(58, 5, 88)],
-            [Color16, ColorTarget.FG, SequenceSGR(31)],
-            [Color16, ColorTarget.BG, SequenceSGR(41)],
-            [Color16, ColorTarget.UNDERLINE, NOOP_SEQ],
-        ]),
+        ),
     )
     def test_to_sgr(
         self,

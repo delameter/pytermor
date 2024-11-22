@@ -1,4 +1,4 @@
-.. _examples.demo:
+.. _demo:
 
 #################
      Demo
@@ -12,7 +12,7 @@ method <install.demo>` to obtain them along with the library source code.
 Command for running any example looks like this: :code:`./run-cli examples/<FILENAME>`
 
 
-.. _examples.demo.approximate:
+.. _demo.approximate:
 
 -----------------------------------
 approximate.py
@@ -54,7 +54,7 @@ LAB color space as a default color difference computation algorithm.
            :align: center
            :class: no-scaled-link
 
-.. _examples.demo.autopick_fg:
+.. _demo.autopick_fg:
 
 -----------------------------------
 autopick_fg.py

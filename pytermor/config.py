@@ -38,11 +38,11 @@ class Config:
     """
 
     __slots__ = (
-        'renderer_classname',
-        'force_output_mode',
-        'default_output_mode',
-        'trace_renders',
-        'prefer_rgb',
+        "renderer_classname",
+        "force_output_mode",
+        "default_output_mode",
+        "trace_renders",
+        "prefer_rgb",
     )
 
     def __init__(
@@ -76,15 +76,16 @@ class Config:
                                     so in order to see the traces another attached handler is
                                     required.
         """
+
         def __arg_or_env(arg: t.Optional[t.Any], env_var: str, default: t.Any):
             if arg is None:
                 return os.getenv(env_var, default)
             return arg
 
-        self.renderer_classname: str = __arg_or_env(renderer_classname, "RENDERER_CLASSNAME", "SgrRenderer")
-        self.force_output_mode: str = __arg_or_env(
-            force_output_mode, "FORCE_OUTPUT_MODE", "auto"
+        self.renderer_classname: str = __arg_or_env(
+            renderer_classname, "RENDERER_CLASSNAME", "SgrRenderer"
         )
+        self.force_output_mode: str = __arg_or_env(force_output_mode, "FORCE_OUTPUT_MODE", "auto")
         self.default_output_mode: str = __arg_or_env(
             default_output_mode, "DEFAULT_OUTPUT_MODE", "xterm_256"
         )
@@ -96,6 +97,7 @@ class ConfigManager:
     """
     YES
     """
+
     _default: Config = None
 
     @classmethod

@@ -97,6 +97,18 @@
     color: red;
     background: blue;
 }
+.redonblack {
+    color: red;
+    background: black;
+}
+.blueonblack {
+    color: blue;
+    background: black;
+}
+.whiteonblack {
+    color: white;
+    background: black;
+}
 .yellowonredline {
     color: yellow;
     background: red;

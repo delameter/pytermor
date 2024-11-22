@@ -66,6 +66,7 @@ init-venv: reinit-manual-venv
 
 init-hatch:  ## Install build backend  <host>
 	pipx install hatch
+	hatch config set dirs.env.pip-compile .hatch
 
 init-system-pdf:  ## Prepare environment for pdf rendering  <host>
 	sudo apt install texlive-latex-recommended \
@@ -77,9 +78,13 @@ init-system-pdf:  ## Prepare environment for pdf rendering  <host>
 					 dvisvgm
 
 reinit:  ## Demolish and install auto and manual(=default) environments <hatch> <venv>
-reinit: reinit-hatch reinit-manual-venv
+reinit: reinit-hatch-all reinit-manual-venv
 
-reinit-hatch:  ## Demolish and install auto environments <hatch>
+reinit-hatch-dev:  ## Demolish and install auto dev environment <hatch>
+	hatch env remove dev
+	hatch run dev:version
+
+reinit-hatch-all:  ## Demolish and install auto environments <hatch>
 	@for envname in $$(hatch env show --json | jq '.|keys[]' -r) ; do \
   		if test $$envname = default ; then continue ; fi ; \
   		echo ------------ $$envname --------------- ;  \
@@ -89,10 +94,7 @@ reinit-hatch:  ## Demolish and install auto environments <hatch>
 
 reinit-manual-venv:    ## Demolish and install manual environment <venv>
 	${HOST_DEFAULT_PYTHON} -m venv --clear ${VENV_LOCAL_PATH}
-	${VENV_LOCAL_PATH}/bin/python -m pip install \
-		-r requirements/requirements-build.txt \
-		-r requirements/requirements-test.txt \
-		-r requirements/requirements-demo.txt
+	${VENV_LOCAL_PATH}/bin/python -m pip install -r requirements/requirements-dev.txt
 	${VENV_LOCAL_PATH}/bin/python -m pytermor
 
 

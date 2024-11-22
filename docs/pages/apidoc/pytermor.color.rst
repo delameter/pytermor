@@ -1,6 +1,43 @@
 ﻿pytermor.color
 ==============
 
+
+
+
+
+
+  
+
+
+
+
+.. only:: html
+
+    .. sidebar::
+        :class: seamless-sidebar
+
+        
+
+        .. button-ref:: guide.color_class_diagram
+            :color: primary
+            :class: fa-sitemap sidebar-button sd-text-nowrap
+            :outline:
+
+        .. button-ref:: guide.color_transitions
+            :color: primary
+            :class: fa-retweet sidebar-button sd-text-nowrap
+            :outline:
+
+.. only:: latex
+
+    
+
+    :fas:`sitemap` `guide.color_class_diagram`
+
+    :fas:`retweet` `guide.color_transitions`
+
+
+
 .. automodule:: pytermor.color
 
    
@@ -9,6 +46,8 @@
 
    .. autosummary::
    
+      CONTRAST_RATIO_THRESHOLD
+      BG_LUMINANCE_THRESHOLD
       CDT
    
    

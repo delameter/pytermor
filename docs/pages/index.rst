@@ -51,49 +51,66 @@ The library is extendable and supports a variety of formatters (called
          `install`
 
       .. grid-item-card::
+         :link-type: ref
+         :link:      features
 
-         :ref:`features`
-
-      .. grid-item-card::
-
-         :ref:`examples`
-
+         `features`
 
       .. grid-item-card::
+         :link-type: ref
+         :link:      examples
 
-         :ref:`guide.core-api-1`
+         `examples`
+
+         *theory*
+
+      .. grid-item-card::
+         :link-type: ref
+         :link:      guide.core-api-1
+
+         `guide.core-api-1`
 
          *high abstraction level*
 
       .. grid-item-card::
+         :link-type: ref
+         :link:      guide.core-api-2
 
-         :ref:`guide.core-api-2`
+         `guide.core-api-2`
 
          *low abstraction level*
 
       .. grid-item-card::
+         :link-type: ref
+         :link:      demo
+
+         `demo`
+
+         *practice*
+
+      .. grid-item-card::
+         :link-type: ref
+         :link:      apidoc
 
          :ref:`API docs <apidoc>`
 
          *complete API reference*
 
       .. grid-item-card::
-
-         :ref:`Package tree <package_graph>`
-
-         *internal imports graph*
-
-      .. grid-item-card::
-
-         :ref:`changes`
-
-         *release history*
-
-      .. grid-item-card::
+         :link-type: ref
+         :link:      genindex
 
          :ref:`genindex`
 
          *all functions, classes, terms*
+
+      .. grid-item-card::
+         :link-type: ref
+         :link:      package_graph
+
+         :ref:`Package tree <package_graph>`
+
+         *internal dependency graph*
 
    .. rubric:: Contents
 
@@ -103,6 +120,7 @@ The library is extendable and supports a variety of formatters (called
    install
    features
    examples/index
+   demo
 
 .. toctree::
    :caption: Documentation

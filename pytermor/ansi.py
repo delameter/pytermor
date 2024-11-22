@@ -13,8 +13,6 @@ Can be used for creating a variety of sequences including:
       selective screen clearing);
     - :abbr:`OSC (Operating System Command)` sequences (various system commands).
 
-:fas:`sitemap;sd-text-primary` `guide.ansi_class_diagram`
-
 Provides a bunch of ready-to-use sequence makers, as well as core method
 `get_closing_seq()` that queries SGR pairs registry and composes "counterpart"
 sequence for a specified one: every attribute that the latter modifies, will be
@@ -39,11 +37,16 @@ from typing import Any
 from .common import get_qname
 from .exception import ConflictError, LogicError, ParseError
 
-COLORS = list(range(30, 39))
-BG_COLORS = list(range(40, 49))
+COLORS = list(range(30, 38))
+"""Base foreground colors"""
+BG_COLORS = list(range(40, 48))
+"""Base background colors"""
 HI_COLORS = list(range(90, 98))
+"""High-intensity foreground colors"""
 BG_HI_COLORS = list(range(100, 108))
+"""High-intensity background colors"""
 ALL_COLORS = COLORS + BG_COLORS + HI_COLORS + BG_HI_COLORS
+"""Base + high-intensity colors"""
 
 
 class _ClassMap(t.Dict[str, t.Type["ISequence"]]):
@@ -152,9 +155,7 @@ class ISequence(t.Sized, metaclass=_SequenceMeta):
         if self._CLASSIFIER and clfer != self._CLASSIFIER:
             raise LogicError(f"Classifier mismatch: {self._CLASSIFIER} != {clfer!r}")
         if self._CLASSIFIER_RANGE and ord(clfer) not in self._CLASSIFIER_RANGE:
-            raise LogicError(
-                f"Classifier {clfer!r} not in allowed {self._CLASSIFIER_RANGE!r}"
-            )
+            raise LogicError(f"Classifier {clfer!r} not in allowed {self._CLASSIFIER_RANGE!r}")
 
         if self._final is not None and len(self._final) != 1:  # pragma: no cover
             raise ValueError(f"Final byte should consist of one char: {self._final!r}")
@@ -173,9 +174,7 @@ class ISequence(t.Sized, metaclass=_SequenceMeta):
         raise NotImplementedError
 
     @classmethod
-    def cast_params(
-        cls, data: dict, key: str, require_int: bool
-    ) -> t.Iterable[str | int, ...]:
+    def cast_params(cls, data: dict, key: str, require_int: bool) -> t.Iterable[str | int, ...]:
         if not (params_raw := data.get(key)):
             return
         for param_spl in params_raw.split(cls.PARAM_SEPARATOR):
@@ -236,9 +235,7 @@ class SequenceNf(ISequence):
     _CLASSIFIER_RANGE = range(0x20, 0x30)
     _ABBR_DEFAULT = "nF"
 
-    def __init__(
-        self, classifier: str, final: str, interm: str = None, abbr=_ABBR_DEFAULT
-    ):
+    def __init__(self, classifier: str, final: str, interm: str = None, abbr=_ABBR_DEFAULT):
         """
         :param classifier: :def:`Classifier` char (:hex:`0x20-0x2F`)
         :param final: Final char (:hex:`0x30-0x7E`)
@@ -408,18 +405,14 @@ class SequenceCSI(SequenceFe):
 
     _CLASSIFIER = "["
 
-    def __init__(
-        self, final: str = None, *params: int, interm: str = None, abbr: str = "CSI"
-    ):
+    def __init__(self, final: str = None, *params: int, interm: str = None, abbr: str = "CSI"):
         """
         :param final: Final char (:hex:`0x40-0x7E`)
         :param params: Parameter chars (:hex:`0x30-0x3F`)
         :param interm: Intermediate chars. (:hex:`0x21/0x3F`)
         :param abbr: Abbreviation for debug purposes.
         """
-        super().__init__(
-            self._CLASSIFIER, *params, interm=interm, final=final, abbr=abbr
-        )
+        super().__init__(self._CLASSIFIER, *params, interm=interm, final=final, abbr=abbr)
 
     def assemble(self) -> str:
         return (
@@ -593,9 +586,7 @@ class SequenceSGR(SequenceCSI):
     @staticmethod
     def validate_extended_color(value: int):
         if value < 0 or value > 255:
-            raise ValueError(
-                f"Invalid color value: expected range [0-255], got: {value}"
-            )
+            raise ValueError(f"Invalid color value: expected range [0-255], got: {value}")
 
 
 class _NoOpSequenceSGR(SequenceSGR):
@@ -672,7 +663,7 @@ class SubtypedParam:
 # -----------------------------------------------------------------------------
 
 
-class IntCode(enum.IntEnum):   # @FIXME hide default `int` docstrings
+class IntCode(enum.IntEnum):  # @FIXME hide default `int` docstrings
     """
     Complete or almost complete list of reliably working SGR param integer codes.
     Fully interchangeable with plain *int*. Suitable for `SequenceSGR`
@@ -1001,12 +992,8 @@ class _SgrPairityRegistry:
         self._bind_complex((IntCode.COLOR_EXTENDED, 2), 3, IntCode.COLOR_OFF)
         self._bind_complex((IntCode.BG_COLOR_EXTENDED, 5), 1, IntCode.BG_COLOR_OFF)
         self._bind_complex((IntCode.BG_COLOR_EXTENDED, 2), 3, IntCode.BG_COLOR_OFF)
-        self._bind_complex(
-            (IntCode.UNDERLINE_COLOR_EXTENDED, 5), 1, IntCode.UNDERLINE_COLOR_OFF
-        )
-        self._bind_complex(
-            (IntCode.UNDERLINE_COLOR_EXTENDED, 2), 3, IntCode.UNDERLINE_COLOR_OFF
-        )
+        self._bind_complex((IntCode.UNDERLINE_COLOR_EXTENDED, 5), 1, IntCode.UNDERLINE_COLOR_OFF)
+        self._bind_complex((IntCode.UNDERLINE_COLOR_EXTENDED, 2), 3, IntCode.UNDERLINE_COLOR_OFF)
 
     def _bind_regular(self, starter_code: int | t.Tuple[int, ...], resetter_code: int):
         if starter_code in self._code_to_resetter_map:  # pragma: no cover
@@ -1015,18 +1002,14 @@ class _SgrPairityRegistry:
         self._code_to_resetter_map[starter_code] = SequenceSGR(resetter_code)
         self._resetter_codes.add(resetter_code)
 
-    def _bind_complex(
-        self, starter_codes: t.Tuple[int, ...], param_len: int, resetter_code: int
-    ):
+    def _bind_complex(self, starter_codes: t.Tuple[int, ...], param_len: int, resetter_code: int):
         self._bind_regular(starter_codes, resetter_code)
 
         if starter_codes in self._complex_code_def:  # pragma: no cover
             raise ConflictError(f"SGR {starter_codes} already has a registered resetter")
 
         self._complex_code_def[starter_codes] = param_len
-        self._complex_code_max_len = max(
-            self._complex_code_max_len, len(starter_codes) + param_len
-        )
+        self._complex_code_max_len = max(self._complex_code_max_len, len(starter_codes) + param_len)
 
     def get_closing_seq(self, opening_seq: SequenceSGR) -> SequenceSGR:
         if not isinstance(opening_seq, SequenceSGR):
@@ -1037,13 +1020,9 @@ class _SgrPairityRegistry:
         opening_params = copy(opening_seq.params)
 
         while len(opening_params):
-            key_params: int | SubtypedParam | t.Tuple[
-                int | SubtypedParam, ...
-            ] | None = None
+            key_params: int | SubtypedParam | t.Tuple[int | SubtypedParam, ...] | None = None
 
-            for complex_len in range(
-                1, min(len(opening_params), self._complex_code_max_len + 1)
-            ):
+            for complex_len in range(1, min(len(opening_params), self._complex_code_max_len + 1)):
                 opening_complex_suggestion = tuple(opening_params[:complex_len])
 
                 if opening_complex_suggestion in self._complex_code_def:

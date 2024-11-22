@@ -12,7 +12,6 @@ import sys
 import pytest
 
 import pytermor as pt
-from . import format_test_params
 from pytermor import (
     SgrRenderer,
     OutputMode,
@@ -22,8 +21,10 @@ from pytermor import (
     IRenderer,
     HtmlRenderer,
     force_ansi_rendering,
-    force_no_ansi_rendering, NOOP_STYLE,
+    force_no_ansi_rendering,
+    NOOP_STYLE,
 )
+from . import format_test_params
 
 
 class TestRendererConfiguration:
@@ -50,9 +51,7 @@ class TestRendererConfiguration:
 class TestTmuxRenderer:
     def test_basic_render_works(self):
         result = pt.render("12345", Style(fg="red", bg="black", bold=True))
-        assert result == (
-            "#[fg=red bg=black bold]" "12345" "#[fg=default bg=default nobold]"
-        )
+        assert result == ("#[fg=red bg=black bold]" "12345" "#[fg=default bg=default nobold]")
 
     def test_attribute_render_works(self):
         result = pt.render(
@@ -123,7 +122,7 @@ class TestTmuxRenderer:
 class TestHtmlRenderer:
     def test_noop_render_works(self):
         result = HtmlRenderer().render("12345", NOOP_STYLE)
-        assert result == '12345'
+        assert result == "12345"
 
     def test_basic_render_works(self):
         result = pt.render("12345", Style(fg="red", bg="black", bold=True))
@@ -231,9 +230,7 @@ class TestSgrRenderer:
         assert self._make_fake_tty_renderer()._output_mode == expected
 
     def test_mode_detect_on_closed_io(self):
-        assert (
-            self._make_fake_tty_renderer(close=True)._output_mode == OutputMode.NO_ANSI
-        )
+        assert self._make_fake_tty_renderer(close=True)._output_mode == OutputMode.NO_ANSI
 
     @pytest.mark.config(default_output_mode="xterm_16")
     def test_mode_default_value_utilized(self):
@@ -314,11 +311,7 @@ class TestRendererManager:
 class TestMisc:
     def test_force_ansi_rendering(self):
         force_ansi_rendering()
-        assert (
-            RendererManager.get().render("123", "red") == "\x1b[31m"
-            "123"
-            "\x1b[39m"
-        )
+        assert RendererManager.get().render("123", "red") == "\x1b[31m" "123" "\x1b[39m"
 
     def test_force_no_ansi_rendering(self):
         force_no_ansi_rendering()

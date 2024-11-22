@@ -53,7 +53,7 @@ to equivalence mechanics are considered different:
 The approximation algorithm was explicitly made to ignore these colors because
 otherwise the results of transforming `RGB` values into e.g. ``Color256``, would
 be unpredictable, in addition to different results for different users, depending
-on their terminal emulator setup. See also: <guide.approximation>.
+on their terminal emulator setup. See also: <guide.approximators>.
 
 
 .. _guide.xterm-256-palette:

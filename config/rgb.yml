@@ -3157,6 +3157,15 @@ colors:
   - name: herky-jerky
     original_name: Herky jerky (Atlassian)
     value: 0x998dd9
+  - name: hextech-black
+    original_name: hextech black
+    value: 0x010a13
+  - name: hextech-magic
+    original_name: hextech magic
+    value: 0x0397ab
+  - name: hextech-metal
+    original_name: hextech metal
+    value: 0xc89b3c
   - name: hi-blue-kalm
     original_name: Hi-Blue kalm
     value: 0x81a2be
@@ -6131,6 +6140,9 @@ colors:
   - name: samsung-blue
     original_name: Samsung blue
     value: 0x12279e
+  - name: samurai-blue
+    original_name: samurai blue
+    value: 0x407191
   - name: sand
     original_name: sand
     value: 0xe2ca76
@@ -7438,9 +7450,6 @@ colors:
   - name: yankees-blue
     original_name: Yankees blue
     value: 0x1c2841
-  - name: yasuo-blue
-    original_name: yasuo blue
-    value: 0x407191
   - name: yellow
     original_name: yellow
     value: 0xffff14

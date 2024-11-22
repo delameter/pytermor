@@ -26,22 +26,14 @@ class TestBorder:
         assert [*border.make(5, "<->".splitlines(), pad_x=0)] == expected
 
     def test_format_matches(self):
-        input_fname = "test_border_inp.txt"
         expected_fname = "test_border_exp.txt"
         list_buffer = io.StringIO()
 
-        for idx, el in enumerate(load_data_file(input_fname).splitlines()):
-            module_name, origin_name = el.rsplit(".", 1)
-            if (module := pydoc.safeimport(module_name)) is None:
-                raise RuntimeError(f"Failed to import module: {module_name!r}")
-
-            border: Border = getattr(module, origin_name)
-            assert isinstance(border, Border)
-
-            cw = max(24, len(origin_name) + 4)
+        for idx, (origin_name, border) in enumerate(ALL.items()):
+            cw = 27
             content = [origin_name]
             output_lines = []
-            for line in border.make(7, f"#{idx+1:>02d}", "^"):
+            for line in border.make(6, f"{idx+1:02d}", "^"):
                 output_lines.append(line)
 
             for n, line in enumerate(border.make(cw, content, "^")):

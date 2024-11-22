@@ -34,7 +34,7 @@ Time delta formatter
 .. _guide.numfmt_class_diagram:
 
 =============================================
-:fas:`sitemap` Formatter class hierarchy
+:fas:`sitemap` Formatter family
 =============================================
 
 .. grid:: 1

@@ -8,7 +8,18 @@ Various general-purpose numeric formatters and highlighters with prefix
 auto-select suitable for any SI unit or a unitless value as well, plus
 dedicated methods for formatting time intervals from femtoseconds to years.
 
-:fas:`sitemap;sd-text-primary` `guide.numfmt_class_diagram`
+.. hint ::
+
+    Waste majority of the methods in this module were initially
+    developed for usage as a formatters of CLI indicators, status
+    bars, etc, in other words -- for something that is rapidly
+    updating, and when the fixed width is much more important than
+    consistent alignment. That is why it's not recommended to use
+    some of these methods as e.g. table formatters, because they
+    will produce questionable results: when somebody sees a table
+    column with floating-point numbers, he expects values to be
+    aligned by the decimal separator, and that's what standard
+    library's tools do good (``f"{val:3.1f}%"``).
 
 """
 from __future__ import annotations

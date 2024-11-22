@@ -1,6 +1,16 @@
 ﻿pytermor.config
 ===============
 
+
+
+
+
+
+
+
+
+
+
 .. automodule:: pytermor.config
 
    

@@ -1,6 +1,16 @@
 ﻿pytermor.style
 ==============
 
+
+
+
+
+
+
+
+
+
+
 .. automodule:: pytermor.style
 
    

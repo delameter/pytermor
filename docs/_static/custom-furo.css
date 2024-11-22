@@ -198,8 +198,13 @@ div.graphviz {
 }
 .output p,
 .output div {
+    font-family: 'ASM', monospace;
+    letter-spacing: -1px;
+    background: #111 !important;
+    color: #eee !important;
+}
+body:not([data-theme="light"]) .output p, .output div {
     background: #000 !important;
-    color: #fff !important;
 }
 .highlight-adjacent:not(:last-of-type) {
     margin-bottom: 0 !important;
@@ -734,8 +739,17 @@ table.presets aside.footnote {
 .colorbox {
     padding: 0 0.4em;
     border: 1px outset var(--color-content-foreground);
+    border-radius: 100%;
 }
 
 .colorboxlabel {
     font-style: italic;
+}
+
+aside.seamless-sidebar {
+    background: initial;
+    border: initial;
+}
+aside.seamless-sidebar p {
+    text-align: right;
 }

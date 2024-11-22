@@ -10,7 +10,7 @@ import pytest
 from pytermor import (
     LogicError,
     OutputMode,
-    TemplateEngine, RendererManager,
+    TemplateEngine,
 )
 from tests import format_test_params
 

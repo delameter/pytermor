@@ -28,4 +28,3 @@ For more advanced ones proceed to the next section.
 
    rendering
    style-registry
-   demo

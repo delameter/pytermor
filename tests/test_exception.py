@@ -6,13 +6,12 @@
 from __future__ import annotations
 
 import re
-import sys
 import typing as t
 
 import pytest
 
 import pytermor as pt
-from pytermor import ArgTypeError, Color, CXT, FT, IT, Style, Color256
+from pytermor import ArgTypeError, Style, Color256
 from pytermor.exception import ArgCountError
 from tests import format_test_params, skip_pre_310_typing
 

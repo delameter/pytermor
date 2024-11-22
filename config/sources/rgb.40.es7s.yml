@@ -10,11 +10,17 @@
   value: 0xe7c899
 - name: "macedonian orange"
   value: 0xe97f28
+- name: "hextech black"
+  value: 0x010a13
+- name: "hextech metal"
+  value: 0xC89B3C
+- name: "hextech magic"
+  value: 0x0397AB
 - name: "moonlightd"
   value: 0x7280e2
 - name: "skylight blue"
   value: 0x0395f3
-- name: "yasuo blue"
+- name: "samurai blue"
   value: 0x407191
 
 # ---------------------------

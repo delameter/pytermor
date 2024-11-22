@@ -1,5 +1,7 @@
 .. _examples.style-registry:
 
+.. currentmodule:: pytermor.style
+
 #######################
     Style Registry
 #######################
@@ -32,12 +34,34 @@ Immutability
 
 ...
 
+.. _examples.style-merging:
+
 -----------------------------------
-Inheritance
+Style merging example
 -----------------------------------
 
-...
+Style merging allows to build complex style conditions, e.g. take a look into
+`Highlighter.colorize()` method::
 
+    int_st = merge_styles(st, fallbacks=[Style(bold=True)])
+
+Instead of using ``Style(st, bold=True)`` the merging algorithm is invoked.
+This changes the logic of "bold" attribute application -- if there is a
+necessity to explicitly forbid bold text at origin/parent level, one could write::
+
+    STYLE_NUL = Style(STYLE_DEFAULT, cv.GRAY, bold=False)
+    STYLE_PRC = Style(STYLE_DEFAULT, cv.MAGENTA)
+    STYLE_KIL = Style(STYLE_DEFAULT, cv.BLUE)
+    ...
+
+Resulting ``int_st`` will be bold for all styles except ``STYLE_NUL``:
+
+    >>> from pytermor import merge_styles, Style, cv
+    >>> merge_styles(Style(fg=cv.BLUE), fallbacks=[Style(bold=True)])
+    <Style[blue +BOLD]>
+
+    >>> merge_styles(Style(fg=cv.GRAY, bold=False), fallbacks=[Style(bold=True)])
+    <Style[gray -BOLD]>
 
 -----------------------------------
 Attaching logic

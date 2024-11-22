@@ -19,12 +19,15 @@ from typing import Any, Union
 from .color import (
     Color,
     NOOP_COLOR,
+    BG_LUMINANCE_THRESHOLD,
+    CONTRAST_RATIO_THRESHOLD,
     resolve_color,
     IColorValue,
     ColorRGB,
     RenderColor,
     RealColor,
     CDT,
+    XYZ,
 )
 from .cval import cv
 from .exception import ArgTypeError, LogicError
@@ -38,51 +41,27 @@ CXT = Union[CDT, IColorValue, RenderColor, None]
 
 
 class MergeMode(str, enum.Enum):
+    """Enumeration of merge modes used by `TemplateEngine`."""
+
     FALLBACK = "?"
+    """ See `Style.merge_fallback()` """
+
     OVERWRITE = "!"
+    """ See `Style.merge_overwrite()` """
+
     REPLACE = "@"
+    """ See `Style.merge_replace()` """
 
 
 # noinspection NonAsciiCharacters
 @dataclass()
 class Style:
     """
-    Create new text render descriptior.
+    Create new text render descriptor. Both ``fg`` and ``bg`` can be specified
+    as existing `Color` instance, as well as plain *str* or *int* (for the
+    details see `resolve_color()`). This applies to ``underline_color`` as well.
 
-    Both ``fg`` and ``bg`` can be specified as existing ``Color`` instance as well
-    as plain *str* or *int* (for the details see `resolve_color()`). This applies
-    to ``underline_color`` as well.
-
-        >>> Style(fg='green', bold=True)
-        <Style[green +BOLD]>
-        >>> Style(bg=0x0000ff)
-        <Style[|#0000ff]>
-        >>> Style(fg='DeepSkyBlue1', bg='gray3')
-        <Style[x39|x232]>
-
-    Attribute merging from ``fallback`` works this way:
-
-        - If constructor argument is *not* empty (*True*, *False*, ``Color``
-          etc.), keep it as attribute value.
-        - If constructor argument is empty (*None*, ``NOOP_COLOR``), take the
-          value from ``fallback``'s corresponding attribute.
-
-    See `merge_fallback()` and `merge_overwrite()` methods and take the
-    differences into account. The method used in the constructor is the first one.
-
-    .. important ::
-        Both empty (i.e., *None*) attributes of type ``Color`` after initialization
-        will be replaced with special constant `NOOP_COLOR`, which behaves like
-        there was no color defined, and at the same time makes it safer to work
-        with nullable color-type variables. Merge methods are aware of this and
-        trear `NOOP_COLOR` as *None*.
-
-    .. attention ::
-        *None* and `NOOP_COLOR` are always treated as placeholders for fallback
-        values, i.e., they can't be used as *resetters* -- that's what `DEFAULT_COLOR`
-        is for.
-
-    :param fallback:    Copy empty attributes from speicifed fallback style.
+    :param fallback:    Copy unfilled attributes from specified fallback style.
                         See `merge_fallback()`.
     :param fg:          Foreground (=text) color.
     :param bg:          Background color.
@@ -191,7 +170,7 @@ class Style:
 
     class_name: str
     """ 
-    Arbitary string used by some `renderers <IRenderer>`, e.g. by 
+    Arbitrary string used by some `renderers <IRenderer>`, e.g. by 
     ``HtmlRenderer``, which will include the value of this property to
     an output element class list. This property is not inheritable.
     """
@@ -295,20 +274,59 @@ class Style:
         """
         return Style(self, frozen=frozen)
 
-    def autopick_fg(self) -> Style:
+    def autopick_fg(self, *, preserve_origin=False, transparent_as_black=False) -> Style:
         """
-        Pick ``fg_color`` depending on ``bg_color``. Set ``fg_color`` to
-        either :colorbox:`gray-0` if background is bright, or to :colorbox:`gray-100`
-        if it is dark. If background is None, do nothing.
+        Set ``fg_color``  depending on ``bg_color``: to either
+        :colorbox:`gray-0` if background is bright, or to :colorbox:`gray-100`
+        if it is dark. For the details see `guide.styles.autopick_fg`. If
+        background is None, do nothing, unless ``transparent_as_black`` is set
+        to *True*.
 
-        Modifies the instance in-place and returns it as well (for chained calls).
+        .. list-table:: Results for different parameter combinations; note that blue text
+                        on black bg has lower contrast ratio than required, so in order
+                        to keep text readable foreground is set to white even when
+                        `preserve_origin=True`.
+           :header-rows: 1
+
+           * - Parameters
+             - ``bg=``\ :colorbox:`#FFF`
+             - ``bg=``\ :colorbox:`#000`
+           * - ``preserve_origin=``\ *False*, ``fg`` :comment:`is irrelevant`
+             - black on white
+             - :whiteonblack:`white on black`
+           * - ``preserve_origin=``\ *True*, ``fg=``\ :colorbox:`#F00`
+             - :red:`red on white`
+             - :redonblack:`red on black`
+           * - ``preserve_origin=``\ *True*, ``fg=``\ :colorbox:`#00F`
+             - :blue:`blue on white`
+             - :whiteonblack:`white on black` |warn|
+
+        Modifies the instance in-place and returns it as well (for chained
+        calls).
+
+        :param preserve_origin:
+                    Set to *True* to update the foreground color only when
+                    necessary (i.e., if the contrast is good enough, no action
+                    will be performed).
+        :param transparent_as_black:
+                    Set to *True* to treat transparent background (i.e.
+                    `NOOP_COLOR`) like a black one.
         """
         self._ensure_not_frozen()
-        if not isinstance(self._bg, RealColor):
+
+        ref_bg: XYZ
+        if isinstance(self._bg, RealColor):
+            ref_bg = self._bg.xyz
+        else:
+            if transparent_as_black:
+                ref_bg = cv.GRAY_0.xyz
+            else:
+                return self
+
+        if preserve_origin and XYZ.contrast(ref_bg, self._fg) >= CONTRAST_RATIO_THRESHOLD:
             return self
 
-        _, bg_y, _ = self._bg.xyz
-        if bg_y > 17.8:
+        if ref_bg.y > BG_LUMINANCE_THRESHOLD:
             self._fg = cv.GRAY_0
         else:
             self._fg = cv.GRAY_100
@@ -351,23 +369,9 @@ class Style:
 
         All attributes corresponding to constructor arguments except ``fallback``
         are subject to merging. `NOOP_COLOR` is treated like *None* (default for `fg`
-        and `bg`).
+        and `bg`). See `guide.styles.merging` for more details.
 
         Modifies the instance in-place and returns it as well (for chained calls).
-
-        .. code-block ::
-            :caption: Merging different values in fallback mode
-
-                     FALLBACK   BASE(SELF)   RESULT
-                     +-------+   +------+   +------+
-            ATTR-1   | False --Ø | True ===>| True |  BASE val is in priority
-            ATTR-2   | True -----| None |-->| True |  no BASE val, taking FALLBACK val
-            ATTR-3   | None  |   | True ===>| True |  BASE val is in priority
-            ATTR-4   | None  |   | None |   | None |  no vals, keeping unset
-                     +-------+   +------+   +------+
-
-        .. seealso ::
-            `merge_styles` for the examples.
 
         :param fallback: Style to merge the attributes with.
         """
@@ -398,23 +402,9 @@ class Style:
 
         All attributes corresponding to constructor arguments except ``fallback``
         are subject to merging. `NOOP_COLOR` is treated like *None* (default for `fg`
-        and `bg`).
+        and `bg`). See `guide.styles.merging` for more details.
 
         Modifies the instance in-place and returns it as well (for chained calls).
-
-        .. code-block ::
-            :caption: Merging different values in overwrite mode
-
-                    BASE(SELF)  OVERWRITE    RESULT
-                     +------+   +-------+   +-------+
-            ATTR-1   | True ==Ø | False --->| False |  OVERWRITE val is in priority
-            ATTR-2   | None |   | True ---->| True  |  OVERWRITE val is in priority
-            ATTR-3   | True ====| None  |==>| True  |  no OVERWRITE val, keeping BASE val
-            ATTR-4   | None |   | None  |   | None  |  no vals, keeping unset
-                     +------+   +-------+   +-------+
-
-        .. seealso ::
-            `merge_styles` for the examples.
 
         :param overwrite:  Style to merge the attributes with.
         """
@@ -427,27 +417,16 @@ class Style:
 
     def merge_replace(self, replacement: Style) -> Style:
         """
-        Not an actual "merge": discard all the attributes of the current 
-        instance and replace them with the values from  `replacement`. Generally 
-        speaking, it makes sense only in `TemplateEngine` context, as style 
-        management using the template tags is quite limited, while there are 
+        Not an actual "merge": discard all the attributes of the current
+        instance and replace them with the values from  `replacement`. Generally
+        speaking, it makes sense only in `TemplateEngine` context, as style
+        management using the template tags is quite limited, while there are
         far more elegant ways to do the same from the regular python code.
 
         Modifies the instance in-place and returns it as well (for chained calls).
 
-        .. code-block ::
-            :caption: Merging different values in replace mode
-
-                    BASE(SELF)   REPLACE     RESULT
-                     +------+   +-------+  +-------+
-            ATTR-1   | False =Ø | True --->| True  |  REPLACE val is in priority
-            ATTR-2   | True ==Ø | False -->| False |  REPLACE val is in priority
-            ATTR-3   | None |   | False -->| False |  REPLACE val is in priority
-            ATTR-4   | True ==Ø | None --->| None  |   ... even when it is unset
-                     +------+   +-------+  +-------+
-
         :param replacement:  Style to merge the attributes with.
-        """ ""
+        """
         self._ensure_not_frozen()
         for attr in self.renderable_attributes:
             replacement_val = getattr(replacement, attr)
@@ -603,11 +582,10 @@ def is_ft(arg: any) -> bool:
 
 def make_style(fmt: FT = None) -> Style:
     """
-    General :class:`.Style` constructor, which invokes `resolve_color()` when the
-    ``fmt`` is provided as hexadecimal value or color name. All supported argument types:
+    General :class:`.Style` constructor. Supported argument types:
 
         - :class:`.Style` or *str*
-            Existing style instance, which is returned as it is, OR a name of the constant
+            Existing style instance, which is returned as is, OR a name of the constant
             defined in `Styles`; if there are no constant with that name found in the class,
             the function assumes that the string is either a hex color value or a color name.
 
@@ -646,112 +624,10 @@ def merge_styles(
     overwrites: t.Iterable[Style] = (),
 ) -> Style:
     """
-    Bulk style merging method. First merge `fallbacks` `styles <.Style>` with the
-    ``origin`` in the same order they are iterated, using `merge_fallback()` algorithm;
-    then do the same for `overwrites` styles, but using `merge_overwrite()` merge
-    method.
-
-    .. important ::
-        The original `origin` is left untouched, as all the operations are performed on
-        its clone. To make things clearer the name of the argument differs from the ones
-        that are modified in-place (``base`` and ``origin``).
-
-    .. code-block ::
-       :caption: Dual mode merge diagram
-
-                                       +-----+                                 +-----+
-          >---->---->----->---->------->     >-------(B)-update---------------->     |
-          |    |    |     |    |       |     |                                 |  R  |
-          |    |    |     |    |       |  B  >=>Ø    [0]>-[1]>-[2]> .. -[n]>   |  E  |
-       [0]>-[1]>-[2]>- .. >-[n]>->Ø    |  A  >=>Ø       |    |    |        |   |  S  |
-          |    |    >- .. ------->Ø    |  S  >=>Ø       >---(D)-update----->--->  U  |
-          |    >-----  .. ------->Ø    |  E  | (C) drop                        |  L  |
-          >----------  .. ------->Ø    |     |=================(E)=keep========>  T  |
-                                (A)    |     |                                 |     |
-                  FALLBACKS    drop    +-----+            OVERWRITES           +-----+
-
-    The key actions are marked with (**A**) to (**E**) letters. In reality the algorithm
-    works in slightly different order, but the exact scheme would be less illustrative.
-
-    :(A),(B):
-        Iterate ``fallback`` styles one by one; discard all the attributes of a
-        current ``fallback`` style, that are already set in ``origin`` style
-        (i.e., that are not *Nones*). Update all ``origin`` style empty attributes
-        with corresponding ``fallback`` values, if they exist and are not empty.
-        Repeat these steps for the next ``fallback`` in the list, until the list
-        is empty.
-
-        .. code-block :: python
-            :caption: Fallback merge algorithm example №1
-
-            >>> origin = Style(fg='red')
-            ...
-            >>> fallbacks = [Style(fg='blue'), Style(bold=True), Style(bold=False)]
-            ...
-            >>> merge_styles(origin, fallbacks=fallbacks)
-            <Style[red +BOLD]>
-
-        In the example above:
-
-            - the first fallback will be ignored, as `fg` is already set;
-            - the second fallback will be applied (``origin`` style will now have `bold`
-              set to *True*;
-            - which will make the handler ignore third fallback completely; if third
-              fallback was encountered earlier than the 2nd one, ``origin`` `bold` attribute
-              would have been set to *False*, but alas.
-
-        .. note ::
-
-            Fallbacks allow to build complex style conditions, e.g. take a look into
-            `Highlighter.colorize()` method::
-
-                int_st = merge_styles(st, fallbacks=[Style(bold=True)])
-
-            Instead of using ``Style(st, bold=True)`` the merging algorithm is invoked.
-            This changes the logic of "bold" attribute application -- if there is a
-            necessity to explicitly forbid bold text at origin/parent level, one could write::
-
-                STYLE_NUL = Style(STYLE_DEFAULT, cv.GRAY, bold=False)
-                STYLE_PRC = Style(STYLE_DEFAULT, cv.MAGENTA)
-                STYLE_KIL = Style(STYLE_DEFAULT, cv.BLUE)
-                ...
-
-            As you can see, resulting ``int_st`` will be bold for all styles other
-            than ``STYLE_NUL``.
-
-            .. code-block :: python
-                :caption: Fallback merge algorithm example №2
-
-                >>> merge_styles(Style(fg=cv.BLUE), fallbacks=[Style(bold=True)])
-                <Style[blue +BOLD]>
-                >>> merge_styles(Style(fg=cv.GRAY, bold=False), fallbacks=[Style(bold=True)])
-                <Style[gray -BOLD]>
-
-
-    :(C),(D),(E):
-        Iterate ``overwrite`` styles one by one; discard all the attributes of a ``origin``
-        style that have a non-empty counterpart in ``overwrite`` style, and put
-        corresponding ``overwrite`` attribute values instead of them. Keep ``origin``
-        attribute values that have no counterpart in current ``overwrite`` style (i.e.,
-        if attribute value is *None*). Then pick next ``overwrite`` style from the input
-        list and repeat all these steps.
-
-        .. code-block :: python
-            :caption: Overwrite merge algorithm example
-
-            >>> origin = Style(fg='red')
-            ...
-            >>> overwrites = [Style(fg='blue'), Style(bold=True), Style(bold=False)]
-            ...
-            >>> merge_styles(origin, overwrites=overwrites)
-            <Style[blue -BOLD]>
-
-        In the example above all the ``overwrites`` will be applied in order they were
-        put into *list*, and the result attribute values are equal to the last
-        encountered non-empty values in ``overwrites`` list.
+    Bulk style merging method. For the detailed explanation see `guide.styles.merging`.
 
     :param origin:     Initial style, or the source of attributes.
-    :param fallbacks:  List of styles to be used as a backup attribute storage, or.
+    :param fallbacks:  List of styles to be used as a backup attribute storage, or,
                        in other words, to be "merged up" with the origin; affects the unset
                        attributes of the current style and replaces these values with its
                        own. Uses `merge_fallback()` merging strategy.

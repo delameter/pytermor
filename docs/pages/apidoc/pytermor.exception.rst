@@ -1,6 +1,16 @@
 ﻿pytermor.exception
 ==================
 
+
+
+
+
+
+
+
+
+
+
 .. automodule:: pytermor.exception
 
    

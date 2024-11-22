@@ -30,9 +30,7 @@ from tests import format_test_params, load_data_file
 def read_file(filename: str) -> str:
     filepath = os.path.join(os.path.dirname(__file__), filename)
     if not os.path.isfile(filepath):
-        raise FileNotFoundError(
-            f"Required data file '{filename}' not found in test directory"
-        )
+        raise FileNotFoundError(f"Required data file '{filename}' not found in test directory")
     with open(filepath, "rt") as f:
         return f.read()
 
@@ -42,9 +40,15 @@ class TestParser:
         "input, expected_output",
         [
             (
-                "\x1b[1;91mr\x1b[22;39m\x1b[1;33mw\x1b[22;39m\x1b[1;93mx\x1b[22;39m"
-                "\x1b[2;91mr\x1b[22;39m\x1b[2;33mw\x1b[22;39m\x1b[2;93mx\x1b[22;39m"
-                "\x1b[37mr\x1b[39m\x1b[90mw\x1b[39m\x1b[90mx\x1b[39m",
+                "\x1b[1;91m" + "r" + "\x1b[22;39m"
+                "\x1b[1;33m" + "w" + "\x1b[22;39m"
+                "\x1b[1;93m" + "x" + "\x1b[22;39m"
+                "\x1b[2;91m" + "r" + "\x1b[22;39m"
+                "\x1b[2;33m" + "w" + "\x1b[22;39m"
+                "\x1b[2;93m" + "x" + "\x1b[22;39m"
+                "\x1b[37m" + "r" + "\x1b[39m"
+                "\x1b[90m" + "w" + "\x1b[39m"
+                "\x1b[90m" + "x" + "\x1b[39m",
                 [
                     SequenceSGR(1, 91),
                     "r",

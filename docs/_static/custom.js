@@ -4,15 +4,30 @@
 //-----------------------------------------------------------------------------
 
 $(document).ready(function () {
+    addIconsToLabeledButtons();
     replaceControlCharacters();
     transformReferences();
     formatEnvLists();
-    // formatEscCharLabels();  // now sphinx handles this
     squashNeighbourCodeSetions();
     removeBadgeBrackets();
     setExternalHrefTargetAndIcon();
     setXtermPaletteClickHandler();
 });
+
+function addIconsToLabeledButtons() {
+    for (let el of $('.sidebar-button')) {
+        let span = document.createElement('span');
+        span.classList.add("fa");
+        for (let cls of el.classList) {
+            if (cls.startsWith('fa-')) {
+                span.classList.add(cls);
+                el.classList.remove(cls);
+                break;
+            }
+        }
+        el.prepend(span);
+    }
+}
 
 function replaceControlCharacters() {
     for (let node of $("pre span.go, pre span.s1, p span.regex")) {
@@ -84,17 +99,20 @@ function squashNeighbourCodeSetions() {
 //     }
 //     affectedNodes.forEach(removeSpacesBetweenTags);
 // }
-
-function removeSpacesBetweenTags(el) {
-    if (!el) return;
-    el.innerHTML = el.innerHTML.replace(/>\s+</g, "><");
-}
+//
+// function removeSpacesBetweenTags(el) {
+//     if (!el) return;
+//     el.innerHTML = el.innerHTML.replace(/>\s+</g, "><");
+// }
 
 function setExternalHrefTargetAndIcon() {
     for (let el of $('a.external, a.internal.image-reference, .icons a')) {
         if (!el) continue;
         if (el.attributes.href.value.charAt(0) === '#') continue;
 
+        el.setAttribute('target', '_blank');
+
+        if (!el.classList.contains('external')) continue;
         let icon = document.createElement('i');
         icon.classList.add('fa', 'fa-external-link');
         el.appendChild(icon);

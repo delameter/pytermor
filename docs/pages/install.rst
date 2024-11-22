@@ -32,8 +32,7 @@ about 10x times faster (`details <guide.approximators>`):
 Demo installation
 ---------------------------
 
-Downloading source code for running some predefined examples (see `Examples —
-Demo <examples.demo>`).
+Downloading source code for running some predefined examples (see `demo`).
 
 .. code-block:: console
 

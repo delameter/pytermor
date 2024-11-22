@@ -20,7 +20,7 @@ Fragments
 .. _guide.text_class_diagram:
 
 ==========================================
-:fas:`sitemap` Fragment class hierarchy
+:fas:`sitemap` Fragment family
 ==========================================
 
 .. inheritance-diagram:: pytermor.text

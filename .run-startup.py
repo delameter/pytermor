@@ -5,8 +5,8 @@
 #  Licensed under GNU Lesser General Public License v3.0
 # -----------------------------------------------------------------------------
 # In this example we implement the output of several lines of formatted text at
-# the moment of this script execution, using different approaches from the lib.
-# In general the result should look like this (except that it will be colored):
+# the moment of this script execution, using different approaches from the lib-
+# rary. In general the result should look like this (except it will be colored):
 #
 #   imported rich.inspect as _
 #   imported pytermor as pt
@@ -100,7 +100,7 @@ pfn_st = pt.Style(fg="magenta")
 pdemo_text = pt.Fragment("print_self", pfn_st)
 pt.echo(f"{pdemo_text:>14s}()  display the startup script source code")
 
-# 10) or use FrozenText class supporting aligning and padding
+# 10) or use FrozenText class supporting alignment and padding
 pt.echo(pt.FrozenText("print_history", pfn_st, "()", width=16, align="right"), nl=False)
 pt.echo(pt.pad(2) + "display python console history\n")
 

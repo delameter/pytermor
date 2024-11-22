@@ -130,7 +130,7 @@ One instance of `SequenceSGR` can be added to another. This will result in a new
 .. _guide.ansi_class_diagram:
 
 ========================================
-:fas:`sitemap` Sequence class hierarchy
+:fas:`sitemap` Sequence family
 ========================================
 
 .. inheritance-diagram::  pytermor.ansi

@@ -57,9 +57,7 @@ class _SplitterWordsSelectiveWSpace(_StyleSplitter):
 
 class _SplitterWordsSelectiveComma(_StyleSplitter):
     def apply(self, tpl_text: str) -> t.Sequence[Fragment]:
-        return apply_style_selective(
-            re.compile(r"([^,]+)?([, ]*)"), tpl_text, self._tag_style
-        )
+        return apply_style_selective(re.compile(r"([^,]+)?([, ]*)"), tpl_text, self._tag_style)
 
 
 @dataclass(frozen=True)
@@ -133,9 +131,7 @@ class _TemplateTag:
         if not self._groups.split:
             return None
         if self._groups.split not in self._SPLITTERS.keys():  # pragma: no cover
-            raise LogicError(
-                f"Invalid template tag style splitter: '{self._groups.split}'"
-            )
+            raise LogicError(f"Invalid template tag style splitter: '{self._groups.split}'")
         return self._SPLITTERS.get(self._groups.split)
 
     def style(self, custom_styles: t.Dict[str, Style]) -> Style | None:
@@ -155,10 +151,7 @@ class _TemplateTag:
 
             if re.match("fg|bg|underline_color", style_attr):
                 style_attrs.update(
-                    {
-                        k: (v or DEFAULT_COLOR)
-                        for (k, _, v) in (style_attr.partition("="),)
-                    }
+                    {k: (v or DEFAULT_COLOR) for (k, _, v) in (style_attr.partition("="),)}
                 )
                 continue
 
@@ -251,9 +244,7 @@ class TemplateEngine:
     _COMMENT_REGEX = re.compile(r"#\[.*?\]")
     _ESCAPE_REGEX = re.compile(r"([^\\])\\\[")
 
-    def __init__(
-        self, custom_styles: t.Dict[str, Style] = None, global_style: Style = NOOP_STYLE
-    ):
+    def __init__(self, custom_styles: t.Dict[str, Style] = None, global_style: Style = NOOP_STYLE):
         self._user_styles: t.Dict[str, Style] = custom_styles or {}
         self._global_style = global_style
 
@@ -276,9 +267,7 @@ class TemplateEngine:
 
         for idx, tag_match in enumerate(self._TAG_REGEX.finditer(tpl_nocom)):
             tpl_span = tag_match.span()
-            text_before = self._ESCAPE_REGEX.sub(
-                r"\1[", tpl_nocom[tpl_cursor : tpl_span[0]]
-            )
+            text_before = self._ESCAPE_REGEX.sub(r"\1[", tpl_nocom[tpl_cursor : tpl_span[0]])
             tpl_cursor = tpl_span[1]
             if text_before:
                 tpl_parts.append(text_before)
@@ -298,7 +287,7 @@ class TemplateEngine:
         to_stack = st_stack.append
 
         for idx, tpl_part in enumerate(tpl_parts):
-            _stacks_str = f"[" + "] [".join(repr(s) for s in [spl_stack, st_stack]) + "]"
+            _stacks_str = "[" + "] [".join(repr(s) for s in [spl_stack, st_stack]) + "]"
 
             if isinstance(tpl_part, str):
 

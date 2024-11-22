@@ -5,6 +5,24 @@
 # -----------------------------------------------------------------------------
 """
 Functions and classes commonly used throughout the library.
+
+Considerations:
+    - value is *None* when it's type is *None* (obviously);
+    - value ``v`` is falsy when ``bool(v)`` yields *False*;
+    - value ``v`` is empty when it is falsy OR ``len(str(v)).strip()`` yields 0.
+
+    .. |mf| replace:: ``1e-400``
+
+    =========== ====== ======= ====== ======= ===== ========== ====== ====== ====== ========
+    \           *None* *False* ``""`` ``" "`` ``0`` |mf|\ [#]_ ``()`` ``[]`` ``{}`` ``[""]``
+    =========== ====== ======= ====== ======= ===== ========== ====== ====== ====== ========
+    is empty     yes     yes     yes    yes    yes    yes        yes    yes    yes      no
+    is falsy     yes     yes     yes   **no**  yes    yes        yes    yes    yes      no
+    is *None*    yes      no      no     no     no     no         no     no     no      no
+    =========== ====== ======= ====== ======= ===== ========== ====== ====== ====== ========
+
+.. [#] *float* less than `sys.float_info.min`.
+
 """
 from __future__ import annotations
 
@@ -17,11 +35,15 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import lru_cache, partial
 from math import ceil
+from typing import overload
 
 _T = t.TypeVar("_T")
+_CT = t.TypeVar("_CT")
 _KT = t.TypeVar("_KT")
 _VT = t.TypeVar("_VT")
 _TT = t.TypeVar("_TT", bound=type)
+
+_MISSING = object()
 
 
 class ExtendedEnum(enum.Enum):
@@ -140,13 +162,21 @@ def cut(
     overflow=OVERFLOW_CHAR,
 ) -> str:
     """
-    cut
+    Truncate the `string` to given `max_len` if it is longer; replace
+    last N (length of `overflow`) characters with `overflow`, if it
+    is not empty; which part to keep is determined by `keep` param:
 
-    :param string:
-    :param max_len:
-    :param align:
-    :param keep:
-    :param overflow:
+        >>> cut('12345', 3)
+        '12‥'
+        >>> cut('12345', 3, keep=Align.RIGHT)
+        '‥45'
+
+    :param string:      input string.
+    :param max_len:     maximum output string length (can be less).
+    :param align:       has no effect; kept anyway so that `cut()` and `fit()`
+                        had the same interface.
+    :param keep:        what part to keep if input is longer than `max_len`
+    :param overflow:    what to put in place of discarded characters.
     """
     if len(string) <= max_len:
         return string
@@ -163,13 +193,25 @@ def fit(
     fill: str = " ",
 ) -> str:
     """
-    fit
-    :param string:
-    :param max_len:
-    :param align:
-    :param keep:
-    :param overflow:
-    :param fill:
+    Fit the `string` to given `max_len`: truncate if it's longer, pad with
+    `fill` if it's shorter. In former case also replace last N (length of
+    `overflow`) characters with `overflow`, if it is not empty; which part
+    to keep is determined by `keep` param. In latter case `align` parameter
+    controls from which side `fill` characters will be added:
+
+        >>> fit('12345678', 5, align=Align.RIGHT, keep=Align.LEFT)
+        '1234‥'
+        >>> fit('1', 5, align=Align.RIGHT, keep=Align.LEFT)
+        '    1'
+
+    :param string:      input string.
+    :param max_len:     output string length (always as specified).
+    :param align:       text alignment when input is shorter than `max_len`
+    :param keep:        what part to keep if input is longer than `max_len`
+    :param overflow:    what to put in place of discarded characters; can be
+                        longer than 1 character.
+    :param fill:        characters to make paddings from; can be longer than
+                        1 character.
     """
     align = Align.resolve(align)
     keep = Align.resolve(keep, fallback=Align.LEFT)
@@ -276,7 +318,10 @@ def get_qname(obj: any, *, name_only=False) -> str:
     'str'
     >>> get_qname(ExtendedEnum)
     '<ExtendedEnum>'
+    >>> get_qname(ExtendedEnum, name_only=True)
+    'ExtendedEnum'
 
+    :param name_only: If set to *True*, no additional formatting is applied.
     """
     if obj is None:
         return "None"
@@ -361,6 +406,19 @@ def get_subclasses(target: _T) -> Iterable[t.Type[_T]]:
     result = [*visited.keys()]
     result.remove(target)
     return result
+
+
+@overload
+def isbuiltin(cls: type) -> bool:
+    """See if `arg` is python *builtin* type."""
+    ...
+
+
+def isbuiltin(arg) -> bool:  # @TODO figure out why @overload is not present in docs
+    """See if `arg` type is an instance of python *builtin* type."""
+    if arg is not type:
+        arg = type(arg)
+    return hasattr(builtins, type(arg).__name__)
 
 
 def ismutable(arg: any) -> bool:  # pragma: no cover
@@ -499,7 +557,7 @@ def flip_unpack(d: dict[_KT, Iterable[_VT]]) -> dict[_VT, _KT]:
     return {v: k for k, vv in d.items() for v in vv}
 
 
-def char_range(start: str, stop: str):
+def char_range(start: str, stop: str) -> Iterable[str]:
     """
     Yields all the characters from range of [`c1`; `c2`], inclusive
     (end character `c2` is **also present**, in contrast with classic
@@ -514,11 +572,11 @@ def char_range(start: str, stop: str):
         `pt.char_range('¹', '⁴')` yields 8124 characters total. The reason
         is that the algoritm works with input characters as Unicode codepoints,
         and '¹', '⁴' are relatively distant from each other: "¹" :hex:`U+B9`,
-        "⁴" :hex:`Ux2074`, which leads to an unexpected results. Character
+        "⁴" :hex:`U+2074`, which leads to an unexpected results. Character
         ranges in Python regular expessetions, e.g. `[¹-⁴]`, work the same way.
 
-    :param start; Character to start from (inclusive)
-    :param stop;  Character to stop at (**inclusive**)
+    :param start: Character to start from (inclusive)
+    :param stop:  Character to stop at (**inclusive**)
     """
     start_code = ord(start)
     stop_code = ord(stop) + 1
@@ -530,6 +588,67 @@ def char_range(start: str, stop: str):
     else:
         codes = range(start_code, stop_code)
     yield from map(chr, codes)
+
+
+def getn(data: t.Mapping[_KT, _VT], key: _KT, cls: t.Type[_CT] = None) -> _CT | None:
+    """
+    "Nullable" wrapper around `get()`, which not only allows `key` to be missing, but
+    also catches type checking/conversion errors and returns *None* in both
+    cases.
+    """
+    try:
+        return get(data, key, cls, required=False)
+    except ValueError:
+        return None
+
+
+def getr(data: t.Mapping[_KT, _VT], key: _KT, cls: t.Type[_CT] = None) -> _CT:
+    """
+    "Required" wrapper around `get()`, which always requires `key` to be present.
+
+    :raises KeyError:   if key is not found.
+    """
+    return get(data, key, cls, required=True)
+
+
+def get(data: t.Mapping[_KT, _VT], key: _KT, cls: t.Type[_CT] = None, required=True) -> _CT | None:
+    """
+    Get nested dictionary value; key can be specified as "aa.bb.ccc" -- a composite
+    of three keys of each of nested *dict*\\ s.
+
+    :param data:  input mapping instance.
+    :param key:   can be any type, but if it is *str*, then special handling of composite
+                  keys is invoked.
+    :param cls:   if not *None*, the result value will be of specified type or ValueError
+                  is raised; if *None*, no type conversion/checking is performed.
+    :param required:    if specified key does not exist, raise KeyError when `required` is
+                        *True*, and return *None* otherwise.
+    :raises KeyError:   if key is not found and `required` is *True*.
+    :raises ValueError: if `cls` is not *None* and type conversion failed.
+    :returns:     value from `data` of `cls` type found at specified `key`, or *None*.
+    """
+    if isinstance(key, str):
+        while "." in key:
+            cur_key, _, key = key.partition(".")
+            data = get(data, cur_key, dict, required)
+
+    val = data.get(key, _MISSING)
+    if val is _MISSING:
+        if required:
+            raise KeyError(f"Data is missing {key!r} field")
+        return None
+    if cls is None:
+        return val
+
+    try:
+        if hasattr(builtins, cls.__name__):
+            return cls(val)
+        if not issubclass(type(val), cls):
+            raise TypeError(f"{val!r} is not a subclass of {cls!r}")
+    except ValueError as e:
+        raise ValueError(f"Failed to represent {val!r} as {cls!r}") from e
+
+    return val
 
 
 # -----------------------------------------------------------------------------
@@ -548,17 +667,17 @@ def _first(items: t.Iterable[_T]) -> _T | None:
 
 
 filtern = partial(filter, _isnotnone)
-"""Shortcut for filtering out Nones from sequences."""
+"""Shortcut for filtering out *Nones* from sequences."""
 
 filterf = partial(filter, _istruly)
 """Shortcut for filtering out falsy values from sequences."""
 
 filtere = partial(filter, _isfilled)
-"""Shortcut for filtering out falsy AND empty values from sequences."""
+"""Shortcut for filtering out falsy OR empty values from sequences."""
 
 
 def filternv(mapping: dict[_KT, _VT]) -> dict[_KT, _VT]:
-    """Shortcut for filtering out None values from mappings."""
+    """Shortcut for filtering out *None* values from mappings."""
     return dict(filter(lambda kv: _isnotnone(kv[1]), mapping.items()))
 
 
@@ -568,12 +687,12 @@ def filterfv(mapping: dict[_KT, _VT]) -> dict[_KT, _VT]:
 
 
 def filterev(mapping: dict[_KT, _VT]) -> dict[_KT, _VT]:
-    """Shortcut for filtering out falsy AND empty values from mappings."""
+    """Shortcut for filtering out falsy OR empty values from mappings."""
     return dict(filter(lambda kv: _isfilled(kv[1]), mapping.items()))
 
 
 def coaln(*arg: _T) -> _T | None:
-    """Return first ``arg`` that is not **None**"""
+    """Return first ``arg`` that is not *None*"""
     return _first(filtern(arg))
 
 
@@ -593,10 +712,10 @@ def joinn(*arg: any, sep="") -> str:
 
 
 def joinf(*arg: any, sep="") -> str:
-    """Drop all falsy values from ``args``, map the rest to *str* and join them with ``sep``."""
-    return sep.join(map(str, filtern(arg)))
+    """Drop all falsy ``args``, map the rest to *str* and join them with ``sep``."""
+    return sep.join(map(str, filterf(arg)))
 
 
 def joine(*arg: any, sep="") -> str:
-    """Drop all empty valuues ``args``, map the rest to *str* and join them with ``sep``."""
-    return sep.join(map(str, filtern(arg)))
+    """Drop all empty ``args``, map the rest to *str* and join them with ``sep``."""
+    return sep.join(map(str, filtere(arg)))
